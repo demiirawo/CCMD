@@ -27,10 +27,13 @@ export const StatusItem = ({
   const [isExpanded, setIsExpanded] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [showActionDialog, setShowActionDialog] = useState(false);
-  const [pendingMention, setPendingMention] = useState<{attendee: string, comment: string} | null>(null);
+  const [pendingMention, setPendingMention] = useState<{
+    attendee: string;
+    comment: string;
+  } | null>(null);
   const handleCommentSubmit = (comment: string) => {
     onCommentChange?.(item.id, comment);
-    
+
     // Check for @ mentions
     const mentionRegex = /@(\w+)/g;
     const mentions = comment.match(mentionRegex);
@@ -39,17 +42,17 @@ export const StatusItem = ({
         const mentionedName = mention.substring(1);
         return attendees.some(attendee => attendee.toLowerCase().includes(mentionedName.toLowerCase()));
       });
-      
       if (foundMention) {
         const mentionedName = foundMention.substring(1);
-        setPendingMention({ attendee: mentionedName, comment });
+        setPendingMention({
+          attendee: mentionedName,
+          comment
+        });
         setShowActionDialog(true);
       }
     }
-    
     setIsEditing(false);
   };
-
   const handleActionSubmit = (action: string, dueDate: string) => {
     if (pendingMention) {
       onMentionDetected?.(item.title, pendingMention.attendee, pendingMention.comment, action, dueDate);
@@ -62,22 +65,19 @@ export const StatusItem = ({
           {isExpanded ? <ChevronDown className="w-4 h-4 text-muted-foreground" /> : <ChevronRight className="w-4 h-4 text-muted-foreground" />}
         </button>
         
-        <button 
-          onClick={(e) => {
-            e.stopPropagation();
-            const statusOrder: StatusType[] = ["green", "amber", "red"];
-            const currentIndex = statusOrder.indexOf(item.status);
-            const nextStatus = statusOrder[(currentIndex + 1) % statusOrder.length];
-            onStatusChange?.(item.id, nextStatus);
-          }}
-          className="flex-shrink-0 hover:scale-110 transition-transform"
-        >
+        <button onClick={e => {
+        e.stopPropagation();
+        const statusOrder: StatusType[] = ["green", "amber", "red"];
+        const currentIndex = statusOrder.indexOf(item.status);
+        const nextStatus = statusOrder[(currentIndex + 1) % statusOrder.length];
+        onStatusChange?.(item.id, nextStatus);
+      }} className="flex-shrink-0 hover:scale-110 transition-transform">
           <StatusBadge status={item.status} />
         </button>
         
         <div className="flex-[2] min-w-0 mr-4">
           <h4 className="font-semibold text-foreground truncate">{item.title}</h4>
-          <p className="text-sm text-muted-foreground">{item.lastReviewed}</p>
+          
           <p className="text-xs text-muted-foreground mt-1">Last Discussed: {item.lastReviewed}</p>
         </div>
         
@@ -104,30 +104,18 @@ export const StatusItem = ({
           <div className="space-y-2">
             
             <div className="flex gap-2">
-              {(["green", "amber", "red"] as StatusType[]).map(status => (
-                <button
-                  key={status}
-                  onClick={() => onStatusChange?.(item.id, status)}
-                  className="transition-transform hover:scale-105"
-                >
+              {(["green", "amber", "red"] as StatusType[]).map(status => <button key={status} onClick={() => onStatusChange?.(item.id, status)} className="transition-transform hover:scale-105">
                   <StatusBadge status={status} />
-                </button>
-              ))}
+                </button>)}
             </div>
           </div>
           
           
         </div>}
         
-        <ActionDialog
-          isOpen={showActionDialog}
-          onClose={() => {
-            setShowActionDialog(false);
-            setPendingMention(null);
-          }}
-          onSubmit={handleActionSubmit}
-          mentionedAttendee={pendingMention?.attendee || ""}
-          itemTitle={item.title}
-        />
+        <ActionDialog isOpen={showActionDialog} onClose={() => {
+      setShowActionDialog(false);
+      setPendingMention(null);
+    }} onSubmit={handleActionSubmit} mentionedAttendee={pendingMention?.attendee || ""} itemTitle={item.title} />
     </div>;
 };
