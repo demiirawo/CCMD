@@ -12,7 +12,7 @@ interface DashboardHeaderProps {
 
 export const DashboardHeader = ({ date, title, stats }: DashboardHeaderProps) => {
   return (
-    <div className="clay-card p-8 mb-8">
+    <div className="bg-white p-8 mb-8 rounded-xl shadow-sm">
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
         <div className="space-y-2">
           <h1 className="text-3xl font-bold text-foreground">{title}</h1>
