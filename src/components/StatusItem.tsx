@@ -63,7 +63,15 @@ export const StatusItem = ({
           <div className="space-y-2">
             
             <div className="flex gap-2">
-              {(["green", "amber", "red"] as StatusType[]).map(status => {})}
+              {(["green", "amber", "red"] as StatusType[]).map(status => (
+                <button
+                  key={status}
+                  onClick={() => onStatusChange?.(item.id, status)}
+                  className="transition-transform hover:scale-105"
+                >
+                  <StatusBadge status={status} />
+                </button>
+              ))}
             </div>
           </div>
           

@@ -1,4 +1,4 @@
-import { AlertTriangle, CheckCircle, XCircle } from "lucide-react";
+import { StatusBadge } from "./StatusBadge";
 import { useState } from "react";
 
 interface DashboardHeaderProps {
@@ -71,7 +71,7 @@ export const DashboardHeader = ({ date, title, attendees, purpose, stats, onData
       <div className="flex gap-4 justify-center pt-4 border-t border-border/20">
         <div className="bg-white p-4 rounded-xl shadow-sm">
           <div className="flex items-center gap-3">
-            <CheckCircle className="w-6 h-6 text-green-600" />
+            <StatusBadge status="green" />
             <div className="text-center">
               <div className="text-2xl font-bold text-green-600">{stats.green}</div>
               <div className="text-sm text-muted-foreground">On Track</div>
@@ -81,7 +81,7 @@ export const DashboardHeader = ({ date, title, attendees, purpose, stats, onData
         
         <div className="bg-white p-4 rounded-xl shadow-sm">
           <div className="flex items-center gap-3">
-            <AlertTriangle className="w-6 h-6 text-amber-600" />
+            <StatusBadge status="amber" />
             <div className="text-center">
               <div className="text-2xl font-bold text-amber-600">{stats.amber}</div>
               <div className="text-sm text-muted-foreground">At Risk</div>
@@ -91,7 +91,7 @@ export const DashboardHeader = ({ date, title, attendees, purpose, stats, onData
         
         <div className="bg-white p-4 rounded-xl shadow-sm">
           <div className="flex items-center gap-3">
-            <XCircle className="w-6 h-6 text-red-600" />
+            <StatusBadge status="red" />
             <div className="text-center">
               <div className="text-2xl font-bold text-red-600">{stats.red}</div>
               <div className="text-sm text-muted-foreground">Critical</div>
