@@ -4,37 +4,34 @@ import { LineChart, Line, XAxis, YAxis, ResponsiveContainer } from "recharts";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-const initialMonthlyData = [{
-  month: "Apr 25",
-  serviceUsers: 51,
-  currentStaff: 26,
-  minStaff: 12,
-  idealStaff: 22
-}, {
-  month: "May 25",
-  serviceUsers: 39,
-  currentStaff: 25,
-  minStaff: 17,
-  idealStaff: 18
-}, {
-  month: "Jun 25",
-  serviceUsers: 58,
-  currentStaff: 16,
-  minStaff: 14,
-  idealStaff: 24
-}, {
-  month: "Jul 25",
-  serviceUsers: 52,
-  currentStaff: 13,
-  minStaff: 13,
-  idealStaff: 27
-}];
+import { format, subMonths } from "date-fns";
+// Generate 12 months of data from current month back to same month last year
+const generateInitialData = () => {
+  const currentDate = new Date();
+  const data = [];
+  
+  for (let i = 0; i < 12; i++) {
+    const monthDate = subMonths(currentDate, i);
+    data.unshift({
+      month: format(monthDate, "MMM yy"),
+      serviceUsers: 0,
+      currentStaff: 0,
+      minStaff: 0,
+      idealStaff: 0
+    });
+  }
+  
+  return data;
+};
+
+const initialMonthlyData = generateInitialData();
+
 const initialCurrentMetrics = {
-  activeServiceUsers: 52,
-  currentStaffingLevel: 13,
-  minimumStaffingLevel: 13,
-  idealStaffingLevel: 27,
-  capacityCoverage: 48.1
+  activeServiceUsers: 0,
+  currentStaffingLevel: 0,
+  minimumStaffingLevel: 0,
+  idealStaffingLevel: 0,
+  capacityCoverage: 0
 };
 const chartConfig = {
   serviceUsers: {
