@@ -167,7 +167,7 @@ export const StaffComplianceAnalytics = () => {
                 {pieData.map((entry, index) => {
                   const angle = (index * (360 / pieData.length)) + (360 / pieData.length / 2);
                   const radian = (angle * Math.PI) / 180;
-                  const radius = 140;
+                  const radius = 180;
                   const x = 250 + radius * Math.cos(radian - Math.PI / 2);
                   const y = 200 + radius * Math.sin(radian - Math.PI / 2);
                   
