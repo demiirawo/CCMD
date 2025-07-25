@@ -1,5 +1,4 @@
 import { StatusBadge, StatusType } from "./StatusBadge";
-import { ActionDialog } from "./ActionDialog";
 import { CapacityAnalytics } from "./CapacityAnalytics";
 import { StaffComplianceAnalytics } from "./StaffComplianceAnalytics";
 import { ChevronDown, ChevronRight } from "lucide-react";
@@ -28,37 +27,64 @@ export const StatusItem = ({
 }: StatusItemProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [showActionDialog, setShowActionDialog] = useState(false);
-  const [pendingMention, setPendingMention] = useState<{
-    attendee: string;
-    comment: string;
-  } | null>(null);
   const handleCommentSubmit = (comment: string) => {
-    onCommentChange?.(item.id, comment);
-
-    // Check for @ mentions
-    const mentionRegex = /@(\w+)/g;
-    const mentions = comment.match(mentionRegex);
-    if (mentions && attendees.length > 0) {
-      const foundMention = mentions.find(mention => {
-        const mentionedName = mention.substring(1);
-        return attendees.some(attendee => attendee.toLowerCase().includes(mentionedName.toLowerCase()));
-      });
-      if (foundMention) {
-        const mentionedName = foundMention.substring(1);
-        setPendingMention({
-          attendee: mentionedName,
-          comment
-        });
-        setShowActionDialog(true);
+    // Check for completed inline actions (format: @Name Action: [action] Date Due: [date])
+    const inlineActionRegex = /@(\w+)\s+Action:\s*([^D]+?)\s*Date\s+Due:\s*(\S+)/g;
+    let match;
+    
+    while ((match = inlineActionRegex.exec(comment)) !== null) {
+      const [, mentionedName, action, dueDate] = match;
+      
+      if (action.trim() && dueDate.trim() && attendees.length > 0) {
+        const foundAttendee = attendees.find(attendee => 
+          attendee.toLowerCase().includes(mentionedName.toLowerCase())
+        );
+        
+        if (foundAttendee) {
+          onMentionDetected?.(item.title, mentionedName, comment, action.trim(), dueDate.trim());
+        }
       }
     }
+    
+    onCommentChange?.(item.id, comment);
     setIsEditing(false);
   };
-  const handleActionSubmit = (action: string, dueDate: string) => {
-    if (pendingMention) {
-      onMentionDetected?.(item.title, pendingMention.attendee, pendingMention.comment, action, dueDate);
-      setPendingMention(null);
+
+  const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const value = e.target.value;
+    const cursorPosition = e.target.selectionStart;
+    
+    // Check for @ mentions and insert inline template
+    const mentionRegex = /@(\w+)(?!\s+Action:)/g;
+    let match;
+    let newValue = value;
+    let offset = 0;
+    
+    while ((match = mentionRegex.exec(value)) !== null) {
+      const [fullMatch, mentionedName] = match;
+      
+      if (attendees.some(attendee => attendee.toLowerCase().includes(mentionedName.toLowerCase()))) {
+        const matchStart = match.index + offset;
+        const matchEnd = matchStart + fullMatch.length;
+        const template = `@${mentionedName} Action: _______ Date Due: _______`;
+        
+        newValue = newValue.substring(0, matchStart) + template + newValue.substring(matchEnd);
+        offset += template.length - fullMatch.length;
+        
+        // Update cursor position if it was after the match
+        if (cursorPosition > matchEnd) {
+          setTimeout(() => {
+            e.target.setSelectionRange(
+              cursorPosition + offset, 
+              cursorPosition + offset
+            );
+          }, 0);
+        }
+      }
+    }
+    
+    if (newValue !== value) {
+      e.target.value = newValue;
     }
   };
   return <div className="w-full bg-white rounded-xl p-8 mb-3 shadow-md border border-border/30 hover:scale-[1.01] transition-transform duration-300 min-h-[140px]">
@@ -83,14 +109,22 @@ export const StatusItem = ({
         </div>
         
         <div className="flex-[4.6] min-w-0">
-          {isEditing ? <textarea defaultValue={item.comment} className="w-full max-w-full p-3 rounded-lg border border-gray-100 bg-gray-25 resize-none min-h-[100px] text-sm break-words overflow-hidden whitespace-pre-wrap" placeholder="Add your comment..." onBlur={e => handleCommentSubmit(e.target.value)} onKeyDown={e => {
-          if (e.key === "Enter" && e.ctrlKey) {
-            handleCommentSubmit(e.currentTarget.value);
-          }
-          if (e.key === "Escape") {
-            setIsEditing(false);
-          }
-        }} autoFocus /> : <button onClick={() => setIsEditing(true)} className="w-full max-w-full text-left p-3 rounded-lg bg-gray-25 hover:bg-gray-50 transition-colors text-sm min-h-[100px] flex items-start border border-gray-100 break-words overflow-hidden">
+          {isEditing ? <textarea 
+            defaultValue={item.comment} 
+            className="w-full max-w-full p-3 rounded-lg border border-gray-100 bg-gray-25 resize-none min-h-[100px] text-sm break-words overflow-hidden whitespace-pre-wrap" 
+            placeholder="Add your comment... (Type @Name to create an action)"
+            onChange={handleTextareaChange}
+            onBlur={e => handleCommentSubmit(e.target.value)} 
+            onKeyDown={e => {
+              if (e.key === "Enter" && e.ctrlKey) {
+                handleCommentSubmit(e.currentTarget.value);
+              }
+              if (e.key === "Escape") {
+                setIsEditing(false);
+              }
+            }} 
+            autoFocus 
+          /> : <button onClick={() => setIsEditing(true)} className="w-full max-w-full text-left p-3 rounded-lg bg-gray-25 hover:bg-gray-50 transition-colors text-sm min-h-[100px] flex items-start border border-gray-100 break-words overflow-hidden">
               <span className="break-words w-full whitespace-pre-wrap">{item.comment || "Click to add comment..."}</span>
             </button>}
         </div>
@@ -115,10 +149,5 @@ export const StatusItem = ({
           )}
           
         </div>}
-        
-        <ActionDialog isOpen={showActionDialog} onClose={() => {
-      setShowActionDialog(false);
-      setPendingMention(null);
-    }} onSubmit={handleActionSubmit} mentionedAttendee={pendingMention?.attendee || ""} itemTitle={item.title} />
     </div>;
 };
