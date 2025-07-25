@@ -108,7 +108,7 @@ export const DashboardSection = ({
             </div>
           )}
           
-          {title.toLowerCase().includes('recruitment') && (
+          {title.toLowerCase().includes('staff') && (
             <CapacityAnalytics />
           )}
         </div>
