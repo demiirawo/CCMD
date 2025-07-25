@@ -27,8 +27,8 @@ export const StatusItem = ({ item, onStatusChange, onCommentChange }: StatusItem
   };
 
   return (
-    <div className="bg-white rounded-xl p-4 mb-3 shadow-md border border-border/30 hover:scale-[1.01] transition-transform duration-300">
-      <div className="flex items-center gap-4">
+    <div className="w-full bg-white rounded-xl p-4 mb-3 shadow-md border border-border/30 hover:scale-[1.01] transition-transform duration-300">
+      <div className="flex items-center gap-4 w-full">
         <button
           onClick={() => setIsExpanded(!isExpanded)}
           className="flex-shrink-0 p-1 rounded-lg hover:bg-accent/50 transition-colors"
@@ -48,8 +48,31 @@ export const StatusItem = ({ item, onStatusChange, onCommentChange }: StatusItem
           <p className="text-sm text-muted-foreground">{item.lastReviewed}</p>
         </div>
         
-        <div className="flex-shrink-0 max-w-md">
-          <p className="text-sm text-foreground">{item.comment}</p>
+        <div className="flex-1">
+          {isEditing ? (
+            <textarea
+              defaultValue={item.comment}
+              className="w-full p-2 rounded-lg border border-border bg-background resize-none min-h-[60px] text-sm"
+              placeholder="Add your comment..."
+              onBlur={(e) => handleCommentSubmit(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && e.ctrlKey) {
+                  handleCommentSubmit(e.currentTarget.value);
+                }
+                if (e.key === "Escape") {
+                  setIsEditing(false);
+                }
+              }}
+              autoFocus
+            />
+          ) : (
+            <button
+              onClick={() => setIsEditing(true)}
+              className="w-full text-left p-2 rounded-lg hover:bg-accent/50 transition-colors text-sm"
+            >
+              {item.comment || "Click to add comment..."}
+            </button>
+          )}
         </div>
       </div>
       
