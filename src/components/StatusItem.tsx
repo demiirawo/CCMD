@@ -1,8 +1,12 @@
 import { StatusBadge, StatusType } from "./StatusBadge";
 import { CapacityAnalytics } from "./CapacityAnalytics";
 import { StaffComplianceAnalytics } from "./StaffComplianceAnalytics";
-import { ChevronDown, ChevronRight } from "lucide-react";
+import { ChevronDown, ChevronRight, Calendar as CalendarIcon } from "lucide-react";
 import { useState } from "react";
+import { Button } from "./ui/button";
+import { Calendar } from "./ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
+import { format } from "date-fns";
 export interface StatusItemData {
   id: string;
   title: string;
@@ -81,6 +85,51 @@ export const StatusItem = ({
     }
   };
 
+  const handleTextareaKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Enter" && e.ctrlKey) {
+      handleCommentSubmit(e.currentTarget.value);
+      return;
+    }
+    if (e.key === "Escape") {
+      setIsEditing(false);
+      setShowMentionDropdown(false);
+      return;
+    }
+    if (showMentionDropdown && (e.key === "ArrowDown" || e.key === "ArrowUp")) {
+      e.preventDefault();
+      return;
+    }
+
+    // Handle automatic placeholder replacement when typing
+    const textarea = e.currentTarget;
+    const value = textarea.value;
+    const selectionStart = textarea.selectionStart;
+    const selectionEnd = textarea.selectionEnd;
+
+    // Check if we're typing in a selected placeholder
+    if (selectionStart !== selectionEnd) {
+      const selectedText = value.substring(selectionStart, selectionEnd);
+      if (selectedText === "[Enter action here]" || selectedText === "[Enter date here]") {
+        // Let the default behavior replace the selected text
+        return;
+      }
+    }
+
+    // Check if we're typing at the start of a placeholder
+    const beforeCursor = value.substring(0, selectionStart);
+    const afterCursor = value.substring(selectionStart);
+    
+    if (afterCursor.startsWith("[Enter action here]") || afterCursor.startsWith("[Enter date here]")) {
+      const placeholderEnd = afterCursor.indexOf("]") + 1;
+      if (placeholderEnd > 0) {
+        // Select the entire placeholder so it gets replaced
+        setTimeout(() => {
+          textarea.setSelectionRange(selectionStart, selectionStart + placeholderEnd);
+        }, 0);
+      }
+    }
+  };
+
   const selectMention = (attendee: string) => {
     if (!textareaRef) return;
     
@@ -100,12 +149,125 @@ export const StatusItem = ({
       textareaRef.value = newValue;
       textareaRef.focus();
       
-      // Position cursor at the first bracket
+      // Position cursor at the first bracket and select it
       const actionStart = beforeMention.length + template.indexOf('[Enter action here]');
       textareaRef.setSelectionRange(actionStart, actionStart + 19); // Select "[Enter action here]"
     }
     
     setShowMentionDropdown(false);
+  };
+
+  const handleDateSelect = (date: Date | undefined) => {
+    if (!date || !textareaRef) return;
+    
+    const value = textareaRef.value;
+    const dateRegex = /\[Enter date here\]/;
+    const match = dateRegex.exec(value);
+    
+    if (match) {
+      const formattedDate = format(date, "yyyy-MM-dd");
+      const newValue = value.replace(dateRegex, formattedDate);
+      textareaRef.value = newValue;
+      textareaRef.focus();
+      
+      // Position cursor after the date
+      const cursorPos = match.index + formattedDate.length;
+      textareaRef.setSelectionRange(cursorPos, cursorPos);
+    }
+  };
+
+  const renderEnhancedTextarea = () => {
+    const value = textareaRef?.value || item.comment || "";
+    const hasDatePlaceholder = value.includes("[Enter date here]");
+    
+    return (
+      <div className="relative">
+        <textarea 
+          ref={setTextareaRef}
+          defaultValue={item.comment} 
+          className="w-full max-w-full p-3 rounded-lg border border-gray-100 bg-gray-25 resize-none min-h-[100px] text-sm break-words overflow-hidden whitespace-pre-wrap" 
+          placeholder="Add your comment... (Type @ to mention someone and create an action)"
+          onChange={handleTextareaChange}
+          onBlur={e => {
+            // Delay to allow dropdown clicks
+            setTimeout(() => {
+              if (!showMentionDropdown) {
+                handleCommentSubmit(e.target.value);
+              }
+            }, 200);
+          }}
+          onKeyDown={handleTextareaKeyDown}
+          onMouseUp={(e) => {
+            // Handle clicking on date placeholder
+            const textarea = e.currentTarget;
+            const selectionStart = textarea.selectionStart;
+            const selectionEnd = textarea.selectionEnd;
+            const selectedText = textarea.value.substring(selectionStart, selectionEnd);
+            
+            if (selectedText === "[Enter date here]" || 
+                (selectionStart === selectionEnd && 
+                 textarea.value.substring(selectionStart - 17, selectionStart + 1) === "[Enter date here]")) {
+              // Show date picker if clicking on date placeholder
+              const dateButton = document.getElementById(`date-picker-${item.id}`);
+              if (dateButton) {
+                dateButton.click();
+              }
+            }
+          }}
+          autoFocus 
+        />
+        
+        {/* Hidden date picker trigger */}
+        {hasDatePlaceholder && (
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                id={`date-picker-${item.id}`}
+                variant="ghost"
+                className="absolute top-0 left-0 w-0 h-0 p-0 opacity-0 pointer-events-none"
+              >
+                <CalendarIcon />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={undefined}
+                onSelect={handleDateSelect}
+                initialFocus
+                className="p-3 pointer-events-auto"
+                disabled={(date) => date < new Date()}
+              />
+            </PopoverContent>
+          </Popover>
+        )}
+        
+        {/* Mention Dropdown */}
+        {showMentionDropdown && filteredAttendees.length > 0 && (
+          <div 
+            className="absolute z-50 bg-white border border-gray-200 rounded-lg shadow-lg max-h-40 overflow-y-auto"
+            style={{
+              top: dropdownPosition.top,
+              left: dropdownPosition.left,
+              minWidth: '200px'
+            }}
+          >
+            {filteredAttendees.map((attendee, index) => (
+              <button
+                key={index}
+                className="w-full text-left px-3 py-2 hover:bg-gray-100 focus:bg-gray-100 text-sm first:rounded-t-lg last:rounded-b-lg"
+                onMouseDown={(e) => {
+                  e.preventDefault(); // Prevent blur
+                  selectMention(attendee);
+                }}
+              >
+                {attendee}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    );
   };
 
   const filteredAttendees = attendees.filter(attendee =>
@@ -167,64 +329,7 @@ export const StatusItem = ({
         
         <div className="flex-[4.6] min-w-0 relative">
           {isEditing ? (
-            <div className="relative">
-              <textarea 
-                ref={setTextareaRef}
-                defaultValue={item.comment} 
-                className="w-full max-w-full p-3 rounded-lg border border-gray-100 bg-gray-25 resize-none min-h-[100px] text-sm break-words overflow-hidden whitespace-pre-wrap" 
-                placeholder="Add your comment... (Type @ to mention someone and create an action)"
-                onChange={handleTextareaChange}
-                onBlur={e => {
-                  // Delay to allow dropdown clicks
-                  setTimeout(() => {
-                    if (!showMentionDropdown) {
-                      handleCommentSubmit(e.target.value);
-                    }
-                  }, 200);
-                }}
-                onKeyDown={e => {
-                  if (e.key === "Enter" && e.ctrlKey) {
-                    handleCommentSubmit(e.currentTarget.value);
-                  }
-                  if (e.key === "Escape") {
-                    setIsEditing(false);
-                    setShowMentionDropdown(false);
-                  }
-                  if (e.key === "ArrowDown" && showMentionDropdown) {
-                    e.preventDefault();
-                  }
-                  if (e.key === "ArrowUp" && showMentionDropdown) {
-                    e.preventDefault();
-                  }
-                }} 
-                autoFocus 
-              />
-              
-              {/* Mention Dropdown */}
-              {showMentionDropdown && filteredAttendees.length > 0 && (
-                <div 
-                  className="absolute z-50 bg-white border border-gray-200 rounded-lg shadow-lg max-h-40 overflow-y-auto"
-                  style={{
-                    top: dropdownPosition.top,
-                    left: dropdownPosition.left,
-                    minWidth: '200px'
-                  }}
-                >
-                  {filteredAttendees.map((attendee, index) => (
-                    <button
-                      key={index}
-                      className="w-full text-left px-3 py-2 hover:bg-gray-100 focus:bg-gray-100 text-sm first:rounded-t-lg last:rounded-b-lg"
-                      onMouseDown={(e) => {
-                        e.preventDefault(); // Prevent blur
-                        selectMention(attendee);
-                      }}
-                    >
-                      {attendee}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
+            renderEnhancedTextarea()
           ) : (
             <button onClick={() => setIsEditing(true)} className="w-full max-w-full text-left p-3 rounded-lg bg-gray-25 hover:bg-gray-50 transition-colors text-sm min-h-[100px] flex items-start border border-gray-100 break-words overflow-hidden">
               <span className="break-words w-full whitespace-pre-wrap">{item.comment || "Click to add comment..."}</span>
