@@ -1,5 +1,5 @@
 import { StatusItem, StatusItemData } from "./StatusItem";
-import { StatusType } from "./StatusBadge";
+import { StatusType, StatusBadge } from "./StatusBadge";
 import { ChevronDown, ChevronRight, Plus, CheckCircle, AlertTriangle, XCircle } from "lucide-react";
 import { useState } from "react";
 
@@ -36,16 +36,7 @@ export const DashboardSection = ({
   };
 
   const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'green':
-        return <CheckCircle className="w-5 h-5 text-green-600" />;
-      case 'amber':
-        return <AlertTriangle className="w-5 h-5 text-amber-600" />;
-      case 'red':
-        return <XCircle className="w-5 h-5 text-red-600" />;
-      default:
-        return <CheckCircle className="w-5 h-5 text-green-600" />;
-    }
+    return <StatusBadge status={status as StatusType} />;
   };
 
   return (
