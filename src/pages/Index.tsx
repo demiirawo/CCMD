@@ -181,6 +181,18 @@ const Index = () => {
       }]
     }]
   });
+
+  const handleDataChange = (field: string, value: string) => {
+    setDashboardData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+    toast({
+      title: "Field Updated",
+      description: `${field.charAt(0).toUpperCase() + field.slice(1)} has been updated`
+    });
+  };
+  
   const handleStatusChange = (sectionId: string, itemId: string, newStatus: StatusType) => {
     setDashboardData(prev => ({
       ...prev,
@@ -238,7 +250,8 @@ const Index = () => {
           title={dashboardData.title} 
           attendees={dashboardData.attendees}
           purpose={dashboardData.purpose}
-          stats={calculateStats()} 
+          stats={calculateStats()}
+          onDataChange={handleDataChange}
         />
         
         {dashboardData.sections.filter(section => section.id !== "meeting-overview").map(section => 

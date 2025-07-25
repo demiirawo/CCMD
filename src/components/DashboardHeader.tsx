@@ -1,4 +1,5 @@
-import { AlertTriangle, CheckCircle } from "lucide-react";
+import { AlertTriangle, CheckCircle, XCircle } from "lucide-react";
+import { useState } from "react";
 
 interface DashboardHeaderProps {
   date: string;
@@ -10,40 +11,64 @@ interface DashboardHeaderProps {
     amber: number;
     red: number;
   };
+  onDataChange?: (field: string, value: string) => void;
 }
 
-export const DashboardHeader = ({ date, title, attendees, purpose, stats }: DashboardHeaderProps) => {
+export const DashboardHeader = ({ date, title, attendees, purpose, stats, onDataChange }: DashboardHeaderProps) => {
+  const [editingField, setEditingField] = useState<string | null>(null);
+
+  const handleFieldEdit = (field: string, value: string) => {
+    setEditingField(null);
+    onDataChange?.(field, value);
+  };
+
+  const EditableField = ({ field, value, label }: { field: string; value: string; label: string }) => (
+    <div className="bg-gray-50 p-4 rounded-lg border-2 border-gray-300 h-24">
+      <h3 className="text-sm font-medium text-muted-foreground mb-2">{label}</h3>
+      {editingField === field ? (
+        <textarea
+          defaultValue={value}
+          className="w-full h-12 p-2 text-lg font-semibold text-foreground bg-white border border-gray-300 rounded resize-none"
+          onBlur={(e) => handleFieldEdit(field, e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+              e.preventDefault();
+              handleFieldEdit(field, e.currentTarget.value);
+            }
+            if (e.key === "Escape") {
+              setEditingField(null);
+            }
+          }}
+          autoFocus
+        />
+      ) : (
+        <button
+          onClick={() => setEditingField(field)}
+          className="w-full text-left h-12 p-2 text-lg font-semibold text-foreground hover:bg-white hover:border-gray-400 transition-colors rounded"
+        >
+          {value}
+        </button>
+      )}
+    </div>
+  );
+
   return (
     <div className="bg-white p-8 mb-8 rounded-xl shadow-sm">
       {/* Meeting Overview Section */}
-      <div className="grid grid-cols-2 gap-6 mb-8 pb-6 border-b border-border/20">
+      <div className="grid grid-cols-2 gap-6 mb-6">
         <div className="space-y-4">
-          <div className="bg-gray-50 p-4 rounded-lg border-2 border-gray-300">
-            <h3 className="text-sm font-medium text-muted-foreground mb-1">Meeting Title</h3>
-            <p className="text-lg font-semibold text-foreground">{title}</p>
-          </div>
-          
-          <div className="bg-gray-50 p-4 rounded-lg border-2 border-gray-300">
-            <h3 className="text-sm font-medium text-muted-foreground mb-1">Meeting Date</h3>
-            <p className="text-lg font-semibold text-foreground">{date}</p>
-          </div>
+          <EditableField field="title" value={title} label="Meeting Title" />
+          <EditableField field="date" value={date} label="Meeting Date" />
         </div>
         
         <div className="space-y-4">
-          <div className="bg-gray-50 p-4 rounded-lg border-2 border-gray-300 h-full">
-            <h3 className="text-sm font-medium text-muted-foreground mb-1">Meeting Attendees</h3>
-            <p className="text-lg font-semibold text-foreground">{attendees}</p>
-          </div>
-          
-          <div className="bg-gray-50 p-4 rounded-lg border-2 border-gray-300 h-full">
-            <h3 className="text-sm font-medium text-muted-foreground mb-1">Meeting Purpose</h3>
-            <p className="text-lg font-semibold text-foreground">{purpose}</p>
-          </div>
+          <EditableField field="attendees" value={attendees} label="Meeting Attendees" />
+          <EditableField field="purpose" value={purpose} label="Meeting Purpose" />
         </div>
       </div>
       
       {/* Stats Section */}
-      <div className="flex gap-4 justify-center">
+      <div className="flex gap-4 justify-center pt-4 border-t border-border/20">
         <div className="bg-white p-4 rounded-xl shadow-sm">
           <div className="flex items-center gap-3">
             <CheckCircle className="w-6 h-6 text-green-600" />
@@ -66,7 +91,7 @@ export const DashboardHeader = ({ date, title, attendees, purpose, stats }: Dash
         
         <div className="bg-white p-4 rounded-xl shadow-sm">
           <div className="flex items-center gap-3">
-            <CheckCircle className="w-6 h-6 text-red-600" />
+            <XCircle className="w-6 h-6 text-red-600" />
             <div className="text-center">
               <div className="text-2xl font-bold text-red-600">{stats.red}</div>
               <div className="text-sm text-muted-foreground">Critical</div>
