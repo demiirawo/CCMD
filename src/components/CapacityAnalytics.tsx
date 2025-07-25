@@ -9,7 +9,6 @@ import { format, subMonths } from "date-fns";
 const generateInitialData = () => {
   const currentDate = new Date();
   const data = [];
-  
   for (let i = 0; i < 12; i++) {
     const monthDate = subMonths(currentDate, i);
     data.unshift({
@@ -20,12 +19,9 @@ const generateInitialData = () => {
       idealStaff: 0
     });
   }
-  
   return data;
 };
-
 const initialMonthlyData = generateInitialData();
-
 const initialCurrentMetrics = {
   activeServiceUsers: 0,
   currentStaffingLevel: 0,
@@ -100,7 +96,7 @@ export const CapacityAnalytics = () => {
   return <div className="space-y-6 mt-4 p-6 border border-border rounded-lg bg-neutral-50">
       <div className="flex items-center justify-between">
         <h4 className="text-lg font-semibold text-foreground">📊 Capacity Analytics</h4>
-        <button className="text-muted-foreground hover:text-foreground">✕</button>
+        
       </div>
       
       <div className="text-sm text-muted-foreground">Monthly Data (Past 12 Months)</div>
