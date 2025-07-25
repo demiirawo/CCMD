@@ -134,55 +134,55 @@ export const StaffComplianceAnalytics = () => {
           <div className="text-sm font-medium text-foreground">Staff Compliance Breakdown</div>
           
           <Card className="p-8">
-            <div className="flex flex-col lg:flex-row items-center gap-8">
-              {/* Pie Chart */}
-              <div className="relative w-80 h-80">
-                <ChartContainer config={chartConfig} className="w-full h-full">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={pieData}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={80}
-                        outerRadius={120}
-                        paddingAngle={2}
-                        dataKey="value"
-                      >
-                        {pieData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
-                      </Pie>
-                      <ChartTooltip content={<ChartTooltipContent />} />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </ChartContainer>
-                
-                {/* Percentage labels around the chart */}
-                <div className="absolute inset-0 pointer-events-none">
-                  {pieData.map((entry, index) => {
-                    const angle = (index * (360 / pieData.length)) + (360 / pieData.length / 2);
-                    const radian = (angle * Math.PI) / 180;
-                    const radius = 140;
-                    const x = 50 + radius * Math.cos(radian - Math.PI / 2) * 0.8;
-                    const y = 50 + radius * Math.sin(radian - Math.PI / 2) * 0.8;
-                    
-                    return (
-                      <div
-                        key={entry.name}
-                        className="absolute text-sm font-medium whitespace-nowrap"
-                        style={{
-                          left: `${x}%`,
-                          top: `${y}%`,
-                          transform: 'translate(-50%, -50%)',
-                          color: entry.color
-                        }}
-                      >
-                        {entry.percentage}%
-                      </div>
-                    );
-                  })}
+            <div className="flex flex-col items-center gap-8">
+              {/* Pie Chart with labels */}
+              <div className="relative w-96 h-96 flex items-center justify-center">
+                <div className="w-64 h-64">
+                  <ChartContainer config={chartConfig} className="w-full h-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={pieData}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={40}
+                          outerRadius={80}
+                          paddingAngle={2}
+                          dataKey="value"
+                        >
+                          {pieData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.color} />
+                          ))}
+                        </Pie>
+                        <ChartTooltip content={<ChartTooltipContent />} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </ChartContainer>
                 </div>
+                
+                {/* Percentage labels positioned outside chart */}
+                {pieData.map((entry, index) => {
+                  const angle = (index * (360 / pieData.length)) + (360 / pieData.length / 2);
+                  const radian = (angle * Math.PI) / 180;
+                  const radius = 110;
+                  const x = 50 + (radius * Math.cos(radian - Math.PI / 2)) / 3.84; // 384px / 100
+                  const y = 50 + (radius * Math.sin(radian - Math.PI / 2)) / 3.84;
+                  
+                  return (
+                    <div
+                      key={entry.name}
+                      className="absolute text-sm font-medium whitespace-nowrap"
+                      style={{
+                        left: `${x}%`,
+                        top: `${y}%`,
+                        transform: 'translate(-50%, -50%)',
+                        color: entry.color
+                      }}
+                    >
+                      {entry.name}: {entry.percentage}%
+                    </div>
+                  );
+                })}
               </div>
               
               {/* Legend */}
