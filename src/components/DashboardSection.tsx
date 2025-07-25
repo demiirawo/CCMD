@@ -30,7 +30,7 @@ export const DashboardSection = ({
   }, {} as Record<StatusType, number>);
 
   return (
-    <div className="clay-card p-6 mb-6">
+    <div className="bg-white rounded-2xl p-6 mb-6 shadow-lg border border-border/50">
       <div 
         className="flex items-center justify-between cursor-pointer mb-4"
         onClick={() => setIsOpen(!isOpen)}
