@@ -80,16 +80,16 @@ export const StatusItem = ({
           <p className="text-xs text-muted-foreground mt-1">Last Discussed: {item.lastReviewed}</p>
         </div>
         
-        <div className="flex-[4.6]">
-          {isEditing ? <textarea defaultValue={item.comment} className="w-full p-3 rounded-lg border border-gray-100 bg-gray-25 resize-none min-h-[100px] text-sm break-words overflow-hidden" placeholder="Add your comment..." onBlur={e => handleCommentSubmit(e.target.value)} onKeyDown={e => {
+        <div className="flex-[4.6] min-w-0">
+          {isEditing ? <textarea defaultValue={item.comment} className="w-full max-w-full p-3 rounded-lg border border-gray-100 bg-gray-25 resize-none min-h-[100px] text-sm break-words overflow-hidden whitespace-pre-wrap" placeholder="Add your comment..." onBlur={e => handleCommentSubmit(e.target.value)} onKeyDown={e => {
           if (e.key === "Enter" && e.ctrlKey) {
             handleCommentSubmit(e.currentTarget.value);
           }
           if (e.key === "Escape") {
             setIsEditing(false);
           }
-        }} autoFocus /> : <button onClick={() => setIsEditing(true)} className="w-full text-left p-3 rounded-lg bg-gray-25 hover:bg-gray-50 transition-colors text-sm min-h-[100px] flex items-start border border-gray-100 break-words overflow-hidden">
-              <span className="break-words w-full">{item.comment || "Click to add comment..."}</span>
+        }} autoFocus /> : <button onClick={() => setIsEditing(true)} className="w-full max-w-full text-left p-3 rounded-lg bg-gray-25 hover:bg-gray-50 transition-colors text-sm min-h-[100px] flex items-start border border-gray-100 break-words overflow-hidden">
+              <span className="break-words w-full whitespace-pre-wrap">{item.comment || "Click to add comment..."}</span>
             </button>}
         </div>
       </div>
