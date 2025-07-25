@@ -26,5 +26,17 @@ export const StatusBadge = ({
   className
 }: StatusBadgeProps) => {
   const config = statusConfig[status];
-  return;
+  
+  return (
+    <div 
+      className={cn(
+        "status-badge",
+        config.className,
+        className
+      )}
+      title={config.title}
+    >
+      {config.label}
+    </div>
+  );
 };
