@@ -27,7 +27,7 @@ export const StatusItem = ({ item, onStatusChange, onCommentChange }: StatusItem
   };
 
   return (
-    <div className="clay-card p-4 mb-3 hover:scale-[1.01] transition-transform duration-300">
+    <div className="bg-white rounded-xl p-4 mb-3 shadow-md border border-border/30 hover:scale-[1.01] transition-transform duration-300">
       <div className="flex items-center gap-4">
         <button
           onClick={() => setIsExpanded(!isExpanded)}
