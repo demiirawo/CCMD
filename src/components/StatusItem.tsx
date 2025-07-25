@@ -81,7 +81,7 @@ export const StatusItem = ({
           <p className="text-xs text-muted-foreground mt-1">Last Discussed: {item.lastReviewed}</p>
         </div>
         
-        <div className="flex-[4]">
+        <div className="flex-[4.6]">
           {isEditing ? <textarea defaultValue={item.comment} className="w-full p-3 rounded-lg border border-gray-100 bg-gray-25 resize-none min-h-[80px] text-sm" placeholder="Add your comment..." onBlur={e => handleCommentSubmit(e.target.value)} onKeyDown={e => {
           if (e.key === "Enter" && e.ctrlKey) {
             handleCommentSubmit(e.currentTarget.value);
