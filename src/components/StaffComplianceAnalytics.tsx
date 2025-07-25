@@ -133,10 +133,10 @@ export const StaffComplianceAnalytics = () => {
         <div className="space-y-4">
           <div className="text-sm font-medium text-foreground">Staff Compliance Breakdown</div>
           
-          <Card className="p-6">
-            <div className="flex flex-col lg:flex-row items-center gap-6">
+          <Card className="p-8">
+            <div className="flex flex-col lg:flex-row items-center gap-8">
               {/* Pie Chart */}
-              <div className="relative w-64 h-64">
+              <div className="relative w-80 h-80">
                 <ChartContainer config={chartConfig} className="w-full h-full">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
@@ -144,8 +144,8 @@ export const StaffComplianceAnalytics = () => {
                         data={pieData}
                         cx="50%"
                         cy="50%"
-                        innerRadius={60}
-                        outerRadius={100}
+                        innerRadius={80}
+                        outerRadius={120}
                         paddingAngle={2}
                         dataKey="value"
                       >
@@ -163,14 +163,14 @@ export const StaffComplianceAnalytics = () => {
                   {pieData.map((entry, index) => {
                     const angle = (index * (360 / pieData.length)) + (360 / pieData.length / 2);
                     const radian = (angle * Math.PI) / 180;
-                    const radius = 120;
-                    const x = 50 + radius * Math.cos(radian - Math.PI / 2);
-                    const y = 50 + radius * Math.sin(radian - Math.PI / 2);
+                    const radius = 140;
+                    const x = 50 + radius * Math.cos(radian - Math.PI / 2) * 0.8;
+                    const y = 50 + radius * Math.sin(radian - Math.PI / 2) * 0.8;
                     
                     return (
                       <div
                         key={entry.name}
-                        className="absolute text-xs font-medium"
+                        className="absolute text-sm font-medium whitespace-nowrap"
                         style={{
                           left: `${x}%`,
                           top: `${y}%`,
@@ -178,7 +178,7 @@ export const StaffComplianceAnalytics = () => {
                           color: entry.color
                         }}
                       >
-                        {entry.name}: {entry.percentage}%
+                        {entry.percentage}%
                       </div>
                     );
                   })}
