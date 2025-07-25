@@ -1,4 +1,5 @@
 import { StatusBadge, StatusType } from "./StatusBadge";
+import { ActionDialog } from "./ActionDialog";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { useState } from "react";
 export interface StatusItemData {
@@ -13,7 +14,7 @@ interface StatusItemProps {
   item: StatusItemData;
   onStatusChange?: (id: string, status: StatusType) => void;
   onCommentChange?: (id: string, comment: string) => void;
-  onMentionDetected?: (itemTitle: string, mentionedAttendee: string, comment: string) => void;
+  onMentionDetected?: (itemTitle: string, mentionedAttendee: string, comment: string, action: string, dueDate: string) => void;
   attendees?: string[];
 }
 export const StatusItem = ({
@@ -25,6 +26,8 @@ export const StatusItem = ({
 }: StatusItemProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [showActionDialog, setShowActionDialog] = useState(false);
+  const [pendingMention, setPendingMention] = useState<{attendee: string, comment: string} | null>(null);
   const handleCommentSubmit = (comment: string) => {
     onCommentChange?.(item.id, comment);
     
@@ -32,15 +35,26 @@ export const StatusItem = ({
     const mentionRegex = /@(\w+)/g;
     const mentions = comment.match(mentionRegex);
     if (mentions && attendees.length > 0) {
-      mentions.forEach(mention => {
+      const foundMention = mentions.find(mention => {
         const mentionedName = mention.substring(1);
-        if (attendees.some(attendee => attendee.toLowerCase().includes(mentionedName.toLowerCase()))) {
-          onMentionDetected?.(item.title, mentionedName, comment);
-        }
+        return attendees.some(attendee => attendee.toLowerCase().includes(mentionedName.toLowerCase()));
       });
+      
+      if (foundMention) {
+        const mentionedName = foundMention.substring(1);
+        setPendingMention({ attendee: mentionedName, comment });
+        setShowActionDialog(true);
+      }
     }
     
     setIsEditing(false);
+  };
+
+  const handleActionSubmit = (action: string, dueDate: string) => {
+    if (pendingMention) {
+      onMentionDetected?.(item.title, pendingMention.attendee, pendingMention.comment, action, dueDate);
+      setPendingMention(null);
+    }
   };
   return <div className="w-full bg-white rounded-xl p-8 mb-3 shadow-md border border-border/30 hover:scale-[1.01] transition-transform duration-300 min-h-[120px]">
       <div className="flex items-center gap-4 w-full">
@@ -61,20 +75,20 @@ export const StatusItem = ({
           <StatusBadge status={item.status} />
         </button>
         
-        <div className="flex-1 min-w-0">
+        <div className="flex-[2] min-w-0 mr-4">
           <h4 className="font-semibold text-foreground truncate">{item.title}</h4>
           <p className="text-sm text-muted-foreground">{item.lastReviewed}</p>
         </div>
         
-        <div className="flex-1">
-          {isEditing ? <textarea defaultValue={item.comment} className="w-full p-2 rounded-lg border border-border bg-background resize-none min-h-[60px] text-sm" placeholder="Add your comment..." onBlur={e => handleCommentSubmit(e.target.value)} onKeyDown={e => {
+        <div className="flex-[4]">
+          {isEditing ? <textarea defaultValue={item.comment} className="w-full p-3 rounded-lg border border-border bg-background resize-none min-h-[80px] text-sm" placeholder="Add your comment..." onBlur={e => handleCommentSubmit(e.target.value)} onKeyDown={e => {
           if (e.key === "Enter" && e.ctrlKey) {
             handleCommentSubmit(e.currentTarget.value);
           }
           if (e.key === "Escape") {
             setIsEditing(false);
           }
-        }} autoFocus /> : <button onClick={() => setIsEditing(true)} className="w-full text-left p-2 rounded-lg hover:bg-accent/50 transition-colors text-sm">
+        }} autoFocus /> : <button onClick={() => setIsEditing(true)} className="w-full text-left p-3 rounded-lg hover:bg-accent/50 transition-colors text-sm min-h-[80px] flex items-center">
               {item.comment || "Click to add comment..."}
             </button>}
         </div>
@@ -103,5 +117,16 @@ export const StatusItem = ({
           
           
         </div>}
+        
+        <ActionDialog
+          isOpen={showActionDialog}
+          onClose={() => {
+            setShowActionDialog(false);
+            setPendingMention(null);
+          }}
+          onSubmit={handleActionSubmit}
+          mentionedAttendee={pendingMention?.attendee || ""}
+          itemTitle={item.title}
+        />
     </div>;
 };

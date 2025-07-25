@@ -7,6 +7,8 @@ export interface ActionLogEntry {
   itemTitle: string;
   mentionedAttendee: string;
   comment: string;
+  action: string;
+  dueDate: string;
 }
 
 interface ActionsLogProps {
@@ -32,7 +34,7 @@ export const ActionsLog = ({ actions }: ActionsLogProps) => {
       </div>
 
       {isExpanded && (
-        <div className="space-y-3 max-h-80 overflow-y-auto">
+        <div className="space-y-3">
           {actions.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               <p>No actions logged yet.</p>
@@ -56,11 +58,19 @@ export const ActionsLog = ({ actions }: ActionsLogProps) => {
                       </span>
                     </div>
                     <p className="text-sm text-muted-foreground mb-2 line-clamp-2">
-                      {action.comment}
+                      Comment: {action.comment}
                     </p>
-                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                      <Clock className="w-3 h-3" />
-                      {action.timestamp}
+                    <p className="text-sm font-medium text-foreground mb-2">
+                      Action: {action.action}
+                    </p>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                        <Clock className="w-3 h-3" />
+                        {action.timestamp}
+                      </div>
+                      <div className="text-xs font-medium text-primary">
+                        Due: {new Date(action.dueDate).toLocaleDateString()}
+                      </div>
                     </div>
                   </div>
                 </div>

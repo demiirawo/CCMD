@@ -254,20 +254,22 @@ const Index = () => {
     });
   };
   
-  const handleMentionDetected = (itemTitle: string, mentionedAttendee: string, comment: string) => {
+  const handleMentionDetected = (itemTitle: string, mentionedAttendee: string, comment: string, action: string, dueDate: string) => {
     const newAction: ActionLogEntry = {
       id: `action-${Date.now()}`,
       timestamp: new Date().toLocaleString(),
       itemTitle,
       mentionedAttendee,
-      comment
+      comment,
+      action,
+      dueDate
     };
     
     setActionsLog(prev => [newAction, ...prev]);
     
     toast({
-      title: "Action Logged",
-      description: `@${mentionedAttendee} mentioned in ${itemTitle}`
+      title: "Action Created",
+      description: `Action assigned to @${mentionedAttendee} for ${itemTitle}`
     });
   };
   

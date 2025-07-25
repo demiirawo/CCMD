@@ -10,7 +10,7 @@ interface DashboardSectionProps {
   onItemStatusChange?: (id: string, status: StatusType) => void;
   onItemCommentChange?: (id: string, comment: string) => void;
   onAddItem?: (sectionTitle: string) => void;
-  onMentionDetected?: (itemTitle: string, mentionedAttendee: string, comment: string) => void;
+  onMentionDetected?: (itemTitle: string, mentionedAttendee: string, comment: string, action: string, dueDate: string) => void;
   attendees?: string[];
   defaultOpen?: boolean;
 }
