@@ -1,28 +1,23 @@
 import { Card } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer } from "recharts";
+import { Input } from "@/components/ui/input";
+import { useState } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
-const monthlyData = [
-  { month: "Aug 24", serviceUsers: 57, currentStaff: 17, minStaff: 14, idealStaff: 15 },
-  { month: "Sep 24", serviceUsers: 53, currentStaff: 22, minStaff: 13, idealStaff: 29 },
-  { month: "Oct 24", serviceUsers: 52, currentStaff: 14, minStaff: 14, idealStaff: 28 },
-  { month: "Nov 24", serviceUsers: 30, currentStaff: 18, minStaff: 17, idealStaff: 16 },
-  { month: "Dec 24", serviceUsers: 25, currentStaff: 24, minStaff: 10, idealStaff: 25 },
-  { month: "Jan 25", serviceUsers: 44, currentStaff: 28, minStaff: 11, idealStaff: 26 },
-  { month: "Feb 25", serviceUsers: 43, currentStaff: 25, minStaff: 15, idealStaff: 24 },
-  { month: "Mar 25", serviceUsers: 28, currentStaff: 15, minStaff: 12, idealStaff: 16 },
-  { month: "Apr 25", serviceUsers: 34, currentStaff: 15, minStaff: 15, idealStaff: 18 },
-  { month: "May 25", serviceUsers: 54, currentStaff: 16, minStaff: 15, idealStaff: 22 },
-  { month: "Jun 25", serviceUsers: 35, currentStaff: 21, minStaff: 16, idealStaff: 20 },
-  { month: "Jul 25", serviceUsers: 56, currentStaff: 26, minStaff: 12, idealStaff: 28 }
+const initialMonthlyData = [
+  { month: "Apr 25", serviceUsers: 51, currentStaff: 26, minStaff: 12, idealStaff: 22 },
+  { month: "May 25", serviceUsers: 39, currentStaff: 25, minStaff: 17, idealStaff: 18 },
+  { month: "Jun 25", serviceUsers: 58, currentStaff: 16, minStaff: 14, idealStaff: 24 },
+  { month: "Jul 25", serviceUsers: 52, currentStaff: 13, minStaff: 13, idealStaff: 27 }
 ];
 
-const currentMetrics = {
-  activeServiceUsers: 54,
-  currentStaffingLevel: 25,
-  minimumStaffingLevel: 12,
-  idealStaffingLevel: 29,
-  capacityCoverage: 86.2
+const initialCurrentMetrics = {
+  activeServiceUsers: 52,
+  currentStaffingLevel: 13,
+  minimumStaffingLevel: 13,
+  idealStaffingLevel: 27,
+  capacityCoverage: 48.1
 };
 
 const chartConfig = {
@@ -45,32 +40,113 @@ const chartConfig = {
 };
 
 export const CapacityAnalytics = () => {
+  const [monthlyData, setMonthlyData] = useState(initialMonthlyData);
+  const [currentMetrics, setCurrentMetrics] = useState(initialCurrentMetrics);
+
+  const handleCellEdit = (rowIndex: number, field: string, value: string) => {
+    const numValue = parseInt(value) || 0;
+    const newData = [...monthlyData];
+    newData[rowIndex] = { ...newData[rowIndex], [field]: numValue };
+    setMonthlyData(newData);
+    
+    // Update current metrics based on latest data
+    const latestRow = newData[newData.length - 1];
+    const coverage = latestRow.idealStaff > 0 ? 
+      ((latestRow.currentStaff / latestRow.idealStaff) * 100) : 0;
+    
+    setCurrentMetrics({
+      activeServiceUsers: latestRow.serviceUsers,
+      currentStaffingLevel: latestRow.currentStaff,
+      minimumStaffingLevel: latestRow.minStaff,
+      idealStaffingLevel: latestRow.idealStaff,
+      capacityCoverage: Math.round(coverage * 10) / 10
+    });
+  };
+
+  const EditableCell = ({ value, onEdit }: { value: number; onEdit: (val: string) => void }) => {
+    const [editing, setEditing] = useState(false);
+    const [editValue, setEditValue] = useState(value.toString());
+
+    const handleSave = () => {
+      onEdit(editValue);
+      setEditing(false);
+    };
+
+    if (editing) {
+      return (
+        <Input
+          value={editValue}
+          onChange={(e) => setEditValue(e.target.value)}
+          onBlur={handleSave}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') handleSave();
+            if (e.key === 'Escape') setEditing(false);
+          }}
+          className="w-16 h-8 text-sm"
+          autoFocus
+        />
+      );
+    }
+
+    return (
+      <span 
+        className="cursor-pointer hover:bg-accent/50 p-1 rounded"
+        onClick={() => setEditing(true)}
+      >
+        {value}
+      </span>
+    );
+  };
+
   return (
-    <div className="space-y-6 mt-4 p-4 bg-muted/30 rounded-lg">
-      <h4 className="text-lg font-semibold text-foreground">Capacity Analytics</h4>
+    <div className="space-y-6 mt-4 p-6 bg-background border border-border rounded-lg">
+      <div className="flex items-center justify-between">
+        <h4 className="text-lg font-semibold text-foreground">📊 Capacity Analytics</h4>
+        <button className="text-muted-foreground hover:text-foreground">✕</button>
+      </div>
       
-      <div className="text-sm text-muted-foreground mb-4">Monthly Data (Past 12 Months)</div>
+      <div className="text-sm text-muted-foreground">Monthly Data (Past 12 Months)</div>
       
       {/* Data Table */}
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b">
-              <th className="text-left p-2 font-medium">Month</th>
-              <th className="text-left p-2 font-medium">Service Users</th>
-              <th className="text-left p-2 font-medium">Current Staff</th>
-              <th className="text-left p-2 font-medium">Min Staff</th>
-              <th className="text-left p-2 font-medium">Ideal Staff</th>
+              <th className="text-left p-3 font-medium">Month</th>
+              <th className="text-left p-3 font-medium">Service Users</th>
+              <th className="text-left p-3 font-medium">Current Staff</th>
+              <th className="text-left p-3 font-medium">Min Staff</th>
+              <th className="text-left p-3 font-medium">Ideal Staff</th>
             </tr>
           </thead>
           <tbody>
             {monthlyData.map((row, index) => (
-              <tr key={index} className="border-b border-border/30">
-                <td className="p-2">{row.month}</td>
-                <td className="p-2">{row.serviceUsers}</td>
-                <td className="p-2">{row.currentStaff}</td>
-                <td className="p-2">{row.minStaff}</td>
-                <td className="p-2">{row.idealStaff}</td>
+              <tr key={index} className="border-b border-border/30 hover:bg-accent/30">
+                <td className="p-3">{row.month}</td>
+                <td className="p-3">
+                  <EditableCell 
+                    value={row.serviceUsers} 
+                    onEdit={(val) => handleCellEdit(index, 'serviceUsers', val)} 
+                  />
+                </td>
+                <td className="p-3">
+                  <EditableCell 
+                    value={row.currentStaff} 
+                    onEdit={(val) => handleCellEdit(index, 'currentStaff', val)} 
+                  />
+                </td>
+                <td className="p-3">
+                  <EditableCell 
+                    value={row.minStaff} 
+                    onEdit={(val) => handleCellEdit(index, 'minStaff', val)} 
+                  />
+                </td>
+                <td className="p-3">
+                  <EditableCell 
+                    value={row.idealStaff} 
+                    onEdit={(val) => handleCellEdit(index, 'idealStaff', val)} 
+                  />
+                </td>
               </tr>
             ))}
           </tbody>
@@ -79,36 +155,50 @@ export const CapacityAnalytics = () => {
 
       {/* Metrics Cards */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-        <Card className="p-4 bg-purple-100 border-purple-200">
+        <Card className="p-4" style={{ backgroundColor: '#e0d4f7', borderColor: '#c4b5fd' }}>
           <div className="text-xs text-muted-foreground mb-1">Active Service Users</div>
           <div className="text-2xl font-bold">{currentMetrics.activeServiceUsers}</div>
         </Card>
         
-        <Card className="p-4 bg-blue-100 border-blue-200">
+        <Card className="p-4" style={{ backgroundColor: '#bfdbfe', borderColor: '#93c5fd' }}>
           <div className="text-xs text-muted-foreground mb-1">Current Staffing Level</div>
           <div className="text-2xl font-bold">{currentMetrics.currentStaffingLevel}</div>
         </Card>
         
-        <Card className="p-4 bg-red-100 border-red-200">
+        <Card className="p-4" style={{ backgroundColor: '#fecaca', borderColor: '#fca5a5' }}>
           <div className="text-xs text-muted-foreground mb-1">Minimum Staffing Level</div>
           <div className="text-2xl font-bold">{currentMetrics.minimumStaffingLevel}</div>
         </Card>
         
-        <Card className="p-4 bg-green-100 border-green-200">
+        <Card className="p-4" style={{ backgroundColor: '#bbf7d0', borderColor: '#86efac' }}>
           <div className="text-xs text-muted-foreground mb-1">Ideal Staffing Level</div>
           <div className="text-2xl font-bold">{currentMetrics.idealStaffingLevel}</div>
         </Card>
         
-        <Card className="p-4 bg-orange-100 border-orange-200">
+        <Card className="p-4" style={{ backgroundColor: '#fed7aa', borderColor: '#fdba74' }}>
           <div className="text-xs text-muted-foreground mb-1">Capacity Coverage</div>
           <div className="text-2xl font-bold">{currentMetrics.capacityCoverage}%</div>
-          <div className="text-xs text-orange-600 mt-1">Insufficient</div>
+          <div className="text-xs text-orange-600 mt-1">
+            {currentMetrics.capacityCoverage < 80 ? 'Insufficient' : 'Adequate'}
+          </div>
         </Card>
       </div>
 
       {/* Chart */}
       <div className="space-y-2">
-        <div className="text-sm text-muted-foreground">Charts</div>
+        <div className="flex items-center justify-between">
+          <div className="text-sm text-muted-foreground">Charts</div>
+          <div className="flex items-center gap-2">
+            <button className="p-1 hover:bg-accent rounded">
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            <span className="text-xs text-muted-foreground">Previous</span>
+            <span className="text-xs text-muted-foreground">Next</span>
+            <button className="p-1 hover:bg-accent rounded">
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
         <Card className="p-4">
           <ChartContainer config={chartConfig} className="h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
@@ -128,30 +218,30 @@ export const CapacityAnalytics = () => {
                 <Line 
                   type="monotone" 
                   dataKey="serviceUsers" 
-                  stroke="hsl(var(--chart-1))" 
+                  stroke="#8b5cf6" 
                   strokeWidth={2}
-                  dot={{ r: 3 }}
+                  dot={{ r: 3, fill: "#8b5cf6" }}
                 />
                 <Line 
                   type="monotone" 
                   dataKey="currentStaff" 
-                  stroke="hsl(var(--chart-2))" 
+                  stroke="#3b82f6" 
                   strokeWidth={2}
-                  dot={{ r: 3 }}
+                  dot={{ r: 3, fill: "#3b82f6" }}
                 />
                 <Line 
                   type="monotone" 
                   dataKey="minStaff" 
-                  stroke="hsl(var(--chart-3))" 
+                  stroke="#ef4444" 
                   strokeWidth={2}
-                  dot={{ r: 3 }}
+                  dot={{ r: 3, fill: "#ef4444" }}
                 />
                 <Line 
                   type="monotone" 
                   dataKey="idealStaff" 
-                  stroke="hsl(var(--chart-4))" 
+                  stroke="#22c55e" 
                   strokeWidth={2}
-                  dot={{ r: 3 }}
+                  dot={{ r: 3, fill: "#22c55e" }}
                 />
               </LineChart>
             </ResponsiveContainer>
