@@ -148,8 +148,8 @@ export const StaffComplianceAnalytics = () => {
                           data={pieData}
                           cx="50%"
                           cy="50%"
-                          innerRadius={40}
-                          outerRadius={80}
+                          innerRadius={0}
+                          outerRadius={104}
                           paddingAngle={2}
                           dataKey="value"
                         >
