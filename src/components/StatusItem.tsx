@@ -1,5 +1,6 @@
 import { StatusBadge, StatusType } from "./StatusBadge";
 import { ActionDialog } from "./ActionDialog";
+import { CapacityAnalytics } from "./CapacityAnalytics";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { useState } from "react";
 export interface StatusItemData {
@@ -109,6 +110,9 @@ export const StatusItem = ({
             </div>
           </div>
           
+          {item.title.toLowerCase().includes('recruitment') && (
+            <CapacityAnalytics />
+          )}
           
         </div>}
         
