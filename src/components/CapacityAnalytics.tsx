@@ -1,167 +1,165 @@
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { X, ChevronLeft, ChevronRight } from 'lucide-react';
-
-interface CapacityAnalyticsProps {
-  onClose: () => void;
-}
+import { Card } from "@/components/ui/card";
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { LineChart, Line, XAxis, YAxis, ResponsiveContainer } from "recharts";
 
 const monthlyData = [
-  { month: 'Apr 25', serviceUsers: 51, currentStaff: 26, minStaff: 12, idealStaff: 22 },
-  { month: 'May 25', serviceUsers: 39, currentStaff: 25, minStaff: 17, idealStaff: 18 },
-  { month: 'Jun 25', serviceUsers: 58, currentStaff: 16, minStaff: 14, idealStaff: 24 },
-  { month: 'Jul 25', serviceUsers: 52, currentStaff: 13, minStaff: 13, idealStaff: 27 },
-  { month: 'Aug 24', serviceUsers: 42, currentStaff: 15, minStaff: 12, idealStaff: 20 },
-  { month: 'Sep 24', serviceUsers: 46, currentStaff: 18, minStaff: 14, idealStaff: 22 },
-  { month: 'Oct 24', serviceUsers: 54, currentStaff: 20, minStaff: 16, idealStaff: 26 },
-  { month: 'Nov 24', serviceUsers: 56, currentStaff: 22, minStaff: 18, idealStaff: 28 },
-  { month: 'Dec 24', serviceUsers: 58, currentStaff: 24, minStaff: 20, idealStaff: 30 },
-  { month: 'Jan 25', serviceUsers: 52, currentStaff: 19, minStaff: 17, idealStaff: 26 },
-  { month: 'Feb 25', serviceUsers: 49, currentStaff: 21, minStaff: 15, idealStaff: 24 },
-  { month: 'Mar 25', serviceUsers: 55, currentStaff: 23, minStaff: 19, idealStaff: 28 }
+  { month: "Aug 24", serviceUsers: 57, currentStaff: 17, minStaff: 14, idealStaff: 15 },
+  { month: "Sep 24", serviceUsers: 53, currentStaff: 22, minStaff: 13, idealStaff: 29 },
+  { month: "Oct 24", serviceUsers: 52, currentStaff: 14, minStaff: 14, idealStaff: 28 },
+  { month: "Nov 24", serviceUsers: 30, currentStaff: 18, minStaff: 17, idealStaff: 16 },
+  { month: "Dec 24", serviceUsers: 25, currentStaff: 24, minStaff: 10, idealStaff: 25 },
+  { month: "Jan 25", serviceUsers: 44, currentStaff: 28, minStaff: 11, idealStaff: 26 },
+  { month: "Feb 25", serviceUsers: 43, currentStaff: 25, minStaff: 15, idealStaff: 24 },
+  { month: "Mar 25", serviceUsers: 28, currentStaff: 15, minStaff: 12, idealStaff: 16 },
+  { month: "Apr 25", serviceUsers: 34, currentStaff: 15, minStaff: 15, idealStaff: 18 },
+  { month: "May 25", serviceUsers: 54, currentStaff: 16, minStaff: 15, idealStaff: 22 },
+  { month: "Jun 25", serviceUsers: 35, currentStaff: 21, minStaff: 16, idealStaff: 20 },
+  { month: "Jul 25", serviceUsers: 56, currentStaff: 26, minStaff: 12, idealStaff: 28 }
 ];
 
 const currentMetrics = {
-  activeServiceUsers: 52,
-  currentStaffingLevel: 13,
-  minimumStaffingLevel: 13,
-  idealStaffingLevel: 27,
-  capacityCoverage: 48.1
+  activeServiceUsers: 54,
+  currentStaffingLevel: 25,
+  minimumStaffingLevel: 12,
+  idealStaffingLevel: 29,
+  capacityCoverage: 86.2
 };
 
-export const CapacityAnalytics = ({ onClose }: CapacityAnalyticsProps) => {
+const chartConfig = {
+  serviceUsers: {
+    label: "Service Users",
+    color: "hsl(var(--chart-1))",
+  },
+  currentStaff: {
+    label: "Current Staff",
+    color: "hsl(var(--chart-2))",
+  },
+  minStaff: {
+    label: "Min Staff",
+    color: "hsl(var(--chart-3))",
+  },
+  idealStaff: {
+    label: "Ideal Staff",
+    color: "hsl(var(--chart-4))",
+  },
+};
+
+export const CapacityAnalytics = () => {
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg shadow-xl max-w-7xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="p-6 border-b border-gray-200 flex items-center justify-between">
-          <h2 className="text-xl font-semibold flex items-center gap-2">
-            📊 Capacity Analytics
-          </h2>
-          <button
-            onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
+    <div className="space-y-6 mt-4 p-4 bg-muted/30 rounded-lg">
+      <h4 className="text-lg font-semibold text-foreground">Capacity Analytics</h4>
+      
+      <div className="text-sm text-muted-foreground mb-4">Monthly Data (Past 12 Months)</div>
+      
+      {/* Data Table */}
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b">
+              <th className="text-left p-2 font-medium">Month</th>
+              <th className="text-left p-2 font-medium">Service Users</th>
+              <th className="text-left p-2 font-medium">Current Staff</th>
+              <th className="text-left p-2 font-medium">Min Staff</th>
+              <th className="text-left p-2 font-medium">Ideal Staff</th>
+            </tr>
+          </thead>
+          <tbody>
+            {monthlyData.map((row, index) => (
+              <tr key={index} className="border-b border-border/30">
+                <td className="p-2">{row.month}</td>
+                <td className="p-2">{row.serviceUsers}</td>
+                <td className="p-2">{row.currentStaff}</td>
+                <td className="p-2">{row.minStaff}</td>
+                <td className="p-2">{row.idealStaff}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Metrics Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+        <Card className="p-4 bg-purple-100 border-purple-200">
+          <div className="text-xs text-muted-foreground mb-1">Active Service Users</div>
+          <div className="text-2xl font-bold">{currentMetrics.activeServiceUsers}</div>
+        </Card>
         
-        <div className="p-6 space-y-6">
-          {/* Monthly Data Table */}
-          <div>
-            <h3 className="text-lg font-medium mb-4">Monthly Data (Past 12 Months)</h3>
-            <div className="overflow-x-auto">
-              <table className="w-full border-collapse border border-gray-300">
-                <thead>
-                  <tr className="bg-gray-50">
-                    <th className="border border-gray-300 p-3 text-left font-medium">Month</th>
-                    <th className="border border-gray-300 p-3 text-left font-medium">Service Users</th>
-                    <th className="border border-gray-300 p-3 text-left font-medium">Current Staff</th>
-                    <th className="border border-gray-300 p-3 text-left font-medium">Min Staff</th>
-                    <th className="border border-gray-300 p-3 text-left font-medium">Ideal Staff</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {monthlyData.map((data, index) => (
-                    <tr key={index} className="hover:bg-gray-50">
-                      <td className="border border-gray-300 p-3">{data.month}</td>
-                      <td className="border border-gray-300 p-3">{data.serviceUsers}</td>
-                      <td className="border border-gray-300 p-3">{data.currentStaff}</td>
-                      <td className="border border-gray-300 p-3">{data.minStaff}</td>
-                      <td className="border border-gray-300 p-3">{data.idealStaff}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
+        <Card className="p-4 bg-blue-100 border-blue-200">
+          <div className="text-xs text-muted-foreground mb-1">Current Staffing Level</div>
+          <div className="text-2xl font-bold">{currentMetrics.currentStaffingLevel}</div>
+        </Card>
+        
+        <Card className="p-4 bg-red-100 border-red-200">
+          <div className="text-xs text-muted-foreground mb-1">Minimum Staffing Level</div>
+          <div className="text-2xl font-bold">{currentMetrics.minimumStaffingLevel}</div>
+        </Card>
+        
+        <Card className="p-4 bg-green-100 border-green-200">
+          <div className="text-xs text-muted-foreground mb-1">Ideal Staffing Level</div>
+          <div className="text-2xl font-bold">{currentMetrics.idealStaffingLevel}</div>
+        </Card>
+        
+        <Card className="p-4 bg-orange-100 border-orange-200">
+          <div className="text-xs text-muted-foreground mb-1">Capacity Coverage</div>
+          <div className="text-2xl font-bold">{currentMetrics.capacityCoverage}%</div>
+          <div className="text-xs text-orange-600 mt-1">Insufficient</div>
+        </Card>
+      </div>
 
-          {/* Current Metrics Cards */}
-          <div className="grid grid-cols-5 gap-4">
-            <div className="bg-purple-100 p-4 rounded-lg text-center">
-              <div className="text-sm text-purple-600 mb-1">Active Service Users</div>
-              <div className="text-2xl font-bold text-purple-800">{currentMetrics.activeServiceUsers}</div>
-            </div>
-            <div className="bg-blue-100 p-4 rounded-lg text-center">
-              <div className="text-sm text-blue-600 mb-1">Current Staffing Level</div>
-              <div className="text-2xl font-bold text-blue-800">{currentMetrics.currentStaffingLevel}</div>
-            </div>
-            <div className="bg-red-100 p-4 rounded-lg text-center">
-              <div className="text-sm text-red-600 mb-1">Minimum Staffing Level</div>
-              <div className="text-2xl font-bold text-red-800">{currentMetrics.minimumStaffingLevel}</div>
-            </div>
-            <div className="bg-green-100 p-4 rounded-lg text-center">
-              <div className="text-sm text-green-600 mb-1">Ideal Staffing Level</div>
-              <div className="text-2xl font-bold text-green-800">{currentMetrics.idealStaffingLevel}</div>
-            </div>
-            <div className="bg-orange-100 p-4 rounded-lg text-center">
-              <div className="text-sm text-orange-600 mb-1">Capacity Coverage</div>
-              <div className="text-2xl font-bold text-orange-800">{currentMetrics.capacityCoverage}%</div>
-              <div className="text-xs text-orange-600">Insufficient</div>
-            </div>
+      {/* Chart */}
+      <div className="space-y-2">
+        <div className="text-sm text-muted-foreground">Charts</div>
+        <Card className="p-4">
+          <ChartContainer config={chartConfig} className="h-64 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={monthlyData}>
+                <XAxis 
+                  dataKey="month" 
+                  axisLine={false}
+                  tickLine={false}
+                  className="text-xs"
+                />
+                <YAxis 
+                  axisLine={false}
+                  tickLine={false}
+                  className="text-xs"
+                />
+                <ChartTooltip content={<ChartTooltipContent />} />
+                <Line 
+                  type="monotone" 
+                  dataKey="serviceUsers" 
+                  stroke="hsl(var(--chart-1))" 
+                  strokeWidth={2}
+                  dot={{ r: 3 }}
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="currentStaff" 
+                  stroke="hsl(var(--chart-2))" 
+                  strokeWidth={2}
+                  dot={{ r: 3 }}
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="minStaff" 
+                  stroke="hsl(var(--chart-3))" 
+                  strokeWidth={2}
+                  dot={{ r: 3 }}
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="idealStaff" 
+                  stroke="hsl(var(--chart-4))" 
+                  strokeWidth={2}
+                  dot={{ r: 3 }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </ChartContainer>
+          <div className="text-xs text-center text-muted-foreground mt-2">
+            Graph 1: Trends Over Past 12 Months
           </div>
-
-          {/* Charts Section */}
-          <div>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-medium">Charts</h3>
-              <div className="flex items-center gap-2">
-                <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-                  <ChevronLeft className="w-4 h-4" />
-                  <span className="ml-1 text-sm">Previous</span>
-                </button>
-                <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-                  <span className="mr-1 text-sm">Next</span>
-                  <ChevronRight className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-            
-            <div className="h-96 w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={monthlyData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="month" />
-                  <YAxis />
-                  <Tooltip />
-                  <Line 
-                    type="monotone" 
-                    dataKey="serviceUsers" 
-                    stroke="#8b5cf6" 
-                    strokeWidth={2}
-                    dot={{ fill: '#8b5cf6', strokeWidth: 2, r: 4 }}
-                    name="Service Users"
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="currentStaff" 
-                    stroke="#3b82f6" 
-                    strokeWidth={2}
-                    dot={{ fill: '#3b82f6', strokeWidth: 2, r: 4 }}
-                    name="Current Staff"
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="minStaff" 
-                    stroke="#ef4444" 
-                    strokeWidth={2}
-                    dot={{ fill: '#ef4444', strokeWidth: 2, r: 4 }}
-                    name="Min Staff"
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="idealStaff" 
-                    stroke="#10b981" 
-                    strokeWidth={2}
-                    dot={{ fill: '#10b981', strokeWidth: 2, r: 4 }}
-                    name="Ideal Staff"
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-            <div className="text-center text-sm text-gray-600 mt-2">
-              Graph 1: Trends Over Past 12 Months
-            </div>
-          </div>
-        </div>
+        </Card>
       </div>
     </div>
   );

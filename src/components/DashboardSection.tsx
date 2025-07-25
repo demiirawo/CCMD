@@ -28,7 +28,6 @@ export const DashboardSection = ({
   defaultOpen = true
 }: DashboardSectionProps) => {
   const [isOpen, setIsOpen] = useState(defaultOpen);
-  const [showCapacityAnalytics, setShowCapacityAnalytics] = useState(false);
 
   const statusCounts = items.reduce((acc, item) => {
     acc[item.status] = (acc[item.status] || 0) + 1;
@@ -49,14 +48,7 @@ export const DashboardSection = ({
     <div className="bg-white rounded-2xl p-8 mb-8 shadow-lg border border-border/50">
       <div 
         className="flex items-center justify-between cursor-pointer mb-4"
-        onClick={(e) => {
-          // Check if this is the recruitment section and if the arrow was clicked
-          if (title.toLowerCase() === "staff" && e.target === e.currentTarget) {
-            setShowCapacityAnalytics(true);
-          } else {
-            setIsOpen(!isOpen);
-          }
-        }}
+        onClick={() => setIsOpen(!isOpen)}
       >
         <div className="flex items-center gap-3">
           <h3 className="text-xl font-bold text-foreground">{title}</h3>
@@ -79,17 +71,7 @@ export const DashboardSection = ({
             </button>
           )}
           
-          <div 
-            className="p-1 rounded-lg hover:bg-accent/50 transition-colors"
-            onClick={(e) => {
-              e.stopPropagation();
-              if (title.toLowerCase() === "staff") {
-                setShowCapacityAnalytics(true);
-              } else {
-                setIsOpen(!isOpen);
-              }
-            }}
-          >
+          <div className="p-1 rounded-lg hover:bg-accent/50 transition-colors">
             {isOpen ? 
               <ChevronDown className="w-5 h-5 text-muted-foreground" /> : 
               <ChevronRight className="w-5 h-5 text-muted-foreground" />
@@ -125,11 +107,11 @@ export const DashboardSection = ({
               )}
             </div>
           )}
+          
+          {title.toLowerCase().includes('recruitment') && (
+            <CapacityAnalytics />
+          )}
         </div>
-      )}
-      
-      {showCapacityAnalytics && (
-        <CapacityAnalytics onClose={() => setShowCapacityAnalytics(false)} />
       )}
     </div>
   );
