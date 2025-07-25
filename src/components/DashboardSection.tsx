@@ -1,6 +1,5 @@
 import { StatusItem, StatusItemData } from "./StatusItem";
 import { StatusType, StatusBadge } from "./StatusBadge";
-import { CapacityAnalytics } from "./CapacityAnalytics";
 import { ChevronDown, ChevronRight, Plus, CheckCircle, AlertTriangle, XCircle } from "lucide-react";
 import { useState } from "react";
 
@@ -106,10 +105,6 @@ export const DashboardSection = ({
                 </button>
               )}
             </div>
-          )}
-          
-          {title.toLowerCase().includes('recruitment') && (
-            <CapacityAnalytics />
           )}
         </div>
       )}

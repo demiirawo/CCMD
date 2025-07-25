@@ -65,12 +65,6 @@ All colors MUST be HSL.
     --sidebar-border: 220 13% 91%;
 
     --sidebar-ring: 217.2 91.2% 59.8%;
-
-    /* Chart Colors */
-    --chart-1: 250 80% 70%;
-    --chart-2: 200 80% 70%;
-    --chart-3: 0 70% 75%;
-    --chart-4: 150 60% 75%;
   }
 
   .dark {
@@ -190,10 +184,6 @@ All colors MUST be HSL.
       -4px -4px 8px hsl(0 100% 100%),
       inset 1px 1px 3px hsl(0 100% 100% / 0.3),
       inset -1px -1px 3px hsl(0 60% 80% / 0.3);
-  }
-
-  .status-badge {
-    @apply w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold cursor-pointer transition-all duration-200;
   }
 }
 
