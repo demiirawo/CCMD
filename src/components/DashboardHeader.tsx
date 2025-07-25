@@ -23,7 +23,7 @@ export const DashboardHeader = ({ date, title, stats }: DashboardHeaderProps) =>
         </div>
         
         <div className="flex gap-4">
-          <div className="clay-card p-4 rounded-xl">
+          <div className="bg-white p-4 rounded-xl shadow-sm">
             <div className="flex items-center gap-3">
               <CheckCircle className="w-6 h-6 text-green-600" />
               <div className="text-center">
@@ -33,7 +33,7 @@ export const DashboardHeader = ({ date, title, stats }: DashboardHeaderProps) =>
             </div>
           </div>
           
-          <div className="clay-card p-4 rounded-xl">
+          <div className="bg-white p-4 rounded-xl shadow-sm">
             <div className="flex items-center gap-3">
               <AlertTriangle className="w-6 h-6 text-amber-600" />
               <div className="text-center">
@@ -43,7 +43,7 @@ export const DashboardHeader = ({ date, title, stats }: DashboardHeaderProps) =>
             </div>
           </div>
           
-          <div className="clay-card p-4 rounded-xl">
+          <div className="bg-white p-4 rounded-xl shadow-sm">
             <div className="flex items-center gap-3">
               <Users className="w-6 h-6 text-red-600" />
               <div className="text-center">
