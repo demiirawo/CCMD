@@ -3,7 +3,7 @@ import { DashboardHeader } from "@/components/DashboardHeader";
 import { DashboardSection } from "@/components/DashboardSection";
 import { StatusItemData } from "@/components/StatusItem";
 import { StatusType } from "@/components/StatusBadge";
-import { Users, Target, BarChart3, FileText, Heart, Shield } from "lucide-react";
+import { Users, Target, BarChart3, FileText, Heart, Shield, Calendar, UserCheck, ClipboardList, HeartHandshake, TrendingUp } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const Index = () => {
@@ -11,11 +11,44 @@ const Index = () => {
   const [dashboardData, setDashboardData] = useState({
     date: "24/07/2025",
     title: "Management Meeting (Weekly)",
+    attendees: "Manager, Team Leader, Senior Carer",
+    purpose: "Weekly review of care quality and operational matters",
     sections: [
       {
-        id: "attendees",
-        title: "Meeting Attendees",
-        icon: <Users className="w-6 h-6 text-blue-600" />,
+        id: "meeting-overview",
+        title: "Meeting Overview",
+        icon: <Calendar className="w-6 h-6 text-blue-600" />,
+        items: [
+          {
+            id: "meeting-date",
+            title: "Meeting Date",
+            status: "green" as StatusType,
+            lastReviewed: "24-Jul-25",
+            comment: "24/07/2025",
+            details: "Current meeting date"
+          },
+          {
+            id: "meeting-attendees",
+            title: "Meeting Attendees",
+            status: "green" as StatusType,
+            lastReviewed: "24-Jul-25",
+            comment: "Manager, Team Leader, Senior Carer",
+            details: "Key staff members present"
+          },
+          {
+            id: "meeting-purpose",
+            title: "Meeting Purpose",
+            status: "green" as StatusType,
+            lastReviewed: "24-Jul-25",
+            comment: "Weekly review of care quality and operational matters",
+            details: "Meeting objectives and goals"
+          }
+        ]
+      },
+      {
+        id: "staff",
+        title: "Staff",
+        icon: <Users className="w-6 h-6 text-purple-600" />,
         items: [
           {
             id: "recruitment",
@@ -27,22 +60,15 @@ const Index = () => {
           },
           {
             id: "staff-documents",
-            title: "Staff Documents", 
+            title: "Staff Documents",
             status: "amber" as StatusType,
             lastReviewed: "23-Jul-25",
-            comment: "Currently processing 3 starters. There are still several documents outstanding - almost completed for all staff. Employment History - Callista is working on this (2 more staff remaining).",
+            comment: "Currently processing 3 starters. Employment History - Callista working on 2 remaining staff.",
             details: "Document compliance tracking ongoing. Priority focus on completing outstanding employment history checks."
-          }
-        ]
-      },
-      {
-        id: "agenda",
-        title: "Meeting Agenda",
-        icon: <FileText className="w-6 h-6 text-purple-600" />,
-        items: [
+          },
           {
             id: "training",
-            title: "Training (5 Years Expiry) - Atlas / Citiation",
+            title: "Training",
             status: "amber" as StatusType,
             lastReviewed: "23-Jul-25",
             comment: "Several staff members still have not completed mandatory training - by the 31st of July.",
@@ -50,32 +76,40 @@ const Index = () => {
           },
           {
             id: "spot-checks",
-            title: "Spot Checks (3 Monthly)",
-            status: "amber" as StatusType, 
+            title: "Spot Checks",
+            status: "amber" as StatusType,
             lastReviewed: "23-Jul-25",
             comment: "3 spot checks are due - Callista to send their names to Sam/Melissa - by 23rd",
             details: "Regular quality assurance spot checks due for completion."
           },
           {
-            id: "supervision",
-            title: "1 to 1 Supervisions (3 Monthly)",
+            id: "staff-supervisions",
+            title: "Staff Supervisions",
             status: "green" as StatusType,
             lastReviewed: "23-Jul-25",
             comment: "1 person pending supervision, 1 person pending probation review",
             details: "Supervision schedule mostly on track with minimal outstanding items."
+          },
+          {
+            id: "staff-meetings",
+            title: "Staff Meetings",
+            status: "green" as StatusType,
+            lastReviewed: "23-Jul-25",
+            comment: "Regular team meetings scheduled and conducted",
+            details: "Monthly staff meetings proceeding as planned"
           }
         ]
       },
       {
-        id: "strategic",
-        title: "Strategic Focus",
-        icon: <Target className="w-6 h-6 text-green-600" />,
+        id: "care-planning",
+        title: "Care Planning & Delivery",
+        icon: <HeartHandshake className="w-6 h-6 text-green-600" />,
         items: [
           {
             id: "care-plans",
-            title: "Care Plans & Risk Assessment",
+            title: "Care Plans & Risk Assessments",
             status: "red" as StatusType,
-            lastReviewed: "23-Jul-25", 
+            lastReviewed: "23-Jul-25",
             comment: "4 service users do not have a care plan in place. Please check the initial visit content to determine if all service users are documented correctly.",
             details: "Critical compliance issue requiring immediate attention for service user safety."
           },
@@ -94,14 +128,77 @@ const Index = () => {
             lastReviewed: "23-Jul-25",
             comment: "Up to date - no concerns",
             details: "All medication protocols and documentation current and compliant."
+          },
+          {
+            id: "care-notes",
+            title: "Care Notes",
+            status: "green" as StatusType,
+            lastReviewed: "23-Jul-25",
+            comment: "Daily care notes being completed consistently",
+            details: "Care documentation up to date and compliant"
+          },
+          {
+            id: "call-monitoring",
+            title: "Call Monitoring",
+            status: "green" as StatusType,
+            lastReviewed: "23-Jul-25",
+            comment: "Call monitoring system functioning well",
+            details: "Regular monitoring of care visits and timing"
           }
         ]
       },
       {
-        id: "review-areas", 
-        title: "Key Review Areas",
-        icon: <BarChart3 className="w-6 h-6 text-indigo-600" />,
+        id: "safety",
+        title: "Safety",
+        icon: <Shield className="w-6 h-6 text-red-600" />,
         items: [
+          {
+            id: "incidents-accidents",
+            title: "Incidents & Accidents",
+            status: "green" as StatusType,
+            lastReviewed: "23-Jul-25",
+            comment: "No recent incidents reported",
+            details: "Incident reporting system functioning well"
+          },
+          {
+            id: "safeguarding",
+            title: "Safeguarding",
+            status: "green" as StatusType,
+            lastReviewed: "23-Jul-25",
+            comment: "All safeguarding procedures up to date",
+            details: "Safeguarding protocols being followed correctly"
+          },
+          {
+            id: "risk-register",
+            title: "Risk Register",
+            status: "amber" as StatusType,
+            lastReviewed: "23-Jul-25",
+            comment: "Risk register requires quarterly review",
+            details: "Some risks need updating and reassessment"
+          },
+          {
+            id: "infection-control",
+            title: "Infection Control",
+            status: "green" as StatusType,
+            lastReviewed: "23-Jul-25",
+            comment: "Infection control measures in place and effective",
+            details: "PPE supplies adequate, procedures being followed"
+          }
+        ]
+      },
+      {
+        id: "continuous-improvement",
+        title: "Continuous Improvement",
+        icon: <TrendingUp className="w-6 h-6 text-indigo-600" />,
+        items: [
+          {
+            id: "feedback",
+            title: "Feedback",
+            status: "green" as StatusType,
+            lastReviewed: "23-Jul-25",
+            comment: "Number of service users due for feedback, Callista to follow up",
+            details: "Regular feedback collection from service users proceeding as scheduled."
+          },
           {
             id: "audits",
             title: "Audits",
@@ -109,14 +206,6 @@ const Index = () => {
             lastReviewed: "23-Jul-25",
             comment: "6 completed, progress is ongoing",
             details: "Audit schedule progressing well with good completion rate."
-          },
-          {
-            id: "feedback",
-            title: "Feedback (3 Month Check In)",
-            status: "green" as StatusType,
-            lastReviewed: "23-Jul-25", 
-            comment: "number of services users due for feedback, Callista to follow up",
-            details: "Regular feedback collection from service users proceeding as scheduled."
           }
         ]
       }
