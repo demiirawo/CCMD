@@ -4,14 +4,31 @@ import { LineChart, Line, XAxis, YAxis, ResponsiveContainer } from "recharts";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-
-const initialMonthlyData = [
-  { month: "Apr 25", serviceUsers: 51, currentStaff: 26, minStaff: 12, idealStaff: 22 },
-  { month: "May 25", serviceUsers: 39, currentStaff: 25, minStaff: 17, idealStaff: 18 },
-  { month: "Jun 25", serviceUsers: 58, currentStaff: 16, minStaff: 14, idealStaff: 24 },
-  { month: "Jul 25", serviceUsers: 52, currentStaff: 13, minStaff: 13, idealStaff: 27 }
-];
-
+const initialMonthlyData = [{
+  month: "Apr 25",
+  serviceUsers: 51,
+  currentStaff: 26,
+  minStaff: 12,
+  idealStaff: 22
+}, {
+  month: "May 25",
+  serviceUsers: 39,
+  currentStaff: 25,
+  minStaff: 17,
+  idealStaff: 18
+}, {
+  month: "Jun 25",
+  serviceUsers: 58,
+  currentStaff: 16,
+  minStaff: 14,
+  idealStaff: 24
+}, {
+  month: "Jul 25",
+  serviceUsers: 52,
+  currentStaff: 13,
+  minStaff: 13,
+  idealStaff: 27
+}];
 const initialCurrentMetrics = {
   activeServiceUsers: 52,
   currentStaffingLevel: 13,
@@ -19,41 +36,39 @@ const initialCurrentMetrics = {
   idealStaffingLevel: 27,
   capacityCoverage: 48.1
 };
-
 const chartConfig = {
   serviceUsers: {
     label: "Service Users",
-    color: "hsl(var(--chart-1))",
+    color: "hsl(var(--chart-1))"
   },
   currentStaff: {
     label: "Current Staff",
-    color: "hsl(var(--chart-2))",
+    color: "hsl(var(--chart-2))"
   },
   minStaff: {
     label: "Min Staff",
-    color: "hsl(var(--chart-3))",
+    color: "hsl(var(--chart-3))"
   },
   idealStaff: {
     label: "Ideal Staff",
-    color: "hsl(var(--chart-4))",
-  },
+    color: "hsl(var(--chart-4))"
+  }
 };
-
 export const CapacityAnalytics = () => {
   const [monthlyData, setMonthlyData] = useState(initialMonthlyData);
   const [currentMetrics, setCurrentMetrics] = useState(initialCurrentMetrics);
-
   const handleCellEdit = (rowIndex: number, field: string, value: string) => {
     const numValue = parseInt(value) || 0;
     const newData = [...monthlyData];
-    newData[rowIndex] = { ...newData[rowIndex], [field]: numValue };
+    newData[rowIndex] = {
+      ...newData[rowIndex],
+      [field]: numValue
+    };
     setMonthlyData(newData);
-    
+
     // Update current metrics based on latest data
     const latestRow = newData[newData.length - 1];
-    const coverage = latestRow.idealStaff > 0 ? 
-      ((latestRow.currentStaff / latestRow.idealStaff) * 100) : 0;
-    
+    const coverage = latestRow.idealStaff > 0 ? latestRow.currentStaff / latestRow.idealStaff * 100 : 0;
     setCurrentMetrics({
       activeServiceUsers: latestRow.serviceUsers,
       currentStaffingLevel: latestRow.currentStaff,
@@ -62,44 +77,30 @@ export const CapacityAnalytics = () => {
       capacityCoverage: Math.round(coverage * 10) / 10
     });
   };
-
-  const EditableCell = ({ value, onEdit }: { value: number; onEdit: (val: string) => void }) => {
+  const EditableCell = ({
+    value,
+    onEdit
+  }: {
+    value: number;
+    onEdit: (val: string) => void;
+  }) => {
     const [editing, setEditing] = useState(false);
     const [editValue, setEditValue] = useState(value.toString());
-
     const handleSave = () => {
       onEdit(editValue);
       setEditing(false);
     };
-
     if (editing) {
-      return (
-        <Input
-          value={editValue}
-          onChange={(e) => setEditValue(e.target.value)}
-          onBlur={handleSave}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') handleSave();
-            if (e.key === 'Escape') setEditing(false);
-          }}
-          className="w-16 h-8 text-sm"
-          autoFocus
-        />
-      );
+      return <Input value={editValue} onChange={e => setEditValue(e.target.value)} onBlur={handleSave} onKeyDown={e => {
+        if (e.key === 'Enter') handleSave();
+        if (e.key === 'Escape') setEditing(false);
+      }} className="w-16 h-8 text-sm" autoFocus />;
     }
-
-    return (
-      <span 
-        className="cursor-pointer hover:bg-accent/50 p-1 rounded"
-        onClick={() => setEditing(true)}
-      >
+    return <span className="cursor-pointer hover:bg-accent/50 p-1 rounded" onClick={() => setEditing(true)}>
         {value}
-      </span>
-    );
+      </span>;
   };
-
-  return (
-    <div className="space-y-6 mt-4 p-6 bg-background border border-border rounded-lg">
+  return <div className="space-y-6 mt-4 p-6 border border-border rounded-lg bg-neutral-50">
       <div className="flex items-center justify-between">
         <h4 className="text-lg font-semibold text-foreground">📊 Capacity Analytics</h4>
         <button className="text-muted-foreground hover:text-foreground">✕</button>
@@ -120,62 +121,63 @@ export const CapacityAnalytics = () => {
             </tr>
           </thead>
           <tbody>
-            {monthlyData.map((row, index) => (
-              <tr key={index} className="border-b border-border/30 hover:bg-accent/30">
+            {monthlyData.map((row, index) => <tr key={index} className="border-b border-border/30 hover:bg-accent/30">
                 <td className="p-3">{row.month}</td>
                 <td className="p-3">
-                  <EditableCell 
-                    value={row.serviceUsers} 
-                    onEdit={(val) => handleCellEdit(index, 'serviceUsers', val)} 
-                  />
+                  <EditableCell value={row.serviceUsers} onEdit={val => handleCellEdit(index, 'serviceUsers', val)} />
                 </td>
                 <td className="p-3">
-                  <EditableCell 
-                    value={row.currentStaff} 
-                    onEdit={(val) => handleCellEdit(index, 'currentStaff', val)} 
-                  />
+                  <EditableCell value={row.currentStaff} onEdit={val => handleCellEdit(index, 'currentStaff', val)} />
                 </td>
                 <td className="p-3">
-                  <EditableCell 
-                    value={row.minStaff} 
-                    onEdit={(val) => handleCellEdit(index, 'minStaff', val)} 
-                  />
+                  <EditableCell value={row.minStaff} onEdit={val => handleCellEdit(index, 'minStaff', val)} />
                 </td>
                 <td className="p-3">
-                  <EditableCell 
-                    value={row.idealStaff} 
-                    onEdit={(val) => handleCellEdit(index, 'idealStaff', val)} 
-                  />
+                  <EditableCell value={row.idealStaff} onEdit={val => handleCellEdit(index, 'idealStaff', val)} />
                 </td>
-              </tr>
-            ))}
+              </tr>)}
           </tbody>
         </table>
       </div>
 
       {/* Metrics Cards */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-        <Card className="p-4" style={{ backgroundColor: '#e0d4f7', borderColor: '#c4b5fd' }}>
+        <Card className="p-4" style={{
+        backgroundColor: '#e0d4f7',
+        borderColor: '#c4b5fd'
+      }}>
           <div className="text-xs text-muted-foreground mb-1">Active Service Users</div>
           <div className="text-2xl font-bold">{currentMetrics.activeServiceUsers}</div>
         </Card>
         
-        <Card className="p-4" style={{ backgroundColor: '#bfdbfe', borderColor: '#93c5fd' }}>
+        <Card className="p-4" style={{
+        backgroundColor: '#bfdbfe',
+        borderColor: '#93c5fd'
+      }}>
           <div className="text-xs text-muted-foreground mb-1">Current Staffing Level</div>
           <div className="text-2xl font-bold">{currentMetrics.currentStaffingLevel}</div>
         </Card>
         
-        <Card className="p-4" style={{ backgroundColor: '#fecaca', borderColor: '#fca5a5' }}>
+        <Card className="p-4" style={{
+        backgroundColor: '#fecaca',
+        borderColor: '#fca5a5'
+      }}>
           <div className="text-xs text-muted-foreground mb-1">Minimum Staffing Level</div>
           <div className="text-2xl font-bold">{currentMetrics.minimumStaffingLevel}</div>
         </Card>
         
-        <Card className="p-4" style={{ backgroundColor: '#bbf7d0', borderColor: '#86efac' }}>
+        <Card className="p-4" style={{
+        backgroundColor: '#bbf7d0',
+        borderColor: '#86efac'
+      }}>
           <div className="text-xs text-muted-foreground mb-1">Ideal Staffing Level</div>
           <div className="text-2xl font-bold">{currentMetrics.idealStaffingLevel}</div>
         </Card>
         
-        <Card className="p-4" style={{ backgroundColor: '#fed7aa', borderColor: '#fdba74' }}>
+        <Card className="p-4" style={{
+        backgroundColor: '#fed7aa',
+        borderColor: '#fdba74'
+      }}>
           <div className="text-xs text-muted-foreground mb-1">Capacity Coverage</div>
           <div className="text-2xl font-bold">{currentMetrics.capacityCoverage}%</div>
           <div className="text-xs text-orange-600 mt-1">
@@ -203,46 +205,25 @@ export const CapacityAnalytics = () => {
           <ChartContainer config={chartConfig} className="h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={monthlyData}>
-                <XAxis 
-                  dataKey="month" 
-                  axisLine={false}
-                  tickLine={false}
-                  className="text-xs"
-                />
-                <YAxis 
-                  axisLine={false}
-                  tickLine={false}
-                  className="text-xs"
-                />
+                <XAxis dataKey="month" axisLine={false} tickLine={false} className="text-xs" />
+                <YAxis axisLine={false} tickLine={false} className="text-xs" />
                 <ChartTooltip content={<ChartTooltipContent />} />
-                <Line 
-                  type="monotone" 
-                  dataKey="serviceUsers" 
-                  stroke="#8b5cf6" 
-                  strokeWidth={2}
-                  dot={{ r: 3, fill: "#8b5cf6" }}
-                />
-                <Line 
-                  type="monotone" 
-                  dataKey="currentStaff" 
-                  stroke="#3b82f6" 
-                  strokeWidth={2}
-                  dot={{ r: 3, fill: "#3b82f6" }}
-                />
-                <Line 
-                  type="monotone" 
-                  dataKey="minStaff" 
-                  stroke="#ef4444" 
-                  strokeWidth={2}
-                  dot={{ r: 3, fill: "#ef4444" }}
-                />
-                <Line 
-                  type="monotone" 
-                  dataKey="idealStaff" 
-                  stroke="#22c55e" 
-                  strokeWidth={2}
-                  dot={{ r: 3, fill: "#22c55e" }}
-                />
+                <Line type="monotone" dataKey="serviceUsers" stroke="#8b5cf6" strokeWidth={2} dot={{
+                r: 3,
+                fill: "#8b5cf6"
+              }} />
+                <Line type="monotone" dataKey="currentStaff" stroke="#3b82f6" strokeWidth={2} dot={{
+                r: 3,
+                fill: "#3b82f6"
+              }} />
+                <Line type="monotone" dataKey="minStaff" stroke="#ef4444" strokeWidth={2} dot={{
+                r: 3,
+                fill: "#ef4444"
+              }} />
+                <Line type="monotone" dataKey="idealStaff" stroke="#22c55e" strokeWidth={2} dot={{
+                r: 3,
+                fill: "#22c55e"
+              }} />
               </LineChart>
             </ResponsiveContainer>
           </ChartContainer>
@@ -251,6 +232,5 @@ export const CapacityAnalytics = () => {
           </div>
         </Card>
       </div>
-    </div>
-  );
+    </div>;
 };
