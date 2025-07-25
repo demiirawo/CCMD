@@ -83,9 +83,7 @@ export const DashboardSection = ({
             className="p-1 rounded-lg hover:bg-accent/50 transition-colors"
             onClick={(e) => {
               e.stopPropagation();
-              console.log('Arrow clicked for section:', title);
               if (title.toLowerCase() === "staff") {
-                console.log('Opening capacity analytics');
                 setShowCapacityAnalytics(true);
               } else {
                 setIsOpen(!isOpen);
