@@ -13,16 +13,33 @@ interface StatusItemProps {
   item: StatusItemData;
   onStatusChange?: (id: string, status: StatusType) => void;
   onCommentChange?: (id: string, comment: string) => void;
+  onMentionDetected?: (itemTitle: string, mentionedAttendee: string, comment: string) => void;
+  attendees?: string[];
 }
 export const StatusItem = ({
   item,
   onStatusChange,
-  onCommentChange
+  onCommentChange,
+  onMentionDetected,
+  attendees = []
 }: StatusItemProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const handleCommentSubmit = (comment: string) => {
     onCommentChange?.(item.id, comment);
+    
+    // Check for @ mentions
+    const mentionRegex = /@(\w+)/g;
+    const mentions = comment.match(mentionRegex);
+    if (mentions && attendees.length > 0) {
+      mentions.forEach(mention => {
+        const mentionedName = mention.substring(1);
+        if (attendees.some(attendee => attendee.toLowerCase().includes(mentionedName.toLowerCase()))) {
+          onMentionDetected?.(item.title, mentionedName, comment);
+        }
+      });
+    }
+    
     setIsEditing(false);
   };
   return <div className="w-full bg-white rounded-xl p-4 mb-3 shadow-md border border-border/30 hover:scale-[1.01] transition-transform duration-300">
@@ -31,9 +48,18 @@ export const StatusItem = ({
           {isExpanded ? <ChevronDown className="w-4 h-4 text-muted-foreground" /> : <ChevronRight className="w-4 h-4 text-muted-foreground" />}
         </button>
         
-        <div className="flex-shrink-0">
+        <button 
+          onClick={(e) => {
+            e.stopPropagation();
+            const statusOrder: StatusType[] = ["green", "amber", "red"];
+            const currentIndex = statusOrder.indexOf(item.status);
+            const nextStatus = statusOrder[(currentIndex + 1) % statusOrder.length];
+            onStatusChange?.(item.id, nextStatus);
+          }}
+          className="flex-shrink-0 hover:scale-110 transition-transform"
+        >
           <StatusBadge status={item.status} />
-        </div>
+        </button>
         
         <div className="flex-1 min-w-0">
           <h4 className="font-semibold text-foreground truncate">{item.title}</h4>

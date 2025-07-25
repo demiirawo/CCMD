@@ -1,14 +1,23 @@
 import { useState } from "react";
 import { DashboardHeader } from "@/components/DashboardHeader";
 import { DashboardSection } from "@/components/DashboardSection";
+import { ActionsLog, ActionLogEntry } from "@/components/ActionsLog";
 import { StatusItemData } from "@/components/StatusItem";
 import { StatusType } from "@/components/StatusBadge";
 import { Users, Target, BarChart3, FileText, Heart, Shield, Calendar, UserCheck, ClipboardList, HeartHandshake, TrendingUp } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+
 const Index = () => {
-  const {
-    toast
-  } = useToast();
+  const [actionsLog, setActionsLog] = useState<ActionLogEntry[]>([]);
+  const { toast } = useToast();
+  
+  const [headerData, setHeaderData] = useState({
+    date: "Q4 2024 Board Meeting - December 15, 2024",
+    title: "Strategic Planning Session",
+    attendees: "John Smith, Sarah Johnson, Mike Chen, Lisa Rodriguez",
+    purpose: "Review Q4 performance and set strategic priorities for 2025"
+  });
+
   const [dashboardData, setDashboardData] = useState({
     date: "24/07/2025",
     title: "Management Meeting (Weekly)",
@@ -183,7 +192,7 @@ const Index = () => {
   });
 
   const handleDataChange = (field: string, value: string) => {
-    setDashboardData(prev => ({
+    setHeaderData(prev => ({
       ...prev,
       [field]: value
     }));
@@ -196,45 +205,76 @@ const Index = () => {
   const handleStatusChange = (sectionId: string, itemId: string, newStatus: StatusType) => {
     setDashboardData(prev => ({
       ...prev,
-      sections: prev.sections.map(section => section.id === sectionId ? {
-        ...section,
-        items: section.items.map(item => item.id === itemId ? {
-          ...item,
-          status: newStatus,
-          lastReviewed: new Date().toLocaleDateString('en-GB', {
-            day: '2-digit',
-            month: 'short',
-            year: '2-digit'
-          })
-        } : item)
-      } : section)
+      sections: prev.sections.map(section => 
+        section.id === sectionId ? {
+          ...section,
+          items: section.items.map(item => 
+            item.id === itemId ? {
+              ...item,
+              status: newStatus,
+              lastReviewed: new Date().toLocaleDateString('en-GB', {
+                day: '2-digit',
+                month: 'short',
+                year: '2-digit'
+              })
+            } : item
+          )
+        } : section
+      )
     }));
     toast({
       title: "Status Updated",
       description: `Item status changed to ${newStatus}`
     });
   };
+
   const handleCommentChange = (sectionId: string, itemId: string, newComment: string) => {
     setDashboardData(prev => ({
       ...prev,
-      sections: prev.sections.map(section => section.id === sectionId ? {
-        ...section,
-        items: section.items.map(item => item.id === itemId ? {
-          ...item,
-          comment: newComment,
-          lastReviewed: new Date().toLocaleDateString('en-GB', {
-            day: '2-digit',
-            month: 'short',
-            year: '2-digit'
-          })
-        } : item)
-      } : section)
+      sections: prev.sections.map(section => 
+        section.id === sectionId ? {
+          ...section,
+          items: section.items.map(item => 
+            item.id === itemId ? {
+              ...item,
+              comment: newComment,
+              lastReviewed: new Date().toLocaleDateString('en-GB', {
+                day: '2-digit',
+                month: 'short',
+                year: '2-digit'
+              })
+            } : item
+          )
+        } : section
+      )
     }));
     toast({
       title: "Comment Updated",
       description: "Item comment has been saved"
     });
   };
+  
+  const handleMentionDetected = (itemTitle: string, mentionedAttendee: string, comment: string) => {
+    const newAction: ActionLogEntry = {
+      id: `action-${Date.now()}`,
+      timestamp: new Date().toLocaleString(),
+      itemTitle,
+      mentionedAttendee,
+      comment
+    };
+    
+    setActionsLog(prev => [newAction, ...prev]);
+    
+    toast({
+      title: "Action Logged",
+      description: `@${mentionedAttendee} mentioned in ${itemTitle}`
+    });
+  };
+  
+  const getAttendeesList = () => {
+    return headerData.attendees.split(',').map(name => name.trim());
+  };
+
   const calculateStats = () => {
     const allItems = dashboardData.sections.flatMap(section => section.items);
     return {
@@ -243,13 +283,15 @@ const Index = () => {
       red: allItems.filter(item => item.status === "red").length
     };
   };
-  return <div className="min-h-screen bg-background p-4 lg:p-8">
+
+  return (
+    <div className="min-h-screen bg-background p-4 lg:p-8">
       <div className="max-w-7xl mx-auto space-y-6">
         <DashboardHeader 
-          date={dashboardData.date} 
-          title={dashboardData.title} 
-          attendees={dashboardData.attendees}
-          purpose={dashboardData.purpose}
+          date={headerData.date} 
+          title={headerData.title} 
+          attendees={headerData.attendees}
+          purpose={headerData.purpose}
           stats={calculateStats()}
           onDataChange={handleDataChange}
         />
@@ -260,12 +302,16 @@ const Index = () => {
             title={section.title} 
             items={section.items} 
             onItemStatusChange={(itemId, status) => handleStatusChange(section.id, itemId, status)} 
-            onItemCommentChange={(itemId, comment) => handleCommentChange(section.id, itemId, comment)} 
+            onItemCommentChange={(itemId, comment) => handleCommentChange(section.id, itemId, comment)}
+            onMentionDetected={handleMentionDetected}
+            attendees={getAttendeesList()}
           />
         )}
         
-        
+        <ActionsLog actions={actionsLog} />
       </div>
-    </div>;
+    </div>
+  );
 };
+
 export default Index;

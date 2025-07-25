@@ -10,6 +10,8 @@ interface DashboardSectionProps {
   onItemStatusChange?: (id: string, status: StatusType) => void;
   onItemCommentChange?: (id: string, comment: string) => void;
   onAddItem?: (sectionTitle: string) => void;
+  onMentionDetected?: (itemTitle: string, mentionedAttendee: string, comment: string) => void;
+  attendees?: string[];
   defaultOpen?: boolean;
 }
 
@@ -20,6 +22,8 @@ export const DashboardSection = ({
   onItemStatusChange,
   onItemCommentChange,
   onAddItem,
+  onMentionDetected,
+  attendees = [],
   defaultOpen = true
 }: DashboardSectionProps) => {
   const [isOpen, setIsOpen] = useState(defaultOpen);
@@ -83,6 +87,8 @@ export const DashboardSection = ({
               item={item}
               onStatusChange={onItemStatusChange}
               onCommentChange={onItemCommentChange}
+              onMentionDetected={onMentionDetected}
+              attendees={attendees}
             />
           ))}
           
