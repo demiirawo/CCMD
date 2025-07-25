@@ -67,38 +67,6 @@ export const DashboardHeader = ({ date, title, attendees, purpose, stats, onData
         </div>
       </div>
       
-      {/* Stats Section */}
-      <div className="flex gap-4 justify-center pt-4 border-t border-border/20">
-        <div className="bg-white p-4 rounded-xl shadow-lg border border-border/50">
-          <div className="flex items-center gap-3">
-            <StatusBadge status="green" />
-            <div className="text-center">
-              <div className="text-2xl font-bold text-green-600">{stats.green}</div>
-              <div className="text-sm text-muted-foreground">On Track</div>
-            </div>
-          </div>
-        </div>
-        
-        <div className="bg-white p-4 rounded-xl shadow-lg border border-border/50">
-          <div className="flex items-center gap-3">
-            <StatusBadge status="amber" />
-            <div className="text-center">
-              <div className="text-2xl font-bold text-amber-600">{stats.amber}</div>
-              <div className="text-sm text-muted-foreground">At Risk</div>
-            </div>
-          </div>
-        </div>
-        
-        <div className="bg-white p-4 rounded-xl shadow-lg border border-border/50">
-          <div className="flex items-center gap-3">
-            <StatusBadge status="red" />
-            <div className="text-center">
-              <div className="text-2xl font-bold text-red-600">{stats.red}</div>
-              <div className="text-sm text-muted-foreground">Critical</div>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   );
 };
