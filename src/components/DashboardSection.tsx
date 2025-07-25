@@ -55,7 +55,6 @@ export const DashboardSection = ({
         onClick={() => setIsOpen(!isOpen)}
       >
         <div className="flex items-center gap-3">
-          {icon && <div className="flex-shrink-0">{icon}</div>}
           <h3 className="text-xl font-bold text-foreground">{title}</h3>
           <div className="ml-4">
             {getStatusIcon(getOverallStatus())}

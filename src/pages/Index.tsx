@@ -233,9 +233,23 @@ const Index = () => {
   };
   return <div className="min-h-screen bg-background p-4 lg:p-8">
       <div className="max-w-7xl mx-auto space-y-6">
-        <DashboardHeader date={dashboardData.date} title={dashboardData.title} stats={calculateStats()} />
+        <DashboardHeader 
+          date={dashboardData.date} 
+          title={dashboardData.title} 
+          attendees={dashboardData.attendees}
+          purpose={dashboardData.purpose}
+          stats={calculateStats()} 
+        />
         
-        {dashboardData.sections.map(section => <DashboardSection key={section.id} title={section.title} icon={section.icon} items={section.items} onItemStatusChange={(itemId, status) => handleStatusChange(section.id, itemId, status)} onItemCommentChange={(itemId, comment) => handleCommentChange(section.id, itemId, comment)} />)}
+        {dashboardData.sections.filter(section => section.id !== "meeting-overview").map(section => 
+          <DashboardSection 
+            key={section.id} 
+            title={section.title} 
+            items={section.items} 
+            onItemStatusChange={(itemId, status) => handleStatusChange(section.id, itemId, status)} 
+            onItemCommentChange={(itemId, comment) => handleCommentChange(section.id, itemId, comment)} 
+          />
+        )}
         
         
       </div>
