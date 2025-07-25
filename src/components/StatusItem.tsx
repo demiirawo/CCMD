@@ -59,7 +59,7 @@ export const StatusItem = ({
       setPendingMention(null);
     }
   };
-  return <div className="w-full bg-white rounded-xl p-8 mb-3 shadow-md border border-border/30 hover:scale-[1.01] transition-transform duration-300 min-h-[120px]">
+  return <div className="w-full bg-white rounded-xl p-8 mb-3 shadow-md border border-border/30 hover:scale-[1.01] transition-transform duration-300 min-h-[140px]">
       <div className="flex items-center gap-4 w-full">
         <button onClick={() => setIsExpanded(!isExpanded)} className="flex-shrink-0 p-1 rounded-lg hover:bg-accent/50 transition-colors">
           {isExpanded ? <ChevronDown className="w-4 h-4 text-muted-foreground" /> : <ChevronRight className="w-4 h-4 text-muted-foreground" />}
@@ -81,15 +81,15 @@ export const StatusItem = ({
           <p className="text-xs text-muted-foreground mt-1">Last Discussed: {item.lastReviewed}</p>
         </div>
         
-        <div className="flex-[4.6]">
-          {isEditing ? <textarea defaultValue={item.comment} className="w-full p-3 rounded-lg border border-gray-100 bg-gray-25 resize-none min-h-[80px] text-sm" placeholder="Add your comment..." onBlur={e => handleCommentSubmit(e.target.value)} onKeyDown={e => {
+        <div className="flex-[5.5]">
+          {isEditing ? <textarea defaultValue={item.comment} className="w-full p-3 rounded-lg border border-gray-100 bg-gray-25 resize-none min-h-[100px] text-sm whitespace-pre-wrap break-words" placeholder="Add your comment..." onBlur={e => handleCommentSubmit(e.target.value)} onKeyDown={e => {
           if (e.key === "Enter" && e.ctrlKey) {
             handleCommentSubmit(e.currentTarget.value);
           }
           if (e.key === "Escape") {
             setIsEditing(false);
           }
-        }} autoFocus /> : <button onClick={() => setIsEditing(true)} className="w-full text-left p-3 rounded-lg bg-gray-25 hover:bg-gray-50 transition-colors text-sm min-h-[80px] flex items-center border border-gray-100">
+        }} autoFocus /> : <button onClick={() => setIsEditing(true)} className="w-full text-left p-3 rounded-lg bg-gray-25 hover:bg-gray-50 transition-colors text-sm min-h-[100px] flex items-start border border-gray-100 whitespace-pre-wrap break-words">
               {item.comment || "Click to add comment..."}
             </button>}
         </div>
