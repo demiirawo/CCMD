@@ -23,7 +23,7 @@ export const DashboardHeader = ({ date, title, attendees, purpose, stats, onData
   };
 
   const EditableField = ({ field, value, label }: { field: string; value: string; label: string }) => (
-    <div className="bg-gray-50 p-4 rounded-lg border-2 border-gray-300 h-24">
+    <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 h-24">
       <h3 className="text-sm font-medium text-muted-foreground mb-2">{label}</h3>
       {editingField === field ? (
         <textarea
@@ -69,7 +69,7 @@ export const DashboardHeader = ({ date, title, attendees, purpose, stats, onData
       
       {/* Stats Section */}
       <div className="flex gap-4 justify-center pt-4 border-t border-border/20">
-        <div className="bg-white p-4 rounded-xl shadow-sm">
+        <div className="bg-white p-4 rounded-xl shadow-lg border border-border/50">
           <div className="flex items-center gap-3">
             <StatusBadge status="green" />
             <div className="text-center">
@@ -79,7 +79,7 @@ export const DashboardHeader = ({ date, title, attendees, purpose, stats, onData
           </div>
         </div>
         
-        <div className="bg-white p-4 rounded-xl shadow-sm">
+        <div className="bg-white p-4 rounded-xl shadow-lg border border-border/50">
           <div className="flex items-center gap-3">
             <StatusBadge status="amber" />
             <div className="text-center">
@@ -89,7 +89,7 @@ export const DashboardHeader = ({ date, title, attendees, purpose, stats, onData
           </div>
         </div>
         
-        <div className="bg-white p-4 rounded-xl shadow-sm">
+        <div className="bg-white p-4 rounded-xl shadow-lg border border-border/50">
           <div className="flex items-center gap-3">
             <StatusBadge status="red" />
             <div className="text-center">

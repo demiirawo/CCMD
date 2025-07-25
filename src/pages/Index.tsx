@@ -238,10 +238,12 @@ const Index = () => {
             item.id === itemId ? {
               ...item,
               comment: newComment,
-              lastReviewed: new Date().toLocaleDateString('en-GB', {
+              lastReviewed: new Date().toLocaleString('en-GB', {
                 day: '2-digit',
                 month: 'short',
-                year: '2-digit'
+                year: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
               })
             } : item
           )

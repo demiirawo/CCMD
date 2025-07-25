@@ -78,17 +78,18 @@ export const StatusItem = ({
         <div className="flex-[2] min-w-0 mr-4">
           <h4 className="font-semibold text-foreground truncate">{item.title}</h4>
           <p className="text-sm text-muted-foreground">{item.lastReviewed}</p>
+          <p className="text-xs text-muted-foreground mt-1">Last Discussed: {item.lastReviewed}</p>
         </div>
         
         <div className="flex-[4]">
-          {isEditing ? <textarea defaultValue={item.comment} className="w-full p-3 rounded-lg border border-border bg-background resize-none min-h-[80px] text-sm" placeholder="Add your comment..." onBlur={e => handleCommentSubmit(e.target.value)} onKeyDown={e => {
+          {isEditing ? <textarea defaultValue={item.comment} className="w-full p-3 rounded-lg border border-border bg-gray-100 resize-none min-h-[80px] text-sm" placeholder="Add your comment..." onBlur={e => handleCommentSubmit(e.target.value)} onKeyDown={e => {
           if (e.key === "Enter" && e.ctrlKey) {
             handleCommentSubmit(e.currentTarget.value);
           }
           if (e.key === "Escape") {
             setIsEditing(false);
           }
-        }} autoFocus /> : <button onClick={() => setIsEditing(true)} className="w-full text-left p-3 rounded-lg hover:bg-accent/50 transition-colors text-sm min-h-[80px] flex items-center">
+        }} autoFocus /> : <button onClick={() => setIsEditing(true)} className="w-full text-left p-3 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors text-sm min-h-[80px] flex items-center border border-gray-300">
               {item.comment || "Click to add comment..."}
             </button>}
         </div>
