@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { AlertCircle, Clock, User } from "lucide-react";
+import { AlertCircle } from "lucide-react";
+import { StatusBadge } from "./StatusBadge";
 
 export interface ActionLogEntry {
   id: string;
@@ -9,6 +10,7 @@ export interface ActionLogEntry {
   comment: string;
   action: string;
   dueDate: string;
+  status?: "green" | "amber" | "red";
 }
 
 interface ActionsLogProps {
@@ -26,7 +28,7 @@ export const ActionsLog = ({ actions }: ActionsLogProps) => {
       >
         <h3 className="text-xl font-bold text-foreground flex items-center gap-2">
           <AlertCircle className="w-5 h-5 text-primary" />
-          Actions Log
+          Actions
         </h3>
         <span className="text-sm text-muted-foreground">
           {actions.length} action{actions.length !== 1 ? 's' : ''}
@@ -34,48 +36,56 @@ export const ActionsLog = ({ actions }: ActionsLogProps) => {
       </div>
 
       {isExpanded && (
-        <div className="space-y-3">
+        <div className="overflow-x-auto">
           {actions.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               <p>No actions logged yet.</p>
               <p className="text-sm">Actions will appear when attendees are @ mentioned in comments.</p>
             </div>
           ) : (
-            actions.map((action) => (
-              <div key={action.id} className="bg-gray-50 rounded-lg p-4 border border-border/30">
-                <div className="flex items-start gap-3">
-                  <div className="flex-shrink-0 mt-1">
-                    <User className="w-4 h-4 text-primary" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="font-semibold text-sm text-foreground">
-                        @{action.mentionedAttendee}
-                      </span>
-                      <span className="text-xs text-muted-foreground">mentioned in</span>
-                      <span className="font-medium text-sm text-foreground truncate">
-                        {action.itemTitle}
-                      </span>
-                    </div>
-                    <p className="text-sm text-muted-foreground mb-2 line-clamp-2">
-                      Comment: {action.comment}
-                    </p>
-                    <p className="text-sm font-medium text-foreground mb-2">
-                      Action: {action.action}
-                    </p>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                        <Clock className="w-3 h-3" />
-                        {action.timestamp}
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-border/30">
+                  <th className="text-left py-2 px-3 text-sm font-semibold text-foreground">ID</th>
+                  <th className="text-left py-2 px-3 text-sm font-semibold text-foreground">Description</th>
+                  <th className="text-left py-2 px-3 text-sm font-semibold text-foreground">Owner</th>
+                  <th className="text-left py-2 px-3 text-sm font-semibold text-foreground">Due Date</th>
+                  <th className="text-left py-2 px-3 text-sm font-semibold text-foreground">Status</th>
+                  <th className="text-left py-2 px-3 text-sm font-semibold text-foreground">Comment</th>
+                </tr>
+              </thead>
+              <tbody>
+                {actions.map((action, index) => (
+                  <tr key={action.id} className="border-b border-border/20 hover:bg-gray-50/50">
+                    <td className="py-3 px-3 text-sm text-foreground">
+                      {index + 1}
+                    </td>
+                    <td className="py-3 px-3 text-sm text-foreground">
+                      <div className="max-w-xs">
+                        <div className="font-medium">{action.action}</div>
+                        <div className="text-xs text-muted-foreground mt-1">
+                          From: {action.itemTitle}
+                        </div>
                       </div>
-                      <div className="text-xs font-medium text-primary">
-                        Due: {new Date(action.dueDate).toLocaleDateString()}
+                    </td>
+                    <td className="py-3 px-3 text-sm text-foreground">
+                      {action.mentionedAttendee}
+                    </td>
+                    <td className="py-3 px-3 text-sm text-foreground">
+                      {new Date(action.dueDate).toLocaleDateString('en-GB')}
+                    </td>
+                    <td className="py-3 px-3">
+                      <StatusBadge status={action.status || "green"} />
+                    </td>
+                    <td className="py-3 px-3 text-sm text-muted-foreground">
+                      <div className="max-w-sm truncate">
+                        {action.comment}
                       </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           )}
         </div>
       )}

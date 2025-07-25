@@ -264,7 +264,8 @@ const Index = () => {
       mentionedAttendee,
       comment,
       action,
-      dueDate
+      dueDate,
+      status: "green"
     };
     
     setActionsLog(prev => [newAction, ...prev]);
