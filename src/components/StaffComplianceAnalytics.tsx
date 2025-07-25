@@ -139,7 +139,7 @@ export const StaffComplianceAnalytics = () => {
               <div className="text-lg font-semibold text-center">Staff Compliance Breakdown</div>
               
               {/* Pie Chart with labels */}
-              <div className="relative w-[500px] h-[400px] flex items-center justify-center">
+              <div className="relative w-[600px] h-[500px] flex items-center justify-center">
                 <div className="w-64 h-64">
                   <ChartContainer config={chartConfig} className="w-full h-full">
                     <ResponsiveContainer width="100%" height="100%">
@@ -167,9 +167,9 @@ export const StaffComplianceAnalytics = () => {
                 {pieData.map((entry, index) => {
                   const angle = (index * (360 / pieData.length)) + (360 / pieData.length / 2);
                   const radian = (angle * Math.PI) / 180;
-                  const radius = 180;
-                  const x = 250 + radius * Math.cos(radian - Math.PI / 2);
-                  const y = 200 + radius * Math.sin(radian - Math.PI / 2);
+                  const radius = 220;
+                  const x = 300 + radius * Math.cos(radian - Math.PI / 2);
+                  const y = 250 + radius * Math.sin(radian - Math.PI / 2);
                   
                   return (
                     <div
