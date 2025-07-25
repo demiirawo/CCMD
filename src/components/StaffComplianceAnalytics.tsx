@@ -94,9 +94,9 @@ export const StaffComplianceAnalytics = () => {
   ].filter(item => item.value > 0) : [];
 
   return (
-    <div className="space-y-6 mt-4 p-6 border border-border rounded-lg bg-neutral-50">
+    <div className="space-y-8 mt-6 p-8 border border-border rounded-lg bg-neutral-50 min-h-[600px] w-full">
       <div className="flex items-center justify-between">
-        <h4 className="text-lg font-semibold text-foreground">📋 Staff Compliance Analytics</h4>
+        <h4 className="text-xl font-semibold text-foreground">📋 Staff Compliance Analytics</h4>
         <button className="text-muted-foreground hover:text-foreground">✕</button>
       </div>
       
