@@ -135,8 +135,11 @@ export const StaffComplianceAnalytics = () => {
           
           <Card className="p-8">
             <div className="flex flex-col items-center gap-8">
+              {/* Chart Title */}
+              <div className="text-lg font-semibold text-center">Staff Compliance Breakdown</div>
+              
               {/* Pie Chart with labels */}
-              <div className="relative w-96 h-96 flex items-center justify-center">
+              <div className="relative w-[500px] h-[400px] flex items-center justify-center">
                 <div className="w-64 h-64">
                   <ChartContainer config={chartConfig} className="w-full h-full">
                     <ResponsiveContainer width="100%" height="100%">
@@ -160,23 +163,24 @@ export const StaffComplianceAnalytics = () => {
                   </ChartContainer>
                 </div>
                 
-                {/* Percentage labels positioned outside chart */}
+                {/* Percentage labels positioned around chart */}
                 {pieData.map((entry, index) => {
                   const angle = (index * (360 / pieData.length)) + (360 / pieData.length / 2);
                   const radian = (angle * Math.PI) / 180;
-                  const radius = 110;
-                  const x = 50 + (radius * Math.cos(radian - Math.PI / 2)) / 3.84; // 384px / 100
-                  const y = 50 + (radius * Math.sin(radian - Math.PI / 2)) / 3.84;
+                  const radius = 140;
+                  const x = 250 + radius * Math.cos(radian - Math.PI / 2);
+                  const y = 200 + radius * Math.sin(radian - Math.PI / 2);
                   
                   return (
                     <div
                       key={entry.name}
-                      className="absolute text-sm font-medium whitespace-nowrap"
+                      className="absolute text-sm font-medium whitespace-nowrap px-2 py-1 rounded bg-background/80 border"
                       style={{
-                        left: `${x}%`,
-                        top: `${y}%`,
+                        left: `${x}px`,
+                        top: `${y}px`,
                         transform: 'translate(-50%, -50%)',
-                        color: entry.color
+                        color: entry.color,
+                        borderColor: entry.color
                       }}
                     >
                       {entry.name}: {entry.percentage}%
@@ -186,14 +190,14 @@ export const StaffComplianceAnalytics = () => {
               </div>
               
               {/* Legend */}
-              <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-4 mt-4">
                 {pieData.map((entry) => (
                   <div key={entry.name} className="flex items-center gap-3">
                     <div 
                       className="w-4 h-4 rounded"
                       style={{ backgroundColor: entry.color }}
                     />
-                    <span className="text-sm">{entry.name}</span>
+                    <span className="text-sm font-medium">{entry.name}</span>
                   </div>
                 ))}
               </div>
