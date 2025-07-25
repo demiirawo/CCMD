@@ -1,12 +1,13 @@
 import { StatusBadge, StatusType } from "./StatusBadge";
 import { CapacityAnalytics } from "./CapacityAnalytics";
 import { StaffComplianceAnalytics } from "./StaffComplianceAnalytics";
-import { ChevronDown, ChevronRight, Calendar as CalendarIcon } from "lucide-react";
-import { useState } from "react";
+import { ChevronDown, ChevronRight, Calendar as CalendarIcon, Check, X } from "lucide-react";
+import { useState, useEffect } from "react";
 import { Button } from "./ui/button";
 import { Calendar } from "./ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 export interface StatusItemData {
   id: string;
   title: string;
@@ -20,6 +21,7 @@ interface StatusItemProps {
   onStatusChange?: (id: string, status: StatusType) => void;
   onCommentChange?: (id: string, comment: string) => void;
   onMentionDetected?: (itemTitle: string, mentionedAttendee: string, comment: string, action: string, dueDate: string) => void;
+  onActionClosed?: (actionId: string) => void;
   attendees?: string[];
 }
 export const StatusItem = ({
@@ -27,6 +29,7 @@ export const StatusItem = ({
   onStatusChange,
   onCommentChange,
   onMentionDetected,
+  onActionClosed,
   attendees = []
 }: StatusItemProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -37,8 +40,8 @@ export const StatusItem = ({
   const [textareaRef, setTextareaRef] = useState<HTMLTextAreaElement | null>(null);
 
   const handleCommentSubmit = (comment: string) => {
-    // Check for completed inline actions (format: @Name Action: [action] Date Due: [date])
-    const inlineActionRegex = /@(\w+)\s+Action:\s*([^D]+?)\s*Date\s+Due:\s*(\S+)/g;
+    // Check for completed inline actions (format: @Name, action, date)
+    const inlineActionRegex = /@(\w+),\s*([^,]+),\s*(\S+)/g;
     let match;
     
     while ((match = inlineActionRegex.exec(comment)) !== null) {
@@ -143,7 +146,7 @@ export const StatusItem = ({
     if (mentionMatch) {
       const mentionStart = textBeforeCursor.lastIndexOf('@');
       const beforeMention = value.substring(0, mentionStart);
-      const template = `@${attendee} Action: [Enter action here] Date Due: [Enter date here]`;
+      const template = `@${attendee}, [Enter action here], [Enter date here]`;
       const newValue = beforeMention + template + textAfterCursor;
       
       textareaRef.value = newValue;
@@ -155,6 +158,77 @@ export const StatusItem = ({
     }
     
     setShowMentionDropdown(false);
+  };
+
+  const closeAction = (actionText: string) => {
+    if (!item.comment) return;
+    
+    // Remove the action from the comment
+    const updatedComment = item.comment.replace(actionText, '').replace(/\s+/g, ' ').trim();
+    onCommentChange?.(item.id, updatedComment);
+  };
+
+  const renderCommentWithActions = (comment: string) => {
+    if (!comment) return "Click to add comment...";
+    
+    // Find completed actions in the comment
+    const actionRegex = /@(\w+),\s*([^,]+),\s*(\S+)/g;
+    let lastIndex = 0;
+    const parts = [];
+    let match;
+    
+    while ((match = actionRegex.exec(comment)) !== null) {
+      const [fullMatch, name, action, date] = match;
+      
+      // Add text before the action
+      if (match.index > lastIndex) {
+        parts.push(
+          <span key={`text-${lastIndex}`}>
+            {comment.substring(lastIndex, match.index)}
+          </span>
+        );
+      }
+      
+      // Check if this is a completed action (no placeholders)
+      const isCompleted = !action.includes('[Enter') && !date.includes('[Enter');
+      
+      // Add the action with styling and close button
+      parts.push(
+        <span key={`action-${match.index}`} className="inline-flex items-center gap-1">
+          <span className={cn(
+            "inline-block",
+            isCompleted && "font-bold text-primary"
+          )}>
+            @{name}, {action}, {date}
+          </span>
+          {isCompleted && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                closeAction(fullMatch);
+              }}
+              className="inline-flex items-center justify-center w-4 h-4 ml-1 text-green-600 hover:text-green-800 hover:bg-green-100 rounded-full transition-colors"
+              title="Close action"
+            >
+              <Check className="w-3 h-3" />
+            </button>
+          )}
+        </span>
+      );
+      
+      lastIndex = match.index + fullMatch.length;
+    }
+    
+    // Add remaining text
+    if (lastIndex < comment.length) {
+      parts.push(
+        <span key={`text-${lastIndex}`}>
+          {comment.substring(lastIndex)}
+        </span>
+      );
+    }
+    
+    return parts.length > 0 ? parts : comment;
   };
 
   const handleDateSelect = (date: Date | undefined) => {
@@ -332,7 +406,7 @@ export const StatusItem = ({
             renderEnhancedTextarea()
           ) : (
             <button onClick={() => setIsEditing(true)} className="w-full max-w-full text-left p-3 rounded-lg bg-gray-25 hover:bg-gray-50 transition-colors text-sm min-h-[100px] flex items-start border border-gray-100 break-words overflow-hidden">
-              <span className="break-words w-full whitespace-pre-wrap">{item.comment || "Click to add comment..."}</span>
+              <span className="break-words w-full whitespace-pre-wrap">{renderCommentWithActions(item.comment)}</span>
             </button>
           )}
         </div>

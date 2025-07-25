@@ -265,7 +265,8 @@ const Index = () => {
       comment,
       action,
       dueDate,
-      status: "green"
+      status: "green",
+      closed: false
     };
     
     setActionsLog(prev => [newAction, ...prev]);
@@ -275,7 +276,20 @@ const Index = () => {
       description: `Action assigned to @${mentionedAttendee} for ${itemTitle}`
     });
   };
-  
+
+  const handleActionClosed = (actionId: string) => {
+    setActionsLog(prev => prev.map(action => 
+      action.id === actionId 
+        ? { ...action, closed: true, closedDate: new Date().toISOString() }
+        : action
+    ));
+    
+    toast({
+      title: "Action Closed",
+      description: "Action has been marked as completed"
+    });
+  };
+
   const getAttendeesList = () => {
     return headerData.attendees.split(',').map(name => name.trim());
   };
@@ -309,6 +323,7 @@ const Index = () => {
             onItemStatusChange={(itemId, status) => handleStatusChange(section.id, itemId, status)} 
             onItemCommentChange={(itemId, comment) => handleCommentChange(section.id, itemId, comment)}
             onMentionDetected={handleMentionDetected}
+            onActionClosed={handleActionClosed}
             attendees={getAttendeesList()}
           />
         )}

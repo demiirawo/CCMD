@@ -12,6 +12,7 @@ interface DashboardSectionProps {
   onItemCommentChange?: (id: string, comment: string) => void;
   onAddItem?: (sectionTitle: string) => void;
   onMentionDetected?: (itemTitle: string, mentionedAttendee: string, comment: string, action: string, dueDate: string) => void;
+  onActionClosed?: (actionId: string) => void;
   attendees?: string[];
   defaultOpen?: boolean;
 }
@@ -24,6 +25,7 @@ export const DashboardSection = ({
   onItemCommentChange,
   onAddItem,
   onMentionDetected,
+  onActionClosed,
   attendees = [],
   defaultOpen = true
 }: DashboardSectionProps) => {
@@ -82,13 +84,14 @@ export const DashboardSection = ({
       
       {isOpen && (
         <div className="space-y-2">
-          {items.map((item) => (
+           {items.map((item) => (
             <StatusItem
               key={item.id}
               item={item}
               onStatusChange={onItemStatusChange}
               onCommentChange={onItemCommentChange}
               onMentionDetected={onMentionDetected}
+              onActionClosed={onActionClosed}
               attendees={attendees}
             />
           ))}
