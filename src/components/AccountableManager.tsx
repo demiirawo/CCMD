@@ -76,7 +76,7 @@ export const AccountableManager = ({
         </div>
       )}
 
-      {/* Add custom person */}
+      {/* Add custom person - just + icon */}
       <div className="flex gap-2">
         <Input
           placeholder="Add additional person..."
@@ -89,7 +89,7 @@ export const AccountableManager = ({
           onClick={addCustomPerson}
           size="sm"
           variant="outline"
-          className="px-3"
+          className="px-2"
           disabled={!newPersonName.trim()}
         >
           <Plus className="h-4 w-4" />
