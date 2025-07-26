@@ -81,7 +81,7 @@ export const SpotCheckAnalytics = () => {
             if (e.key === 'Enter') handleSave();
             if (e.key === 'Escape') setEditing(false);
           }}
-          className="w-full h-auto text-center border-none bg-white p-1 text-sm focus:ring-0 focus:outline-none"
+          className="w-full h-auto text-center border-none bg-white p-1 text-sm focus:ring-0 focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
           autoFocus
         />
       );
