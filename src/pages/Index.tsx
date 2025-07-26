@@ -3,8 +3,10 @@ import { DashboardHeader } from "@/components/DashboardHeader";
 import { DashboardSection } from "@/components/DashboardSection";
 import { ActionsLog, ActionLogEntry } from "@/components/ActionsLog";
 import { StatusItemData } from "@/components/StatusItem";
+import { MeetingStatusItem, MeetingStatusItemData } from "@/components/MeetingStatusItem";
 import { ActionItem } from "@/components/ActionForm";
 import { StatusType } from "@/components/StatusBadge";
+import { MeetingDateTimePicker } from "@/components/MeetingDateTimePicker";
 import { Users, Target, BarChart3, FileText, Heart, Shield, Calendar, UserCheck, ClipboardList, HeartHandshake, TrendingUp, Save, Download } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -15,6 +17,16 @@ const Index = () => {
   const [actionsLog, setActionsLog] = useState<ActionLogEntry[]>([]);
   const { toast } = useToast();
   
+  // Initialize with current date and hour
+  const getCurrentDateTime = () => {
+    const now = new Date();
+    const day = now.getDate().toString().padStart(2, '0');
+    const month = (now.getMonth() + 1).toString().padStart(2, '0');
+    const year = now.getFullYear();
+    const hour = now.getHours().toString().padStart(2, '0');
+    return `${day}/${month}/${year} ${hour}:00`;
+  };
+  
   const [headerData, setHeaderData] = useState({
     date: "Q4 2024 Board Meeting - December 15, 2024",
     title: "Strategic Planning Session",
@@ -23,7 +35,7 @@ const Index = () => {
   });
 
   const [dashboardData, setDashboardData] = useState({
-    date: "24/07/2025",
+    date: getCurrentDateTime(),
     title: "Management Meeting (Weekly)",
     attendees: "Manager, Team Leader, Senior Carer",
     purpose: "Weekly review of care quality and operational matters",
@@ -36,7 +48,7 @@ const Index = () => {
         title: "Meeting Date",
         status: "green" as StatusType,
         lastReviewed: "24-Jul-25",
-        observation: "24/07/2025",
+        observation: getCurrentDateTime(),
         actions: [],
         details: "Current meeting date"
       }, {
@@ -490,6 +502,29 @@ const Index = () => {
             onDataChange={handleDataChange}
           />
           
+          {/* Meeting Overview Section */}
+          {dashboardData.sections.filter(section => section.id === "meeting-overview").map(section => (
+            <div key={section.id} className="bg-white rounded-2xl p-6 shadow-lg border border-border/50">
+              <div className="flex items-center gap-3 mb-6">
+                {section.icon}
+                <h2 className="text-xl font-bold text-foreground">{section.title}</h2>
+              </div>
+              <div className="space-y-4">
+                {section.items.map(item => (
+                  <MeetingStatusItem
+                    key={item.id}
+                    item={item as MeetingStatusItemData}
+                    onStatusChange={(itemId, status) => handleStatusChange(section.id, itemId, status)}
+                    onObservationChange={(itemId, observation) => handleObservationChange(section.id, itemId, observation)}
+                    onActionsChange={(itemId, actions) => handleActionsChange(section.id, itemId, actions)}
+                    onActionCreated={handleActionCreated}
+                    attendees={getAttendeesList()}
+                  />
+                ))}
+              </div>
+            </div>
+          ))}
+
           {dashboardData.sections.filter(section => section.id !== "meeting-overview").map(section => 
             <DashboardSection 
               key={section.id} 
