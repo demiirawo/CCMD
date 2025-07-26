@@ -38,6 +38,8 @@ export const StatusItem = ({
   const [mentionQuery, setMentionQuery] = useState("");
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
   const [textareaRef, setTextareaRef] = useState<HTMLTextAreaElement | null>(null);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [pendingActionId, setPendingActionId] = useState<string | null>(null);
 
   const handleCommentSubmit = (comment: string) => {
     // Check for completed inline actions (format: @Name, action, date)
@@ -201,49 +203,19 @@ export const StatusItem = ({
             isCompleted && "font-bold text-primary"
           )}>
             @{name}, {action}, {isCalendarEmoji ? (
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="inline-flex items-center justify-center w-6 h-6 p-0 ml-1 text-blue-600 hover:text-blue-800 hover:bg-blue-100 rounded transition-colors cursor-pointer"
-                    onMouseDown={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                    }}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      console.log('Calendar icon clicked'); // Debug log
-                    }}
-                    onDoubleClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      console.log('Calendar icon double-clicked'); // Debug log
-                    }}
-                    title="Select date"
-                  >
-                    <CalendarIcon className="w-4 h-4" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0 z-50" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={undefined}
-                    onSelect={(date) => {
-                      if (date && item.comment) {
-                        const formattedDate = format(date, "yyyy-MM-dd");
-                        const updatedComment = item.comment.replace('📅', formattedDate);
-                        onCommentChange?.(item.id, updatedComment);
-                        console.log('Date selected:', formattedDate); // Debug log
-                      }
-                    }}
-                    initialFocus
-                    className="p-3 pointer-events-auto"
-                    disabled={(date) => date < new Date()}
-                  />
-                </PopoverContent>
-              </Popover>
+              <button
+                className="inline-flex items-center justify-center w-6 h-6 p-1 ml-1 text-blue-600 hover:text-blue-800 hover:bg-blue-100 rounded transition-colors cursor-pointer border border-blue-200"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  console.log('Calendar button clicked for action:', fullMatch);
+                  setShowDatePicker(true);
+                  setPendingActionId(fullMatch);
+                }}
+                title="Select date"
+              >
+                <CalendarIcon className="w-4 h-4" />
+              </button>
             ) : dateOrEmoji}
           </span>
           {isCompleted && (
@@ -434,5 +406,43 @@ export const StatusItem = ({
           )}
           
         </div>}
+        
+        {/* External Date Picker Modal */}
+        {showDatePicker && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+            <div className="bg-white rounded-lg shadow-lg p-4">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold">Select Date</h3>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setShowDatePicker(false);
+                    setPendingActionId(null);
+                  }}
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+              <Calendar
+                mode="single"
+                selected={undefined}
+                onSelect={(date) => {
+                  if (date && pendingActionId && item.comment) {
+                    const formattedDate = format(date, "yyyy-MM-dd");
+                    const updatedComment = item.comment.replace(pendingActionId, pendingActionId.replace('📅', formattedDate));
+                    onCommentChange?.(item.id, updatedComment);
+                    setShowDatePicker(false);
+                    setPendingActionId(null);
+                    console.log('Date selected and comment updated:', formattedDate);
+                  }
+                }}
+                initialFocus
+                className="p-3 pointer-events-auto"
+                disabled={(date) => date < new Date()}
+              />
+            </div>
+          </div>
+        )}
     </div>;
 };
