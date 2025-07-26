@@ -8,20 +8,20 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Claymorphism Background */
-    --background: 250 100% 98%;
-    --foreground: 250 15% 25%;
+    /* White Background System */
+    --background: 0 0% 100%;
+    --foreground: 0 0% 15%;
 
-    /* Card System */
-    --card: 250 100% 97%;
-    --card-foreground: 250 15% 25%;
+    /* Card System - White */
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 15%;
 
-    /* Clay Element Colors */
-    --clay-lavender: 250 100% 92%;
-    --clay-mint: 150 100% 92%;
-    --clay-blue: 200 100% 92%;
-    --clay-peach: 20 100% 92%;
-    --clay-surface: 250 50% 95%;
+    /* Clay Element Colors - All White Based */
+    --clay-lavender: 0 0% 100%;
+    --clay-mint: 0 0% 100%;
+    --clay-blue: 0 0% 100%;
+    --clay-peach: 0 0% 100%;
+    --clay-surface: 0 0% 100%;
 
     /* Status Colors */
     --status-green: 150 60% 75%;
@@ -31,43 +31,43 @@ All colors MUST be HSL.
     --status-red: 0 70% 75%;
     --status-red-soft: 0 90% 88%;
 
-    /* Interactive States */
-    --primary: 250 80% 70%;
-    --primary-foreground: 250 100% 98%;
-    --secondary: 250 30% 85%;
-    --secondary-foreground: 250 15% 25%;
+    /* Interactive States - Updated for white background */
+    --primary: 220 80% 60%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 95%;
+    --secondary-foreground: 0 0% 15%;
 
-    /* Utility Colors */
-    --muted: 250 20% 90%;
-    --muted-foreground: 250 10% 50%;
-    --accent: 200 80% 85%;
-    --accent-foreground: 200 15% 25%;
+    /* Utility Colors - White based */
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 40%;
+    --accent: 0 0% 96%;
+    --accent-foreground: 0 0% 15%;
     --destructive: 0 70% 75%;
-    --destructive-foreground: 0 100% 98%;
-    --border: 250 30% 88%;
-    --input: 250 40% 94%;
-    --ring: 250 80% 70%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 90%;
+    --input: 0 0% 98%;
+    --ring: 220 80% 60%;
 
     --radius: 0.5rem;
 
-    --sidebar-background: 0 0% 98%;
+    --sidebar-background: 0 0% 100%;
 
-    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-foreground: 0 0% 15%;
 
-    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary: 220 80% 60%;
 
-    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-primary-foreground: 0 0% 100%;
 
-    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent: 0 0% 96%;
 
-    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-accent-foreground: 0 0% 15%;
 
-    --sidebar-border: 220 13% 91%;
+    --sidebar-border: 0 0% 90%;
 
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-ring: 220 80% 60%;
 
-    /* Chart Colors */
-    --chart-1: 250 80% 70%;
+    /* Chart Colors - Updated */
+    --chart-1: 220 80% 60%;
     --chart-2: 200 80% 70%;
     --chart-3: 0 70% 75%;
     --chart-4: 150 60% 75%;
@@ -112,54 +112,54 @@ All colors MUST be HSL.
   }
 }
 
-/* Claymorphism Utilities */
+/* White-based Utilities */
 @layer utilities {
   .clay-card {
     @apply rounded-2xl;
     background: hsl(var(--clay-surface));
     box-shadow: 
-      12px 12px 24px hsl(250 30% 85%), 
-      -12px -12px 24px hsl(250 100% 100%),
-      inset 2px 2px 8px hsl(250 100% 100% / 0.3),
-      inset -2px -2px 8px hsl(250 30% 85% / 0.3);
+      12px 12px 24px hsl(0 0% 85%), 
+      -12px -12px 24px hsl(0 0% 100%),
+      inset 2px 2px 8px hsl(0 0% 100% / 0.3),
+      inset -2px -2px 8px hsl(0 0% 85% / 0.3);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .clay-card:hover {
     transform: translateY(-2px);
     box-shadow: 
-      16px 16px 32px hsl(250 30% 82%), 
-      -16px -16px 32px hsl(250 100% 100%),
-      inset 2px 2px 8px hsl(250 100% 100% / 0.4),
-      inset -2px -2px 8px hsl(250 30% 85% / 0.4);
+      16px 16px 32px hsl(0 0% 82%), 
+      -16px -16px 32px hsl(0 0% 100%),
+      inset 2px 2px 8px hsl(0 0% 100% / 0.4),
+      inset -2px -2px 8px hsl(0 0% 85% / 0.4);
   }
 
   .clay-button {
     @apply rounded-xl px-6 py-3 font-medium transition-all duration-300;
     background: hsl(var(--clay-surface));
     box-shadow: 
-      6px 6px 12px hsl(250 30% 85%), 
-      -6px -6px 12px hsl(250 100% 100%),
-      inset 1px 1px 4px hsl(250 100% 100% / 0.3),
-      inset -1px -1px 4px hsl(250 30% 85% / 0.3);
+      6px 6px 12px hsl(0 0% 85%), 
+      -6px -6px 12px hsl(0 0% 100%),
+      inset 1px 1px 4px hsl(0 0% 100% / 0.3),
+      inset -1px -1px 4px hsl(0 0% 85% / 0.3);
   }
 
   .clay-button:hover {
     transform: translateY(-1px);
     box-shadow: 
-      8px 8px 16px hsl(250 30% 82%), 
-      -8px -8px 16px hsl(250 100% 100%),
-      inset 1px 1px 4px hsl(250 100% 100% / 0.4),
-      inset -1px -1px 4px hsl(250 30% 85% / 0.4);
+      8px 8px 16px hsl(0 0% 82%), 
+      -8px -8px 16px hsl(0 0% 100%),
+      inset 1px 1px 4px hsl(0 0% 100% / 0.4),
+      inset -1px -1px 4px hsl(0 0% 85% / 0.4);
   }
 
   .clay-button:active {
     transform: translateY(1px);
     box-shadow: 
-      2px 2px 4px hsl(250 30% 88%), 
-      -2px -2px 4px hsl(250 100% 98%),
-      inset 2px 2px 8px hsl(250 30% 85% / 0.5),
-      inset -2px -2px 8px hsl(250 100% 100% / 0.5);
+      2px 2px 4px hsl(0 0% 88%), 
+      -2px -2px 4px hsl(0 0% 98%),
+      inset 2px 2px 8px hsl(0 0% 85% / 0.5),
+      inset -2px -2px 8px hsl(0 0% 100% / 0.5);
   }
 
   .status-green {
