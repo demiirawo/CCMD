@@ -37,7 +37,7 @@ export const MeetingStatusSummary = ({ sections }: MeetingStatusSummaryProps) =>
   );
 
   return (
-    <div className="grid grid-cols-4 gap-2 w-48">
+    <div className="grid grid-cols-4 gap-6 w-64">
       {mainSections.map(section => {
         const config = sectionConfig[section.id as keyof typeof sectionConfig];
         if (!config) return null;
