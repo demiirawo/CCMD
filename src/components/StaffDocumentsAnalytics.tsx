@@ -56,7 +56,8 @@ export const StaffDocumentsAnalytics = () => {
         <Input 
           value={value} 
           onChange={(e) => onEdit(e.target.value)}
-          className="w-16 h-8 text-sm text-right"
+          className="w-16 h-8 text-sm text-right [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+          style={{ MozAppearance: 'textfield' }}
           type="number"
           min="0"
         />
