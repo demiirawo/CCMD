@@ -176,8 +176,6 @@ export const ActionForm = ({
 
       {/* Add New Action Form */}
       <div className="border border-border rounded-lg p-4 space-y-3">
-        <div className="text-sm font-medium text-muted-foreground">Add New Action</div>
-        
         <div className="flex gap-3 items-end">
           {/* Name Dropdown */}
           <div className="w-48">
@@ -240,18 +238,6 @@ export const ActionForm = ({
                 {newAction.targetDate}
               </div>
             )}
-          </div>
-
-          {/* Add Button */}
-          <div>
-            <Button
-              onClick={addAction}
-              disabled={!newAction.name || !newAction.description || !newAction.targetDate}
-              size="sm"
-              className="h-9 w-9 p-0"
-            >
-              <Plus className="h-4 w-4" />
-            </Button>
           </div>
         </div>
       </div>
