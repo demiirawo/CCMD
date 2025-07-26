@@ -83,7 +83,7 @@ export const StaffDocumentsAnalytics = () => {
         <div className="text-sm font-medium text-foreground">Staff Documents Numbers</div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <EditableInput value={documentsData.activeFullyCompliant} onEdit={val => handleInputChange('activeFullyCompliant', val)} label="Active - Fully Compliant" />
+          <EditableInput value={documentsData.activeFullyCompliant} onEdit={val => handleInputChange('activeFullyCompliant', val)} label="Active - Compliant" />
           <EditableInput value={documentsData.activePendingDocuments} onEdit={val => handleInputChange('activePendingDocuments', val)} label="Active - Pending Documents" />
           <EditableInput value={documentsData.onboardingPendingDocuments} onEdit={val => handleInputChange('onboardingPendingDocuments', val)} label="Onboarding - Pending Documents" />
           <EditableInput value={documentsData.onboardingFullyCompliant} onEdit={val => handleInputChange('onboardingFullyCompliant', val)} label="Onboarding - Fully Compliant" />
