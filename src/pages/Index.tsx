@@ -463,8 +463,18 @@ const Index = () => {
         attendees: JSON.stringify(headerData.attendees),
         purpose: headerData.purpose,
         sections: JSON.stringify(dashboardData.sections.map(section => ({
-          ...section,
-          icon: null // Remove JSX elements for storage
+          id: section.id,
+          title: section.title,
+          // Remove the icon JSX element as it can't be serialized
+          items: section.items.map(item => ({
+            id: item.id,
+            title: item.title,
+            status: item.status,
+            lastReviewed: item.lastReviewed,
+            observation: item.observation,
+            actions: item.actions,
+            details: item.details
+          }))
         }))),
         actions_log: JSON.stringify(actionsLog),
         quarter,
