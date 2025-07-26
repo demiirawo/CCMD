@@ -424,10 +424,37 @@ const Index = () => {
     return 'Q4';
   };
 
+  const parseDateString = (dateString: string) => {
+    // Handle different date formats that might come from the date picker
+    // Expected format: "dd/MM/yyyy HH:mm" or similar
+    try {
+      // If it's already a valid ISO string or standard format, use it directly
+      const directParse = new Date(dateString);
+      if (!isNaN(directParse.getTime())) {
+        return directParse;
+      }
+
+      // Try to parse dd/MM/yyyy HH:mm format
+      const parts = dateString.match(/(\d{2})\/(\d{2})\/(\d{4})\s+(\d{2}):(\d{2})/);
+      if (parts) {
+        const [, day, month, year, hour, minute] = parts;
+        // Month is 0-indexed in JavaScript Date
+        return new Date(parseInt(year), parseInt(month) - 1, parseInt(day), parseInt(hour), parseInt(minute));
+      }
+
+      // If all else fails, try current date
+      console.warn('Could not parse date:', dateString, 'using current date');
+      return new Date();
+    } catch (error) {
+      console.error('Error parsing date:', dateString, error);
+      return new Date();
+    }
+  };
+
   const handleSaveDashboard = async () => {
     try {
-      const meetingDate = new Date(headerData.date);
-      const quarter = getQuarter(headerData.date);
+      const meetingDate = parseDateString(headerData.date);
+      const quarter = getQuarter(meetingDate.toISOString());
       const year = meetingDate.getFullYear();
 
       const meetingData = {
