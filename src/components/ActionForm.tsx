@@ -1,11 +1,11 @@
 import { useState } from "react";
-import { Plus, Minus, Calendar } from "lucide-react";
+import { Plus, Minus, Calendar, Check } from "lucide-react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { Calendar as CalendarComponent } from "./ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
-import { format, differenceInDays, parseISO } from "date-fns";
+import { format, differenceInDays } from "date-fns";
 
 export interface ActionItem {
   id: string;
@@ -19,13 +19,15 @@ interface ActionFormProps {
   attendees: string[];
   onActionsChange: (actions: ActionItem[]) => void;
   onActionCreated?: (name: string, description: string, targetDate: string) => void;
+  onActionCompleted?: (actionId: string) => void;
 }
 
 export const ActionForm = ({ 
   actions, 
   attendees, 
   onActionsChange, 
-  onActionCreated 
+  onActionCreated,
+  onActionCompleted 
 }: ActionFormProps) => {
   const [newAction, setNewAction] = useState({
     name: "",
@@ -67,7 +69,7 @@ export const ActionForm = ({
     }
   };
 
-  const getActionColorClass = (targetDate: string) => {
+  const getDaysRemaining = (targetDate: string) => {
     try {
       const [day, month, year] = targetDate.split('/');
       const dueDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
@@ -75,17 +77,33 @@ export const ActionForm = ({
       today.setHours(0, 0, 0, 0);
       dueDate.setHours(0, 0, 0, 0);
       
-      const daysRemaining = differenceInDays(dueDate, today);
-      
-      if (daysRemaining < 0) {
-        return "bg-red-50 border-red-200 text-red-900";
-      } else if (daysRemaining <= 5) {
-        return "bg-amber-50 border-amber-200 text-amber-900";
-      } else {
-        return "bg-green-50 border-green-200 text-green-900";
-      }
+      return differenceInDays(dueDate, today);
     } catch {
-      return "bg-gray-50 border-gray-200 text-gray-900";
+      return 0;
+    }
+  };
+
+  const getActionColorClass = (targetDate: string) => {
+    const daysRemaining = getDaysRemaining(targetDate);
+    
+    if (daysRemaining < 0) {
+      return "bg-red-50 border-red-200 text-red-900";
+    } else if (daysRemaining <= 5) {
+      return "bg-amber-50 border-amber-200 text-amber-900";
+    } else {
+      return "bg-green-50 border-green-200 text-green-900";
+    }
+  };
+
+  const formatDaysRemaining = (targetDate: string) => {
+    const daysRemaining = getDaysRemaining(targetDate);
+    
+    if (daysRemaining < 0) {
+      return `${Math.abs(daysRemaining)} day(s) overdue`;
+    } else if (daysRemaining === 0) {
+      return "Due today";
+    } else {
+      return `${daysRemaining} day(s) remaining`;
     }
   };
 
@@ -101,17 +119,29 @@ export const ActionForm = ({
                   <span className="font-bold">{action.name}</span> - {action.description}
                 </div>
                 <div className="text-sm opacity-80">
-                  Due: {action.targetDate}
+                  Due: {action.targetDate} • {formatDaysRemaining(action.targetDate)}
                 </div>
               </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => removeAction(action.id)}
-                className="h-8 w-8 p-0 text-red-500 hover:bg-red-100"
-              >
-                <Minus className="h-4 w-4" />
-              </Button>
+              <div className="flex gap-1">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onActionCompleted?.(action.id)}
+                  className="h-8 w-8 p-0 text-green-600 hover:bg-green-100"
+                  title="Mark as completed"
+                >
+                  <Check className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => removeAction(action.id)}
+                  className="h-8 w-8 p-0 text-red-500 hover:bg-red-100"
+                  title="Delete action"
+                >
+                  <Minus className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           ))}
         </div>
@@ -166,14 +196,16 @@ export const ActionForm = ({
                   <Calendar className="h-4 w-4" />
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0 bg-white" align="start">
-                <CalendarComponent
-                  mode="single"
-                  onSelect={handleDateSelect}
-                  initialFocus
-                  className="p-3 pointer-events-auto bg-white"
-                  disabled={(date) => date < new Date()}
-                />
+              <PopoverContent className="w-auto p-0 bg-white border shadow-lg" align="start">
+                <div className="bg-white rounded-lg">
+                  <CalendarComponent
+                    mode="single"
+                    onSelect={handleDateSelect}
+                    initialFocus
+                    className="p-3 pointer-events-auto bg-white rounded-lg"
+                    disabled={(date) => date < new Date()}
+                  />
+                </div>
               </PopoverContent>
             </Popover>
           </div>

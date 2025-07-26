@@ -50,6 +50,12 @@ export const StatusItem = ({
     onActionCreated?.(item.title, name, `Action from ${item.title}`, description, targetDate);
   };
 
+  const handleActionCompleted = (actionId: string) => {
+    // Remove the completed action from the local actions
+    const updatedActions = item.actions.filter(action => action.id !== actionId);
+    onActionsChange?.(item.id, updatedActions);
+  };
+
   return (
     <div className="w-full bg-white rounded-xl p-8 mb-3 shadow-md border border-border/30 hover:scale-[1.01] transition-transform duration-300 min-h-[140px]">
       <div className="flex items-center gap-4 w-full">
@@ -113,6 +119,7 @@ export const StatusItem = ({
               attendees={attendees}
               onActionsChange={handleActionsChange}
               onActionCreated={handleActionCreated}
+              onActionCompleted={handleActionCompleted}
             />
           </div>
         </div>
