@@ -135,38 +135,7 @@ export const CapacityAnalytics = () => {
       </div>
 
       {/* Metrics Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-        
-        
-        <Card className="p-4" style={{
-        backgroundColor: '#bfdbfe',
-        borderColor: '#93c5fd'
-      }}>
-          <div className="text-xs text-muted-foreground mb-1">Current Staffing Level</div>
-          <div className="text-2xl font-bold">{currentMetrics.currentStaffingLevel}</div>
-        </Card>
-        
-        <Card className="p-4" style={{
-        backgroundColor: '#fecaca',
-        borderColor: '#fca5a5'
-      }}>
-          <div className="text-xs text-muted-foreground mb-1">Minimum Staffing Level</div>
-          <div className="text-2xl font-bold">{currentMetrics.minimumStaffingLevel}</div>
-        </Card>
-        
-        
-        
-        <Card className="p-4" style={{
-        backgroundColor: '#fed7aa',
-        borderColor: '#fdba74'
-      }}>
-          <div className="text-xs text-muted-foreground mb-1">Capacity Coverage</div>
-          <div className="text-2xl font-bold">{currentMetrics.capacityCoverage}%</div>
-          <div className="text-xs text-orange-600 mt-1">
-            {currentMetrics.capacityCoverage < 80 ? 'Insufficient' : 'Adequate'}
-          </div>
-        </Card>
-      </div>
+      
 
       {/* Chart */}
       <div className="space-y-2">
