@@ -443,30 +443,38 @@ export const StatusItem = ({
           
         </div>}
         
-        {/* External Date Picker Modal */}
+        {/* Clean Date Picker Popover */}
         {showDatePicker && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-            <div className="bg-white rounded-lg shadow-lg p-4">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold">Select Date</h3>
-                <Button
-                  variant="ghost"
-                  size="sm"
+          <>
+            {/* Backdrop */}
+            <div 
+              className="fixed inset-0 z-40" 
+              onClick={() => {
+                setShowDatePicker(false);
+                setPendingActionId(null);
+              }}
+            />
+            {/* Popover */}
+            <div className="absolute top-full left-0 mt-2 z-50 bg-white border border-gray-200 rounded-lg shadow-xl p-2 min-w-max">
+              <div className="flex justify-between items-center mb-2 px-2">
+                <span className="text-sm font-medium text-gray-700">Select Date</span>
+                <button
                   onClick={() => {
                     setShowDatePicker(false);
                     setPendingActionId(null);
                   }}
+                  className="p-1 hover:bg-gray-100 rounded"
                 >
-                  <X className="w-4 h-4" />
-                </Button>
+                  <X className="w-3 h-3" />
+                </button>
               </div>
               <Calendar
                 mode="single"
                 selected={undefined}
                 onSelect={(date) => {
-                  if (date && pendingActionId && item.comment) {
+                  if (date && item.comment) {
                     const formattedDate = format(date, "yyyy-MM-dd");
-                    const updatedComment = item.comment.replace(pendingActionId, pendingActionId.replace('📅', formattedDate));
+                    const updatedComment = item.comment.replace('📅', formattedDate);
                     onCommentChange?.(item.id, updatedComment);
                     setShowDatePicker(false);
                     setPendingActionId(null);
@@ -474,11 +482,11 @@ export const StatusItem = ({
                   }
                 }}
                 initialFocus
-                className="p-3 pointer-events-auto"
+                className="p-1 pointer-events-auto border-0"
                 disabled={(date) => date < new Date()}
               />
             </div>
-          </div>
+          </>
         )}
     </div>;
 };
