@@ -181,7 +181,7 @@ export const StaffDocumentsAnalytics = () => {
                         borderColor: entry.color
                       }}
                     >
-                      {entry.name}: {entry.percentage}%
+                      {entry.percentage}%
                     </div>
                   );
                 })}
