@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Check, X } from "lucide-react";
 export interface Attendee {
   id: string;
   name: string;
@@ -45,17 +45,17 @@ export const MeetingAttendeesManager = ({
             <div className="flex gap-1">
               <button 
                 onClick={() => toggleAttendance(attendee.id, true)}
-                className={`text-lg hover:scale-110 transition-transform ${attendee.attended === true ? 'opacity-100' : 'opacity-30'}`}
+                className={`p-1 hover:scale-110 transition-transform ${attendee.attended === true ? 'opacity-100' : 'opacity-30'}`}
                 title="Present"
               >
-                ✅
+                <Check className="h-4 w-4 text-green-600" />
               </button>
               <button 
                 onClick={() => toggleAttendance(attendee.id, false)}
-                className={`text-lg hover:scale-110 transition-transform ${attendee.attended === false ? 'opacity-100' : 'opacity-30'}`}
+                className={`p-1 hover:scale-110 transition-transform ${attendee.attended === false ? 'opacity-100' : 'opacity-30'}`}
                 title="Absent"
               >
-                ❌
+                <X className="h-4 w-4 text-red-500" />
               </button>
             </div>
           </div>
