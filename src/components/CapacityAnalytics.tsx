@@ -1,6 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { LineChart, Line, XAxis, YAxis, ResponsiveContainer } from "recharts";
+import { ComposedChart, Bar, Line, XAxis, YAxis, ResponsiveContainer } from "recharts";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -13,7 +13,7 @@ const generateInitialData = () => {
     const monthDate = subMonths(currentDate, i);
     data.unshift({
       month: format(monthDate, "MMM yy"),
-      serviceUsers: 0,
+      onboardingStaff: 0,
       currentStaff: 0,
       minStaff: 0,
       idealStaff: 0
@@ -23,19 +23,19 @@ const generateInitialData = () => {
 };
 const initialMonthlyData = generateInitialData();
 const initialCurrentMetrics = {
-  activeServiceUsers: 0,
+  activeOnboardingStaff: 0,
   currentStaffingLevel: 0,
   minimumStaffingLevel: 0,
   idealStaffingLevel: 0,
   capacityCoverage: 0
 };
 const chartConfig = {
-  serviceUsers: {
-    label: "Service Users",
+  onboardingStaff: {
+    label: "Onboarding Staff",
     color: "hsl(var(--chart-1))"
   },
   currentStaff: {
-    label: "Current Staff",
+    label: "Current Staff", 
     color: "hsl(var(--chart-2))"
   },
   minStaff: {
@@ -43,7 +43,7 @@ const chartConfig = {
     color: "hsl(var(--chart-3))"
   },
   idealStaff: {
-    label: "Target Staffing Level",
+    label: "Ideal Staff",
     color: "hsl(var(--chart-4))"
   }
 };
@@ -63,7 +63,7 @@ export const CapacityAnalytics = () => {
     const latestRow = newData[newData.length - 1];
     const coverage = latestRow.idealStaff > 0 ? latestRow.currentStaff / latestRow.idealStaff * 100 : 0;
     setCurrentMetrics({
-      activeServiceUsers: latestRow.serviceUsers,
+      activeOnboardingStaff: latestRow.onboardingStaff,
       currentStaffingLevel: latestRow.currentStaff,
       minimumStaffingLevel: latestRow.minStaff,
       idealStaffingLevel: latestRow.idealStaff,
@@ -107,17 +107,17 @@ export const CapacityAnalytics = () => {
           <thead>
             <tr className="border-b">
               <th className="text-left p-3 font-medium">Month</th>
-              <th className="text-left p-3 font-medium">Service Users</th>
+              <th className="text-left p-3 font-medium">Onboarding Staff</th>
               <th className="text-left p-3 font-medium">Current Staff</th>
-              <th className="text-left p-3 font-medium">Minimum Staffing Level</th>
-              <th className="text-left p-3 font-medium">Target Staffing Level</th>
+              <th className="text-left p-3 font-medium">Min Staff</th>
+              <th className="text-left p-3 font-medium">Ideal Staff</th>
             </tr>
           </thead>
           <tbody>
             {monthlyData.map((row, index) => <tr key={index} className="border-b border-border/30 hover:bg-accent/30">
                 <td className="p-3">{row.month}</td>
                 <td className="p-3">
-                  <EditableCell value={row.serviceUsers} onEdit={val => handleCellEdit(index, 'serviceUsers', val)} />
+                  <EditableCell value={row.onboardingStaff} onEdit={val => handleCellEdit(index, 'onboardingStaff', val)} />
                 </td>
                 <td className="p-3">
                   <EditableCell value={row.currentStaff} onEdit={val => handleCellEdit(index, 'currentStaff', val)} />
@@ -135,7 +135,13 @@ export const CapacityAnalytics = () => {
 
       {/* Metrics Cards */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-        
+        <Card className="p-4" style={{
+        backgroundColor: '#e0d4f7',
+        borderColor: '#c4b5fd'
+      }}>
+          <div className="text-xs text-muted-foreground mb-1">Active Onboarding Staff</div>
+          <div className="text-2xl font-bold">{currentMetrics.activeOnboardingStaff}</div>
+        </Card>
         
         <Card className="p-4" style={{
         backgroundColor: '#bfdbfe',
@@ -157,7 +163,7 @@ export const CapacityAnalytics = () => {
         backgroundColor: '#bbf7d0',
         borderColor: '#86efac'
       }}>
-          <div className="text-xs text-muted-foreground mb-1">Target Staffing Level</div>
+          <div className="text-xs text-muted-foreground mb-1">Ideal Staffing Level</div>
           <div className="text-2xl font-bold">{currentMetrics.idealStaffingLevel}</div>
         </Card>
         
@@ -191,27 +197,21 @@ export const CapacityAnalytics = () => {
         <Card className="p-4">
           <ChartContainer config={chartConfig} className="h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={monthlyData}>
+              <ComposedChart data={monthlyData}>
                 <XAxis dataKey="month" axisLine={false} tickLine={false} className="text-xs" />
                 <YAxis axisLine={false} tickLine={false} className="text-xs" />
                 <ChartTooltip content={<ChartTooltipContent />} />
-                <Line type="monotone" dataKey="serviceUsers" stroke="#8b5cf6" strokeWidth={2} dot={{
-                r: 3,
-                fill: "#8b5cf6"
-              }} />
-                <Line type="monotone" dataKey="currentStaff" stroke="#3b82f6" strokeWidth={2} dot={{
-                r: 3,
-                fill: "#3b82f6"
-              }} />
+                <Bar dataKey="currentStaff" fill="#3b82f6" name="Current Staff" stackId="staff" />
+                <Bar dataKey="onboardingStaff" fill="#8b5cf6" name="Onboarding Staff" stackId="staff" />
                 <Line type="monotone" dataKey="minStaff" stroke="#ef4444" strokeWidth={2} dot={{
-                r: 3,
-                fill: "#ef4444"
-              }} />
+                  r: 3,
+                  fill: "#ef4444"
+                }} name="Min Staff" />
                 <Line type="monotone" dataKey="idealStaff" stroke="#22c55e" strokeWidth={2} dot={{
-                r: 3,
-                fill: "#22c55e"
-              }} />
-              </LineChart>
+                  r: 3,
+                  fill: "#22c55e"
+                }} name="Ideal Staff" />
+              </ComposedChart>
             </ResponsiveContainer>
           </ChartContainer>
           <div className="text-xs text-center text-muted-foreground mt-2">
