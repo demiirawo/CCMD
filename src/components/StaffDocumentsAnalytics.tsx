@@ -47,9 +47,9 @@ export const StaffDocumentsAnalytics = () => {
   }) => {
     return <div className="flex items-center justify-between p-3 border border-border/30 rounded">
         <span className="text-sm">{label}</span>
-        <Input value={value} onChange={e => onEdit(e.target.value)} className="w-16 h-8 text-sm text-right [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" style={{
+        <Input value={value} onChange={e => onEdit(e.target.value)} style={{
         MozAppearance: 'textfield'
-      }} type="number" min="0" />
+      }} type="number" min="0" className="w-16 h-8 text-sm text-right [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none bg-white" />
       </div>;
   };
 
@@ -72,7 +72,7 @@ export const StaffDocumentsAnalytics = () => {
     value: documentsData.onboardingFullyCompliant,
     fill: "#3b82f6"
   }].filter(item => item.value > 0) : [];
-  return <div className="space-y-8 mt-6 p-8 border border-border rounded-lg bg-neutral-50 min-h-[600px] w-full">
+  return <div className="space-y-8 mt-6 p-8 border border-border rounded-lg min-h-[600px] w-full bg-white">
       <div className="flex items-center justify-between">
         <h4 className="text-xl font-semibold text-foreground">Staff Documents Analytics</h4>
         
@@ -94,7 +94,7 @@ export const StaffDocumentsAnalytics = () => {
       {total > 0 && <div className="space-y-4">
           <div className="text-sm font-medium text-foreground">Staff Documents Breakdown</div>
           
-          <Card className="p-8">
+          <Card className="p-8 bg-white">
             <div className="flex flex-col items-center gap-8">
               <div className="text-lg font-semibold text-center">Staff Documents Status Overview</div>
               
