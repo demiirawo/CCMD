@@ -154,13 +154,7 @@ export const CapacityAnalytics = () => {
           <div className="text-2xl font-bold">{currentMetrics.minimumStaffingLevel}</div>
         </Card>
         
-        <Card className="p-4" style={{
-        backgroundColor: '#bbf7d0',
-        borderColor: '#86efac'
-      }}>
-          <div className="text-xs text-muted-foreground mb-1">Ideal Staffing Level</div>
-          <div className="text-2xl font-bold">{currentMetrics.idealStaffingLevel}</div>
-        </Card>
+        
         
         <Card className="p-4" style={{
         backgroundColor: '#fed7aa',
