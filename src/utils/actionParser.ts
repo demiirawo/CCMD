@@ -6,8 +6,8 @@ export interface ParsedAction {
 }
 
 export const parseActionsFromComment = (comment: string): ParsedAction[] => {
-  // Match format: @name action due:25/07 or similar date patterns
-  const actionRegex = /@(\w+)\s+(.+?)\s+due:([\d\/]+)/g;
+  // Match format: @name action due:25/07, due:25-07, due:25/07/24, due:25-07-24, etc.
+  const actionRegex = /@(\w+)\s+(.+?)\s+due:([\d\/\-\.]+)/g;
   const actions: ParsedAction[] = [];
   let match;
   
@@ -15,7 +15,8 @@ export const parseActionsFromComment = (comment: string): ParsedAction[] => {
     const [fullMatch, mentionedName, action, dueDate] = match;
     
     // Only include if we have a proper date and action (not placeholder text)
-    if (dueDate !== 'dd/mm' && action.trim() && !action.includes('[action]')) {
+    // Accept various date formats: dd/mm, dd-mm, dd.mm, dd/mm/yy, etc.
+    if (dueDate !== 'dd/mm' && dueDate.length >= 4 && action.trim() && !action.includes('[action]')) {
       actions.push({
         mentionedName,
         action: action.trim(),

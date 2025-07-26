@@ -26,10 +26,11 @@ const MentionDropdown = ({ attendees, position, query, onSelect, visible }: Ment
 
   return (
     <div 
-      className="fixed z-50 bg-background border border-border rounded-lg shadow-lg max-h-40 overflow-y-auto min-w-[200px]"
+      className="fixed z-[60] bg-background border border-border rounded-lg shadow-lg max-h-40 overflow-y-auto min-w-[200px]"
       style={{
         top: position.top,
-        left: position.left
+        left: position.left,
+        position: 'fixed'
       }}
     >
       {filteredAttendees.map((attendee, index) => (
@@ -70,16 +71,27 @@ export const CommentEditor = ({
     const textBeforeCursor = newValue.substring(0, cursorPosition);
     const mentionMatch = textBeforeCursor.match(/@(\w*)$/);
     
+    // Auto-clear date placeholder when user starts typing after "due:"
+    if (newValue.includes('due:dd/mm') && textBeforeCursor.includes('due:') && !textBeforeCursor.endsWith('due:')) {
+      const clearedValue = newValue.replace('due:dd/mm', 'due:');
+      setValue(clearedValue);
+      // Update the actual textarea value
+      e.target.value = clearedValue;
+    }
+    
     if (mentionMatch) {
       const query = mentionMatch[1];
       setMentionQuery(query);
       setShowMentionDropdown(true);
       
-      // Calculate dropdown position
+      // Calculate dropdown position relative to the textarea
       const rect = e.target.getBoundingClientRect();
+      const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+      const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+      
       setDropdownPosition({
-        top: rect.bottom + window.scrollY + 5,
-        left: rect.left + window.scrollX
+        top: rect.bottom + scrollTop + 5,
+        left: rect.left + scrollLeft
       });
     } else {
       setShowMentionDropdown(false);
