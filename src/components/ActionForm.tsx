@@ -176,7 +176,7 @@ export const ActionForm = ({
 
       {/* Add New Action Form */}
       <div className="border border-border rounded-lg p-4 space-y-3">
-        <div className="flex gap-3 items-end">
+        <div className="flex gap-3 items-start">
           {/* Name Dropdown */}
           <div className="w-48">
             <label className="text-xs text-muted-foreground mb-1 block">Assigned To</label>
