@@ -9,6 +9,7 @@ import { ChevronDown, ChevronRight } from "lucide-react";
 import { useState } from "react";
 import { CommentEditor } from "./CommentEditor";
 import { ActionForm, ActionItem } from "./ActionForm";
+import { AccountableManager } from "./AccountableManager";
 export interface StatusItemData {
   id: string;
   title: string;
@@ -16,6 +17,7 @@ export interface StatusItemData {
   lastReviewed: string;
   observation: string;
   actions: ActionItem[];
+  accountable?: string[];
   details?: string;
 }
 interface StatusItemProps {
@@ -23,6 +25,7 @@ interface StatusItemProps {
   onStatusChange?: (id: string, status: StatusType) => void;
   onObservationChange?: (id: string, observation: string) => void;
   onActionsChange?: (id: string, actions: ActionItem[]) => void;
+  onAccountableChange?: (id: string, accountable: string[]) => void;
   onActionCreated?: (itemTitle: string, mentionedAttendee: string, comment: string, action: string, dueDate: string) => void;
   attendees?: string[];
   monthlyStaffData?: Array<{month: string, currentStaff: number, probationStaff?: number}>;
@@ -33,6 +36,7 @@ export const StatusItem = ({
   onStatusChange,
   onObservationChange,
   onActionsChange,
+  onAccountableChange,
   onActionCreated,
   attendees = [],
   monthlyStaffData = [],
@@ -56,6 +60,10 @@ export const StatusItem = ({
     // Remove the completed action from the local actions
     const updatedActions = item.actions.filter(action => action.id !== actionId);
     onActionsChange?.(item.id, updatedActions);
+  };
+
+  const handleAccountableChange = (accountable: string[]) => {
+    onAccountableChange?.(item.id, accountable);
   };
   return <div className="w-full bg-white rounded-xl p-8 mb-3 shadow-md border border-border/30 hover:scale-[1.01] transition-transform duration-300 min-h-[140px]">
       <div className="flex items-center gap-4 w-full">
@@ -87,6 +95,16 @@ export const StatusItem = ({
                   {item.observation || "Click to add observation..."}
                 </span>
               </button>}
+          </div>
+
+          {/* Accountable Section */}
+          <div>
+            <label className="text-xs font-medium text-muted-foreground mb-1 block">ACCOUNTABLE</label>
+            <AccountableManager 
+              accountable={item.accountable || []} 
+              attendees={attendees} 
+              onChange={handleAccountableChange} 
+            />
           </div>
 
           {/* Actions Section */}
