@@ -118,7 +118,7 @@ export const StatusItem = ({
         />
       </div>
       
-      {isExpanded && <div className="mt-4 pt-4 border-t border-border space-y-4">
+      {isExpanded && <div className="mt-4 pt-4 border-t border-border space-y-4 mr-52">
           {item.details && <div className="space-y-2">
               {/* Details content */}
             </div>}
