@@ -183,7 +183,7 @@ export const CapacityAnalytics = () => {
             </button>
           </div>
         </div>
-        <Card className="p-4">
+        <Card className="p-4 bg-white">
           <ChartContainer config={chartConfig} className="h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <ComposedChart data={monthlyData}>
