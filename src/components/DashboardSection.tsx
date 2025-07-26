@@ -11,8 +11,7 @@ interface DashboardSectionProps {
   onItemStatusChange?: (id: string, status: StatusType) => void;
   onItemCommentChange?: (id: string, comment: string) => void;
   onAddItem?: (sectionTitle: string) => void;
-  onMentionDetected?: (itemTitle: string, mentionedAttendee: string, comment: string, action: string, dueDate: string) => void;
-  onActionClosed?: (actionId: string) => void;
+  onActionCreated?: (itemTitle: string, mentionedAttendee: string, comment: string, action: string, dueDate: string) => void;
   attendees?: string[];
   defaultOpen?: boolean;
 }
@@ -24,8 +23,7 @@ export const DashboardSection = ({
   onItemStatusChange,
   onItemCommentChange,
   onAddItem,
-  onMentionDetected,
-  onActionClosed,
+  onActionCreated,
   attendees = [],
   defaultOpen = true
 }: DashboardSectionProps) => {
@@ -90,8 +88,7 @@ export const DashboardSection = ({
               item={item}
               onStatusChange={onItemStatusChange}
               onCommentChange={onItemCommentChange}
-              onMentionDetected={onMentionDetected}
-              onActionClosed={onActionClosed}
+              onActionCreated={onActionCreated}
               attendees={attendees}
             />
           ))}

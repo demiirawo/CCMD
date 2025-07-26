@@ -256,7 +256,7 @@ const Index = () => {
     });
   };
   
-  const handleMentionDetected = (itemTitle: string, mentionedAttendee: string, comment: string, action: string, dueDate: string) => {
+  const handleActionCreated = (itemTitle: string, mentionedAttendee: string, comment: string, action: string, dueDate: string) => {
     const newAction: ActionLogEntry = {
       id: `action-${Date.now()}`,
       timestamp: new Date().toLocaleString(),
@@ -274,19 +274,6 @@ const Index = () => {
     toast({
       title: "Action Created",
       description: `Action assigned to @${mentionedAttendee} for ${itemTitle}`
-    });
-  };
-
-  const handleActionClosed = (actionId: string) => {
-    setActionsLog(prev => prev.map(action => 
-      action.id === actionId 
-        ? { ...action, closed: true, closedDate: new Date().toISOString() }
-        : action
-    ));
-    
-    toast({
-      title: "Action Closed",
-      description: "Action has been marked as completed"
     });
   };
 
@@ -322,8 +309,7 @@ const Index = () => {
             items={section.items} 
             onItemStatusChange={(itemId, status) => handleStatusChange(section.id, itemId, status)} 
             onItemCommentChange={(itemId, comment) => handleCommentChange(section.id, itemId, comment)}
-            onMentionDetected={handleMentionDetected}
-            onActionClosed={handleActionClosed}
+            onActionCreated={handleActionCreated}
             attendees={getAttendeesList()}
           />
         )}
