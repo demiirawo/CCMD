@@ -109,7 +109,7 @@ export const CapacityAnalytics = () => {
             <tr className="border-b">
               <th className="text-left p-3 font-medium">Month</th>
               <th className="text-left p-3 font-medium">Onboarding</th>
-              <th className="text-left p-3 font-medium">Current Staff</th>
+              <th className="text-left p-3 font-medium">Active</th>
               <th className="text-left p-3 font-medium">Min Staff</th>
               <th className="text-left p-3 font-medium">Ideal Staff</th>
             </tr>
