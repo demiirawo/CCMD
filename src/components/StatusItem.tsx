@@ -99,7 +99,7 @@ export const StatusItem = ({
             {/* Additional content */}
           </div>
           
-          {item.title.toLowerCase().includes('recruitment') && <CapacityAnalytics />}
+          {item.title.toLowerCase().includes('resourcing') && <CapacityAnalytics />}
           
           {item.title.toLowerCase().includes('staff documents') && <StaffDocumentsAnalytics />}
           
