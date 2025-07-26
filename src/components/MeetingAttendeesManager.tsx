@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Trash2, Check, X } from "lucide-react";
+import { Plus, Trash2, Check, X, Minus } from "lucide-react";
 export interface Attendee {
   id: string;
   name: string;
@@ -60,7 +60,7 @@ export const MeetingAttendeesManager = ({
             </div>
           </div>
           {attendees.length > 1 && <Button variant="ghost" size="sm" onClick={() => removeAttendee(attendee.id)} className="h-8 w-8 p-0 text-red-500 hover:text-red-700">
-              <Trash2 className="h-4 w-4" />
+              <Minus className="h-4 w-4" />
             </Button>}
         </div>)}
       
