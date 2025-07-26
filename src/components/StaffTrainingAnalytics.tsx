@@ -3,14 +3,12 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer } from "recharts";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
-
 const initialTrainingData = {
   mandatoryPending: 0,
   mandatoryCompliant: 0,
   specialistPending: 0,
   specialistCompliant: 0
 };
-
 const chartConfig = {
   compliant: {
     label: "Compliant",
@@ -21,10 +19,8 @@ const chartConfig = {
     color: "#f59e0b"
   }
 };
-
 export const StaffTrainingAnalytics = () => {
   const [trainingData, setTrainingData] = useState(initialTrainingData);
-
   const handleInputChange = (field: string, value: string) => {
     const numValue = parseInt(value) || 0;
     setTrainingData(prev => ({
@@ -32,7 +28,6 @@ export const StaffTrainingAnalytics = () => {
       [field]: numValue
     }));
   };
-
   const EditableInput = ({
     value,
     onEdit,
@@ -42,21 +37,12 @@ export const StaffTrainingAnalytics = () => {
     onEdit: (val: string) => void;
     label: string;
   }) => {
-    return (
-      <div className="flex items-center justify-between p-3 border border-border/30 rounded">
+    return <div className="flex items-center justify-between p-3 border border-border/30 rounded">
         <span className="text-sm">{label}</span>
-        <Input
-          value={value}
-          onChange={e => onEdit(e.target.value)}
-          style={{
-            MozAppearance: 'textfield'
-          }}
-          type="number"
-          min="0"
-          className="w-16 h-8 text-sm text-right [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none bg-white"
-        />
-      </div>
-    );
+        <Input value={value} onChange={e => onEdit(e.target.value)} style={{
+        MozAppearance: 'textfield'
+      }} type="number" min="0" className="w-16 h-8 text-sm text-right [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none bg-white" />
+      </div>;
   };
 
   // Calculate bar chart data with stacking
@@ -65,27 +51,20 @@ export const StaffTrainingAnalytics = () => {
   // Calculate totals and percentages for each category
   const mandatoryTotal = trainingData.mandatoryCompliant + trainingData.mandatoryPending;
   const specialistTotal = trainingData.specialistCompliant + trainingData.specialistPending;
-  
   const mandatoryCompliantPercentage = mandatoryTotal > 0 ? Math.round(trainingData.mandatoryCompliant / mandatoryTotal * 100) : 0;
   const mandatoryPendingPercentage = mandatoryTotal > 0 ? Math.round(trainingData.mandatoryPending / mandatoryTotal * 100) : 0;
   const specialistCompliantPercentage = specialistTotal > 0 ? Math.round(trainingData.specialistCompliant / specialistTotal * 100) : 0;
   const specialistPendingPercentage = specialistTotal > 0 ? Math.round(trainingData.specialistPending / specialistTotal * 100) : 0;
-
-  const barData = total > 0 ? [
-    {
-      name: "Mandatory Training",
-      compliant: trainingData.mandatoryCompliant,
-      pending: trainingData.mandatoryPending
-    },
-    {
-      name: "Specialist Training",
-      compliant: trainingData.specialistCompliant,
-      pending: trainingData.specialistPending
-    }
-  ].filter(item => item.compliant + item.pending > 0) : [];
-
-  return (
-    <div className="space-y-8 mt-6 p-8 border border-border rounded-lg min-h-[600px] w-full bg-white">
+  const barData = total > 0 ? [{
+    name: "Mandatory Training",
+    compliant: trainingData.mandatoryCompliant,
+    pending: trainingData.mandatoryPending
+  }, {
+    name: "Specialist Training",
+    compliant: trainingData.specialistCompliant,
+    pending: trainingData.specialistPending
+  }].filter(item => item.compliant + item.pending > 0) : [];
+  return <div className="space-y-8 mt-6 p-8 border border-border rounded-lg min-h-[600px] w-full bg-white">
       <div className="flex items-center justify-between">
         <h4 className="text-xl font-semibold text-foreground">Staff Training Analytics</h4>
       </div>
@@ -95,32 +74,15 @@ export const StaffTrainingAnalytics = () => {
         <div className="text-sm font-medium text-foreground">Staff Training Numbers</div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <EditableInput
-            value={trainingData.mandatoryPending}
-            onEdit={val => handleInputChange('mandatoryPending', val)}
-            label="Mandatory Training - Staff Pending"
-          />
-          <EditableInput
-            value={trainingData.mandatoryCompliant}
-            onEdit={val => handleInputChange('mandatoryCompliant', val)}
-            label="Mandatory Training - Staff Compliant"
-          />
-          <EditableInput
-            value={trainingData.specialistPending}
-            onEdit={val => handleInputChange('specialistPending', val)}
-            label="Specialist Training - Staff Pending"
-          />
-          <EditableInput
-            value={trainingData.specialistCompliant}
-            onEdit={val => handleInputChange('specialistCompliant', val)}
-            label="Specialist Training - Staff Compliant"
-          />
+          <EditableInput value={trainingData.mandatoryPending} onEdit={val => handleInputChange('mandatoryPending', val)} label="Mandatory Training - Staff Pending" />
+          <EditableInput value={trainingData.mandatoryCompliant} onEdit={val => handleInputChange('mandatoryCompliant', val)} label="Mandatory Training - Staff Compliant" />
+          <EditableInput value={trainingData.specialistPending} onEdit={val => handleInputChange('specialistPending', val)} label="Specialist Training - Staff Pending" />
+          <EditableInput value={trainingData.specialistCompliant} onEdit={val => handleInputChange('specialistCompliant', val)} label="Specialist Training - Staff Compliant" />
         </div>
       </div>
 
       {/* Bar Chart Section */}
-      {total > 0 && (
-        <div className="space-y-4">
+      {total > 0 && <div className="space-y-4">
           <div className="text-sm font-medium text-foreground">Staff Training Breakdown</div>
           
           <Card className="p-8 bg-white">
@@ -130,24 +92,15 @@ export const StaffTrainingAnalytics = () => {
               <div className="w-full h-[400px]">
                 <ChartContainer config={chartConfig} className="w-full h-full">
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart
-                      data={barData}
-                      margin={{
-                        top: 20,
-                        right: 30,
-                        left: 20,
-                        bottom: 5
-                      }}
-                    >
-                      <XAxis
-                        dataKey="name"
-                        tick={{
-                          fontSize: 12
-                        }}
-                        angle={-45}
-                        textAnchor="end"
-                        height={80}
-                      />
+                    <BarChart data={barData} margin={{
+                  top: 20,
+                  right: 30,
+                  left: 20,
+                  bottom: 5
+                }}>
+                      <XAxis dataKey="name" tick={{
+                    fontSize: 12
+                  }} angle={-45} textAnchor="end" height={80} />
                       <YAxis />
                       <ChartTooltip content={<ChartTooltipContent />} />
                       <Bar dataKey="compliant" stackId="a" fill="#22c55e" />
@@ -172,30 +125,24 @@ export const StaffTrainingAnalytics = () => {
                 
                 {/* Percentage Breakdown */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-center">
-                  {mandatoryTotal > 0 && (
-                    <div className="space-y-2">
+                  {mandatoryTotal > 0 && <div className="space-y-2">
                       <h5 className="font-medium text-foreground">Mandatory Training</h5>
                       <div className="text-sm text-muted-foreground">
                         <div>Compliant: {mandatoryCompliantPercentage}%</div>
-                        <div>Pending: {mandatoryPendingPercentage}%</div>
+                        
                       </div>
-                    </div>
-                  )}
-                  {specialistTotal > 0 && (
-                    <div className="space-y-2">
+                    </div>}
+                  {specialistTotal > 0 && <div className="space-y-2">
                       <h5 className="font-medium text-foreground">Specialist Training</h5>
                       <div className="text-sm text-muted-foreground">
                         <div>Compliant: {specialistCompliantPercentage}%</div>
-                        <div>Pending: {specialistPendingPercentage}%</div>
+                        
                       </div>
-                    </div>
-                  )}
+                    </div>}
                 </div>
               </div>
             </div>
           </Card>
-        </div>
-      )}
-    </div>
-  );
+        </div>}
+    </div>;
 };
