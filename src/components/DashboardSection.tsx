@@ -9,10 +9,10 @@ interface DashboardSectionProps {
   icon?: React.ReactNode;
   items: StatusItemData[];
   onItemStatusChange?: (id: string, status: StatusType) => void;
-  onItemCommentChange?: (id: string, comment: string) => void;
+  onItemObservationChange?: (id: string, observation: string) => void;
+  onItemActionsChange?: (id: string, actions: string) => void;
   onAddItem?: (sectionTitle: string) => void;
   onActionCreated?: (itemTitle: string, mentionedAttendee: string, comment: string, action: string, dueDate: string) => void;
-  attendees?: string[];
   defaultOpen?: boolean;
 }
 
@@ -21,10 +21,10 @@ export const DashboardSection = ({
   icon,
   items,
   onItemStatusChange,
-  onItemCommentChange,
+  onItemObservationChange,
+  onItemActionsChange,
   onAddItem,
   onActionCreated,
-  attendees = [],
   defaultOpen = true
 }: DashboardSectionProps) => {
   const [isOpen, setIsOpen] = useState(defaultOpen);
@@ -87,9 +87,9 @@ export const DashboardSection = ({
               key={item.id}
               item={item}
               onStatusChange={onItemStatusChange}
-              onCommentChange={onItemCommentChange}
+              onObservationChange={onItemObservationChange}
+              onActionsChange={onItemActionsChange}
               onActionCreated={onActionCreated}
-            
             />
           ))}
           

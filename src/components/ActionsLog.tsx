@@ -54,9 +54,7 @@ export const ActionsLog = ({ actions, onActionComplete }: ActionsLogProps) => {
                 <th className="text-left py-2 px-3 text-sm font-semibold text-foreground">Description</th>
                 <th className="text-left py-2 px-3 text-sm font-semibold text-foreground">Owner</th>
                 <th className="text-left py-2 px-3 text-sm font-semibold text-foreground">Due Date</th>
-                <th className="text-left py-2 px-3 text-sm font-semibold text-foreground">Status</th>
                 <th className="text-left py-2 px-3 text-sm font-semibold text-foreground">Complete</th>
-                <th className="text-left py-2 px-3 text-sm font-semibold text-foreground">Comment</th>
                 {title.includes("Closed") && (
                   <th className="text-left py-2 px-3 text-sm font-semibold text-foreground">Closed</th>
                 )}
@@ -82,10 +80,7 @@ export const ActionsLog = ({ actions, onActionComplete }: ActionsLogProps) => {
                     {action.mentionedAttendee}
                   </td>
                   <td className="py-3 px-3 text-sm text-foreground">
-                    {new Date(action.dueDate).toLocaleDateString('en-GB')}
-                  </td>
-                  <td className="py-3 px-3">
-                    <StatusBadge status={action.closed ? "green" : (action.status || "green")} />
+                    {action.dueDate}
                   </td>
                   <td className="py-3 px-3">
                     <Button
@@ -97,11 +92,6 @@ export const ActionsLog = ({ actions, onActionComplete }: ActionsLogProps) => {
                     >
                       <Check className={`h-4 w-4 ${action.closed ? 'text-green-600' : 'text-muted-foreground'}`} />
                     </Button>
-                  </td>
-                  <td className="py-3 px-3 text-sm text-muted-foreground">
-                    <div className="max-w-sm truncate">
-                      {action.comment}
-                    </div>
                   </td>
                   {title.includes("Closed") && (
                     <td className="py-3 px-3 text-sm text-muted-foreground">

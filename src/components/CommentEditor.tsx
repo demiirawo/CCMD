@@ -5,13 +5,15 @@ interface CommentEditorProps {
   onSubmit: (comment: string) => void;
   onCancel: () => void;
   placeholder?: string;
+  isActionEditor?: boolean;
 }
 
 export const CommentEditor = ({ 
   initialValue, 
   onSubmit, 
   onCancel, 
-  placeholder = "Type actions in format: @'Name' / Action / Date" 
+  placeholder = "Type your comment...",
+  isActionEditor = false
 }: CommentEditorProps) => {
   const [value, setValue] = useState(initialValue);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -35,6 +37,16 @@ export const CommentEditor = ({
     }, 100);
   };
 
+  // Format actions for display
+  const formatDisplayValue = (text: string) => {
+    if (!isActionEditor) return text;
+    
+    // Replace captured actions with styled version
+    return text.replace(/@([^,]+),([^,]+),([^@\n]+)/g, (match, name, action, date) => {
+      return `@${name.trim()},${action.trim()},${date.trim()}`;
+    });
+  };
+
   return (
     <div className="relative">
       <textarea 
@@ -47,6 +59,17 @@ export const CommentEditor = ({
         onKeyDown={handleKeyDown}
         autoFocus 
       />
+      {isActionEditor && (
+        <div className="absolute inset-0 p-3 pointer-events-none whitespace-pre-wrap text-sm leading-[1.4] overflow-hidden">
+          <div 
+            dangerouslySetInnerHTML={{
+              __html: value.replace(/@([^,]+),([^,]+),([^@\n]+)/g, 
+                '<span style="color: #2563eb; font-weight: bold; font-style: italic;">@$1,$2,$3</span>'
+              )
+            }}
+          />
+        </div>
+      )}
     </div>
   );
 };

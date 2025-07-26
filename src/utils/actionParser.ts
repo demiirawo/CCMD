@@ -6,8 +6,8 @@ export interface ParsedAction {
 }
 
 export const parseActionsFromComment = (comment: string): ParsedAction[] => {
-  // Match format: @'Name' / Action / Date
-  const actionRegex = /@'([^']+)'\s*\/\s*([^\/]+?)\s*\/\s*(.+?)(?=\n|$|@')/g;
+  // Match format: @Name,Action,Date
+  const actionRegex = /@([^,]+),([^,]+),([^@\n]+)/g;
   const actions: ParsedAction[] = [];
   let match;
   

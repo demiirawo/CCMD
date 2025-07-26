@@ -11,39 +11,48 @@ export interface StatusItemData {
   title: string;
   status: StatusType;
   lastReviewed: string;
-  comment: string;
+  observation: string;
+  actions: string;
   details?: string;
 }
 
 interface StatusItemProps {
   item: StatusItemData;
   onStatusChange?: (id: string, status: StatusType) => void;
-  onCommentChange?: (id: string, comment: string) => void;
+  onObservationChange?: (id: string, observation: string) => void;
+  onActionsChange?: (id: string, actions: string) => void;
   onActionCreated?: (itemTitle: string, mentionedAttendee: string, comment: string, action: string, dueDate: string) => void;
 }
 
 export const StatusItem = ({
   item,
   onStatusChange,
-  onCommentChange,
+  onObservationChange,
+  onActionsChange,
   onActionCreated
 }: StatusItemProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
+  const [isEditingObservation, setIsEditingObservation] = useState(false);
+  const [isEditingActions, setIsEditingActions] = useState(false);
 
-  const handleCommentSubmit = (comment: string) => {
-    // Parse actions from the comment
-    const actions = parseActionsFromComment(comment);
+  const handleObservationSubmit = (observation: string) => {
+    onObservationChange?.(item.id, observation);
+    setIsEditingObservation(false);
+  };
+
+  const handleActionsSubmit = (actions: string) => {
+    // Parse actions from the actions text
+    const parsedActions = parseActionsFromComment(actions);
     
     // Create actions for valid attendees
-    actions.forEach(({ mentionedName, action, dueDate }) => {
+    parsedActions.forEach(({ mentionedName, action, dueDate }) => {
       if (mentionedName && action.trim()) {
-        onActionCreated?.(item.title, mentionedName, comment, action, dueDate);
+        onActionCreated?.(item.title, mentionedName, actions, action, dueDate);
       }
     });
     
-    onCommentChange?.(item.id, comment);
-    setIsEditing(false);
+    onActionsChange?.(item.id, actions);
+    setIsEditingActions(false);
   };
 
   return (
@@ -78,23 +87,61 @@ export const StatusItem = ({
           <p className="text-xs text-muted-foreground mt-1">Last Discussed: {item.lastReviewed}</p>
         </div>
         
-        <div className="flex-[4.6] min-w-0 relative">
-          {isEditing ? (
-            <CommentEditor
-              initialValue={item.comment}
-              onSubmit={handleCommentSubmit}
-              onCancel={() => setIsEditing(false)}
-            />
-          ) : (
-            <button 
-              onClick={() => setIsEditing(true)} 
-              className="w-full max-w-full text-left p-3 rounded-lg bg-accent/5 hover:bg-accent/10 transition-colors text-sm min-h-[100px] flex items-start border border-border/20 break-words overflow-hidden"
-            >
-              <span className="break-words w-full whitespace-pre-wrap">
-                {item.comment || "Click to add comment..."}
-              </span>
-            </button>
-          )}
+        <div className="flex-[4.6] min-w-0 space-y-3">
+          {/* Observation Section */}
+          <div>
+            <label className="text-xs font-medium text-muted-foreground mb-1 block">OBSERVATION</label>
+            {isEditingObservation ? (
+              <CommentEditor
+                initialValue={item.observation}
+                onSubmit={handleObservationSubmit}
+                onCancel={() => setIsEditingObservation(false)}
+                placeholder="Enter your observation..."
+              />
+            ) : (
+              <button 
+                onClick={() => setIsEditingObservation(true)} 
+                className="w-full text-left p-3 rounded-lg bg-accent/5 hover:bg-accent/10 transition-colors text-sm min-h-[80px] flex items-start border border-border/20 break-words overflow-hidden"
+              >
+                <span className="break-words w-full whitespace-pre-wrap">
+                  {item.observation || "Click to add observation..."}
+                </span>
+              </button>
+            )}
+          </div>
+
+          {/* Actions Section */}
+          <div>
+            <label className="text-xs font-medium text-muted-foreground mb-1 block">ACTIONS</label>
+            {isEditingActions ? (
+              <CommentEditor
+                initialValue={item.actions}
+                onSubmit={handleActionsSubmit}
+                onCancel={() => setIsEditingActions(false)}
+                placeholder="Enter actions in format: @Name,Action,Date"
+                isActionEditor={true}
+              />
+            ) : (
+              <button 
+                onClick={() => setIsEditingActions(true)} 
+                className="w-full text-left p-3 rounded-lg bg-accent/5 hover:bg-accent/10 transition-colors text-sm min-h-[80px] flex items-start border border-border/20 break-words overflow-hidden"
+              >
+                <div className="break-words w-full whitespace-pre-wrap">
+                  {item.actions ? (
+                    <div 
+                      dangerouslySetInnerHTML={{
+                        __html: item.actions.replace(/@([^,]+),([^,]+),([^@\n]+)/g, 
+                          '<span style="color: #2563eb; font-weight: bold; font-style: italic;">@$1,$2,$3</span>'
+                        )
+                      }}
+                    />
+                  ) : (
+                    "Click to add actions..."
+                  )}
+                </div>
+              </button>
+            )}
+          </div>
         </div>
       </div>
       

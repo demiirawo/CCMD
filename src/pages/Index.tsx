@@ -32,21 +32,24 @@ const Index = () => {
         title: "Meeting Date",
         status: "green" as StatusType,
         lastReviewed: "24-Jul-25",
-        comment: "24/07/2025",
+        observation: "24/07/2025",
+        actions: "",
         details: "Current meeting date"
       }, {
         id: "meeting-attendees",
         title: "Meeting Attendees",
         status: "green" as StatusType,
         lastReviewed: "24-Jul-25",
-        comment: "Manager, Team Leader, Senior Carer",
+        observation: "Manager, Team Leader, Senior Carer",
+        actions: "",
         details: "Key staff members present"
       }, {
         id: "meeting-purpose",
         title: "Meeting Purpose",
         status: "green" as StatusType,
         lastReviewed: "24-Jul-25",
-        comment: "Weekly review of care quality and operational matters",
+        observation: "Weekly review of care quality and operational matters",
+        actions: "",
         details: "Meeting objectives and goals"
       }]
     }, {
@@ -58,42 +61,48 @@ const Index = () => {
         title: "Recruitment",
         status: "amber" as StatusType,
         lastReviewed: "23-Jul-25",
-        comment: "Recruitment to be paused.",
+        observation: "Recruitment to be paused.",
+        actions: "",
         details: "Several positions still vacant. Need to review strategy and budget allocation."
       }, {
         id: "staff-documents",
         title: "Staff Documents",
         status: "amber" as StatusType,
         lastReviewed: "23-Jul-25",
-        comment: "Currently processing 3 starters. Employment History - Callista working on 2 remaining staff.",
+        observation: "Currently processing 3 starters. Employment History - Callista working on 2 remaining staff.",
+        actions: "",
         details: "Document compliance tracking ongoing. Priority focus on completing outstanding employment history checks."
       }, {
         id: "training",
         title: "Training",
         status: "amber" as StatusType,
         lastReviewed: "23-Jul-25",
-        comment: "Several staff members still have not completed mandatory training - by the 31st of July.",
+        observation: "Several staff members still have not completed mandatory training - by the 31st of July.",
+        actions: "",
         details: "Training compliance deadline approaching. Need immediate action for staff completion."
       }, {
         id: "spot-checks",
         title: "Spot Checks",
         status: "amber" as StatusType,
         lastReviewed: "23-Jul-25",
-        comment: "3 spot checks are due - Callista to send their names to Sam/Melissa - by 23rd",
+        observation: "3 spot checks are due - Callista to send their names to Sam/Melissa - by 23rd",
+        actions: "",
         details: "Regular quality assurance spot checks due for completion."
       }, {
         id: "staff-supervisions",
         title: "Staff Supervisions",
         status: "green" as StatusType,
         lastReviewed: "23-Jul-25",
-        comment: "1 person pending supervision, 1 person pending probation review",
+        observation: "1 person pending supervision, 1 person pending probation review",
+        actions: "",
         details: "Supervision schedule mostly on track with minimal outstanding items."
       }, {
         id: "staff-meetings",
         title: "Staff Meetings",
         status: "green" as StatusType,
         lastReviewed: "23-Jul-25",
-        comment: "Regular team meetings scheduled and conducted",
+        observation: "Regular team meetings scheduled and conducted",
+        actions: "",
         details: "Monthly staff meetings proceeding as planned"
       }]
     }, {
@@ -105,35 +114,40 @@ const Index = () => {
         title: "Care Plans & Risk Assessments",
         status: "red" as StatusType,
         lastReviewed: "23-Jul-25",
-        comment: "4 service users do not have a care plan in place. Please check the initial visit content to determine if all service users are documented correctly.",
+        observation: "4 service users do not have a care plan in place. Please check the initial visit content to determine if all service users are documented correctly.",
+        actions: "",
         details: "Critical compliance issue requiring immediate attention for service user safety."
       }, {
         id: "service-user-docs",
         title: "Service User Documents",
         status: "red" as StatusType,
         lastReviewed: "23-Jul-25",
-        comment: "Initial consent to deliver of all service users and documented evidence. No forms when handed goes to Denean 11/07/25",
+        observation: "Initial consent to deliver of all service users and documented evidence. No forms when handed goes to Denean 11/07/25",
+        actions: "",
         details: "Documentation compliance critical for service delivery authorization."
       }, {
         id: "medication",
         title: "Medication Management",
         status: "green" as StatusType,
         lastReviewed: "23-Jul-25",
-        comment: "Up to date - no concerns",
+        observation: "Up to date - no concerns",
+        actions: "",
         details: "All medication protocols and documentation current and compliant."
       }, {
         id: "care-notes",
         title: "Care Notes",
         status: "green" as StatusType,
         lastReviewed: "23-Jul-25",
-        comment: "Daily care notes being completed consistently",
+        observation: "Daily care notes being completed consistently",
+        actions: "",
         details: "Care documentation up to date and compliant"
       }, {
         id: "call-monitoring",
         title: "Call Monitoring",
         status: "green" as StatusType,
         lastReviewed: "23-Jul-25",
-        comment: "Call monitoring system functioning well",
+        observation: "Call monitoring system functioning well",
+        actions: "",
         details: "Regular monitoring of care visits and timing"
       }]
     }, {
@@ -145,28 +159,32 @@ const Index = () => {
         title: "Incidents & Accidents",
         status: "green" as StatusType,
         lastReviewed: "23-Jul-25",
-        comment: "No recent incidents reported",
+        observation: "No recent incidents reported",
+        actions: "",
         details: "Incident reporting system functioning well"
       }, {
         id: "safeguarding",
         title: "Safeguarding",
         status: "green" as StatusType,
         lastReviewed: "23-Jul-25",
-        comment: "All safeguarding procedures up to date",
+        observation: "All safeguarding procedures up to date",
+        actions: "",
         details: "Safeguarding protocols being followed correctly"
       }, {
         id: "risk-register",
         title: "Risk Register",
         status: "amber" as StatusType,
         lastReviewed: "23-Jul-25",
-        comment: "Risk register requires quarterly review",
+        observation: "Risk register requires quarterly review",
+        actions: "",
         details: "Some risks need updating and reassessment"
       }, {
         id: "infection-control",
         title: "Infection Control",
         status: "green" as StatusType,
         lastReviewed: "23-Jul-25",
-        comment: "Infection control measures in place and effective",
+        observation: "Infection control measures in place and effective",
+        actions: "",
         details: "PPE supplies adequate, procedures being followed"
       }]
     }, {
@@ -178,14 +196,16 @@ const Index = () => {
         title: "Feedback",
         status: "green" as StatusType,
         lastReviewed: "23-Jul-25",
-        comment: "Number of service users due for feedback, Callista to follow up",
+        observation: "Number of service users due for feedback, Callista to follow up",
+        actions: "",
         details: "Regular feedback collection from service users proceeding as scheduled."
       }, {
         id: "audits",
         title: "Audits",
         status: "green" as StatusType,
         lastReviewed: "23-Jul-25",
-        comment: "6 completed, progress is ongoing",
+        observation: "6 completed, progress is ongoing",
+        actions: "",
         details: "Audit schedule progressing well with good completion rate."
       }]
     }]
@@ -228,7 +248,7 @@ const Index = () => {
     });
   };
 
-  const handleCommentChange = (sectionId: string, itemId: string, newComment: string) => {
+  const handleObservationChange = (sectionId: string, itemId: string, newObservation: string) => {
     setDashboardData(prev => ({
       ...prev,
       sections: prev.sections.map(section => 
@@ -237,7 +257,7 @@ const Index = () => {
           items: section.items.map(item => 
             item.id === itemId ? {
               ...item,
-              comment: newComment,
+              observation: newObservation,
               lastReviewed: new Date().toLocaleString('en-GB', {
                 day: '2-digit',
                 month: 'short',
@@ -251,8 +271,36 @@ const Index = () => {
       )
     }));
     toast({
-      title: "Comment Updated",
-      description: "Item comment has been saved"
+      title: "Observation Updated",
+      description: "Item observation has been saved"
+    });
+  };
+
+  const handleActionsChange = (sectionId: string, itemId: string, newActions: string) => {
+    setDashboardData(prev => ({
+      ...prev,
+      sections: prev.sections.map(section => 
+        section.id === sectionId ? {
+          ...section,
+          items: section.items.map(item => 
+            item.id === itemId ? {
+              ...item,
+              actions: newActions,
+              lastReviewed: new Date().toLocaleString('en-GB', {
+                day: '2-digit',
+                month: 'short',
+                year: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+              })
+            } : item
+          )
+        } : section
+      )
+    }));
+    toast({
+      title: "Actions Updated",
+      description: "Item actions have been saved"
     });
   };
   
@@ -321,7 +369,8 @@ const Index = () => {
             title={section.title} 
             items={section.items} 
             onItemStatusChange={(itemId, status) => handleStatusChange(section.id, itemId, status)} 
-            onItemCommentChange={(itemId, comment) => handleCommentChange(section.id, itemId, comment)}
+            onItemObservationChange={(itemId, observation) => handleObservationChange(section.id, itemId, observation)}
+            onItemActionsChange={(itemId, actions) => handleActionsChange(section.id, itemId, actions)}
             onActionCreated={handleActionCreated}
           />
         )}
