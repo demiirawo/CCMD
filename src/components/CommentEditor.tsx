@@ -2,132 +2,19 @@ import { useState, useRef } from "react";
 
 interface CommentEditorProps {
   initialValue: string;
-  attendees: string[];
   onSubmit: (comment: string) => void;
   onCancel: () => void;
   placeholder?: string;
 }
 
-interface MentionDropdownProps {
-  attendees: string[];
-  position: { top: number; left: number };
-  query: string;
-  onSelect: (attendee: string) => void;
-  visible: boolean;
-}
-
-
-const MentionDropdown = ({ attendees, position, query, onSelect, visible }: MentionDropdownProps) => {
-  const filteredAttendees = attendees.filter(attendee =>
-    attendee.toLowerCase().includes(query.toLowerCase())
-  );
-
-  if (!visible || filteredAttendees.length === 0) return null;
-
-  return (
-    <div 
-      className="fixed z-[60] bg-background border border-border rounded-lg shadow-lg max-h-40 overflow-y-auto min-w-[200px]"
-      style={{
-        top: position.top,
-        left: position.left,
-        position: 'fixed'
-      }}
-    >
-      {filteredAttendees.map((attendee, index) => (
-        <button
-          key={index}
-          className="w-full text-left px-3 py-2 hover:bg-accent text-sm first:rounded-t-lg last:rounded-b-lg"
-          onMouseDown={(e) => {
-            e.preventDefault();
-            onSelect(attendee);
-          }}
-        >
-          {attendee}
-        </button>
-      ))}
-    </div>
-  );
-};
-
-
 export const CommentEditor = ({ 
   initialValue, 
-  attendees, 
   onSubmit, 
   onCancel, 
-  placeholder = "Type @ to mention someone and create an action..." 
+  placeholder = "Type actions in format: @'Name' / Action / Date" 
 }: CommentEditorProps) => {
   const [value, setValue] = useState(initialValue);
-  const [showMentionDropdown, setShowMentionDropdown] = useState(false);
-  const [mentionQuery, setMentionQuery] = useState("");
-  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-
-  const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const newValue = e.target.value;
-    setValue(newValue);
-    
-    const cursorPosition = e.target.selectionStart;
-    const textBeforeCursor = newValue.substring(0, cursorPosition);
-    const mentionMatch = textBeforeCursor.match(/@(\w*)$/);
-    
-    // Auto-clear date placeholder when user starts typing after "due:"
-    if (newValue.includes('due:dd/mm') && textBeforeCursor.includes('due:') && !textBeforeCursor.endsWith('due:')) {
-      const clearedValue = newValue.replace('due:dd/mm', 'due:');
-      setValue(clearedValue);
-      // Update the actual textarea value
-      e.target.value = clearedValue;
-    }
-    
-    if (mentionMatch) {
-      const query = mentionMatch[1];
-      setMentionQuery(query);
-      setShowMentionDropdown(true);
-      
-      // Calculate dropdown position relative to the textarea
-      const rect = e.target.getBoundingClientRect();
-      const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-      const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
-      
-      setDropdownPosition({
-        top: rect.bottom + scrollTop + 5,
-        left: rect.left + scrollLeft
-      });
-    } else {
-      setShowMentionDropdown(false);
-    }
-  };
-
-  const selectMention = (attendee: string) => {
-    if (!textareaRef.current) return;
-    
-    const textarea = textareaRef.current;
-    const cursorPosition = textarea.selectionStart;
-    const textBeforeCursor = value.substring(0, cursorPosition);
-    const textAfterCursor = value.substring(cursorPosition);
-    
-    // Find the @ position
-    const mentionMatch = textBeforeCursor.match(/@(\w*)$/);
-    if (mentionMatch) {
-      const mentionStart = textBeforeCursor.lastIndexOf('@');
-      const beforeMention = value.substring(0, mentionStart);
-      const template = `@${attendee} [action] due:dd/mm`;
-      const newValue = beforeMention + template + textAfterCursor;
-      
-      setValue(newValue);
-      setShowMentionDropdown(false);
-      
-      // Focus and position cursor at [action]
-      setTimeout(() => {
-        if (textareaRef.current) {
-          textareaRef.current.focus();
-          const actionStart = beforeMention.length + template.indexOf('[action]');
-          textareaRef.current.setSelectionRange(actionStart, actionStart + 8);
-        }
-      }, 0);
-    }
-  };
-
 
   const handleSubmit = () => {
     onSubmit(value);
@@ -142,13 +29,10 @@ export const CommentEditor = ({
     }
   };
 
-  const handleBlur = (e: React.FocusEvent<HTMLTextAreaElement>) => {
-    // Only submit if not interacting with dropdown
+  const handleBlur = () => {
     setTimeout(() => {
-      if (!showMentionDropdown) {
-        handleSubmit();
-      }
-    }, 200);
+      handleSubmit();
+    }, 100);
   };
 
   return (
@@ -158,18 +42,10 @@ export const CommentEditor = ({
         value={value}
         className="w-full p-3 rounded-lg border border-border bg-background resize-none min-h-[100px] text-sm" 
         placeholder={placeholder}
-        onChange={handleTextareaChange}
+        onChange={(e) => setValue(e.target.value)}
         onBlur={handleBlur}
         onKeyDown={handleKeyDown}
         autoFocus 
-      />
-      
-      <MentionDropdown
-        attendees={attendees}
-        position={dropdownPosition}
-        query={mentionQuery}
-        onSelect={selectMention}
-        visible={showMentionDropdown}
       />
     </div>
   );

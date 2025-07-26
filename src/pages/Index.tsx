@@ -276,6 +276,19 @@ const Index = () => {
       description: `Action assigned to @${mentionedAttendee} for ${itemTitle}`
     });
   };
+  
+  const handleActionComplete = (actionId: string) => {
+    setActionsLog(prev => prev.map(action => 
+      action.id === actionId 
+        ? { ...action, closed: true, closedDate: new Date().toISOString() }
+        : action
+    ));
+    
+    toast({
+      title: "Action Completed",
+      description: "Action has been marked as complete"
+    });
+  };
 
   const getAttendeesList = () => {
     return headerData.attendees.split(',').map(name => name.trim());
@@ -310,11 +323,10 @@ const Index = () => {
             onItemStatusChange={(itemId, status) => handleStatusChange(section.id, itemId, status)} 
             onItemCommentChange={(itemId, comment) => handleCommentChange(section.id, itemId, comment)}
             onActionCreated={handleActionCreated}
-            attendees={getAttendeesList()}
           />
         )}
         
-        <ActionsLog actions={actionsLog} />
+        <ActionsLog actions={actionsLog} onActionComplete={handleActionComplete} />
       </div>
     </div>
   );

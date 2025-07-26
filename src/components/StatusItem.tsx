@@ -20,15 +20,13 @@ interface StatusItemProps {
   onStatusChange?: (id: string, status: StatusType) => void;
   onCommentChange?: (id: string, comment: string) => void;
   onActionCreated?: (itemTitle: string, mentionedAttendee: string, comment: string, action: string, dueDate: string) => void;
-  attendees?: string[];
 }
 
 export const StatusItem = ({
   item,
   onStatusChange,
   onCommentChange,
-  onActionCreated,
-  attendees = []
+  onActionCreated
 }: StatusItemProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -39,8 +37,7 @@ export const StatusItem = ({
     
     // Create actions for valid attendees
     actions.forEach(({ mentionedName, action, dueDate }) => {
-      const attendee = validateAttendee(mentionedName, attendees);
-      if (attendee && action.trim()) {
+      if (mentionedName && action.trim()) {
         onActionCreated?.(item.title, mentionedName, comment, action, dueDate);
       }
     });
@@ -85,7 +82,6 @@ export const StatusItem = ({
           {isEditing ? (
             <CommentEditor
               initialValue={item.comment}
-              attendees={attendees}
               onSubmit={handleCommentSubmit}
               onCancel={() => setIsEditing(false)}
             />

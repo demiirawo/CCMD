@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Check } from "lucide-react";
 import { StatusBadge } from "./StatusBadge";
+import { Button } from "./ui/button";
 
 export interface ActionLogEntry {
   id: string;
@@ -17,9 +18,10 @@ export interface ActionLogEntry {
 
 interface ActionsLogProps {
   actions: ActionLogEntry[];
+  onActionComplete?: (actionId: string) => void;
 }
 
-export const ActionsLog = ({ actions }: ActionsLogProps) => {
+export const ActionsLog = ({ actions, onActionComplete }: ActionsLogProps) => {
   const [isExpanded, setIsExpanded] = useState(true);
 
   // Group actions by open/closed
@@ -53,6 +55,7 @@ export const ActionsLog = ({ actions }: ActionsLogProps) => {
                 <th className="text-left py-2 px-3 text-sm font-semibold text-foreground">Owner</th>
                 <th className="text-left py-2 px-3 text-sm font-semibold text-foreground">Due Date</th>
                 <th className="text-left py-2 px-3 text-sm font-semibold text-foreground">Status</th>
+                <th className="text-left py-2 px-3 text-sm font-semibold text-foreground">Complete</th>
                 <th className="text-left py-2 px-3 text-sm font-semibold text-foreground">Comment</th>
                 {title.includes("Closed") && (
                   <th className="text-left py-2 px-3 text-sm font-semibold text-foreground">Closed</th>
@@ -83,6 +86,17 @@ export const ActionsLog = ({ actions }: ActionsLogProps) => {
                   </td>
                   <td className="py-3 px-3">
                     <StatusBadge status={action.closed ? "green" : (action.status || "green")} />
+                  </td>
+                  <td className="py-3 px-3">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => onActionComplete?.(action.id)}
+                      disabled={action.closed}
+                      className={`h-8 w-8 p-0 ${action.closed ? 'opacity-50' : 'hover:bg-green-100'}`}
+                    >
+                      <Check className={`h-4 w-4 ${action.closed ? 'text-green-600' : 'text-muted-foreground'}`} />
+                    </Button>
                   </td>
                   <td className="py-3 px-3 text-sm text-muted-foreground">
                     <div className="max-w-sm truncate">

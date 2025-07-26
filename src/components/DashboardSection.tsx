@@ -89,7 +89,7 @@ export const DashboardSection = ({
               onStatusChange={onItemStatusChange}
               onCommentChange={onItemCommentChange}
               onActionCreated={onActionCreated}
-              attendees={attendees}
+            
             />
           ))}
           
