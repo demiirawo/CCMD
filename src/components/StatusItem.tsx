@@ -39,7 +39,7 @@ export const StatusItem = ({
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
   const [textareaRef, setTextareaRef] = useState<HTMLTextAreaElement | null>(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [pendingActionId, setPendingActionId] = useState<string | null>(null);
+  const [clickPosition, setClickPosition] = useState({ top: 0, left: 0 });
 
   const handleCommentSubmit = (comment: string) => {
     // Check for completed inline actions (format: @Name, action, date)
@@ -215,9 +215,16 @@ export const StatusItem = ({
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
+                
+                // Get click position for popover placement
+                const rect = e.currentTarget.getBoundingClientRect();
+                setClickPosition({
+                  top: rect.bottom + window.scrollY + 5,
+                  left: rect.left + window.scrollX
+                });
+                
                 console.log('Calendar button clicked, opening date picker');
                 setShowDatePicker(true);
-                setPendingActionId(comment); // Store the full comment for replacement
               }}
               title="Select date"
             >
@@ -449,20 +456,20 @@ export const StatusItem = ({
             {/* Backdrop */}
             <div 
               className="fixed inset-0 z-40" 
-              onClick={() => {
-                setShowDatePicker(false);
-                setPendingActionId(null);
-              }}
+              onClick={() => setShowDatePicker(false)}
             />
-            {/* Popover */}
-            <div className="absolute top-full left-0 mt-2 z-50 bg-white border border-gray-200 rounded-lg shadow-xl p-2 min-w-max">
+            {/* Popover positioned at click location */}
+            <div 
+              className="fixed z-50 bg-white border border-gray-200 rounded-lg shadow-xl p-2 min-w-max"
+              style={{
+                top: clickPosition.top,
+                left: clickPosition.left
+              }}
+            >
               <div className="flex justify-between items-center mb-2 px-2">
                 <span className="text-sm font-medium text-gray-700">Select Date</span>
                 <button
-                  onClick={() => {
-                    setShowDatePicker(false);
-                    setPendingActionId(null);
-                  }}
+                  onClick={() => setShowDatePicker(false)}
                   className="p-1 hover:bg-gray-100 rounded"
                 >
                   <X className="w-3 h-3" />
@@ -477,7 +484,6 @@ export const StatusItem = ({
                     const updatedComment = item.comment.replace('📅', formattedDate);
                     onCommentChange?.(item.id, updatedComment);
                     setShowDatePicker(false);
-                    setPendingActionId(null);
                     console.log('Date selected and comment updated:', formattedDate);
                   }
                 }}
