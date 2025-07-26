@@ -41,7 +41,7 @@ export const MeetingAttendeesManager = ({
             </Button>}
         </div>)}
       
-      <Button variant="outline" size="sm" onClick={addAttendee} className="w-full gap-2 text-sm bg-purple-600 hover:bg-purple-500">
+      <Button variant="outline" size="sm" onClick={addAttendee} className="w-full gap-2 text-sm bg-gray-400 hover:bg-gray-300">
         <Plus className="h-4 w-4" />
       </Button>
     </div>;
