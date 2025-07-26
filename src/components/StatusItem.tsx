@@ -87,6 +87,16 @@ export const StatusItem = ({
         </div>
         
         <div className="flex-[5] min-w-0 space-y-3">
+          {/* Accountable Section - small field below title */}
+          <div>
+            <label className="text-xs font-medium text-muted-foreground mb-1 block">ACCOUNTABLE</label>
+            <AccountableManager 
+              accountable={item.accountable || []} 
+              attendees={attendees} 
+              onChange={handleAccountableChange} 
+            />
+          </div>
+
           {/* Observation Section */}
           <div>
             <label className="text-xs font-medium text-muted-foreground mb-1 block">OBSERVATION</label>
@@ -95,16 +105,6 @@ export const StatusItem = ({
                   {item.observation || "Click to add observation..."}
                 </span>
               </button>}
-          </div>
-
-          {/* Accountable Section */}
-          <div>
-            <label className="text-xs font-medium text-muted-foreground mb-1 block">ACCOUNTABLE</label>
-            <AccountableManager 
-              accountable={item.accountable || []} 
-              attendees={attendees} 
-              onChange={handleAccountableChange} 
-            />
           </div>
 
           {/* Actions Section */}
