@@ -46,7 +46,7 @@ export const AccountableManager = ({
             <SelectTrigger className="flex-1 bg-white">
               <SelectValue placeholder="Select from attendees..." />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="bg-white">
               {availableAttendees.map(attendee => <SelectItem key={attendee} value={attendee}>
                   {attendee}
                 </SelectItem>)}
