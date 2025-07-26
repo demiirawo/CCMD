@@ -201,24 +201,37 @@ export const StatusItem = ({
             isCompleted && "font-bold text-primary"
           )}>
             @{name}, {action}, {isCalendarEmoji ? (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="inline-flex items-center justify-center w-6 h-6 p-0 ml-1 text-blue-600 hover:text-blue-800 hover:bg-blue-100 rounded transition-colors"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setIsEditing(true);
-                  setTimeout(() => {
-                    const dateButton = document.getElementById(`date-picker-${item.id}`);
-                    if (dateButton) {
-                      dateButton.click();
-                    }
-                  }, 100);
-                }}
-                title="Select date"
-              >
-                <CalendarIcon className="w-4 h-4" />
-              </Button>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="inline-flex items-center justify-center w-6 h-6 p-0 ml-1 text-blue-600 hover:text-blue-800 hover:bg-blue-100 rounded transition-colors"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                    }}
+                    title="Select date"
+                  >
+                    <CalendarIcon className="w-4 h-4" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={undefined}
+                    onSelect={(date) => {
+                      if (date && item.comment) {
+                        const formattedDate = format(date, "yyyy-MM-dd");
+                        const updatedComment = item.comment.replace('📅', formattedDate);
+                        onCommentChange?.(item.id, updatedComment);
+                      }
+                    }}
+                    initialFocus
+                    className="p-3 pointer-events-auto"
+                    disabled={(date) => date < new Date()}
+                  />
+                </PopoverContent>
+              </Popover>
             ) : dateOrEmoji}
           </span>
           {isCompleted && (
@@ -283,56 +296,16 @@ export const StatusItem = ({
           placeholder="Add your comment... (Type @ to mention someone and create an action)"
           onChange={handleTextareaChange}
           onBlur={e => {
-            // Delay to allow dropdown clicks
+            // Delay to allow dropdown and popover clicks
             setTimeout(() => {
               if (!showMentionDropdown) {
                 handleCommentSubmit(e.target.value);
               }
-            }, 200);
+            }, 300);
           }}
           onKeyDown={handleTextareaKeyDown}
-          onMouseUp={(e) => {
-            // Handle clicking on calendar emoji
-            const textarea = e.currentTarget;
-            const selectionStart = textarea.selectionStart;
-            const value = textarea.value;
-            
-            // Check if we clicked on or near the calendar emoji
-            const calendarIndex = value.indexOf('📅');
-            if (calendarIndex !== -1 && Math.abs(selectionStart - calendarIndex) <= 1) {
-              const dateButton = document.getElementById(`date-picker-${item.id}`);
-              if (dateButton) {
-                dateButton.click();
-              }
-            }
-          }}
           autoFocus 
         />
-        
-        {/* Hidden date picker trigger */}
-        {hasCalendarEmoji && (
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                id={`date-picker-${item.id}`}
-                variant="ghost"
-                className="absolute top-0 left-0 w-0 h-0 p-0 opacity-0 pointer-events-none"
-              >
-                <CalendarIcon />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                mode="single"
-                selected={undefined}
-                onSelect={handleDateSelect}
-                initialFocus
-                className="p-3 pointer-events-auto"
-                disabled={(date) => date < new Date()}
-              />
-            </PopoverContent>
-          </Popover>
-        )}
         
         {/* Mention Dropdown */}
         {showMentionDropdown && filteredAttendees.length > 0 && (
