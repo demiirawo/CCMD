@@ -5,7 +5,7 @@ import { Input } from "./ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { Calendar as CalendarComponent } from "./ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
-import { format } from "date-fns";
+import { format, differenceInDays, parseISO } from "date-fns";
 
 export interface ActionItem {
   id: string;
@@ -67,18 +67,40 @@ export const ActionForm = ({
     }
   };
 
+  const getActionColorClass = (targetDate: string) => {
+    try {
+      const [day, month, year] = targetDate.split('/');
+      const dueDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      dueDate.setHours(0, 0, 0, 0);
+      
+      const daysRemaining = differenceInDays(dueDate, today);
+      
+      if (daysRemaining < 0) {
+        return "bg-red-50 border-red-200 text-red-900";
+      } else if (daysRemaining <= 5) {
+        return "bg-amber-50 border-amber-200 text-amber-900";
+      } else {
+        return "bg-green-50 border-green-200 text-green-900";
+      }
+    } catch {
+      return "bg-gray-50 border-gray-200 text-gray-900";
+    }
+  };
+
   return (
     <div className="space-y-4">
       {/* Existing Actions */}
       {actions.length > 0 && (
         <div className="space-y-2">
           {actions.map((action) => (
-            <div key={action.id} className="flex items-center gap-2 p-3 bg-blue-50 rounded-lg border border-blue-200">
+            <div key={action.id} className={`flex items-center gap-2 p-3 rounded-lg border ${getActionColorClass(action.targetDate)}`}>
               <div className="flex-1">
-                <div className="font-medium text-blue-900">
+                <div className="font-medium">
                   <span className="font-bold">{action.name}</span> - {action.description}
                 </div>
-                <div className="text-sm text-blue-700">
+                <div className="text-sm opacity-80">
                   Due: {action.targetDate}
                 </div>
               </div>
@@ -99,9 +121,9 @@ export const ActionForm = ({
       <div className="border border-border rounded-lg p-4 space-y-3">
         <div className="text-sm font-medium text-muted-foreground">Add New Action</div>
         
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-3 items-end">
+        <div className="flex gap-3 items-end">
           {/* Name Dropdown */}
-          <div>
+          <div className="w-48">
             <label className="text-xs text-muted-foreground mb-1 block">Assigned To</label>
             <Select 
               value={newAction.name} 
@@ -110,7 +132,7 @@ export const ActionForm = ({
               <SelectTrigger className="h-9">
                 <SelectValue placeholder="Select person..." />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-white">
                 {attendees.map((attendee) => (
                   <SelectItem key={attendee} value={attendee}>
                     {attendee}
@@ -120,8 +142,8 @@ export const ActionForm = ({
             </Select>
           </div>
 
-          {/* Action Description */}
-          <div>
+          {/* Action Description - Wider to utilize space */}
+          <div className="flex-1">
             <label className="text-xs text-muted-foreground mb-1 block">Action Description</label>
             <Input
               placeholder="Enter action description..."
@@ -131,25 +153,25 @@ export const ActionForm = ({
             />
           </div>
 
-          {/* Target Date */}
+          {/* Target Date - Just calendar emoji */}
           <div>
-            <label className="text-xs text-muted-foreground mb-1 block">Target Date</label>
+            <label className="text-xs text-muted-foreground mb-1 block">Date</label>
             <Popover>
               <PopoverTrigger asChild>
                 <Button
                   variant="outline"
-                  className="h-9 w-full justify-start text-left font-normal"
+                  className="h-9 w-9 p-0"
+                  title={newAction.targetDate || "Select date"}
                 >
-                  <Calendar className="mr-2 h-4 w-4" />
-                  {newAction.targetDate || "Select date..."}
+                  <Calendar className="h-4 w-4" />
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
+              <PopoverContent className="w-auto p-0 bg-white" align="start">
                 <CalendarComponent
                   mode="single"
                   onSelect={handleDateSelect}
                   initialFocus
-                  className="p-3 pointer-events-auto"
+                  className="p-3 pointer-events-auto bg-white"
                   disabled={(date) => date < new Date()}
                 />
               </PopoverContent>
