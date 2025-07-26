@@ -3,6 +3,7 @@ import { DashboardHeader } from "@/components/DashboardHeader";
 import { DashboardSection } from "@/components/DashboardSection";
 import { ActionsLog, ActionLogEntry } from "@/components/ActionsLog";
 import { StatusItemData } from "@/components/StatusItem";
+import { ActionItem } from "@/components/ActionForm";
 import { StatusType } from "@/components/StatusBadge";
 import { Users, Target, BarChart3, FileText, Heart, Shield, Calendar, UserCheck, ClipboardList, HeartHandshake, TrendingUp } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -33,7 +34,7 @@ const Index = () => {
         status: "green" as StatusType,
         lastReviewed: "24-Jul-25",
         observation: "24/07/2025",
-        actions: "",
+        actions: [],
         details: "Current meeting date"
       }, {
         id: "meeting-attendees",
@@ -41,7 +42,7 @@ const Index = () => {
         status: "green" as StatusType,
         lastReviewed: "24-Jul-25",
         observation: "Manager, Team Leader, Senior Carer",
-        actions: "",
+        actions: [],
         details: "Key staff members present"
       }, {
         id: "meeting-purpose",
@@ -49,7 +50,7 @@ const Index = () => {
         status: "green" as StatusType,
         lastReviewed: "24-Jul-25",
         observation: "Weekly review of care quality and operational matters",
-        actions: "",
+        actions: [],
         details: "Meeting objectives and goals"
       }]
     }, {
@@ -62,7 +63,7 @@ const Index = () => {
         status: "amber" as StatusType,
         lastReviewed: "23-Jul-25",
         observation: "Recruitment to be paused.",
-        actions: "",
+        actions: [],
         details: "Several positions still vacant. Need to review strategy and budget allocation."
       }, {
         id: "staff-documents",
@@ -70,7 +71,7 @@ const Index = () => {
         status: "amber" as StatusType,
         lastReviewed: "23-Jul-25",
         observation: "Currently processing 3 starters. Employment History - Callista working on 2 remaining staff.",
-        actions: "",
+        actions: [],
         details: "Document compliance tracking ongoing. Priority focus on completing outstanding employment history checks."
       }, {
         id: "training",
@@ -78,7 +79,7 @@ const Index = () => {
         status: "amber" as StatusType,
         lastReviewed: "23-Jul-25",
         observation: "Several staff members still have not completed mandatory training - by the 31st of July.",
-        actions: "",
+        actions: [],
         details: "Training compliance deadline approaching. Need immediate action for staff completion."
       }, {
         id: "spot-checks",
@@ -86,7 +87,7 @@ const Index = () => {
         status: "amber" as StatusType,
         lastReviewed: "23-Jul-25",
         observation: "3 spot checks are due - Callista to send their names to Sam/Melissa - by 23rd",
-        actions: "",
+        actions: [],
         details: "Regular quality assurance spot checks due for completion."
       }, {
         id: "staff-supervisions",
@@ -94,7 +95,7 @@ const Index = () => {
         status: "green" as StatusType,
         lastReviewed: "23-Jul-25",
         observation: "1 person pending supervision, 1 person pending probation review",
-        actions: "",
+        actions: [],
         details: "Supervision schedule mostly on track with minimal outstanding items."
       }, {
         id: "staff-meetings",
@@ -102,7 +103,7 @@ const Index = () => {
         status: "green" as StatusType,
         lastReviewed: "23-Jul-25",
         observation: "Regular team meetings scheduled and conducted",
-        actions: "",
+        actions: [],
         details: "Monthly staff meetings proceeding as planned"
       }]
     }, {
@@ -115,7 +116,7 @@ const Index = () => {
         status: "red" as StatusType,
         lastReviewed: "23-Jul-25",
         observation: "4 service users do not have a care plan in place. Please check the initial visit content to determine if all service users are documented correctly.",
-        actions: "",
+        actions: [],
         details: "Critical compliance issue requiring immediate attention for service user safety."
       }, {
         id: "service-user-docs",
@@ -123,7 +124,7 @@ const Index = () => {
         status: "red" as StatusType,
         lastReviewed: "23-Jul-25",
         observation: "Initial consent to deliver of all service users and documented evidence. No forms when handed goes to Denean 11/07/25",
-        actions: "",
+        actions: [],
         details: "Documentation compliance critical for service delivery authorization."
       }, {
         id: "medication",
@@ -131,7 +132,7 @@ const Index = () => {
         status: "green" as StatusType,
         lastReviewed: "23-Jul-25",
         observation: "Up to date - no concerns",
-        actions: "",
+        actions: [],
         details: "All medication protocols and documentation current and compliant."
       }, {
         id: "care-notes",
@@ -139,7 +140,7 @@ const Index = () => {
         status: "green" as StatusType,
         lastReviewed: "23-Jul-25",
         observation: "Daily care notes being completed consistently",
-        actions: "",
+        actions: [],
         details: "Care documentation up to date and compliant"
       }, {
         id: "call-monitoring",
@@ -147,7 +148,7 @@ const Index = () => {
         status: "green" as StatusType,
         lastReviewed: "23-Jul-25",
         observation: "Call monitoring system functioning well",
-        actions: "",
+        actions: [],
         details: "Regular monitoring of care visits and timing"
       }]
     }, {
@@ -160,7 +161,7 @@ const Index = () => {
         status: "green" as StatusType,
         lastReviewed: "23-Jul-25",
         observation: "No recent incidents reported",
-        actions: "",
+        actions: [],
         details: "Incident reporting system functioning well"
       }, {
         id: "safeguarding",
@@ -168,7 +169,7 @@ const Index = () => {
         status: "green" as StatusType,
         lastReviewed: "23-Jul-25",
         observation: "All safeguarding procedures up to date",
-        actions: "",
+        actions: [],
         details: "Safeguarding protocols being followed correctly"
       }, {
         id: "risk-register",
@@ -176,7 +177,7 @@ const Index = () => {
         status: "amber" as StatusType,
         lastReviewed: "23-Jul-25",
         observation: "Risk register requires quarterly review",
-        actions: "",
+        actions: [],
         details: "Some risks need updating and reassessment"
       }, {
         id: "infection-control",
@@ -184,7 +185,7 @@ const Index = () => {
         status: "green" as StatusType,
         lastReviewed: "23-Jul-25",
         observation: "Infection control measures in place and effective",
-        actions: "",
+        actions: [],
         details: "PPE supplies adequate, procedures being followed"
       }]
     }, {
@@ -197,7 +198,7 @@ const Index = () => {
         status: "green" as StatusType,
         lastReviewed: "23-Jul-25",
         observation: "Number of service users due for feedback, Callista to follow up",
-        actions: "",
+        actions: [],
         details: "Regular feedback collection from service users proceeding as scheduled."
       }, {
         id: "audits",
@@ -205,7 +206,7 @@ const Index = () => {
         status: "green" as StatusType,
         lastReviewed: "23-Jul-25",
         observation: "6 completed, progress is ongoing",
-        actions: "",
+        actions: [],
         details: "Audit schedule progressing well with good completion rate."
       }]
     }]
@@ -276,7 +277,7 @@ const Index = () => {
     });
   };
 
-  const handleActionsChange = (sectionId: string, itemId: string, newActions: string) => {
+  const handleActionsChange = (sectionId: string, itemId: string, newActions: ActionItem[]) => {
     setDashboardData(prev => ({
       ...prev,
       sections: prev.sections.map(section => 
@@ -372,6 +373,7 @@ const Index = () => {
             onItemObservationChange={(itemId, observation) => handleObservationChange(section.id, itemId, observation)}
             onItemActionsChange={(itemId, actions) => handleActionsChange(section.id, itemId, actions)}
             onActionCreated={handleActionCreated}
+            attendees={getAttendeesList()}
           />
         )}
         

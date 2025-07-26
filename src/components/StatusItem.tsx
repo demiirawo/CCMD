@@ -4,7 +4,7 @@ import { StaffComplianceAnalytics } from "./StaffComplianceAnalytics";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { useState } from "react";
 import { CommentEditor } from "./CommentEditor";
-import { parseActionsFromComment, validateAttendee } from "@/utils/actionParser";
+import { ActionForm, ActionItem } from "./ActionForm";
 
 export interface StatusItemData {
   id: string;
@@ -12,7 +12,7 @@ export interface StatusItemData {
   status: StatusType;
   lastReviewed: string;
   observation: string;
-  actions: string;
+  actions: ActionItem[];
   details?: string;
 }
 
@@ -20,8 +20,9 @@ interface StatusItemProps {
   item: StatusItemData;
   onStatusChange?: (id: string, status: StatusType) => void;
   onObservationChange?: (id: string, observation: string) => void;
-  onActionsChange?: (id: string, actions: string) => void;
+  onActionsChange?: (id: string, actions: ActionItem[]) => void;
   onActionCreated?: (itemTitle: string, mentionedAttendee: string, comment: string, action: string, dueDate: string) => void;
+  attendees?: string[];
 }
 
 export const StatusItem = ({
@@ -29,30 +30,24 @@ export const StatusItem = ({
   onStatusChange,
   onObservationChange,
   onActionsChange,
-  onActionCreated
+  onActionCreated,
+  attendees = []
 }: StatusItemProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isEditingObservation, setIsEditingObservation] = useState(false);
-  const [isEditingActions, setIsEditingActions] = useState(false);
 
   const handleObservationSubmit = (observation: string) => {
     onObservationChange?.(item.id, observation);
     setIsEditingObservation(false);
   };
 
-  const handleActionsSubmit = (actions: string) => {
-    // Parse actions from the actions text
-    const parsedActions = parseActionsFromComment(actions);
-    
-    // Create actions for valid attendees
-    parsedActions.forEach(({ mentionedName, action, dueDate }) => {
-      if (mentionedName && action.trim()) {
-        onActionCreated?.(item.title, mentionedName, actions, action, dueDate);
-      }
-    });
-    
+  const handleActionsChange = (actions: ActionItem[]) => {
     onActionsChange?.(item.id, actions);
-    setIsEditingActions(false);
+  };
+
+  const handleActionCreated = (name: string, description: string, targetDate: string) => {
+    // Create action entry for the actions log
+    onActionCreated?.(item.title, name, `Action from ${item.title}`, description, targetDate);
   };
 
   return (
@@ -113,34 +108,12 @@ export const StatusItem = ({
           {/* Actions Section */}
           <div>
             <label className="text-xs font-medium text-muted-foreground mb-1 block">ACTIONS</label>
-            {isEditingActions ? (
-              <CommentEditor
-                initialValue={item.actions}
-                onSubmit={handleActionsSubmit}
-                onCancel={() => setIsEditingActions(false)}
-                placeholder="Enter actions in format: @Name,Action,Date"
-                isActionEditor={true}
-              />
-            ) : (
-              <button 
-                onClick={() => setIsEditingActions(true)} 
-                className="w-full text-left p-3 rounded-lg bg-accent/5 hover:bg-accent/10 transition-colors text-sm min-h-[80px] flex items-start border border-border/20 break-words overflow-hidden"
-              >
-                <div className="break-words w-full whitespace-pre-wrap">
-                  {item.actions ? (
-                    <div 
-                      dangerouslySetInnerHTML={{
-                        __html: item.actions.replace(/@([^,]+),([^,]+),([^@\n]+)/g, 
-                          '<span style="color: #2563eb; font-weight: bold; font-style: italic;">@$1,$2,$3</span>'
-                        )
-                      }}
-                    />
-                  ) : (
-                    "Click to add actions..."
-                  )}
-                </div>
-              </button>
-            )}
+            <ActionForm
+              actions={item.actions}
+              attendees={attendees}
+              onActionsChange={handleActionsChange}
+              onActionCreated={handleActionCreated}
+            />
           </div>
         </div>
       </div>

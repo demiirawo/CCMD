@@ -10,9 +10,10 @@ interface DashboardSectionProps {
   items: StatusItemData[];
   onItemStatusChange?: (id: string, status: StatusType) => void;
   onItemObservationChange?: (id: string, observation: string) => void;
-  onItemActionsChange?: (id: string, actions: string) => void;
+  onItemActionsChange?: (id: string, actions: import("./ActionForm").ActionItem[]) => void;
   onAddItem?: (sectionTitle: string) => void;
   onActionCreated?: (itemTitle: string, mentionedAttendee: string, comment: string, action: string, dueDate: string) => void;
+  attendees?: string[];
   defaultOpen?: boolean;
 }
 
@@ -25,6 +26,7 @@ export const DashboardSection = ({
   onItemActionsChange,
   onAddItem,
   onActionCreated,
+  attendees = [],
   defaultOpen = true
 }: DashboardSectionProps) => {
   const [isOpen, setIsOpen] = useState(defaultOpen);
@@ -90,6 +92,7 @@ export const DashboardSection = ({
               onObservationChange={onItemObservationChange}
               onActionsChange={onItemActionsChange}
               onActionCreated={onActionCreated}
+              attendees={attendees}
             />
           ))}
           
