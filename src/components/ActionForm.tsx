@@ -34,6 +34,7 @@ export const ActionForm = ({
     description: "",
     targetDate: ""
   });
+  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
 
   const addAction = () => {
     if (newAction.name && newAction.description && newAction.targetDate) {
@@ -69,6 +70,7 @@ export const ActionForm = ({
         ...prev,
         targetDate: formattedDate
       }));
+      setIsDatePickerOpen(false); // Close the popover
     }
   };
 
@@ -189,11 +191,11 @@ export const ActionForm = ({
           {/* Target Date - Just calendar emoji */}
           <div>
             <label className="text-xs text-muted-foreground mb-1 block">Date</label>
-            <Popover>
+            <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
               <PopoverTrigger asChild>
                 <Button
                   variant="outline"
-                  className="h-9 w-9 p-0"
+                  className={`h-9 w-9 p-0 ${newAction.targetDate ? 'bg-green-50 border-green-300' : ''}`}
                   title={newAction.targetDate || "Select date"}
                 >
                   <Calendar className="h-4 w-4" />
@@ -211,6 +213,11 @@ export const ActionForm = ({
                 </div>
               </PopoverContent>
             </Popover>
+            {newAction.targetDate && (
+              <div className="text-xs text-muted-foreground mt-1 text-center">
+                {newAction.targetDate}
+              </div>
+            )}
           </div>
 
           {/* Add Button */}
