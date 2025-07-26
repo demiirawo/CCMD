@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Plus, X } from "lucide-react";
 
 interface AccountableManagerProps {
@@ -15,19 +15,13 @@ export const AccountableManager = ({
   attendees,
   onChange
 }: AccountableManagerProps) => {
-  const [newPersonName, setNewPersonName] = useState("");
+  const [isOpen, setIsOpen] = useState(false);
 
   const addFromAttendees = (name: string) => {
     if (name && !accountable.includes(name)) {
       onChange([...accountable, name]);
     }
-  };
-
-  const addCustomPerson = () => {
-    if (newPersonName.trim() && !accountable.includes(newPersonName.trim())) {
-      onChange([...accountable, newPersonName.trim()]);
-      setNewPersonName("");
-    }
+    setIsOpen(false);
   };
 
   const removePerson = (index: number) => {
@@ -37,64 +31,50 @@ export const AccountableManager = ({
   const availableAttendees = attendees.filter(attendee => !accountable.includes(attendee));
 
   return (
-    <div className="space-y-2">
+    <div className="flex flex-wrap items-center gap-2">
       {/* Current accountable people */}
-      {accountable.length > 0 && (
-        <div className="flex flex-wrap gap-2">
-          {accountable.map((person, index) => (
-            <div
-              key={index}
-              className="flex items-center gap-1 bg-gray-100 text-gray-800 px-2 py-1 rounded-md text-sm"
-            >
-              <span>{person}</span>
-              <button
-                onClick={() => removePerson(index)}
-                className="text-gray-500 hover:text-red-500 transition-colors"
-              >
-                <X className="h-3 w-3" />
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Add from attendees */}
-      {availableAttendees.length > 0 && (
-        <div className="flex gap-2">
-          <Select onValueChange={addFromAttendees}>
-            <SelectTrigger className="flex-1 bg-white">
-              <SelectValue placeholder="Select from attendees..." />
-            </SelectTrigger>
-            <SelectContent>
-              {availableAttendees.map((attendee) => (
-                <SelectItem key={attendee} value={attendee}>
-                  {attendee}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      )}
-
-      {/* Add custom person - just + icon */}
-      <div className="flex gap-2">
-        <Input
-          placeholder="Add additional person..."
-          value={newPersonName}
-          onChange={(e) => setNewPersonName(e.target.value)}
-          onKeyPress={(e) => e.key === 'Enter' && addCustomPerson()}
-          className="flex-1 bg-white"
-        />
-        <Button
-          onClick={addCustomPerson}
-          size="sm"
-          variant="outline"
-          className="px-2"
-          disabled={!newPersonName.trim()}
+      {accountable.map((person, index) => (
+        <div
+          key={index}
+          className="flex items-center gap-1 bg-gray-100 text-gray-800 px-2 py-1 rounded-md text-sm"
         >
-          <Plus className="h-4 w-4" />
-        </Button>
-      </div>
+          <span>{person}</span>
+          <button
+            onClick={() => removePerson(index)}
+            className="text-gray-500 hover:text-red-500 transition-colors"
+          >
+            <X className="h-3 w-3" />
+          </button>
+        </div>
+      ))}
+
+      {/* Add button with dropdown */}
+      {availableAttendees.length > 0 && (
+        <Popover open={isOpen} onOpenChange={setIsOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 w-8 p-0"
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-56 p-0 bg-white z-50" align="start">
+            <div className="py-2">
+              {availableAttendees.map((attendee) => (
+                <button
+                  key={attendee}
+                  onClick={() => addFromAttendees(attendee)}
+                  className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 transition-colors"
+                >
+                  {attendee}
+                </button>
+              ))}
+            </div>
+          </PopoverContent>
+        </Popover>
+      )}
     </div>
   );
 };
