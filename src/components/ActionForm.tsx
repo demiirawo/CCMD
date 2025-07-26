@@ -61,10 +61,13 @@ export const ActionForm = ({
   };
 
   const handleDateSelect = (date: Date | undefined) => {
+    console.log("Date selected:", date);
     if (date) {
+      const formattedDate = format(date, "dd/MM/yyyy");
+      console.log("Formatted date:", formattedDate);
       setNewAction(prev => ({
         ...prev,
-        targetDate: format(date, "dd/MM/yyyy")
+        targetDate: formattedDate
       }));
     }
   };
