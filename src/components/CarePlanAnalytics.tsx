@@ -18,7 +18,6 @@ const generateInitialData = () => {
       highSU: 0,
       mediumSU: 0,
       lowSU: 0,
-      naSU: 0,
       completed: 0
     });
   }
@@ -39,15 +38,13 @@ export const CarePlanAnalytics = () => {
   const [frequencies, setFrequencies] = useState({
     high: 6,
     medium: 12,
-    low: 24,
-    na: 12
+    low: 24
   });
   const dataWithTargets = monthlyData.map(month => {
     const highTarget = month.highSU / frequencies.high;
     const mediumTarget = month.mediumSU / frequencies.medium;
     const lowTarget = month.lowSU / frequencies.low;
-    const naTarget = month.naSU / frequencies.na;
-    const totalTarget = Math.round(highTarget + mediumTarget + lowTarget + naTarget);
+    const totalTarget = Math.round(highTarget + mediumTarget + lowTarget);
     return {
       ...month,
       target: totalTarget
@@ -120,26 +117,24 @@ export const CarePlanAnalytics = () => {
       </CardHeader>
       <CardContent className="space-y-6 bg-white">
         {/* Frequency Settings */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 rounded-lg bg-white">
+        <div className="grid grid-cols-3 gap-4 p-4 rounded-lg bg-white">
           <EditableInput label="High Frequency" value={frequencies.high} onChange={value => handleFrequencyChange('high', value)} />
           <EditableInput label="Medium Frequency" value={frequencies.medium} onChange={value => handleFrequencyChange('medium', value)} />
           <EditableInput label="Low Frequency" value={frequencies.low} onChange={value => handleFrequencyChange('low', value)} />
-          <EditableInput label="N/A Frequency" value={frequencies.na} onChange={value => handleFrequencyChange('na', value)} />
         </div>
 
         {/* Monthly Data Grid */}
         <div className="space-y-4">
           <h3 className="text-lg font-semibold">Monthly Data</h3>
-          <div className="grid grid-cols-6 gap-2 text-sm font-medium p-2 bg-muted/30 rounded">
+          <div className="grid grid-cols-5 gap-2 text-sm font-medium p-2 bg-muted/30 rounded">
             <div>Month</div>
             <div className="text-center">High SU</div>
             <div className="text-center">Medium SU</div>
             <div className="text-center">Low SU</div>
-            <div className="text-center">N/A SU</div>
             <div className="text-center">Completed</div>
           </div>
           
-          {monthlyData.map((month, index) => <div key={month.month} className="grid grid-cols-6 gap-2 items-center p-2 hover:bg-muted/20 rounded">
+          {monthlyData.map((month, index) => <div key={month.month} className="grid grid-cols-5 gap-2 items-center p-2 hover:bg-muted/20 rounded">
               <div className="font-medium">{month.month}</div>
               <div className="flex justify-center">
                 <EditableCell value={month.highSU} onEdit={value => handleCellEdit(index, 'highSU', value)} />
@@ -149,9 +144,6 @@ export const CarePlanAnalytics = () => {
               </div>
               <div className="flex justify-center">
                 <EditableCell value={month.lowSU} onEdit={value => handleCellEdit(index, 'lowSU', value)} />
-              </div>
-              <div className="flex justify-center">
-                <EditableCell value={month.naSU} onEdit={value => handleCellEdit(index, 'naSU', value)} />
               </div>
               <div className="flex justify-center">
                 <EditableCell value={month.completed} onEdit={value => handleCellEdit(index, 'completed', value)} />
