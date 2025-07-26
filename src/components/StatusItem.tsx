@@ -108,11 +108,8 @@ export const StatusItem = ({
         </div>
       </div>
       
-      {/* Fixed height spacer to maintain accountable position */}
-      <div className="h-16"></div>
-      
-      {/* Accountable Section - fixed position relative to the card */}
-      <div className="absolute bottom-4 left-16 w-48 z-10">
+      {/* Accountable Section - positioned near the title */}
+      <div className="absolute top-8 right-8 w-48 z-10">
         <label className="text-xs font-medium text-muted-foreground mb-1 block">ACCOUNTABLE</label>
         <AccountableManager 
           accountable={item.accountable || []} 
