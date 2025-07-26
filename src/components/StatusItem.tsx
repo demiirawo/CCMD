@@ -65,7 +65,7 @@ export const StatusItem = ({
   const handleAccountableChange = (accountable: string[]) => {
     onAccountableChange?.(item.id, accountable);
   };
-  return <div className="w-full bg-white rounded-xl p-8 mb-3 shadow-md border border-border/30 hover:scale-[1.01] transition-transform duration-300 min-h-[140px]">
+  return <div className="relative w-full bg-white rounded-xl p-8 mb-3 shadow-md border border-border/30 hover:scale-[1.01] transition-transform duration-300 min-h-[140px]">
       <div className="flex items-start gap-4 w-full">
         <button onClick={() => setIsExpanded(!isExpanded)} className={`flex-shrink-0 p-1 rounded-lg hover:bg-accent/50 transition-colors ${item.title.toLowerCase().includes('service user documents') || item.title.toLowerCase().includes('staff meeting') ? 'opacity-0 invisible pointer-events-none' : ''}`}>
           {isExpanded ? <ChevronDown className="w-4 h-4 text-muted-foreground" /> : <ChevronRight className="w-4 h-4 text-muted-foreground" />}
@@ -86,16 +86,6 @@ export const StatusItem = ({
             <h4 className="font-semibold text-foreground text-sm truncate">{item.title}</h4>
             <p className="text-xs text-muted-foreground">Last: {item.lastReviewed}</p>
           </div>
-          
-          {/* Accountable Section - positioned at bottom left */}
-          <div className="mt-4">
-            <label className="text-xs font-medium text-muted-foreground mb-1 block">ACCOUNTABLE</label>
-            <AccountableManager 
-              accountable={item.accountable || []} 
-              attendees={attendees} 
-              onChange={handleAccountableChange} 
-            />
-          </div>
         </div>
         
         <div className="flex-[5] min-w-0 space-y-3">
@@ -115,6 +105,16 @@ export const StatusItem = ({
             <ActionForm actions={item.actions} attendees={attendees} onActionsChange={handleActionsChange} onActionCreated={handleActionCreated} onActionCompleted={handleActionCompleted} />
           </div>
         </div>
+      </div>
+      
+      {/* Accountable Section - positioned at bottom left, outside main flex container */}
+      <div className="absolute bottom-4 left-16 w-48">
+        <label className="text-xs font-medium text-muted-foreground mb-1 block">ACCOUNTABLE</label>
+        <AccountableManager 
+          accountable={item.accountable || []} 
+          attendees={attendees} 
+          onChange={handleAccountableChange} 
+        />
       </div>
       
       {isExpanded && <div className="mt-4 pt-4 border-t border-border space-y-4">
