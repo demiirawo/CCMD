@@ -15,6 +15,7 @@ interface DashboardSectionProps {
   onActionCreated?: (itemTitle: string, mentionedAttendee: string, comment: string, action: string, dueDate: string) => void;
   attendees?: string[];
   defaultOpen?: boolean;
+  onTrainingAnalyticsClick?: () => void;
 }
 
 export const DashboardSection = ({
@@ -27,7 +28,8 @@ export const DashboardSection = ({
   onAddItem,
   onActionCreated,
   attendees = [],
-  defaultOpen = true
+  defaultOpen = true,
+  onTrainingAnalyticsClick
 }: DashboardSectionProps) => {
   const [isOpen, setIsOpen] = useState(defaultOpen);
 
@@ -93,6 +95,7 @@ export const DashboardSection = ({
               onActionsChange={onItemActionsChange}
               onActionCreated={onActionCreated}
               attendees={attendees}
+              onTrainingAnalyticsClick={onTrainingAnalyticsClick}
             />
           ))}
           
