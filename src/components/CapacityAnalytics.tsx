@@ -201,8 +201,8 @@ export const CapacityAnalytics = () => {
                 <XAxis dataKey="month" axisLine={false} tickLine={false} className="text-xs" />
                 <YAxis axisLine={false} tickLine={false} className="text-xs" />
                 <ChartTooltip content={<ChartTooltipContent />} />
-                <Bar dataKey="onboardingStaff" fill="#8b5cf6" name="Onboarding Staff" />
-                <Bar dataKey="currentStaff" fill="#3b82f6" name="Current Staff" />
+                <Bar dataKey="currentStaff" fill="#3b82f6" name="Current Staff" stackId="staff" />
+                <Bar dataKey="onboardingStaff" fill="#8b5cf6" name="Onboarding Staff" stackId="staff" />
                 <Line type="monotone" dataKey="minStaff" stroke="#ef4444" strokeWidth={2} dot={{
                   r: 3,
                   fill: "#ef4444"
