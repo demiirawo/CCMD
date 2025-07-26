@@ -30,6 +30,7 @@ export const DashboardSection = ({
   defaultOpen = true
 }: DashboardSectionProps) => {
   const [isOpen, setIsOpen] = useState(defaultOpen);
+  const [monthlyStaffData, setMonthlyStaffData] = useState<Array<{month: string, currentStaff: number}>>([]);
 
   const statusCounts = items.reduce((acc, item) => {
     acc[item.status] = (acc[item.status] || 0) + 1;
@@ -93,6 +94,8 @@ export const DashboardSection = ({
               onActionsChange={onItemActionsChange}
               onActionCreated={onActionCreated}
               attendees={attendees}
+              monthlyStaffData={monthlyStaffData}
+              onMonthlyStaffDataChange={setMonthlyStaffData}
             />
           ))}
           

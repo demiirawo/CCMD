@@ -24,6 +24,8 @@ interface StatusItemProps {
   onActionsChange?: (id: string, actions: ActionItem[]) => void;
   onActionCreated?: (itemTitle: string, mentionedAttendee: string, comment: string, action: string, dueDate: string) => void;
   attendees?: string[];
+  monthlyStaffData?: Array<{month: string, currentStaff: number}>;
+  onMonthlyStaffDataChange?: (data: Array<{month: string, currentStaff: number}>) => void;
 }
 export const StatusItem = ({
   item,
@@ -31,11 +33,12 @@ export const StatusItem = ({
   onObservationChange,
   onActionsChange,
   onActionCreated,
-  attendees = []
+  attendees = [],
+  monthlyStaffData = [],
+  onMonthlyStaffDataChange
 }: StatusItemProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isEditingObservation, setIsEditingObservation] = useState(false);
-  const [monthlyStaffData, setMonthlyStaffData] = useState<Array<{month: string, currentStaff: number}>>([]);
   
   const handleObservationSubmit = (observation: string) => {
     onObservationChange?.(item.id, observation);
@@ -102,7 +105,7 @@ export const StatusItem = ({
             {/* Additional content */}
           </div>
           
-          {item.title.toLowerCase().includes('resourcing') && <CapacityAnalytics onMonthlyStaffDataChange={setMonthlyStaffData} />}
+          {item.title.toLowerCase().includes('resourcing') && <CapacityAnalytics onMonthlyStaffDataChange={onMonthlyStaffDataChange} />}
           
           {item.title.toLowerCase().includes('staff documents') && <StaffDocumentsAnalytics />}
           
