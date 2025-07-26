@@ -161,7 +161,7 @@ export const StaffDocumentsAnalytics = () => {
                   </ChartContainer>
                 </div>
                 
-                {/* Lines and percentage labels outside chart */}
+                {/* SVG for lines connecting pie slices to labels */}
                 <svg className="absolute top-0 left-0 w-full h-full pointer-events-none">
                   {pieData.map((entry, index) => {
                     // Calculate the start angle for this slice
@@ -174,30 +174,35 @@ export const StaffDocumentsAnalytics = () => {
                     const sliceAngle = (entry.value / total) * 360;
                     const centerAngle = startAngle + (sliceAngle / 2);
                     
-                    // Convert to radians and calculate positions
+                    // Convert to radians
                     const radian = (centerAngle * Math.PI) / 180;
-                    const innerRadius = 104; // Edge of pie chart
-                    const outerRadius = 160; // Where text will be
                     
-                    const x1 = 300 + innerRadius * Math.cos(radian - Math.PI / 2);
-                    const y1 = 250 + innerRadius * Math.sin(radian - Math.PI / 2);
-                    const x2 = 300 + outerRadius * Math.cos(radian - Math.PI / 2);
-                    const y2 = 250 + outerRadius * Math.sin(radian - Math.PI / 2);
+                    // Start point at edge of pie
+                    const startRadius = 104;
+                    const x1 = 300 + startRadius * Math.cos(radian - Math.PI / 2);
+                    const y1 = 250 + startRadius * Math.sin(radian - Math.PI / 2);
+                    
+                    // End point for label positioning
+                    const endRadius = 180;
+                    const x2 = 300 + endRadius * Math.cos(radian - Math.PI / 2);
+                    const y2 = 250 + endRadius * Math.sin(radian - Math.PI / 2);
                     
                     return (
-                      <line
-                        key={`line-${index}`}
-                        x1={x1}
-                        y1={y1}
-                        x2={x2}
-                        y2={y2}
-                        stroke={entry.color}
-                        strokeWidth="2"
-                      />
+                      <g key={`line-${index}`}>
+                        <line
+                          x1={x1}
+                          y1={y1}
+                          x2={x2}
+                          y2={y2}
+                          stroke={entry.color}
+                          strokeWidth="2"
+                        />
+                      </g>
                     );
                   })}
                 </svg>
                 
+                {/* Percentage labels positioned outside */}
                 {pieData.map((entry, index) => {
                   // Calculate the start angle for this slice
                   let startAngle = 0;
@@ -211,14 +216,14 @@ export const StaffDocumentsAnalytics = () => {
                   
                   // Convert to radians and calculate position
                   const radian = (centerAngle * Math.PI) / 180;
-                  const radius = 170; // Outside the chart
+                  const radius = 190;
                   const x = 300 + radius * Math.cos(radian - Math.PI / 2);
                   const y = 250 + radius * Math.sin(radian - Math.PI / 2);
                   
                   return (
                     <div
                       key={entry.name}
-                      className="absolute text-sm font-bold px-2 py-1 rounded bg-background border"
+                      className="absolute text-sm font-semibold px-3 py-1 rounded border-2 bg-background"
                       style={{
                         left: `${x}px`,
                         top: `${y}px`,
