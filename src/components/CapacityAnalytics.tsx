@@ -95,7 +95,7 @@ export const CapacityAnalytics = () => {
   };
   return <div className="space-y-6 mt-4 p-6 border border-border rounded-lg bg-neutral-50">
       <div className="flex items-center justify-between">
-        <h4 className="text-lg font-semibold text-foreground">📊 Capacity Analytics</h4>
+        <h4 className="text-lg font-semibold text-foreground">Capacity Analytics</h4>
         
       </div>
       
