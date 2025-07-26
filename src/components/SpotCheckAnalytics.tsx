@@ -113,7 +113,7 @@ export const SpotCheckAnalytics = ({ monthlyStaffData = [] }: { monthlyStaffData
       {/* Top Metrics */}
       <div className="grid grid-cols-2 gap-4">
         <EditableInput label="Passed Probation - Frequency (Months)" value={metrics.passedFrequency} onChange={val => handleMetricChange('passedFrequency', val)} />
-        <EditableInput label="Probation Staff Frequency (Months)" value={metrics.probationFrequency} onChange={val => handleMetricChange('probationFrequency', val)} />
+        <EditableInput label="On Probation - Frequency (Months)" value={metrics.probationFrequency} onChange={val => handleMetricChange('probationFrequency', val)} />
       </div>
 
       {/* Monthly Data Section */}
