@@ -66,11 +66,33 @@ export const ActionForm = ({
     if (date) {
       const formattedDate = format(date, "dd/MM/yyyy");
       console.log("Formatted date:", formattedDate);
-      setNewAction(prev => ({
-        ...prev,
+      
+      const updatedAction = {
+        ...newAction,
         targetDate: formattedDate
-      }));
+      };
+      
+      setNewAction(updatedAction);
       setIsDatePickerOpen(false); // Close the popover
+      
+      // Auto-save the action if all fields are filled
+      if (updatedAction.name && updatedAction.description && formattedDate) {
+        const actionItem: ActionItem = {
+          id: `action-${Date.now()}`,
+          name: updatedAction.name,
+          description: updatedAction.description,
+          targetDate: formattedDate
+        };
+        
+        const updatedActions = [...actions, actionItem];
+        onActionsChange(updatedActions);
+        
+        // Notify parent for actions log
+        onActionCreated?.(updatedAction.name, updatedAction.description, formattedDate);
+        
+        // Reset form
+        setNewAction({ name: "", description: "", targetDate: "" });
+      }
     }
   };
 
