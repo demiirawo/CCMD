@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { AlertCircle, Check } from "lucide-react";
+import { AlertCircle, Check, Minus } from "lucide-react";
 import { StatusBadge } from "./StatusBadge";
 import { Button } from "./ui/button";
 
@@ -19,9 +19,10 @@ export interface ActionLogEntry {
 interface ActionsLogProps {
   actions: ActionLogEntry[];
   onActionComplete?: (actionId: string) => void;
+  onActionDelete?: (actionId: string) => void;
 }
 
-export const ActionsLog = ({ actions, onActionComplete }: ActionsLogProps) => {
+export const ActionsLog = ({ actions, onActionComplete, onActionDelete }: ActionsLogProps) => {
   const [isExpanded, setIsExpanded] = useState(true);
 
   // Group actions by open/closed
@@ -54,7 +55,7 @@ export const ActionsLog = ({ actions, onActionComplete }: ActionsLogProps) => {
                 <th className="text-left py-2 px-3 text-sm font-semibold text-foreground">Description</th>
                 <th className="text-left py-2 px-3 text-sm font-semibold text-foreground">Owner</th>
                 <th className="text-left py-2 px-3 text-sm font-semibold text-foreground">Due Date</th>
-                <th className="text-left py-2 px-3 text-sm font-semibold text-foreground">Complete</th>
+                <th className="text-left py-2 px-3 text-sm font-semibold text-foreground">Actions</th>
                 {title.includes("Closed") && (
                   <th className="text-left py-2 px-3 text-sm font-semibold text-foreground">Closed</th>
                 )}
@@ -83,15 +84,29 @@ export const ActionsLog = ({ actions, onActionComplete }: ActionsLogProps) => {
                     {action.dueDate}
                   </td>
                   <td className="py-3 px-3">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => onActionComplete?.(action.id)}
-                      disabled={action.closed}
-                      className={`h-8 w-8 p-0 ${action.closed ? 'opacity-50' : 'hover:bg-green-100'}`}
-                    >
-                      <Check className={`h-4 w-4 ${action.closed ? 'text-green-600' : 'text-muted-foreground'}`} />
-                    </Button>
+                    <div className="flex gap-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => onActionComplete?.(action.id)}
+                        disabled={action.closed}
+                        className={`h-8 w-8 p-0 ${action.closed ? 'opacity-50' : 'hover:bg-green-100'}`}
+                        title="Mark as completed"
+                      >
+                        <Check className={`h-4 w-4 ${action.closed ? 'text-green-600' : 'text-muted-foreground'}`} />
+                      </Button>
+                      {!action.closed && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => onActionDelete?.(action.id)}
+                          className="h-8 w-8 p-0 text-red-500 hover:bg-red-100"
+                          title="Delete action"
+                        >
+                          <Minus className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
                   </td>
                   {title.includes("Closed") && (
                     <td className="py-3 px-3 text-sm text-muted-foreground">

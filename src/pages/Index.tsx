@@ -327,15 +327,50 @@ const Index = () => {
   };
   
   const handleActionComplete = (actionId: string) => {
+    // Mark action as complete in actions log
     setActionsLog(prev => prev.map(action => 
       action.id === actionId 
         ? { ...action, closed: true, closedDate: new Date().toISOString() }
         : action
     ));
+
+    // Remove the completed action from section items
+    setDashboardData(prev => ({
+      ...prev,
+      sections: prev.sections.map(section => ({
+        ...section,
+        items: section.items.map(item => ({
+          ...item,
+          actions: item.actions.filter(action => action.id !== actionId)
+        }))
+      }))
+    }));
     
     toast({
       title: "Action Completed",
       description: "Action has been marked as complete"
+    });
+  };
+
+  const handleActionDelete = (actionId: string) => {
+    // Remove action from actions log
+    setActionsLog(prev => prev.filter(action => action.id !== actionId));
+
+    // Remove action from section items
+    setDashboardData(prev => ({
+      ...prev,
+      sections: prev.sections.map(section => ({
+        ...section,
+        items: section.items.map(item => ({
+          ...item,
+          actions: item.actions.filter(action => action.id !== actionId)
+        }))
+      }))
+    }));
+    
+    toast({
+      title: "Action Deleted",
+      description: "Action has been removed"
     });
   };
 
@@ -377,7 +412,7 @@ const Index = () => {
           />
         )}
         
-        <ActionsLog actions={actionsLog} onActionComplete={handleActionComplete} />
+        <ActionsLog actions={actionsLog} onActionComplete={handleActionComplete} onActionDelete={handleActionDelete} />
       </div>
     </div>
   );
