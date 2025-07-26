@@ -161,7 +161,43 @@ export const StaffDocumentsAnalytics = () => {
                   </ChartContainer>
                 </div>
                 
-                {/* Percentage labels in center of each slice */}
+                {/* Lines and percentage labels outside chart */}
+                <svg className="absolute top-0 left-0 w-full h-full pointer-events-none">
+                  {pieData.map((entry, index) => {
+                    // Calculate the start angle for this slice
+                    let startAngle = 0;
+                    for (let i = 0; i < index; i++) {
+                      startAngle += (pieData[i].value / total) * 360;
+                    }
+                    
+                    // Calculate the center angle of this slice
+                    const sliceAngle = (entry.value / total) * 360;
+                    const centerAngle = startAngle + (sliceAngle / 2);
+                    
+                    // Convert to radians and calculate positions
+                    const radian = (centerAngle * Math.PI) / 180;
+                    const innerRadius = 104; // Edge of pie chart
+                    const outerRadius = 160; // Where text will be
+                    
+                    const x1 = 300 + innerRadius * Math.cos(radian - Math.PI / 2);
+                    const y1 = 250 + innerRadius * Math.sin(radian - Math.PI / 2);
+                    const x2 = 300 + outerRadius * Math.cos(radian - Math.PI / 2);
+                    const y2 = 250 + outerRadius * Math.sin(radian - Math.PI / 2);
+                    
+                    return (
+                      <line
+                        key={`line-${index}`}
+                        x1={x1}
+                        y1={y1}
+                        x2={x2}
+                        y2={y2}
+                        stroke={entry.color}
+                        strokeWidth="2"
+                      />
+                    );
+                  })}
+                </svg>
+                
                 {pieData.map((entry, index) => {
                   // Calculate the start angle for this slice
                   let startAngle = 0;
@@ -175,20 +211,20 @@ export const StaffDocumentsAnalytics = () => {
                   
                   // Convert to radians and calculate position
                   const radian = (centerAngle * Math.PI) / 180;
-                  const radius = 70; // Position in middle of slice
+                  const radius = 170; // Outside the chart
                   const x = 300 + radius * Math.cos(radian - Math.PI / 2);
                   const y = 250 + radius * Math.sin(radian - Math.PI / 2);
                   
                   return (
                     <div
                       key={entry.name}
-                      className="absolute text-sm font-bold"
+                      className="absolute text-sm font-bold px-2 py-1 rounded bg-background border"
                       style={{
                         left: `${x}px`,
                         top: `${y}px`,
                         transform: 'translate(-50%, -50%)',
-                        color: 'white',
-                        textShadow: '2px 2px 4px rgba(0,0,0,0.8)'
+                        color: entry.color,
+                        borderColor: entry.color
                       }}
                     >
                       {entry.percentage}%
