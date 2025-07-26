@@ -111,7 +111,7 @@ export const CapacityAnalytics = () => {
               <th className="text-left p-3 font-medium">Onboarding</th>
               <th className="text-left p-3 font-medium">Active</th>
               <th className="text-left p-3 font-medium">Minimum</th>
-              <th className="text-left p-3 font-medium">Ideal Staff</th>
+              <th className="text-left p-3 font-medium">Target</th>
             </tr>
           </thead>
           <tbody>
