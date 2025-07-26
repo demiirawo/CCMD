@@ -61,21 +61,21 @@ export const DashboardHeader = ({ date, title, attendees, purpose, stats, onData
       <div className="grid grid-cols-2 gap-6 mb-6">
         <div className="space-y-4">
           <EditableField field="title" value={title} label="Meeting Title" />
-          <div className="bg-gray-25 p-4 rounded-lg border border-gray-100 h-24">
-            <h3 className="text-sm font-medium text-muted-foreground mb-2">Meeting Date & Time</h3>
-            <MeetingDateTimePicker 
-              value={date}
-              onChange={(value) => onDataChange?.("date", value)}
-            />
-          </div>
-        </div>
-        
-        <div className="space-y-4">
           <div className="bg-gray-25 p-4 rounded-lg border border-gray-100 min-h-24">
             <h3 className="text-sm font-medium text-muted-foreground mb-2">Meeting Attendees</h3>
             <MeetingAttendeesManager 
               attendees={attendees}
               onChange={onAttendeesChange || (() => {})}
+            />
+          </div>
+        </div>
+        
+        <div className="space-y-4">
+          <div className="bg-gray-25 p-4 rounded-lg border border-gray-100 h-24">
+            <h3 className="text-sm font-medium text-muted-foreground mb-2">Meeting Date & Time</h3>
+            <MeetingDateTimePicker 
+              value={date}
+              onChange={(value) => onDataChange?.("date", value)}
             />
           </div>
           <EditableField field="purpose" value={purpose} label="Meeting Purpose" />
