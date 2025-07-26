@@ -67,7 +67,7 @@ export const StatusItem = ({
     onAccountableChange?.(item.id, accountable);
   };
   return <div className="relative w-full bg-white rounded-xl p-8 mb-3 shadow-md border border-border/30 hover:scale-[1.01] transition-transform duration-300 min-h-[140px]">
-      <div className="flex items-start gap-4 w-full pb-16">
+      <div className="flex items-start gap-4 w-full">
         <button onClick={() => setIsExpanded(!isExpanded)} className={`flex-shrink-0 p-1 rounded-lg hover:bg-accent/50 transition-colors ${item.title.toLowerCase().includes('service user documents') || item.title.toLowerCase().includes('staff meeting') ? 'opacity-0 invisible pointer-events-none' : ''}`}>
           {isExpanded ? <ChevronDown className="w-4 h-4 text-muted-foreground" /> : <ChevronRight className="w-4 h-4 text-muted-foreground" />}
         </button>
@@ -108,7 +108,10 @@ export const StatusItem = ({
         </div>
       </div>
       
-      {/* Accountable Section - positioned at bottom left, with proper spacing */}
+      {/* Fixed height spacer to maintain accountable position */}
+      <div className="h-16"></div>
+      
+      {/* Accountable Section - fixed position relative to the card */}
       <div className="absolute bottom-4 left-16 w-48 z-10">
         <label className="text-xs font-medium text-muted-foreground mb-1 block">ACCOUNTABLE</label>
         <AccountableManager 
@@ -118,7 +121,7 @@ export const StatusItem = ({
         />
       </div>
       
-      {isExpanded && <div className="mt-4 pt-4 border-t border-border space-y-4 mr-52">
+      {isExpanded && <div className="mt-4 pt-4 border-t border-border space-y-4">
           {item.details && <div className="space-y-2">
               {/* Details content */}
             </div>}
