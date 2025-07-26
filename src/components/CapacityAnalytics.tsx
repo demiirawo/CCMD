@@ -163,9 +163,7 @@ export const CapacityAnalytics = () => {
               </ComposedChart>
             </ResponsiveContainer>
           </ChartContainer>
-          <div className="text-xs text-center text-muted-foreground mt-2">
-            Graph 1: Trends Over Past 12 Months
-          </div>
+          
           
           {/* Legend */}
           <div className="flex flex-wrap justify-center gap-4 mt-4 pt-4 border-t border-border">
