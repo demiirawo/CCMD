@@ -163,16 +163,22 @@ export const StaffDocumentsAnalytics = () => {
                 
                 {/* Percentage labels around chart */}
                 {pieData.map((entry, index) => {
-                  const angle = (index * (360 / pieData.length)) + (360 / pieData.length / 2);
-                  const radian = (angle * Math.PI) / 180;
-                  const radius = 220;
+                  // Calculate cumulative angle for proper positioning
+                  let cumulativeAngle = 0;
+                  for (let i = 0; i < index; i++) {
+                    cumulativeAngle += (pieData[i].value / total) * 360;
+                  }
+                  const segmentAngle = (entry.value / total) * 360;
+                  const centerAngle = cumulativeAngle + segmentAngle / 2;
+                  const radian = (centerAngle * Math.PI) / 180;
+                  const radius = 140;
                   const x = 300 + radius * Math.cos(radian - Math.PI / 2);
                   const y = 250 + radius * Math.sin(radian - Math.PI / 2);
                   
                   return (
                     <div
                       key={entry.name}
-                      className="absolute text-sm font-medium whitespace-nowrap px-2 py-1 rounded bg-background/80 border"
+                      className="absolute text-sm font-bold whitespace-nowrap px-2 py-1 rounded bg-background/90 border"
                       style={{
                         left: `${x}px`,
                         top: `${y}px`,
