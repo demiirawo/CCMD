@@ -47,7 +47,7 @@ const chartConfig = {
     color: "hsl(var(--chart-4))"
   }
 };
-export const CapacityAnalytics = ({ onActiveStaffChange }: { onActiveStaffChange?: (count: number) => void } = {}) => {
+export const CapacityAnalytics = ({ onMonthlyStaffDataChange }: { onMonthlyStaffDataChange?: (data: Array<{month: string, currentStaff: number}>) => void } = {}) => {
   const [monthlyData, setMonthlyData] = useState(initialMonthlyData);
   const [currentMetrics, setCurrentMetrics] = useState(initialCurrentMetrics);
   const handleCellEdit = (rowIndex: number, field: string, value: string) => {
@@ -71,9 +71,13 @@ export const CapacityAnalytics = ({ onActiveStaffChange }: { onActiveStaffChange
       capacityCoverage: Math.round(coverage * 10) / 10
     });
 
-    // Notify parent component of active staff count changes
-    if (field === 'currentStaff' && onActiveStaffChange) {
-      onActiveStaffChange(numValue);
+    // Notify parent component of monthly staff data changes
+    if (onMonthlyStaffDataChange) {
+      const staffData = newData.map(item => ({
+        month: item.month,
+        currentStaff: item.currentStaff
+      }));
+      onMonthlyStaffDataChange(staffData);
     }
   };
   const EditableCell = ({

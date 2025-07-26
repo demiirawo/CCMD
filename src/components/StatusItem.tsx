@@ -35,7 +35,7 @@ export const StatusItem = ({
 }: StatusItemProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isEditingObservation, setIsEditingObservation] = useState(false);
-  const [activeStaffCount, setActiveStaffCount] = useState(25);
+  const [monthlyStaffData, setMonthlyStaffData] = useState<Array<{month: string, currentStaff: number}>>([]);
   
   const handleObservationSubmit = (observation: string) => {
     onObservationChange?.(item.id, observation);
@@ -102,13 +102,13 @@ export const StatusItem = ({
             {/* Additional content */}
           </div>
           
-          {item.title.toLowerCase().includes('resourcing') && <CapacityAnalytics onActiveStaffChange={setActiveStaffCount} />}
+          {item.title.toLowerCase().includes('resourcing') && <CapacityAnalytics onMonthlyStaffDataChange={setMonthlyStaffData} />}
           
           {item.title.toLowerCase().includes('staff documents') && <StaffDocumentsAnalytics />}
           
           {item.title.toLowerCase().includes('training') && <StaffTrainingAnalytics />}
           
-          {item.title.toLowerCase().includes('spot check') && <SpotCheckAnalytics activeStaff={activeStaffCount} />}
+          {item.title.toLowerCase().includes('spot check') && <SpotCheckAnalytics monthlyStaffData={monthlyStaffData} />}
           
         </div>}
     </div>;

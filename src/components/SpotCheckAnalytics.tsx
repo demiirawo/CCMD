@@ -26,14 +26,21 @@ const chartConfig = {
     color: "hsl(var(--chart-1))"
   }
 };
-export const SpotCheckAnalytics = ({ activeStaff = 25 }: { activeStaff?: number }) => {
+export const SpotCheckAnalytics = ({ monthlyStaffData = [] }: { monthlyStaffData?: Array<{month: string, currentStaff: number}> }) => {
   const [monthlyData, setMonthlyData] = useState(initialMonthlyData);
   const [metrics, setMetrics] = useState({
     frequency: 3
   });
 
-  // Calculate monthly target automatically
-  const monthlyTarget = Math.round(activeStaff / metrics.frequency);
+  // Calculate monthly targets for each month based on that month's active staff
+  const dataWithTargets = monthlyData.map((item, index) => {
+    const staffForMonth = monthlyStaffData[index]?.currentStaff || 0;
+    const monthlyTarget = staffForMonth > 0 ? Math.round(staffForMonth / metrics.frequency) : 0;
+    return {
+      ...item,
+      target: monthlyTarget
+    };
+  });
   
   const handleMetricChange = (field: string, value: string) => {
     const numValue = parseInt(value) || 0;
@@ -118,15 +125,18 @@ export const SpotCheckAnalytics = ({ activeStaff = 25 }: { activeStaff?: number 
         <Card className="p-4 bg-white">
           <ChartContainer config={chartConfig} className="h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={monthlyData}>
+              <LineChart data={dataWithTargets}>
                 <XAxis dataKey="month" axisLine={false} tickLine={false} className="text-xs" />
                 <YAxis axisLine={false} tickLine={false} className="text-xs" />
                 <ChartTooltip content={<ChartTooltipContent />} />
-                <ReferenceLine y={monthlyTarget} stroke="#ef4444" strokeDasharray="5 5" strokeWidth={2} />
+                <Line type="monotone" dataKey="target" stroke="#ef4444" strokeDasharray="5 5" strokeWidth={2} dot={{
+                r: 3,
+                fill: "#ef4444"
+              }} name="Monthly Target" />
                 <Line type="monotone" dataKey="completed" stroke="hsl(var(--chart-1))" strokeWidth={2} dot={{
                 r: 4,
                 fill: "hsl(var(--chart-1))"
-              }} />
+              }} name="Completed" />
               </LineChart>
             </ResponsiveContainer>
           </ChartContainer>
