@@ -206,16 +206,27 @@ export const StatusItem = ({
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="inline-flex items-center justify-center w-6 h-6 p-0 ml-1 text-blue-600 hover:text-blue-800 hover:bg-blue-100 rounded transition-colors"
-                    onClick={(e) => {
+                    className="inline-flex items-center justify-center w-6 h-6 p-0 ml-1 text-blue-600 hover:text-blue-800 hover:bg-blue-100 rounded transition-colors cursor-pointer"
+                    onMouseDown={(e) => {
+                      e.preventDefault();
                       e.stopPropagation();
+                    }}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      console.log('Calendar icon clicked'); // Debug log
+                    }}
+                    onDoubleClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      console.log('Calendar icon double-clicked'); // Debug log
                     }}
                     title="Select date"
                   >
                     <CalendarIcon className="w-4 h-4" />
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
+                <PopoverContent className="w-auto p-0 z-50" align="start">
                   <Calendar
                     mode="single"
                     selected={undefined}
@@ -224,6 +235,7 @@ export const StatusItem = ({
                         const formattedDate = format(date, "yyyy-MM-dd");
                         const updatedComment = item.comment.replace('📅', formattedDate);
                         onCommentChange?.(item.id, updatedComment);
+                        console.log('Date selected:', formattedDate); // Debug log
                       }
                     }}
                     initialFocus
