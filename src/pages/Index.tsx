@@ -16,7 +16,12 @@ const Index = () => {
   const { toast } = useToast();
   
   const [headerData, setHeaderData] = useState({
-    date: "Q4 2024 Board Meeting - December 15, 2024",
+    date: (() => {
+      const now = new Date();
+      now.setMinutes(0, 0, 0); // Set to beginning of current hour
+      return now.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }) + ' ' + 
+             now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });
+    })(),
     title: "Strategic Planning Session",
     attendees: "John Smith, Sarah Johnson, Mike Chen, Lisa Rodriguez",
     purpose: "Review Q4 performance and set strategic priorities for 2025"
