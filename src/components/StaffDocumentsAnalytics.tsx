@@ -3,28 +3,24 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer } from "recharts";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
-
 const initialDocumentsData = {
   activeFullyCompliant: 0,
   activePendingDocuments: 0,
   onboardingPendingDocuments: 0,
   onboardingFullyCompliant: 0
 };
-
 const chartConfig = {
   fullyCompliant: {
     label: "Compliant",
     color: "#22c55e"
   },
   pendingDocuments: {
-    label: "Pending Documents", 
+    label: "Pending Documents",
     color: "#f59e0b"
   }
 };
-
 export const StaffDocumentsAnalytics = () => {
   const [documentsData, setDocumentsData] = useState(initialDocumentsData);
-
   const handleInputChange = (field: string, value: string) => {
     const numValue = parseInt(value) || 0;
     setDocumentsData(prev => ({
@@ -32,7 +28,6 @@ export const StaffDocumentsAnalytics = () => {
       [field]: numValue
     }));
   };
-
   const EditableInput = ({
     value,
     onEdit,
@@ -52,26 +47,23 @@ export const StaffDocumentsAnalytics = () => {
 
   // Calculate bar chart data with stacking
   const total = Object.values(documentsData).reduce((sum, val) => sum + val, 0);
-  
+
   // Calculate totals and percentages for each category
   const activeTotal = documentsData.activeFullyCompliant + documentsData.activePendingDocuments;
   const onboardingTotal = documentsData.onboardingFullyCompliant + documentsData.onboardingPendingDocuments;
-  
-  const activePendingPercentage = activeTotal > 0 ? Math.round((documentsData.activePendingDocuments / activeTotal) * 100) : 0;
-  const activeCompliantPercentage = activeTotal > 0 ? Math.round((documentsData.activeFullyCompliant / activeTotal) * 100) : 0;
-  
-  const onboardingPendingPercentage = onboardingTotal > 0 ? Math.round((documentsData.onboardingPendingDocuments / onboardingTotal) * 100) : 0;
-  const onboardingCompliantPercentage = onboardingTotal > 0 ? Math.round((documentsData.onboardingFullyCompliant / onboardingTotal) * 100) : 0;
-  
+  const activePendingPercentage = activeTotal > 0 ? Math.round(documentsData.activePendingDocuments / activeTotal * 100) : 0;
+  const activeCompliantPercentage = activeTotal > 0 ? Math.round(documentsData.activeFullyCompliant / activeTotal * 100) : 0;
+  const onboardingPendingPercentage = onboardingTotal > 0 ? Math.round(documentsData.onboardingPendingDocuments / onboardingTotal * 100) : 0;
+  const onboardingCompliantPercentage = onboardingTotal > 0 ? Math.round(documentsData.onboardingFullyCompliant / onboardingTotal * 100) : 0;
   const barData = total > 0 ? [{
     name: "Active Staff",
     fullyCompliant: documentsData.activeFullyCompliant,
-    pendingDocuments: documentsData.activePendingDocuments,
+    pendingDocuments: documentsData.activePendingDocuments
   }, {
-    name: "Onboarding Staff", 
+    name: "Onboarding Staff",
     fullyCompliant: documentsData.onboardingFullyCompliant,
-    pendingDocuments: documentsData.onboardingPendingDocuments,
-  }].filter(item => (item.fullyCompliant + item.pendingDocuments) > 0) : [];
+    pendingDocuments: documentsData.onboardingPendingDocuments
+  }].filter(item => item.fullyCompliant + item.pendingDocuments > 0) : [];
   return <div className="space-y-8 mt-6 p-8 border border-border rounded-lg min-h-[600px] w-full bg-white">
       <div className="flex items-center justify-between">
         <h4 className="text-xl font-semibold text-foreground">Staff Documents Analytics</h4>
@@ -134,24 +126,20 @@ export const StaffDocumentsAnalytics = () => {
                  
                  {/* Percentage Breakdown */}
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-center">
-                   {activeTotal > 0 && (
-                     <div className="space-y-2">
+                   {activeTotal > 0 && <div className="space-y-2">
                        <h5 className="font-medium text-foreground">Active Staff</h5>
                        <div className="text-sm text-muted-foreground">
                          <div>Compliant: {activeCompliantPercentage}%</div>
-                         <div>Pending Documents: {activePendingPercentage}%</div>
+                         
                        </div>
-                     </div>
-                   )}
-                   {onboardingTotal > 0 && (
-                     <div className="space-y-2">
+                     </div>}
+                   {onboardingTotal > 0 && <div className="space-y-2">
                        <h5 className="font-medium text-foreground">Onboarding Staff</h5>
                        <div className="text-sm text-muted-foreground">
                          <div>Compliant: {onboardingCompliantPercentage}%</div>
-                         <div>Pending Documents: {onboardingPendingPercentage}%</div>
+                         
                        </div>
-                     </div>
-                   )}
+                     </div>}
                  </div>
                </div>
             </div>
