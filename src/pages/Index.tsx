@@ -8,7 +8,6 @@ import { StatusItemData } from "@/components/StatusItem";
 import { ActionItem } from "@/components/ActionForm";
 import { StatusType } from "@/components/StatusBadge";
 import { Users, Target, BarChart3, FileText, Heart, Shield, Calendar, UserCheck, ClipboardList, HeartHandshake, TrendingUp, Save, Download } from "lucide-react";
-import { StaffTrainingAnalytics } from "@/components/StaffTrainingAnalytics";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import jsPDF from "jspdf";
@@ -16,7 +15,6 @@ import html2canvas from "html2canvas";
 
 const Index = () => {
   const [actionsLog, setActionsLog] = useState<ActionLogEntry[]>([]);
-  const [showTrainingAnalytics, setShowTrainingAnalytics] = useState(false);
   const { toast } = useToast();
   
   const [headerData, setHeaderData] = useState({
@@ -612,16 +610,11 @@ const Index = () => {
               onItemActionsChange={(itemId, actions) => handleActionsChange(section.id, itemId, actions)}
               onActionCreated={handleActionCreated}
               attendees={getAttendeesList()}
-              onTrainingAnalyticsClick={() => setShowTrainingAnalytics(true)}
             />
           )}
           
           <ActionsLog actions={actionsLog} onActionComplete={handleActionComplete} onActionDelete={handleActionDelete} />
         </div>
-        
-        {showTrainingAnalytics && (
-          <StaffTrainingAnalytics onClose={() => setShowTrainingAnalytics(false)} />
-        )}
       </div>
     </div>
   );

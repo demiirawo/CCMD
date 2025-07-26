@@ -1,7 +1,8 @@
 import { StatusBadge, StatusType } from "./StatusBadge";
 import { CapacityAnalytics } from "./CapacityAnalytics";
 import { StaffDocumentsAnalytics } from "./StaffDocumentsAnalytics";
-import { ChevronDown, ChevronRight, BarChart3 } from "lucide-react";
+import { StaffTrainingAnalytics } from "./StaffTrainingAnalytics";
+import { ChevronDown, ChevronRight } from "lucide-react";
 import { useState } from "react";
 import { CommentEditor } from "./CommentEditor";
 import { ActionForm, ActionItem } from "./ActionForm";
@@ -23,7 +24,6 @@ interface StatusItemProps {
   onActionsChange?: (id: string, actions: ActionItem[]) => void;
   onActionCreated?: (itemTitle: string, mentionedAttendee: string, comment: string, action: string, dueDate: string) => void;
   attendees?: string[];
-  onTrainingAnalyticsClick?: () => void;
 }
 
 export const StatusItem = ({
@@ -32,11 +32,11 @@ export const StatusItem = ({
   onObservationChange,
   onActionsChange,
   onActionCreated,
-  attendees = [],
-  onTrainingAnalyticsClick
+  attendees = []
 }: StatusItemProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isEditingObservation, setIsEditingObservation] = useState(false);
+  const [showTrainingAnalytics, setShowTrainingAnalytics] = useState(false);
 
   const handleObservationSubmit = (observation: string) => {
     onObservationChange?.(item.id, observation);
@@ -86,22 +86,7 @@ export const StatusItem = ({
         </button>
         
         <div className="flex-1 min-w-0 mr-3">
-          <div className="flex items-center gap-2">
-            <h4 className="font-semibold text-foreground text-sm truncate">{item.title}</h4>
-            {item.title.toLowerCase().includes('training') && onTrainingAnalyticsClick && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onTrainingAnalyticsClick();
-                }}
-                className="flex items-center gap-1 px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 transition-colors"
-                title="View Training Analytics"
-              >
-                <BarChart3 className="w-3 h-3" />
-                Analytics
-              </button>
-            )}
-          </div>
+          <h4 className="font-semibold text-foreground text-sm truncate">{item.title}</h4>
           <p className="text-xs text-muted-foreground">Last: {item.lastReviewed}</p>
         </div>
         
@@ -158,8 +143,14 @@ export const StatusItem = ({
             <CapacityAnalytics />
           )}
           
-          {item.title.toLowerCase().includes('staff') && (
+          {item.title.toLowerCase().includes('staff documents') && (
             <StaffDocumentsAnalytics />
+          )}
+          
+          {item.title.toLowerCase().includes('training') && (
+            <div className="mt-4">
+              <StaffTrainingAnalytics onClose={() => {}} />
+            </div>
           )}
         </div>
       )}

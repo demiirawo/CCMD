@@ -48,7 +48,7 @@ const chartConfig = {
 };
 
 interface StaffTrainingAnalyticsProps {
-  onClose: () => void;
+  onClose?: () => void;
 }
 
 export const StaffTrainingAnalytics = ({ onClose }: StaffTrainingAnalyticsProps) => {
@@ -104,27 +104,14 @@ export const StaffTrainingAnalytics = ({ onClose }: StaffTrainingAnalyticsProps)
   }));
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg max-w-6xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-white border-b p-6 flex items-center justify-between">
-          <h2 className="text-2xl font-bold flex items-center gap-2">
-            🎯 Staff Training Analytics
-          </h2>
-          <button 
-            onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-lg"
-          >
-            <X className="w-6 h-6" />
-          </button>
-        </div>
-
-        <div className="p-6">
-          <Tabs defaultValue="summary" className="w-full">
-            <TabsList className="grid w-full max-w-md grid-cols-3">
-              <TabsTrigger value="summary">Summary (12 Months)</TabsTrigger>
-              <TabsTrigger value="mandatory">Mandatory Training</TabsTrigger>
-              <TabsTrigger value="specialist">Specialist Training</TabsTrigger>
-            </TabsList>
+    <div className="bg-white rounded-lg border border-border/30 overflow-hidden">
+      <div className="p-6">
+        <Tabs defaultValue="summary" className="w-full">
+          <TabsList className="grid w-full max-w-md grid-cols-3">
+            <TabsTrigger value="summary">Summary (12 Months)</TabsTrigger>
+            <TabsTrigger value="mandatory">Mandatory Training</TabsTrigger>
+            <TabsTrigger value="specialist">Specialist Training</TabsTrigger>
+          </TabsList>
 
             <TabsContent value="summary" className="space-y-6">
               <Card>
@@ -311,6 +298,5 @@ export const StaffTrainingAnalytics = ({ onClose }: StaffTrainingAnalyticsProps)
           </Tabs>
         </div>
       </div>
-    </div>
-  );
-};
+    );
+  };
