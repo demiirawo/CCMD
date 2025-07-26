@@ -57,7 +57,7 @@ export const DashboardHeader = ({
         <div className="space-y-4">
           <EditableField field="title" value={title} label="Meeting Title" />
           <div className="p-4 rounded-lg border border-gray-100 min-h-24 bg-white">
-            <h3 className="text-sm font-medium text-muted-foreground mb-2">Meeting Attendees</h3>
+            <h3 className="text-sm font-medium text-muted-foreground mb-2">Meeting Invitees</h3>
             <MeetingAttendeesManager attendees={attendees} onChange={onAttendeesChange || (() => {})} />
           </div>
         </div>
