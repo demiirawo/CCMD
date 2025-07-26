@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { DashboardHeader } from "@/components/DashboardHeader";
+import { supabase } from "@/integrations/supabase/client";
 import { Attendee } from "@/components/MeetingAttendeesManager";
 import { DashboardSection } from "@/components/DashboardSection";
 import { ActionsLog, ActionLogEntry } from "@/components/ActionsLog";
@@ -414,19 +415,71 @@ const Index = () => {
     };
   };
 
-  const handleSaveDashboard = () => {
-    const dashboardState = {
-      headerData,
-      dashboardData,
-      actionsLog,
-      savedAt: new Date().toISOString()
-    };
-    
-    localStorage.setItem('dashboard-state', JSON.stringify(dashboardState));
-    toast({
-      title: "Dashboard Saved",
-      description: "Dashboard has been saved to local storage"
-    });
+  const getQuarter = (date: string) => {
+    const dateObj = new Date(date);
+    const month = dateObj.getMonth() + 1;
+    if (month <= 3) return 'Q1';
+    if (month <= 6) return 'Q2';
+    if (month <= 9) return 'Q3';
+    return 'Q4';
+  };
+
+  const handleSaveDashboard = async () => {
+    try {
+      const meetingDate = new Date(headerData.date);
+      const quarter = getQuarter(headerData.date);
+      const year = meetingDate.getFullYear();
+
+      const meetingData = {
+        date: meetingDate.toISOString(),
+        title: headerData.title,
+        attendees: JSON.stringify(headerData.attendees),
+        purpose: headerData.purpose,
+        sections: JSON.stringify(dashboardData.sections.map(section => ({
+          ...section,
+          icon: null // Remove JSX elements for storage
+        }))),
+        actions_log: JSON.stringify(actionsLog),
+        quarter,
+        year
+      };
+
+      const { error } = await supabase
+        .from('meetings')
+        .insert([meetingData]);
+
+      if (error) {
+        console.error('Error saving meeting:', error);
+        toast({
+          title: "Save Failed",
+          description: "Failed to save meeting to database",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Also save to localStorage as backup
+      const dashboardState = {
+        headerData,
+        dashboardData,
+        actionsLog,
+        savedAt: new Date().toISOString()
+      };
+      
+      localStorage.setItem('dashboard-state', JSON.stringify(dashboardState));
+      
+      toast({
+        title: "Meeting Saved",
+        description: `Meeting saved successfully under ${quarter} ${year}`,
+      });
+    } catch (error) {
+      console.error('Error saving meeting:', error);
+      toast({
+        title: "Save Failed",
+        description: "Failed to save meeting",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleExportPDF = async () => {
