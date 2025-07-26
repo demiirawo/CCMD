@@ -161,7 +161,7 @@ export const StaffDocumentsAnalytics = () => {
                   </ChartContainer>
                 </div>
                 
-                {/* Percentage labels around chart */}
+                {/* Percentage labels inside chart */}
                 {pieData.map((entry, index) => {
                   // Calculate cumulative angle for proper positioning
                   let cumulativeAngle = 0;
@@ -171,20 +171,20 @@ export const StaffDocumentsAnalytics = () => {
                   const segmentAngle = (entry.value / total) * 360;
                   const centerAngle = cumulativeAngle + segmentAngle / 2;
                   const radian = (centerAngle * Math.PI) / 180;
-                  const radius = 140;
+                  const radius = 60; // Smaller radius to place inside slices
                   const x = 300 + radius * Math.cos(radian - Math.PI / 2);
                   const y = 250 + radius * Math.sin(radian - Math.PI / 2);
                   
                   return (
                     <div
                       key={entry.name}
-                      className="absolute text-sm font-bold whitespace-nowrap px-2 py-1 rounded bg-background/90 border"
+                      className="absolute text-sm font-bold whitespace-nowrap"
                       style={{
                         left: `${x}px`,
                         top: `${y}px`,
                         transform: 'translate(-50%, -50%)',
-                        color: entry.color,
-                        borderColor: entry.color
+                        color: 'white',
+                        textShadow: '1px 1px 2px rgba(0,0,0,0.8)'
                       }}
                     >
                       {entry.percentage}%
