@@ -43,7 +43,7 @@ const chartConfig = {
     color: "hsl(var(--chart-3))"
   },
   idealStaff: {
-    label: "Ideal Staff",
+    label: "Target Staffing Level",
     color: "hsl(var(--chart-4))"
   }
 };
@@ -110,7 +110,7 @@ export const CapacityAnalytics = () => {
               <th className="text-left p-3 font-medium">Service Users</th>
               <th className="text-left p-3 font-medium">Current Staff</th>
               <th className="text-left p-3 font-medium">Min Staff</th>
-              <th className="text-left p-3 font-medium">Ideal Staff</th>
+              <th className="text-left p-3 font-medium">Target Staffing Level</th>
             </tr>
           </thead>
           <tbody>
@@ -157,7 +157,7 @@ export const CapacityAnalytics = () => {
         backgroundColor: '#bbf7d0',
         borderColor: '#86efac'
       }}>
-          <div className="text-xs text-muted-foreground mb-1">Ideal Staffing Level</div>
+          <div className="text-xs text-muted-foreground mb-1">Target Staffing Level</div>
           <div className="text-2xl font-bold">{currentMetrics.idealStaffingLevel}</div>
         </Card>
         
