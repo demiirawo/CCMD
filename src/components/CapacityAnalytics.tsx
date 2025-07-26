@@ -104,14 +104,14 @@ export const CapacityAnalytics = () => {
       
       {/* Data Table */}
       <div className="overflow-x-auto">
-        <table className="w-full text-sm">
+        <table className="w-full text-sm table-fixed">
           <thead>
             <tr className="border-b">
-              <th className="text-left p-3 font-medium">Month</th>
-              <th className="text-left p-3 font-medium">Onboarding</th>
-              <th className="text-left p-3 font-medium">Active</th>
-              <th className="text-left p-3 font-medium">Minimum</th>
-              <th className="text-left p-3 font-medium">Target</th>
+              <th className="text-left p-3 font-medium w-1/5">Month</th>
+              <th className="text-left p-3 font-medium w-1/5">Onboarding</th>
+              <th className="text-left p-3 font-medium w-1/5">Active</th>
+              <th className="text-left p-3 font-medium w-1/5">Minimum</th>
+              <th className="text-left p-3 font-medium w-1/5">Target</th>
             </tr>
           </thead>
           <tbody>
