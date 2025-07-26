@@ -98,7 +98,7 @@ export const SpotCheckAnalytics = () => {
         <EditableInput label="Frequency (months)" value={metrics.frequency} onChange={val => handleMetricChange('frequency', val)} />
         <div className="space-y-2">
           <label className="text-sm font-medium text-muted-foreground">Monthly Target</label>
-          <div className="text-center p-2 text-lg font-semibold text-purple-600">
+          <div className="text-center p-2 text-sm font-medium text-muted-foreground">
             {monthlyTarget}
           </div>
         </div>
