@@ -37,7 +37,7 @@ export const MeetingStatusSummary = ({ sections }: MeetingStatusSummaryProps) =>
   );
 
   return (
-    <div className="flex items-center justify-between w-48">
+    <div className="grid grid-cols-4 gap-2 w-48">
       {mainSections.map(section => {
         const config = sectionConfig[section.id as keyof typeof sectionConfig];
         if (!config) return null;
