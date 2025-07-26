@@ -36,6 +36,7 @@ export const SpotCheckAnalytics = ({ monthlyStaffData = [] }: { monthlyStaffData
   const dataWithTargets = monthlyData.map((item, index) => {
     const staffForMonth = monthlyStaffData[index]?.currentStaff || 0;
     const monthlyTarget = staffForMonth > 0 ? Math.round(staffForMonth / metrics.frequency) : 0;
+    console.log(`Month ${item.month}: staff=${staffForMonth}, frequency=${metrics.frequency}, target=${monthlyTarget}`);
     return {
       ...item,
       target: monthlyTarget
