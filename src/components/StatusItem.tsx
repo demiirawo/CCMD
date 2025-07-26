@@ -41,7 +41,7 @@ export const StatusItem = ({
 
   const handleCommentSubmit = (comment: string) => {
     // Check for completed inline actions (format: @Name, action, date)
-    const inlineActionRegex = /@(\w+),\s*([^,]+),\s*(\S+)/g;
+    const inlineActionRegex = /@(\w+),\s*([^,]+),\s*(\d{4}-\d{2}-\d{2})/g;
     let match;
     
     while ((match = inlineActionRegex.exec(comment)) !== null) {
@@ -146,7 +146,7 @@ export const StatusItem = ({
     if (mentionMatch) {
       const mentionStart = textBeforeCursor.lastIndexOf('@');
       const beforeMention = value.substring(0, mentionStart);
-      const template = `@${attendee}, [Enter action here], [Enter date here]`;
+      const template = `@${attendee}, [Enter action here], 📅`;
       const newValue = beforeMention + template + textAfterCursor;
       
       textareaRef.value = newValue;
@@ -171,14 +171,14 @@ export const StatusItem = ({
   const renderCommentWithActions = (comment: string) => {
     if (!comment) return "Click to add comment...";
     
-    // Find completed actions in the comment
-    const actionRegex = /@(\w+),\s*([^,]+),\s*(\S+)/g;
+    // Find completed actions in the comment (now includes calendar emoji and dates)
+    const actionRegex = /@(\w+),\s*([^,]+),\s*(\d{4}-\d{2}-\d{2}|📅)/g;
     let lastIndex = 0;
     const parts = [];
     let match;
     
     while ((match = actionRegex.exec(comment)) !== null) {
-      const [fullMatch, name, action, date] = match;
+      const [fullMatch, name, action, dateOrEmoji] = match;
       
       // Add text before the action
       if (match.index > lastIndex) {
@@ -189,8 +189,9 @@ export const StatusItem = ({
         );
       }
       
-      // Check if this is a completed action (no placeholders)
-      const isCompleted = !action.includes('[Enter') && !date.includes('[Enter');
+      // Check if this is a completed action (has actual date, not placeholder or emoji)
+      const isCompleted = !action.includes('[Enter') && dateOrEmoji.match(/\d{4}-\d{2}-\d{2}/);
+      const isCalendarEmoji = dateOrEmoji === '📅';
       
       // Add the action with styling and close button
       parts.push(
@@ -199,7 +200,26 @@ export const StatusItem = ({
             "inline-block",
             isCompleted && "font-bold text-primary"
           )}>
-            @{name}, {action}, {date}
+            @{name}, {action}, {isCalendarEmoji ? (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="inline-flex items-center justify-center w-6 h-6 p-0 ml-1 text-blue-600 hover:text-blue-800 hover:bg-blue-100 rounded transition-colors"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsEditing(true);
+                  setTimeout(() => {
+                    const dateButton = document.getElementById(`date-picker-${item.id}`);
+                    if (dateButton) {
+                      dateButton.click();
+                    }
+                  }, 100);
+                }}
+                title="Select date"
+              >
+                <CalendarIcon className="w-4 h-4" />
+              </Button>
+            ) : dateOrEmoji}
           </span>
           {isCompleted && (
             <button
@@ -235,24 +255,24 @@ export const StatusItem = ({
     if (!date || !textareaRef) return;
     
     const value = textareaRef.value;
-    const dateRegex = /\[Enter date here\]/;
-    const match = dateRegex.exec(value);
+    // Look for calendar emoji
+    const calendarIndex = value.indexOf('📅');
     
-    if (match) {
+    if (calendarIndex !== -1) {
       const formattedDate = format(date, "yyyy-MM-dd");
-      const newValue = value.replace(dateRegex, formattedDate);
+      const newValue = value.replace('📅', formattedDate);
       textareaRef.value = newValue;
       textareaRef.focus();
       
       // Position cursor after the date
-      const cursorPos = match.index + formattedDate.length;
+      const cursorPos = calendarIndex + formattedDate.length;
       textareaRef.setSelectionRange(cursorPos, cursorPos);
     }
   };
 
   const renderEnhancedTextarea = () => {
     const value = textareaRef?.value || item.comment || "";
-    const hasDatePlaceholder = value.includes("[Enter date here]");
+    const hasCalendarEmoji = value.includes('📅');
     
     return (
       <div className="relative">
@@ -272,16 +292,14 @@ export const StatusItem = ({
           }}
           onKeyDown={handleTextareaKeyDown}
           onMouseUp={(e) => {
-            // Handle clicking on date placeholder
+            // Handle clicking on calendar emoji
             const textarea = e.currentTarget;
             const selectionStart = textarea.selectionStart;
-            const selectionEnd = textarea.selectionEnd;
-            const selectedText = textarea.value.substring(selectionStart, selectionEnd);
+            const value = textarea.value;
             
-            if (selectedText === "[Enter date here]" || 
-                (selectionStart === selectionEnd && 
-                 textarea.value.substring(selectionStart - 17, selectionStart + 1) === "[Enter date here]")) {
-              // Show date picker if clicking on date placeholder
+            // Check if we clicked on or near the calendar emoji
+            const calendarIndex = value.indexOf('📅');
+            if (calendarIndex !== -1 && Math.abs(selectionStart - calendarIndex) <= 1) {
               const dateButton = document.getElementById(`date-picker-${item.id}`);
               if (dateButton) {
                 dateButton.click();
@@ -292,7 +310,7 @@ export const StatusItem = ({
         />
         
         {/* Hidden date picker trigger */}
-        {hasDatePlaceholder && (
+        {hasCalendarEmoji && (
           <Popover>
             <PopoverTrigger asChild>
               <Button
