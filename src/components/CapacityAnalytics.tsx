@@ -197,6 +197,26 @@ export const CapacityAnalytics = () => {
           <div className="text-xs text-center text-muted-foreground mt-2">
             Graph 1: Trends Over Past 12 Months
           </div>
+          
+          {/* Legend */}
+          <div className="flex flex-wrap justify-center gap-4 mt-4 pt-4 border-t border-border">
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 bg-blue-500 rounded"></div>
+              <span className="text-xs text-muted-foreground">Current Staff</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 bg-purple-500 rounded"></div>
+              <span className="text-xs text-muted-foreground">Onboarding Staff</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-3 border-b-2 border-red-500"></div>
+              <span className="text-xs text-muted-foreground">Min Staff</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-3 border-b-2 border-green-500"></div>
+              <span className="text-xs text-muted-foreground">Target Staff</span>
+            </div>
+          </div>
         </Card>
       </div>
     </div>;
