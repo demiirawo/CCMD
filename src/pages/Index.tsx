@@ -5,8 +5,11 @@ import { ActionsLog, ActionLogEntry } from "@/components/ActionsLog";
 import { StatusItemData } from "@/components/StatusItem";
 import { ActionItem } from "@/components/ActionForm";
 import { StatusType } from "@/components/StatusBadge";
-import { Users, Target, BarChart3, FileText, Heart, Shield, Calendar, UserCheck, ClipboardList, HeartHandshake, TrendingUp } from "lucide-react";
+import { Users, Target, BarChart3, FileText, Heart, Shield, Calendar, UserCheck, ClipboardList, HeartHandshake, TrendingUp, Save, Download } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 
 const Index = () => {
   const [actionsLog, setActionsLog] = useState<ActionLogEntry[]>([]);
@@ -387,32 +390,121 @@ const Index = () => {
     };
   };
 
+  const handleSaveDashboard = () => {
+    const dashboardState = {
+      headerData,
+      dashboardData,
+      actionsLog,
+      savedAt: new Date().toISOString()
+    };
+    
+    localStorage.setItem('dashboard-state', JSON.stringify(dashboardState));
+    toast({
+      title: "Dashboard Saved",
+      description: "Dashboard has been saved to local storage"
+    });
+  };
+
+  const handleExportPDF = async () => {
+    const element = document.getElementById('dashboard-container');
+    if (!element) return;
+
+    try {
+      // Temporarily expand all collapsed sections for PDF
+      const expandButtons = element.querySelectorAll('[data-state="closed"]');
+      expandButtons.forEach(button => (button as HTMLElement).click());
+      
+      // Wait for DOM updates
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        height: element.scrollHeight,
+        width: element.scrollWidth
+      });
+      
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      
+      const imgWidth = 210;
+      const pageHeight = 295;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      let heightLeft = imgHeight;
+      let position = 0;
+
+      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+
+      while (heightLeft >= 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+
+      pdf.save(`dashboard-${new Date().toISOString().split('T')[0]}.pdf`);
+      
+      toast({
+        title: "PDF Exported",
+        description: "Dashboard has been exported as PDF"
+      });
+    } catch (error) {
+      toast({
+        title: "Export Failed",
+        description: "Failed to export dashboard as PDF",
+        variant: "destructive"
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-100 p-4 lg:p-8">
       <div className="max-w-7xl mx-auto space-y-6">
-        <DashboardHeader 
-          date={headerData.date} 
-          title={headerData.title} 
-          attendees={headerData.attendees}
-          purpose={headerData.purpose}
-          stats={calculateStats()}
-          onDataChange={handleDataChange}
-        />
+        <div className="flex justify-end gap-4 mb-6">
+          <Button 
+            onClick={handleSaveDashboard}
+            variant="outline"
+            className="gap-2"
+          >
+            <Save className="w-4 h-4" />
+            Save Dashboard
+          </Button>
+          <Button 
+            onClick={handleExportPDF}
+            className="gap-2"
+          >
+            <Download className="w-4 h-4" />
+            Export PDF
+          </Button>
+        </div>
         
-        {dashboardData.sections.filter(section => section.id !== "meeting-overview").map(section => 
-          <DashboardSection 
-            key={section.id} 
-            title={section.title} 
-            items={section.items} 
-            onItemStatusChange={(itemId, status) => handleStatusChange(section.id, itemId, status)} 
-            onItemObservationChange={(itemId, observation) => handleObservationChange(section.id, itemId, observation)}
-            onItemActionsChange={(itemId, actions) => handleActionsChange(section.id, itemId, actions)}
-            onActionCreated={handleActionCreated}
-            attendees={getAttendeesList()}
+        <div id="dashboard-container">
+          <DashboardHeader 
+            date={headerData.date} 
+            title={headerData.title} 
+            attendees={headerData.attendees}
+            purpose={headerData.purpose}
+            stats={calculateStats()}
+            onDataChange={handleDataChange}
           />
-        )}
-        
-        <ActionsLog actions={actionsLog} onActionComplete={handleActionComplete} onActionDelete={handleActionDelete} />
+          
+          {dashboardData.sections.filter(section => section.id !== "meeting-overview").map(section => 
+            <DashboardSection 
+              key={section.id} 
+              title={section.title} 
+              items={section.items} 
+              onItemStatusChange={(itemId, status) => handleStatusChange(section.id, itemId, status)} 
+              onItemObservationChange={(itemId, observation) => handleObservationChange(section.id, itemId, observation)}
+              onItemActionsChange={(itemId, actions) => handleActionsChange(section.id, itemId, actions)}
+              onActionCreated={handleActionCreated}
+              attendees={getAttendeesList()}
+            />
+          )}
+          
+          <ActionsLog actions={actionsLog} onActionComplete={handleActionComplete} onActionDelete={handleActionDelete} />
+        </div>
       </div>
     </div>
   );
