@@ -68,11 +68,11 @@ export const ActionsLog = ({ actions, onActionComplete, onActionDelete }: Action
                     {index + 1}
                   </td>
                   <td className="py-3 px-3 text-sm text-foreground">
-                    <div className="max-w-xs">
-                      <div className={`font-medium ${action.closed ? 'line-through text-muted-foreground' : ''}`}>
+                    <div className="min-w-0 max-w-md">
+                      <div className={`font-medium break-words whitespace-pre-wrap ${action.closed ? 'line-through text-muted-foreground' : ''}`}>
                         {action.action}
                       </div>
-                      <div className="text-xs text-muted-foreground mt-1">
+                      <div className="text-xs text-muted-foreground mt-1 break-words">
                         From: {action.itemTitle}
                       </div>
                     </div>

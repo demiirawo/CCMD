@@ -140,12 +140,12 @@ export const ActionForm = ({
       {actions.length > 0 && (
         <div className="space-y-2">
           {actions.map((action) => (
-            <div key={action.id} className={`flex items-center gap-2 p-3 rounded-lg border ${getActionColorClass(action.targetDate)}`}>
-              <div className="flex-1">
-                <div className="font-medium">
+            <div key={action.id} className={`flex items-start gap-2 p-3 rounded-lg border ${getActionColorClass(action.targetDate)}`}>
+              <div className="flex-1 min-w-0">
+                <div className="font-medium break-words">
                   <span className="font-bold">{action.name}</span> - {action.description}
                 </div>
-                <div className="text-sm opacity-80">
+                <div className="text-sm opacity-80 mt-1">
                   Due: {action.targetDate} • {formatDaysRemaining(action.targetDate)}
                 </div>
               </div>
@@ -200,11 +200,21 @@ export const ActionForm = ({
           {/* Action Description - Wider to utilize space */}
           <div className="flex-1">
             <label className="text-xs text-muted-foreground mb-1 block">Action Description</label>
-            <Input
+            <textarea
               placeholder="Enter action description..."
               value={newAction.description}
               onChange={(e) => setNewAction(prev => ({ ...prev, description: e.target.value }))}
-              className="h-9"
+              className="min-h-[36px] w-full px-3 py-2 text-sm border border-input bg-background rounded-md resize-none overflow-hidden"
+              rows={1}
+              style={{ 
+                height: 'auto',
+                minHeight: '36px'
+              }}
+              onInput={(e) => {
+                const target = e.target as HTMLTextAreaElement;
+                target.style.height = 'auto';
+                target.style.height = target.scrollHeight + 'px';
+              }}
             />
           </div>
 
