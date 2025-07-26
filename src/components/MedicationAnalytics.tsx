@@ -96,7 +96,7 @@ export const MedicationAnalytics = () => {
       <CardHeader className="pb-4">
         <CardTitle className="text-lg font-semibold text-foreground">Medication Management Analytics</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-6 bg-white">
         {/* Monthly Data Input Table */}
         <div className="space-y-3">
           <h4 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Monthly Data</h4>
