@@ -9,6 +9,7 @@ import { ChevronDown, ChevronRight } from "lucide-react";
 import { useState } from "react";
 import { CommentEditor } from "./CommentEditor";
 import { ActionForm, ActionItem } from "./ActionForm";
+import { AccountableManager } from "./AccountableManager";
 export interface StatusItemData {
   id: string;
   title: string;
@@ -16,6 +17,7 @@ export interface StatusItemData {
   lastReviewed: string;
   observation: string;
   actions: ActionItem[];
+  accountable?: string[];
   details?: string;
 }
 interface StatusItemProps {
@@ -23,6 +25,7 @@ interface StatusItemProps {
   onStatusChange?: (id: string, status: StatusType) => void;
   onObservationChange?: (id: string, observation: string) => void;
   onActionsChange?: (id: string, actions: ActionItem[]) => void;
+  onAccountableChange?: (id: string, accountable: string[]) => void;
   onActionCreated?: (itemTitle: string, mentionedAttendee: string, comment: string, action: string, dueDate: string) => void;
   attendees?: string[];
   monthlyStaffData?: Array<{month: string, currentStaff: number, probationStaff?: number}>;
@@ -33,6 +36,7 @@ export const StatusItem = ({
   onStatusChange,
   onObservationChange,
   onActionsChange,
+  onAccountableChange,
   onActionCreated,
   attendees = [],
   monthlyStaffData = [],
@@ -57,21 +61,37 @@ export const StatusItem = ({
     const updatedActions = item.actions.filter(action => action.id !== actionId);
     onActionsChange?.(item.id, updatedActions);
   };
+
+  const handleAccountableChange = (accountable: string[]) => {
+    onAccountableChange?.(item.id, accountable);
+  };
   return <div className="w-full bg-white rounded-xl p-8 mb-3 shadow-md border border-border/30 hover:scale-[1.01] transition-transform duration-300 min-h-[140px]">
-      <div className="flex items-center gap-4 w-full">
-        <button onClick={() => setIsExpanded(!isExpanded)} className={`flex-shrink-0 p-1 rounded-lg hover:bg-accent/50 transition-colors ${item.title.toLowerCase().includes('service user documents') || item.title.toLowerCase().includes('staff meeting') ? 'opacity-0 invisible pointer-events-none' : ''}`}>
-          {isExpanded ? <ChevronDown className="w-4 h-4 text-muted-foreground" /> : <ChevronRight className="w-4 h-4 text-muted-foreground" />}
-        </button>
-        
-        <button onClick={e => {
-        e.stopPropagation();
-        const statusOrder: StatusType[] = ["green", "amber", "red"];
-        const currentIndex = statusOrder.indexOf(item.status);
-        const nextStatus = statusOrder[(currentIndex + 1) % statusOrder.length];
-        onStatusChange?.(item.id, nextStatus);
-      }} className="flex-shrink-0 hover:scale-110 transition-transform">
-          <StatusBadge status={item.status} />
-        </button>
+      <div className="flex items-start gap-4 w-full">
+        <div className="flex flex-col items-center gap-2">
+          <button onClick={() => setIsExpanded(!isExpanded)} className={`flex-shrink-0 p-1 rounded-lg hover:bg-accent/50 transition-colors ${item.title.toLowerCase().includes('service user documents') || item.title.toLowerCase().includes('staff meeting') ? 'opacity-0 invisible pointer-events-none' : ''}`}>
+            {isExpanded ? <ChevronDown className="w-4 h-4 text-muted-foreground" /> : <ChevronRight className="w-4 h-4 text-muted-foreground" />}
+          </button>
+          
+          <button onClick={e => {
+          e.stopPropagation();
+          const statusOrder: StatusType[] = ["green", "amber", "red"];
+          const currentIndex = statusOrder.indexOf(item.status);
+          const nextStatus = statusOrder[(currentIndex + 1) % statusOrder.length];
+          onStatusChange?.(item.id, nextStatus);
+        }} className="flex-shrink-0 hover:scale-110 transition-transform">
+            <StatusBadge status={item.status} />
+          </button>
+
+          {/* Accountable Section - below status icon */}
+          <div className="w-full">
+            <label className="text-xs font-medium text-muted-foreground mb-1 block text-center">ACCOUNTABLE</label>
+            <AccountableManager 
+              accountable={item.accountable || []} 
+              attendees={attendees} 
+              onChange={handleAccountableChange} 
+            />
+          </div>
+        </div>
         
         <div className="flex-1 min-w-0 mr-3">
           <h4 className="font-semibold text-foreground text-sm truncate">{item.title}</h4>
@@ -79,6 +99,7 @@ export const StatusItem = ({
         </div>
         
         <div className="flex-[5] min-w-0 space-y-3">
+
           {/* Observation Section */}
           <div>
             <label className="text-xs font-medium text-muted-foreground mb-1 block">OBSERVATION</label>
