@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { DashboardHeader } from "@/components/DashboardHeader";
+import { Attendee } from "@/components/MeetingAttendeesManager";
 import { DashboardSection } from "@/components/DashboardSection";
 import { ActionsLog, ActionLogEntry } from "@/components/ActionsLog";
 import { StatusItemData } from "@/components/StatusItem";
@@ -23,7 +24,12 @@ const Index = () => {
              now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });
     })(),
     title: "Strategic Planning Session",
-    attendees: "John Smith, Sarah Johnson, Mike Chen, Lisa Rodriguez",
+    attendees: [
+      { id: "1", name: "John Smith", email: "john.smith@company.com" },
+      { id: "2", name: "Sarah Johnson", email: "sarah.johnson@company.com" },
+      { id: "3", name: "Mike Chen", email: "mike.chen@company.com" },
+      { id: "4", name: "Lisa Rodriguez", email: "lisa.rodriguez@company.com" }
+    ] as Attendee[],
     purpose: "Review Q4 performance and set strategic priorities for 2025"
   });
 
@@ -230,6 +236,17 @@ const Index = () => {
       description: `${field.charAt(0).toUpperCase() + field.slice(1)} has been updated`
     });
   };
+
+  const handleAttendeesChange = (attendees: Attendee[]) => {
+    setHeaderData(prev => ({
+      ...prev,
+      attendees
+    }));
+    toast({
+      title: "Attendees Updated",
+      description: "Meeting attendees have been updated"
+    });
+  };
   
   const handleStatusChange = (sectionId: string, itemId: string, newStatus: StatusType) => {
     setDashboardData(prev => ({
@@ -383,7 +400,7 @@ const Index = () => {
   };
 
   const getAttendeesList = () => {
-    return headerData.attendees.split(',').map(name => name.trim());
+    return headerData.attendees.map(attendee => attendee.name);
   };
 
   const calculateStats = () => {
@@ -493,6 +510,7 @@ const Index = () => {
             purpose={headerData.purpose}
             stats={calculateStats()}
             onDataChange={handleDataChange}
+            onAttendeesChange={handleAttendeesChange}
           />
           
           {dashboardData.sections.filter(section => section.id !== "meeting-overview").map(section => 

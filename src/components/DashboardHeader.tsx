@@ -1,11 +1,12 @@
 import { StatusBadge } from "./StatusBadge";
 import { MeetingDateTimePicker } from "./MeetingDateTimePicker";
+import { MeetingAttendeesManager, Attendee } from "./MeetingAttendeesManager";
 import { useState } from "react";
 
 interface DashboardHeaderProps {
   date: string;
   title: string;
-  attendees: string;
+  attendees: Attendee[];
   purpose: string;
   stats: {
     green: number;
@@ -13,9 +14,10 @@ interface DashboardHeaderProps {
     red: number;
   };
   onDataChange?: (field: string, value: string) => void;
+  onAttendeesChange?: (attendees: Attendee[]) => void;
 }
 
-export const DashboardHeader = ({ date, title, attendees, purpose, stats, onDataChange }: DashboardHeaderProps) => {
+export const DashboardHeader = ({ date, title, attendees, purpose, stats, onDataChange, onAttendeesChange }: DashboardHeaderProps) => {
   const [editingField, setEditingField] = useState<string | null>(null);
 
   const handleFieldEdit = (field: string, value: string) => {
@@ -69,7 +71,13 @@ export const DashboardHeader = ({ date, title, attendees, purpose, stats, onData
         </div>
         
         <div className="space-y-4">
-          <EditableField field="attendees" value={attendees} label="Meeting Attendees" />
+          <div className="bg-gray-25 p-4 rounded-lg border border-gray-100 min-h-24">
+            <h3 className="text-sm font-medium text-muted-foreground mb-2">Meeting Attendees</h3>
+            <MeetingAttendeesManager 
+              attendees={attendees}
+              onChange={onAttendeesChange || (() => {})}
+            />
+          </div>
           <EditableField field="purpose" value={purpose} label="Meeting Purpose" />
         </div>
       </div>
