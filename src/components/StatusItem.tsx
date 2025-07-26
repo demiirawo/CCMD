@@ -88,7 +88,7 @@ export const StatusItem = ({
           </div>
         </div>
         
-        <div className="flex-[3] min-w-0 space-y-3">
+        <div className="flex-[5] min-w-0 space-y-3">
           {/* Observation Section */}
           <div>
             <label className="text-xs font-medium text-muted-foreground mb-1 block">OBSERVATION</label>
@@ -105,22 +105,17 @@ export const StatusItem = ({
             <ActionForm actions={item.actions} attendees={attendees} onActionsChange={handleActionsChange} onActionCreated={handleActionCreated} onActionCompleted={handleActionCompleted} />
           </div>
         </div>
-
-        {/* Accountable Section - aligned with Actions */}
-        <div className="flex-[2] min-w-0 space-y-3">
-          <div>
-            <label className="text-xs font-medium text-muted-foreground mb-1 block">ACCOUNTABLE</label>
-            <div className="border border-border/20 rounded-lg p-3 bg-white min-h-[80px]">
-              <AccountableManager 
-                accountable={item.accountable || []} 
-                attendees={attendees} 
-                onChange={handleAccountableChange} 
-              />
-            </div>
-          </div>
-        </div>
       </div>
       
+      {/* Accountable Section - positioned at bottom left, outside main flex container */}
+      <div className="absolute bottom-4 left-16 w-48">
+        <label className="text-xs font-medium text-muted-foreground mb-1 block">ACCOUNTABLE</label>
+        <AccountableManager 
+          accountable={item.accountable || []} 
+          attendees={attendees} 
+          onChange={handleAccountableChange} 
+        />
+      </div>
       
       {isExpanded && <div className="mt-4 pt-4 border-t border-border space-y-4">
           {item.details && <div className="space-y-2">
