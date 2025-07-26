@@ -84,9 +84,11 @@ export const StatusItem = ({
         <div className="flex-1 min-w-0 mr-3">
           <h4 className="font-semibold text-foreground text-sm truncate">{item.title}</h4>
           <p className="text-xs text-muted-foreground">Last: {item.lastReviewed}</p>
-          
-          {/* Accountable Section - below title */}
-          <div className="mt-2">
+        </div>
+        
+        <div className="flex-[5] min-w-0 space-y-3">
+          {/* Accountable Section - small field below title */}
+          <div>
             <label className="text-xs font-medium text-muted-foreground mb-1 block">ACCOUNTABLE</label>
             <AccountableManager 
               accountable={item.accountable || []} 
@@ -94,9 +96,6 @@ export const StatusItem = ({
               onChange={handleAccountableChange} 
             />
           </div>
-        </div>
-        
-        <div className="flex-[5] min-w-0 space-y-3">
 
           {/* Observation Section */}
           <div>
