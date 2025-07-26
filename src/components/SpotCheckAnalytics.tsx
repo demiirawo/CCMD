@@ -1,6 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, ReferenceLine } from "recharts";
+import { ComposedChart, Bar, Line, XAxis, YAxis, ResponsiveContainer } from "recharts";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { format, subMonths } from "date-fns";
@@ -129,21 +129,30 @@ export const SpotCheckAnalytics = ({ monthlyStaffData = [] }: { monthlyStaffData
         <Card className="p-4 bg-white">
           <ChartContainer config={chartConfig} className="h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={dataWithTargets}>
+              <ComposedChart data={dataWithTargets}>
                 <XAxis dataKey="month" axisLine={false} tickLine={false} className="text-xs" />
                 <YAxis axisLine={false} tickLine={false} className="text-xs" />
                 <ChartTooltip content={<ChartTooltipContent />} />
-                <Line type="monotone" dataKey="target" stroke="#ef4444" strokeDasharray="5 5" strokeWidth={2} dot={{
+                <Bar dataKey="completed" fill="hsl(var(--chart-1))" name="Completed" />
+                <Line type="monotone" dataKey="target" stroke="#22c55e" strokeWidth={2} dot={{
                 r: 3,
-                fill: "#ef4444"
+                fill: "#22c55e"
               }} name="Monthly Target" />
-                <Line type="monotone" dataKey="completed" stroke="hsl(var(--chart-1))" strokeWidth={2} dot={{
-                r: 4,
-                fill: "hsl(var(--chart-1))"
-              }} name="Completed" />
-              </LineChart>
+              </ComposedChart>
             </ResponsiveContainer>
           </ChartContainer>
+          
+          {/* Legend */}
+          <div className="flex justify-center gap-6 mt-4 pt-4 border-t border-border">
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 rounded" style={{ backgroundColor: "hsl(var(--chart-1))" }}></div>
+              <span className="text-xs text-muted-foreground">Completed</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-3 border-b-2 border-green-500"></div>
+              <span className="text-xs text-muted-foreground">Monthly Target</span>
+            </div>
+          </div>
         </Card>
       </div>
     </div>;
