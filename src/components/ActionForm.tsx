@@ -190,7 +190,7 @@ export const ActionForm = ({
             <label className="text-xs text-muted-foreground mb-1 block">Date</label>
             <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
               <PopoverTrigger asChild>
-                <Button variant="outline" className={`h-9 w-9 p-0 ${newAction.targetDate ? 'bg-green-50 border-green-300' : ''}`} title={newAction.targetDate || "Select date"}>
+                <Button variant="outline" className={`h-9 w-9 p-0 bg-white ${newAction.targetDate ? 'bg-green-50 border-green-300' : ''}`} title={newAction.targetDate || "Select date"}>
                   <Calendar className="h-4 w-4" />
                 </Button>
               </PopoverTrigger>
