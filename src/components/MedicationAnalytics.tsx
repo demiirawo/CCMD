@@ -100,7 +100,7 @@ export const MedicationAnalytics = () => {
         {/* Monthly Data Input Table */}
         <div className="space-y-3">
           <h4 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Monthly Data</h4>
-          <div className="bg-muted/30 rounded-lg p-4 overflow-x-auto">
+          <div className="bg-white rounded-lg p-4 overflow-x-auto">
             <table className="w-full min-w-[800px]">
               <thead>
                 <tr>
