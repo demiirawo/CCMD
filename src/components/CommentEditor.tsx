@@ -1,9 +1,4 @@
-import { useState, useRef, useEffect } from "react";
-import { format } from "date-fns";
-import { Calendar as CalendarComponent } from "./ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
-import { Button } from "./ui/button";
-import { Calendar } from "lucide-react";
+import { useState, useRef } from "react";
 
 interface CommentEditorProps {
   initialValue: string;
@@ -21,10 +16,6 @@ interface MentionDropdownProps {
   visible: boolean;
 }
 
-interface DatePickerPopoverProps {
-  trigger: React.ReactNode;
-  onDateSelect: (date: Date) => void;
-}
 
 const MentionDropdown = ({ attendees, position, query, onSelect, visible }: MentionDropdownProps) => {
   const filteredAttendees = attendees.filter(attendee =>
@@ -57,28 +48,6 @@ const MentionDropdown = ({ attendees, position, query, onSelect, visible }: Ment
   );
 };
 
-const DatePickerPopover = ({ trigger, onDateSelect }: DatePickerPopoverProps) => {
-  return (
-    <Popover>
-      <PopoverTrigger asChild>
-        {trigger}
-      </PopoverTrigger>
-      <PopoverContent className="w-auto p-0" align="start">
-        <CalendarComponent
-          mode="single"
-          onSelect={(date) => {
-            if (date) {
-              onDateSelect(date);
-            }
-          }}
-          initialFocus
-          className="p-3 pointer-events-auto"
-          disabled={(date) => date < new Date()}
-        />
-      </PopoverContent>
-    </Popover>
-  );
-};
 
 export const CommentEditor = ({ 
   initialValue, 
@@ -92,7 +61,6 @@ export const CommentEditor = ({
   const [mentionQuery, setMentionQuery] = useState("");
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const [datePickerKey, setDatePickerKey] = useState(0);
 
   const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newValue = e.target.value;
@@ -131,7 +99,7 @@ export const CommentEditor = ({
     if (mentionMatch) {
       const mentionStart = textBeforeCursor.lastIndexOf('@');
       const beforeMention = value.substring(0, mentionStart);
-      const template = `@${attendee} [action] due:📅`;
+      const template = `@${attendee} [action] due:dd/mm`;
       const newValue = beforeMention + template + textAfterCursor;
       
       setValue(newValue);
@@ -148,20 +116,6 @@ export const CommentEditor = ({
     }
   };
 
-  const handleDateClick = () => {
-    // Force re-render of date picker to ensure it opens
-    setDatePickerKey(prev => prev + 1);
-  };
-
-  const insertDate = (date: Date) => {
-    const formattedDate = format(date, "yyyy-MM-dd");
-    const newValue = value.replace('📅', formattedDate);
-    setValue(newValue);
-    
-    if (textareaRef.current) {
-      textareaRef.current.focus();
-    }
-  };
 
   const handleSubmit = () => {
     onSubmit(value);
@@ -177,9 +131,9 @@ export const CommentEditor = ({
   };
 
   const handleBlur = (e: React.FocusEvent<HTMLTextAreaElement>) => {
-    // Only submit if not interacting with dropdown or date picker
+    // Only submit if not interacting with dropdown
     setTimeout(() => {
-      if (!showMentionDropdown && !document.querySelector('[data-radix-popper-content-wrapper]')) {
+      if (!showMentionDropdown) {
         handleSubmit();
       }
     }, 200);
@@ -195,15 +149,6 @@ export const CommentEditor = ({
         onChange={handleTextareaChange}
         onBlur={handleBlur}
         onKeyDown={handleKeyDown}
-        onClick={(e) => {
-          const target = e.target as HTMLTextAreaElement;
-          const cursorPosition = target.selectionStart;
-          const char = value.charAt(cursorPosition) || value.charAt(cursorPosition - 1);
-          
-          if (char === '📅') {
-            handleDateClick();
-          }
-        }}
         autoFocus 
       />
       
@@ -213,20 +158,6 @@ export const CommentEditor = ({
         query={mentionQuery}
         onSelect={selectMention}
         visible={showMentionDropdown}
-      />
-      
-      <DatePickerPopover
-        key={datePickerKey}
-        trigger={
-          <Button
-            variant="ghost"
-            className="absolute -top-10 -left-10 w-0 h-0 opacity-0 pointer-events-auto"
-            onClick={handleDateClick}
-          >
-            <Calendar />
-          </Button>
-        }
-        onDateSelect={insertDate}
       />
     </div>
   );
