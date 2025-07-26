@@ -1,3 +1,4 @@
+
 import { StatusBadge } from "./StatusBadge";
 import { MeetingDateTimePicker } from "./MeetingDateTimePicker";
 import { MeetingAttendeesManager, Attendee } from "./MeetingAttendeesManager";
@@ -27,7 +28,7 @@ export const DashboardHeader = ({ date, title, attendees, purpose, stats, onData
 
   const EditableField = ({ field, value, label }: { field: string; value: string; label: string }) => (
     <div className="bg-gray-25 p-4 rounded-lg border border-gray-100 h-24">
-      <h3 className="text-sm font-medium text-muted-foreground mb-2">{label}</h3>
+      <h3 className="text-sm font-medium text-muted-foreground mb-2">Meeting Summary</h3>
       {editingField === field ? (
         <textarea
           defaultValue={value}
