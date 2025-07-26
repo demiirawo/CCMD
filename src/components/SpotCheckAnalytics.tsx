@@ -18,16 +18,13 @@ const generateInitialData = () => {
   }
   return data;
 };
-
 const initialMonthlyData = generateInitialData();
-
 const chartConfig = {
   completed: {
     label: "Spot Checks Completed",
     color: "hsl(var(--chart-1))"
   }
 };
-
 export const SpotCheckAnalytics = () => {
   const [monthlyData, setMonthlyData] = useState(initialMonthlyData);
   const [metrics, setMetrics] = useState({
@@ -37,7 +34,6 @@ export const SpotCheckAnalytics = () => {
 
   // Calculate monthly target automatically
   const monthlyTarget = Math.round(metrics.activeStaff / metrics.frequency);
-
   const handleMetricChange = (field: string, value: string) => {
     const numValue = parseInt(value) || 0;
     setMetrics(prev => ({
@@ -45,7 +41,6 @@ export const SpotCheckAnalytics = () => {
       [field]: numValue
     }));
   };
-
   const handleCellEdit = (rowIndex: number, value: string) => {
     const numValue = parseInt(value) || 0;
     const newData = [...monthlyData];
@@ -55,7 +50,6 @@ export const SpotCheckAnalytics = () => {
     };
     setMonthlyData(newData);
   };
-
   const EditableCell = ({
     value,
     onEdit
@@ -65,38 +59,20 @@ export const SpotCheckAnalytics = () => {
   }) => {
     const [editing, setEditing] = useState(false);
     const [editValue, setEditValue] = useState(value.toString());
-
     const handleSave = () => {
       onEdit(editValue);
       setEditing(false);
     };
-
     if (editing) {
-      return (
-        <Input
-          value={editValue}
-          onChange={(e) => setEditValue(e.target.value)}
-          onBlur={handleSave}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') handleSave();
-            if (e.key === 'Escape') setEditing(false);
-          }}
-          className="w-full h-auto text-center border-none bg-white p-1 text-sm focus:ring-0 focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
-          autoFocus
-        />
-      );
+      return <Input value={editValue} onChange={e => setEditValue(e.target.value)} onBlur={handleSave} onKeyDown={e => {
+        if (e.key === 'Enter') handleSave();
+        if (e.key === 'Escape') setEditing(false);
+      }} className="w-full h-auto text-center border-none bg-white p-1 text-sm focus:ring-0 focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0" autoFocus />;
     }
-
-    return (
-      <span
-        className="cursor-pointer hover:bg-accent/50 p-1 rounded"
-        onClick={() => setEditing(true)}
-      >
+    return <span className="cursor-pointer hover:bg-accent/50 p-1 rounded" onClick={() => setEditing(true)}>
         {value}
-      </span>
-    );
+      </span>;
   };
-
   const EditableInput = ({
     label,
     value,
@@ -107,36 +83,19 @@ export const SpotCheckAnalytics = () => {
     value: number;
     onChange: (value: string) => void;
     className?: string;
-  }) => (
-    <div className={`space-y-2 ${className}`}>
+  }) => <div className={`space-y-2 ${className}`}>
       <label className="text-sm font-medium text-muted-foreground">{label}</label>
-      <Input
-        type="number"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="text-center"
-      />
-    </div>
-  );
-
-  return (
-    <div className="space-y-6 mt-4 p-6 border border-border rounded-lg bg-white">
+      <Input type="number" value={value} onChange={e => onChange(e.target.value)} className="text-center bg-white" />
+    </div>;
+  return <div className="space-y-6 mt-4 p-6 border border-border rounded-lg bg-white">
       <div className="flex items-center justify-between">
         <h4 className="text-lg font-semibold text-foreground">Spot Check Analytics</h4>
       </div>
 
       {/* Top Metrics */}
       <div className="grid grid-cols-3 gap-4">
-        <EditableInput
-          label="Active Staff"
-          value={metrics.activeStaff}
-          onChange={(val) => handleMetricChange('activeStaff', val)}
-        />
-        <EditableInput
-          label="Frequency (months)"
-          value={metrics.frequency}
-          onChange={(val) => handleMetricChange('frequency', val)}
-        />
+        <EditableInput label="Active Staff" value={metrics.activeStaff} onChange={val => handleMetricChange('activeStaff', val)} />
+        <EditableInput label="Frequency (months)" value={metrics.frequency} onChange={val => handleMetricChange('frequency', val)} />
         <div className="space-y-2">
           <label className="text-sm font-medium text-muted-foreground">Monthly Target</label>
           <div className="text-center p-2 text-lg font-semibold text-purple-600">
@@ -153,17 +112,12 @@ export const SpotCheckAnalytics = () => {
 
         {/* Data Grid */}
         <div className="grid grid-cols-4 gap-4 mb-6">
-          {monthlyData.map((row, index) => (
-            <div key={index} className="space-y-1">
+          {monthlyData.map((row, index) => <div key={index} className="space-y-1">
               <div className="text-sm font-medium text-muted-foreground">{row.month}</div>
               <div className="border rounded p-2 text-center">
-                <EditableCell
-                  value={row.completed}
-                  onEdit={(val) => handleCellEdit(index, val)}
-                />
+                <EditableCell value={row.completed} onEdit={val => handleCellEdit(index, val)} />
               </div>
-            </div>
-          ))}
+            </div>)}
         </div>
 
         {/* Chart */}
@@ -171,36 +125,18 @@ export const SpotCheckAnalytics = () => {
           <ChartContainer config={chartConfig} className="h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={monthlyData}>
-                <XAxis 
-                  dataKey="month" 
-                  axisLine={false} 
-                  tickLine={false} 
-                  className="text-xs" 
-                />
-                <YAxis 
-                  axisLine={false} 
-                  tickLine={false} 
-                  className="text-xs" 
-                />
+                <XAxis dataKey="month" axisLine={false} tickLine={false} className="text-xs" />
+                <YAxis axisLine={false} tickLine={false} className="text-xs" />
                 <ChartTooltip content={<ChartTooltipContent />} />
-                <ReferenceLine 
-                  y={monthlyTarget}
-                  stroke="#ef4444" 
-                  strokeDasharray="5 5"
-                  strokeWidth={2}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="completed"
-                  stroke="hsl(var(--chart-1))"
-                  strokeWidth={2}
-                  dot={{ r: 4, fill: "hsl(var(--chart-1))" }}
-                />
+                <ReferenceLine y={monthlyTarget} stroke="#ef4444" strokeDasharray="5 5" strokeWidth={2} />
+                <Line type="monotone" dataKey="completed" stroke="hsl(var(--chart-1))" strokeWidth={2} dot={{
+                r: 4,
+                fill: "hsl(var(--chart-1))"
+              }} />
               </LineChart>
             </ResponsiveContainer>
           </ChartContainer>
         </Card>
       </div>
-    </div>
-  );
+    </div>;
 };
