@@ -15,6 +15,7 @@ const generateInitialData = () => {
       month: format(monthDate, "MMM yy"),
       onboardingStaff: 0,
       currentStaff: 0,
+      combinedStaff: 0,
       minStaff: 0,
       idealStaff: 0
     });
@@ -30,13 +31,9 @@ const initialCurrentMetrics = {
   capacityCoverage: 0
 };
 const chartConfig = {
-  onboardingStaff: {
-    label: "Onboarding Staff",
+  combinedStaff: {
+    label: "Onboarding + Active Staff",
     color: "hsl(var(--chart-1))"
-  },
-  currentStaff: {
-    label: "Current Staff", 
-    color: "hsl(var(--chart-2))"
   },
   minStaff: {
     label: "Min Staff",
@@ -57,6 +54,8 @@ export const CapacityAnalytics = () => {
       ...newData[rowIndex],
       [field]: numValue
     };
+    // Add combined staff calculation
+    newData[rowIndex].combinedStaff = newData[rowIndex].onboardingStaff + newData[rowIndex].currentStaff;
     setMonthlyData(newData);
 
     // Update current metrics based on latest data
@@ -201,8 +200,7 @@ export const CapacityAnalytics = () => {
                 <XAxis dataKey="month" axisLine={false} tickLine={false} className="text-xs" />
                 <YAxis axisLine={false} tickLine={false} className="text-xs" />
                 <ChartTooltip content={<ChartTooltipContent />} />
-                <Bar dataKey="currentStaff" fill="#3b82f6" name="Current Staff" stackId="staff" />
-                <Bar dataKey="onboardingStaff" fill="#8b5cf6" name="Onboarding Staff" stackId="staff" />
+                <Bar dataKey="combinedStaff" fill="#8b5cf6" name="Onboarding + Active Staff" />
                 <Line type="monotone" dataKey="minStaff" stroke="#ef4444" strokeWidth={2} dot={{
                   r: 3,
                   fill: "#ef4444"
