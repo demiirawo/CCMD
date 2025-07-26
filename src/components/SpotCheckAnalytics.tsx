@@ -12,7 +12,7 @@ const generateInitialData = () => {
   for (let i = 0; i < 12; i++) {
     const monthDate = subMonths(currentDate, i);
     data.unshift({
-      month: format(monthDate, "MMM"),
+      month: format(monthDate, "MMM yy"),
       completed: 0
     });
   }
