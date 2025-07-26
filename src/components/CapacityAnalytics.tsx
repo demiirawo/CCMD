@@ -130,7 +130,7 @@ export const CapacityAnalytics = ({ onMonthlyStaffDataChange }: { onMonthlyStaff
               <th className="text-left p-3 font-medium w-1/5">Month</th>
               <th className="text-left p-3 font-medium w-1/5">Onboarding</th>
               <th className="text-left p-3 font-medium w-1/5">Probation</th>
-              <th className="text-left p-3 font-medium w-1/5">Active</th>
+              <th className="text-left p-3 font-medium w-1/5">Passed</th>
               <th className="text-left p-3 font-medium w-1/5">Target</th>
             </tr>
           </thead>
@@ -186,7 +186,7 @@ export const CapacityAnalytics = ({ onMonthlyStaffDataChange }: { onMonthlyStaff
           <div className="flex flex-wrap justify-center gap-4 mt-4 pt-4 border-t border-border">
             <div className="flex items-center gap-2">
               <div className="w-4 h-4 bg-blue-500 rounded"></div>
-              <span className="text-xs text-muted-foreground">Active</span>
+              <span className="text-xs text-muted-foreground">Passed</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-4 h-4 bg-amber-500 rounded"></div>
