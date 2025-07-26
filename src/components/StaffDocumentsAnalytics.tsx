@@ -161,30 +161,34 @@ export const StaffDocumentsAnalytics = () => {
                   </ChartContainer>
                 </div>
                 
-                {/* Percentage labels inside chart */}
+                {/* Percentage labels in center of each slice */}
                 {pieData.map((entry, index) => {
-                  // Calculate cumulative angle for proper positioning
-                  let cumulativeAngle = 0;
+                  // Calculate the start angle for this slice
+                  let startAngle = 0;
                   for (let i = 0; i < index; i++) {
-                    cumulativeAngle += (pieData[i].value / total) * 360;
+                    startAngle += (pieData[i].value / total) * 360;
                   }
-                  const segmentAngle = (entry.value / total) * 360;
-                  const centerAngle = cumulativeAngle + segmentAngle / 2;
+                  
+                  // Calculate the center angle of this slice
+                  const sliceAngle = (entry.value / total) * 360;
+                  const centerAngle = startAngle + (sliceAngle / 2);
+                  
+                  // Convert to radians and calculate position
                   const radian = (centerAngle * Math.PI) / 180;
-                  const radius = 60; // Smaller radius to place inside slices
+                  const radius = 70; // Position in middle of slice
                   const x = 300 + radius * Math.cos(radian - Math.PI / 2);
                   const y = 250 + radius * Math.sin(radian - Math.PI / 2);
                   
                   return (
                     <div
                       key={entry.name}
-                      className="absolute text-sm font-bold whitespace-nowrap"
+                      className="absolute text-sm font-bold"
                       style={{
                         left: `${x}px`,
                         top: `${y}px`,
                         transform: 'translate(-50%, -50%)',
                         color: 'white',
-                        textShadow: '1px 1px 2px rgba(0,0,0,0.8)'
+                        textShadow: '2px 2px 4px rgba(0,0,0,0.8)'
                       }}
                     >
                       {entry.percentage}%
