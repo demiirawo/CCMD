@@ -3,15 +3,17 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer } from "recharts";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
+
 const initialDocumentsData = {
   activeFullyCompliant: 0,
   activePendingDocuments: 0,
   onboardingPendingDocuments: 0,
   onboardingFullyCompliant: 0
 };
+
 const chartConfig = {
   fullyCompliant: {
-    label: "Fully Compliant",
+    label: "Compliant",
     color: "#22c55e"
   },
   pendingDocuments: {
@@ -19,8 +21,10 @@ const chartConfig = {
     color: "#f59e0b"
   }
 };
+
 export const StaffDocumentsAnalytics = () => {
   const [documentsData, setDocumentsData] = useState(initialDocumentsData);
+
   const handleInputChange = (field: string, value: string) => {
     const numValue = parseInt(value) || 0;
     setDocumentsData(prev => ({
@@ -28,6 +32,7 @@ export const StaffDocumentsAnalytics = () => {
       [field]: numValue
     }));
   };
+
   const EditableInput = ({
     value,
     onEdit,
@@ -119,7 +124,7 @@ export const StaffDocumentsAnalytics = () => {
                  <div className="grid grid-cols-2 gap-4">
                    <div className="flex items-center gap-3">
                      <div className="w-4 h-4 rounded bg-[#22c55e]" />
-                     <span className="text-sm font-medium">Fully Compliant</span>
+                     <span className="text-sm font-medium">Compliant</span>
                    </div>
                    <div className="flex items-center gap-3">
                      <div className="w-4 h-4 rounded bg-[#f59e0b]" />
@@ -133,7 +138,7 @@ export const StaffDocumentsAnalytics = () => {
                      <div className="space-y-2">
                        <h5 className="font-medium text-foreground">Active Staff</h5>
                        <div className="text-sm text-muted-foreground">
-                         <div>Fully Compliant: {activeCompliantPercentage}%</div>
+                         <div>Compliant: {activeCompliantPercentage}%</div>
                          <div>Pending Documents: {activePendingPercentage}%</div>
                        </div>
                      </div>
@@ -142,7 +147,7 @@ export const StaffDocumentsAnalytics = () => {
                      <div className="space-y-2">
                        <h5 className="font-medium text-foreground">Onboarding Staff</h5>
                        <div className="text-sm text-muted-foreground">
-                         <div>Fully Compliant: {onboardingCompliantPercentage}%</div>
+                         <div>Compliant: {onboardingCompliantPercentage}%</div>
                          <div>Pending Documents: {onboardingPendingPercentage}%</div>
                        </div>
                      </div>
