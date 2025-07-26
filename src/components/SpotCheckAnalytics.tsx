@@ -32,6 +32,9 @@ export const SpotCheckAnalytics = ({ monthlyStaffData = [] }: { monthlyStaffData
     frequency: 3
   });
 
+  console.log("SpotCheckAnalytics - received monthlyStaffData:", monthlyStaffData);
+  console.log("SpotCheckAnalytics - monthlyData:", monthlyData);
+
   // Calculate monthly targets for each month based on that month's active staff
   const dataWithTargets = monthlyData.map((item, index) => {
     const staffForMonth = monthlyStaffData[index]?.currentStaff || 0;
