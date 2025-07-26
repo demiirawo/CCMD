@@ -71,7 +71,6 @@ export const MeetingAttendeesManager = ({ attendees, onChange }: MeetingAttendee
         className="w-full gap-2 text-sm"
       >
         <Plus className="h-4 w-4" />
-        Add Attendee
       </Button>
     </div>
   );
