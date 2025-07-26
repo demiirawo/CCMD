@@ -206,7 +206,7 @@ export const CapacityAnalytics = () => {
             </div>
             <div className="flex items-center gap-2">
               <div className="w-4 h-4 bg-purple-500 rounded"></div>
-              <span className="text-xs text-muted-foreground">Onboarding Staff</span>
+              <span className="text-xs text-muted-foreground">Onboarding</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-4 h-3 border-b-2 border-red-500"></div>
