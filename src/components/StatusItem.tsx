@@ -1,7 +1,7 @@
 import { StatusBadge, StatusType } from "./StatusBadge";
 import { CapacityAnalytics } from "./CapacityAnalytics";
 import { StaffDocumentsAnalytics } from "./StaffDocumentsAnalytics";
-import { StaffTrainingAnalytics } from "./StaffTrainingAnalytics";
+
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { useState } from "react";
 import { CommentEditor } from "./CommentEditor";
@@ -33,7 +33,7 @@ export const StatusItem = ({
 }: StatusItemProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isEditingObservation, setIsEditingObservation] = useState(false);
-  const [showTrainingAnalytics, setShowTrainingAnalytics] = useState(false);
+  
   const handleObservationSubmit = (observation: string) => {
     onObservationChange?.(item.id, observation);
     setIsEditingObservation(false);
@@ -103,9 +103,6 @@ export const StatusItem = ({
           
           {item.title.toLowerCase().includes('staff documents') && <StaffDocumentsAnalytics />}
           
-          {item.title.toLowerCase().includes('training') && <div className="mt-4">
-              <StaffTrainingAnalytics onClose={() => {}} />
-            </div>}
         </div>}
     </div>;
 };
