@@ -172,16 +172,7 @@ export const CapacityAnalytics = () => {
       <div className="space-y-2">
         <div className="flex items-center justify-between">
           
-          <div className="flex items-center gap-2">
-            <button className="p-1 hover:bg-accent rounded">
-              <ChevronLeft className="w-4 h-4" />
-            </button>
-            <span className="text-xs text-muted-foreground">Previous</span>
-            <span className="text-xs text-muted-foreground">Next</span>
-            <button className="p-1 hover:bg-accent rounded">
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          </div>
+          
         </div>
         <Card className="p-4 bg-white">
           <ChartContainer config={chartConfig} className="h-64 w-full">
