@@ -18,6 +18,7 @@ const generateInitialData = () => {
   }
   return data;
 };
+
 const initialMonthlyData = generateInitialData();
 const chartConfig = {
   completed: {
@@ -25,15 +26,15 @@ const chartConfig = {
     color: "hsl(var(--chart-1))"
   }
 };
-export const SpotCheckAnalytics = () => {
+export const SpotCheckAnalytics = ({ activeStaff = 25 }: { activeStaff?: number }) => {
   const [monthlyData, setMonthlyData] = useState(initialMonthlyData);
   const [metrics, setMetrics] = useState({
-    activeStaff: 25,
     frequency: 3
   });
 
   // Calculate monthly target automatically
-  const monthlyTarget = Math.round(metrics.activeStaff / metrics.frequency);
+  const monthlyTarget = Math.round(activeStaff / metrics.frequency);
+  
   const handleMetricChange = (field: string, value: string) => {
     const numValue = parseInt(value) || 0;
     setMetrics(prev => ({
@@ -93,15 +94,8 @@ export const SpotCheckAnalytics = () => {
       </div>
 
       {/* Top Metrics */}
-      <div className="grid grid-cols-3 gap-4">
-        <EditableInput label="Active Staff" value={metrics.activeStaff} onChange={val => handleMetricChange('activeStaff', val)} />
+      <div className="grid grid-cols-1 gap-4">
         <EditableInput label="Spot Check Frequency (Months)" value={metrics.frequency} onChange={val => handleMetricChange('frequency', val)} />
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-muted-foreground">Monthly Target</label>
-          <div className="text-center p-2 text-sm font-medium text-muted-foreground">
-            {monthlyTarget}
-          </div>
-        </div>
       </div>
 
       {/* Monthly Data Section */}
