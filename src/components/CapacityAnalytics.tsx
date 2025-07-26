@@ -35,7 +35,7 @@ const chartConfig = {
     color: "hsl(var(--chart-1))"
   },
   currentStaff: {
-    label: "Current Staff", 
+    label: "Current Staff",
     color: "hsl(var(--chart-2))"
   },
   minStaff: {
@@ -136,13 +136,7 @@ export const CapacityAnalytics = () => {
 
       {/* Metrics Cards */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-        <Card className="p-4" style={{
-        backgroundColor: '#e0d4f7',
-        borderColor: '#c4b5fd'
-      }}>
-          <div className="text-xs text-muted-foreground mb-1">Active Onboarding Staff</div>
-          <div className="text-2xl font-bold">{currentMetrics.activeOnboardingStaff}</div>
-        </Card>
+        
         
         <Card className="p-4" style={{
         backgroundColor: '#bfdbfe',
@@ -205,13 +199,13 @@ export const CapacityAnalytics = () => {
                 <Bar dataKey="currentStaff" fill="#3b82f6" name="Current Staff" stackId="staff" />
                 <Bar dataKey="onboardingStaff" fill="#8b5cf6" name="Onboarding Staff" stackId="staff" />
                 <Line type="monotone" dataKey="minStaff" stroke="#ef4444" strokeWidth={2} dot={{
-                  r: 3,
-                  fill: "#ef4444"
-                }} name="Min Staff" />
+                r: 3,
+                fill: "#ef4444"
+              }} name="Min Staff" />
                 <Line type="monotone" dataKey="idealStaff" stroke="#22c55e" strokeWidth={2} dot={{
-                  r: 3,
-                  fill: "#22c55e"
-                }} name="Ideal Staff" />
+                r: 3,
+                fill: "#22c55e"
+              }} name="Ideal Staff" />
               </ComposedChart>
             </ResponsiveContainer>
           </ChartContainer>
