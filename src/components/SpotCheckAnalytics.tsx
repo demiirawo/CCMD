@@ -32,9 +32,11 @@ export const SpotCheckAnalytics = () => {
   const [monthlyData, setMonthlyData] = useState(initialMonthlyData);
   const [metrics, setMetrics] = useState({
     activeStaff: 25,
-    frequency: 3,
-    monthlyTarget: 9
+    frequency: 3
   });
+
+  // Calculate monthly target automatically
+  const monthlyTarget = Math.round(metrics.activeStaff / metrics.frequency);
 
   const handleMetricChange = (field: string, value: string) => {
     const numValue = parseInt(value) || 0;
@@ -79,7 +81,7 @@ export const SpotCheckAnalytics = () => {
             if (e.key === 'Enter') handleSave();
             if (e.key === 'Escape') setEditing(false);
           }}
-          className="w-16 h-8 text-sm"
+          className="w-full h-auto text-center border-none bg-white p-1 text-sm focus:ring-0 focus:outline-none"
           autoFocus
         />
       );
@@ -138,7 +140,7 @@ export const SpotCheckAnalytics = () => {
         <div className="space-y-2">
           <label className="text-sm font-medium text-muted-foreground">Monthly Target</label>
           <div className="text-center p-2 text-lg font-semibold text-purple-600">
-            {metrics.monthlyTarget}
+            {monthlyTarget}
           </div>
         </div>
       </div>
@@ -182,7 +184,7 @@ export const SpotCheckAnalytics = () => {
                 />
                 <ChartTooltip content={<ChartTooltipContent />} />
                 <ReferenceLine 
-                  y={metrics.monthlyTarget} 
+                  y={monthlyTarget}
                   stroke="#ef4444" 
                   strokeDasharray="5 5"
                   strokeWidth={2}
