@@ -108,18 +108,6 @@ export const StatusItem = ({
         </div>
       </div>
       
-      {/* Fixed height spacer to maintain accountable position */}
-      <div className="h-16"></div>
-      
-      {/* Accountable Section - fixed position relative to the card */}
-      <div className="absolute bottom-4 left-16 w-48 z-10">
-        <label className="text-xs font-medium text-muted-foreground mb-1 block">ACCOUNTABLE</label>
-        <AccountableManager 
-          accountable={item.accountable || []} 
-          attendees={attendees} 
-          onChange={handleAccountableChange} 
-        />
-      </div>
       
       {isExpanded && <div className="mt-4 pt-4 border-t border-border space-y-4">
           {item.details && <div className="space-y-2">
