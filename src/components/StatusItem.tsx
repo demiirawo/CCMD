@@ -25,8 +25,8 @@ interface StatusItemProps {
   onActionsChange?: (id: string, actions: ActionItem[]) => void;
   onActionCreated?: (itemTitle: string, mentionedAttendee: string, comment: string, action: string, dueDate: string) => void;
   attendees?: string[];
-  monthlyStaffData?: Array<{month: string, currentStaff: number}>;
-  onMonthlyStaffDataChange?: (data: Array<{month: string, currentStaff: number}>) => void;
+  monthlyStaffData?: Array<{month: string, currentStaff: number, probationStaff?: number}>;
+  onMonthlyStaffDataChange?: (data: Array<{month: string, currentStaff: number, probationStaff?: number}>) => void;
 }
 export const StatusItem = ({
   item,

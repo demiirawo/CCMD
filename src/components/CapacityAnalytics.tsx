@@ -47,7 +47,7 @@ const chartConfig = {
     color: "hsl(var(--chart-4))"
   }
 };
-export const CapacityAnalytics = ({ onMonthlyStaffDataChange }: { onMonthlyStaffDataChange?: (data: Array<{month: string, currentStaff: number}>) => void } = {}) => {
+export const CapacityAnalytics = ({ onMonthlyStaffDataChange }: { onMonthlyStaffDataChange?: (data: Array<{month: string, currentStaff: number, probationStaff?: number}>) => void } = {}) => {
   const [monthlyData, setMonthlyData] = useState(initialMonthlyData);
   const [currentMetrics, setCurrentMetrics] = useState(initialCurrentMetrics);
   
@@ -56,7 +56,8 @@ export const CapacityAnalytics = ({ onMonthlyStaffDataChange }: { onMonthlyStaff
     if (onMonthlyStaffDataChange) {
       const staffData = monthlyData.map(item => ({
         month: item.month,
-        currentStaff: item.currentStaff
+        currentStaff: item.currentStaff,
+        probationStaff: item.probationStaff
       }));
       onMonthlyStaffDataChange(staffData);
     }
@@ -86,7 +87,8 @@ export const CapacityAnalytics = ({ onMonthlyStaffDataChange }: { onMonthlyStaff
     if (onMonthlyStaffDataChange) {
       const staffData = newData.map(item => ({
         month: item.month,
-        currentStaff: item.currentStaff
+        currentStaff: item.currentStaff,
+        probationStaff: item.probationStaff
       }));
       onMonthlyStaffDataChange(staffData);
     }

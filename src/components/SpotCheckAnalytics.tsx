@@ -26,20 +26,26 @@ const chartConfig = {
     color: "hsl(var(--chart-1))"
   }
 };
-export const SpotCheckAnalytics = ({ monthlyStaffData = [] }: { monthlyStaffData?: Array<{month: string, currentStaff: number}> }) => {
+export const SpotCheckAnalytics = ({ monthlyStaffData = [] }: { monthlyStaffData?: Array<{month: string, currentStaff: number, probationStaff?: number}> }) => {
   const [monthlyData, setMonthlyData] = useState(initialMonthlyData);
   const [metrics, setMetrics] = useState({
-    frequency: 3
+    passedFrequency: 3,
+    probationFrequency: 1
   });
 
   console.log("SpotCheckAnalytics - received monthlyStaffData:", monthlyStaffData);
   console.log("SpotCheckAnalytics - monthlyData:", monthlyData);
 
-  // Calculate monthly targets for each month based on that month's active staff
+  // Calculate monthly targets for each month based on that month's passed and probation staff
   const dataWithTargets = monthlyData.map((item, index) => {
-    const staffForMonth = monthlyStaffData[index]?.currentStaff || 0;
-    const monthlyTarget = staffForMonth > 0 ? Math.round(staffForMonth / metrics.frequency) : 0;
-    console.log(`Month ${item.month}: staff=${staffForMonth}, frequency=${metrics.frequency}, target=${monthlyTarget}`);
+    const passedStaff = monthlyStaffData[index]?.currentStaff || 0;
+    const probationStaff = monthlyStaffData[index]?.probationStaff || 0;
+    
+    const passedTarget = passedStaff > 0 ? Math.round(passedStaff / metrics.passedFrequency) : 0;
+    const probationTarget = probationStaff > 0 ? Math.round(probationStaff / metrics.probationFrequency) : 0;
+    const monthlyTarget = passedTarget + probationTarget;
+    
+    console.log(`Month ${item.month}: passed=${passedStaff}, probation=${probationStaff}, passedTarget=${passedTarget}, probationTarget=${probationTarget}, total=${monthlyTarget}`);
     return {
       ...item,
       target: monthlyTarget
@@ -105,8 +111,9 @@ export const SpotCheckAnalytics = ({ monthlyStaffData = [] }: { monthlyStaffData
       </div>
 
       {/* Top Metrics */}
-      <div className="grid grid-cols-1 gap-4">
-        <EditableInput label="Spot Check Frequency (Months)" value={metrics.frequency} onChange={val => handleMetricChange('frequency', val)} />
+      <div className="grid grid-cols-2 gap-4">
+        <EditableInput label="Passed Staff Frequency (Months)" value={metrics.passedFrequency} onChange={val => handleMetricChange('passedFrequency', val)} />
+        <EditableInput label="Probation Staff Frequency (Months)" value={metrics.probationFrequency} onChange={val => handleMetricChange('probationFrequency', val)} />
       </div>
 
       {/* Monthly Data Section */}
