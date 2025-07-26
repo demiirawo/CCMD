@@ -173,14 +173,73 @@ export const StatusItem = ({
   const renderCommentWithActions = (comment: string) => {
     if (!comment) return "Click to add comment...";
     
-    // Find completed actions in the comment (now includes calendar emoji and dates)
-    const actionRegex = /@(\w+),\s*([^,]+),\s*(\d{4}-\d{2}-\d{2}|📅)/g;
+    console.log('Rendering comment:', comment); // Debug log
+    
+    // Simple approach: look for calendar emoji anywhere in the comment
+    if (comment.includes('📅')) {
+      console.log('Found calendar emoji in comment'); // Debug log
+      
+      // Split by calendar emoji and create clickable calendar icons
+      const parts = comment.split('📅').map((part, index, array) => {
+        const elements = [];
+        
+        // Add the text part
+        if (part) {
+          // Check if this part contains an action pattern
+          const actionMatch = part.match(/@(\w+),\s*([^,]+),?\s*$/);
+          if (actionMatch) {
+            const [, name, action] = actionMatch;
+            const isCompleted = !action.includes('[Enter');
+            
+            elements.push(
+              <span key={`action-${index}`} className={cn(
+                "inline-block",
+                isCompleted && "font-bold text-primary"
+              )}>
+                @{name}, {action}
+              </span>
+            );
+          } else {
+            elements.push(
+              <span key={`text-${index}`}>{part}</span>
+            );
+          }
+        }
+        
+        // Add calendar icon button (except for the last part)
+        if (index < array.length - 1) {
+          elements.push(
+            <button
+              key={`calendar-${index}`}
+              className="inline-flex items-center justify-center w-6 h-6 p-1 mx-1 text-blue-600 hover:text-blue-800 hover:bg-blue-100 rounded transition-colors cursor-pointer border border-blue-200 bg-white"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Calendar button clicked, opening date picker');
+                setShowDatePicker(true);
+                setPendingActionId(comment); // Store the full comment for replacement
+              }}
+              title="Select date"
+            >
+              <CalendarIcon className="w-4 h-4" />
+            </button>
+          );
+        }
+        
+        return elements;
+      }).flat();
+      
+      return parts;
+    }
+    
+    // Handle completed actions (with dates) and add close buttons
+    const actionRegex = /@(\w+),\s*([^,]+),\s*(\d{4}-\d{2}-\d{2})/g;
     let lastIndex = 0;
     const parts = [];
     let match;
     
     while ((match = actionRegex.exec(comment)) !== null) {
-      const [fullMatch, name, action, dateOrEmoji] = match;
+      const [fullMatch, name, action, date] = match;
       
       // Add text before the action
       if (match.index > lastIndex) {
@@ -191,45 +250,22 @@ export const StatusItem = ({
         );
       }
       
-      // Check if this is a completed action (has actual date, not placeholder or emoji)
-      const isCompleted = !action.includes('[Enter') && dateOrEmoji.match(/\d{4}-\d{2}-\d{2}/);
-      const isCalendarEmoji = dateOrEmoji === '📅';
-      
-      // Add the action with styling and close button
+      // Add the completed action with close button
       parts.push(
         <span key={`action-${match.index}`} className="inline-flex items-center gap-1">
-          <span className={cn(
-            "inline-block",
-            isCompleted && "font-bold text-primary"
-          )}>
-            @{name}, {action}, {isCalendarEmoji ? (
-              <button
-                className="inline-flex items-center justify-center w-6 h-6 p-1 ml-1 text-blue-600 hover:text-blue-800 hover:bg-blue-100 rounded transition-colors cursor-pointer border border-blue-200"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  console.log('Calendar button clicked for action:', fullMatch);
-                  setShowDatePicker(true);
-                  setPendingActionId(fullMatch);
-                }}
-                title="Select date"
-              >
-                <CalendarIcon className="w-4 h-4" />
-              </button>
-            ) : dateOrEmoji}
+          <span className="inline-block font-bold text-primary">
+            @{name}, {action}, {date}
           </span>
-          {isCompleted && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                closeAction(fullMatch);
-              }}
-              className="inline-flex items-center justify-center w-4 h-4 ml-1 text-green-600 hover:text-green-800 hover:bg-green-100 rounded-full transition-colors"
-              title="Close action"
-            >
-              <Check className="w-3 h-3" />
-            </button>
-          )}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              closeAction(fullMatch);
+            }}
+            className="inline-flex items-center justify-center w-4 h-4 ml-1 text-green-600 hover:text-green-800 hover:bg-green-100 rounded-full transition-colors"
+            title="Close action"
+          >
+            <Check className="w-3 h-3" />
+          </button>
         </span>
       );
       
