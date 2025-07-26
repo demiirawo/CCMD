@@ -1,6 +1,7 @@
 import { StatusBadge, StatusType } from "./StatusBadge";
 import { CapacityAnalytics } from "./CapacityAnalytics";
 import { StaffDocumentsAnalytics } from "./StaffDocumentsAnalytics";
+import { StaffTrainingAnalytics } from "./StaffTrainingAnalytics";
 
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { useState } from "react";
@@ -102,6 +103,8 @@ export const StatusItem = ({
           {item.title.toLowerCase().includes('resourcing') && <CapacityAnalytics />}
           
           {item.title.toLowerCase().includes('staff documents') && <StaffDocumentsAnalytics />}
+          
+          {item.title.toLowerCase().includes('training') && <StaffTrainingAnalytics />}
           
         </div>}
     </div>;
