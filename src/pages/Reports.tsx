@@ -219,6 +219,8 @@ export const Reports = () => {
                                   {meeting.purpose && (
                                     <p className="text-sm text-gray-700">{meeting.purpose}</p>
                                   )}
+                                </div>
+                                <div className="ml-4 flex-shrink-0">
                                   <MeetingStatusSummary sections={meeting.sections} />
                                 </div>
                               </div>

@@ -1,4 +1,3 @@
-import { Users, HeartHandshake, Shield, TrendingUp } from "lucide-react";
 import { StatusBadge, StatusType } from "./StatusBadge";
 
 interface MeetingStatusSummaryProps {
@@ -19,19 +18,15 @@ const calculateSectionStatus = (items: Array<{ status: StatusType }>): StatusTyp
 
 const sectionConfig = {
   staff: {
-    icon: Users,
     title: "Staff"
   },
   "care-planning": {
-    icon: HeartHandshake,
     title: "Care Planning"
   },
   safety: {
-    icon: Shield,
     title: "Safety"
   },
   "continuous-improvement": {
-    icon: TrendingUp,
     title: "Continuous Improvement"
   }
 };
@@ -42,18 +37,17 @@ export const MeetingStatusSummary = ({ sections }: MeetingStatusSummaryProps) =>
   );
 
   return (
-    <div className="flex items-center gap-4 mt-2">
+    <div className="flex items-center gap-4">
       {mainSections.map(section => {
         const config = sectionConfig[section.id as keyof typeof sectionConfig];
         if (!config) return null;
 
         const status = calculateSectionStatus(section.items);
-        const Icon = config.icon;
 
         return (
-          <div key={section.id} className="flex items-center gap-1.5">
-            <Icon className="h-4 w-4 text-gray-500" />
-            <StatusBadge status={status} className="text-xs" />
+          <div key={section.id} className="flex flex-col items-center gap-1">
+            <span className="text-xs text-gray-600 font-medium">{config.title}</span>
+            <StatusBadge status={status} />
           </div>
         );
       })}
