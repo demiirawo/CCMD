@@ -6,14 +6,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { Calendar as CalendarComponent } from "./ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { format, differenceInDays } from "date-fns";
-
 export interface ActionItem {
   id: string;
   name: string;
   description: string;
   targetDate: string;
 }
-
 interface ActionFormProps {
   actions: ActionItem[];
   attendees: string[];
@@ -21,13 +19,12 @@ interface ActionFormProps {
   onActionCreated?: (name: string, description: string, targetDate: string) => void;
   onActionCompleted?: (actionId: string) => void;
 }
-
-export const ActionForm = ({ 
-  actions, 
-  attendees, 
-  onActionsChange, 
+export const ActionForm = ({
+  actions,
+  attendees,
+  onActionsChange,
   onActionCreated,
-  onActionCompleted 
+  onActionCompleted
 }: ActionFormProps) => {
   const [newAction, setNewAction] = useState({
     name: "",
@@ -35,7 +32,6 @@ export const ActionForm = ({
     targetDate: ""
   });
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
-
   const addAction = () => {
     if (newAction.name && newAction.description && newAction.targetDate) {
       const actionItem: ActionItem = {
@@ -44,37 +40,36 @@ export const ActionForm = ({
         description: newAction.description,
         targetDate: newAction.targetDate
       };
-      
       const updatedActions = [...actions, actionItem];
       onActionsChange(updatedActions);
-      
+
       // Notify parent for actions log
       onActionCreated?.(newAction.name, newAction.description, newAction.targetDate);
-      
+
       // Reset form
-      setNewAction({ name: "", description: "", targetDate: "" });
+      setNewAction({
+        name: "",
+        description: "",
+        targetDate: ""
+      });
     }
   };
-
   const removeAction = (actionId: string) => {
     const updatedActions = actions.filter(action => action.id !== actionId);
     onActionsChange(updatedActions);
   };
-
   const handleDateSelect = (date: Date | undefined) => {
     console.log("Date selected:", date);
     if (date) {
       const formattedDate = format(date, "dd/MM/yyyy");
       console.log("Formatted date:", formattedDate);
-      
       const updatedAction = {
         ...newAction,
         targetDate: formattedDate
       };
-      
       setNewAction(updatedAction);
       setIsDatePickerOpen(false); // Close the popover
-      
+
       // Auto-save the action if all fields are filled
       if (updatedAction.name && updatedAction.description && formattedDate) {
         const actionItem: ActionItem = {
@@ -83,19 +78,21 @@ export const ActionForm = ({
           description: updatedAction.description,
           targetDate: formattedDate
         };
-        
         const updatedActions = [...actions, actionItem];
         onActionsChange(updatedActions);
-        
+
         // Notify parent for actions log
         onActionCreated?.(updatedAction.name, updatedAction.description, formattedDate);
-        
+
         // Reset form
-        setNewAction({ name: "", description: "", targetDate: "" });
+        setNewAction({
+          name: "",
+          description: "",
+          targetDate: ""
+        });
       }
     }
   };
-
   const getDaysRemaining = (targetDate: string) => {
     try {
       const [day, month, year] = targetDate.split('/');
@@ -103,16 +100,13 @@ export const ActionForm = ({
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       dueDate.setHours(0, 0, 0, 0);
-      
       return differenceInDays(dueDate, today);
     } catch {
       return 0;
     }
   };
-
   const getActionColorClass = (targetDate: string) => {
     const daysRemaining = getDaysRemaining(targetDate);
-    
     if (daysRemaining < 0) {
       return "bg-red-50 border-red-200 text-red-900";
     } else if (daysRemaining <= 5) {
@@ -121,10 +115,8 @@ export const ActionForm = ({
       return "bg-green-50 border-green-200 text-green-900";
     }
   };
-
   const formatDaysRemaining = (targetDate: string) => {
     const daysRemaining = getDaysRemaining(targetDate);
-    
     if (daysRemaining < 0) {
       return `${Math.abs(daysRemaining)} day(s) overdue`;
     } else if (daysRemaining === 0) {
@@ -133,14 +125,10 @@ export const ActionForm = ({
       return `${daysRemaining} day(s) remaining`;
     }
   };
-
-  return (
-    <div className="space-y-4">
+  return <div className="space-y-4">
       {/* Existing Actions */}
-      {actions.length > 0 && (
-        <div className="space-y-2">
-          {actions.map((action) => (
-            <div key={action.id} className={`flex items-start gap-2 p-3 rounded-lg border ${getActionColorClass(action.targetDate)}`}>
+      {actions.length > 0 && <div className="space-y-2">
+          {actions.map(action => <div key={action.id} className={`flex items-start gap-2 p-3 rounded-lg border ${getActionColorClass(action.targetDate)}`}>
               <div className="flex-1 min-w-0">
                 <div className="font-medium break-words">
                   <span className="font-bold">{action.name}</span> - {action.description}
@@ -150,49 +138,33 @@ export const ActionForm = ({
                 </div>
               </div>
               <div className="flex gap-1">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => onActionCompleted?.(action.id)}
-                  className="h-8 w-8 p-0 text-green-600 hover:bg-green-100"
-                  title="Mark as completed"
-                >
+                <Button variant="ghost" size="sm" onClick={() => onActionCompleted?.(action.id)} className="h-8 w-8 p-0 text-green-600 hover:bg-green-100" title="Mark as completed">
                   <Check className="h-4 w-4" />
                 </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => removeAction(action.id)}
-                  className="h-8 w-8 p-0 text-red-500 hover:bg-red-100"
-                  title="Delete action"
-                >
+                <Button variant="ghost" size="sm" onClick={() => removeAction(action.id)} className="h-8 w-8 p-0 text-red-500 hover:bg-red-100" title="Delete action">
                   <Minus className="h-4 w-4" />
                 </Button>
               </div>
-            </div>
-          ))}
-        </div>
-      )}
+            </div>)}
+        </div>}
 
       {/* Add New Action Form */}
       <div className="border border-border rounded-lg p-4 space-y-3">
         <div className="flex gap-3 items-start">
           {/* Name Dropdown */}
-          <div className="w-48">
+          <div className="w-48 bg-white">
             <label className="text-xs text-muted-foreground mb-1 block">Assigned To</label>
-            <Select 
-              value={newAction.name} 
-              onValueChange={(value) => setNewAction(prev => ({ ...prev, name: value }))}
-            >
+            <Select value={newAction.name} onValueChange={value => setNewAction(prev => ({
+            ...prev,
+            name: value
+          }))}>
               <SelectTrigger className="h-9">
                 <SelectValue placeholder="Select person..." />
               </SelectTrigger>
               <SelectContent className="bg-white">
-                {attendees.map((attendee) => (
-                  <SelectItem key={attendee} value={attendee}>
+                {attendees.map(attendee => <SelectItem key={attendee} value={attendee}>
                     {attendee}
-                  </SelectItem>
-                ))}
+                  </SelectItem>)}
               </SelectContent>
             </Select>
           </div>
@@ -200,22 +172,17 @@ export const ActionForm = ({
           {/* Action Description - Wider to utilize space */}
           <div className="flex-1">
             <label className="text-xs text-muted-foreground mb-1 block">Action Description</label>
-            <textarea
-              placeholder="Enter action description..."
-              value={newAction.description}
-              onChange={(e) => setNewAction(prev => ({ ...prev, description: e.target.value }))}
-              className="min-h-[36px] w-full px-3 py-2 text-sm border border-input bg-background rounded-md resize-none overflow-hidden"
-              rows={1}
-              style={{ 
-                height: 'auto',
-                minHeight: '36px'
-              }}
-              onInput={(e) => {
-                const target = e.target as HTMLTextAreaElement;
-                target.style.height = 'auto';
-                target.style.height = target.scrollHeight + 'px';
-              }}
-            />
+            <textarea placeholder="Enter action description..." value={newAction.description} onChange={e => setNewAction(prev => ({
+            ...prev,
+            description: e.target.value
+          }))} rows={1} style={{
+            height: 'auto',
+            minHeight: '36px'
+          }} onInput={e => {
+            const target = e.target as HTMLTextAreaElement;
+            target.style.height = 'auto';
+            target.style.height = target.scrollHeight + 'px';
+          }} className="min-h-[36px] w-full px-3 py-2 text-sm border border-input rounded-md resize-none overflow-hidden bg-white" />
           </div>
 
           {/* Target Date - Just calendar emoji */}
@@ -223,34 +190,21 @@ export const ActionForm = ({
             <label className="text-xs text-muted-foreground mb-1 block">Date</label>
             <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
               <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={`h-9 w-9 p-0 ${newAction.targetDate ? 'bg-green-50 border-green-300' : ''}`}
-                  title={newAction.targetDate || "Select date"}
-                >
+                <Button variant="outline" className={`h-9 w-9 p-0 ${newAction.targetDate ? 'bg-green-50 border-green-300' : ''}`} title={newAction.targetDate || "Select date"}>
                   <Calendar className="h-4 w-4" />
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0 bg-white border shadow-lg" align="start">
                 <div className="bg-white rounded-lg">
-                  <CalendarComponent
-                    mode="single"
-                    onSelect={handleDateSelect}
-                    initialFocus
-                    className="p-3 pointer-events-auto bg-white rounded-lg"
-                    disabled={(date) => date < new Date()}
-                  />
+                  <CalendarComponent mode="single" onSelect={handleDateSelect} initialFocus className="p-3 pointer-events-auto bg-white rounded-lg" disabled={date => date < new Date()} />
                 </div>
               </PopoverContent>
             </Popover>
-            {newAction.targetDate && (
-              <div className="text-xs text-muted-foreground mt-1 text-center">
+            {newAction.targetDate && <div className="text-xs text-muted-foreground mt-1 text-center">
                 {newAction.targetDate}
-              </div>
-            )}
+              </div>}
           </div>
         </div>
       </div>
-    </div>
-  );
+    </div>;
 };
