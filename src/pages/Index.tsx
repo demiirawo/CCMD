@@ -415,111 +415,100 @@ const Index = () => {
     };
   };
 
-  const getQuarter = (date: string) => {
-    const dateObj = new Date(date);
-    const month = dateObj.getMonth() + 1;
-    if (month <= 3) return 'Q1';
-    if (month <= 6) return 'Q2';
-    if (month <= 9) return 'Q3';
-    return 'Q4';
-  };
-
-  const parseDateString = (dateString: string) => {
-    // Handle different date formats that might come from the date picker
-    // Expected format: "dd/MM/yyyy HH:mm" or similar
+  // NEW SAVE MEETING FUNCTIONALITY - REBUILT FROM SCRATCH
+  const saveMeetingToDatabase = async () => {
     try {
-      // If it's already a valid ISO string or standard format, use it directly
-      const directParse = new Date(dateString);
-      if (!isNaN(directParse.getTime())) {
-        return directParse;
-      }
+      // Parse the date from the date-time picker format (dd/MM/yyyy HH:mm)
+      const parseDateString = (dateString: string) => {
+        try {
+          // Try to parse dd/MM/yyyy HH:mm format
+          const parts = dateString.match(/(\d{2})\/(\d{2})\/(\d{4})\s+(\d{2}):(\d{2})/);
+          if (parts) {
+            const [, day, month, year, hour, minute] = parts;
+            return new Date(parseInt(year), parseInt(month) - 1, parseInt(day), parseInt(hour), parseInt(minute));
+          }
+          
+          // Fallback to direct parsing
+          const directParse = new Date(dateString);
+          if (!isNaN(directParse.getTime())) {
+            return directParse;
+          }
+          
+          // Last resort - use current date
+          return new Date();
+        } catch (error) {
+          console.error('Error parsing date:', dateString, error);
+          return new Date();
+        }
+      };
 
-      // Try to parse dd/MM/yyyy HH:mm format
-      const parts = dateString.match(/(\d{2})\/(\d{2})\/(\d{4})\s+(\d{2}):(\d{2})/);
-      if (parts) {
-        const [, day, month, year, hour, minute] = parts;
-        // Month is 0-indexed in JavaScript Date
-        return new Date(parseInt(year), parseInt(month) - 1, parseInt(day), parseInt(hour), parseInt(minute));
-      }
-
-      // If all else fails, try current date
-      console.warn('Could not parse date:', dateString, 'using current date');
-      return new Date();
-    } catch (error) {
-      console.error('Error parsing date:', dateString, error);
-      return new Date();
-    }
-  };
-
-  const handleSaveDashboard = async () => {
-    try {
       const meetingDate = parseDateString(headerData.date);
-      const quarter = getQuarter(meetingDate.toISOString());
+      
+      // Calculate quarter from date
+      const month = meetingDate.getMonth() + 1;
+      let quarter = 'Q1';
+      if (month <= 3) quarter = 'Q1';
+      else if (month <= 6) quarter = 'Q2';
+      else if (month <= 9) quarter = 'Q3';
+      else quarter = 'Q4';
+      
       const year = meetingDate.getFullYear();
 
-      const meetingData = {
+      // Prepare clean data for database (remove JSX elements and circular references)
+      const cleanSections = dashboardData.sections.map(section => ({
+        id: section.id,
+        title: section.title,
+        items: section.items.map(item => ({
+          id: item.id,
+          title: item.title,
+          status: item.status,
+          lastReviewed: item.lastReviewed,
+          observation: item.observation,
+          actions: item.actions || [],
+          details: item.details
+        }))
+      }));
+
+      const meetingRecord = {
         date: meetingDate.toISOString(),
         title: headerData.title,
         attendees: JSON.stringify(headerData.attendees),
-        purpose: headerData.purpose,
-        sections: JSON.stringify(dashboardData.sections.map(section => ({
-          id: section.id,
-          title: section.title,
-          // Remove the icon JSX element as it can't be serialized
-          items: section.items.map(item => ({
-            id: item.id,
-            title: item.title,
-            status: item.status,
-            lastReviewed: item.lastReviewed,
-            observation: item.observation,
-            actions: item.actions,
-            details: item.details
-          }))
-        }))),
+        purpose: headerData.purpose || '',
+        sections: JSON.stringify(cleanSections),
         actions_log: JSON.stringify(actionsLog),
         quarter,
         year
       };
 
-      const { error } = await supabase
+      // Save to Supabase
+      const { data, error } = await supabase
         .from('meetings')
-        .insert([meetingData]);
+        .insert([meetingRecord])
+        .select();
 
       if (error) {
-        console.error('Error saving meeting:', error);
+        console.error('Supabase error:', error);
         toast({
           title: "Save Failed",
-          description: "Failed to save meeting to database",
+          description: `Failed to save meeting: ${error.message}`,
           variant: "destructive"
         });
         return;
       }
 
-      // Also save to localStorage as backup
-      const dashboardState = {
-        headerData,
-        dashboardData,
-        actionsLog,
-        savedAt: new Date().toISOString()
-      };
-      
-      localStorage.setItem('dashboard-state', JSON.stringify(dashboardState));
-      
+      // Success
       toast({
         title: "Meeting Saved",
         description: `Meeting saved successfully under ${quarter} ${year}. Check the Reports page to view it.`,
       });
-      
-      // Optional: Add a small delay and redirect to reports to show the saved meeting
-      setTimeout(() => {
-        // You could optionally redirect here if desired
-        // window.location.href = '/reports';
-      }, 2000);
+
+      console.log('Meeting saved successfully:', data);
+
     } catch (error) {
       console.error('Error saving meeting:', error);
       toast({
         title: "Save Failed",
-        description: "Failed to save meeting",
+        description: "An unexpected error occurred while saving the meeting",
         variant: "destructive"
       });
     }
@@ -584,7 +573,7 @@ const Index = () => {
       <div className="max-w-7xl mx-auto space-y-6">
         <div className="flex justify-end gap-4 mb-6">
           <Button 
-            onClick={handleSaveDashboard}
+            onClick={saveMeetingToDatabase}
             variant="outline"
             className="gap-2"
           >

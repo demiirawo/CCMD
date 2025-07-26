@@ -41,8 +41,8 @@ export const Reports = () => {
   useEffect(() => {
     fetchMeetings();
     
-    // Set up periodic refresh to catch new meetings
-    const interval = setInterval(fetchMeetings, 5000); // Refresh every 5 seconds
+    // Set up periodic refresh to catch new meetings (every 3 seconds)
+    const interval = setInterval(fetchMeetings, 3000);
     
     return () => clearInterval(interval);
   }, []);
@@ -66,6 +66,7 @@ export const Reports = () => {
       }));
 
       setMeetings(parsedMeetings);
+      console.log('Fetched meetings:', parsedMeetings);
     } catch (error) {
       console.error('Error:', error);
     } finally {
