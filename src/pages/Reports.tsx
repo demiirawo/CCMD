@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -39,6 +40,11 @@ export const Reports = () => {
 
   useEffect(() => {
     fetchMeetings();
+    
+    // Set up periodic refresh to catch new meetings
+    const interval = setInterval(fetchMeetings, 5000); // Refresh every 5 seconds
+    
+    return () => clearInterval(interval);
   }, []);
 
   const fetchMeetings = async () => {
@@ -50,11 +56,6 @@ export const Reports = () => {
 
       if (error) {
         console.error('Error fetching meetings:', error);
-        toast({
-          title: "Error",
-          description: "Failed to fetch meetings",
-          variant: "destructive"
-        });
         return;
       }
 
@@ -67,11 +68,6 @@ export const Reports = () => {
       setMeetings(parsedMeetings);
     } catch (error) {
       console.error('Error:', error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch meetings",
-        variant: "destructive"
-      });
     } finally {
       setLoading(false);
     }
@@ -151,7 +147,7 @@ export const Reports = () => {
             </CardContent>
           </Card>
         ) : (
-          <div className="space-y-6">
+          <div className="space-y-8">
             {Object.entries(groupedMeetings)
               .sort(([a], [b]) => b.localeCompare(a))
               .map(([quarterKey, quarterMeetings]) => {
@@ -160,62 +156,66 @@ export const Reports = () => {
                 const isCurrent = isCurrentQuarter(quarter, yearNum);
 
                 return (
-                  <Card key={quarterKey}>
-                    <CardHeader className="border-b">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <CardTitle className="text-xl">
-                            {quarter} {year}
-                          </CardTitle>
+                  <div key={quarterKey} className="space-y-4">
+                    {/* Quarter Header as Link */}
+                    <div className="flex items-center justify-between">
+                      <Link 
+                        to={`/reports?quarter=${quarter}&year=${year}`}
+                        className="group"
+                      >
+                        <h2 className="text-2xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
+                          {quarter} {year}
                           {isCurrent && (
-                            <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                            <Badge variant="outline" className="ml-3 bg-blue-50 text-blue-700 border-blue-200">
                               Current Quarter
                             </Badge>
                           )}
-                        </div>
-                        
-                        {!isCurrent && (
-                          <Button variant="outline" className="gap-2">
-                            <FileText className="h-4 w-4" />
-                            Quarterly Summary
-                          </Button>
-                        )}
-                      </div>
+                        </h2>
+                        <p className="text-sm text-gray-600 mt-1">
+                          {quarterMeetings.length} meeting{quarterMeetings.length !== 1 ? 's' : ''} saved
+                        </p>
+                      </Link>
                       
-                      <p className="text-sm text-gray-600">
-                        {quarterMeetings.length} meeting{quarterMeetings.length !== 1 ? 's' : ''} saved
-                      </p>
-                    </CardHeader>
-                    
-                    <CardContent className="pt-4">
-                      <div className="space-y-3">
-                        {quarterMeetings.map((meeting) => (
-                          <div key={meeting.id} className="bg-gray-50 rounded-lg p-4 border">
-                            <div className="flex items-start justify-between">
-                              <div className="flex-1">
-                                <h4 className="font-medium text-gray-900 mb-1">
-                                  {meeting.title}
-                                </h4>
-                                <div className="flex items-center gap-4 text-sm text-gray-600 mb-2">
-                                  <div className="flex items-center gap-1">
-                                    <CalendarDays className="h-4 w-4" />
-                                    {formatDate(meeting.date)}
+                      {!isCurrent && (
+                        <Button variant="outline" className="gap-2">
+                          <FileText className="h-4 w-4" />
+                          Quarterly Summary
+                        </Button>
+                      )}
+                    </div>
+
+                    {/* Quarter Meetings */}
+                    <Card>
+                      <CardContent className="pt-6">
+                        <div className="space-y-3">
+                          {quarterMeetings.map((meeting) => (
+                            <div key={meeting.id} className="bg-gray-50 rounded-lg p-4 border">
+                              <div className="flex items-start justify-between">
+                                <div className="flex-1">
+                                  <h4 className="font-medium text-gray-900 mb-1">
+                                    {meeting.title}
+                                  </h4>
+                                  <div className="flex items-center gap-4 text-sm text-gray-600 mb-2">
+                                    <div className="flex items-center gap-1">
+                                      <CalendarDays className="h-4 w-4" />
+                                      {formatDate(meeting.date)}
+                                    </div>
+                                    <div className="flex items-center gap-1">
+                                      <Users className="h-4 w-4" />
+                                      {meeting.attendees.length} attendee{meeting.attendees.length !== 1 ? 's' : ''}
+                                    </div>
                                   </div>
-                                  <div className="flex items-center gap-1">
-                                    <Users className="h-4 w-4" />
-                                    {meeting.attendees.length} attendee{meeting.attendees.length !== 1 ? 's' : ''}
-                                  </div>
+                                  {meeting.purpose && (
+                                    <p className="text-sm text-gray-700">{meeting.purpose}</p>
+                                  )}
                                 </div>
-                                {meeting.purpose && (
-                                  <p className="text-sm text-gray-700">{meeting.purpose}</p>
-                                )}
                               </div>
                             </div>
-                          </div>
-                        ))}
-                      </div>
-                    </CardContent>
-                  </Card>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
                 );
               })}
           </div>

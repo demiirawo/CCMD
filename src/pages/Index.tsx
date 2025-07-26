@@ -470,8 +470,14 @@ const Index = () => {
       
       toast({
         title: "Meeting Saved",
-        description: `Meeting saved successfully under ${quarter} ${year}`,
+        description: `Meeting saved successfully under ${quarter} ${year}. Check the Reports page to view it.`,
       });
+      
+      // Optional: Add a small delay and redirect to reports to show the saved meeting
+      setTimeout(() => {
+        // You could optionally redirect here if desired
+        // window.location.href = '/reports';
+      }, 2000);
     } catch (error) {
       console.error('Error saving meeting:', error);
       toast({
@@ -546,7 +552,7 @@ const Index = () => {
             className="gap-2"
           >
             <Save className="w-4 h-4" />
-            Save Dashboard
+            Save Meeting
           </Button>
           <Button 
             onClick={handleExportPDF}
