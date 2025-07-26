@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Trash2, Calendar } from "lucide-react";
+import { Plus, Minus, Calendar } from "lucide-react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
@@ -88,7 +88,7 @@ export const ActionForm = ({
                 onClick={() => removeAction(action.id)}
                 className="h-8 w-8 p-0 text-red-500 hover:bg-red-100"
               >
-                <Trash2 className="h-4 w-4" />
+                <Minus className="h-4 w-4" />
               </Button>
             </div>
           ))}
@@ -99,7 +99,7 @@ export const ActionForm = ({
       <div className="border border-border rounded-lg p-4 space-y-3">
         <div className="text-sm font-medium text-muted-foreground">Add New Action</div>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-3 items-end">
           {/* Name Dropdown */}
           <div>
             <label className="text-xs text-muted-foreground mb-1 block">Assigned To</label>
@@ -115,8 +115,7 @@ export const ActionForm = ({
                   <SelectItem key={attendee} value={attendee}>
                     {attendee}
                   </SelectItem>
-                ))
-                }
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -156,19 +155,18 @@ export const ActionForm = ({
               </PopoverContent>
             </Popover>
           </div>
-        </div>
 
-        {/* Add Button */}
-        <div className="flex justify-end">
-          <Button
-            onClick={addAction}
-            disabled={!newAction.name || !newAction.description || !newAction.targetDate}
-            size="sm"
-            className="h-8"
-          >
-            <Plus className="h-4 w-4 mr-1" />
-            Add Action
-          </Button>
+          {/* Add Button */}
+          <div>
+            <Button
+              onClick={addAction}
+              disabled={!newAction.name || !newAction.description || !newAction.targetDate}
+              size="sm"
+              className="h-9 w-9 p-0"
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       </div>
     </div>

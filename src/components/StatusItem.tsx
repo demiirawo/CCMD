@@ -77,12 +77,12 @@ export const StatusItem = ({
           <StatusBadge status={item.status} />
         </button>
         
-        <div className="flex-[2] min-w-0 mr-4">
-          <h4 className="font-semibold text-foreground truncate">{item.title}</h4>
-          <p className="text-xs text-muted-foreground mt-1">Last Discussed: {item.lastReviewed}</p>
+        <div className="flex-1 min-w-0 mr-3">
+          <h4 className="font-semibold text-foreground text-sm truncate">{item.title}</h4>
+          <p className="text-xs text-muted-foreground">Last: {item.lastReviewed}</p>
         </div>
         
-        <div className="flex-[4.6] min-w-0 space-y-3">
+        <div className="flex-[5] min-w-0 space-y-3">
           {/* Observation Section */}
           <div>
             <label className="text-xs font-medium text-muted-foreground mb-1 block">OBSERVATION</label>
