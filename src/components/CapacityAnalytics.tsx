@@ -35,7 +35,7 @@ const chartConfig = {
     color: "hsl(var(--chart-1))"
   },
   currentStaff: {
-    label: "Current Staff", 
+    label: "Current Staff",
     color: "hsl(var(--chart-2))"
   },
   minStaff: {
@@ -135,50 +135,7 @@ export const CapacityAnalytics = () => {
       </div>
 
       {/* Metrics Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-        <Card className="p-4" style={{
-        backgroundColor: '#e0d4f7',
-        borderColor: '#c4b5fd'
-      }}>
-          <div className="text-xs text-muted-foreground mb-1">Active Onboarding Staff</div>
-          <div className="text-2xl font-bold">{currentMetrics.activeOnboardingStaff}</div>
-        </Card>
-        
-        <Card className="p-4" style={{
-        backgroundColor: '#bfdbfe',
-        borderColor: '#93c5fd'
-      }}>
-          <div className="text-xs text-muted-foreground mb-1">Current Staffing Level</div>
-          <div className="text-2xl font-bold">{currentMetrics.currentStaffingLevel}</div>
-        </Card>
-        
-        <Card className="p-4" style={{
-        backgroundColor: '#fecaca',
-        borderColor: '#fca5a5'
-      }}>
-          <div className="text-xs text-muted-foreground mb-1">Minimum Staffing Level</div>
-          <div className="text-2xl font-bold">{currentMetrics.minimumStaffingLevel}</div>
-        </Card>
-        
-        <Card className="p-4" style={{
-        backgroundColor: '#bbf7d0',
-        borderColor: '#86efac'
-      }}>
-          <div className="text-xs text-muted-foreground mb-1">Ideal Staffing Level</div>
-          <div className="text-2xl font-bold">{currentMetrics.idealStaffingLevel}</div>
-        </Card>
-        
-        <Card className="p-4" style={{
-        backgroundColor: '#fed7aa',
-        borderColor: '#fdba74'
-      }}>
-          <div className="text-xs text-muted-foreground mb-1">Capacity Coverage</div>
-          <div className="text-2xl font-bold">{currentMetrics.capacityCoverage}%</div>
-          <div className="text-xs text-orange-600 mt-1">
-            {currentMetrics.capacityCoverage < 80 ? 'Insufficient' : 'Adequate'}
-          </div>
-        </Card>
-      </div>
+      
 
       {/* Chart */}
       <div className="space-y-2">
@@ -205,13 +162,13 @@ export const CapacityAnalytics = () => {
                 <Bar dataKey="currentStaff" fill="#3b82f6" name="Current Staff" stackId="staff" />
                 <Bar dataKey="onboardingStaff" fill="#8b5cf6" name="Onboarding Staff" stackId="staff" />
                 <Line type="monotone" dataKey="minStaff" stroke="#ef4444" strokeWidth={2} dot={{
-                  r: 3,
-                  fill: "#ef4444"
-                }} name="Min Staff" />
+                r: 3,
+                fill: "#ef4444"
+              }} name="Min Staff" />
                 <Line type="monotone" dataKey="idealStaff" stroke="#22c55e" strokeWidth={2} dot={{
-                  r: 3,
-                  fill: "#22c55e"
-                }} name="Ideal Staff" />
+                r: 3,
+                fill: "#22c55e"
+              }} name="Ideal Staff" />
               </ComposedChart>
             </ResponsiveContainer>
           </ChartContainer>
