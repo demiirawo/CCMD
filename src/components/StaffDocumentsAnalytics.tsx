@@ -164,28 +164,29 @@ export const StaffDocumentsAnalytics = () => {
                 {/* SVG for lines connecting pie slices to labels */}
                 <svg className="absolute top-0 left-0 w-full h-full pointer-events-none">
                   {pieData.map((entry, index) => {
-                    // Calculate the start angle for this slice
-                    let startAngle = 0;
+                    // Calculate cumulative percentage to find where this slice starts
+                    let cumulativeValue = 0;
                     for (let i = 0; i < index; i++) {
-                      startAngle += (pieData[i].value / total) * 360;
+                      cumulativeValue += pieData[i].value;
                     }
                     
-                    // Calculate the center angle of this slice
-                    const sliceAngle = (entry.value / total) * 360;
-                    const centerAngle = startAngle + (sliceAngle / 2);
+                    // Calculate start angle and slice angle in degrees
+                    const startAngleDeg = (cumulativeValue / total) * 360;
+                    const sliceAngleDeg = (entry.value / total) * 360;
+                    const centerAngleDeg = startAngleDeg + (sliceAngleDeg / 2);
                     
-                    // Convert to radians
-                    const radian = (centerAngle * Math.PI) / 180;
+                    // Convert to radians (starting from top, going clockwise)
+                    const centerAngleRad = ((centerAngleDeg - 90) * Math.PI) / 180;
                     
                     // Start point at edge of pie
                     const startRadius = 104;
-                    const x1 = 300 + startRadius * Math.cos(radian - Math.PI / 2);
-                    const y1 = 250 + startRadius * Math.sin(radian - Math.PI / 2);
+                    const x1 = 300 + startRadius * Math.cos(centerAngleRad);
+                    const y1 = 250 + startRadius * Math.sin(centerAngleRad);
                     
                     // End point for label positioning
                     const endRadius = 180;
-                    const x2 = 300 + endRadius * Math.cos(radian - Math.PI / 2);
-                    const y2 = 250 + endRadius * Math.sin(radian - Math.PI / 2);
+                    const x2 = 300 + endRadius * Math.cos(centerAngleRad);
+                    const y2 = 250 + endRadius * Math.sin(centerAngleRad);
                     
                     return (
                       <g key={`line-${index}`}>
@@ -204,21 +205,23 @@ export const StaffDocumentsAnalytics = () => {
                 
                 {/* Percentage labels positioned outside */}
                 {pieData.map((entry, index) => {
-                  // Calculate the start angle for this slice
-                  let startAngle = 0;
+                  // Calculate cumulative percentage to find where this slice starts
+                  let cumulativeValue = 0;
                   for (let i = 0; i < index; i++) {
-                    startAngle += (pieData[i].value / total) * 360;
+                    cumulativeValue += pieData[i].value;
                   }
                   
-                  // Calculate the center angle of this slice
-                  const sliceAngle = (entry.value / total) * 360;
-                  const centerAngle = startAngle + (sliceAngle / 2);
+                  // Calculate start angle and slice angle in degrees
+                  const startAngleDeg = (cumulativeValue / total) * 360;
+                  const sliceAngleDeg = (entry.value / total) * 360;
+                  const centerAngleDeg = startAngleDeg + (sliceAngleDeg / 2);
                   
-                  // Convert to radians and calculate position
-                  const radian = (centerAngle * Math.PI) / 180;
+                  // Convert to radians (starting from top, going clockwise)
+                  const centerAngleRad = ((centerAngleDeg - 90) * Math.PI) / 180;
+                  
                   const radius = 190;
-                  const x = 300 + radius * Math.cos(radian - Math.PI / 2);
-                  const y = 250 + radius * Math.sin(radian - Math.PI / 2);
+                  const x = 300 + radius * Math.cos(centerAngleRad);
+                  const y = 250 + radius * Math.sin(centerAngleRad);
                   
                   return (
                     <div
