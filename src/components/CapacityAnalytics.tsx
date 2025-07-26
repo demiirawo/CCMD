@@ -16,7 +16,6 @@ const generateInitialData = () => {
       onboardingStaff: 0,
       probationStaff: 0,
       currentStaff: 0,
-      minStaff: 0,
       idealStaff: 0
     });
   }
@@ -43,13 +42,9 @@ const chartConfig = {
     label: "Current Staff",
     color: "hsl(var(--chart-3))"
   },
-  minStaff: {
-    label: "Min Staff",
-    color: "hsl(var(--chart-4))"
-  },
   idealStaff: {
     label: "Ideal Staff",
-    color: "hsl(var(--chart-5))"
+    color: "hsl(var(--chart-4))"
   }
 };
 export const CapacityAnalytics = ({ onMonthlyStaffDataChange }: { onMonthlyStaffDataChange?: (data: Array<{month: string, currentStaff: number}>) => void } = {}) => {
@@ -82,7 +77,7 @@ export const CapacityAnalytics = ({ onMonthlyStaffDataChange }: { onMonthlyStaff
     setCurrentMetrics({
       activeOnboardingStaff: latestRow.onboardingStaff,
       currentStaffingLevel: totalStaff,
-      minimumStaffingLevel: latestRow.minStaff,
+      minimumStaffingLevel: 0,
       idealStaffingLevel: latestRow.idealStaff,
       capacityCoverage: Math.round(coverage * 10) / 10
     });
@@ -132,12 +127,11 @@ export const CapacityAnalytics = ({ onMonthlyStaffDataChange }: { onMonthlyStaff
         <table className="w-full text-sm table-fixed">
           <thead>
             <tr className="border-b">
-              <th className="text-left p-3 font-medium w-1/6">Month</th>
-              <th className="text-left p-3 font-medium w-1/6">Onboarding</th>
-              <th className="text-left p-3 font-medium w-1/6">Probation</th>
-              <th className="text-left p-3 font-medium w-1/6">Active</th>
-              <th className="text-left p-3 font-medium w-1/6">Minimum</th>
-              <th className="text-left p-3 font-medium w-1/6">Target</th>
+              <th className="text-left p-3 font-medium w-1/5">Month</th>
+              <th className="text-left p-3 font-medium w-1/5">Onboarding</th>
+              <th className="text-left p-3 font-medium w-1/5">Probation</th>
+              <th className="text-left p-3 font-medium w-1/5">Active</th>
+              <th className="text-left p-3 font-medium w-1/5">Target</th>
             </tr>
           </thead>
           <tbody>
@@ -151,9 +145,6 @@ export const CapacityAnalytics = ({ onMonthlyStaffDataChange }: { onMonthlyStaff
                 </td>
                 <td className="p-3">
                   <EditableCell value={row.currentStaff} onEdit={val => handleCellEdit(index, 'currentStaff', val)} />
-                </td>
-                <td className="p-3">
-                  <EditableCell value={row.minStaff} onEdit={val => handleCellEdit(index, 'minStaff', val)} />
                 </td>
                 <td className="p-3">
                   <EditableCell value={row.idealStaff} onEdit={val => handleCellEdit(index, 'idealStaff', val)} />
@@ -182,10 +173,6 @@ export const CapacityAnalytics = ({ onMonthlyStaffDataChange }: { onMonthlyStaff
                 <Bar dataKey="currentStaff" fill="#3b82f6" name="Current Staff" stackId="staff" />
                 <Bar dataKey="probationStaff" fill="#f59e0b" name="Probation Staff" stackId="staff" />
                 <Bar dataKey="onboardingStaff" fill="#8b5cf6" name="Onboarding Staff" stackId="staff" />
-                <Line type="monotone" dataKey="minStaff" stroke="#ef4444" strokeWidth={2} dot={{
-                r: 3,
-                fill: "#ef4444"
-              }} name="Min Staff" />
                 <Line type="monotone" dataKey="idealStaff" stroke="#22c55e" strokeWidth={2} dot={{
                 r: 3,
                 fill: "#22c55e"
@@ -208,10 +195,6 @@ export const CapacityAnalytics = ({ onMonthlyStaffDataChange }: { onMonthlyStaff
             <div className="flex items-center gap-2">
               <div className="w-4 h-4 bg-purple-500 rounded"></div>
               <span className="text-xs text-muted-foreground">Onboarding</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-3 border-b-2 border-red-500"></div>
-              <span className="text-xs text-muted-foreground">Minimum</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-4 h-3 border-b-2 border-green-500"></div>
