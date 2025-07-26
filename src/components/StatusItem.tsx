@@ -66,34 +66,36 @@ export const StatusItem = ({
     onAccountableChange?.(item.id, accountable);
   };
   return <div className="w-full bg-white rounded-xl p-8 mb-3 shadow-md border border-border/30 hover:scale-[1.01] transition-transform duration-300 min-h-[140px]">
-      <div className="flex items-center gap-4 w-full">
-        <button onClick={() => setIsExpanded(!isExpanded)} className={`flex-shrink-0 p-1 rounded-lg hover:bg-accent/50 transition-colors ${item.title.toLowerCase().includes('service user documents') || item.title.toLowerCase().includes('staff meeting') ? 'opacity-0 invisible pointer-events-none' : ''}`}>
-          {isExpanded ? <ChevronDown className="w-4 h-4 text-muted-foreground" /> : <ChevronRight className="w-4 h-4 text-muted-foreground" />}
-        </button>
-        
-        <button onClick={e => {
-        e.stopPropagation();
-        const statusOrder: StatusType[] = ["green", "amber", "red"];
-        const currentIndex = statusOrder.indexOf(item.status);
-        const nextStatus = statusOrder[(currentIndex + 1) % statusOrder.length];
-        onStatusChange?.(item.id, nextStatus);
-      }} className="flex-shrink-0 hover:scale-110 transition-transform">
-          <StatusBadge status={item.status} />
-        </button>
-        
-        <div className="flex-1 min-w-0 mr-3">
-          <h4 className="font-semibold text-foreground text-sm truncate">{item.title}</h4>
-          <p className="text-xs text-muted-foreground">Last: {item.lastReviewed}</p>
+      <div className="flex items-start gap-4 w-full">
+        <div className="flex flex-col items-center gap-2">
+          <button onClick={() => setIsExpanded(!isExpanded)} className={`flex-shrink-0 p-1 rounded-lg hover:bg-accent/50 transition-colors ${item.title.toLowerCase().includes('service user documents') || item.title.toLowerCase().includes('staff meeting') ? 'opacity-0 invisible pointer-events-none' : ''}`}>
+            {isExpanded ? <ChevronDown className="w-4 h-4 text-muted-foreground" /> : <ChevronRight className="w-4 h-4 text-muted-foreground" />}
+          </button>
           
-          {/* Accountable Section - below title */}
-          <div className="mt-2">
-            <label className="text-xs font-medium text-muted-foreground mb-1 block">ACCOUNTABLE</label>
+          <button onClick={e => {
+          e.stopPropagation();
+          const statusOrder: StatusType[] = ["green", "amber", "red"];
+          const currentIndex = statusOrder.indexOf(item.status);
+          const nextStatus = statusOrder[(currentIndex + 1) % statusOrder.length];
+          onStatusChange?.(item.id, nextStatus);
+        }} className="flex-shrink-0 hover:scale-110 transition-transform">
+            <StatusBadge status={item.status} />
+          </button>
+
+          {/* Accountable Section - below status icon */}
+          <div className="w-full">
+            <label className="text-xs font-medium text-muted-foreground mb-1 block text-center">ACCOUNTABLE</label>
             <AccountableManager 
               accountable={item.accountable || []} 
               attendees={attendees} 
               onChange={handleAccountableChange} 
             />
           </div>
+        </div>
+        
+        <div className="flex-1 min-w-0 mr-3">
+          <h4 className="font-semibold text-foreground text-sm truncate">{item.title}</h4>
+          <p className="text-xs text-muted-foreground">Last: {item.lastReviewed}</p>
         </div>
         
         <div className="flex-[5] min-w-0 space-y-3">
