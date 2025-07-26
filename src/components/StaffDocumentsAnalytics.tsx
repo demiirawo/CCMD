@@ -4,7 +4,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
 
-const initialComplianceData = {
+const initialDocumentsData = {
   activeFullyCompliant: 0,
   activePendingDocuments: 0,
   onboardingPendingDocuments: 0,
@@ -31,11 +31,11 @@ const chartConfig = {
 };
 
 export const StaffDocumentsAnalytics = () => {
-  const [complianceData, setComplianceData] = useState(initialComplianceData);
+  const [documentsData, setDocumentsData] = useState(initialDocumentsData);
 
   const handleInputChange = (field: string, value: string) => {
     const numValue = parseInt(value) || 0;
-    setComplianceData(prev => ({
+    setDocumentsData(prev => ({
       ...prev,
       [field]: numValue
     }));
@@ -65,30 +65,30 @@ export const StaffDocumentsAnalytics = () => {
   };
 
   // Calculate pie chart data
-  const total = Object.values(complianceData).reduce((sum, val) => sum + val, 0);
+  const total = Object.values(documentsData).reduce((sum, val) => sum + val, 0);
   const pieData = total > 0 ? [
     {
       name: "Active - Fully Compliant",
-      value: complianceData.activeFullyCompliant,
-      percentage: Math.round((complianceData.activeFullyCompliant / total) * 100),
+      value: documentsData.activeFullyCompliant,
+      percentage: Math.round((documentsData.activeFullyCompliant / total) * 100),
       color: "#22c55e"
     },
     {
       name: "Active - Pending Documents",
-      value: complianceData.activePendingDocuments,
-      percentage: Math.round((complianceData.activePendingDocuments / total) * 100),
+      value: documentsData.activePendingDocuments,
+      percentage: Math.round((documentsData.activePendingDocuments / total) * 100),
       color: "#f59e0b"
     },
     {
       name: "Onboarding - Pending Documents",
-      value: complianceData.onboardingPendingDocuments,
-      percentage: Math.round((complianceData.onboardingPendingDocuments / total) * 100),
+      value: documentsData.onboardingPendingDocuments,
+      percentage: Math.round((documentsData.onboardingPendingDocuments / total) * 100),
       color: "#ef4444"
     },
     {
       name: "Onboarding - Fully Compliant",
-      value: complianceData.onboardingFullyCompliant,
-      percentage: Math.round((complianceData.onboardingFullyCompliant / total) * 100),
+      value: documentsData.onboardingFullyCompliant,
+      percentage: Math.round((documentsData.onboardingFullyCompliant / total) * 100),
       color: "#3b82f6"
     }
   ].filter(item => item.value > 0) : [];
@@ -100,45 +100,43 @@ export const StaffDocumentsAnalytics = () => {
         <button className="text-muted-foreground hover:text-foreground">✕</button>
       </div>
       
-      {/* Staff Compliance Numbers */}
+      {/* Staff Documents Input Section */}
       <div className="space-y-2">
         <div className="text-sm font-medium text-foreground">Staff Documents Numbers</div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <EditableInput
-            value={complianceData.activeFullyCompliant}
+            value={documentsData.activeFullyCompliant}
             onEdit={(val) => handleInputChange('activeFullyCompliant', val)}
             label="Active - Fully Compliant"
           />
           <EditableInput
-            value={complianceData.activePendingDocuments}
+            value={documentsData.activePendingDocuments}
             onEdit={(val) => handleInputChange('activePendingDocuments', val)}
             label="Active - Pending Documents"
           />
           <EditableInput
-            value={complianceData.onboardingPendingDocuments}
+            value={documentsData.onboardingPendingDocuments}
             onEdit={(val) => handleInputChange('onboardingPendingDocuments', val)}
             label="Onboarding - Pending Documents"
           />
           <EditableInput
-            value={complianceData.onboardingFullyCompliant}
+            value={documentsData.onboardingFullyCompliant}
             onEdit={(val) => handleInputChange('onboardingFullyCompliant', val)}
             label="Onboarding - Fully Compliant"
           />
         </div>
       </div>
 
-      {/* Staff Compliance Breakdown */}
+      {/* Pie Chart Section */}
       {total > 0 && (
         <div className="space-y-4">
           <div className="text-sm font-medium text-foreground">Staff Documents Breakdown</div>
           
           <Card className="p-8">
             <div className="flex flex-col items-center gap-8">
-              {/* Chart Title */}
-              <div className="text-lg font-semibold text-center">Staff Documents Breakdown</div>
+              <div className="text-lg font-semibold text-center">Staff Documents Status Overview</div>
               
-              {/* Pie Chart with labels */}
               <div className="relative w-[600px] h-[500px] flex items-center justify-center">
                 <div className="w-64 h-64">
                   <ChartContainer config={chartConfig} className="w-full h-full">
@@ -163,7 +161,7 @@ export const StaffDocumentsAnalytics = () => {
                   </ChartContainer>
                 </div>
                 
-                {/* Percentage labels positioned around chart */}
+                {/* Percentage labels around chart */}
                 {pieData.map((entry, index) => {
                   const angle = (index * (360 / pieData.length)) + (360 / pieData.length / 2);
                   const radian = (angle * Math.PI) / 180;
