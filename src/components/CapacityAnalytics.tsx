@@ -2,7 +2,7 @@ import { Card } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { ComposedChart, Bar, Line, XAxis, YAxis, ResponsiveContainer } from "recharts";
 import { Input } from "@/components/ui/input";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { format, subMonths } from "date-fns";
 // Generate 12 months of data from current month back to same month last year
@@ -50,6 +50,17 @@ const chartConfig = {
 export const CapacityAnalytics = ({ onMonthlyStaffDataChange }: { onMonthlyStaffDataChange?: (data: Array<{month: string, currentStaff: number}>) => void } = {}) => {
   const [monthlyData, setMonthlyData] = useState(initialMonthlyData);
   const [currentMetrics, setCurrentMetrics] = useState(initialCurrentMetrics);
+  
+  // Send initial monthly staff data to parent component
+  useEffect(() => {
+    if (onMonthlyStaffDataChange) {
+      const staffData = monthlyData.map(item => ({
+        month: item.month,
+        currentStaff: item.currentStaff
+      }));
+      onMonthlyStaffDataChange(staffData);
+    }
+  }, [onMonthlyStaffDataChange]);
   const handleCellEdit = (rowIndex: number, field: string, value: string) => {
     const numValue = parseInt(value) || 0;
     const newData = [...monthlyData];
