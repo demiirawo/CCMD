@@ -27,7 +27,7 @@ const sectionConfig = {
     title: "Safety"
   },
   "continuous-improvement": {
-    title: "Continuous Improvement"
+    title: "Continuous\nImprovement"
   }
 };
 
@@ -37,7 +37,7 @@ export const MeetingStatusSummary = ({ sections }: MeetingStatusSummaryProps) =>
   );
 
   return (
-    <div className="flex items-center gap-4">
+    <div className="flex items-center justify-between w-48">
       {mainSections.map(section => {
         const config = sectionConfig[section.id as keyof typeof sectionConfig];
         if (!config) return null;
@@ -46,7 +46,9 @@ export const MeetingStatusSummary = ({ sections }: MeetingStatusSummaryProps) =>
 
         return (
           <div key={section.id} className="flex flex-col items-center gap-1">
-            <span className="text-xs text-gray-600 font-medium">{config.title}</span>
+            <div className="text-xs text-gray-600 font-medium text-center h-8 flex items-center">
+              <span className="whitespace-pre-line leading-tight">{config.title}</span>
+            </div>
             <StatusBadge status={status} />
           </div>
         );
