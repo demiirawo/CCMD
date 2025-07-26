@@ -162,7 +162,7 @@ export const CarePlanAnalytics = () => {
         {/* Chart */}
         <div className="space-y-4">
           <h3 className="text-lg font-semibold">Care Plan Reviews: Target vs Completed</h3>
-          <ChartContainer config={chartConfig} className="h-[400px]">
+          <ChartContainer config={chartConfig} className="h-[500px] w-full">
             <ResponsiveContainer width="100%" height="100%">
               <ComposedChart data={dataWithTargets} margin={{
               top: 20,
