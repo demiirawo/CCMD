@@ -400,7 +400,9 @@ const Index = () => {
   };
 
   const getAttendeesList = () => {
-    return headerData.attendees.map(attendee => attendee.name);
+    return headerData.attendees
+      .filter(attendee => attendee.name && attendee.name.trim() !== '') // Filter out empty names
+      .map(attendee => attendee.name);
   };
 
   const calculateStats = () => {
