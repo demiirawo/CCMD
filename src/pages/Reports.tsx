@@ -6,12 +6,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CalendarDays, FileText, Users } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { MeetingStatusSummary } from "@/components/MeetingStatusSummary";
 
 interface Meeting {
   id: string;
   date: string;
   title: string;
   attendees: string; // JSON string that will be parsed
+  sections: string; // JSON string that will be parsed
   purpose: string;
   quarter: string;
   year: number;
@@ -23,6 +25,13 @@ interface ParsedMeeting {
   date: string;
   title: string;
   attendees: Array<{id: string, name: string, email: string}>;
+  sections: Array<{
+    id: string;
+    title: string;
+    items: Array<{
+      status: "green" | "amber" | "red";
+    }>;
+  }>;
   purpose: string;
   quarter: string;
   year: number;
@@ -62,7 +71,8 @@ export const Reports = () => {
       // Parse the JSON strings back to objects
       const parsedMeetings = (data || []).map(meeting => ({
         ...meeting,
-        attendees: JSON.parse(typeof meeting.attendees === 'string' ? meeting.attendees : '[]')
+        attendees: JSON.parse(typeof meeting.attendees === 'string' ? meeting.attendees : '[]'),
+        sections: JSON.parse(typeof meeting.sections === 'string' ? meeting.sections : '[]')
       }));
 
       setMeetings(parsedMeetings);
@@ -180,7 +190,7 @@ export const Reports = () => {
                       {!isCurrent && (
                         <Button variant="outline" className="gap-2">
                           <FileText className="h-4 w-4" />
-                          Quarterly Summary
+                          Quarterly Report
                         </Button>
                       )}
                     </div>
@@ -209,6 +219,7 @@ export const Reports = () => {
                                   {meeting.purpose && (
                                     <p className="text-sm text-gray-700">{meeting.purpose}</p>
                                   )}
+                                  <MeetingStatusSummary sections={meeting.sections} />
                                 </div>
                               </div>
                             </div>
