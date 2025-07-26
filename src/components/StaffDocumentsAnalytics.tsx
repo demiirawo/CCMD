@@ -10,21 +10,13 @@ const initialDocumentsData = {
   onboardingFullyCompliant: 0
 };
 const chartConfig = {
-  activeFullyCompliant: {
-    label: "Active - Fully Compliant",
+  fullyCompliant: {
+    label: "Fully Compliant",
     color: "#22c55e"
   },
-  activePendingDocuments: {
-    label: "Active - Pending Documents",
+  pendingDocuments: {
+    label: "Pending Documents", 
     color: "#f59e0b"
-  },
-  onboardingPendingDocuments: {
-    label: "Onboarding - Pending Documents",
-    color: "#ef4444"
-  },
-  onboardingFullyCompliant: {
-    label: "Onboarding - Fully Compliant",
-    color: "#3b82f6"
   }
 };
 export const StaffDocumentsAnalytics = () => {
@@ -53,25 +45,28 @@ export const StaffDocumentsAnalytics = () => {
       </div>;
   };
 
-  // Calculate bar chart data
+  // Calculate bar chart data with stacking
   const total = Object.values(documentsData).reduce((sum, val) => sum + val, 0);
+  
+  // Calculate totals and percentages for each category
+  const activeTotal = documentsData.activeFullyCompliant + documentsData.activePendingDocuments;
+  const onboardingTotal = documentsData.onboardingFullyCompliant + documentsData.onboardingPendingDocuments;
+  
+  const activePendingPercentage = activeTotal > 0 ? Math.round((documentsData.activePendingDocuments / activeTotal) * 100) : 0;
+  const activeCompliantPercentage = activeTotal > 0 ? Math.round((documentsData.activeFullyCompliant / activeTotal) * 100) : 0;
+  
+  const onboardingPendingPercentage = onboardingTotal > 0 ? Math.round((documentsData.onboardingPendingDocuments / onboardingTotal) * 100) : 0;
+  const onboardingCompliantPercentage = onboardingTotal > 0 ? Math.round((documentsData.onboardingFullyCompliant / onboardingTotal) * 100) : 0;
+  
   const barData = total > 0 ? [{
-    name: "Active - Fully Compliant",
-    value: documentsData.activeFullyCompliant,
-    fill: "#22c55e"
+    name: "Active Staff",
+    fullyCompliant: documentsData.activeFullyCompliant,
+    pendingDocuments: documentsData.activePendingDocuments,
   }, {
-    name: "Active - Pending Documents",
-    value: documentsData.activePendingDocuments,
-    fill: "#f59e0b"
-  }, {
-    name: "Onboarding - Pending Documents",
-    value: documentsData.onboardingPendingDocuments,
-    fill: "#ef4444"
-  }, {
-    name: "Onboarding - Fully Compliant",
-    value: documentsData.onboardingFullyCompliant,
-    fill: "#3b82f6"
-  }].filter(item => item.value > 0) : [];
+    name: "Onboarding Staff", 
+    fullyCompliant: documentsData.onboardingFullyCompliant,
+    pendingDocuments: documentsData.onboardingPendingDocuments,
+  }].filter(item => (item.fullyCompliant + item.pendingDocuments) > 0) : [];
   return <div className="space-y-8 mt-6 p-8 border border-border rounded-lg min-h-[600px] w-full bg-white">
       <div className="flex items-center justify-between">
         <h4 className="text-xl font-semibold text-foreground">Staff Documents Analytics</h4>
@@ -112,21 +107,48 @@ export const StaffDocumentsAnalytics = () => {
                   }} angle={-45} textAnchor="end" height={80} />
                       <YAxis />
                       <ChartTooltip content={<ChartTooltipContent />} />
-                      <Bar dataKey="value" />
+                       <Bar dataKey="fullyCompliant" stackId="a" fill="#22c55e" />
+                       <Bar dataKey="pendingDocuments" stackId="a" fill="#f59e0b" />
                     </BarChart>
                   </ResponsiveContainer>
                 </ChartContainer>
               </div>
               
-              {/* Legend */}
-              <div className="grid grid-cols-2 gap-4 mt-4">
-                {barData.map(entry => <div key={entry.name} className="flex items-center gap-3">
-                    <div className="w-4 h-4 rounded" style={{
-                backgroundColor: entry.fill
-              }} />
-                    <span className="text-sm font-medium">{entry.name}</span>
-                  </div>)}
-              </div>
+               {/* Legend and Percentages */}
+               <div className="space-y-6">
+                 <div className="grid grid-cols-2 gap-4">
+                   <div className="flex items-center gap-3">
+                     <div className="w-4 h-4 rounded bg-[#22c55e]" />
+                     <span className="text-sm font-medium">Fully Compliant</span>
+                   </div>
+                   <div className="flex items-center gap-3">
+                     <div className="w-4 h-4 rounded bg-[#f59e0b]" />
+                     <span className="text-sm font-medium">Pending Documents</span>
+                   </div>
+                 </div>
+                 
+                 {/* Percentage Breakdown */}
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-center">
+                   {activeTotal > 0 && (
+                     <div className="space-y-2">
+                       <h5 className="font-medium text-foreground">Active Staff</h5>
+                       <div className="text-sm text-muted-foreground">
+                         <div>Fully Compliant: {activeCompliantPercentage}%</div>
+                         <div>Pending Documents: {activePendingPercentage}%</div>
+                       </div>
+                     </div>
+                   )}
+                   {onboardingTotal > 0 && (
+                     <div className="space-y-2">
+                       <h5 className="font-medium text-foreground">Onboarding Staff</h5>
+                       <div className="text-sm text-muted-foreground">
+                         <div>Fully Compliant: {onboardingCompliantPercentage}%</div>
+                         <div>Pending Documents: {onboardingPendingPercentage}%</div>
+                       </div>
+                     </div>
+                   )}
+                 </div>
+               </div>
             </div>
           </Card>
         </div>}
