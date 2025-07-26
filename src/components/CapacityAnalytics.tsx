@@ -61,10 +61,11 @@ export const CapacityAnalytics = () => {
 
     // Update current metrics based on latest data
     const latestRow = newData[newData.length - 1];
-    const coverage = latestRow.idealStaff > 0 ? latestRow.currentStaff / latestRow.idealStaff * 100 : 0;
+    const totalStaff = latestRow.onboardingStaff + latestRow.currentStaff;
+    const coverage = latestRow.idealStaff > 0 ? totalStaff / latestRow.idealStaff * 100 : 0;
     setCurrentMetrics({
       activeOnboardingStaff: latestRow.onboardingStaff,
-      currentStaffingLevel: latestRow.currentStaff,
+      currentStaffingLevel: totalStaff,
       minimumStaffingLevel: latestRow.minStaff,
       idealStaffingLevel: latestRow.idealStaff,
       capacityCoverage: Math.round(coverage * 10) / 10
