@@ -182,7 +182,7 @@ export const CapacityAnalytics = () => {
       {/* Chart */}
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <div className="text-sm text-muted-foreground">Charts</div>
+          
           <div className="flex items-center gap-2">
             <button className="p-1 hover:bg-accent rounded">
               <ChevronLeft className="w-4 h-4" />
