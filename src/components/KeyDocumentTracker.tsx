@@ -163,8 +163,15 @@ export const KeyDocumentTracker = ({
           doc.reviewFrequencyPeriod
         );
         updatedDocuments[index].nextReviewDate = nextReview ? format(nextReview, 'yyyy-MM-dd') : null;
+      }
+      
+      // Update action when any relevant field changes (name, owner, category, or date fields)
+      if (field === 'name' || field === 'owner' || field === 'category' || 
+          field === 'lastReviewDate' || field === 'reviewFrequencyNumber' || field === 'reviewFrequencyPeriod') {
+        const doc = updatedDocuments[index];
+        const nextReview = doc.nextReviewDate ? new Date(doc.nextReviewDate) : null;
         
-        // Check if action should exist based on due date
+        // Check if action should exist based on due date and document completeness
         if (nextReview && doc.name && doc.owner) {
           const daysRemaining = getDaysRemaining(nextReview);
           
@@ -183,6 +190,11 @@ export const KeyDocumentTracker = ({
             // Remove from created actions set so it can be recreated later if needed
             createdActionsRef.current.delete(`doc-review-${doc.id}`);
           }
+        }
+        // If document is incomplete (missing name or owner), remove any existing action
+        else if ((!doc.name || !doc.owner) && onActionRemoved) {
+          onActionRemoved(doc.id);
+          createdActionsRef.current.delete(`doc-review-${doc.id}`);
         }
       }
       
