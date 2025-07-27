@@ -114,7 +114,7 @@ export const CapacityAnalytics = ({ onMonthlyStaffDataChange, meetingDate, meeti
   }, [onMonthlyStaffDataChange, monthlyData]);
   
   const handleCellEdit = async (rowIndex: number, field: string, value: string) => {
-    console.log('CapacityAnalytics: Editing cell', { rowIndex, field, value, meetingId });
+    console.log('CapacityAnalytics: Starting handleCellEdit', { rowIndex, field, value, meetingId });
     const numValue = parseInt(value) || 0;
     const newData = [...monthlyData];
     newData[rowIndex] = {
@@ -125,6 +125,7 @@ export const CapacityAnalytics = ({ onMonthlyStaffDataChange, meetingDate, meeti
 
     // Always save to database immediately
     if (meetingId) {
+      console.log('CapacityAnalytics: meetingId exists, attempting to save:', meetingId);
       const row = newData[rowIndex];
       
       console.log('CapacityAnalytics: Saving to database:', {
@@ -151,6 +152,8 @@ export const CapacityAnalytics = ({ onMonthlyStaffDataChange, meetingDate, meeti
         });
       
       console.log('CapacityAnalytics: Save result:', { error });
+    } else {
+      console.log('CapacityAnalytics: meetingId is null/undefined, data not saved:', meetingId);
     }
 
     // Update current metrics based on latest data
