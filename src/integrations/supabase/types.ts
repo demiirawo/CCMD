@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      care_notes_analytics: {
+        Row: {
+          company_id: string | null
+          created_at: string
+          id: string
+          meeting_id: string | null
+          monthly_data: Json
+          updated_at: string
+        }
+        Insert: {
+          company_id?: string | null
+          created_at?: string
+          id?: string
+          meeting_id?: string | null
+          monthly_data?: Json
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string | null
+          created_at?: string
+          id?: string
+          meeting_id?: string | null
+          monthly_data?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
       care_plan_analytics: {
         Row: {
           care_plans_in_date: number
@@ -104,6 +131,60 @@ export type Database = {
         Relationships: []
       }
       feedback_analytics: {
+        Row: {
+          company_id: string | null
+          created_at: string
+          id: string
+          meeting_id: string | null
+          monthly_data: Json
+          updated_at: string
+        }
+        Insert: {
+          company_id?: string | null
+          created_at?: string
+          id?: string
+          meeting_id?: string | null
+          monthly_data?: Json
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string | null
+          created_at?: string
+          id?: string
+          meeting_id?: string | null
+          monthly_data?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      incidents_analytics: {
+        Row: {
+          company_id: string | null
+          created_at: string
+          id: string
+          meeting_id: string | null
+          monthly_data: Json
+          updated_at: string
+        }
+        Insert: {
+          company_id?: string | null
+          created_at?: string
+          id?: string
+          meeting_id?: string | null
+          monthly_data?: Json
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string | null
+          created_at?: string
+          id?: string
+          meeting_id?: string | null
+          monthly_data?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      medication_analytics: {
         Row: {
           company_id: string | null
           created_at: string

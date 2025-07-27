@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "./ui/chart";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 const generateInitialData = (meetingDate?: Date) => {
   const months = [];
@@ -99,15 +101,70 @@ const EditableCell = ({ value, onValueChange, className = "" }: EditableCellProp
 
 interface IncidentsAnalyticsProps {
   meetingDate?: Date;
+  meetingId?: string;
 }
 
-export const IncidentsAnalytics = ({ meetingDate }: IncidentsAnalyticsProps) => {
+export const IncidentsAnalytics = ({ meetingDate, meetingId }: IncidentsAnalyticsProps) => {
+  const { profile } = useAuth();
   const [monthlyData, setMonthlyData] = useState(generateInitialData(meetingDate));
 
-  // Update data when meeting date changes
+  // Load data from Supabase when component mounts or meetingId changes
   useEffect(() => {
-    setMonthlyData(generateInitialData(meetingDate));
-  }, [meetingDate]);
+    if (meetingId && profile?.company_id) {
+      loadData();
+    } else {
+      setMonthlyData(generateInitialData(meetingDate));
+    }
+  }, [meetingId, profile?.company_id, meetingDate]);
+
+  const loadData = async () => {
+    if (!meetingId || !profile?.company_id) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('incidents_analytics')
+        .select('monthly_data')
+        .eq('meeting_id', meetingId)
+        .eq('company_id', profile.company_id)
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error loading incidents analytics:', error);
+        return;
+      }
+
+      if (data?.monthly_data) {
+        setMonthlyData(data.monthly_data as any[]);
+      } else {
+        setMonthlyData(generateInitialData(meetingDate));
+      }
+    } catch (error) {
+      console.error('Error loading incidents analytics:', error);
+      setMonthlyData(generateInitialData(meetingDate));
+    }
+  };
+
+  const saveData = async (newData: any[]) => {
+    if (!meetingId || !profile?.company_id) return;
+
+    try {
+      const { error } = await supabase
+        .from('incidents_analytics')
+        .upsert({
+          meeting_id: meetingId,
+          company_id: profile.company_id,
+          monthly_data: newData
+        }, {
+          onConflict: 'meeting_id,company_id'
+        });
+
+      if (error) {
+        console.error('Error saving incidents analytics:', error);
+      }
+    } catch (error) {
+      console.error('Error saving incidents analytics:', error);
+    }
+  };
 
   const handleCellEdit = (monthIndex: number, field: 'incidents' | 'accidents' | 'safeguarding' | 'resolved', value: number) => {
     setMonthlyData(prev => {
@@ -122,6 +179,7 @@ export const IncidentsAnalytics = ({ meetingDate }: IncidentsAnalyticsProps) => 
             (field === 'accidents' ? value : newData[monthIndex].accidents) +
             (field === 'safeguarding' ? value : newData[monthIndex].safeguarding)
       };
+      saveData(newData);
       return newData;
     });
   };
