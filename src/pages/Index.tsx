@@ -179,14 +179,6 @@ const Index = () => {
         actions: [],
         details: "Incident reporting system functioning well"
       }, {
-        id: "safeguarding",
-        title: "Safeguarding",
-        status: "green" as StatusType,
-        lastReviewed: "23-Jul-25",
-        observation: "All safeguarding procedures up to date",
-        actions: [],
-        details: "Safeguarding protocols being followed correctly"
-      }, {
         id: "risk-register",
         title: "Risk Register",
         status: "amber" as StatusType,
