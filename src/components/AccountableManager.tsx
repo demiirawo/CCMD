@@ -14,19 +14,11 @@ export const AccountableManager = ({
   onChange
 }: AccountableManagerProps) => {
   const [newPersonName, setNewPersonName] = useState("");
-  const [showAdditionalSelect, setShowAdditionalSelect] = useState(false);
+  
 
   const addFromAttendees = (name: string) => {
     if (name && !accountable.includes(name)) {
       onChange([...accountable, name]);
-      setShowAdditionalSelect(false);
-    }
-  };
-
-  const addAdditionalPerson = (name: string) => {
-    if (name && !accountable.includes(name)) {
-      onChange([...accountable, name]);
-      setShowAdditionalSelect(false);
     }
   };
 
@@ -56,36 +48,6 @@ export const AccountableManager = ({
         </Select>
       </div>
 
-      {/* Plus button below dropdown */}
-      {availableAttendees.length > 0 && (
-        <div className="flex justify-start">
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            onClick={() => setShowAdditionalSelect(!showAdditionalSelect)}
-            className="h-6 w-6 p-0 text-blue-500 hover:bg-blue-50"
-            title="Add another person"
-          >
-            <Plus className="h-3 w-3" />
-          </Button>
-        </div>
-      )}
-
-      {/* Additional select when + is clicked */}
-      {showAdditionalSelect && availableAttendees.length > 0 && (
-        <div className="ml-4">
-          <Select onValueChange={addAdditionalPerson}>
-            <SelectTrigger className="bg-white">
-              <SelectValue placeholder="Select another person..." />
-            </SelectTrigger>
-            <SelectContent className="bg-white">
-              {availableAttendees.map(attendee => <SelectItem key={attendee} value={attendee}>
-                  {attendee}
-                </SelectItem>)}
-            </SelectContent>
-          </Select>
-        </div>
-      )}
 
       {/* Current accountable people - shown as a vertical list */}
       {accountable.length > 0 && (
