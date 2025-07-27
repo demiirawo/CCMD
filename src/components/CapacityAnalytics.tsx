@@ -61,12 +61,15 @@ export const CapacityAnalytics = ({ onMonthlyStaffDataChange, meetingDate, meeti
   // Load data from database when component mounts or meetingId changes
   useEffect(() => {
     const loadData = async () => {
+      console.log('CapacityAnalytics: Loading data with meetingId:', meetingId);
       if (meetingId) {
-        const { data } = await supabase
+        const { data, error } = await supabase
           .from('resourcing_analytics')
           .select('*')
           .eq('meeting_id', meetingId)
           .order('month');
+        
+        console.log('CapacityAnalytics: Database query result:', { data, error });
         
         if (data && data.length > 0) {
           const loadedData = generateInitialData(meetingDate).map(defaultRow => {
@@ -79,11 +82,14 @@ export const CapacityAnalytics = ({ onMonthlyStaffDataChange, meetingDate, meeti
               idealStaff: dbRow.ideal_staff
             } : defaultRow;
           });
+          console.log('CapacityAnalytics: Setting loaded data:', loadedData);
           setMonthlyData(loadedData);
         } else {
+          console.log('CapacityAnalytics: No data found, using initial data');
           setMonthlyData(generateInitialData(meetingDate));
         }
       } else {
+        console.log('CapacityAnalytics: No meetingId, using initial data');
         setMonthlyData(generateInitialData(meetingDate));
       }
     };
@@ -103,6 +109,7 @@ export const CapacityAnalytics = ({ onMonthlyStaffDataChange, meetingDate, meeti
     }
   }, [onMonthlyStaffDataChange, monthlyData]);
   const handleCellEdit = async (rowIndex: number, field: string, value: string) => {
+    console.log('CapacityAnalytics: Editing cell', { rowIndex, field, value, meetingId });
     const numValue = parseInt(value) || 0;
     const newData = [...monthlyData];
     newData[rowIndex] = {
@@ -118,7 +125,16 @@ export const CapacityAnalytics = ({ onMonthlyStaffDataChange, meetingDate, meeti
                       field === 'probationStaff' ? 'probation_staff' :
                       field === 'currentStaff' ? 'current_staff' : 'ideal_staff';
       
-      await supabase
+      console.log('CapacityAnalytics: Saving to database:', {
+        meeting_id: meetingId,
+        month: row.month,
+        onboarding_staff: row.onboardingStaff,
+        probation_staff: row.probationStaff,
+        current_staff: row.currentStaff,
+        ideal_staff: row.idealStaff
+      });
+      
+      const { error } = await supabase
         .from('resourcing_analytics')
         .upsert({
           meeting_id: meetingId,
@@ -128,6 +144,10 @@ export const CapacityAnalytics = ({ onMonthlyStaffDataChange, meetingDate, meeti
           current_staff: row.currentStaff,
           ideal_staff: row.idealStaff
         });
+      
+      console.log('CapacityAnalytics: Save result:', { error });
+    } else {
+      console.log('CapacityAnalytics: No meetingId, data not saved to database');
     }
 
     // Update current metrics based on latest data
