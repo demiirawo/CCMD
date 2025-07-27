@@ -244,7 +244,7 @@ export const KeyDocumentTracker = ({
                 <div>
                   <label className="text-xs text-muted-foreground mb-1 block">Next Review Date</label>
                   <div className="text-sm p-2 bg-muted/50 rounded border text-center min-h-[36px] flex items-center justify-center">
-                    {doc.nextReviewDate ? format(doc.nextReviewDate, "PPP") : "Auto-calculated"}
+                    {doc.nextReviewDate ? format(doc.nextReviewDate, "PPP") : ""}
                   </div>
                 </div>
                 
