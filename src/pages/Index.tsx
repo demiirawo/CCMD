@@ -391,7 +391,9 @@ const Index = () => {
       action,
       dueDate,
       status: "green",
-      closed: false
+      closed: false,
+      sourceType: "manual", // Mark as manual for subsection actions
+      sourceId: `subsection-${itemTitle}-${Date.now()}` // Unique identifier for subsection actions
     };
     
     setActionsLog(prev => [newAction, ...prev]);
@@ -527,6 +529,96 @@ const Index = () => {
     toast({
       title: "Action Updated",
       description: "Action has been updated successfully"
+    });
+  };
+
+  const handleSubsectionActionEdit = (sectionId: string, actionId: string, updates: { comment?: string; dueDate?: string }) => {
+    // Update the action in the subsection
+    setDashboardData(prev => ({
+      ...prev,
+      sections: prev.sections.map(section => 
+        section.id === sectionId ? {
+          ...section,
+          items: section.items.map(item => ({
+            ...item,
+            actions: item.actions.map(action => {
+              if (action.id !== actionId) return action;
+              
+              const updatedAction = { ...action };
+              const auditEntries: import("@/components/ActionsLog").AuditEntry[] = action.auditTrail || [];
+              const timestamp = new Date().toLocaleString('en-GB', {
+                day: '2-digit',
+                month: 'short',
+                year: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+              });
+
+              // Add comment to audit trail
+              if (updates.comment) {
+                auditEntries.push({
+                  timestamp,
+                  change: `Comment added: ${updates.comment}`
+                });
+              }
+
+              // Update due date and add to audit trail
+              if (updates.dueDate && updates.dueDate !== action.targetDate) {
+                auditEntries.push({
+                  timestamp,
+                  change: `Due date changed from ${action.targetDate} to ${updates.dueDate}`
+                });
+                updatedAction.targetDate = updates.dueDate;
+              }
+
+              updatedAction.auditTrail = auditEntries;
+              return updatedAction;
+            })
+          }))
+        } : section
+      )
+    }));
+
+    // Also update in the main Actions Log if this action exists there
+    setActionsLog(prev => prev.map(action => {
+      // Find matching action by checking if it came from the same subsection
+      if (action.sourceType === "manual" && action.sourceId?.includes(sectionId) && action.id.includes(actionId.split('-')[1])) {
+        const updatedAction = { ...action };
+        const auditEntries: import("@/components/ActionsLog").AuditEntry[] = action.auditTrail || [];
+        const timestamp = new Date().toLocaleString('en-GB', {
+          day: '2-digit',
+          month: 'short',
+          year: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+
+        // Add comment to audit trail
+        if (updates.comment) {
+          auditEntries.push({
+            timestamp,
+            change: `Comment added: ${updates.comment}`
+          });
+        }
+
+        // Update due date and add to audit trail
+        if (updates.dueDate && updates.dueDate !== action.dueDate) {
+          auditEntries.push({
+            timestamp,
+            change: `Due date changed from ${action.dueDate} to ${updates.dueDate}`
+          });
+          updatedAction.dueDate = updates.dueDate;
+        }
+
+        updatedAction.auditTrail = auditEntries;
+        return updatedAction;
+      }
+      return action;
+    }));
+
+    toast({
+      title: "Action Updated",
+      description: "Action has been updated in both subsection and Actions Log"
     });
   };
 
@@ -752,18 +844,19 @@ const Index = () => {
             const meetingDate = parseDateString(headerData.date);
             
             return (
-              <DashboardSection 
-                key={section.id} 
-                title={section.title} 
-                items={section.items} 
-                onItemStatusChange={(itemId, status) => handleStatusChange(section.id, itemId, status)} 
-                onItemObservationChange={(itemId, observation) => handleObservationChange(section.id, itemId, observation)}
-                onItemActionsChange={(itemId, actions) => handleActionsChange(section.id, itemId, actions)}
-                onItemDocumentsChange={(itemId, documents) => handleDocumentsChange(section.id, itemId, documents)}
-                onActionCreated={handleActionCreated}
-                attendees={getAttendeesList()}
-                meetingDate={meetingDate}
-              />
+               <DashboardSection 
+                 key={section.id} 
+                 title={section.title} 
+                 items={section.items} 
+                 onItemStatusChange={(itemId, status) => handleStatusChange(section.id, itemId, status)} 
+                 onItemObservationChange={(itemId, observation) => handleObservationChange(section.id, itemId, observation)}
+                 onItemActionsChange={(itemId, actions) => handleActionsChange(section.id, itemId, actions)}
+                 onItemDocumentsChange={(itemId, documents) => handleDocumentsChange(section.id, itemId, documents)}
+                 onActionCreated={handleActionCreated}
+                 onSubsectionActionEdit={handleSubsectionActionEdit}
+                 attendees={getAttendeesList()}
+                 meetingDate={meetingDate}
+               />
             );
           })}
           

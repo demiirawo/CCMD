@@ -48,6 +48,7 @@ interface StatusItemProps {
   onAccountableChange?: (id: string, accountable: string[]) => void;
   onActionCreated?: (itemTitle: string, mentionedAttendee: string, comment: string, action: string, dueDate: string) => void;
   onDocumentsChange?: (id: string, documents: DocumentData[]) => void;
+  onSubsectionActionEdit?: (sectionId: string, actionId: string, updates: { comment?: string; dueDate?: string }) => void;
   attendees?: string[];
   monthlyStaffData?: Array<{month: string, currentStaff: number, probationStaff?: number}>;
   onMonthlyStaffDataChange?: (data: Array<{month: string, currentStaff: number, probationStaff?: number}>) => void;
@@ -61,6 +62,7 @@ export const StatusItem = ({
   onAccountableChange,
   onActionCreated,
   onDocumentsChange,
+  onSubsectionActionEdit,
   attendees = [],
   monthlyStaffData = [],
   onMonthlyStaffDataChange,
@@ -187,9 +189,8 @@ export const StatusItem = ({
               onActionCreated={handleActionCreated} 
               onActionCompleted={handleActionCompleted}
               onActionEdit={(actionId, updates) => {
-                // Handle action edit at the section level - for now just trigger the action change
-                // This could be expanded to also notify the parent component if needed
-                console.log("Action edited in section:", actionId, updates);
+                // Handle action edit at the section level and sync with main Actions Log
+                onSubsectionActionEdit?.(item.id, actionId, updates);
               }}
             />
           </div>

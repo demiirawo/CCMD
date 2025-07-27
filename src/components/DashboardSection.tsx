@@ -14,6 +14,7 @@ interface DashboardSectionProps {
   onItemDocumentsChange?: (id: string, documents: import("./StatusItem").DocumentData[]) => void;
   onAddItem?: (sectionTitle: string) => void;
   onActionCreated?: (itemTitle: string, mentionedAttendee: string, comment: string, action: string, dueDate: string) => void;
+  onSubsectionActionEdit?: (sectionId: string, actionId: string, updates: { comment?: string; dueDate?: string }) => void;
   attendees?: string[];
   defaultOpen?: boolean;
   meetingDate?: Date;
@@ -29,6 +30,7 @@ export const DashboardSection = ({
   onItemDocumentsChange,
   onAddItem,
   onActionCreated,
+  onSubsectionActionEdit,
   attendees = [],
   defaultOpen = true,
   meetingDate
@@ -98,6 +100,7 @@ export const DashboardSection = ({
               onActionsChange={onItemActionsChange}
               onDocumentsChange={onItemDocumentsChange}
               onActionCreated={onActionCreated}
+              onSubsectionActionEdit={onSubsectionActionEdit}
               attendees={attendees}
               monthlyStaffData={monthlyStaffData}
               onMonthlyStaffDataChange={setMonthlyStaffData}
