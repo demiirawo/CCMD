@@ -59,6 +59,8 @@ export const useAuthProvider = (): AuthContextType => {
     
     try {
       console.log('Fetching profile for user:', user.id);
+      console.log('Current session:', session?.access_token ? 'Valid session' : 'No session');
+      
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -66,6 +68,7 @@ export const useAuthProvider = (): AuthContextType => {
         .single();
       
       console.log('Profile fetch result:', { data, error });
+      console.log('User role check:', data?.role);
       
       if (error) {
         console.error('Error fetching profile:', error);
@@ -216,7 +219,14 @@ export const useAuthProvider = (): AuthContextType => {
   };
 
   const createCompany = async (name: string) => {
+    console.log('Creating company with name:', name);
+    console.log('Current user:', user?.id);
+    console.log('Current profile:', profile);
+    console.log('Is admin?', profile?.role === 'admin');
+    console.log('Session token exists?', session?.access_token ? 'Yes' : 'No');
+    
     if (!profile || profile.role !== 'admin') {
+      console.log('Permission denied - not admin');
       return { data: null, error: { message: 'Only admins can create companies' } };
     }
     
@@ -225,6 +235,8 @@ export const useAuthProvider = (): AuthContextType => {
       .insert([{ name }])
       .select()
       .single();
+    
+    console.log('Create company result:', { data, error });
     
     if (!error && data) {
       setCompanies([...companies, data]);
