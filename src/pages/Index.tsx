@@ -650,7 +650,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gray-100 p-4 lg:p-8">
-      <div className="max-w-7xl mx-auto space-y-6">
+      <div className="w-[90%] mx-auto space-y-6">
         <div className="flex justify-end gap-4 mb-6">
           <Button 
             onClick={saveMeetingToDatabase}
