@@ -1,12 +1,12 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 
-const generateInitialData = () => {
+const generateInitialData = (meetingDate?: Date) => {
   const months = [];
-  const currentDate = new Date();
+  const currentDate = meetingDate || new Date();
   
   for (let i = 11; i >= 0; i--) {
     const date = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1);
@@ -82,8 +82,17 @@ const EditableCell: React.FC<EditableCellProps> = ({ value, onChange, placeholde
   );
 };
 
-export const MedicationAnalytics = () => {
-  const [monthlyData, setMonthlyData] = useState(generateInitialData());
+interface MedicationAnalyticsProps {
+  meetingDate?: Date;
+}
+
+export const MedicationAnalytics = ({ meetingDate }: MedicationAnalyticsProps) => {
+  const [monthlyData, setMonthlyData] = useState(generateInitialData(meetingDate));
+
+  // Update data when meeting date changes
+  useEffect(() => {
+    setMonthlyData(generateInitialData(meetingDate));
+  }, [meetingDate]);
 
   const handleCellEdit = (monthIndex: number, field: 'medicationRecords' | 'incorrectOutcomes', value: number) => {
     const newData = [...monthlyData];

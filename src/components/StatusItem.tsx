@@ -136,7 +136,7 @@ export const StatusItem = ({
           
           {item.title.toLowerCase().includes('care plans') && <CarePlanAnalytics meetingDate={meetingDate} />}
           
-          {item.title.toLowerCase().includes('medication management') && <MedicationAnalytics />}
+          {item.title.toLowerCase().includes('medication management') && <MedicationAnalytics meetingDate={meetingDate} />}
           
           {item.title.toLowerCase().includes('care notes') && <CareNotesAnalytics meetingDate={meetingDate} />}
           
