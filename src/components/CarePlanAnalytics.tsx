@@ -4,9 +4,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-const generateInitialData = () => {
+const generateInitialData = (meetingDate?: Date) => {
   const months = [];
-  const now = new Date();
+  const now = meetingDate || new Date();
   for (let i = 11; i >= 0; i--) {
     const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
     const monthStr = date.toLocaleDateString('en-GB', {
@@ -33,8 +33,18 @@ const chartConfig = {
     color: "hsl(var(--chart-2))"
   }
 };
-export const CarePlanAnalytics = () => {
-  const [monthlyData, setMonthlyData] = useState(generateInitialData());
+interface CarePlanAnalyticsProps {
+  meetingDate?: Date;
+}
+
+export const CarePlanAnalytics = ({ meetingDate }: CarePlanAnalyticsProps) => {
+  const [monthlyData, setMonthlyData] = useState(generateInitialData(meetingDate));
+  
+  // Update data when meeting date changes
+  useEffect(() => {
+    setMonthlyData(generateInitialData(meetingDate));
+  }, [meetingDate]);
+  
   const [frequencies, setFrequencies] = useState({
     high: 6,
     medium: 12,
