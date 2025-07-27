@@ -911,18 +911,18 @@ const Index = () => {
             onAttendeesChange={handleAttendeesChange}
           />
           
-          <KeyDocumentTracker 
-            documents={keyDocuments}
-            onDocumentsChange={setKeyDocuments}
-            attendees={getAttendeesList()}
-          />
-          
           <ActionsLog 
             actions={actionsLog} 
             onActionComplete={handleActionComplete} 
             onActionDelete={handleActionDelete} 
             onResetActions={resetActionsLog}
             onActionEdit={handleActionEdit}
+            attendees={getAttendeesList()}
+          />
+          
+          <KeyDocumentTracker 
+            documents={keyDocuments}
+            onDocumentsChange={setKeyDocuments}
             attendees={getAttendeesList()}
           />
           
