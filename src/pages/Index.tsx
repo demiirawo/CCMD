@@ -224,6 +224,14 @@ const Index = () => {
         observation: "Infection control measures in place and effective",
         actions: [],
         details: "PPE supplies adequate, procedures being followed"
+      }, {
+        id: "information-governance",
+        title: "Information Governance",
+        status: "green" as StatusType,
+        lastReviewed: "23-Jul-25",
+        observation: "Data protection and privacy protocols maintained",
+        actions: [],
+        details: "GDPR compliance checks completed, staff training up to date"
       }]
     }, {
       id: "continuous-improvement",
