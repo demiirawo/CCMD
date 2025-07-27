@@ -196,6 +196,14 @@ const Index = () => {
         observation: "Call monitoring system functioning well",
         actions: [],
         details: "Regular monitoring of care visits and timing"
+      }, {
+        id: "transportation",
+        title: "Transportation",
+        status: "green" as StatusType,
+        lastReviewed: "24-Jul-25",
+        observation: "Transportation services operating smoothly",
+        actions: [],
+        details: "Vehicle maintenance and driver scheduling up to date"
       }]
     }, {
       id: "safety",
