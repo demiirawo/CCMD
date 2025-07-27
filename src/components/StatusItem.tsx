@@ -76,6 +76,7 @@ export const StatusItem = ({
   meetingId
 }: StatusItemProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
+  console.log('StatusItem: Rendering item:', item.title, 'isExpanded:', isExpanded, 'meetingId:', meetingId);
   const [isEditingObservation, setIsEditingObservation] = useState(false);
   
   const handleObservationSubmit = (observation: string) => {
