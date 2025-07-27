@@ -30,7 +30,6 @@ export const StaffDocumentsAnalytics = ({ meetingId }: StaffDocumentsAnalyticsPr
   // Load data from database when component mounts or meetingId changes
   useEffect(() => {
     const loadData = async () => {
-      console.log('StaffDocumentsAnalytics - Loading data for meetingId:', meetingId);
       if (meetingId) {
         const { data, error } = await supabase
           .from('staff_documents_analytics')
@@ -38,22 +37,14 @@ export const StaffDocumentsAnalytics = ({ meetingId }: StaffDocumentsAnalyticsPr
           .eq('meeting_id', meetingId)
           .maybeSingle();
         
-        console.log('StaffDocumentsAnalytics - Database query result:', { data, error });
-        
         if (data) {
-          const loadedData = {
+          setDocumentsData({
             activeFullyCompliant: data.active_fully_compliant,
             activePendingDocuments: data.active_pending_documents,
             onboardingPendingDocuments: data.onboarding_pending_documents,
             onboardingFullyCompliant: data.onboarding_fully_compliant
-          };
-          console.log('StaffDocumentsAnalytics - Setting loaded data:', loadedData);
-          setDocumentsData(loadedData);
-        } else {
-          console.log('StaffDocumentsAnalytics - No data found, using initial data');
+          });
         }
-      } else {
-        console.log('StaffDocumentsAnalytics - No meetingId provided');
       }
     };
     
@@ -65,12 +56,10 @@ export const StaffDocumentsAnalytics = ({ meetingId }: StaffDocumentsAnalyticsPr
       ...documentsData,
       [field]: numValue
     };
-    console.log('StaffDocumentsAnalytics - Input changed:', { field, value, numValue, newData, meetingId });
     setDocumentsData(newData);
 
     // Save to database if meetingId is available
     if (meetingId) {
-      console.log('StaffDocumentsAnalytics - Saving to database...');
       const { error } = await supabase
         .from('staff_documents_analytics')
         .upsert({
@@ -84,12 +73,8 @@ export const StaffDocumentsAnalytics = ({ meetingId }: StaffDocumentsAnalyticsPr
         });
       
       if (error) {
-        console.error('StaffDocumentsAnalytics - Error saving data:', error);
-      } else {
-        console.log('StaffDocumentsAnalytics - Data saved successfully');
+        console.error('Error saving staff documents data:', error);
       }
-    } else {
-      console.log('StaffDocumentsAnalytics - No meetingId, not saving to database');
     }
   };
   const EditableInput = ({

@@ -123,15 +123,7 @@ export type Database = {
           onboarding_pending_documents?: number
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "staff_documents_analytics_meeting_id_fkey"
-            columns: ["meeting_id"]
-            isOneToOne: true
-            referencedRelation: "meetings"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
     }
     Views: {
