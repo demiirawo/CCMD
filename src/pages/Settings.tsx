@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
-import { Palette, Building, Image } from "lucide-react";
+import { Palette, Building, Image, Upload, X } from "lucide-react";
 
 const THEME_COLORS = [
   { name: "Blue", value: "#3b82f6", description: "Professional and trustworthy" },
@@ -53,7 +53,9 @@ const LOGO_OPTIONS = [
 export const Settings = () => {
   const { profile, companies } = useAuth();
   const { toast } = useToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(false);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
   const [selectedTheme, setSelectedTheme] = useState("#3b82f6");
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
   const [selectedLogo, setSelectedLogo] = useState<string>("");
@@ -69,7 +71,7 @@ export const Settings = () => {
           .from("companies")
           .select("theme_color, services, logo_url")
           .eq("id", currentCompany.id)
-          .single();
+          .maybeSingle();
 
         if (error) throw error;
 
@@ -92,6 +94,84 @@ export const Settings = () => {
         ? [...prev, service]
         : prev.filter(s => s !== service)
     );
+  };
+
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !currentCompany) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Invalid file type",
+        description: "Please select an image file.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "File too large",
+        description: "Please select an image smaller than 5MB.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setUploadingLogo(true);
+    try {
+      // Delete existing logo if any
+      if (selectedLogo && selectedLogo.includes('supabase')) {
+        const oldPath = selectedLogo.split('/').pop();
+        if (oldPath) {
+          await supabase.storage
+            .from('company-logos')
+            .remove([`${currentCompany.id}/${oldPath}`]);
+        }
+      }
+
+      // Upload new logo
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}.${fileExt}`;
+      const filePath = `${currentCompany.id}/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('company-logos')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data } = supabase.storage
+        .from('company-logos')
+        .getPublicUrl(filePath);
+
+      setSelectedLogo(data.publicUrl);
+
+      toast({
+        title: "Logo uploaded",
+        description: "Your company logo has been uploaded successfully.",
+      });
+    } catch (error) {
+      console.error("Error uploading logo:", error);
+      toast({
+        title: "Upload failed",
+        description: "Failed to upload logo. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setUploadingLogo(false);
+      // Reset file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
+  const handleRemoveLogo = () => {
+    setSelectedLogo("");
   };
 
   const handleSave = async () => {
@@ -218,7 +298,7 @@ export const Settings = () => {
           </CardContent>
         </Card>
 
-        {/* Logo Selection */}
+        {/* Logo Upload */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -226,31 +306,75 @@ export const Settings = () => {
               Company Logo
             </CardTitle>
             <CardDescription>
-              Choose a logo for your company
+              Upload your company logo (max 5MB, image files only)
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 gap-3">
-              {LOGO_OPTIONS.map((logo) => (
-                <div
-                  key={logo.url}
-                  className={`p-3 rounded-lg border-2 cursor-pointer transition-all hover:scale-102 ${
-                    selectedLogo === logo.url 
-                      ? "border-primary shadow-md" 
-                      : "border-border hover:border-muted-foreground"
-                  }`}
-                  onClick={() => setSelectedLogo(logo.url)}
+            {/* Current Logo Display */}
+            {selectedLogo && (
+              <div className="relative inline-block">
+                <img 
+                  src={selectedLogo} 
+                  alt="Company Logo"
+                  className="w-32 h-32 rounded-lg object-cover border-2 border-border"
+                />
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  className="absolute -top-2 -right-2 h-6 w-6 p-0 rounded-full"
+                  onClick={handleRemoveLogo}
                 >
-                  <div className="flex items-center gap-3">
-                    <img 
-                      src={logo.url} 
-                      alt={logo.name}
-                      className="w-12 h-12 rounded-md object-cover"
-                    />
-                    <p className="font-medium">{logo.name}</p>
+                  <X className="h-3 w-3" />
+                </Button>
+              </div>
+            )}
+
+            {/* Upload Button */}
+            <div className="flex gap-3">
+              <Button
+                variant="outline"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploadingLogo}
+                className="flex items-center gap-2"
+              >
+                <Upload className="h-4 w-4" />
+                {uploadingLogo ? "Uploading..." : "Upload Logo"}
+              </Button>
+              
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleFileUpload}
+                className="hidden"
+              />
+            </div>
+
+            {/* Predefined Options */}
+            <div className="border-t pt-4">
+              <p className="text-sm font-medium mb-3">Or choose from predefined options:</p>
+              <div className="grid grid-cols-2 gap-3">
+                {LOGO_OPTIONS.map((logo) => (
+                  <div
+                    key={logo.url}
+                    className={`p-2 rounded-lg border-2 cursor-pointer transition-all hover:scale-102 ${
+                      selectedLogo === logo.url 
+                        ? "border-primary shadow-md" 
+                        : "border-border hover:border-muted-foreground"
+                    }`}
+                    onClick={() => setSelectedLogo(logo.url)}
+                  >
+                    <div className="flex items-center gap-2">
+                      <img 
+                        src={logo.url} 
+                        alt={logo.name}
+                        className="w-8 h-8 rounded object-cover"
+                      />
+                      <p className="text-sm font-medium">{logo.name}</p>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           </CardContent>
         </Card>
