@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { CalendarIcon, FileText, Plus, Minus } from "lucide-react";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
@@ -25,6 +25,7 @@ interface KeyDocumentTrackerProps {
   documents?: DocumentData[];
   onDocumentsChange?: (documents: DocumentData[]) => void;
   attendees?: Array<{ id: string; name: string; email?: string; attended?: boolean }>;
+  onActionCreated?: (action: { itemTitle: string; mentionedAttendee: string; comment: string; action: string; dueDate: string; }) => void;
 }
 
 const categories = [
@@ -44,7 +45,8 @@ const numbers = Array.from({ length: 12 }, (_, i) => (i + 1).toString());
 export const KeyDocumentTracker = ({
   documents = [],
   onDocumentsChange,
-  attendees = []
+  attendees = [],
+  onActionCreated
 }: KeyDocumentTrackerProps) => {
   
   const calculateNextReviewDate = (lastReviewDate: Date | null, number: string, period: string): Date | null => {
@@ -130,6 +132,35 @@ export const KeyDocumentTracker = ({
     const updatedDocuments = documents.filter(doc => doc.id !== docId);
     onDocumentsChange?.(updatedDocuments);
   };
+
+  // Check for documents due within 30 days and create actions
+  useEffect(() => {
+    if (!onActionCreated || documents.length === 0) return;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const thirtyDaysFromNow = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000);
+
+    documents.forEach(doc => {
+      if (doc.nextReviewDate && doc.documentName && doc.documentOwner) {
+        const dueDate = new Date(doc.nextReviewDate);
+        dueDate.setHours(0, 0, 0, 0);
+        
+        // Check if document is due within 30 days
+        if (dueDate >= today && dueDate <= thirtyDaysFromNow) {
+          const action = {
+            itemTitle: "Key Document Review",
+            mentionedAttendee: doc.documentOwner,
+            comment: "Document review scheduled",
+            action: `Review due for '${doc.documentName}' by ${format(doc.nextReviewDate, "PPP")}`,
+            dueDate: format(doc.nextReviewDate, "PPP")
+          };
+          
+          onActionCreated(action);
+        }
+      }
+    });
+  }, [documents, onActionCreated]);
 
   // Group documents by category
   const groupedDocuments = categories.map(category => {

@@ -373,6 +373,10 @@ const Index = () => {
       description: `Action assigned to @${mentionedAttendee} for ${itemTitle}`
     });
   };
+
+  const handleDocumentActionCreated = (actionData: { itemTitle: string; mentionedAttendee: string; comment: string; action: string; dueDate: string; }) => {
+    handleActionCreated(actionData.itemTitle, actionData.mentionedAttendee, actionData.comment, actionData.action, actionData.dueDate);
+  };
   
   const handleActionComplete = (actionId: string) => {
     // Mark action as complete in actions log
@@ -663,6 +667,7 @@ const Index = () => {
             documents={keyDocuments}
             onDocumentsChange={setKeyDocuments}
             attendees={headerData.attendees}
+            onActionCreated={handleDocumentActionCreated}
           />
           
           <ActionsLog actions={actionsLog} onActionComplete={handleActionComplete} onActionDelete={handleActionDelete} />
