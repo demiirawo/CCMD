@@ -201,6 +201,20 @@ export const StatusItem = ({
               </div>
             )}
             
+            {item.metadata?.link2 && (
+              <div className="flex items-center gap-1 mt-1">
+                <ExternalLink className="w-3 h-3 text-muted-foreground" />
+                <a 
+                  href={item.metadata.link2} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-xs text-primary hover:underline truncate"
+                >
+                  {item.metadata.link2Text || item.metadata.link2}
+                </a>
+              </div>
+            )}
+            
             {item.metadata?.accountableOwner && (
               <p className="text-xs text-muted-foreground mt-1">
                 Accountable: {item.metadata.accountableOwner}

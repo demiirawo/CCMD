@@ -10,6 +10,8 @@ export interface SubsectionMetadata {
   accountableOwner?: string;
   link?: string;
   linkText?: string;
+  link2?: string;
+  link2Text?: string;
   description?: string;
   updated?: string;
 }
@@ -33,6 +35,8 @@ export const SubsectionMetadataDialog = ({
   const [accountableOwner, setAccountableOwner] = useState(metadata.accountableOwner || "");
   const [link, setLink] = useState(metadata.link || "");
   const [linkText, setLinkText] = useState(metadata.linkText || "");
+  const [link2, setLink2] = useState(metadata.link2 || "");
+  const [link2Text, setLink2Text] = useState(metadata.link2Text || "");
   const [description, setDescription] = useState(metadata.description || "");
 
   const handleSave = () => {
@@ -40,6 +44,8 @@ export const SubsectionMetadataDialog = ({
       accountableOwner: accountableOwner || undefined,
       link: link || undefined,
       linkText: linkText || undefined,
+      link2: link2 || undefined,
+      link2Text: link2Text || undefined,
       description: description || undefined,
       updated: new Date().toLocaleDateString('en-GB')
     };
@@ -74,23 +80,39 @@ export const SubsectionMetadataDialog = ({
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="link">Link</Label>
-            <Input
-              id="link"
-              value={link}
-              onChange={(e) => setLink(e.target.value)}
-              placeholder="Enter link URL..."
-            />
+            <Label>Link 1</Label>
+            <div className="flex gap-2">
+              <Input
+                value={link}
+                onChange={(e) => setLink(e.target.value)}
+                placeholder="Enter link URL..."
+                className="flex-1"
+              />
+              <Input
+                value={linkText}
+                onChange={(e) => setLinkText(e.target.value)}
+                placeholder="Link text (optional)"
+                className="flex-1"
+              />
+            </div>
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="link-text">Link Text (optional)</Label>
-            <Input
-              id="link-text"
-              value={linkText}
-              onChange={(e) => setLinkText(e.target.value)}
-              placeholder="Enter display text for link..."
-            />
+            <Label>Link 2</Label>
+            <div className="flex gap-2">
+              <Input
+                value={link2}
+                onChange={(e) => setLink2(e.target.value)}
+                placeholder="Enter link URL..."
+                className="flex-1"
+              />
+              <Input
+                value={link2Text}
+                onChange={(e) => setLink2Text(e.target.value)}
+                placeholder="Link text (optional)"
+                className="flex-1"
+              />
+            </div>
           </div>
           
           <div className="space-y-2">
