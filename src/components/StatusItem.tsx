@@ -164,7 +164,7 @@ export const StatusItem = ({
         <div className="flex-1 min-w-0 mr-3 flex flex-col justify-between h-full">
           <div>
             <h4 className="font-semibold text-foreground text-sm truncate">{item.title}</h4>
-            <p className="text-xs text-muted-foreground">Last: {item.lastReviewed}</p>
+            <p className="text-xs text-muted-foreground">Updated: {item.lastReviewed}</p>
           </div>
         </div>
         
