@@ -162,7 +162,7 @@ export const StatusItem = ({
         
         <button onClick={e => {
         e.stopPropagation();
-        const statusOrder: StatusType[] = ["green", "amber", "red"];
+        const statusOrder: StatusType[] = ["green", "amber", "red", "na"];
         const currentIndex = statusOrder.indexOf(item.status);
         const nextStatus = statusOrder[(currentIndex + 1) % statusOrder.length];
         onStatusChange?.(item.id, nextStatus);

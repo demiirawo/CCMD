@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-export type StatusType = "green" | "amber" | "red";
+export type StatusType = "green" | "amber" | "red" | "na";
 interface StatusBadgeProps {
   status: StatusType;
   className?: string;
@@ -19,6 +19,11 @@ const statusConfig = {
     label: "R",
     title: "Critical",
     className: "status-red"
+  },
+  na: {
+    label: "N/A",
+    title: "Not Applicable",
+    className: "status-na"
   }
 };
 export const StatusBadge = ({

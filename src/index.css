@@ -30,6 +30,8 @@ All colors MUST be HSL.
     --status-amber-soft: 40 100% 88%;
     --status-red: 0 70% 75%;
     --status-red-soft: 0 90% 88%;
+    --status-na: 0 0% 60%;
+    --status-na-soft: 0 0% 85%;
 
     /* Interactive States - Updated for white background */
     --primary: 220 80% 60%;
@@ -190,6 +192,16 @@ All colors MUST be HSL.
       -4px -4px 8px hsl(0 100% 100%),
       inset 1px 1px 3px hsl(0 100% 100% / 0.3),
       inset -1px -1px 3px hsl(0 60% 80% / 0.3);
+  }
+
+  .status-na {
+    background: hsl(var(--status-na-soft));
+    color: hsl(var(--status-na));
+    box-shadow: 
+      4px 4px 8px hsl(0 0% 75%), 
+      -4px -4px 8px hsl(0 0% 95%),
+      inset 1px 1px 3px hsl(0 0% 95% / 0.3),
+      inset -1px -1px 3px hsl(0 0% 75% / 0.3);
   }
 
   .status-badge {

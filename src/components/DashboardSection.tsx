@@ -47,8 +47,17 @@ export const DashboardSection = ({
   }, {} as Record<StatusType, number>);
 
   const getOverallStatus = () => {
-    if (statusCounts.red > 0) return 'red';
-    if (statusCounts.amber > 0) return 'amber';
+    // Filter out N/A items from overall status calculation
+    const applicableItems = items.filter(item => item.status !== 'na');
+    if (applicableItems.length === 0) return 'green'; // Default if all are N/A
+    
+    const applicableCounts = applicableItems.reduce((acc, item) => {
+      acc[item.status] = (acc[item.status] || 0) + 1;
+      return acc;
+    }, {} as Record<StatusType, number>);
+    
+    if (applicableCounts.red > 0) return 'red';
+    if (applicableCounts.amber > 0) return 'amber';
     return 'green';
   };
 
