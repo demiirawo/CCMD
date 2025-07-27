@@ -290,7 +290,7 @@ export const KeyDocumentTracker = ({
                 </div>
                 
                 <div className="col-span-2">
-                  <label className="text-xs text-muted-foreground mb-1 block">Due Date</label>
+                  <label className="text-xs text-muted-foreground mb-1 block">Due</label>
                   <div className="text-sm p-2 bg-muted/50 rounded border text-center h-9 flex items-center justify-center">
                     {doc.nextReviewDate ? format(doc.nextReviewDate, "PPP") : ""}
                   </div>
