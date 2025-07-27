@@ -92,6 +92,47 @@ export type Database = {
         }
         Relationships: []
       }
+      staff_documents_analytics: {
+        Row: {
+          active_fully_compliant: number
+          active_pending_documents: number
+          created_at: string
+          id: string
+          meeting_id: string | null
+          onboarding_fully_compliant: number
+          onboarding_pending_documents: number
+          updated_at: string
+        }
+        Insert: {
+          active_fully_compliant?: number
+          active_pending_documents?: number
+          created_at?: string
+          id?: string
+          meeting_id?: string | null
+          onboarding_fully_compliant?: number
+          onboarding_pending_documents?: number
+          updated_at?: string
+        }
+        Update: {
+          active_fully_compliant?: number
+          active_pending_documents?: number
+          created_at?: string
+          id?: string
+          meeting_id?: string | null
+          onboarding_fully_compliant?: number
+          onboarding_pending_documents?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "staff_documents_analytics_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: true
+            referencedRelation: "meetings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
