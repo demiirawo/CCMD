@@ -130,7 +130,7 @@ export const StatusItem = ({
           
           {item.title.toLowerCase().includes('training') && <StaffTrainingAnalytics />}
           
-          {item.title.toLowerCase().includes('spot check') && <SpotCheckAnalytics monthlyStaffData={monthlyStaffData} />}
+          {item.title.toLowerCase().includes('spot check') && <SpotCheckAnalytics monthlyStaffData={monthlyStaffData} meetingDate={meetingDate} />}
           
           {item.title.toLowerCase().includes('supervision') && <SupervisionAnalytics monthlyStaffData={monthlyStaffData} />}
           

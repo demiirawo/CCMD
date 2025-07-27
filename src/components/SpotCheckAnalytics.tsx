@@ -2,12 +2,12 @@ import { Card } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { ComposedChart, Bar, Line, XAxis, YAxis, ResponsiveContainer } from "recharts";
 import { Input } from "@/components/ui/input";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { format, subMonths } from "date-fns";
 
-// Generate 12 months of data from current month back to same month last year
-const generateInitialData = () => {
-  const currentDate = new Date();
+// Generate 12 months of data from meeting date back to same month last year
+const generateInitialData = (meetingDate?: Date) => {
+  const currentDate = meetingDate || new Date();
   const data = [];
   for (let i = 0; i < 12; i++) {
     const monthDate = subMonths(currentDate, i);
@@ -18,16 +18,25 @@ const generateInitialData = () => {
   }
   return data;
 };
-
-const initialMonthlyData = generateInitialData();
 const chartConfig = {
   completed: {
     label: "Spot Checks Completed",
     color: "hsl(var(--chart-1))"
   }
 };
-export const SpotCheckAnalytics = ({ monthlyStaffData = [] }: { monthlyStaffData?: Array<{month: string, currentStaff: number, probationStaff?: number}> }) => {
-  const [monthlyData, setMonthlyData] = useState(initialMonthlyData);
+interface SpotCheckAnalyticsProps {
+  monthlyStaffData?: Array<{month: string, currentStaff: number, probationStaff?: number}>;
+  meetingDate?: Date;
+}
+
+export const SpotCheckAnalytics = ({ monthlyStaffData = [], meetingDate }: SpotCheckAnalyticsProps) => {
+  const [monthlyData, setMonthlyData] = useState(generateInitialData(meetingDate));
+  
+  // Update data when meeting date changes
+  useEffect(() => {
+    setMonthlyData(generateInitialData(meetingDate));
+  }, [meetingDate]);
+  
   const [metrics, setMetrics] = useState({
     passedFrequency: 3,
     probationFrequency: 1
