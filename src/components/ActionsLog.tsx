@@ -174,11 +174,11 @@ export const ActionsLog = ({
                           {(() => {
                             const days = getDaysRemaining(action.dueDate);
                             if (days < 0) {
-                              return `${Math.abs(days)} days overdue`;
+                              return `${Math.abs(days)} day(s) overdue`;
                             } else if (days === 0) {
                               return 'Due today';
                             } else {
-                              return `${days} days left`;
+                              return `${days} day(s) left`;
                             }
                           })()}
                         </span>
