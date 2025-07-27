@@ -66,7 +66,7 @@ export const CapacityAnalytics = ({ onMonthlyStaffDataChange, meetingDate, meeti
   // Load data from database when component mounts or meetingId changes
   useEffect(() => {
     const loadData = async () => {
-      console.log('CapacityAnalytics: Loading data with meetingId:', meetingId);
+      console.log('CapacityAnalytics: loadData called with meetingId:', meetingId);
       if (meetingId) {
         const { data, error } = await supabase
           .from('resourcing_analytics')
