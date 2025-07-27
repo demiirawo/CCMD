@@ -58,7 +58,7 @@ export const StaffDocumentsAnalytics = ({ meetingId }: StaffDocumentsAnalyticsPr
     };
     setDocumentsData(newData);
 
-    // Save to database if meetingId is available
+    // Always save to database immediately
     if (meetingId) {
       const { error } = await supabase
         .from('staff_documents_analytics')

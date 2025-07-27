@@ -24,29 +24,43 @@ const Index = () => {
   // Function to update temporary analytics data with real meeting ID
   const updateTemporaryAnalyticsData = async (tempId: string, realId: string) => {
     try {
-      // Get all temporary analytics data
-      const { data: tempData } = await supabase
-        .from('resourcing_analytics')
-        .select('*')
-        .eq('meeting_id', tempId);
-      
-      if (tempData && tempData.length > 0) {
-        // Update each record with the real meeting ID
-        for (const record of tempData) {
-          await supabase
-            .from('resourcing_analytics')
-            .upsert({
-              ...record,
-              meeting_id: realId,
-              id: undefined // Let it generate a new ID
-            });
-        }
-        
-        // Delete the temporary records
-        await supabase
-          .from('resourcing_analytics')
-          .delete()
+      // List of all analytics tables to update
+      const analyticsTabels = [
+        'resourcing_analytics',
+        'care_plan_analytics', 
+        'spot_check_analytics',
+        'staff_documents_analytics',
+        'staff_training_analytics',
+        'supervision_analytics'
+      ];
+
+      for (const tableName of analyticsTabels) {
+        // Get all temporary analytics data for this table
+        const { data: tempData } = await supabase
+          .from(tableName as any)
+          .select('*')
           .eq('meeting_id', tempId);
+        
+        if (tempData && tempData.length > 0) {
+          // Update each record with the real meeting ID
+          for (const record of tempData) {
+            if (record && typeof record === 'object') {
+              const { id, ...recordWithoutId } = record as any;
+              await supabase
+                .from(tableName as any)
+                .upsert({
+                  ...recordWithoutId,
+                  meeting_id: realId
+                });
+            }
+          }
+          
+          // Delete the temporary records
+          await supabase
+            .from(tableName as any)
+            .delete()
+            .eq('meeting_id', tempId);
+        }
       }
     } catch (error) {
       console.error('Error updating temporary analytics data:', error);

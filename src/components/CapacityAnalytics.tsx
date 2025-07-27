@@ -123,7 +123,7 @@ export const CapacityAnalytics = ({ onMonthlyStaffDataChange, meetingDate, meeti
     };
     setMonthlyData(newData);
 
-    // Save to database if meetingId is available
+    // Always save to database immediately
     if (meetingId) {
       const row = newData[rowIndex];
       
@@ -151,8 +151,6 @@ export const CapacityAnalytics = ({ onMonthlyStaffDataChange, meetingDate, meeti
         });
       
       console.log('CapacityAnalytics: Save result:', { error });
-    } else {
-      console.log('CapacityAnalytics: No meetingId, data not saved to database');
     }
 
     // Update current metrics based on latest data
