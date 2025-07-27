@@ -276,7 +276,7 @@ export const KeyDocumentTracker = ({
                       </PopoverContent>
                     </Popover>
                     <span className="text-sm text-foreground w-20">
-                      {doc.lastReviewDate ? new Date(doc.lastReviewDate).toLocaleDateString('en-GB') : "Select date"}
+                      {doc.lastReviewDate ? new Date(doc.lastReviewDate).toLocaleDateString('en-GB') : ""}
                     </span>
                   </div>
                 </div>
