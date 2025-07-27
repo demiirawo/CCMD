@@ -2,7 +2,8 @@ import { Card } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer } from "recharts";
 import { Input } from "@/components/ui/input";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 const initialTrainingData = {
   mandatoryPending: 0,
   mandatoryCompliant: 0,
@@ -19,14 +20,64 @@ const chartConfig = {
     color: "#f59e0b"
   }
 };
-export const StaffTrainingAnalytics = () => {
+
+interface StaffTrainingAnalyticsProps {
+  meetingId?: string;
+}
+
+export const StaffTrainingAnalytics = ({ meetingId }: StaffTrainingAnalyticsProps = {}) => {
   const [trainingData, setTrainingData] = useState(initialTrainingData);
-  const handleInputChange = (field: string, value: string) => {
+  
+  // Load data from database when component mounts or meetingId changes
+  useEffect(() => {
+    const loadData = async () => {
+      if (meetingId) {
+        const { data, error } = await supabase
+          .from('staff_training_analytics')
+          .select('*')
+          .eq('meeting_id', meetingId)
+          .maybeSingle();
+        
+        if (data) {
+          setTrainingData({
+            mandatoryPending: data.mandatory_pending,
+            mandatoryCompliant: data.mandatory_compliant,
+            specialistPending: data.specialist_pending,
+            specialistCompliant: data.specialist_compliant
+          });
+        }
+      }
+    };
+    
+    loadData();
+  }, [meetingId]);
+
+  const handleInputChange = async (field: string, value: string) => {
     const numValue = parseInt(value) || 0;
-    setTrainingData(prev => ({
-      ...prev,
+    const newData = {
+      ...trainingData,
       [field]: numValue
-    }));
+    };
+    setTrainingData(newData);
+
+    // Save to database if meetingId is available
+    if (meetingId) {
+      const { error } = await supabase
+        .from('staff_training_analytics')
+        .upsert({
+          meeting_id: meetingId,
+          mandatory_pending: newData.mandatoryPending,
+          mandatory_compliant: newData.mandatoryCompliant,
+          specialist_pending: newData.specialistPending,
+          specialist_compliant: newData.specialistCompliant
+        }, {
+          onConflict: 'meeting_id'
+        });
+      
+      if (error) {
+        console.error('Error saving staff training data:', error);
+      }
+    }
   };
   const EditableInput = ({
     value,

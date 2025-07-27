@@ -125,6 +125,39 @@ export type Database = {
         }
         Relationships: []
       }
+      staff_training_analytics: {
+        Row: {
+          created_at: string
+          id: string
+          mandatory_compliant: number
+          mandatory_pending: number
+          meeting_id: string | null
+          specialist_compliant: number
+          specialist_pending: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          mandatory_compliant?: number
+          mandatory_pending?: number
+          meeting_id?: string | null
+          specialist_compliant?: number
+          specialist_pending?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          mandatory_compliant?: number
+          mandatory_pending?: number
+          meeting_id?: string | null
+          specialist_compliant?: number
+          specialist_pending?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
