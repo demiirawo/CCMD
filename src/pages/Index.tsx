@@ -381,9 +381,10 @@ const Index = () => {
     });
   };
   
-  const handleActionCreated = (itemTitle: string, mentionedAttendee: string, comment: string, action: string, dueDate: string) => {
+  const handleActionCreated = (itemTitle: string, mentionedAttendee: string, comment: string, action: string, dueDate: string, subsectionActionId?: string) => {
+    const actionId = subsectionActionId || `action-${Date.now()}`;
     const newAction: ActionLogEntry = {
-      id: `action-${Date.now()}`,
+      id: actionId,
       timestamp: new Date().toLocaleString(),
       itemTitle,
       mentionedAttendee,
@@ -392,8 +393,8 @@ const Index = () => {
       dueDate,
       status: "green",
       closed: false,
-      sourceType: "manual", // Mark as manual for subsection actions
-      sourceId: `subsection-${itemTitle}-${Date.now()}` // Unique identifier for subsection actions
+      sourceType: "manual",
+      sourceId: subsectionActionId ? `subsection-${itemTitle}` : undefined
     };
     
     setActionsLog(prev => [newAction, ...prev]);
@@ -533,6 +534,14 @@ const Index = () => {
   };
 
   const handleSubsectionActionEdit = (sectionId: string, actionId: string, updates: { comment?: string; dueDate?: string }) => {
+    const timestamp = new Date().toLocaleString('en-GB', {
+      day: '2-digit',
+      month: 'short',
+      year: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+
     // Update the action in the subsection
     setDashboardData(prev => ({
       ...prev,
@@ -546,13 +555,6 @@ const Index = () => {
               
               const updatedAction = { ...action };
               const auditEntries: import("@/components/ActionsLog").AuditEntry[] = action.auditTrail || [];
-              const timestamp = new Date().toLocaleString('en-GB', {
-                day: '2-digit',
-                month: 'short',
-                year: '2-digit',
-                hour: '2-digit',
-                minute: '2-digit'
-              });
 
               // Add comment to audit trail
               if (updates.comment) {
@@ -579,41 +581,32 @@ const Index = () => {
       )
     }));
 
-    // Also update in the main Actions Log if this action exists there
+    // Update the exact same action in the main Actions Log using the same ID
     setActionsLog(prev => prev.map(action => {
-      // Find matching action by checking if it came from the same subsection
-      if (action.sourceType === "manual" && action.sourceId?.includes(sectionId) && action.id.includes(actionId.split('-')[1])) {
-        const updatedAction = { ...action };
-        const auditEntries: import("@/components/ActionsLog").AuditEntry[] = action.auditTrail || [];
-        const timestamp = new Date().toLocaleString('en-GB', {
-          day: '2-digit',
-          month: 'short',
-          year: '2-digit',
-          hour: '2-digit',
-          minute: '2-digit'
+      if (action.id !== actionId) return action;
+      
+      const updatedAction = { ...action };
+      const auditEntries: import("@/components/ActionsLog").AuditEntry[] = action.auditTrail || [];
+
+      // Add comment to audit trail
+      if (updates.comment) {
+        auditEntries.push({
+          timestamp,
+          change: `Comment added: ${updates.comment}`
         });
-
-        // Add comment to audit trail
-        if (updates.comment) {
-          auditEntries.push({
-            timestamp,
-            change: `Comment added: ${updates.comment}`
-          });
-        }
-
-        // Update due date and add to audit trail
-        if (updates.dueDate && updates.dueDate !== action.dueDate) {
-          auditEntries.push({
-            timestamp,
-            change: `Due date changed from ${action.dueDate} to ${updates.dueDate}`
-          });
-          updatedAction.dueDate = updates.dueDate;
-        }
-
-        updatedAction.auditTrail = auditEntries;
-        return updatedAction;
       }
-      return action;
+
+      // Update due date and add to audit trail
+      if (updates.dueDate && updates.dueDate !== action.dueDate) {
+        auditEntries.push({
+          timestamp,
+          change: `Due date changed from ${action.dueDate} to ${updates.dueDate}`
+        });
+        updatedAction.dueDate = updates.dueDate;
+      }
+
+      updatedAction.auditTrail = auditEntries;
+      return updatedAction;
     }));
 
     toast({

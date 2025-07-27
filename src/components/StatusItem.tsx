@@ -46,7 +46,7 @@ interface StatusItemProps {
   onObservationChange?: (id: string, observation: string) => void;
   onActionsChange?: (id: string, actions: ActionItem[]) => void;
   onAccountableChange?: (id: string, accountable: string[]) => void;
-  onActionCreated?: (itemTitle: string, mentionedAttendee: string, comment: string, action: string, dueDate: string) => void;
+  onActionCreated?: (itemTitle: string, mentionedAttendee: string, comment: string, action: string, dueDate: string, subsectionActionId?: string) => void;
   onDocumentsChange?: (id: string, documents: DocumentData[]) => void;
   onSubsectionActionEdit?: (sectionId: string, actionId: string, updates: { comment?: string; dueDate?: string }) => void;
   attendees?: string[];
@@ -78,9 +78,9 @@ export const StatusItem = ({
   const handleActionsChange = (actions: ActionItem[]) => {
     onActionsChange?.(item.id, actions);
   };
-  const handleActionCreated = (name: string, description: string, targetDate: string) => {
-    // Create action entry for the actions log
-    onActionCreated?.(item.title, name, `Action from ${item.title}`, description, targetDate);
+  const handleActionCreated = (name: string, description: string, targetDate: string, actionId: string) => {
+    // Create action entry for the actions log with the same ID for syncing
+    onActionCreated?.(item.title, name, `Action from ${item.title}`, description, targetDate, actionId);
   };
   const handleActionCompleted = (actionId: string) => {
     // Remove the completed action from the local actions

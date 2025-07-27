@@ -19,7 +19,7 @@ interface ActionFormProps {
   actions: ActionItem[];
   attendees: string[];
   onActionsChange: (actions: ActionItem[]) => void;
-  onActionCreated?: (name: string, description: string, targetDate: string) => void;
+  onActionCreated?: (name: string, description: string, targetDate: string, actionId: string) => void;
   onActionCompleted?: (actionId: string) => void;
   onActionEdit?: (actionId: string, updates: { comment?: string; dueDate?: string }) => void;
 }
@@ -50,7 +50,7 @@ export const ActionForm = ({
       onActionsChange(updatedActions);
 
       // Notify parent for actions log
-      onActionCreated?.(newAction.name, newAction.description, newAction.targetDate);
+      onActionCreated?.(newAction.name, newAction.description, newAction.targetDate, actionItem.id);
 
       // Reset form
       setNewAction({
@@ -88,7 +88,7 @@ export const ActionForm = ({
         onActionsChange(updatedActions);
 
         // Notify parent for actions log
-        onActionCreated?.(updatedAction.name, updatedAction.description, formattedDate);
+        onActionCreated?.(updatedAction.name, updatedAction.description, formattedDate, actionItem.id);
 
         // Reset form
         setNewAction({

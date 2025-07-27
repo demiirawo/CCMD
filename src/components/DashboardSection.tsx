@@ -13,7 +13,7 @@ interface DashboardSectionProps {
   onItemActionsChange?: (id: string, actions: import("./ActionForm").ActionItem[]) => void;
   onItemDocumentsChange?: (id: string, documents: import("./StatusItem").DocumentData[]) => void;
   onAddItem?: (sectionTitle: string) => void;
-  onActionCreated?: (itemTitle: string, mentionedAttendee: string, comment: string, action: string, dueDate: string) => void;
+  onActionCreated?: (itemTitle: string, mentionedAttendee: string, comment: string, action: string, dueDate: string, subsectionActionId?: string) => void;
   onSubsectionActionEdit?: (sectionId: string, actionId: string, updates: { comment?: string; dueDate?: string }) => void;
   attendees?: string[];
   defaultOpen?: boolean;
