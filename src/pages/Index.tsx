@@ -493,18 +493,20 @@ const Index = () => {
   };
 
   const handleActionEdit = (actionId: string, updates: { comment?: string; dueDate?: string }) => {
+    const timestamp = new Date().toLocaleString('en-GB', {
+      day: '2-digit',
+      month: 'short',
+      year: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+
+    // Update action in Actions Log
     setActionsLog(prev => prev.map(action => {
       if (action.id !== actionId) return action;
       
       const updatedAction = { ...action };
       const auditEntries: import("@/components/ActionsLog").AuditEntry[] = action.auditTrail || [];
-      const timestamp = new Date().toLocaleString('en-GB', {
-        day: '2-digit',
-        month: 'short',
-        year: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit'
-      });
 
       // Add comment to audit trail
       if (updates.comment) {
@@ -525,6 +527,43 @@ const Index = () => {
 
       updatedAction.auditTrail = auditEntries;
       return updatedAction;
+    }));
+
+    // Sync the same changes to subsection actions using the same actionId
+    setDashboardData(prev => ({
+      ...prev,
+      sections: prev.sections.map(section => ({
+        ...section,
+        items: section.items.map(item => ({
+          ...item,
+          actions: item.actions.map(action => {
+            if (action.id !== actionId) return action;
+            
+            const updatedAction = { ...action };
+            const auditEntries: import("@/components/ActionsLog").AuditEntry[] = action.auditTrail || [];
+
+            // Add comment to audit trail
+            if (updates.comment) {
+              auditEntries.push({
+                timestamp,
+                change: `Comment added: ${updates.comment}`
+              });
+            }
+
+            // Update due date and add to audit trail
+            if (updates.dueDate && updates.dueDate !== action.targetDate) {
+              auditEntries.push({
+                timestamp,
+                change: `Due date changed from ${action.targetDate} to ${updates.dueDate}`
+              });
+              updatedAction.targetDate = updates.dueDate;
+            }
+
+            updatedAction.auditTrail = auditEntries;
+            return updatedAction;
+          })
+        }))
+      }))
     }));
 
     toast({

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 import { Button } from "./ui/button";
 import { Textarea } from "./ui/textarea";
@@ -20,7 +20,15 @@ export const ActionEditDialog = ({
   onSave
 }: ActionEditDialogProps) => {
   const [newComment, setNewComment] = useState("");
-  const [newDueDate, setNewDueDate] = useState(action?.dueDate || "");
+  const [newDueDate, setNewDueDate] = useState("");
+
+  // Reset form when action changes or dialog opens
+  useEffect(() => {
+    if (action && isOpen) {
+      setNewDueDate(action.dueDate || "");
+      setNewComment("");
+    }
+  }, [action, isOpen]);
 
   const handleSave = () => {
     if (!action) return;
@@ -31,14 +39,15 @@ export const ActionEditDialog = ({
       updates.comment = newComment.trim();
     }
     
-    if (newDueDate !== action.dueDate) {
+    // Only update due date if it's actually different and not empty
+    if (newDueDate && newDueDate !== action.dueDate) {
       updates.dueDate = newDueDate;
     }
 
     if (Object.keys(updates).length > 0) {
       onSave(action.id, updates);
       setNewComment("");
-      setNewDueDate(action.dueDate);
+      setNewDueDate(action.dueDate || "");
       onClose();
     }
   };
