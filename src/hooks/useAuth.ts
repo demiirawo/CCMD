@@ -262,6 +262,8 @@ export const useAuthProvider = (): AuthContextType => {
     
     if (!error) {
       setProfile({ ...profile, company_id: companyId });
+      // Clear session storage when switching companies to reset dashboard section states
+      sessionStorage.clear();
     }
     
     return { error };
