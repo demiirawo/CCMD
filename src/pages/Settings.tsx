@@ -74,6 +74,14 @@ export const Settings = () => {
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
   const [selectedLogo, setSelectedLogo] = useState<string>("");
   const currentCompany = companies.find(c => c.id === profile?.company_id);
+  
+  // Debug logging
+  console.log("Settings Debug:", {
+    profile,
+    companies,
+    currentCompany,
+    profileCompanyId: profile?.company_id
+  });
   useEffect(() => {
     const loadCompanySettings = async () => {
       if (!currentCompany) return;
