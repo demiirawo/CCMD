@@ -5,9 +5,9 @@ import { Input } from "@/components/ui/input";
 import { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { format, subMonths } from "date-fns";
-// Generate 12 months of data from current month back to same month last year
-const generateInitialData = () => {
-  const currentDate = new Date();
+// Generate 12 months of data from meeting date back to same month last year
+const generateInitialData = (meetingDate?: Date) => {
+  const currentDate = meetingDate || new Date();
   const data = [];
   for (let i = 0; i < 12; i++) {
     const monthDate = subMonths(currentDate, i);
@@ -21,7 +21,6 @@ const generateInitialData = () => {
   }
   return data;
 };
-const initialMonthlyData = generateInitialData();
 const initialCurrentMetrics = {
   activeOnboardingStaff: 0,
   currentStaffingLevel: 0,
@@ -47,9 +46,19 @@ const chartConfig = {
     color: "hsl(var(--chart-4))"
   }
 };
-export const CapacityAnalytics = ({ onMonthlyStaffDataChange }: { onMonthlyStaffDataChange?: (data: Array<{month: string, currentStaff: number, probationStaff?: number}>) => void } = {}) => {
-  const [monthlyData, setMonthlyData] = useState(initialMonthlyData);
+interface CapacityAnalyticsProps {
+  onMonthlyStaffDataChange?: (data: Array<{month: string, currentStaff: number, probationStaff?: number}>) => void;
+  meetingDate?: Date;
+}
+
+export const CapacityAnalytics = ({ onMonthlyStaffDataChange, meetingDate }: CapacityAnalyticsProps = {}) => {
+  const [monthlyData, setMonthlyData] = useState(generateInitialData(meetingDate));
   const [currentMetrics, setCurrentMetrics] = useState(initialCurrentMetrics);
+  
+  // Update data when meeting date changes
+  useEffect(() => {
+    setMonthlyData(generateInitialData(meetingDate));
+  }, [meetingDate]);
   
   // Send initial monthly staff data to parent component
   useEffect(() => {

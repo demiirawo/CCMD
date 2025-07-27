@@ -124,7 +124,7 @@ export const StatusItem = ({
             {/* Additional content */}
           </div>
           
-          {item.title.toLowerCase().includes('resourcing') && <CapacityAnalytics onMonthlyStaffDataChange={onMonthlyStaffDataChange} />}
+          {item.title.toLowerCase().includes('resourcing') && <CapacityAnalytics onMonthlyStaffDataChange={onMonthlyStaffDataChange} meetingDate={meetingDate} />}
           
           {item.title.toLowerCase().includes('staff documents') && <StaffDocumentsAnalytics />}
           
