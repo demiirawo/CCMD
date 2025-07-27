@@ -191,7 +191,7 @@ export const KeyDocumentTracker = ({
                   />
                 </div>
                 
-                <div>
+                <div className="flex flex-col items-center">
                   <label className="text-xs text-muted-foreground mb-1 block">Last Reviewed</label>
                   <Popover>
                     <PopoverTrigger asChild>
