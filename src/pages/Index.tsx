@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { DashboardHeader } from "@/components/DashboardHeader";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import { Attendee } from "@/components/MeetingAttendeesManager";
 import { DashboardSection } from "@/components/DashboardSection";
 import { ActionsLog, ActionLogEntry } from "@/components/ActionsLog";
@@ -17,16 +18,29 @@ import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 
 const Index = () => {
+  const { profile } = useAuth();
+  
+  if (!profile?.company_id) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <p>Please select a company to continue.</p>
+        </div>
+      </div>
+    );
+  }
+
   const [currentMeetingId, setCurrentMeetingId] = useState<string | null>(null);
   const [tempMeetingId, setTempMeetingId] = useState<string>(() => {
-    // Use a fixed persistent ID for continuous data storage across all sessions
-    const persistentId = localStorage.getItem('persistentMeetingId');
+    // Use a company-specific persistent ID for continuous data storage
+    const companyId = profile.company_id;
+    const persistentId = localStorage.getItem(`persistentMeetingId_${companyId}`);
     if (persistentId) {
       console.log('Index: Using persistent meeting ID:', persistentId);
       return persistentId;
     } else {
       const newId = crypto.randomUUID();
-      localStorage.setItem('persistentMeetingId', newId);
+      localStorage.setItem(`persistentMeetingId_${companyId}`, newId);
       console.log('Index: Generated persistent meeting ID:', newId);
       return newId;
     }
@@ -805,7 +819,8 @@ const Index = () => {
         sections: JSON.stringify(cleanSections),
         actions_log: JSON.stringify(actionsLog),
         quarter,
-        year
+        year,
+        company_id: profile?.company_id
       };
 
       // Save to Supabase
