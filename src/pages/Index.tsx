@@ -1001,6 +1001,7 @@ const Index = () => {
                   attendees={getAttendeesList()}
                    meetingDate={meetingDate}
                    meetingId={currentMeetingId || tempMeetingId}
+                   defaultOpen={false}
                 />
             );
           })}

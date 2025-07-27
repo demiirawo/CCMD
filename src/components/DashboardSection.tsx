@@ -40,7 +40,11 @@ export const DashboardSection = ({
   meetingDate,
   meetingId
 }: DashboardSectionProps) => {
-  const [isOpen, setIsOpen] = useState(defaultOpen);
+  const [isOpen, setIsOpen] = useState(() => {
+    const storageKey = `section_${title.replace(/\s+/g, '_').toLowerCase()}_open`;
+    const saved = sessionStorage.getItem(storageKey);
+    return saved !== null ? JSON.parse(saved) : defaultOpen;
+  });
   const [monthlyStaffData, setMonthlyStaffData] = useState<Array<{month: string, currentStaff: number, probationStaff?: number}>>([]);
 
   const statusCounts = items.reduce((acc, item) => {
@@ -129,7 +133,12 @@ export const DashboardSection = ({
     <div className="bg-white rounded-2xl p-6 shadow-lg border border-border/50">
       <div 
         className="flex items-center justify-between cursor-pointer mb-4"
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={() => {
+          const newState = !isOpen;
+          setIsOpen(newState);
+          const storageKey = `section_${title.replace(/\s+/g, '_').toLowerCase()}_open`;
+          sessionStorage.setItem(storageKey, JSON.stringify(newState));
+        }}
       >
         <div className="flex items-center gap-3">
           <div>

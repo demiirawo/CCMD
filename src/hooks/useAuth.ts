@@ -218,6 +218,8 @@ export const useAuthProvider = (): AuthContextType => {
   };
 
   const signOut = async () => {
+    // Clear session storage when logging out
+    sessionStorage.clear();
     await supabase.auth.signOut();
   };
 
