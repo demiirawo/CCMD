@@ -5,7 +5,7 @@ import { Button } from "./ui/button";
 import { Calendar } from "./ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
-import { format, addDays, addWeeks, addMonths, addYears } from "date-fns";
+import { format, addDays, addWeeks, addMonths, addYears, differenceInDays } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Card } from "./ui/card";
 
@@ -61,6 +61,28 @@ export const KeyDocumentTracker = ({
         return addYears(lastReviewDate, num);
       default:
         return null;
+    }
+  };
+
+  const getDaysRemaining = (nextReviewDate: Date | null) => {
+    if (!nextReviewDate) return null;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const reviewDate = new Date(nextReviewDate);
+    reviewDate.setHours(0, 0, 0, 0);
+    return differenceInDays(reviewDate, today);
+  };
+
+  const getDocumentColorClass = (nextReviewDate: Date | null) => {
+    const daysRemaining = getDaysRemaining(nextReviewDate);
+    if (daysRemaining === null) return "bg-white";
+    
+    if (daysRemaining < 0) {
+      return "bg-red-50 border-red-200";
+    } else if (daysRemaining <= 5) {
+      return "bg-amber-50 border-amber-200";
+    } else {
+      return "bg-green-50 border-green-200";
     }
   };
 
@@ -122,7 +144,7 @@ export const KeyDocumentTracker = ({
   return (
     <Card className="bg-white rounded-2xl p-8 mb-8 shadow-lg border border-border/50">
       <div className="flex items-center gap-3 mb-6">
-        <h3 className="text-xl font-bold text-foreground">Key Document Tracker</h3>
+        <h3 className="text-xl font-bold text-foreground">Key Review Dates</h3>
       </div>
       
       <div className="space-y-6">
@@ -132,7 +154,7 @@ export const KeyDocumentTracker = ({
               {category}
             </h4>
             {docs.map((doc) => (
-              <div key={doc.id} className="grid grid-cols-6 gap-3 p-4 border border-border/20 rounded-lg bg-white">
+              <div key={doc.id} className={`grid grid-cols-6 gap-3 p-4 border rounded-lg ${getDocumentColorClass(doc.nextReviewDate)}`}>
                 <div>
                   <label className="text-xs text-muted-foreground mb-1 block">Category</label>
                   <Select value={doc.category} onValueChange={(value) => handleDocumentChange(documents.indexOf(doc), 'category', value)}>
@@ -151,12 +173,22 @@ export const KeyDocumentTracker = ({
                 
                 <div>
                   <label className="text-xs text-muted-foreground mb-1 block">Document Name</label>
-                  <Input 
-                    value={doc.documentName} 
-                    onChange={e => handleDocumentChange(documents.indexOf(doc), 'documentName', e.target.value)} 
-                    placeholder="Enter document name" 
-                    className="text-sm" 
-                  />
+                  <div className="flex gap-1">
+                    <Input 
+                      value={doc.documentName} 
+                      onChange={e => handleDocumentChange(documents.indexOf(doc), 'documentName', e.target.value)} 
+                      placeholder="Enter document name" 
+                      className="text-sm flex-1" 
+                    />
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => removeDocument(doc.id)} 
+                      className="text-xs text-destructive hover:text-destructive w-8 h-8 p-0"
+                    >
+                      <Minus className="w-3 h-3" />
+                    </Button>
+                  </div>
                 </div>
                 
                 <div>
@@ -173,9 +205,8 @@ export const KeyDocumentTracker = ({
                   <label className="text-xs text-muted-foreground mb-1 block">Last Review Date</label>
                   <Popover>
                     <PopoverTrigger asChild>
-                      <Button variant="outline" className={cn("w-full justify-start text-left font-normal text-sm h-9", !doc.lastReviewDate && "text-muted-foreground")}>
-                        <CalendarIcon className="mr-2 h-3 w-3" />
-                        {doc.lastReviewDate ? format(doc.lastReviewDate, "PPP") : "Pick date"}
+                      <Button variant="outline" className="w-9 h-9 p-0">
+                        <CalendarIcon className="h-4 w-4" />
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="start">
@@ -225,17 +256,6 @@ export const KeyDocumentTracker = ({
                   <div className="text-sm p-2 bg-muted/50 rounded border text-center min-h-[36px] flex items-center justify-center">
                     {doc.nextReviewDate ? format(doc.nextReviewDate, "PPP") : "Auto-calculated"}
                   </div>
-                </div>
-                
-                <div className="col-span-6 flex justify-end">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={() => removeDocument(doc.id)} 
-                    className="text-xs text-destructive hover:text-destructive w-8 h-8 p-0"
-                  >
-                    <Minus className="w-3 h-3" />
-                  </Button>
                 </div>
               </div>
             ))}
