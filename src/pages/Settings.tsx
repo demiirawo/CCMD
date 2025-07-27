@@ -9,14 +9,14 @@ import { useToast } from "@/hooks/use-toast";
 import { Palette, Building, Image, Upload, X } from "lucide-react";
 
 const THEME_COLORS = [
-  { name: "Blue", value: "#3b82f6", description: "Professional and trustworthy" },
-  { name: "Green", value: "#10b981", description: "Growth and harmony" },
-  { name: "Purple", value: "#8b5cf6", description: "Creative and innovative" },
-  { name: "Orange", value: "#f59e0b", description: "Energetic and friendly" },
-  { name: "Red", value: "#ef4444", description: "Bold and confident" },
-  { name: "Teal", value: "#14b8a6", description: "Calm and balanced" },
-  { name: "Pink", value: "#ec4899", description: "Compassionate and caring" },
-  { name: "Indigo", value: "#6366f1", description: "Professional and modern" }
+  { name: "Lavender", value: "#b4a7d6", description: "Soft and calming" },
+  { name: "Sage", value: "#9fc5af", description: "Natural and balanced" },
+  { name: "Peach", value: "#ffb3ba", description: "Warm and welcoming" },
+  { name: "Sky", value: "#a8dadc", description: "Fresh and open" },
+  { name: "Coral", value: "#ffaaa5", description: "Gentle and caring" },
+  { name: "Mint", value: "#b5ead7", description: "Cool and refreshing" },
+  { name: "Rose", value: "#e8b4cb", description: "Tender and nurturing" },
+  { name: "Butter", value: "#ffd3a5", description: "Soft and comforting" }
 ];
 
 const SERVICES = [
