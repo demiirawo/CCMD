@@ -52,14 +52,20 @@ export const useAuthProvider = (): AuthContextType => {
   const [loading, setLoading] = useState(true);
 
   const fetchUserProfile = async () => {
-    if (!user) return;
+    if (!user) {
+      console.log('No user, skipping profile fetch');
+      return;
+    }
     
     try {
+      console.log('Fetching profile for user:', user.id);
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('user_id', user.id)
         .single();
+      
+      console.log('Profile fetch result:', { data, error });
       
       if (error) {
         console.error('Error fetching profile:', error);
@@ -100,16 +106,36 @@ export const useAuthProvider = (): AuthContextType => {
   useEffect(() => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      async (event, session) => {
+        console.log('Auth state change:', event, session?.user?.id);
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
         
         // Fetch profile when user logs in
         if (session?.user) {
-          setTimeout(() => {
-            fetchUserProfile();
-          }, 0);
+          console.log('User logged in, fetching profile...');
+          // Use setTimeout to avoid potential auth context issues
+          setTimeout(async () => {
+            try {
+              const { data, error } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('user_id', session.user.id)
+                .single();
+              
+              console.log('Profile fetch result:', { data, error });
+              
+              if (error) {
+                console.error('Error fetching profile:', error);
+                return;
+              }
+              
+              setProfile(data);
+            } catch (error) {
+              console.error('Error fetching profile:', error);
+            }
+          }, 100);
         } else {
           setProfile(null);
           setCompanies([]);
@@ -119,14 +145,32 @@ export const useAuthProvider = (): AuthContextType => {
 
     // Check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log('Initial session check:', session?.user?.id);
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
       
       if (session?.user) {
-        setTimeout(() => {
-          fetchUserProfile();
-        }, 0);
+        setTimeout(async () => {
+          try {
+            const { data, error } = await supabase
+              .from('profiles')
+              .select('*')
+              .eq('user_id', session.user.id)
+              .single();
+            
+            console.log('Initial profile fetch result:', { data, error });
+            
+            if (error) {
+              console.error('Error fetching initial profile:', error);
+              return;
+            }
+            
+            setProfile(data);
+          } catch (error) {
+            console.error('Error fetching initial profile:', error);
+          }
+        }, 100);
       }
     });
 
