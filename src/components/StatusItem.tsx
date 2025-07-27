@@ -264,9 +264,14 @@ export const StatusItem = ({
             {/* Additional content */}
           </div>
           
-          {item.title.toLowerCase().includes('resourcing') && (() => {
-            console.log('StatusItem: Rendering CapacityAnalytics for:', item.title, 'meetingId:', meetingId);
-            return <CapacityAnalytics onMonthlyStaffDataChange={onMonthlyStaffDataChange} meetingDate={meetingDate} meetingId={meetingId} />;
+          {(() => {
+            const shouldRender = item.title.toLowerCase().includes('resourcing');
+            console.log('StatusItem: Checking resourcing for title:', item.title, 'toLowerCase:', item.title.toLowerCase(), 'shouldRender:', shouldRender);
+            if (shouldRender) {
+              console.log('StatusItem: Rendering CapacityAnalytics for:', item.title, 'meetingId:', meetingId);
+              return <CapacityAnalytics onMonthlyStaffDataChange={onMonthlyStaffDataChange} meetingDate={meetingDate} meetingId={meetingId} />;
+            }
+            return null;
           })()}
           
           {item.title.toLowerCase().includes('staff documents') && <StaffDocumentsAnalytics meetingId={meetingId} />}
