@@ -186,6 +186,12 @@ export const StatusItem = ({
               </h4>
             </SubsectionMetadataDialog>
             
+            {item.metadata?.accountableOwner && (
+              <p className="text-xs text-muted-foreground mt-1">
+                Accountable: {item.metadata.accountableOwner}
+              </p>
+            )}
+            
             <p className="text-xs text-muted-foreground mt-1">
               Updated: {item.metadata?.updated || item.lastReviewed}
             </p>
@@ -217,12 +223,6 @@ export const StatusItem = ({
                   {item.metadata.link2Text || item.metadata.link2}
                 </a>
               </div>
-            )}
-            
-            {item.metadata?.accountableOwner && (
-              <p className="text-xs text-muted-foreground mt-1">
-                Accountable: {item.metadata.accountableOwner}
-              </p>
             )}
             
             {item.metadata?.description && (
