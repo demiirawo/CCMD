@@ -157,23 +157,23 @@ export const KeyDocumentTracker = ({
             </h4>
             {docs.map((doc) => (
               <div key={doc.id} className={`grid grid-cols-8 gap-3 p-4 border rounded-lg ${getDocumentColorClass(doc.nextReviewDate)}`}>
-                <div className="col-span-2">
-                  <label className="text-xs text-muted-foreground mb-1 block">Category</label>
-                  <Select value={doc.category} onValueChange={(value) => handleDocumentChange(documents.indexOf(doc), 'category', value)}>
-                    <SelectTrigger className="text-sm h-9 bg-white">
-                      <SelectValue placeholder="Select category" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-white">
-                      {categories.map((cat) => (
-                        <SelectItem key={cat} value={cat} className="text-sm">
-                          {cat}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div className="col-span-2">
+               <div className="col-span-1">
+                 <label className="text-xs text-muted-foreground mb-1 block">Category</label>
+                 <Select value={doc.category} onValueChange={(value) => handleDocumentChange(documents.indexOf(doc), 'category', value)}>
+                   <SelectTrigger className="text-sm h-9 bg-white">
+                     <SelectValue placeholder="Select category" />
+                   </SelectTrigger>
+                   <SelectContent className="bg-white">
+                     {categories.map((cat) => (
+                       <SelectItem key={cat} value={cat} className="text-sm">
+                         {cat}
+                       </SelectItem>
+                     ))}
+                   </SelectContent>
+                 </Select>
+               </div>
+               
+               <div className="col-span-3">
                   <label className="text-xs text-muted-foreground mb-1 block">Document Name</label>
                   <Input 
                     value={doc.documentName} 
