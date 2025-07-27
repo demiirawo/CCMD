@@ -8,6 +8,7 @@ import { AuthProvider } from "./components/AuthProvider";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import Index from "./pages/Index";
 import { Reports } from "./pages/Reports";
+import { Settings } from "./pages/Settings";
 import { Auth } from "./pages/Auth";
 import { CompanySelection } from "./pages/CompanySelection";
 import NotFound from "./pages/NotFound";
@@ -38,6 +39,12 @@ const App = () => (
               <ProtectedRoute requireCompany>
                 <Navigation />
                 <Reports />
+              </ProtectedRoute>
+            } />
+            <Route path="/settings" element={
+              <ProtectedRoute requireCompany>
+                <Navigation />
+                <Settings />
               </ProtectedRoute>
             } />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

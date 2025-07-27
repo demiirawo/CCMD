@@ -77,19 +77,28 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          logo_url: string | null
           name: string
+          services: string[] | null
+          theme_color: string | null
           updated_at: string
         }
         Insert: {
           created_at?: string
           id?: string
+          logo_url?: string | null
           name: string
+          services?: string[] | null
+          theme_color?: string | null
           updated_at?: string
         }
         Update: {
           created_at?: string
           id?: string
+          logo_url?: string | null
           name?: string
+          services?: string[] | null
+          theme_color?: string | null
           updated_at?: string
         }
         Relationships: []

@@ -2,7 +2,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { Building2, LogOut, User } from "lucide-react";
+import { Building2, LogOut, User, Settings } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 export const Navigation = () => {
@@ -12,7 +12,8 @@ export const Navigation = () => {
 
   const navItems = [
     { name: "Dashboard", path: "/" },
-    { name: "Reports", path: "/reports" }
+    { name: "Reports", path: "/reports" },
+    { name: "Settings", path: "/settings" }
   ];
 
   const currentCompany = companies.find(c => c.id === profile?.company_id);
