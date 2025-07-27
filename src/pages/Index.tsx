@@ -130,21 +130,16 @@ const Index = () => {
       return now.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }) + ' ' + 
              now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });
     })(),
-    title: "Strategic Planning Session",
-    attendees: [
-      { id: "1", name: "John Smith", email: "john.smith@company.com" },
-      { id: "2", name: "Sarah Johnson", email: "sarah.johnson@company.com" },
-      { id: "3", name: "Mike Chen", email: "mike.chen@company.com" },
-      { id: "4", name: "Lisa Rodriguez", email: "lisa.rodriguez@company.com" }
-    ] as Attendee[],
-    purpose: "Review Q4 performance and set strategic priorities for 2025"
+    title: "",
+    attendees: [] as Attendee[],
+    purpose: ""
   });
 
   const [dashboardData, setDashboardData] = useState({
-    date: "24/07/2025",
-    title: "Management Meeting (Weekly)",
-    attendees: "Manager, Team Leader, Senior Carer",
-    purpose: "Weekly review of care quality and operational matters",
+    date: "",
+    title: "",
+    attendees: "",
+    purpose: "",
     sections: [{
       id: "meeting-overview",
       title: "Meeting Overview",
@@ -153,26 +148,26 @@ const Index = () => {
         id: "meeting-date",
         title: "Meeting Date",
         status: "green" as StatusType,
-        lastReviewed: "24-Jul-25",
-        observation: "24/07/2025",
+        lastReviewed: "",
+        observation: "",
         actions: [],
-        details: "Current meeting date"
+        details: ""
       }, {
         id: "meeting-attendees",
         title: "Meeting Attendees",
         status: "green" as StatusType,
-        lastReviewed: "24-Jul-25",
-        observation: "Manager, Team Leader, Senior Carer",
+        lastReviewed: "",
+        observation: "",
         actions: [],
-        details: "Key staff members present"
+        details: ""
       }, {
         id: "meeting-purpose",
         title: "Meeting Purpose",
         status: "green" as StatusType,
-        lastReviewed: "24-Jul-25",
-        observation: "Weekly review of care quality and operational matters",
+        lastReviewed: "",
+        observation: "",
         actions: [],
-        details: "Meeting objectives and goals"
+        details: ""
       }]
     }, {
       id: "staff",
@@ -181,51 +176,51 @@ const Index = () => {
       items: [{
         id: "recruitment",
         title: "Resourcing",
-        status: "amber" as StatusType,
-        lastReviewed: "23-Jul-25",
-        observation: "Recruitment to be paused.",
+        status: "green" as StatusType,
+        lastReviewed: "",
+        observation: "",
         actions: [],
-        details: "Several positions still vacant. Need to review strategy and budget allocation."
+        details: ""
       }, {
         id: "staff-documents",
         title: "Staff Documents",
-        status: "amber" as StatusType,
-        lastReviewed: "23-Jul-25",
-        observation: "Currently processing 3 starters. Employment History - Callista working on 2 remaining staff.",
+        status: "green" as StatusType,
+        lastReviewed: "",
+        observation: "",
         actions: [],
-        details: "Document compliance tracking ongoing. Priority focus on completing outstanding employment history checks."
+        details: ""
       }, {
         id: "training",
         title: "Training",
-        status: "amber" as StatusType,
-        lastReviewed: "23-Jul-25",
-        observation: "Several staff members still have not completed mandatory training - by the 31st of July.",
+        status: "green" as StatusType,
+        lastReviewed: "",
+        observation: "",
         actions: [],
-        details: "Training compliance deadline approaching. Need immediate action for staff completion."
+        details: ""
       }, {
         id: "spot-checks",
         title: "Spot Checks",
-        status: "amber" as StatusType,
-        lastReviewed: "23-Jul-25",
-        observation: "3 spot checks are due - Callista to send their names to Sam/Melissa - by 23rd",
+        status: "green" as StatusType,
+        lastReviewed: "",
+        observation: "",
         actions: [],
-        details: "Regular quality assurance spot checks due for completion."
+        details: ""
       }, {
         id: "staff-supervisions",
         title: "Staff Supervisions",
         status: "green" as StatusType,
-        lastReviewed: "23-Jul-25",
-        observation: "1 person pending supervision, 1 person pending probation review",
+        lastReviewed: "",
+        observation: "",
         actions: [],
-        details: "Supervision schedule mostly on track with minimal outstanding items."
+        details: ""
       }, {
         id: "staff-meetings",
         title: "Staff Meetings",
         status: "green" as StatusType,
-        lastReviewed: "23-Jul-25",
-        observation: "Regular team meetings scheduled and conducted",
+        lastReviewed: "",
+        observation: "",
         actions: [],
-        details: "Monthly staff meetings proceeding as planned"
+        details: ""
       }]
     }, {
       id: "care-planning",
@@ -234,51 +229,51 @@ const Index = () => {
       items: [{
         id: "care-plans",
         title: "Care Plans & Risk Assessments",
-        status: "red" as StatusType,
-        lastReviewed: "23-Jul-25",
-        observation: "4 service users do not have a care plan in place. Please check the initial visit content to determine if all service users are documented correctly.",
+        status: "green" as StatusType,
+        lastReviewed: "",
+        observation: "",
         actions: [],
-        details: "Critical compliance issue requiring immediate attention for service user safety."
+        details: ""
       }, {
         id: "service-user-docs",
         title: "Service User Documents",
-        status: "red" as StatusType,
-        lastReviewed: "23-Jul-25",
-        observation: "Initial consent to deliver of all service users and documented evidence. No forms when handed goes to Denean 11/07/25",
+        status: "green" as StatusType,
+        lastReviewed: "",
+        observation: "",
         actions: [],
-        details: "Documentation compliance critical for service delivery authorization."
+        details: ""
       }, {
         id: "medication",
         title: "Medication Management",
         status: "green" as StatusType,
-        lastReviewed: "23-Jul-25",
-        observation: "Up to date - no concerns",
+        lastReviewed: "",
+        observation: "",
         actions: [],
-        details: "All medication protocols and documentation current and compliant."
+        details: ""
       }, {
         id: "care-notes",
         title: "Care Notes",
         status: "green" as StatusType,
-        lastReviewed: "23-Jul-25",
-        observation: "Daily care notes being completed consistently",
+        lastReviewed: "",
+        observation: "",
         actions: [],
-        details: "Care documentation up to date and compliant"
+        details: ""
       }, {
         id: "call-monitoring",
         title: "Call Monitoring",
         status: "green" as StatusType,
-        lastReviewed: "23-Jul-25",
-        observation: "Call monitoring system functioning well",
+        lastReviewed: "",
+        observation: "",
         actions: [],
-        details: "Regular monitoring of care visits and timing"
+        details: ""
       }, {
         id: "transportation",
         title: "Transportation",
         status: "green" as StatusType,
-        lastReviewed: "24-Jul-25",
-        observation: "Transportation services operating smoothly",
+        lastReviewed: "",
+        observation: "",
         actions: [],
-        details: "Vehicle maintenance and driver scheduling up to date"
+        details: ""
       }]
     }, {
       id: "safety",
@@ -288,34 +283,34 @@ const Index = () => {
         id: "incidents-accidents",
         title: "Incidents & Accidents",
         status: "green" as StatusType,
-        lastReviewed: "23-Jul-25",
-        observation: "No recent incidents reported",
+        lastReviewed: "",
+        observation: "",
         actions: [],
-        details: "Incident reporting system functioning well"
+        details: ""
       }, {
         id: "risk-register",
         title: "Risk Register",
-        status: "amber" as StatusType,
-        lastReviewed: "23-Jul-25",
-        observation: "Risk register requires quarterly review",
+        status: "green" as StatusType,
+        lastReviewed: "",
+        observation: "",
         actions: [],
-        details: "Some risks need updating and reassessment"
+        details: ""
       }, {
         id: "infection-control",
         title: "Infection Control",
         status: "green" as StatusType,
-        lastReviewed: "23-Jul-25",
-        observation: "Infection control measures in place and effective",
+        lastReviewed: "",
+        observation: "",
         actions: [],
-        details: "PPE supplies adequate, procedures being followed"
+        details: ""
       }, {
         id: "information-governance",
         title: "Information Governance",
         status: "green" as StatusType,
-        lastReviewed: "23-Jul-25",
-        observation: "Data protection and privacy protocols maintained",
+        lastReviewed: "",
+        observation: "",
         actions: [],
-        details: "GDPR compliance checks completed, staff training up to date"
+        details: ""
       }]
     }, {
       id: "continuous-improvement",
@@ -325,18 +320,18 @@ const Index = () => {
         id: "feedback",
         title: "Feedback",
         status: "green" as StatusType,
-        lastReviewed: "23-Jul-25",
-        observation: "Number of service users due for feedback, Callista to follow up",
+        lastReviewed: "",
+        observation: "",
         actions: [],
-        details: "Regular feedback collection from service users proceeding as scheduled."
+        details: ""
       }, {
         id: "audits",
         title: "Audits",
         status: "green" as StatusType,
-        lastReviewed: "23-Jul-25",
-        observation: "6 completed, progress is ongoing",
+        lastReviewed: "",
+        observation: "",
         actions: [],
-        details: "Audit schedule progressing well with good completion rate."
+        details: ""
       }]
     }]
   });
