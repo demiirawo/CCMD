@@ -209,7 +209,7 @@ export const StatusItem = ({
             </p>
             
             {item.metadata?.description && (
-              <p className="text-xs text-muted-foreground mt-2 whitespace-pre-wrap">
+              <p className="text-xs text-muted-foreground mt-4 whitespace-pre-wrap italic">
                 {item.metadata.description}
               </p>
             )}
