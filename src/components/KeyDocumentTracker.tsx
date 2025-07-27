@@ -53,7 +53,10 @@ export const KeyDocumentTracker = ({
   const createdActionsRef = useRef<Set<string>>(new Set());
   
   const calculateNextReviewDate = (lastReviewDate: Date | null, number: string, period: string): Date | null => {
-    if (!lastReviewDate || !number || !period) return null;
+    if (!lastReviewDate) return null;
+    
+    // If no frequency is specified, use the same date as the last review date
+    if (!number || !period) return lastReviewDate;
     
     const num = parseInt(number) || 1;
     
@@ -67,7 +70,7 @@ export const KeyDocumentTracker = ({
       case 'years':
         return addYears(lastReviewDate, num);
       default:
-        return null;
+        return lastReviewDate;
     }
   };
 
