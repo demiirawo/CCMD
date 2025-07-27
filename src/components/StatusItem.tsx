@@ -173,6 +173,7 @@ export const StatusItem = ({
         <div className="flex-1 min-w-0 mr-3 flex flex-col justify-between h-full">
           <div>
             <SubsectionMetadataDialog
+              title={item.title}
               metadata={item.metadata}
               attendees={attendees}
               onSave={handleMetadataChange}
@@ -192,7 +193,7 @@ export const StatusItem = ({
                   rel="noopener noreferrer"
                   className="text-xs text-primary hover:underline truncate"
                 >
-                  {item.metadata.link}
+                  {item.metadata.linkText || item.metadata.link}
                 </a>
               </div>
             )}
