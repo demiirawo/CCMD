@@ -187,13 +187,12 @@ export const KeyDocumentTracker = ({
             if (onActionCreated) {
               const formattedDate = nextReview.toLocaleDateString('en-GB');
               const isOverdue = daysRemaining < 0;
-              const urgencyText = isOverdue ? 'OVERDUE' : daysRemaining <= 7 ? 'DUE SOON' : '';
               
               onActionCreated({
                 itemTitle: "Key Review Dates",
                 mentionedAttendee: doc.owner,
                 comment: `Document review ${isOverdue ? 'overdue' : 'due'} for: ${doc.name}`,
-                action: `${urgencyText ? `[${urgencyText}] ` : ''}Review: ${doc.name} (${doc.category})`,
+                action: `Review: ${doc.name} (${doc.category})`,
                 dueDate: formattedDate,
                 sourceType: "document",
                 sourceId: doc.id
@@ -266,13 +265,12 @@ export const KeyDocumentTracker = ({
       if (daysRemaining !== null && daysRemaining <= 30 && !createdActionsRef.current.has(actionId)) {
         const formattedDate = nextReview.toLocaleDateString('en-GB');
         const isOverdue = daysRemaining < 0;
-        const urgencyText = isOverdue ? 'OVERDUE' : daysRemaining <= 7 ? 'DUE SOON' : '';
         
         onActionCreated({
           itemTitle: "Key Review Dates",
           mentionedAttendee: document.owner,
           comment: `Document review ${isOverdue ? 'overdue' : 'due'} for: ${document.name}`,
-          action: `${urgencyText ? `[${urgencyText}] ` : ''}Review: ${document.name} (${document.category})`,
+          action: `Review: ${document.name} (${document.category})`,
           dueDate: formattedDate,
           sourceType: "document",
           sourceId: document.id
