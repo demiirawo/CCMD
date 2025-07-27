@@ -78,14 +78,18 @@ export const CarePlanAnalytics = ({ meetingDate, meetingId }: CarePlanAnalyticsP
           return;
         }
 
+        console.log('CarePlanAnalytics - loaded data:', data);
+
         if (data) {
-          setCurrentData({
+          const newData = {
             totalServiceUsers: data.total_service_users,
             carePlansInDate: data.care_plans_in_date,
             carePlansOverdue: data.care_plans_overdue,
             riskAssessmentsInDate: data.risk_assessments_in_date,
             riskAssessmentsOverdue: data.risk_assessments_overdue
-          });
+          };
+          console.log('CarePlanAnalytics - setting currentData to:', newData);
+          setCurrentData(newData);
         }
       } catch (error) {
         console.error('Error loading care plan analytics:', error);
