@@ -240,11 +240,11 @@ export const KeyDocumentTracker = ({
                    />
                  </div>
                 
-                 <div className="col-span-2">
+                 <div className="col-span-1">
                    <label className="text-xs text-muted-foreground mb-1 block">Document Owner</label>
                    <Select value={doc.owner} onValueChange={(value) => handleDocumentChange(documents.indexOf(doc), 'owner', value)}>
                      <SelectTrigger className="text-sm h-9 bg-white">
-                       <SelectValue placeholder="Select owner" />
+                       <SelectValue placeholder="Owner" />
                      </SelectTrigger>
                      <SelectContent className="bg-white">
                        {attendees.map((attendee) => (
@@ -256,24 +256,29 @@ export const KeyDocumentTracker = ({
                    </Select>
                  </div>
                 
-                <div className="col-span-1">
+                <div className="col-span-2">
                   <label className="text-xs text-muted-foreground mb-1 block">Date</label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button variant="outline" className="w-full h-9 p-0">
-                        <CalendarIcon className="h-4 w-4" />
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                       <Calendar 
-                         mode="single" 
-                         selected={doc.lastReviewDate ? new Date(doc.lastReviewDate) : undefined} 
-                         onSelect={date => handleDocumentChange(documents.indexOf(doc), 'lastReviewDate', date ? format(date, 'yyyy-MM-dd') : '')} 
-                         initialFocus 
-                         className="p-3 pointer-events-auto bg-white" 
-                       />
-                    </PopoverContent>
-                  </Popover>
+                  <div className="flex items-center gap-2">
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button variant="outline" className="h-9 w-9 p-0 flex-shrink-0">
+                          <CalendarIcon className="h-4 w-4" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                         <Calendar 
+                           mode="single" 
+                           selected={doc.lastReviewDate ? new Date(doc.lastReviewDate) : undefined} 
+                           onSelect={date => handleDocumentChange(documents.indexOf(doc), 'lastReviewDate', date ? format(date, 'yyyy-MM-dd') : '')} 
+                           initialFocus 
+                           className="p-3 pointer-events-auto bg-white" 
+                         />
+                      </PopoverContent>
+                    </Popover>
+                    <span className="text-sm text-foreground flex-1">
+                      {doc.lastReviewDate ? new Date(doc.lastReviewDate).toLocaleDateString('en-GB') : "Select date"}
+                    </span>
+                  </div>
                 </div>
                 
                 <div className="col-span-2">
