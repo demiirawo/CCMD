@@ -130,7 +130,11 @@ export const DashboardSection = ({
   };
 
   return (
-    <div className={`rounded-2xl p-6 shadow-lg border border-border/50 ${title === "Staff" ? "bg-primary/10" : "bg-white"}`}>
+    <div className={`rounded-2xl p-6 shadow-lg border border-border/50 ${
+      ["Staff", "Care Planning & Delivery", "Safety", "Continuous Improvement"].includes(title) 
+        ? "bg-primary/10" 
+        : "bg-white"
+    }`}>
       <div 
         className="flex items-center justify-between cursor-pointer mb-4"
         onClick={() => {

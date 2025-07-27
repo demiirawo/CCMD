@@ -186,7 +186,7 @@ export const ActionsLog = ({
         </div>
       </div>;
   };
-  return <div className="bg-white rounded-2xl p-6 shadow-lg border border-border/50">
+  return <div className="bg-primary/10 rounded-2xl p-6 shadow-lg border border-border/50">
       <div className="flex items-center justify-between cursor-pointer mb-4" onClick={() => {
         const newState = !isExpanded;
         setIsExpanded(newState);
