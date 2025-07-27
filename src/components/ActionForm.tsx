@@ -203,15 +203,6 @@ export const ActionForm = ({
                 )}
               </div>
               <div className="flex gap-1">
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={() => onActionCompleted?.(action.id)} 
-                  className="h-8 w-8 p-0 text-green-600 hover:bg-green-100" 
-                  title="Mark as completed"
-                >
-                  <Check className="h-4 w-4" />
-                </Button>
                 {onActionEdit && (
                   <Button 
                     variant="ghost" 
@@ -223,6 +214,15 @@ export const ActionForm = ({
                     <Edit className="h-4 w-4" />
                   </Button>
                 )}
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => onActionCompleted?.(action.id)} 
+                  className="h-8 w-8 p-0 text-green-600 hover:bg-green-100" 
+                  title="Mark as completed"
+                >
+                  <Check className="h-4 w-4" />
+                </Button>
                 <Button 
                   variant="ghost" 
                   size="sm" 
