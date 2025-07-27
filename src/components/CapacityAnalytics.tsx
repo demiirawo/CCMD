@@ -47,19 +47,25 @@ const chartConfig = {
   }
 };
 interface CapacityAnalyticsProps {
-  onMonthlyStaffDataChange?: (data: Array<{month: string, currentStaff: number, probationStaff?: number}>) => void;
+  onMonthlyStaffDataChange?: (data: Array<{
+    month: string;
+    currentStaff: number;
+    probationStaff?: number;
+  }>) => void;
   meetingDate?: Date;
 }
-
-export const CapacityAnalytics = ({ onMonthlyStaffDataChange, meetingDate }: CapacityAnalyticsProps = {}) => {
+export const CapacityAnalytics = ({
+  onMonthlyStaffDataChange,
+  meetingDate
+}: CapacityAnalyticsProps = {}) => {
   const [monthlyData, setMonthlyData] = useState(generateInitialData(meetingDate));
   const [currentMetrics, setCurrentMetrics] = useState(initialCurrentMetrics);
-  
+
   // Update data when meeting date changes
   useEffect(() => {
     setMonthlyData(generateInitialData(meetingDate));
   }, [meetingDate]);
-  
+
   // Send initial monthly staff data to parent component
   useEffect(() => {
     if (onMonthlyStaffDataChange) {
@@ -127,11 +133,11 @@ export const CapacityAnalytics = ({ onMonthlyStaffDataChange, meetingDate }: Cap
   };
   return <div className="space-y-6 mt-4 p-6 border border-border rounded-lg bg-white">
       <div className="flex items-center justify-between">
-        <h4 className="text-lg font-semibold text-foreground">Resourcing Analytics</h4>
+        <h4 className="text-lg font-semibold text-foreground">Capacity Analytics</h4>
         
       </div>
       
-      <div className="text-sm text-muted-foreground">Monthly Data (Past 12 Months)</div>
+      
       
       {/* Data Table */}
       <div className="overflow-x-auto">
