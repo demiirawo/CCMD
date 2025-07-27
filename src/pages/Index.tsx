@@ -388,8 +388,8 @@ const Index = () => {
                   return {
                     ...item,
                     observation: (savedData.observation as string) || item.observation,
-                    actions: savedData.actions ? JSON.parse(savedData.actions as string) : item.actions,
-                    metadata: savedData.metadata ? JSON.parse(savedData.metadata as string) : (item.metadata || {}),
+                    actions: savedData.actions ? (typeof savedData.actions === 'string' ? JSON.parse(savedData.actions) : savedData.actions) : item.actions,
+                    metadata: savedData.metadata ? (typeof savedData.metadata === 'string' ? JSON.parse(savedData.metadata) : savedData.metadata) : (item.metadata || {}),
                     lastReviewed: savedData.updated_at ? new Date(savedData.updated_at).toLocaleDateString('en-GB') : item.lastReviewed
                   };
                 }
