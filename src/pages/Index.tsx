@@ -12,12 +12,46 @@ import { StatusType } from "@/components/StatusBadge";
 import { Users, Target, BarChart3, FileText, Heart, Shield, Calendar, UserCheck, ClipboardList, HeartHandshake, TrendingUp, Save, Download } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
-import jsPDF from "jspdf";
+import { toast } from "@/hooks/use-toast";
 import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
 
 const Index = () => {
   const [currentMeetingId, setCurrentMeetingId] = useState<string | null>(null);
+  const [tempMeetingId, setTempMeetingId] = useState<string>(() => `temp-${Date.now()}`);
   const [actionsLog, setActionsLog] = useState<ActionLogEntry[]>([]);
+
+  // Function to update temporary analytics data with real meeting ID
+  const updateTemporaryAnalyticsData = async (tempId: string, realId: string) => {
+    try {
+      // Get all temporary analytics data
+      const { data: tempData } = await supabase
+        .from('resourcing_analytics')
+        .select('*')
+        .eq('meeting_id', tempId);
+      
+      if (tempData && tempData.length > 0) {
+        // Update each record with the real meeting ID
+        for (const record of tempData) {
+          await supabase
+            .from('resourcing_analytics')
+            .upsert({
+              ...record,
+              meeting_id: realId,
+              id: undefined // Let it generate a new ID
+            });
+        }
+        
+        // Delete the temporary records
+        await supabase
+          .from('resourcing_analytics')
+          .delete()
+          .eq('meeting_id', tempId);
+      }
+    } catch (error) {
+      console.error('Error updating temporary analytics data:', error);
+    }
+  };
 
   // Reset actions log function
   const resetActionsLog = async () => {
@@ -766,7 +800,11 @@ const Index = () => {
 
       // Set the current meeting ID for data persistence
       if (data && data[0]) {
-        setCurrentMeetingId(data[0].id);
+        const realMeetingId = data[0].id;
+        setCurrentMeetingId(realMeetingId);
+        
+        // Update any temporary analytics data with the real meeting ID
+        await updateTemporaryAnalyticsData(tempMeetingId, realMeetingId);
       }
 
       // Success
@@ -908,7 +946,7 @@ const Index = () => {
                   onSubsectionActionEdit={handleSubsectionActionEdit}
                   attendees={getAttendeesList()}
                    meetingDate={meetingDate}
-                   meetingId={currentMeetingId}
+                   meetingId={currentMeetingId || tempMeetingId}
                 />
             );
           })}
