@@ -197,7 +197,7 @@ export const ActionsLog = ({
                       >
                         <Check className={`h-4 w-4 ${action.closed ? 'text-green-600' : 'text-muted-foreground'}`} />
                       </Button>
-                      {!action.closed && onActionEdit && (
+                      {!action.closed && onActionEdit && action.sourceType !== "document" && (
                         <Button 
                           variant="ghost" 
                           size="sm" 
