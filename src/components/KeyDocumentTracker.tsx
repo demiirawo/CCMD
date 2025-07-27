@@ -154,7 +154,7 @@ export const KeyDocumentTracker = ({
               {category}
             </h4>
             {docs.map((doc) => (
-              <div key={doc.id} className={`grid grid-cols-6 gap-3 p-4 border rounded-lg ${getDocumentColorClass(doc.nextReviewDate)}`}>
+              <div key={doc.id} className={`grid grid-cols-7 gap-3 p-4 border rounded-lg ${getDocumentColorClass(doc.nextReviewDate)}`}>
                 <div>
                   <label className="text-xs text-muted-foreground mb-1 block">Category</label>
                   <Select value={doc.category} onValueChange={(value) => handleDocumentChange(documents.indexOf(doc), 'category', value)}>
@@ -173,22 +173,12 @@ export const KeyDocumentTracker = ({
                 
                 <div>
                   <label className="text-xs text-muted-foreground mb-1 block">Document Name</label>
-                  <div className="flex gap-1">
-                    <Input 
-                      value={doc.documentName} 
-                      onChange={e => handleDocumentChange(documents.indexOf(doc), 'documentName', e.target.value)} 
-                      placeholder="Enter document name" 
-                      className="text-sm flex-1" 
-                    />
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      onClick={() => removeDocument(doc.id)} 
-                      className="text-xs text-destructive hover:text-destructive w-8 h-8 p-0"
-                    >
-                      <Minus className="w-3 h-3" />
-                    </Button>
-                  </div>
+                  <Input 
+                    value={doc.documentName} 
+                    onChange={e => handleDocumentChange(documents.indexOf(doc), 'documentName', e.target.value)} 
+                    placeholder="Enter document name" 
+                    className="text-sm" 
+                  />
                 </div>
                 
                 <div>
@@ -256,6 +246,17 @@ export const KeyDocumentTracker = ({
                   <div className="text-sm p-2 bg-muted/50 rounded border text-center min-h-[36px] flex items-center justify-center">
                     {doc.nextReviewDate ? format(doc.nextReviewDate, "PPP") : "Auto-calculated"}
                   </div>
+                </div>
+                
+                <div className="flex items-end">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => removeDocument(doc.id)} 
+                    className="text-xs text-destructive hover:text-destructive w-8 h-8 p-0"
+                  >
+                    <Minus className="w-3 h-3" />
+                  </Button>
                 </div>
               </div>
             ))}
