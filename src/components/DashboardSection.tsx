@@ -1,6 +1,7 @@
 import { StatusItem, StatusItemData } from "./StatusItem";
 import { StatusType, StatusBadge } from "./StatusBadge";
 import { CapacityAnalytics } from "./CapacityAnalytics";
+import { SubsectionMetadata } from "./SubsectionMetadataDialog";
 import { ChevronDown, ChevronRight, Plus, CheckCircle, AlertTriangle, XCircle } from "lucide-react";
 import { useState } from "react";
 
@@ -12,6 +13,7 @@ interface DashboardSectionProps {
   onItemObservationChange?: (id: string, observation: string) => void;
   onItemActionsChange?: (id: string, actions: import("./ActionForm").ActionItem[]) => void;
   onItemDocumentsChange?: (id: string, documents: import("./StatusItem").DocumentData[]) => void;
+  onItemMetadataChange?: (id: string, metadata: SubsectionMetadata) => void;
   onAddItem?: (sectionTitle: string) => void;
   onActionCreated?: (itemTitle: string, mentionedAttendee: string, comment: string, action: string, dueDate: string, subsectionActionId?: string) => void;
   onSubsectionActionEdit?: (sectionId: string, actionId: string, updates: { comment?: string; dueDate?: string }) => void;
@@ -28,6 +30,7 @@ export const DashboardSection = ({
   onItemObservationChange,
   onItemActionsChange,
   onItemDocumentsChange,
+  onItemMetadataChange,
   onAddItem,
   onActionCreated,
   onSubsectionActionEdit,
@@ -99,6 +102,7 @@ export const DashboardSection = ({
               onObservationChange={onItemObservationChange}
               onActionsChange={onItemActionsChange}
               onDocumentsChange={onItemDocumentsChange}
+              onMetadataChange={onItemMetadataChange}
               onActionCreated={onActionCreated}
               onSubsectionActionEdit={onSubsectionActionEdit}
               attendees={attendees}

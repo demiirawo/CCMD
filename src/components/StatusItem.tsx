@@ -10,7 +10,7 @@ import { CareNotesAnalytics } from "./CareNotesAnalytics";
 import { IncidentsAnalytics } from "./IncidentsAnalytics";
 import { FeedbackAnalytics } from "./FeedbackAnalytics";
 
-import { ChevronDown, ChevronRight, CalendarIcon } from "lucide-react";
+import { ChevronDown, ChevronRight, CalendarIcon, ExternalLink } from "lucide-react";
 import { useState } from "react";
 import { CommentEditor } from "./CommentEditor";
 import { ActionForm, ActionItem } from "./ActionForm";
@@ -21,6 +21,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { format, addDays, addWeeks, addMonths, addYears } from "date-fns";
 import { cn } from "@/lib/utils";
 import { AccountableManager } from "./AccountableManager";
+import { SubsectionMetadataDialog, SubsectionMetadata } from "./SubsectionMetadataDialog";
+
 export interface DocumentData {
   documentName: string;
   documentOwner: string;
@@ -39,6 +41,7 @@ export interface StatusItemData {
   accountable?: string[];
   details?: string;
   documents?: DocumentData[];
+  metadata?: SubsectionMetadata;
 }
 interface StatusItemProps {
   item: StatusItemData;
@@ -49,6 +52,7 @@ interface StatusItemProps {
   onActionCreated?: (itemTitle: string, mentionedAttendee: string, comment: string, action: string, dueDate: string, subsectionActionId?: string) => void;
   onDocumentsChange?: (id: string, documents: DocumentData[]) => void;
   onSubsectionActionEdit?: (sectionId: string, actionId: string, updates: { comment?: string; dueDate?: string }) => void;
+  onMetadataChange?: (id: string, metadata: SubsectionMetadata) => void;
   attendees?: string[];
   monthlyStaffData?: Array<{month: string, currentStaff: number, probationStaff?: number}>;
   onMonthlyStaffDataChange?: (data: Array<{month: string, currentStaff: number, probationStaff?: number}>) => void;
@@ -63,6 +67,7 @@ export const StatusItem = ({
   onActionCreated,
   onDocumentsChange,
   onSubsectionActionEdit,
+  onMetadataChange,
   attendees = [],
   monthlyStaffData = [],
   onMonthlyStaffDataChange,
@@ -145,6 +150,10 @@ export const StatusItem = ({
     const updatedDocuments = (item.documents || []).filter((_, i) => i !== index);
     onDocumentsChange?.(item.id, updatedDocuments);
   };
+
+  const handleMetadataChange = (metadata: SubsectionMetadata) => {
+    onMetadataChange?.(item.id, metadata);
+  };
   return <div className="relative w-full bg-white rounded-xl p-8 mb-3 shadow-md border border-border/30 hover:scale-[1.01] transition-transform duration-300 min-h-[140px]">
       <div className="flex items-start gap-4 w-full">
         <button onClick={() => setIsExpanded(!isExpanded)} className={`flex-shrink-0 p-1 rounded-lg hover:bg-accent/50 transition-colors bg-transparent ${item.title.toLowerCase().includes('risk register') || item.title.toLowerCase().includes('infection control') || item.title.toLowerCase().includes('audits') || item.title.toLowerCase().includes('call monitoring') || item.title.toLowerCase().includes('service user documents') || item.title.toLowerCase().includes('staff meetings') ? 'opacity-0 invisible pointer-events-none' : ''}`}>
@@ -163,8 +172,40 @@ export const StatusItem = ({
         
         <div className="flex-1 min-w-0 mr-3 flex flex-col justify-between h-full">
           <div>
-            <h4 className="font-semibold text-foreground text-sm truncate">{item.title}</h4>
-            <p className="text-xs text-muted-foreground">Updated: {item.lastReviewed}</p>
+            <SubsectionMetadataDialog
+              metadata={item.metadata}
+              attendees={attendees}
+              onSave={handleMetadataChange}
+            >
+              <h4 className="font-semibold text-foreground text-sm truncate cursor-pointer hover:text-primary transition-colors">
+                {item.title}
+              </h4>
+            </SubsectionMetadataDialog>
+            
+            {/* Display metadata below title */}
+            {item.metadata?.link && (
+              <div className="flex items-center gap-1 mt-1">
+                <ExternalLink className="w-3 h-3 text-muted-foreground" />
+                <a 
+                  href={item.metadata.link} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-xs text-primary hover:underline truncate"
+                >
+                  {item.metadata.link}
+                </a>
+              </div>
+            )}
+            
+            {item.metadata?.accountableOwner && (
+              <p className="text-xs text-muted-foreground mt-1">
+                Accountable Owner: {item.metadata.accountableOwner}
+              </p>
+            )}
+            
+            <p className="text-xs text-muted-foreground mt-1">
+              Updated: {item.metadata?.updated || item.lastReviewed}
+            </p>
             <div className="mt-2">
               <AccountableManager
                 accountable={item.accountable || []}

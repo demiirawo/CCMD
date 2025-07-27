@@ -7,6 +7,7 @@ import { ActionsLog, ActionLogEntry } from "@/components/ActionsLog";
 import { KeyDocumentTracker, DocumentData } from "@/components/KeyDocumentTracker";
 import { StatusItemData } from "@/components/StatusItem";
 import { ActionItem } from "@/components/ActionForm";
+import { SubsectionMetadata } from "@/components/SubsectionMetadataDialog";
 import { StatusType } from "@/components/StatusBadge";
 import { Users, Target, BarChart3, FileText, Heart, Shield, Calendar, UserCheck, ClipboardList, HeartHandshake, TrendingUp, Save, Download } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -386,6 +387,28 @@ const Index = () => {
     toast({
       title: "Documents Updated",
       description: "Item documents have been saved"
+    });
+  };
+
+  const handleMetadataChange = (sectionId: string, itemId: string, metadata: SubsectionMetadata) => {
+    setDashboardData(prev => ({
+      ...prev,
+      sections: prev.sections.map(section => 
+        section.id === sectionId ? {
+          ...section,
+          items: section.items.map(item => 
+            item.id === itemId ? {
+              ...item,
+              metadata: metadata,
+            } : item
+          )
+        } : section
+      )
+    }));
+    
+    toast({
+      title: "Subsection Updated",
+      description: "Subsection details have been saved"
     });
   };
   
@@ -865,12 +888,13 @@ const Index = () => {
                  onItemStatusChange={(itemId, status) => handleStatusChange(section.id, itemId, status)} 
                  onItemObservationChange={(itemId, observation) => handleObservationChange(section.id, itemId, observation)}
                  onItemActionsChange={(itemId, actions) => handleActionsChange(section.id, itemId, actions)}
-                 onItemDocumentsChange={(itemId, documents) => handleDocumentsChange(section.id, itemId, documents)}
-                 onActionCreated={handleActionCreated}
-                 onSubsectionActionEdit={handleSubsectionActionEdit}
-                 attendees={getAttendeesList()}
-                 meetingDate={meetingDate}
-               />
+                  onItemDocumentsChange={(itemId, documents) => handleDocumentsChange(section.id, itemId, documents)}
+                  onItemMetadataChange={(itemId, metadata) => handleMetadataChange(section.id, itemId, metadata)}
+                  onActionCreated={handleActionCreated}
+                  onSubsectionActionEdit={handleSubsectionActionEdit}
+                  attendees={getAttendeesList()}
+                  meetingDate={meetingDate}
+                />
             );
           })}
           
