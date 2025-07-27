@@ -2,9 +2,11 @@ import { Card } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { ComposedChart, Bar, Line, XAxis, YAxis, ResponsiveContainer } from "recharts";
 import { Input } from "@/components/ui/input";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { format, subMonths } from "date-fns";
+import { supabase } from "@/integrations/supabase/client";
 // Generate 12 months of data from meeting date back to same month last year
 const generateInitialData = (meetingDate?: Date) => {
   const currentDate = meetingDate || new Date();
@@ -49,16 +51,45 @@ const chartConfig = {
 interface CapacityAnalyticsProps {
   onMonthlyStaffDataChange?: (data: Array<{month: string, currentStaff: number, probationStaff?: number}>) => void;
   meetingDate?: Date;
+  meetingId?: string;
 }
 
-export const CapacityAnalytics = ({ onMonthlyStaffDataChange, meetingDate }: CapacityAnalyticsProps = {}) => {
+export const CapacityAnalytics = ({ onMonthlyStaffDataChange, meetingDate, meetingId }: CapacityAnalyticsProps = {}) => {
   const [monthlyData, setMonthlyData] = useState(generateInitialData(meetingDate));
   const [currentMetrics, setCurrentMetrics] = useState(initialCurrentMetrics);
   
-  // Update data when meeting date changes
+  // Load data from database when component mounts or meetingId changes
   useEffect(() => {
-    setMonthlyData(generateInitialData(meetingDate));
-  }, [meetingDate]);
+    const loadData = async () => {
+      if (meetingId) {
+        const { data } = await supabase
+          .from('resourcing_analytics')
+          .select('*')
+          .eq('meeting_id', meetingId)
+          .order('month');
+        
+        if (data && data.length > 0) {
+          const loadedData = generateInitialData(meetingDate).map(defaultRow => {
+            const dbRow = data.find(d => d.month === defaultRow.month);
+            return dbRow ? {
+              month: dbRow.month,
+              onboardingStaff: dbRow.onboarding_staff,
+              probationStaff: dbRow.probation_staff,
+              currentStaff: dbRow.current_staff,
+              idealStaff: dbRow.ideal_staff
+            } : defaultRow;
+          });
+          setMonthlyData(loadedData);
+        } else {
+          setMonthlyData(generateInitialData(meetingDate));
+        }
+      } else {
+        setMonthlyData(generateInitialData(meetingDate));
+      }
+    };
+    
+    loadData();
+  }, [meetingDate, meetingId]);
   
   // Send initial monthly staff data to parent component
   useEffect(() => {
@@ -70,8 +101,8 @@ export const CapacityAnalytics = ({ onMonthlyStaffDataChange, meetingDate }: Cap
       }));
       onMonthlyStaffDataChange(staffData);
     }
-  }, [onMonthlyStaffDataChange]);
-  const handleCellEdit = (rowIndex: number, field: string, value: string) => {
+  }, [onMonthlyStaffDataChange, monthlyData]);
+  const handleCellEdit = async (rowIndex: number, field: string, value: string) => {
     const numValue = parseInt(value) || 0;
     const newData = [...monthlyData];
     newData[rowIndex] = {
@@ -79,6 +110,25 @@ export const CapacityAnalytics = ({ onMonthlyStaffDataChange, meetingDate }: Cap
       [field]: numValue
     };
     setMonthlyData(newData);
+
+    // Save to database if meetingId is available
+    if (meetingId) {
+      const row = newData[rowIndex];
+      const dbField = field === 'onboardingStaff' ? 'onboarding_staff' :
+                      field === 'probationStaff' ? 'probation_staff' :
+                      field === 'currentStaff' ? 'current_staff' : 'ideal_staff';
+      
+      await supabase
+        .from('resourcing_analytics')
+        .upsert({
+          meeting_id: meetingId,
+          month: row.month,
+          onboarding_staff: row.onboardingStaff,
+          probation_staff: row.probationStaff,
+          current_staff: row.currentStaff,
+          ideal_staff: row.idealStaff
+        });
+    }
 
     // Update current metrics based on latest data
     const latestRow = newData[newData.length - 1];
@@ -110,22 +160,37 @@ export const CapacityAnalytics = ({ onMonthlyStaffDataChange, meetingDate }: Cap
     onEdit: (val: string) => void;
   }) => {
     const [editing, setEditing] = useState(false);
-    const [editValue, setEditValue] = useState(value.toString());
+    const [editValue, setEditValue] = useState("");
+    
+    const handleStartEdit = () => {
+      setEditValue("");
+      setEditing(true);
+    };
+    
     const handleSave = () => {
       onEdit(editValue);
       setEditing(false);
     };
+    
     if (editing) {
-      return <Input value={editValue} onChange={e => setEditValue(e.target.value)} onBlur={handleSave} onKeyDown={e => {
-        if (e.key === 'Enter') handleSave();
-        if (e.key === 'Escape') setEditing(false);
-      }} className="w-16 h-8 text-sm" autoFocus />;
+      return <Input 
+        value={editValue} 
+        onChange={e => setEditValue(e.target.value)} 
+        onBlur={handleSave} 
+        onKeyDown={e => {
+          if (e.key === 'Enter') handleSave();
+          if (e.key === 'Escape') setEditing(false);
+        }} 
+        className="w-16 h-8 text-sm" 
+        autoFocus 
+      />;
     }
-    return <span className="cursor-pointer hover:bg-accent/50 p-1 rounded" onClick={() => setEditing(true)}>
+    return <span className="cursor-pointer hover:bg-accent/50 p-1 rounded" onClick={handleStartEdit}>
         {value}
       </span>;
   };
-  return <div className="space-y-6 mt-4 p-6 border border-border rounded-lg bg-white">
+  return <TooltipProvider>
+    <div className="space-y-6 mt-4 p-6 border border-border rounded-lg bg-white">
       <div className="flex items-center justify-between">
         <h4 className="text-lg font-semibold text-foreground">Resourcing Analytics</h4>
         
@@ -139,10 +204,46 @@ export const CapacityAnalytics = ({ onMonthlyStaffDataChange, meetingDate }: Cap
           <thead>
             <tr className="border-b">
               <th className="text-left p-3 font-medium w-1/5">Month</th>
-              <th className="text-left p-3 font-medium w-1/5">Onboarding</th>
-              <th className="text-left p-3 font-medium w-1/5">Probation</th>
-              <th className="text-left p-3 font-medium w-1/5">Passed</th>
-              <th className="text-left p-3 font-medium w-1/5">Target</th>
+              <th className="text-left p-3 font-medium w-1/5">
+                <Tooltip>
+                  <TooltipTrigger className="cursor-help">
+                    Onboarding
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="max-w-xs">The number of individuals who have been offered a role and are in the pre-employment stage, pending completion of recruitment checks such as DBS clearance, references, right to work, and mandatory training.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </th>
+              <th className="text-left p-3 font-medium w-1/5">
+                <Tooltip>
+                  <TooltipTrigger className="cursor-help">
+                    Probation
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="max-w-xs">The number of staff who have officially started work and are currently within their probationary period.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </th>
+              <th className="text-left p-3 font-medium w-1/5">
+                <Tooltip>
+                  <TooltipTrigger className="cursor-help">
+                    Passed
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="max-w-xs">The number of staff who have successfully completed their probation and are now confirmed as permanent or long-term members of the team.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </th>
+              <th className="text-left p-3 font-medium w-1/5">
+                <Tooltip>
+                  <TooltipTrigger className="cursor-help">
+                    Target
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="max-w-xs">The number of new staff the organisation aims to bring on board based on workforce planning and service demand.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -214,5 +315,6 @@ export const CapacityAnalytics = ({ onMonthlyStaffDataChange, meetingDate }: Cap
           </div>
         </Card>
       </div>
-    </div>;
+    </div>
+  </TooltipProvider>;
 };

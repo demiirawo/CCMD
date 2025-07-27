@@ -56,6 +56,50 @@ export type Database = {
         }
         Relationships: []
       }
+      resourcing_analytics: {
+        Row: {
+          created_at: string
+          current_staff: number
+          id: string
+          ideal_staff: number
+          meeting_id: string | null
+          month: string
+          onboarding_staff: number
+          probation_staff: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          current_staff?: number
+          id?: string
+          ideal_staff?: number
+          meeting_id?: string | null
+          month: string
+          onboarding_staff?: number
+          probation_staff?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          current_staff?: number
+          id?: string
+          ideal_staff?: number
+          meeting_id?: string | null
+          month?: string
+          onboarding_staff?: number
+          probation_staff?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "resourcing_analytics_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: false
+            referencedRelation: "meetings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
