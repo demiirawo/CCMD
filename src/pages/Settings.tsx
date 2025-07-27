@@ -263,12 +263,11 @@ export const Settings = () => {
                   onClick={() => setSelectedTheme(color.value)}
                 >
                   <div 
-                    className="w-8 h-8 rounded-full mb-2 mx-auto"
+                    className="w-full h-12 rounded-md mb-2"
                     style={{ backgroundColor: color.value }}
                   />
                   <div className="text-center">
                     <p className="font-medium text-sm">{color.name}</p>
-                    <p className="text-xs text-muted-foreground">{color.description}</p>
                   </div>
                 </div>
               ))}
