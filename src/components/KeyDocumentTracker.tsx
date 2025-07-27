@@ -11,21 +11,22 @@ import { Card } from "./ui/card";
 
 export interface DocumentData {
   id: string;
-  documentName: string;
-  documentOwner: string;
+  name: string; // Changed from documentName for consistency
+  owner: string; // Changed from documentOwner for consistency
   category: string;
-  lastReviewDate: Date | null;
+  lastReviewDate: string; // Changed to string to match date inputs
   reviewFrequency: string;
   reviewFrequencyNumber: string;
   reviewFrequencyPeriod: string;
-  nextReviewDate: Date | null;
+  nextReviewDate: string | null; // Changed to string to match date inputs
 }
 
 interface KeyDocumentTrackerProps {
   documents?: DocumentData[];
   onDocumentsChange?: (documents: DocumentData[]) => void;
-  attendees?: Array<{ id: string; name: string; email?: string; attended?: boolean }>;
-  onActionCreated?: (action: { itemTitle: string; mentionedAttendee: string; comment: string; action: string; dueDate: string; }) => void;
+  attendees?: string[];
+  onActionCreated?: (actionData: { itemTitle: string; mentionedAttendee: string; comment: string; action: string; dueDate: string; sourceType: "document"; sourceId: string; }) => void;
+  onActionRemoved?: (sourceId: string) => void;
 }
 
 const categories = [
@@ -46,31 +47,35 @@ export const KeyDocumentTracker = ({
   documents = [],
   onDocumentsChange,
   attendees = [],
-  onActionCreated
+  onActionCreated,
+  onActionRemoved
 }: KeyDocumentTrackerProps) => {
   
   // Track which documents have had actions created to prevent duplicates
   const createdActionsRef = useRef<Set<string>>(new Set());
   
-  const calculateNextReviewDate = (lastReviewDate: Date | null, number: string, period: string): Date | null => {
+  const calculateNextReviewDate = (lastReviewDate: string | null, number: string, period: string): Date | null => {
     if (!lastReviewDate) return null;
     
+    const lastDate = new Date(lastReviewDate);
+    if (isNaN(lastDate.getTime())) return null;
+    
     // If no frequency is specified, use the same date as the last review date
-    if (!number || !period) return lastReviewDate;
+    if (!number || !period) return lastDate;
     
     const num = parseInt(number) || 1;
     
     switch (period) {
       case 'days':
-        return addDays(lastReviewDate, num);
+        return addDays(lastDate, num);
       case 'weeks':
-        return addWeeks(lastReviewDate, num);
+        return addWeeks(lastDate, num);
       case 'months':
-        return addMonths(lastReviewDate, num);
+        return addMonths(lastDate, num);
       case 'years':
-        return addYears(lastReviewDate, num);
+        return addYears(lastDate, num);
       default:
-        return lastReviewDate;
+        return lastDate;
     }
   };
 
@@ -83,8 +88,10 @@ export const KeyDocumentTracker = ({
     return differenceInDays(reviewDate, today);
   };
 
-  const getDocumentColorClass = (nextReviewDate: Date | null) => {
-    const daysRemaining = getDaysRemaining(nextReviewDate);
+  const getDocumentColorClass = (nextReviewDate: string | null) => {
+    if (!nextReviewDate) return "bg-white";
+    
+    const daysRemaining = getDaysRemaining(new Date(nextReviewDate));
     if (daysRemaining === null) return "bg-white";
     
     if (daysRemaining < 0) {
@@ -107,11 +114,12 @@ export const KeyDocumentTracker = ({
       // Auto-calculate next review date when relevant fields change
       if (field === 'lastReviewDate' || field === 'reviewFrequencyNumber' || field === 'reviewFrequencyPeriod') {
         const doc = updatedDocuments[index];
-        updatedDocuments[index].nextReviewDate = calculateNextReviewDate(
+        const nextReview = calculateNextReviewDate(
           doc.lastReviewDate, 
           doc.reviewFrequencyNumber, 
           doc.reviewFrequencyPeriod
         );
+        updatedDocuments[index].nextReviewDate = nextReview ? format(nextReview, 'yyyy-MM-dd') : null;
       }
       
       onDocumentsChange?.(updatedDocuments);
@@ -121,10 +129,10 @@ export const KeyDocumentTracker = ({
   const addDocument = () => {
     const newDocument: DocumentData = {
       id: `doc-${Date.now()}`,
-      documentName: '',
-      documentOwner: '',
+      name: '',
+      owner: '',
       category: '',
-      lastReviewDate: null,
+      lastReviewDate: '',
       reviewFrequency: '',
       reviewFrequencyNumber: '',
       reviewFrequencyPeriod: '',
@@ -135,44 +143,51 @@ export const KeyDocumentTracker = ({
   };
 
   const removeDocument = (docId: string) => {
+    // Remove any associated actions
+    onActionRemoved?.(docId);
+    
     const updatedDocuments = documents.filter(doc => doc.id !== docId);
     onDocumentsChange?.(updatedDocuments);
   };
 
-  // Check for documents due within 30 days and create actions
+  // Effect to create actions for documents due within 30 days or overdue
   useEffect(() => {
-    if (!onActionCreated || documents.length === 0) return;
+    if (!onActionCreated || attendees.length === 0) return;
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const thirtyDaysFromNow = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000);
+    documents.forEach(document => {
+      if (!document.name || !document.owner || !document.lastReviewDate) return;
 
-    documents.forEach(doc => {
-      if (doc.nextReviewDate && doc.documentName && doc.documentOwner) {
-        const dueDate = new Date(doc.nextReviewDate);
-        dueDate.setHours(0, 0, 0, 0);
+      const nextReview = calculateNextReviewDate(
+        document.lastReviewDate,
+        document.reviewFrequencyNumber,
+        document.reviewFrequencyPeriod
+      );
+
+      if (!nextReview) return;
+
+      const daysRemaining = getDaysRemaining(nextReview);
+      const actionId = `doc-review-${document.id}`;
+
+      // Create action if document is overdue or due within 30 days
+      if (daysRemaining <= 30 && !createdActionsRef.current.has(actionId)) {
+        const formattedDate = nextReview.toLocaleDateString('en-GB');
+        const isOverdue = daysRemaining < 0;
+        const urgencyText = isOverdue ? 'OVERDUE' : daysRemaining <= 7 ? 'URGENT' : '';
         
-        // Create a unique key for this document's action
-        const actionKey = `${doc.id}-${doc.nextReviewDate.getTime()}`;
+        onActionCreated({
+          itemTitle: "Key Document Review",
+          mentionedAttendee: document.owner,
+          comment: `Document review ${isOverdue ? 'overdue' : 'due'} for: ${document.name}`,
+          action: `${urgencyText ? `[${urgencyText}] ` : ''}Review document: ${document.name} (${document.category})`,
+          dueDate: formattedDate,
+          sourceType: "document",
+          sourceId: document.id
+        });
         
-        // Check if document is due within 30 days and hasn't already had an action created
-        if (dueDate >= today && dueDate <= thirtyDaysFromNow && !createdActionsRef.current.has(actionKey)) {
-          const action = {
-            itemTitle: "Key Document Review",
-            mentionedAttendee: doc.documentOwner,
-            comment: "Document review scheduled",
-            action: `Review due for '${doc.documentName}' by ${format(doc.nextReviewDate, "PPP")}`,
-            dueDate: format(doc.nextReviewDate, "PPP")
-          };
-          
-          onActionCreated(action);
-          
-          // Mark this action as created to prevent duplicates
-          createdActionsRef.current.add(actionKey);
-        }
+        createdActionsRef.current.add(actionId);
       }
     });
-  }, [documents, onActionCreated]);
+  }, [documents, onActionCreated, attendees]);
 
   // Group documents by category
   const groupedDocuments = categories.map(category => {
@@ -216,31 +231,31 @@ export const KeyDocumentTracker = ({
                   </Select>
                 </div>
                 
-                <div className="col-span-2">
-                  <label className="text-xs text-muted-foreground mb-1 block">Document Name</label>
-                  <Input 
-                    value={doc.documentName} 
-                    onChange={e => handleDocumentChange(documents.indexOf(doc), 'documentName', e.target.value)} 
-                    placeholder="Enter document name" 
-                    className="text-sm h-9" 
-                  />
-                </div>
+                 <div className="col-span-2">
+                   <label className="text-xs text-muted-foreground mb-1 block">Document Name</label>
+                   <Input 
+                     value={doc.name} 
+                     onChange={e => handleDocumentChange(documents.indexOf(doc), 'name', e.target.value)} 
+                     placeholder="Enter document name" 
+                     className="text-sm h-9" 
+                   />
+                 </div>
                 
-                <div className="col-span-2">
-                  <label className="text-xs text-muted-foreground mb-1 block">Document Owner</label>
-                  <Select value={doc.documentOwner} onValueChange={(value) => handleDocumentChange(documents.indexOf(doc), 'documentOwner', value)}>
-                    <SelectTrigger className="text-sm h-9 bg-white">
-                      <SelectValue placeholder="Select owner" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-white">
-                      {attendees.map((attendee) => (
-                        <SelectItem key={attendee.id} value={attendee.name} className="text-sm">
-                          {attendee.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                 <div className="col-span-2">
+                   <label className="text-xs text-muted-foreground mb-1 block">Document Owner</label>
+                   <Select value={doc.owner} onValueChange={(value) => handleDocumentChange(documents.indexOf(doc), 'owner', value)}>
+                     <SelectTrigger className="text-sm h-9 bg-white">
+                       <SelectValue placeholder="Select owner" />
+                     </SelectTrigger>
+                     <SelectContent className="bg-white">
+                       {attendees.map((attendee) => (
+                         <SelectItem key={attendee} value={attendee} className="text-sm">
+                           {attendee}
+                         </SelectItem>
+                       ))}
+                     </SelectContent>
+                   </Select>
+                 </div>
                 
                 <div className="col-span-1">
                   <label className="text-xs text-muted-foreground mb-1 block">Date</label>
@@ -251,13 +266,13 @@ export const KeyDocumentTracker = ({
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar 
-                        mode="single" 
-                        selected={doc.lastReviewDate || undefined} 
-                        onSelect={date => handleDocumentChange(documents.indexOf(doc), 'lastReviewDate', date || null)} 
-                        initialFocus 
-                        className="p-3 pointer-events-auto bg-white" 
-                      />
+                       <Calendar 
+                         mode="single" 
+                         selected={doc.lastReviewDate ? new Date(doc.lastReviewDate) : undefined} 
+                         onSelect={date => handleDocumentChange(documents.indexOf(doc), 'lastReviewDate', date ? format(date, 'yyyy-MM-dd') : '')} 
+                         initialFocus 
+                         className="p-3 pointer-events-auto bg-white" 
+                       />
                     </PopoverContent>
                   </Popover>
                 </div>
@@ -292,12 +307,12 @@ export const KeyDocumentTracker = ({
                   </div>
                 </div>
                 
-                <div className="col-span-2">
-                  <label className="text-xs text-muted-foreground mb-1 block">Due</label>
-                  <div className="text-sm p-2 bg-muted/50 rounded border text-center h-9 flex items-center justify-center">
-                    {doc.nextReviewDate ? format(doc.nextReviewDate, "PPP") : ""}
-                  </div>
-                </div>
+                 <div className="col-span-2">
+                   <label className="text-xs text-muted-foreground mb-1 block">Due</label>
+                   <div className="text-sm p-2 bg-muted/50 rounded border text-center h-9 flex items-center justify-center">
+                     {doc.nextReviewDate ? new Date(doc.nextReviewDate).toLocaleDateString('en-GB') : ""}
+                   </div>
+                 </div>
                 
                 <div className="col-span-1">
                   <label className="text-xs text-muted-foreground mb-1 block opacity-0">Remove</label>

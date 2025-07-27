@@ -402,8 +402,27 @@ const Index = () => {
     });
   };
 
-  const handleDocumentActionCreated = (actionData: { itemTitle: string; mentionedAttendee: string; comment: string; action: string; dueDate: string; }) => {
-    handleActionCreated(actionData.itemTitle, actionData.mentionedAttendee, actionData.comment, actionData.action, actionData.dueDate);
+  const handleDocumentActionCreated = (actionData: { itemTitle: string; mentionedAttendee: string; comment: string; action: string; dueDate: string; sourceType: "document"; sourceId: string; }) => {
+    const newAction: ActionLogEntry = {
+      id: `action-${Date.now()}`,
+      timestamp: new Date().toLocaleString(),
+      itemTitle: actionData.itemTitle,
+      mentionedAttendee: actionData.mentionedAttendee,
+      comment: actionData.comment,
+      action: actionData.action,
+      dueDate: actionData.dueDate,
+      status: "green",
+      closed: false,
+      sourceType: actionData.sourceType,
+      sourceId: actionData.sourceId
+    };
+    
+    setActionsLog(prev => [newAction, ...prev]);
+    
+    toast({
+      title: "Action Created",
+      description: `Action assigned to @${actionData.mentionedAttendee} for ${actionData.itemTitle}`
+    });
   };
   
   const handleActionComplete = (actionId: string) => {
@@ -452,6 +471,13 @@ const Index = () => {
       title: "Action Deleted",
       description: "Action has been removed"
     });
+  };
+
+  const handleDocumentActionRemoved = (sourceId: string) => {
+    // Remove any actions that came from this document
+    setActionsLog(prev => prev.filter(action => 
+      !(action.sourceType === "document" && action.sourceId === sourceId)
+    ));
   };
 
   const getAttendeesList = () => {
@@ -694,8 +720,9 @@ const Index = () => {
           <KeyDocumentTracker 
             documents={keyDocuments}
             onDocumentsChange={setKeyDocuments}
-            attendees={headerData.attendees}
+            attendees={getAttendeesList()}
             onActionCreated={handleDocumentActionCreated}
+            onActionRemoved={handleDocumentActionRemoved}
           />
           
           <ActionsLog actions={actionsLog} onActionComplete={handleActionComplete} onActionDelete={handleActionDelete} onResetActions={resetActionsLog} />

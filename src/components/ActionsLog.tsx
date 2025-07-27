@@ -13,6 +13,8 @@ export interface ActionLogEntry {
   status?: "green" | "amber" | "red";
   closed?: boolean;
   closedDate?: string;
+  sourceType?: "document" | "manual"; // Track if action came from document review
+  sourceId?: string; // ID of the source document if applicable
 }
 interface ActionsLogProps {
   actions: ActionLogEntry[];
@@ -37,6 +39,30 @@ export const ActionsLog = ({
     const closedDate = new Date(action.closedDate);
     return closedDate >= thirtyDaysAgo;
   });
+  // Function to calculate days remaining and get color
+  const getDaysRemaining = (dueDate: string): number => {
+    const due = new Date(dueDate);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    due.setHours(0, 0, 0, 0);
+    return Math.ceil((due.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+  };
+
+  const getActionRowClass = (action: ActionLogEntry): string => {
+    if (action.closed) return '';
+    
+    const daysRemaining = getDaysRemaining(action.dueDate);
+    
+    if (daysRemaining < 0) {
+      return 'bg-red-50 border-l-4 border-l-red-500'; // Overdue
+    } else if (daysRemaining <= 7) {
+      return 'bg-amber-50 border-l-4 border-l-amber-500'; // Due within a week
+    } else if (daysRemaining <= 30) {
+      return 'bg-blue-50 border-l-4 border-l-blue-500'; // Due within a month
+    }
+    return '';
+  };
+
   const renderActionsTable = (actionsList: ActionLogEntry[], title: string) => {
     if (actionsList.length === 0) return null;
     return <div className="mb-6">
@@ -59,7 +85,7 @@ export const ActionsLog = ({
               </tr>
             </thead>
             <tbody>
-              {actionsList.map((action, index) => <tr key={action.id} className={`border-b border-border/20 hover:bg-gray-50/50 ${action.closed ? 'opacity-75' : ''}`}>
+              {actionsList.map((action, index) => <tr key={action.id} className={`border-b border-border/20 hover:bg-gray-50/50 ${action.closed ? 'opacity-75' : ''} ${getActionRowClass(action)}`}>
                   <td className="py-3 px-3 text-sm text-foreground">
                     {index + 1}
                   </td>
@@ -76,9 +102,29 @@ export const ActionsLog = ({
                   <td className="py-3 px-3 text-sm text-foreground">
                     {action.mentionedAttendee}
                   </td>
-                  <td className="py-3 px-3 text-sm text-foreground">
-                    {action.dueDate}
-                  </td>
+                   <td className="py-3 px-3 text-sm text-foreground">
+                     <div className="flex items-center gap-2">
+                       <span>{action.dueDate}</span>
+                       {!action.closed && (
+                         <span className={`text-xs px-2 py-1 rounded-full ${
+                           getDaysRemaining(action.dueDate) < 0 
+                             ? 'bg-red-100 text-red-700' 
+                             : getDaysRemaining(action.dueDate) <= 7 
+                               ? 'bg-amber-100 text-amber-700'
+                               : getDaysRemaining(action.dueDate) <= 30
+                                 ? 'bg-blue-100 text-blue-700'
+                                 : 'bg-gray-100 text-gray-700'
+                         }`}>
+                           {getDaysRemaining(action.dueDate) < 0 
+                             ? `${Math.abs(getDaysRemaining(action.dueDate))} days overdue`
+                             : getDaysRemaining(action.dueDate) === 0 
+                               ? 'Due today'
+                               : `${getDaysRemaining(action.dueDate)} days left`
+                           }
+                         </span>
+                       )}
+                     </div>
+                   </td>
                   <td className="py-3 px-3">
                     <div className="flex gap-1">
                       <Button variant="ghost" size="sm" onClick={() => onActionComplete?.(action.id)} disabled={action.closed} className={`h-8 w-8 p-0 ${action.closed ? 'opacity-50' : 'hover:bg-green-100'}`} title="Mark as completed">
