@@ -19,8 +19,12 @@ export type Database = {
           care_plans_in_date: number
           care_plans_overdue: number
           created_at: string
+          high_frequency: number
           id: string
+          low_frequency: number
+          medium_frequency: number
           meeting_id: string | null
+          monthly_data: Json
           risk_assessments_in_date: number
           risk_assessments_overdue: number
           total_service_users: number
@@ -30,8 +34,12 @@ export type Database = {
           care_plans_in_date?: number
           care_plans_overdue?: number
           created_at?: string
+          high_frequency?: number
           id?: string
+          low_frequency?: number
+          medium_frequency?: number
           meeting_id?: string | null
+          monthly_data?: Json
           risk_assessments_in_date?: number
           risk_assessments_overdue?: number
           total_service_users?: number
@@ -41,8 +49,12 @@ export type Database = {
           care_plans_in_date?: number
           care_plans_overdue?: number
           created_at?: string
+          high_frequency?: number
           id?: string
+          low_frequency?: number
+          medium_frequency?: number
           meeting_id?: string | null
+          monthly_data?: Json
           risk_assessments_in_date?: number
           risk_assessments_overdue?: number
           total_service_users?: number

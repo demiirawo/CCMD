@@ -90,6 +90,18 @@ export const CarePlanAnalytics = ({ meetingDate, meetingId }: CarePlanAnalyticsP
           };
           console.log('CarePlanAnalytics - setting currentData to:', newData);
           setCurrentData(newData);
+
+          // Load monthly data if it exists
+          if (data.monthly_data && Array.isArray(data.monthly_data) && data.monthly_data.length > 0) {
+            setMonthlyData(data.monthly_data);
+          }
+
+          // Load frequency settings
+          setFrequencies({
+            high: data.high_frequency || 6,
+            medium: data.medium_frequency || 12,
+            low: data.low_frequency || 24
+          });
         }
       } catch (error) {
         console.error('Error loading care plan analytics:', error);
@@ -99,18 +111,22 @@ export const CarePlanAnalytics = ({ meetingDate, meetingId }: CarePlanAnalyticsP
     loadData();
   }, [meetingId]);
 
-  // Save data to database
-  const saveData = async (newData?: typeof currentData) => {
+  // Save all data to database
+  const saveAllData = async (newCurrentData?: typeof currentData, newMonthlyData?: typeof monthlyData, newFrequencies?: typeof frequencies) => {
     if (!meetingId) return;
 
     try {
       const dataToSave = {
         meeting_id: meetingId,
-        total_service_users: newData?.totalServiceUsers ?? currentData.totalServiceUsers,
-        care_plans_in_date: newData?.carePlansInDate ?? currentData.carePlansInDate,
-        care_plans_overdue: newData?.carePlansOverdue ?? currentData.carePlansOverdue,
-        risk_assessments_in_date: newData?.riskAssessmentsInDate ?? currentData.riskAssessmentsInDate,
-        risk_assessments_overdue: newData?.riskAssessmentsOverdue ?? currentData.riskAssessmentsOverdue
+        total_service_users: newCurrentData?.totalServiceUsers ?? currentData.totalServiceUsers,
+        care_plans_in_date: newCurrentData?.carePlansInDate ?? currentData.carePlansInDate,
+        care_plans_overdue: newCurrentData?.carePlansOverdue ?? currentData.carePlansOverdue,
+        risk_assessments_in_date: newCurrentData?.riskAssessmentsInDate ?? currentData.riskAssessmentsInDate,
+        risk_assessments_overdue: newCurrentData?.riskAssessmentsOverdue ?? currentData.riskAssessmentsOverdue,
+        monthly_data: newMonthlyData ?? monthlyData,
+        high_frequency: newFrequencies?.high ?? frequencies.high,
+        medium_frequency: newFrequencies?.medium ?? frequencies.medium,
+        low_frequency: newFrequencies?.low ?? frequencies.low
       };
 
       const { error } = await supabase
@@ -138,17 +154,21 @@ export const CarePlanAnalytics = ({ meetingDate, meetingId }: CarePlanAnalyticsP
   });
   const handleFrequencyChange = (category: keyof typeof frequencies, value: string) => {
     const numValue = parseInt(value) || 1;
-    setFrequencies(prev => ({
-      ...prev,
+    const newFrequencies = {
+      ...frequencies,
       [category]: numValue
-    }));
+    };
+    setFrequencies(newFrequencies);
+    saveAllData(undefined, undefined, newFrequencies);
   };
   const handleCellEdit = (monthIndex: number, field: string, value: string) => {
     const numValue = parseInt(value) || 0;
-    setMonthlyData(prev => prev.map((month, index) => index === monthIndex ? {
+    const newMonthlyData = monthlyData.map((month, index) => index === monthIndex ? {
       ...month,
       [field]: numValue
-    } : month));
+    } : month);
+    setMonthlyData(newMonthlyData);
+    saveAllData(undefined, newMonthlyData, undefined);
   };
   const EditableCell = ({
     value,
@@ -201,7 +221,7 @@ export const CarePlanAnalytics = ({ meetingDate, meetingId }: CarePlanAnalyticsP
       [field]: numValue
     };
     setCurrentData(newData);
-    saveData(newData);
+    saveAllData(newData, undefined, undefined);
   };
 
   const EditableDataInput = ({
