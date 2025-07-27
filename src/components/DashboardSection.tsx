@@ -63,6 +63,39 @@ export const DashboardSection = ({
     return 'green';
   };
 
+  const getLastUpdated = () => {
+    if (items.length === 0) return null;
+    
+    // Find the most recent lastReviewed date from all items
+    const dates = items
+      .map(item => item.lastReviewed)
+      .filter(date => date && date.trim() !== '')
+      .sort((a, b) => {
+        // Convert dates to comparable format (handle different formats)
+        const parseDate = (dateStr: string) => {
+          // Handle formats like "24-Jul-25" or "24/07/2025"
+          if (dateStr.includes('-')) {
+            const [day, month, year] = dateStr.split('-');
+            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                              'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const monthIndex = monthNames.indexOf(month);
+            if (monthIndex !== -1) {
+              const fullYear = year.length === 2 ? `20${year}` : year;
+              return new Date(parseInt(fullYear), monthIndex, parseInt(day));
+            }
+          }
+          // Try parsing as is
+          return new Date(dateStr);
+        };
+        
+        const dateA = parseDate(a);
+        const dateB = parseDate(b);
+        return dateB.getTime() - dateA.getTime(); // Most recent first
+      });
+    
+    return dates.length > 0 ? dates[0] : null;
+  };
+
   const getStatusIcon = (status: string) => {
     return <StatusBadge status={status as StatusType} />;
   };
@@ -74,7 +107,14 @@ export const DashboardSection = ({
         onClick={() => setIsOpen(!isOpen)}
       >
         <div className="flex items-center gap-3">
-          <h3 className="text-xl font-bold text-foreground">{title}</h3>
+          <div>
+            <h3 className="text-xl font-bold text-foreground">{title}</h3>
+            {getLastUpdated() && (
+              <p className="text-sm text-muted-foreground mt-1">
+                Updated: {getLastUpdated()}
+              </p>
+            )}
+          </div>
           <div className="ml-4">
             {getStatusIcon(getOverallStatus())}
           </div>
