@@ -165,29 +165,38 @@ export const IncidentsAnalytics = () => {
           </div>
 
           {/* Chart */}
-          <div className="h-80 w-full overflow-hidden">
-            <ChartContainer config={chartConfig}>
+          <div className="h-72 w-full p-4 bg-background rounded-lg border">
+            <ChartContainer config={chartConfig} className="h-full w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <ComposedChart 
                   data={monthlyData} 
-                  margin={{ top: 20, right: 20, bottom: 40, left: 20 }}
+                  margin={{ top: 5, right: 5, bottom: 25, left: 5 }}
                 >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="month" />
-                  <YAxis />
+                  <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
+                  <XAxis 
+                    dataKey="month" 
+                    axisLine={false}
+                    tickLine={false}
+                    fontSize={12}
+                  />
+                  <YAxis 
+                    axisLine={false}
+                    tickLine={false}
+                    fontSize={12}
+                  />
                   <ChartTooltip content={<ChartTooltipContent />} />
                   <Bar 
                     dataKey="total" 
                     fill="var(--color-total)" 
                     name="Total Cases"
-                    radius={[4, 4, 0, 0]}
+                    radius={[2, 2, 0, 0]}
                   />
                   <Line 
                     type="monotone" 
                     dataKey="resolved" 
                     stroke="var(--color-resolved)" 
-                    strokeWidth={3}
-                    dot={{ fill: "var(--color-resolved)", strokeWidth: 2, r: 4 }}
+                    strokeWidth={2}
+                    dot={{ fill: "var(--color-resolved)", strokeWidth: 1, r: 3 }}
                     name="Resolved"
                   />
                 </ComposedChart>
