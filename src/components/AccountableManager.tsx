@@ -14,14 +14,22 @@ export const AccountableManager = ({
   onChange
 }: AccountableManagerProps) => {
   const [newPersonName, setNewPersonName] = useState("");
-  const [showSelect, setShowSelect] = useState(false);
+  const [showAdditionalSelect, setShowAdditionalSelect] = useState(false);
 
   const addFromAttendees = (name: string) => {
     if (name && !accountable.includes(name)) {
       onChange([...accountable, name]);
-      setShowSelect(false);
+      setShowAdditionalSelect(false);
     }
   };
+
+  const addAdditionalPerson = (name: string) => {
+    if (name && !accountable.includes(name)) {
+      onChange([...accountable, name]);
+      setShowAdditionalSelect(false);
+    }
+  };
+
   const addCustomPerson = () => {
     if (newPersonName.trim() && !accountable.includes(newPersonName.trim())) {
       onChange([...accountable, newPersonName.trim()]);
@@ -36,18 +44,16 @@ export const AccountableManager = ({
       {/* Label and dropdown on same line */}
       <div className="flex items-center gap-2">
         <label className="text-xs font-medium text-muted-foreground">ACCOUNTABLE:</label>
-        {availableAttendees.length > 0 && (
-          <Select onValueChange={addFromAttendees}>
-            <SelectTrigger className="flex-1 bg-white">
-              <SelectValue placeholder="Select from attendees..." />
-            </SelectTrigger>
-            <SelectContent className="bg-white">
-              {availableAttendees.map(attendee => <SelectItem key={attendee} value={attendee}>
-                  {attendee}
-                </SelectItem>)}
-            </SelectContent>
-          </Select>
-        )}
+        <Select onValueChange={addFromAttendees}>
+          <SelectTrigger className="flex-1 bg-white">
+            <SelectValue placeholder="Select from attendees..." />
+          </SelectTrigger>
+          <SelectContent className="bg-white">
+            {availableAttendees.map(attendee => <SelectItem key={attendee} value={attendee}>
+                {attendee}
+              </SelectItem>)}
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Plus button below dropdown */}
@@ -56,23 +62,47 @@ export const AccountableManager = ({
           <Button 
             variant="ghost" 
             size="sm" 
-            onClick={() => setShowSelect(!showSelect)}
+            onClick={() => setShowAdditionalSelect(!showAdditionalSelect)}
             className="h-6 w-6 p-0 text-blue-500 hover:bg-blue-50"
-            title="Add person"
+            title="Add another person"
           >
             <Plus className="h-3 w-3" />
           </Button>
         </div>
       )}
 
-      {/* Current accountable people */}
-      {accountable.length > 0 && <div className="flex flex-wrap gap-2">
-          {accountable.map((person, index) => <div key={index} className="flex items-center gap-1 bg-gray-100 text-gray-800 px-2 py-1 rounded-md text-sm">
-              <span>{person}</span>
-              <button onClick={() => removePerson(index)} className="text-gray-500 hover:text-red-500 transition-colors">
+      {/* Additional select when + is clicked */}
+      {showAdditionalSelect && availableAttendees.length > 0 && (
+        <div className="ml-4">
+          <Select onValueChange={addAdditionalPerson}>
+            <SelectTrigger className="bg-white">
+              <SelectValue placeholder="Select another person..." />
+            </SelectTrigger>
+            <SelectContent className="bg-white">
+              {availableAttendees.map(attendee => <SelectItem key={attendee} value={attendee}>
+                  {attendee}
+                </SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+
+      {/* Current accountable people - shown as a vertical list */}
+      {accountable.length > 0 && (
+        <div className="space-y-1">
+          {accountable.map((person, index) => (
+            <div key={index} className="flex items-center justify-between bg-gray-50 px-3 py-2 rounded-md">
+              <span className="text-sm text-gray-800">{person}</span>
+              <button 
+                onClick={() => removePerson(index)} 
+                className="text-gray-500 hover:text-red-500 transition-colors"
+                title="Remove person"
+              >
                 <X className="h-3 w-3" />
               </button>
-            </div>)}
-        </div>}
+            </div>
+          ))}
+        </div>
+      )}
     </div>;
 };
