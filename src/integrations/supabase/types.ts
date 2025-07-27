@@ -478,6 +478,42 @@ export type Database = {
           },
         ]
       }
+      subsection_data: {
+        Row: {
+          actions: Json | null
+          company_id: string
+          created_at: string
+          id: string
+          item_id: string
+          metadata: Json | null
+          observation: string | null
+          section_id: string
+          updated_at: string
+        }
+        Insert: {
+          actions?: Json | null
+          company_id: string
+          created_at?: string
+          id?: string
+          item_id: string
+          metadata?: Json | null
+          observation?: string | null
+          section_id: string
+          updated_at?: string
+        }
+        Update: {
+          actions?: Json | null
+          company_id?: string
+          created_at?: string
+          id?: string
+          item_id?: string
+          metadata?: Json | null
+          observation?: string | null
+          section_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       supervision_analytics: {
         Row: {
           company_id: string | null

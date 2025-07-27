@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { DashboardHeader } from "@/components/DashboardHeader";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -151,7 +151,8 @@ const Index = () => {
         lastReviewed: "",
         observation: "",
         actions: [],
-        details: ""
+        details: "",
+        metadata: {}
       }, {
         id: "meeting-attendees",
         title: "Meeting Attendees",
@@ -159,7 +160,8 @@ const Index = () => {
         lastReviewed: "",
         observation: "",
         actions: [],
-        details: ""
+        details: "",
+        metadata: {}
       }, {
         id: "meeting-purpose",
         title: "Meeting Purpose",
@@ -167,7 +169,8 @@ const Index = () => {
         lastReviewed: "",
         observation: "",
         actions: [],
-        details: ""
+        details: "",
+        metadata: {}
       }]
     }, {
       id: "staff",
@@ -180,7 +183,8 @@ const Index = () => {
         lastReviewed: "",
         observation: "",
         actions: [],
-        details: ""
+        details: "",
+        metadata: {}
       }, {
         id: "staff-documents",
         title: "Staff Documents",
@@ -188,7 +192,8 @@ const Index = () => {
         lastReviewed: "",
         observation: "",
         actions: [],
-        details: ""
+        details: "",
+        metadata: {}
       }, {
         id: "training",
         title: "Training",
@@ -196,7 +201,8 @@ const Index = () => {
         lastReviewed: "",
         observation: "",
         actions: [],
-        details: ""
+        details: "",
+        metadata: {}
       }, {
         id: "spot-checks",
         title: "Spot Checks",
@@ -204,7 +210,8 @@ const Index = () => {
         lastReviewed: "",
         observation: "",
         actions: [],
-        details: ""
+        details: "",
+        metadata: {}
       }, {
         id: "staff-supervisions",
         title: "Staff Supervisions",
@@ -212,7 +219,8 @@ const Index = () => {
         lastReviewed: "",
         observation: "",
         actions: [],
-        details: ""
+        details: "",
+        metadata: {}
       }, {
         id: "staff-meetings",
         title: "Staff Meetings",
@@ -220,7 +228,8 @@ const Index = () => {
         lastReviewed: "",
         observation: "",
         actions: [],
-        details: ""
+        details: "",
+        metadata: {}
       }]
     }, {
       id: "care-planning",
@@ -233,7 +242,8 @@ const Index = () => {
         lastReviewed: "",
         observation: "",
         actions: [],
-        details: ""
+        details: "",
+        metadata: {}
       }, {
         id: "service-user-docs",
         title: "Service User Documents",
@@ -241,7 +251,8 @@ const Index = () => {
         lastReviewed: "",
         observation: "",
         actions: [],
-        details: ""
+        details: "",
+        metadata: {}
       }, {
         id: "medication",
         title: "Medication Management",
@@ -249,7 +260,8 @@ const Index = () => {
         lastReviewed: "",
         observation: "",
         actions: [],
-        details: ""
+        details: "",
+        metadata: {}
       }, {
         id: "care-notes",
         title: "Care Notes",
@@ -257,7 +269,8 @@ const Index = () => {
         lastReviewed: "",
         observation: "",
         actions: [],
-        details: ""
+        details: "",
+        metadata: {}
       }, {
         id: "call-monitoring",
         title: "Call Monitoring",
@@ -265,7 +278,8 @@ const Index = () => {
         lastReviewed: "",
         observation: "",
         actions: [],
-        details: ""
+        details: "",
+        metadata: {}
       }, {
         id: "transportation",
         title: "Transportation",
@@ -273,7 +287,8 @@ const Index = () => {
         lastReviewed: "",
         observation: "",
         actions: [],
-        details: ""
+        details: "",
+        metadata: {}
       }]
     }, {
       id: "safety",
@@ -286,7 +301,8 @@ const Index = () => {
         lastReviewed: "",
         observation: "",
         actions: [],
-        details: ""
+        details: "",
+        metadata: {}
       }, {
         id: "risk-register",
         title: "Risk Register",
@@ -294,7 +310,8 @@ const Index = () => {
         lastReviewed: "",
         observation: "",
         actions: [],
-        details: ""
+        details: "",
+        metadata: {}
       }, {
         id: "infection-control",
         title: "Infection Control",
@@ -302,7 +319,8 @@ const Index = () => {
         lastReviewed: "",
         observation: "",
         actions: [],
-        details: ""
+        details: "",
+        metadata: {}
       }, {
         id: "information-governance",
         title: "Information Governance",
@@ -310,7 +328,8 @@ const Index = () => {
         lastReviewed: "",
         observation: "",
         actions: [],
-        details: ""
+        details: "",
+        metadata: {}
       }]
     }, {
       id: "continuous-improvement",
@@ -323,7 +342,8 @@ const Index = () => {
         lastReviewed: "",
         observation: "",
         actions: [],
-        details: ""
+        details: "",
+        metadata: {}
       }, {
         id: "audits",
         title: "Audits",
@@ -331,10 +351,60 @@ const Index = () => {
         lastReviewed: "",
         observation: "",
         actions: [],
-        details: ""
+        details: "",
+        metadata: {}
       }]
     }]
   });
+
+  // Load existing subsection data from database on component mount
+  useEffect(() => {
+    const loadSubsectionData = async () => {
+      if (!profile?.company_id) return;
+
+      try {
+        const { data, error } = await supabase
+          .from('subsection_data')
+          .select('*')
+          .eq('company_id', profile.company_id);
+
+        if (error) {
+          console.error('Error loading subsection data:', error);
+          return;
+        }
+
+        if (data && data.length > 0) {
+          // Update dashboard data with loaded information
+          setDashboardData(prev => ({
+            ...prev,
+            sections: prev.sections.map(section => ({
+              ...section,
+              items: section.items.map(item => {
+                const savedData = data.find(d => 
+                  d.section_id === section.id && d.item_id === item.id
+                );
+                
+                if (savedData) {
+                  return {
+                    ...item,
+                    observation: (savedData.observation as string) || item.observation,
+                    actions: savedData.actions ? JSON.parse(savedData.actions as string) : item.actions,
+                    metadata: savedData.metadata ? JSON.parse(savedData.metadata as string) : (item.metadata || {}),
+                    lastReviewed: savedData.updated_at ? new Date(savedData.updated_at).toLocaleDateString('en-GB') : item.lastReviewed
+                  };
+                }
+                return item;
+              })
+            }))
+          }));
+        }
+      } catch (error) {
+        console.error('Failed to load subsection data:', error);
+      }
+    };
+
+    loadSubsectionData();
+  }, [profile?.company_id]);
 
   const handleDataChange = (field: string, value: string) => {
     setHeaderData(prev => ({
@@ -384,7 +454,8 @@ const Index = () => {
     });
   };
 
-  const handleObservationChange = (sectionId: string, itemId: string, newObservation: string) => {
+  const handleObservationChange = async (sectionId: string, itemId: string, newObservation: string) => {
+    // Update local state
     setDashboardData(prev => ({
       ...prev,
       sections: prev.sections.map(section => 
@@ -400,13 +471,37 @@ const Index = () => {
         } : section
       )
     }));
+
+    // Save to database immediately for persistence
+    if (profile?.company_id) {
+      try {
+        const { error } = await supabase
+          .from('subsection_data')
+          .upsert({
+            company_id: profile.company_id,
+            section_id: sectionId,
+            item_id: itemId,
+            observation: newObservation
+          }, {
+            onConflict: 'company_id,section_id,item_id'
+          });
+        
+        if (error) {
+          console.error('Error saving observation:', error);
+        }
+      } catch (error) {
+        console.error('Failed to save observation to database:', error);
+      }
+    }
+
     toast({
       title: "Observation Updated",
       description: "Item observation has been saved"
     });
   };
 
-  const handleActionsChange = (sectionId: string, itemId: string, newActions: ActionItem[]) => {
+  const handleActionsChange = async (sectionId: string, itemId: string, newActions: ActionItem[]) => {
+    // Update local state
     setDashboardData(prev => ({
       ...prev,
       sections: prev.sections.map(section => 
@@ -422,6 +517,29 @@ const Index = () => {
         } : section
       )
     }));
+
+    // Save to database immediately for persistence
+    if (profile?.company_id) {
+      try {
+        const { error } = await supabase
+          .from('subsection_data')
+          .upsert({
+            company_id: profile.company_id,
+            section_id: sectionId,
+            item_id: itemId,
+            actions: JSON.stringify(newActions)
+          }, {
+            onConflict: 'company_id,section_id,item_id'
+          });
+        
+        if (error) {
+          console.error('Error saving actions:', error);
+        }
+      } catch (error) {
+        console.error('Failed to save actions to database:', error);
+      }
+    }
+
     toast({
       title: "Actions Updated",
       description: "Item actions have been saved"
@@ -450,7 +568,8 @@ const Index = () => {
     });
   };
 
-  const handleMetadataChange = (sectionId: string, itemId: string, metadata: SubsectionMetadata) => {
+  const handleMetadataChange = async (sectionId: string, itemId: string, metadata: SubsectionMetadata) => {
+    // Update local state
     setDashboardData(prev => ({
       ...prev,
       sections: prev.sections.map(section => 
@@ -465,6 +584,28 @@ const Index = () => {
         } : section
       )
     }));
+
+    // Save to database immediately for persistence
+    if (profile?.company_id) {
+      try {
+        const { error } = await supabase
+          .from('subsection_data')
+          .upsert({
+            company_id: profile.company_id,
+            section_id: sectionId,
+            item_id: itemId,
+            metadata: JSON.stringify(metadata)
+          }, {
+            onConflict: 'company_id,section_id,item_id'
+          });
+        
+        if (error) {
+          console.error('Error saving metadata:', error);
+        }
+      } catch (error) {
+        console.error('Failed to save metadata to database:', error);
+      }
+    }
     
     toast({
       title: "Subsection Updated",
