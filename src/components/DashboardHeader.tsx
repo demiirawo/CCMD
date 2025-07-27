@@ -74,7 +74,7 @@ export const DashboardHeader = ({
 
         {/* Meeting Info Panel */}
         <div className="space-y-4">
-          <EditableField field="title" value={title} label="Meeting Title" />
+          <EditableField field="title" value={title} label="Meeting Summary" />
           <div className="p-4 rounded-lg border border-gray-100 min-h-24 bg-white">
             <h3 className="text-sm font-medium text-muted-foreground mb-2">Office Team</h3>
             <MeetingAttendeesManager attendees={attendees} onChange={onAttendeesChange || (() => {})} />
