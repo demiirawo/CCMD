@@ -121,9 +121,6 @@ export const CapacityAnalytics = ({ onMonthlyStaffDataChange, meetingDate, meeti
     // Save to database if meetingId is available
     if (meetingId) {
       const row = newData[rowIndex];
-      const dbField = field === 'onboardingStaff' ? 'onboarding_staff' :
-                      field === 'probationStaff' ? 'probation_staff' :
-                      field === 'currentStaff' ? 'current_staff' : 'ideal_staff';
       
       console.log('CapacityAnalytics: Saving to database:', {
         meeting_id: meetingId,
@@ -134,6 +131,7 @@ export const CapacityAnalytics = ({ onMonthlyStaffDataChange, meetingDate, meeti
         ideal_staff: row.idealStaff
       });
       
+      // Use upsert with proper conflict resolution
       const { error } = await supabase
         .from('resourcing_analytics')
         .upsert({
@@ -143,6 +141,8 @@ export const CapacityAnalytics = ({ onMonthlyStaffDataChange, meetingDate, meeti
           probation_staff: row.probationStaff,
           current_staff: row.currentStaff,
           ideal_staff: row.idealStaff
+        }, {
+          onConflict: 'meeting_id,month'
         });
       
       console.log('CapacityAnalytics: Save result:', { error });
