@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { CalendarIcon, FileText, Plus, Minus } from "lucide-react";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
@@ -48,6 +48,9 @@ export const KeyDocumentTracker = ({
   attendees = [],
   onActionCreated
 }: KeyDocumentTrackerProps) => {
+  
+  // Track which documents have had actions created to prevent duplicates
+  const createdActionsRef = useRef<Set<string>>(new Set());
   
   const calculateNextReviewDate = (lastReviewDate: Date | null, number: string, period: string): Date | null => {
     if (!lastReviewDate || !number || !period) return null;
@@ -146,8 +149,11 @@ export const KeyDocumentTracker = ({
         const dueDate = new Date(doc.nextReviewDate);
         dueDate.setHours(0, 0, 0, 0);
         
-        // Check if document is due within 30 days
-        if (dueDate >= today && dueDate <= thirtyDaysFromNow) {
+        // Create a unique key for this document's action
+        const actionKey = `${doc.id}-${doc.nextReviewDate.getTime()}`;
+        
+        // Check if document is due within 30 days and hasn't already had an action created
+        if (dueDate >= today && dueDate <= thirtyDaysFromNow && !createdActionsRef.current.has(actionKey)) {
           const action = {
             itemTitle: "Key Document Review",
             mentionedAttendee: doc.documentOwner,
@@ -157,6 +163,9 @@ export const KeyDocumentTracker = ({
           };
           
           onActionCreated(action);
+          
+          // Mark this action as created to prevent duplicates
+          createdActionsRef.current.add(actionKey);
         }
       }
     });
