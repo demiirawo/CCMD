@@ -101,6 +101,10 @@ export const DashboardSection = ({
     
     // Format the date to only show date without time
     const latestDate = dates[0];
+    // If it's already in DD/MM/YYYY format, return as is
+    if (latestDate.includes('/') && latestDate.split('/').length === 3) {
+      return latestDate;
+    }
     // If it's already in a simple format like "24-Jul-25", return as is
     if (latestDate.includes('-') && latestDate.split('-').length === 3) {
       return latestDate;
@@ -108,6 +112,15 @@ export const DashboardSection = ({
     
     // Otherwise, parse and format to a clean date
     const parseDate = (dateStr: string) => {
+      // Handle DD/MM/YYYY format
+      if (dateStr.includes('/')) {
+        const parts = dateStr.split('/');
+        if (parts.length === 3) {
+          const [day, month, year] = parts;
+          return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+        }
+      }
+      // Handle DD-MMM-YY format
       if (dateStr.includes('-')) {
         const [day, month, year] = dateStr.split('-');
         const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
@@ -121,8 +134,16 @@ export const DashboardSection = ({
       return new Date(dateStr);
     };
     
-    const parsedDate = parseDate(latestDate);
-    return parsedDate.toLocaleDateString('en-GB');
+    try {
+      const parsedDate = parseDate(latestDate);
+      // Check if the parsed date is valid
+      if (isNaN(parsedDate.getTime())) {
+        return latestDate; // Return original string if parsing fails
+      }
+      return parsedDate.toLocaleDateString('en-GB');
+    } catch (error) {
+      return latestDate; // Return original string if any error occurs
+    }
   };
 
   const getStatusIcon = (status: string) => {
