@@ -283,7 +283,7 @@ export const KeyDocumentTracker = ({
             <p className="mb-4">No documents tracked yet.</p>
           </div>}
         
-        <Button variant="outline" onClick={addDocument} className="w-full text-sm">
+        <Button variant="default" onClick={addDocument} className="w-full text-sm">
           <Plus className="w-4 h-4 mr-2" />
           Add Document
         </Button>
