@@ -7,6 +7,7 @@ import { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { format, subMonths } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
+
 // Generate 12 months of data from meeting date back to same month last year
 const generateInitialData = (meetingDate?: Date) => {
   const currentDate = meetingDate || new Date();
@@ -23,6 +24,7 @@ const generateInitialData = (meetingDate?: Date) => {
   }
   return data;
 };
+
 const initialCurrentMetrics = {
   activeOnboardingStaff: 0,
   currentStaffingLevel: 0,
@@ -30,6 +32,7 @@ const initialCurrentMetrics = {
   idealStaffingLevel: 0,
   capacityCoverage: 0
 };
+
 const chartConfig = {
   onboardingStaff: {
     label: "Onboarding Staff",
@@ -48,6 +51,7 @@ const chartConfig = {
     color: "hsl(var(--chart-4))"
   }
 };
+
 interface CapacityAnalyticsProps {
   onMonthlyStaffDataChange?: (data: Array<{month: string, currentStaff: number, probationStaff?: number}>) => void;
   meetingDate?: Date;
@@ -108,6 +112,7 @@ export const CapacityAnalytics = ({ onMonthlyStaffDataChange, meetingDate, meeti
       onMonthlyStaffDataChange(staffData);
     }
   }, [onMonthlyStaffDataChange, monthlyData]);
+  
   const handleCellEdit = async (rowIndex: number, field: string, value: string) => {
     console.log('CapacityAnalytics: Editing cell', { rowIndex, field, value, meetingId });
     const numValue = parseInt(value) || 0;
@@ -172,6 +177,7 @@ export const CapacityAnalytics = ({ onMonthlyStaffDataChange, meetingDate, meeti
       onMonthlyStaffDataChange(staffData);
     }
   };
+
   const EditableCell = ({
     value,
     onEdit
@@ -209,6 +215,7 @@ export const CapacityAnalytics = ({ onMonthlyStaffDataChange, meetingDate, meeti
         {value}
       </span>;
   };
+
   return <TooltipProvider>
     <div className="space-y-6 mt-4 p-6 border border-border rounded-lg bg-white">
       <div className="flex items-center justify-between">
@@ -216,7 +223,7 @@ export const CapacityAnalytics = ({ onMonthlyStaffDataChange, meetingDate, meeti
         
       </div>
       
-      <div className="text-sm text-muted-foreground">Recruitment progress, helping monitor workforce pipeline against monthly staffing targets (Past 12 Months)</div>
+      <div className="text-sm text-muted-foreground">Recruitment progress, monitoring workforce pipeline against monthly staffing targets (Past 12 Months)</div>
       
       {/* Data Table */}
       <div className="overflow-x-auto">
@@ -287,7 +294,6 @@ export const CapacityAnalytics = ({ onMonthlyStaffDataChange, meetingDate, meeti
       </div>
 
       {/* Metrics Cards */}
-      
 
       {/* Chart */}
       <div className="space-y-2">
