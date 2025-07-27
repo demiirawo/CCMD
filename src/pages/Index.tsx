@@ -662,6 +662,7 @@ const Index = () => {
           <KeyDocumentTracker 
             documents={keyDocuments}
             onDocumentsChange={setKeyDocuments}
+            attendees={headerData.attendees}
           />
           
           <ActionsLog actions={actionsLog} onActionComplete={handleActionComplete} onActionDelete={handleActionDelete} />
