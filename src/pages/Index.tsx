@@ -19,15 +19,15 @@ import jsPDF from "jspdf";
 const Index = () => {
   const [currentMeetingId, setCurrentMeetingId] = useState<string | null>(null);
   const [tempMeetingId, setTempMeetingId] = useState<string>(() => {
-    // Get existing temp ID from localStorage or generate a new one
-    const existingTempId = localStorage.getItem('tempMeetingId');
-    if (existingTempId) {
-      console.log('Index: Using existing tempMeetingId from localStorage:', existingTempId);
-      return existingTempId;
+    // Use a fixed persistent ID for continuous data storage across all sessions
+    const persistentId = localStorage.getItem('persistentMeetingId');
+    if (persistentId) {
+      console.log('Index: Using persistent meeting ID:', persistentId);
+      return persistentId;
     } else {
       const newId = crypto.randomUUID();
-      localStorage.setItem('tempMeetingId', newId);
-      console.log('Index: Generated new tempMeetingId and saved to localStorage:', newId);
+      localStorage.setItem('persistentMeetingId', newId);
+      console.log('Index: Generated persistent meeting ID:', newId);
       return newId;
     }
   });
@@ -829,11 +829,11 @@ const Index = () => {
         const realMeetingId = data[0].id;
         setCurrentMeetingId(realMeetingId);
         
-        // Update any temporary analytics data with the real meeting ID
+        // Link the persistent analytics data to this official meeting record
         await updateTemporaryAnalyticsData(tempMeetingId, realMeetingId);
         
-        // Clear the temp meeting ID from localStorage since we now have a real one
-        localStorage.removeItem('tempMeetingId');
+        // Keep using the same persistent ID for continuous data storage
+        // DO NOT clear localStorage - data should persist across all meetings
       }
 
       // Success
