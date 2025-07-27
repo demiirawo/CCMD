@@ -19,9 +19,17 @@ import jsPDF from "jspdf";
 const Index = () => {
   const [currentMeetingId, setCurrentMeetingId] = useState<string | null>(null);
   const [tempMeetingId, setTempMeetingId] = useState<string>(() => {
-    const id = crypto.randomUUID();
-    console.log('Index: Generated tempMeetingId:', id);
-    return id;
+    // Get existing temp ID from localStorage or generate a new one
+    const existingTempId = localStorage.getItem('tempMeetingId');
+    if (existingTempId) {
+      console.log('Index: Using existing tempMeetingId from localStorage:', existingTempId);
+      return existingTempId;
+    } else {
+      const newId = crypto.randomUUID();
+      localStorage.setItem('tempMeetingId', newId);
+      console.log('Index: Generated new tempMeetingId and saved to localStorage:', newId);
+      return newId;
+    }
   });
   const [actionsLog, setActionsLog] = useState<ActionLogEntry[]>([]);
 
@@ -823,6 +831,9 @@ const Index = () => {
         
         // Update any temporary analytics data with the real meeting ID
         await updateTemporaryAnalyticsData(tempMeetingId, realMeetingId);
+        
+        // Clear the temp meeting ID from localStorage since we now have a real one
+        localStorage.removeItem('tempMeetingId');
       }
 
       // Success
