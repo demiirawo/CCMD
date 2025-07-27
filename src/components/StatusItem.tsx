@@ -7,6 +7,7 @@ import { SupervisionAnalytics } from "./SupervisionAnalytics";
 import { CarePlanAnalytics } from "./CarePlanAnalytics";
 import { MedicationAnalytics } from "./MedicationAnalytics";
 import { CareNotesAnalytics } from "./CareNotesAnalytics";
+import { IncidentsAnalytics } from "./IncidentsAnalytics";
 
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { useState } from "react";
@@ -135,6 +136,8 @@ export const StatusItem = ({
           {item.title.toLowerCase().includes('medication management') && <MedicationAnalytics />}
           
           {item.title.toLowerCase().includes('care notes') && <CareNotesAnalytics />}
+          
+          {(item.title.toLowerCase().includes('incidents') || item.title.toLowerCase().includes('safeguarding')) && <IncidentsAnalytics />}
           
         </div>}
     </div>;
