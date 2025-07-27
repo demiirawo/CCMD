@@ -256,7 +256,7 @@ export const KeyDocumentTracker = ({
                    </Select>
                  </div>
                 
-                <div className="col-span-2">
+                <div className="col-span-1">
                   <label className="text-xs text-muted-foreground mb-1 block">Date</label>
                   <div className="flex items-center gap-2">
                     <Popover>
