@@ -68,7 +68,7 @@ export const DashboardSection = ({
   };
 
   return (
-    <div className="bg-white rounded-2xl p-8 mb-8 shadow-lg border border-border/50">
+    <div className="bg-white rounded-2xl p-6 shadow-lg border border-border/50">
       <div 
         className="flex items-center justify-between cursor-pointer mb-4"
         onClick={() => setIsOpen(!isOpen)}

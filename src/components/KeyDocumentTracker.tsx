@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { CalendarIcon, FileText, Plus, Minus, ChevronDown } from "lucide-react";
+import { CalendarIcon, FileText, Plus, Minus, ChevronDown, ChevronRight } from "lucide-react";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import { Calendar } from "./ui/calendar";
@@ -154,7 +154,7 @@ export const KeyDocumentTracker = ({
   if (uncategorizedDocs.length > 0) {
     groupedDocuments.push(["Uncategorized", uncategorizedDocs]);
   }
-  return <Card className="bg-white rounded-2xl p-8 mb-8 shadow-lg border border-border/50">
+  return <Card className="bg-white rounded-2xl p-6 shadow-lg border border-border/50">
       <div className="flex items-center justify-between cursor-pointer mb-6" onClick={() => setIsExpanded(!isExpanded)}>
         <div className="flex items-center gap-3">
           
@@ -163,7 +163,12 @@ export const KeyDocumentTracker = ({
             <StatusBadge status={getOverallStatus()} />
           </div>
         </div>
-        <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform duration-200 ${isExpanded ? 'transform rotate-180' : ''}`} />
+        <div className="p-1 rounded-lg hover:bg-accent/50 transition-colors">
+          {isExpanded ? 
+            <ChevronDown className="w-5 h-5 text-muted-foreground" /> : 
+            <ChevronRight className="w-5 h-5 text-muted-foreground" />
+          }
+        </div>
       </div>
       
       {isExpanded && <div className="space-y-6">
