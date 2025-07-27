@@ -216,7 +216,7 @@ export const CapacityAnalytics = ({ onMonthlyStaffDataChange, meetingDate, meeti
         
       </div>
       
-      <div className="text-sm text-muted-foreground">Snapshot of recruitment progress, helping monitor workforce pipeline against monthly staffing targets (12 months)</div>
+      <div className="text-sm text-muted-foreground">Recruitment progress, helping monitor workforce pipeline against monthly staffing targets (Past 12 Months)</div>
       
       {/* Data Table */}
       <div className="overflow-x-auto">
