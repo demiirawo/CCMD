@@ -94,7 +94,7 @@ export const SubsectionMetadataDialog = ({
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
+            <Label htmlFor="description">Note</Label>
             <Textarea
               id="description"
               value={description}
