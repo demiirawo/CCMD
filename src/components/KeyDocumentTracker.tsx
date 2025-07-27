@@ -240,11 +240,11 @@ export const KeyDocumentTracker = ({
                    />
                  </div>
                 
-                 <div className="col-span-1">
+                 <div className="col-span-2">
                    <label className="text-xs text-muted-foreground mb-1 block">Document Owner</label>
                    <Select value={doc.owner} onValueChange={(value) => handleDocumentChange(documents.indexOf(doc), 'owner', value)}>
                      <SelectTrigger className="text-sm h-9 bg-white">
-                       <SelectValue placeholder="Owner" />
+                       <SelectValue placeholder="Select owner" />
                      </SelectTrigger>
                      <SelectContent className="bg-white">
                        {attendees.map((attendee) => (
