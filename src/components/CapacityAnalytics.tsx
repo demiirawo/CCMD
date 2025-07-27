@@ -59,6 +59,7 @@ interface CapacityAnalyticsProps {
 }
 
 export const CapacityAnalytics = ({ onMonthlyStaffDataChange, meetingDate, meetingId }: CapacityAnalyticsProps = {}) => {
+  console.log('CapacityAnalytics: Component initialized with meetingId:', meetingId);
   const [monthlyData, setMonthlyData] = useState(generateInitialData(meetingDate));
   const [currentMetrics, setCurrentMetrics] = useState(initialCurrentMetrics);
   
