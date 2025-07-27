@@ -28,7 +28,7 @@ export const Navigation = () => {
   };
 
   return (
-    <nav className="bg-white border-b border-gray-200 px-6 py-3">
+    <nav className="bg-background border-b border-border px-6 py-3">
       <div className="max-w-7xl mx-auto">
         <div className="flex items-center justify-between">
           <div className="flex space-x-8">
