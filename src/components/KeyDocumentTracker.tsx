@@ -163,17 +163,9 @@ export const KeyDocumentTracker = ({
           doc.reviewFrequencyPeriod
         );
         updatedDocuments[index].nextReviewDate = nextReview ? format(nextReview, 'yyyy-MM-dd') : null;
-      }
-      
-      // Update action when document details or review dates change
-      if ((field === 'lastReviewDate' || field === 'reviewFrequencyNumber' || field === 'reviewFrequencyPeriod' || 
-           field === 'name' || field === 'owner' || field === 'category') && 
-          updatedDocuments[index].name && updatedDocuments[index].owner) {
         
-        const doc = updatedDocuments[index];
-        const nextReview = doc.nextReviewDate ? new Date(doc.nextReviewDate) : null;
-        
-        if (nextReview) {
+        // Check if action should exist based on due date
+        if (nextReview && doc.name && doc.owner) {
           const daysRemaining = getDaysRemaining(nextReview);
           
           // If document is due within 30 days, update the action
