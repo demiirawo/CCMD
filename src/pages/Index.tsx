@@ -489,6 +489,47 @@ const Index = () => {
     ));
   };
 
+  const handleActionEdit = (actionId: string, updates: { comment?: string; dueDate?: string }) => {
+    setActionsLog(prev => prev.map(action => {
+      if (action.id !== actionId) return action;
+      
+      const updatedAction = { ...action };
+      const auditEntries: import("@/components/ActionsLog").AuditEntry[] = action.auditTrail || [];
+      const timestamp = new Date().toLocaleString('en-GB', {
+        day: '2-digit',
+        month: 'short',
+        year: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+
+      // Add comment to audit trail
+      if (updates.comment) {
+        auditEntries.push({
+          timestamp,
+          change: `Comment added: ${updates.comment}`
+        });
+      }
+
+      // Update due date and add to audit trail
+      if (updates.dueDate && updates.dueDate !== action.dueDate) {
+        auditEntries.push({
+          timestamp,
+          change: `Due date changed from ${action.dueDate} to ${updates.dueDate}`
+        });
+        updatedAction.dueDate = updates.dueDate;
+      }
+
+      updatedAction.auditTrail = auditEntries;
+      return updatedAction;
+    }));
+
+    toast({
+      title: "Action Updated",
+      description: "Action has been updated successfully"
+    });
+  };
+
   const getAttendeesList = () => {
     return headerData.attendees
       .filter(attendee => attendee.name && attendee.name.trim() !== '') // Filter out empty names
@@ -735,7 +776,13 @@ const Index = () => {
             onActionUpdated={handleDocumentActionUpdated}
           />
           
-          <ActionsLog actions={actionsLog} onActionComplete={handleActionComplete} onActionDelete={handleActionDelete} onResetActions={resetActionsLog} />
+          <ActionsLog 
+            actions={actionsLog} 
+            onActionComplete={handleActionComplete} 
+            onActionDelete={handleActionDelete} 
+            onResetActions={resetActionsLog}
+            onActionEdit={handleActionEdit}
+          />
         </div>
       </div>
     </div>

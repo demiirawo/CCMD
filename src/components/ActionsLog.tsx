@@ -1,7 +1,14 @@
 import { useState } from "react";
-import { AlertCircle, Check, Minus } from "lucide-react";
+import { AlertCircle, Check, Minus, Edit } from "lucide-react";
 import { StatusBadge } from "./StatusBadge";
 import { Button } from "./ui/button";
+import { ActionEditDialog } from "./ActionEditDialog";
+
+export interface AuditEntry {
+  timestamp: string;
+  change: string;
+}
+
 export interface ActionLogEntry {
   id: string;
   timestamp: string;
@@ -15,20 +22,26 @@ export interface ActionLogEntry {
   closedDate?: string;
   sourceType?: "document" | "manual"; // Track if action came from document review
   sourceId?: string; // ID of the source document if applicable
+  auditTrail?: AuditEntry[]; // New audit trail
 }
+
 interface ActionsLogProps {
   actions: ActionLogEntry[];
   onActionComplete?: (actionId: string) => void;
   onActionDelete?: (actionId: string) => void;
   onResetActions?: () => void;
+  onActionEdit?: (actionId: string, updates: { comment?: string; dueDate?: string }) => void;
 }
+
 export const ActionsLog = ({
   actions,
   onActionComplete,
   onActionDelete,
-  onResetActions
+  onResetActions,
+  onActionEdit
 }: ActionsLogProps) => {
   const [isExpanded, setIsExpanded] = useState(true);
+  const [editingAction, setEditingAction] = useState<ActionLogEntry | null>(null);
 
   // Group actions by open/closed
   const now = new Date();
@@ -39,6 +52,7 @@ export const ActionsLog = ({
     const closedDate = new Date(action.closedDate);
     return closedDate >= thirtyDaysAgo;
   });
+
   // Function to calculate days remaining and get color
   const getDaysRemaining = (dueDate: string): number => {
     if (!dueDate || dueDate.trim() === '') return 0;
@@ -94,7 +108,9 @@ export const ActionsLog = ({
 
   const renderActionsTable = (actionsList: ActionLogEntry[], title: string) => {
     if (actionsList.length === 0) return null;
-    return <div className="mb-6">
+    
+    return (
+      <div className="mb-6">
         <h4 className="text-lg font-semibold text-foreground mb-3 flex items-center gap-2">
           {title}
           <span className="text-sm text-muted-foreground font-normal">
@@ -114,7 +130,8 @@ export const ActionsLog = ({
               </tr>
             </thead>
             <tbody>
-              {actionsList.map((action, index) => <tr key={action.id} className={`border-b border-border/20 hover:bg-gray-50/50 ${action.closed ? 'opacity-75' : ''} ${getActionRowClass(action)}`}>
+              {actionsList.map((action, index) => (
+                <tr key={action.id} className={`border-b border-border/20 hover:bg-gray-50/50 ${action.closed ? 'opacity-75' : ''} ${getActionRowClass(action)}`}>
                   <td className="py-3 px-3 text-sm text-foreground">
                     {index + 1}
                   </td>
@@ -126,56 +143,94 @@ export const ActionsLog = ({
                       <div className="text-xs text-muted-foreground mt-1 break-words">
                         From: {action.itemTitle}
                       </div>
+                      {/* Show latest comment from audit trail */}
+                      {action.auditTrail && action.auditTrail.length > 0 && (
+                        <div className="text-xs text-blue-600 mt-1 italic">
+                          Latest update: {action.auditTrail[action.auditTrail.length - 1].change}
+                        </div>
+                      )}
                     </div>
                   </td>
                   <td className="py-3 px-3 text-sm text-foreground">
                     {action.mentionedAttendee}
                   </td>
-                   <td className="py-3 px-3 text-sm text-foreground">
-                     <div className="flex items-center gap-2">
-                       <span>{action.dueDate}</span>
-                       {!action.closed && (
-                         <span className={`text-xs px-2 py-1 rounded-full ${
-                           getDaysRemaining(action.dueDate) < 0 
-                             ? 'bg-red-100 text-red-700' 
-                             : getDaysRemaining(action.dueDate) <= 5 
-                               ? 'bg-amber-100 text-amber-700'
-                               : 'bg-green-100 text-green-700'
-                         }`}>
-                           {(() => {
-                             const days = getDaysRemaining(action.dueDate);
-                             if (days < 0) {
-                               return `${Math.abs(days)} days overdue`;
-                             } else if (days === 0) {
-                               return 'Due today';
-                             } else {
-                               return `${days} days left`;
-                             }
-                           })()}
-                         </span>
-                       )}
-                     </div>
-                   </td>
-                  <td className="py-3 px-3">
-                    <div className="flex gap-1">
-                      <Button variant="ghost" size="sm" onClick={() => onActionComplete?.(action.id)} disabled={action.closed} className={`h-8 w-8 p-0 ${action.closed ? 'opacity-50' : 'hover:bg-green-100'}`} title="Mark as completed">
-                        <Check className={`h-4 w-4 ${action.closed ? 'text-green-600' : 'text-muted-foreground'}`} />
-                      </Button>
-                      {!action.closed && <Button variant="ghost" size="sm" onClick={() => onActionDelete?.(action.id)} className="h-8 w-8 p-0 text-red-500 hover:bg-red-100" title="Delete action">
-                          <Minus className="h-4 w-4" />
-                        </Button>}
+                  <td className="py-3 px-3 text-sm text-foreground">
+                    <div className="flex items-center gap-2">
+                      <span>{action.dueDate}</span>
+                      {!action.closed && (
+                        <span className={`text-xs px-2 py-1 rounded-full ${
+                          getDaysRemaining(action.dueDate) < 0 
+                            ? 'bg-red-100 text-red-700' 
+                            : getDaysRemaining(action.dueDate) <= 5 
+                              ? 'bg-amber-100 text-amber-700'
+                              : 'bg-green-100 text-green-700'
+                        }`}>
+                          {(() => {
+                            const days = getDaysRemaining(action.dueDate);
+                            if (days < 0) {
+                              return `${Math.abs(days)} days overdue`;
+                            } else if (days === 0) {
+                              return 'Due today';
+                            } else {
+                              return `${days} days left`;
+                            }
+                          })()}
+                        </span>
+                      )}
                     </div>
                   </td>
-                  {title.includes("Closed") && <td className="py-3 px-3 text-sm text-muted-foreground">
+                  <td className="py-3 px-3">
+                    <div className="flex gap-1">
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => onActionComplete?.(action.id)} 
+                        disabled={action.closed} 
+                        className={`h-8 w-8 p-0 ${action.closed ? 'opacity-50' : 'hover:bg-green-100'}`} 
+                        title="Mark as completed"
+                      >
+                        <Check className={`h-4 w-4 ${action.closed ? 'text-green-600' : 'text-muted-foreground'}`} />
+                      </Button>
+                      {!action.closed && onActionEdit && (
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => setEditingAction(action)}
+                          className="h-8 w-8 p-0 text-blue-500 hover:bg-blue-100" 
+                          title="Edit action"
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                      )}
+                      {!action.closed && (
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => onActionDelete?.(action.id)} 
+                          className="h-8 w-8 p-0 text-red-500 hover:bg-red-100" 
+                          title="Delete action"
+                        >
+                          <Minus className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                  </td>
+                  {title.includes("Closed") && (
+                    <td className="py-3 px-3 text-sm text-muted-foreground">
                       {action.closedDate ? new Date(action.closedDate).toLocaleDateString('en-GB') : '-'}
-                    </td>}
-                </tr>)}
+                    </td>
+                  )}
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
-      </div>;
+      </div>
+    );
   };
-  return <div className="bg-white rounded-2xl p-6 shadow-lg border border-border/50">
+  
+  return (
+    <div className="bg-white rounded-2xl p-6 shadow-lg border border-border/50">
       <div className="flex items-center gap-2 cursor-pointer mb-4" onClick={() => setIsExpanded(!isExpanded)}>
         <h3 className="text-xl font-bold text-foreground flex items-center gap-2">
           <AlertCircle className="w-5 h-5 text-primary" />
@@ -186,19 +241,36 @@ export const ActionsLog = ({
         </span>
       </div>
 
-      {isExpanded && <div>
-          {actions.length === 0 ? <div className="text-center py-8 text-muted-foreground">
+      {isExpanded && (
+        <div>
+          {actions.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
               <p>No actions logged yet.</p>
-              <p className="text-sm">
-        </p>
-            </div> : <>
+            </div>
+          ) : (
+            <>
               {renderActionsTable(openActions, "Open Actions")}
               {renderActionsTable(closedActions, "Closed Actions (Last 30 Days)")}
               
-              {openActions.length === 0 && closedActions.length === 0 && <div className="text-center py-8 text-muted-foreground">
+              {openActions.length === 0 && closedActions.length === 0 && (
+                <div className="text-center py-8 text-muted-foreground">
                   <p>No recent actions to display.</p>
-                </div>}
-            </>}
-        </div>}
-    </div>;
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      )}
+      
+      <ActionEditDialog 
+        isOpen={!!editingAction}
+        onClose={() => setEditingAction(null)}
+        action={editingAction}
+        onSave={(actionId, updates) => {
+          onActionEdit?.(actionId, updates);
+          setEditingAction(null);
+        }}
+      />
+    </div>
+  );
 };
