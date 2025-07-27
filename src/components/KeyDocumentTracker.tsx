@@ -122,7 +122,6 @@ export const KeyDocumentTracker = ({
   return (
     <Card className="bg-white rounded-2xl p-8 mb-8 shadow-lg border border-border/50">
       <div className="flex items-center gap-3 mb-6">
-        <FileText className="w-6 h-6 text-blue-600" />
         <h3 className="text-xl font-bold text-foreground">Key Document Tracker</h3>
       </div>
       
