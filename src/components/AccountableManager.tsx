@@ -42,7 +42,7 @@ export const AccountableManager = ({
   const availableAttendees = attendees.filter(attendee => !accountable.includes(attendee));
   return <div className="space-y-2">
       {/* Label and dropdown on same line */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 ml-0">
         <label className="text-xs font-medium text-muted-foreground">ACCOUNTABLE:</label>
         <Select onValueChange={addFromAttendees}>
           <SelectTrigger className="flex-1 bg-white">
