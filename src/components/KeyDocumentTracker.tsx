@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { CalendarIcon, FileText, Plus, Minus, ChevronDown, Circle } from "lucide-react";
+import { CalendarIcon, FileText, Plus, Minus, ChevronDown } from "lucide-react";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import { Calendar } from "./ui/calendar";
@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { format, addDays, addWeeks, addMonths, addYears, differenceInDays } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Card } from "./ui/card";
+import { StatusBadge, StatusType } from "./StatusBadge";
 
 export interface DocumentData {
   id: string;
@@ -89,7 +90,7 @@ export const KeyDocumentTracker = ({
     return differenceInDays(reviewDate, today);
   };
 
-  const getDocumentStatus = (nextReviewDate: string | null): "green" | "amber" | "red" => {
+  const getDocumentStatus = (nextReviewDate: string | null): StatusType => {
     if (!nextReviewDate) return "green";
     
     const daysRemaining = getDaysRemaining(new Date(nextReviewDate));
@@ -120,7 +121,7 @@ export const KeyDocumentTracker = ({
   };
 
   // Calculate overall status for the section
-  const getOverallStatus = (): "green" | "amber" | "red" => {
+  const getOverallStatus = (): StatusType => {
     if (documents.length === 0) return "green";
     
     const statuses = documents
@@ -130,18 +131,6 @@ export const KeyDocumentTracker = ({
     if (statuses.some(status => status === "red")) return "red";
     if (statuses.some(status => status === "amber")) return "amber";
     return "green";
-  };
-
-  const getStatusIcon = (status: "green" | "amber" | "red") => {
-    const baseClasses = "w-3 h-3";
-    switch (status) {
-      case "red":
-        return <Circle className={`${baseClasses} text-red-500 fill-red-500`} />;
-      case "amber":
-        return <Circle className={`${baseClasses} text-amber-500 fill-amber-500`} />;
-      case "green":
-        return <Circle className={`${baseClasses} text-green-500 fill-green-500`} />;
-    }
   };
 
   const handleDocumentChange = (index: number, field: keyof DocumentData, value: any) => {
@@ -248,7 +237,9 @@ export const KeyDocumentTracker = ({
         <div className="flex items-center gap-3">
           <FileText className="w-6 h-6 text-blue-600" />
           <h3 className="text-xl font-bold text-foreground">Key Review Dates</h3>
-          {getStatusIcon(getOverallStatus())}
+          <div className="ml-4">
+            <StatusBadge status={getOverallStatus()} />
+          </div>
         </div>
         <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform duration-200 ${isExpanded ? 'transform rotate-180' : ''}`} />
       </div>
