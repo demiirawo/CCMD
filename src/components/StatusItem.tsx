@@ -266,7 +266,7 @@ export const StatusItem = ({
           
           {item.title.toLowerCase().includes('resourcing') && <CapacityAnalytics onMonthlyStaffDataChange={onMonthlyStaffDataChange} meetingDate={meetingDate} meetingId={meetingId} />}
           
-          {item.title.toLowerCase().includes('staff documents') && <StaffDocumentsAnalytics />}
+          {item.title.toLowerCase().includes('staff documents') && <StaffDocumentsAnalytics meetingId={meetingId} />}
           
           {item.title.toLowerCase().includes('training') && <StaffTrainingAnalytics />}
           
