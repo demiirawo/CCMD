@@ -223,7 +223,7 @@ export const KeyDocumentTracker = ({
       const actionId = `doc-review-${document.id}`;
 
       // Create action if document is overdue or due within 30 days
-      if (daysRemaining <= 30 && !createdActionsRef.current.has(actionId)) {
+      if (daysRemaining !== null && daysRemaining <= 30 && !createdActionsRef.current.has(actionId)) {
         const formattedDate = nextReview.toLocaleDateString('en-GB');
         const isOverdue = daysRemaining < 0;
         const urgencyText = isOverdue ? 'OVERDUE' : daysRemaining <= 7 ? 'URGENT' : '';
