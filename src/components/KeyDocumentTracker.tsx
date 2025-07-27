@@ -200,7 +200,7 @@ export const KeyDocumentTracker = ({
                 </div>
                 
                 <div className="col-span-1">
-                  <label className="text-xs text-muted-foreground mb-1 block">Last Reviewed</label>
+                  <label className="text-xs text-muted-foreground mb-1 block">Reviewed</label>
                   <Popover>
                     <PopoverTrigger asChild>
                       <Button variant="outline" className="w-full h-9 p-0">
