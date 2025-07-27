@@ -900,7 +900,7 @@ const Index = () => {
           </Button>
         </div>
         
-        <div id="dashboard-container">
+        <div id="dashboard-container" className="space-y-6">
           <DashboardHeader 
             date={headerData.date} 
             title={headerData.title} 
