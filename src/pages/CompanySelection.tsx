@@ -18,6 +18,21 @@ export const CompanySelection = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
 
+  const clearAllCompanyData = (companyId: string) => {
+    // Clear all localStorage data related to meetings and forms for new companies
+    const keysToRemove: string[] = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.includes(companyId)) {
+        keysToRemove.push(key);
+      }
+    }
+    keysToRemove.forEach(key => localStorage.removeItem(key));
+    
+    // Also clear any persistent meeting IDs for this company
+    localStorage.removeItem(`persistentMeetingId_${companyId}`);
+  };
+
   const handleCreateCompany = async () => {
     if (!newCompanyName.trim()) {
       toast({
@@ -39,6 +54,9 @@ export const CompanySelection = () => {
         variant: 'destructive'
       });
     } else if (data) {
+      // Clear all localStorage data for the new company to ensure blank inputs
+      clearAllCompanyData(data.id);
+      
       toast({
         title: 'Success',
         description: 'Company created successfully!',
