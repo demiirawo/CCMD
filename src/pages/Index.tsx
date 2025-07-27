@@ -394,13 +394,7 @@ const Index = () => {
             item.id === itemId ? {
               ...item,
               observation: newObservation,
-              lastReviewed: new Date().toLocaleString('en-GB', {
-                day: '2-digit',
-                month: 'short',
-                year: '2-digit',
-                hour: '2-digit',
-                minute: '2-digit'
-              })
+              lastReviewed: new Date().toLocaleDateString('en-GB')
             } : item
           )
         } : section
@@ -422,13 +416,7 @@ const Index = () => {
             item.id === itemId ? {
               ...item,
               actions: newActions,
-              lastReviewed: new Date().toLocaleString('en-GB', {
-                day: '2-digit',
-                month: 'short',
-                year: '2-digit',
-                hour: '2-digit',
-                minute: '2-digit'
-              })
+              lastReviewed: new Date().toLocaleDateString('en-GB')
             } : item
           )
         } : section
@@ -450,13 +438,7 @@ const Index = () => {
             item.id === itemId ? {
               ...item,
               documents: newDocuments,
-              lastReviewed: new Date().toLocaleString('en-GB', {
-                day: '2-digit',
-                month: 'short',
-                year: '2-digit',
-                hour: '2-digit',
-                minute: '2-digit'
-              })
+              lastReviewed: new Date().toLocaleDateString('en-GB')
             } : item
           )
         } : section
