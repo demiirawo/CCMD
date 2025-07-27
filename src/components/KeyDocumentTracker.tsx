@@ -156,8 +156,8 @@ export const KeyDocumentTracker = ({
               {category}
             </h4>
             {docs.map((doc) => (
-              <div key={doc.id} className={`grid grid-cols-8 gap-3 p-4 border rounded-lg ${getDocumentColorClass(doc.nextReviewDate)}`}>
-                <div className="col-span-1">
+              <div key={doc.id} className={`grid grid-cols-12 gap-3 p-4 border rounded-lg items-start ${getDocumentColorClass(doc.nextReviewDate)}`}>
+                <div className="col-span-2">
                   <label className="text-xs text-muted-foreground mb-1 block">Category</label>
                   <Select value={doc.category} onValueChange={(value) => handleDocumentChange(documents.indexOf(doc), 'category', value)}>
                     <SelectTrigger className="text-sm h-9 bg-white">
@@ -173,17 +173,17 @@ export const KeyDocumentTracker = ({
                   </Select>
                 </div>
                 
-                <div className="col-span-1">
+                <div className="col-span-2">
                   <label className="text-xs text-muted-foreground mb-1 block">Document Name</label>
                   <Input 
                     value={doc.documentName} 
                     onChange={e => handleDocumentChange(documents.indexOf(doc), 'documentName', e.target.value)} 
                     placeholder="Enter document name" 
-                    className="text-sm" 
+                    className="text-sm h-9" 
                   />
                 </div>
                 
-                <div>
+                <div className="col-span-2">
                   <label className="text-xs text-muted-foreground mb-1 block">Document Owner</label>
                   <Select value={doc.documentOwner} onValueChange={(value) => handleDocumentChange(documents.indexOf(doc), 'documentOwner', value)}>
                     <SelectTrigger className="text-sm h-9 bg-white">
@@ -199,11 +199,11 @@ export const KeyDocumentTracker = ({
                   </Select>
                 </div>
                 
-                <div className="flex flex-col items-center">
+                <div className="col-span-1">
                   <label className="text-xs text-muted-foreground mb-1 block">Last Reviewed</label>
                   <Popover>
                     <PopoverTrigger asChild>
-                      <Button variant="outline" className="w-9 h-9 p-0">
+                      <Button variant="outline" className="w-full h-9 p-0">
                         <CalendarIcon className="h-4 w-4" />
                       </Button>
                     </PopoverTrigger>
@@ -219,7 +219,7 @@ export const KeyDocumentTracker = ({
                   </Popover>
                 </div>
                 
-                <div>
+                <div className="col-span-2">
                   <label className="text-xs text-muted-foreground mb-1 block">Frequency</label>
                   <div className="flex gap-1">
                     <Select value={doc.reviewFrequencyNumber} onValueChange={(value) => handleDocumentChange(documents.indexOf(doc), 'reviewFrequencyNumber', value)}>
@@ -249,19 +249,20 @@ export const KeyDocumentTracker = ({
                   </div>
                 </div>
                 
-                <div>
+                <div className="col-span-2">
                   <label className="text-xs text-muted-foreground mb-1 block">Due Date</label>
-                  <div className="text-sm p-2 bg-muted/50 rounded border text-center min-h-[36px] flex items-center justify-center">
+                  <div className="text-sm p-2 bg-muted/50 rounded border text-center h-9 flex items-center justify-center">
                     {doc.nextReviewDate ? format(doc.nextReviewDate, "PPP") : ""}
                   </div>
                 </div>
                 
-                <div className="flex items-end">
+                <div className="col-span-1">
+                  <label className="text-xs text-muted-foreground mb-1 block opacity-0">Remove</label>
                   <Button 
                     variant="outline" 
                     size="sm" 
                     onClick={() => removeDocument(doc.id)} 
-                    className="text-xs text-destructive hover:text-destructive w-8 h-8 p-0"
+                    className="text-xs text-destructive hover:text-destructive w-full h-9 p-0"
                   >
                     <Minus className="w-3 h-3" />
                   </Button>
