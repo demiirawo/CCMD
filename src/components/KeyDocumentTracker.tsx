@@ -79,7 +79,7 @@ export const KeyDocumentTracker = ({
       </div>
       
       <div className="space-y-4">
-        {documents.map((doc, index) => <div key={doc.id} className="grid grid-cols-5 gap-3 p-4 border border-border/20 rounded-lg bg-muted/20">
+        {documents.map((doc, index) => <div key={doc.id} className="grid grid-cols-5 gap-3 p-4 border border-border/20 rounded-lg bg-white">
             <div>
               <label className="text-xs text-muted-foreground mb-1 block">Document Name</label>
               <Input value={doc.documentName} onChange={e => handleDocumentChange(index, 'documentName', e.target.value)} placeholder="Enter document name" className="text-sm" />
