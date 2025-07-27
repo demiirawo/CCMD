@@ -324,7 +324,7 @@ export const KeyDocumentTracker = ({
                     variant="outline" 
                     size="sm" 
                     onClick={() => removeDocument(doc.id)} 
-                    className="text-xs text-destructive hover:text-destructive w-full h-9 p-0"
+                    className="text-xs text-destructive hover:text-destructive w-8 h-9 p-0"
                   >
                     <Minus className="w-3 h-3" />
                   </Button>
