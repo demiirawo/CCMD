@@ -92,6 +92,36 @@ export type Database = {
         }
         Relationships: []
       }
+      spot_check_analytics: {
+        Row: {
+          created_at: string
+          id: string
+          meeting_id: string | null
+          monthly_data: Json
+          passed_frequency: number
+          probation_frequency: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          meeting_id?: string | null
+          monthly_data?: Json
+          passed_frequency?: number
+          probation_frequency?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          meeting_id?: string | null
+          monthly_data?: Json
+          passed_frequency?: number
+          probation_frequency?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       staff_documents_analytics: {
         Row: {
           active_fully_compliant: number

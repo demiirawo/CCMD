@@ -4,6 +4,7 @@ import { ComposedChart, Bar, Line, XAxis, YAxis, ResponsiveContainer } from "rec
 import { Input } from "@/components/ui/input";
 import { useState, useEffect } from "react";
 import { format, subMonths } from "date-fns";
+import { supabase } from "@/integrations/supabase/client";
 
 // Generate 12 months of data from meeting date back to same month last year
 const generateInitialData = (meetingDate?: Date) => {
@@ -27,9 +28,10 @@ const chartConfig = {
 interface SpotCheckAnalyticsProps {
   monthlyStaffData?: Array<{month: string, currentStaff: number, probationStaff?: number}>;
   meetingDate?: Date;
+  meetingId?: string;
 }
 
-export const SpotCheckAnalytics = ({ monthlyStaffData = [], meetingDate }: SpotCheckAnalyticsProps) => {
+export const SpotCheckAnalytics = ({ monthlyStaffData = [], meetingDate, meetingId }: SpotCheckAnalyticsProps) => {
   const [monthlyData, setMonthlyData] = useState(generateInitialData(meetingDate));
   
   // Update data when meeting date changes
@@ -41,6 +43,66 @@ export const SpotCheckAnalytics = ({ monthlyStaffData = [], meetingDate }: SpotC
     passedFrequency: 3,
     probationFrequency: 1
   });
+
+  // Load data from database on component mount
+  useEffect(() => {
+    const loadData = async () => {
+      if (!meetingId) return;
+
+      try {
+        const { data, error } = await supabase
+          .from('spot_check_analytics')
+          .select('*')
+          .eq('meeting_id', meetingId)
+          .maybeSingle();
+
+        if (error) {
+          console.error('Error loading spot check analytics:', error);
+          return;
+        }
+
+        if (data) {
+          setMetrics({
+            passedFrequency: data.passed_frequency,
+            probationFrequency: data.probation_frequency
+          });
+          if (data.monthly_data && Array.isArray(data.monthly_data)) {
+            setMonthlyData(data.monthly_data);
+          }
+        }
+      } catch (error) {
+        console.error('Error loading spot check analytics:', error);
+      }
+    };
+
+    loadData();
+  }, [meetingId]);
+
+  // Save data to database
+  const saveData = async (newMetrics?: typeof metrics, newMonthlyData?: typeof monthlyData) => {
+    if (!meetingId) return;
+
+    try {
+      const dataToSave = {
+        meeting_id: meetingId,
+        passed_frequency: newMetrics?.passedFrequency ?? metrics.passedFrequency,
+        probation_frequency: newMetrics?.probationFrequency ?? metrics.probationFrequency,
+        monthly_data: newMonthlyData ?? monthlyData
+      };
+
+      const { error } = await supabase
+        .from('spot_check_analytics')
+        .upsert(dataToSave, {
+          onConflict: 'meeting_id'
+        });
+
+      if (error) {
+        console.error('Error saving spot check analytics:', error);
+      }
+    } catch (error) {
+      console.error('Error saving spot check analytics:', error);
+    }
+  };
 
   console.log("SpotCheckAnalytics - received monthlyStaffData:", monthlyStaffData);
   console.log("SpotCheckAnalytics - monthlyData:", monthlyData);
@@ -63,10 +125,12 @@ export const SpotCheckAnalytics = ({ monthlyStaffData = [], meetingDate }: SpotC
   
   const handleMetricChange = (field: string, value: string) => {
     const numValue = parseInt(value) || 0;
-    setMetrics(prev => ({
-      ...prev,
+    const newMetrics = {
+      ...metrics,
       [field]: numValue
-    }));
+    };
+    setMetrics(newMetrics);
+    saveData(newMetrics);
   };
   const handleCellEdit = (rowIndex: number, value: string) => {
     const numValue = parseInt(value) || 0;
@@ -76,6 +140,7 @@ export const SpotCheckAnalytics = ({ monthlyStaffData = [], meetingDate }: SpotC
       completed: numValue
     };
     setMonthlyData(newData);
+    saveData(undefined, newData);
   };
   const EditableCell = ({
     value,
