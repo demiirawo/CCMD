@@ -51,7 +51,7 @@ const LOGO_OPTIONS = [
 ];
 
 export const Settings = () => {
-  const { profile, companies } = useAuth();
+  const { profile, companies, fetchCompanies } = useAuth();
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(false);
@@ -189,6 +189,9 @@ export const Settings = () => {
         .eq("id", currentCompany.id);
 
       if (error) throw error;
+
+      // Refresh companies data to update the cache
+      await fetchCompanies();
 
       toast({
         title: "Settings saved",
