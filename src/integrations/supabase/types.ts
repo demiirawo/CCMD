@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      care_plan_analytics: {
+        Row: {
+          care_plans_in_date: number
+          care_plans_overdue: number
+          created_at: string
+          id: string
+          meeting_id: string | null
+          risk_assessments_in_date: number
+          risk_assessments_overdue: number
+          total_service_users: number
+          updated_at: string
+        }
+        Insert: {
+          care_plans_in_date?: number
+          care_plans_overdue?: number
+          created_at?: string
+          id?: string
+          meeting_id?: string | null
+          risk_assessments_in_date?: number
+          risk_assessments_overdue?: number
+          total_service_users?: number
+          updated_at?: string
+        }
+        Update: {
+          care_plans_in_date?: number
+          care_plans_overdue?: number
+          created_at?: string
+          id?: string
+          meeting_id?: string | null
+          risk_assessments_in_date?: number
+          risk_assessments_overdue?: number
+          total_service_users?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       meetings: {
         Row: {
           actions_log: Json

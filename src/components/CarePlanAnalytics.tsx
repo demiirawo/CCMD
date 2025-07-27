@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { supabase } from "@/integrations/supabase/client";
 const generateInitialData = (meetingDate?: Date) => {
   const months = [];
   const now = meetingDate || new Date();
@@ -35,9 +36,10 @@ const chartConfig = {
 };
 interface CarePlanAnalyticsProps {
   meetingDate?: Date;
+  meetingId?: string;
 }
 
-export const CarePlanAnalytics = ({ meetingDate }: CarePlanAnalyticsProps) => {
+export const CarePlanAnalytics = ({ meetingDate, meetingId }: CarePlanAnalyticsProps) => {
   const [monthlyData, setMonthlyData] = useState(generateInitialData(meetingDate));
   
   // Update data when meeting date changes
@@ -50,6 +52,76 @@ export const CarePlanAnalytics = ({ meetingDate }: CarePlanAnalyticsProps) => {
     medium: 12,
     low: 24
   });
+
+  const [currentData, setCurrentData] = useState({
+    totalServiceUsers: 0,
+    carePlansInDate: 0,
+    carePlansOverdue: 0,
+    riskAssessmentsInDate: 0,
+    riskAssessmentsOverdue: 0
+  });
+
+  // Load data from database on component mount
+  useEffect(() => {
+    const loadData = async () => {
+      if (!meetingId) return;
+
+      try {
+        const { data, error } = await supabase
+          .from('care_plan_analytics')
+          .select('*')
+          .eq('meeting_id', meetingId)
+          .maybeSingle();
+
+        if (error) {
+          console.error('Error loading care plan analytics:', error);
+          return;
+        }
+
+        if (data) {
+          setCurrentData({
+            totalServiceUsers: data.total_service_users,
+            carePlansInDate: data.care_plans_in_date,
+            carePlansOverdue: data.care_plans_overdue,
+            riskAssessmentsInDate: data.risk_assessments_in_date,
+            riskAssessmentsOverdue: data.risk_assessments_overdue
+          });
+        }
+      } catch (error) {
+        console.error('Error loading care plan analytics:', error);
+      }
+    };
+
+    loadData();
+  }, [meetingId]);
+
+  // Save data to database
+  const saveData = async (newData?: typeof currentData) => {
+    if (!meetingId) return;
+
+    try {
+      const dataToSave = {
+        meeting_id: meetingId,
+        total_service_users: newData?.totalServiceUsers ?? currentData.totalServiceUsers,
+        care_plans_in_date: newData?.carePlansInDate ?? currentData.carePlansInDate,
+        care_plans_overdue: newData?.carePlansOverdue ?? currentData.carePlansOverdue,
+        risk_assessments_in_date: newData?.riskAssessmentsInDate ?? currentData.riskAssessmentsInDate,
+        risk_assessments_overdue: newData?.riskAssessmentsOverdue ?? currentData.riskAssessmentsOverdue
+      };
+
+      const { error } = await supabase
+        .from('care_plan_analytics')
+        .upsert(dataToSave, {
+          onConflict: 'meeting_id'
+        });
+
+      if (error) {
+        console.error('Error saving care plan analytics:', error);
+      }
+    } catch (error) {
+      console.error('Error saving care plan analytics:', error);
+    }
+  };
   const dataWithTargets = monthlyData.map(month => {
     const highTarget = month.highSU / frequencies.high;
     const mediumTarget = month.mediumSU / frequencies.medium;
@@ -118,6 +190,35 @@ export const CarePlanAnalytics = ({ meetingDate }: CarePlanAnalyticsProps) => {
       <Input type="number" value={value} onChange={e => onChange(e.target.value)} className="w-20 h-8" min="1" />
       <span className="text-sm text-muted-foreground">months</span>
     </div>;
+  const handleCurrentDataChange = (field: keyof typeof currentData, value: string) => {
+    const numValue = parseInt(value) || 0;
+    const newData = {
+      ...currentData,
+      [field]: numValue
+    };
+    setCurrentData(newData);
+    saveData(newData);
+  };
+
+  const EditableDataInput = ({
+    label,
+    value,
+    onChange
+  }: {
+    label: string;
+    value: number;
+    onChange: (value: string) => void;
+  }) => <div className="space-y-2">
+      <Label className="text-sm font-medium">{label}</Label>
+      <Input 
+        type="number" 
+        value={value} 
+        onChange={e => onChange(e.target.value)} 
+        className="w-full" 
+        min="0" 
+      />
+    </div>;
+
   return <Card className="w-full">
       <CardHeader className="bg-white">
         <CardTitle>Care Plan & Risk Assessment Analytics</CardTitle>
@@ -126,6 +227,38 @@ export const CarePlanAnalytics = ({ meetingDate }: CarePlanAnalyticsProps) => {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6 bg-white">
+        {/* Current Data Section */}
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold">Current Care Plan & Risk Assessment Data</h3>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 p-4 rounded-lg bg-white border">
+            <EditableDataInput 
+              label="Total Service Users" 
+              value={currentData.totalServiceUsers} 
+              onChange={value => handleCurrentDataChange('totalServiceUsers', value)} 
+            />
+            <EditableDataInput 
+              label="Care Plans In Date" 
+              value={currentData.carePlansInDate} 
+              onChange={value => handleCurrentDataChange('carePlansInDate', value)} 
+            />
+            <EditableDataInput 
+              label="Care Plans Overdue" 
+              value={currentData.carePlansOverdue} 
+              onChange={value => handleCurrentDataChange('carePlansOverdue', value)} 
+            />
+            <EditableDataInput 
+              label="Risk Assessments In Date" 
+              value={currentData.riskAssessmentsInDate} 
+              onChange={value => handleCurrentDataChange('riskAssessmentsInDate', value)} 
+            />
+            <EditableDataInput 
+              label="Risk Assessments Overdue" 
+              value={currentData.riskAssessmentsOverdue} 
+              onChange={value => handleCurrentDataChange('riskAssessmentsOverdue', value)} 
+            />
+          </div>
+        </div>
+
         {/* Frequency Settings */}
         <div className="grid grid-cols-3 gap-4 p-4 rounded-lg bg-white">
           <EditableInput label="High Frequency" value={frequencies.high} onChange={value => handleFrequencyChange('high', value)} />
