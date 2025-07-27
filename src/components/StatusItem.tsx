@@ -207,6 +207,12 @@ export const StatusItem = ({
             <p className="text-xs text-muted-foreground mt-1">
               Updated: {item.metadata?.updated || item.lastReviewed}
             </p>
+            
+            {item.metadata?.description && (
+              <p className="text-xs text-muted-foreground mt-2 whitespace-pre-wrap">
+                {item.metadata.description}
+              </p>
+            )}
             <div className="mt-2">
               <AccountableManager
                 accountable={item.accountable || []}

@@ -3,12 +3,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export interface SubsectionMetadata {
   accountableOwner?: string;
   link?: string;
   linkText?: string;
+  description?: string;
   updated?: string;
 }
 
@@ -31,12 +33,14 @@ export const SubsectionMetadataDialog = ({
   const [accountableOwner, setAccountableOwner] = useState(metadata.accountableOwner || "");
   const [link, setLink] = useState(metadata.link || "");
   const [linkText, setLinkText] = useState(metadata.linkText || "");
+  const [description, setDescription] = useState(metadata.description || "");
 
   const handleSave = () => {
     const newMetadata: SubsectionMetadata = {
       accountableOwner: accountableOwner || undefined,
       link: link || undefined,
       linkText: linkText || undefined,
+      description: description || undefined,
       updated: new Date().toLocaleDateString()
     };
     onSave(newMetadata);
@@ -86,6 +90,17 @@ export const SubsectionMetadataDialog = ({
               value={linkText}
               onChange={(e) => setLinkText(e.target.value)}
               placeholder="Enter display text for link..."
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="description">Description</Label>
+            <Textarea
+              id="description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Enter description..."
+              rows={3}
             />
           </div>
           
