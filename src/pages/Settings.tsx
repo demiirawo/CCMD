@@ -33,29 +33,29 @@ const hexToHsl = (hex: string): string => {
   return `${Math.round(h * 360)} ${Math.round(s * 100)}% ${Math.round(l * 100)}%`;
 };
 const THEME_COLORS = [{
-  name: "Lavender",
-  value: "#b4a7d6"
+  name: "Deep Purple",
+  value: "#6366f1"
 }, {
-  name: "Sage",
-  value: "#9fc5af"
+  name: "Forest Green",
+  value: "#059669"
 }, {
-  name: "Peach",
-  value: "#ffb3ba"
+  name: "Crimson",
+  value: "#dc2626"
 }, {
-  name: "Sky",
-  value: "#a8dadc"
+  name: "Ocean Blue",
+  value: "#2563eb"
 }, {
-  name: "Coral",
-  value: "#ffaaa5"
+  name: "Amber",
+  value: "#d97706"
 }, {
-  name: "Mint",
-  value: "#b5ead7"
+  name: "Emerald",
+  value: "#10b981"
 }, {
   name: "Rose",
-  value: "#e8b4cb"
+  value: "#e11d48"
 }, {
-  name: "Butter",
-  value: "#ffd3a5"
+  name: "Slate",
+  value: "#475569"
 }];
 const SERVICES = ["Domiciliary (Home) Care", "Supported Living", "Residential Care Homes", "Nursing Homes", "Children's Residential Services", "Fostering and Adoption Services", "Semi-Independent (16+) Living", "Mental Health Support Services", "Day Services and Community Support", "Live-in Care", "Specialist Clinical Services", "Outreach and Floating Support", "Palliative and End-of-Life Care", "Substance Misuse Support", "Reablement Services", "Short Breaks and Respite Care", "Advocacy and Independent Living Support", "Community Nursing", "Housing-Related Support", "Early Help and Family Support Services"];
 export const Settings = () => {
