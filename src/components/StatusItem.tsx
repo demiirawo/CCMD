@@ -291,7 +291,7 @@ export const StatusItem = ({
           
           {item.title.toLowerCase().includes('incidents') && <IncidentsAnalytics meetingDate={meetingDate} />}
           
-          {item.title.toLowerCase().includes('feedback') && <FeedbackAnalytics meetingDate={meetingDate} />}
+          {item.title.toLowerCase().includes('feedback') && <FeedbackAnalytics meetingDate={meetingDate} meetingId={meetingId} />}
           
         </div>}
     </div>;

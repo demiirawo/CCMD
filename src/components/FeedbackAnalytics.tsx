@@ -3,6 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 const generateInitialData = (meetingDate?: Date) => {
   const months = [];
@@ -94,20 +96,76 @@ const EditableCell: React.FC<EditableCellProps> = ({ value, onChange, placeholde
 
 interface FeedbackAnalyticsProps {
   meetingDate?: Date;
+  meetingId?: string;
 }
 
-export const FeedbackAnalytics = ({ meetingDate }: FeedbackAnalyticsProps) => {
+export const FeedbackAnalytics = ({ meetingDate, meetingId }: FeedbackAnalyticsProps) => {
+  const { profile } = useAuth();
   const [monthlyData, setMonthlyData] = useState(generateInitialData(meetingDate));
 
-  // Update data when meeting date changes
+  // Load data from Supabase when component mounts or meetingId changes
   useEffect(() => {
-    setMonthlyData(generateInitialData(meetingDate));
-  }, [meetingDate]);
+    if (meetingId && profile?.company_id) {
+      loadData();
+    } else {
+      setMonthlyData(generateInitialData(meetingDate));
+    }
+  }, [meetingId, profile?.company_id, meetingDate]);
+
+  const loadData = async () => {
+    if (!meetingId || !profile?.company_id) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('feedback_analytics')
+        .select('monthly_data')
+        .eq('meeting_id', meetingId)
+        .eq('company_id', profile.company_id)
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error loading feedback analytics:', error);
+        return;
+      }
+
+      if (data?.monthly_data) {
+        setMonthlyData(data.monthly_data as any[]);
+      } else {
+        setMonthlyData(generateInitialData(meetingDate));
+      }
+    } catch (error) {
+      console.error('Error loading feedback analytics:', error);
+      setMonthlyData(generateInitialData(meetingDate));
+    }
+  };
+
+  const saveData = async (newData: any[]) => {
+    if (!meetingId || !profile?.company_id) return;
+
+    try {
+      const { error } = await supabase
+        .from('feedback_analytics')
+        .upsert({
+          meeting_id: meetingId,
+          company_id: profile.company_id,
+          monthly_data: newData
+        }, {
+          onConflict: 'meeting_id,company_id'
+        });
+
+      if (error) {
+        console.error('Error saving feedback analytics:', error);
+      }
+    } catch (error) {
+      console.error('Error saving feedback analytics:', error);
+    }
+  };
 
   const handleCellEdit = (monthIndex: number, field: 'compliments' | 'complaints' | 'suggestions' | 'resolved', value: number) => {
     const newData = [...monthlyData];
     newData[monthIndex] = { ...newData[monthIndex], [field]: value };
     setMonthlyData(newData);
+    saveData(newData);
   };
 
   return (

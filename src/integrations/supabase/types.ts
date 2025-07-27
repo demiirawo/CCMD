@@ -103,6 +103,33 @@ export type Database = {
         }
         Relationships: []
       }
+      feedback_analytics: {
+        Row: {
+          company_id: string | null
+          created_at: string
+          id: string
+          meeting_id: string | null
+          monthly_data: Json
+          updated_at: string
+        }
+        Insert: {
+          company_id?: string | null
+          created_at?: string
+          id?: string
+          meeting_id?: string | null
+          monthly_data?: Json
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string | null
+          created_at?: string
+          id?: string
+          meeting_id?: string | null
+          monthly_data?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
       meetings: {
         Row: {
           actions_log: Json
