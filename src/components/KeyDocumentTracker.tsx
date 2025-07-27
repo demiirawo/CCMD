@@ -172,7 +172,7 @@ export const KeyDocumentTracker = ({
           if (daysRemaining !== null && daysRemaining <= 30 && onActionUpdated) {
             const formattedDate = nextReview.toLocaleDateString('en-GB');
             const isOverdue = daysRemaining < 0;
-            const urgencyText = isOverdue ? 'OVERDUE' : daysRemaining <= 7 ? 'URGENT' : '';
+            const urgencyText = isOverdue ? 'OVERDUE' : daysRemaining <= 7 ? 'DUE SOON' : '';
             const newAction = `${urgencyText ? `[${urgencyText}] ` : ''}Review document: ${doc.name} (${doc.category})`;
             
             onActionUpdated(doc.id, formattedDate, newAction);
@@ -236,7 +236,7 @@ export const KeyDocumentTracker = ({
       if (daysRemaining !== null && daysRemaining <= 30 && !createdActionsRef.current.has(actionId)) {
         const formattedDate = nextReview.toLocaleDateString('en-GB');
         const isOverdue = daysRemaining < 0;
-        const urgencyText = isOverdue ? 'OVERDUE' : daysRemaining <= 7 ? 'URGENT' : '';
+        const urgencyText = isOverdue ? 'OVERDUE' : daysRemaining <= 7 ? 'DUE SOON' : '';
         
         onActionCreated({
           itemTitle: "Key Document Review",
