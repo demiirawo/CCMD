@@ -93,7 +93,32 @@ export const DashboardSection = ({
         return dateB.getTime() - dateA.getTime(); // Most recent first
       });
     
-    return dates.length > 0 ? dates[0] : null;
+    if (dates.length === 0) return null;
+    
+    // Format the date to only show date without time
+    const latestDate = dates[0];
+    // If it's already in a simple format like "24-Jul-25", return as is
+    if (latestDate.includes('-') && latestDate.split('-').length === 3) {
+      return latestDate;
+    }
+    
+    // Otherwise, parse and format to a clean date
+    const parseDate = (dateStr: string) => {
+      if (dateStr.includes('-')) {
+        const [day, month, year] = dateStr.split('-');
+        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                          'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        const monthIndex = monthNames.indexOf(month);
+        if (monthIndex !== -1) {
+          const fullYear = year.length === 2 ? `20${year}` : year;
+          return new Date(parseInt(fullYear), monthIndex, parseInt(day));
+        }
+      }
+      return new Date(dateStr);
+    };
+    
+    const parsedDate = parseDate(latestDate);
+    return parsedDate.toLocaleDateString('en-GB');
   };
 
   const getStatusIcon = (status: string) => {
