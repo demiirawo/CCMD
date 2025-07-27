@@ -41,7 +41,7 @@ export const SubsectionMetadataDialog = ({
       link: link || undefined,
       linkText: linkText || undefined,
       description: description || undefined,
-      updated: new Date().toLocaleDateString()
+      updated: new Date().toLocaleDateString('en-GB')
     };
     onSave(newMetadata);
     setIsOpen(false);
