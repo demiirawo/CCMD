@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
+import { Input } from "./ui/input";
 import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "./ui/chart";
 import { supabase } from "@/integrations/supabase/client";
@@ -52,50 +53,40 @@ interface EditableCellProps {
 }
 
 const EditableCell = ({ value, onValueChange, className = "" }: EditableCellProps) => {
-  const [isEditing, setIsEditing] = useState(false);
-  const [editValue, setEditValue] = useState(value.toString());
+  const [editing, setEditing] = useState(false);
+  const [editValue, setEditValue] = useState('');
 
-  const handleEdit = () => {
-    setIsEditing(true);
-    setEditValue(value.toString());
+  const handleStartEdit = () => {
+    setEditing(true);
+    setEditValue('');
   };
 
   const handleSave = () => {
     const numValue = parseInt(editValue) || 0;
     onValueChange(numValue);
-    setIsEditing(false);
+    setEditing(false);
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      handleSave();
-    } else if (e.key === 'Escape') {
-      setIsEditing(false);
-      setEditValue(value.toString());
-    }
-  };
-
-  if (isEditing) {
+  if (editing) {
     return (
-      <input
-        type="number"
-        value={editValue}
-        onChange={(e) => setEditValue(e.target.value)}
-        onBlur={handleSave}
-        onKeyDown={handleKeyPress}
-        className={`w-full px-2 py-1 text-center border rounded ${className}`}
-        autoFocus
+      <Input 
+        value={editValue} 
+        onChange={e => setEditValue(e.target.value)} 
+        onBlur={handleSave} 
+        onKeyDown={e => {
+          if (e.key === 'Enter') handleSave();
+          if (e.key === 'Escape') setEditing(false);
+        }} 
+        className="w-16 h-8 text-sm" 
+        autoFocus 
       />
     );
   }
 
   return (
-    <div
-      onClick={handleEdit}
-      className={`cursor-pointer hover:bg-accent/20 px-2 py-1 rounded text-center ${className}`}
-    >
+    <span className="cursor-pointer hover:bg-accent/50 p-1 rounded" onClick={handleStartEdit}>
       {value}
-    </div>
+    </span>
   );
 };
 
@@ -185,116 +176,111 @@ export const IncidentsAnalytics = ({ meetingDate, meetingId }: IncidentsAnalytic
   };
 
   return (
-    <Card className="mt-4">
-      <CardHeader>
-        <CardTitle className="text-lg">Incidents & Safeguarding Analytics</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-6">
-          {/* Data Input Table */}
-          <div className="bg-white rounded-lg border">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b bg-muted/20">
-                    <th className="text-left p-3 font-medium">Month</th>
-                    <th className="text-center p-3 font-medium">Incidents</th>
-                    <th className="text-center p-3 font-medium">Accidents</th>
-                    <th className="text-center p-3 font-medium">Safeguarding</th>
-                    <th className="text-center p-3 font-medium">Resolved</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {monthlyData.map((data, index) => (
-                    <tr key={data.month} className="border-b hover:bg-muted/10">
-                      <td className="p-3 font-medium">{data.month}</td>
-                      <td className="p-3">
-                        <EditableCell
-                          value={data.incidents}
-                          onValueChange={(value) => handleCellEdit(index, 'incidents', value)}
-                        />
-                      </td>
-                      <td className="p-3">
-                        <EditableCell
-                          value={data.accidents}
-                          onValueChange={(value) => handleCellEdit(index, 'accidents', value)}
-                        />
-                      </td>
-                      <td className="p-3">
-                        <EditableCell
-                          value={data.safeguarding}
-                          onValueChange={(value) => handleCellEdit(index, 'safeguarding', value)}
-                        />
-                      </td>
-                      <td className="p-3">
-                        <EditableCell
-                          value={data.resolved}
-                          onValueChange={(value) => handleCellEdit(index, 'resolved', value)}
-                        />
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+    <div className="space-y-6 mt-4 p-6 border border-border rounded-lg bg-white">
+      <div className="flex items-center justify-between">
+        <h4 className="text-lg font-semibold text-foreground">Incidents & Safeguarding Analytics</h4>
+      </div>
+      
+      <div className="text-sm text-muted-foreground">Monthly incident tracking and safeguarding monitoring across all service users (Past 12 Months)</div>
+      
+      {/* Data Table */}
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm table-fixed">
+          <thead>
+            <tr className="border-b">
+              <th className="text-left p-3 font-medium w-1/5">Month</th>
+              <th className="text-left p-3 font-medium w-1/5">Incidents</th>
+              <th className="text-left p-3 font-medium w-1/5">Accidents</th>
+              <th className="text-left p-3 font-medium w-1/5">Safeguarding</th>
+              <th className="text-left p-3 font-medium w-1/5">Resolved</th>
+            </tr>
+          </thead>
+          <tbody>
+            {monthlyData.map((row, index) => (
+              <tr key={index} className="border-b border-border/30 hover:bg-accent/30">
+                <td className="p-3">{row.month}</td>
+                <td className="p-3">
+                  <EditableCell value={row.incidents} onValueChange={(value) => handleCellEdit(index, 'incidents', value)} />
+                </td>
+                <td className="p-3">
+                  <EditableCell value={row.accidents} onValueChange={(value) => handleCellEdit(index, 'accidents', value)} />
+                </td>
+                <td className="p-3">
+                  <EditableCell value={row.safeguarding} onValueChange={(value) => handleCellEdit(index, 'safeguarding', value)} />
+                </td>
+                <td className="p-3">
+                  <EditableCell value={row.resolved} onValueChange={(value) => handleCellEdit(index, 'resolved', value)} />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Chart */}
+      <div className="space-y-2">
+        <Card className="p-4 bg-white">
+          <ChartContainer config={chartConfig} className="h-64 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <ComposedChart 
+                data={monthlyData} 
+                margin={{ top: 5, right: 5, bottom: 25, left: 5 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
+                <XAxis dataKey="month" axisLine={false} tickLine={false} className="text-xs" />
+                <YAxis axisLine={false} tickLine={false} className="text-xs" />
+                <ChartTooltip content={<ChartTooltipContent />} />
+                <Bar 
+                  dataKey="incidents" 
+                  stackId="cases"
+                  fill="#3b82f6" 
+                  name="Incidents"
+                />
+                <Bar 
+                  dataKey="accidents" 
+                  stackId="cases"
+                  fill="#f59e0b" 
+                  name="Accidents"
+                />
+                <Bar 
+                  dataKey="safeguarding" 
+                  stackId="cases"
+                  fill="#8b5cf6" 
+                  name="Safeguarding"
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="resolved" 
+                  stroke="#22c55e" 
+                  strokeWidth={2}
+                  dot={{ fill: "#22c55e", strokeWidth: 1, r: 3 }}
+                  name="Resolved"
+                />
+              </ComposedChart>
+            </ResponsiveContainer>
+          </ChartContainer>
+          
+          {/* Legend */}
+          <div className="flex flex-wrap justify-center gap-4 mt-4 pt-4 border-t border-border">
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 bg-blue-500 rounded"></div>
+              <span className="text-xs text-muted-foreground">Incidents</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 bg-amber-500 rounded"></div>
+              <span className="text-xs text-muted-foreground">Accidents</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 bg-purple-500 rounded"></div>
+              <span className="text-xs text-muted-foreground">Safeguarding</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-3 border-b-2 border-green-500"></div>
+              <span className="text-xs text-muted-foreground">Resolved</span>
             </div>
           </div>
-
-          {/* Chart */}
-          <div className="h-72 w-full p-4 bg-background rounded-lg border">
-            <ChartContainer config={chartConfig} className="h-full w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <ComposedChart 
-                  data={monthlyData} 
-                  margin={{ top: 5, right: 5, bottom: 25, left: 5 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
-                  <XAxis 
-                    dataKey="month" 
-                    axisLine={false}
-                    tickLine={false}
-                    fontSize={12}
-                  />
-                  <YAxis 
-                    axisLine={false}
-                    tickLine={false}
-                    fontSize={12}
-                  />
-                  <ChartTooltip content={<ChartTooltipContent />} />
-                  <Bar 
-                    dataKey="incidents" 
-                    stackId="cases"
-                    fill="var(--color-incidents)" 
-                    name="Incidents"
-                    radius={[0, 0, 0, 0]}
-                  />
-                  <Bar 
-                    dataKey="accidents" 
-                    stackId="cases"
-                    fill="var(--color-accidents)" 
-                    name="Accidents"
-                    radius={[0, 0, 0, 0]}
-                  />
-                  <Bar 
-                    dataKey="safeguarding" 
-                    stackId="cases"
-                    fill="var(--color-safeguarding)" 
-                    name="Safeguarding"
-                    radius={[2, 2, 0, 0]}
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="resolved" 
-                    stroke="var(--color-resolved)" 
-                    strokeWidth={2}
-                    dot={{ fill: "var(--color-resolved)", strokeWidth: 1, r: 3 }}
-                    name="Resolved"
-                  />
-                </ComposedChart>
-              </ResponsiveContainer>
-            </ChartContainer>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
+        </Card>
+      </div>
+    </div>
   );
 };

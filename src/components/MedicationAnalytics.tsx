@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
@@ -41,46 +41,40 @@ interface EditableCellProps {
 }
 
 const EditableCell: React.FC<EditableCellProps> = ({ value, onChange, placeholder }) => {
-  const [isEditing, setIsEditing] = useState(false);
-  const [tempValue, setTempValue] = useState(value.toString());
+  const [editing, setEditing] = useState(false);
+  const [editValue, setEditValue] = useState('');
+
+  const handleStartEdit = () => {
+    setEditing(true);
+    setEditValue('');
+  };
 
   const handleSave = () => {
-    const numValue = parseInt(tempValue) || 0;
+    const numValue = parseInt(editValue) || 0;
     onChange(numValue);
-    setIsEditing(false);
+    setEditing(false);
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      handleSave();
-    } else if (e.key === 'Escape') {
-      setTempValue(value.toString());
-      setIsEditing(false);
-    }
-  };
-
-  if (isEditing) {
+  if (editing) {
     return (
-      <Input
-        value={tempValue}
-        onChange={(e) => setTempValue(e.target.value)}
-        onBlur={handleSave}
-        onKeyDown={handleKeyDown}
-        className="h-9 w-full text-center border-muted-foreground/20"
-        autoFocus
-        type="number"
-        min="0"
+      <Input 
+        value={editValue} 
+        onChange={e => setEditValue(e.target.value)} 
+        onBlur={handleSave} 
+        onKeyDown={e => {
+          if (e.key === 'Enter') handleSave();
+          if (e.key === 'Escape') setEditing(false);
+        }} 
+        className="w-16 h-8 text-sm" 
+        autoFocus 
       />
     );
   }
 
   return (
-    <div 
-      className="h-9 w-full flex items-center justify-center cursor-pointer hover:bg-accent/20 rounded border border-transparent hover:border-border transition-colors text-sm"
-      onClick={() => setIsEditing(true)}
-    >
-      {value || placeholder || "0"}
-    </div>
+    <span className="cursor-pointer hover:bg-accent/50 p-1 rounded" onClick={handleStartEdit}>
+      {value}
+    </span>
   );
 };
 
@@ -159,114 +153,82 @@ export const MedicationAnalytics = ({ meetingDate, meetingId }: MedicationAnalyt
   };
 
   return (
-    <Card className="w-full animate-fade-in">
-      <CardHeader className="pb-4">
-        <CardTitle className="text-lg font-semibold text-foreground">Medication Management Analytics</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-6 bg-white">
-        {/* Monthly Data Input Table */}
-        <div className="space-y-3">
-          <h4 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Monthly Data</h4>
-          <div className="bg-white rounded-lg p-4 overflow-x-auto">
-            <table className="w-full min-w-[800px]">
-              <thead>
-                <tr>
-                  <th className="text-left py-2 px-3 text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                    Metric
-                  </th>
-                  {monthlyData.map((data) => (
-                    <th key={data.month} className="text-center py-2 px-2 text-xs font-medium text-muted-foreground uppercase tracking-wide min-w-[70px]">
-                      {data.month}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="space-y-1">
-                <tr className="border-t border-border/50">
-                  <td className="py-2 px-3 text-sm font-medium text-foreground">
-                    Medication Records
-                  </td>
-                  {monthlyData.map((data, index) => (
-                    <td key={`records-${index}`} className="p-2">
-                      <EditableCell
-                        value={data.medicationRecords}
-                        onChange={(value) => handleCellEdit(index, 'medicationRecords', value)}
-                        placeholder="0"
-                      />
-                    </td>
-                  ))}
-                </tr>
-                <tr className="border-t border-border/50">
-                  <td className="py-2 px-3 text-sm font-medium text-foreground">
-                    Incorrect Outcomes
-                  </td>
-                  {monthlyData.map((data, index) => (
-                    <td key={`outcomes-${index}`} className="p-2">
-                      <EditableCell
-                        value={data.incorrectOutcomes}
-                        onChange={(value) => handleCellEdit(index, 'incorrectOutcomes', value)}
-                        placeholder="0"
-                      />
-                    </td>
-                  ))}
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
+    <div className="space-y-6 mt-4 p-6 border border-border rounded-lg bg-white">
+      <div className="flex items-center justify-between">
+        <h4 className="text-lg font-semibold text-foreground">Medication Analytics</h4>
+      </div>
+      
+      <div className="text-sm text-muted-foreground">Monthly medication records and error tracking across all service users (Past 12 Months)</div>
+      
+      {/* Data Table */}
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm table-fixed">
+          <thead>
+            <tr className="border-b">
+              <th className="text-left p-3 font-medium w-1/3">Month</th>
+              <th className="text-left p-3 font-medium w-1/3">Medication Records</th>
+              <th className="text-left p-3 font-medium w-1/3">Incorrect Outcomes</th>
+            </tr>
+          </thead>
+          <tbody>
+            {monthlyData.map((row, index) => (
+              <tr key={index} className="border-b border-border/30 hover:bg-accent/30">
+                <td className="p-3">{row.month}</td>
+                <td className="p-3">
+                  <EditableCell value={row.medicationRecords} onChange={(value) => handleCellEdit(index, 'medicationRecords', value)} />
+                </td>
+                <td className="p-3">
+                  <EditableCell value={row.incorrectOutcomes} onChange={(value) => handleCellEdit(index, 'incorrectOutcomes', value)} />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
-        {/* Chart */}
-        <div className="space-y-3">
-          <h4 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Monthly Trends</h4>
-          <div className="bg-muted/30 rounded-lg p-4">
-            <ChartContainer config={chartConfig} className="h-[350px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <ComposedChart 
-                  data={monthlyData} 
-                  margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
-                  <XAxis 
-                    dataKey="month" 
-                    tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
-                    interval={0}
-                    angle={-45}
-                    textAnchor="end"
-                    height={60}
-                    stroke="hsl(var(--border))"
-                  />
-                  <YAxis 
-                    tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
-                    stroke="hsl(var(--border))"
-                  />
-                  <ChartTooltip content={<ChartTooltipContent />} />
-                  <Bar 
-                    dataKey="medicationRecords" 
-                    fill="var(--color-medicationRecords)"
-                    name="Medication Records"
-                    radius={[3, 3, 0, 0]}
-                    opacity={0.8}
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="incorrectOutcomes" 
-                    stroke="var(--color-incorrectOutcomes)"
-                    strokeWidth={2}
-                    dot={{ 
-                      fill: "var(--color-incorrectOutcomes)", 
-                      strokeWidth: 2, 
-                      r: 4,
-                      stroke: "hsl(var(--background))"
-                    }}
-                    activeDot={{ r: 6, stroke: "var(--color-incorrectOutcomes)", strokeWidth: 2 }}
-                    name="Incorrect Outcomes"
-                  />
-                </ComposedChart>
-              </ResponsiveContainer>
-            </ChartContainer>
+      {/* Chart */}
+      <div className="space-y-2">
+        <Card className="p-4 bg-white">
+          <ChartContainer config={chartConfig} className="h-64 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <ComposedChart 
+                data={monthlyData} 
+                margin={{ top: 5, right: 5, bottom: 25, left: 5 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
+                <XAxis dataKey="month" axisLine={false} tickLine={false} className="text-xs" />
+                <YAxis axisLine={false} tickLine={false} className="text-xs" />
+                <ChartTooltip content={<ChartTooltipContent />} />
+                <Bar 
+                  dataKey="medicationRecords" 
+                  fill="#3b82f6"
+                  name="Medication Records"
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="incorrectOutcomes" 
+                  stroke="#f59e0b"
+                  strokeWidth={2}
+                  dot={{ r: 3, fill: "#f59e0b" }}
+                  name="Incorrect Outcomes"
+                />
+              </ComposedChart>
+            </ResponsiveContainer>
+          </ChartContainer>
+          
+          {/* Legend */}
+          <div className="flex flex-wrap justify-center gap-4 mt-4 pt-4 border-t border-border">
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 bg-blue-500 rounded"></div>
+              <span className="text-xs text-muted-foreground">Medication Records</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-3 border-b-2 border-amber-500"></div>
+              <span className="text-xs text-muted-foreground">Incorrect Outcomes</span>
+            </div>
           </div>
-        </div>
-      </CardContent>
-    </Card>
+        </Card>
+      </div>
+    </div>
   );
 };
