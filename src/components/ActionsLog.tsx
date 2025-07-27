@@ -30,7 +30,8 @@ interface ActionsLogProps {
   onActionComplete?: (actionId: string) => void;
   onActionDelete?: (actionId: string) => void;
   onResetActions?: () => void;
-  onActionEdit?: (actionId: string, updates: { comment?: string; dueDate?: string }) => void;
+  onActionEdit?: (actionId: string, updates: { comment?: string; dueDate?: string; owner?: string }) => void;
+  attendees?: string[];
 }
 
 export const ActionsLog = ({
@@ -38,7 +39,8 @@ export const ActionsLog = ({
   onActionComplete,
   onActionDelete,
   onResetActions,
-  onActionEdit
+  onActionEdit,
+  attendees = []
 }: ActionsLogProps) => {
   const [isExpanded, setIsExpanded] = useState(true);
   const [editingAction, setEditingAction] = useState<ActionLogEntry | null>(null);

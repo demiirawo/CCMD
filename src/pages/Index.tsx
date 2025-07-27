@@ -492,7 +492,7 @@ const Index = () => {
     ));
   };
 
-  const handleActionEdit = (actionId: string, updates: { comment?: string; dueDate?: string }) => {
+  const handleActionEdit = (actionId: string, updates: { comment?: string; dueDate?: string; owner?: string }) => {
     const timestamp = new Date().toLocaleString('en-GB', {
       day: '2-digit',
       month: 'short',
@@ -523,6 +523,15 @@ const Index = () => {
           change: `Due date changed from ${action.dueDate} to ${updates.dueDate}`
         });
         updatedAction.dueDate = updates.dueDate;
+      }
+
+      // Update owner and add to audit trail
+      if (updates.owner && updates.owner !== action.mentionedAttendee) {
+        auditEntries.push({
+          timestamp,
+          change: `Action owner changed to ${updates.owner}`
+        });
+        updatedAction.mentionedAttendee = updates.owner;
       }
 
       updatedAction.auditTrail = auditEntries;
@@ -559,6 +568,15 @@ const Index = () => {
               updatedAction.targetDate = updates.dueDate;
             }
 
+            // Update owner and add to audit trail
+            if (updates.owner && updates.owner !== action.name) {
+              auditEntries.push({
+                timestamp,
+                change: `Action owner changed to ${updates.owner}`
+              });
+              updatedAction.name = updates.owner;
+            }
+
             updatedAction.auditTrail = auditEntries;
             return updatedAction;
           })
@@ -572,7 +590,7 @@ const Index = () => {
     });
   };
 
-  const handleSubsectionActionEdit = (sectionId: string, actionId: string, updates: { comment?: string; dueDate?: string }) => {
+  const handleSubsectionActionEdit = (sectionId: string, actionId: string, updates: { comment?: string; dueDate?: string; owner?: string }) => {
     const timestamp = new Date().toLocaleString('en-GB', {
       day: '2-digit',
       month: 'short',
@@ -612,6 +630,15 @@ const Index = () => {
                 updatedAction.targetDate = updates.dueDate;
               }
 
+              // Update owner and add to audit trail
+              if (updates.owner && updates.owner !== action.name) {
+                auditEntries.push({
+                  timestamp,
+                  change: `Action owner changed to ${updates.owner}`
+                });
+                updatedAction.name = updates.owner;
+              }
+
               updatedAction.auditTrail = auditEntries;
               return updatedAction;
             })
@@ -642,6 +669,15 @@ const Index = () => {
           change: `Due date changed from ${action.dueDate} to ${updates.dueDate}`
         });
         updatedAction.dueDate = updates.dueDate;
+      }
+
+      // Update owner and add to audit trail
+      if (updates.owner && updates.owner !== action.mentionedAttendee) {
+        auditEntries.push({
+          timestamp,
+          change: `Action owner changed to ${updates.owner}`
+        });
+        updatedAction.mentionedAttendee = updates.owner;
       }
 
       updatedAction.auditTrail = auditEntries;
@@ -907,6 +943,7 @@ const Index = () => {
             onActionDelete={handleActionDelete} 
             onResetActions={resetActionsLog}
             onActionEdit={handleActionEdit}
+            attendees={getAttendeesList()}
           />
         </div>
       </div>

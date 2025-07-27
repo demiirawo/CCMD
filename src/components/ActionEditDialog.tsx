@@ -4,28 +4,33 @@ import { Button } from "./ui/button";
 import { Textarea } from "./ui/textarea";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { ActionLogEntry } from "./ActionsLog";
 
 interface ActionEditDialogProps {
   isOpen: boolean;
   onClose: () => void;
   action: ActionLogEntry | null;
-  onSave: (actionId: string, updates: { comment?: string; dueDate?: string }) => void;
+  onSave: (actionId: string, updates: { comment?: string; dueDate?: string; owner?: string }) => void;
+  attendees?: string[];
 }
 
 export const ActionEditDialog = ({
   isOpen,
   onClose,
   action,
-  onSave
+  onSave,
+  attendees = []
 }: ActionEditDialogProps) => {
   const [newComment, setNewComment] = useState("");
   const [newDueDate, setNewDueDate] = useState("");
+  const [newOwner, setNewOwner] = useState("");
 
   // Reset form when action changes or dialog opens
   useEffect(() => {
     if (action && isOpen) {
       setNewDueDate(action.dueDate || "");
+      setNewOwner(action.mentionedAttendee || "");
       setNewComment("");
     }
   }, [action, isOpen]);
@@ -33,7 +38,7 @@ export const ActionEditDialog = ({
   const handleSave = () => {
     if (!action) return;
 
-    const updates: { comment?: string; dueDate?: string } = {};
+    const updates: { comment?: string; dueDate?: string; owner?: string } = {};
     
     if (newComment.trim()) {
       updates.comment = newComment.trim();
@@ -44,10 +49,16 @@ export const ActionEditDialog = ({
       updates.dueDate = newDueDate;
     }
 
+    // Only update owner if it's actually different and not empty
+    if (newOwner && newOwner !== action.mentionedAttendee) {
+      updates.owner = newOwner;
+    }
+
     if (Object.keys(updates).length > 0) {
       onSave(action.id, updates);
       setNewComment("");
       setNewDueDate(action.dueDate || "");
+      setNewOwner(action.mentionedAttendee || "");
       onClose();
     }
   };
@@ -55,6 +66,7 @@ export const ActionEditDialog = ({
   const handleClose = () => {
     setNewComment("");
     setNewDueDate(action?.dueDate || "");
+    setNewOwner(action?.mentionedAttendee || "");
     onClose();
   };
 
@@ -121,11 +133,33 @@ export const ActionEditDialog = ({
             )}
           </div>
 
+          {/* Change Action Owner */}
+          <div className="space-y-2">
+            <Label htmlFor="owner">Action Owner</Label>
+            <Select value={newOwner} onValueChange={setNewOwner}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select action owner" />
+              </SelectTrigger>
+              <SelectContent>
+                {attendees.map((attendee) => (
+                  <SelectItem key={attendee} value={attendee}>
+                    {attendee}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {newOwner !== action.mentionedAttendee && (
+              <p className="text-xs text-amber-600">
+                Action owner will be changed from {action.mentionedAttendee} to {newOwner}
+              </p>
+            )}
+          </div>
+
           {/* Action Buttons */}
           <div className="flex gap-2 pt-4">
             <Button 
               onClick={handleSave} 
-              disabled={!newComment.trim() && newDueDate === action.dueDate}
+              disabled={!newComment.trim() && newDueDate === action.dueDate && newOwner === action.mentionedAttendee}
               className="flex-1"
             >
               Save Changes

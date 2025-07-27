@@ -21,7 +21,7 @@ interface ActionFormProps {
   onActionsChange: (actions: ActionItem[]) => void;
   onActionCreated?: (name: string, description: string, targetDate: string, actionId: string) => void;
   onActionCompleted?: (actionId: string) => void;
-  onActionEdit?: (actionId: string, updates: { comment?: string; dueDate?: string }) => void;
+  onActionEdit?: (actionId: string, updates: { comment?: string; dueDate?: string; owner?: string }) => void;
 }
 export const ActionForm = ({
   actions,
@@ -132,7 +132,7 @@ export const ActionForm = ({
     }
   };
 
-  const handleActionEdit = (actionId: string, updates: { comment?: string; dueDate?: string }) => {
+  const handleActionEdit = (actionId: string, updates: { comment?: string; dueDate?: string; owner?: string }) => {
     const updatedActions = actions.map(action => {
       if (action.id !== actionId) return action;
       
@@ -161,6 +161,15 @@ export const ActionForm = ({
           change: `Due date changed from ${action.targetDate} to ${updates.dueDate}`
         });
         updatedAction.targetDate = updates.dueDate;
+      }
+
+      // Update owner and add to audit trail
+      if (updates.owner && updates.owner !== action.name) {
+        auditEntries.push({
+          timestamp,
+          change: `Action owner changed to ${updates.owner}`
+        });
+        updatedAction.name = updates.owner;
       }
 
       updatedAction.auditTrail = auditEntries;
@@ -246,6 +255,7 @@ export const ActionForm = ({
           handleActionEdit(actionId, updates);
           setEditingAction(null);
         }}
+        attendees={attendees}
       />
 
       {/* Add New Action Form */}
