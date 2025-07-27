@@ -24,6 +24,7 @@ export interface DocumentData {
 interface KeyDocumentTrackerProps {
   documents?: DocumentData[];
   onDocumentsChange?: (documents: DocumentData[]) => void;
+  attendees?: Array<{ id: string; name: string; email?: string; attended?: boolean }>;
 }
 
 const categories = [
@@ -42,7 +43,8 @@ const numbers = Array.from({ length: 12 }, (_, i) => (i + 1).toString());
 
 export const KeyDocumentTracker = ({
   documents = [],
-  onDocumentsChange
+  onDocumentsChange,
+  attendees = []
 }: KeyDocumentTrackerProps) => {
   
   const calculateNextReviewDate = (lastReviewDate: Date | null, number: string, period: string): Date | null => {
@@ -183,12 +185,18 @@ export const KeyDocumentTracker = ({
                 
                 <div>
                   <label className="text-xs text-muted-foreground mb-1 block">Document Owner</label>
-                  <Input 
-                    value={doc.documentOwner} 
-                    onChange={e => handleDocumentChange(documents.indexOf(doc), 'documentOwner', e.target.value)} 
-                    placeholder="Enter owner name" 
-                    className="text-sm" 
-                  />
+                  <Select value={doc.documentOwner} onValueChange={(value) => handleDocumentChange(documents.indexOf(doc), 'documentOwner', value)}>
+                    <SelectTrigger className="text-sm h-9 bg-white">
+                      <SelectValue placeholder="Select owner" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white">
+                      {attendees.map((attendee) => (
+                        <SelectItem key={attendee.id} value={attendee.name} className="text-sm">
+                          {attendee.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 
                 <div className="flex flex-col items-center">
