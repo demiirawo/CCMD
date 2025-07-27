@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "./ui/chart";
@@ -103,6 +103,11 @@ interface IncidentsAnalyticsProps {
 
 export const IncidentsAnalytics = ({ meetingDate }: IncidentsAnalyticsProps) => {
   const [monthlyData, setMonthlyData] = useState(generateInitialData(meetingDate));
+
+  // Update data when meeting date changes
+  useEffect(() => {
+    setMonthlyData(generateInitialData(meetingDate));
+  }, [meetingDate]);
 
   const handleCellEdit = (monthIndex: number, field: 'incidents' | 'accidents' | 'safeguarding' | 'resolved', value: number) => {
     setMonthlyData(prev => {

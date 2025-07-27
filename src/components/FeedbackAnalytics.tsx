@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from "recharts";
@@ -98,6 +98,11 @@ interface FeedbackAnalyticsProps {
 
 export const FeedbackAnalytics = ({ meetingDate }: FeedbackAnalyticsProps) => {
   const [monthlyData, setMonthlyData] = useState(generateInitialData(meetingDate));
+
+  // Update data when meeting date changes
+  useEffect(() => {
+    setMonthlyData(generateInitialData(meetingDate));
+  }, [meetingDate]);
 
   const handleCellEdit = (monthIndex: number, field: 'compliments' | 'complaints' | 'suggestions' | 'resolved', value: number) => {
     const newData = [...monthlyData];
