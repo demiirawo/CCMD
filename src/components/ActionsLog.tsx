@@ -42,7 +42,10 @@ export const ActionsLog = ({
   onActionEdit,
   attendees = []
 }: ActionsLogProps) => {
-  const [isExpanded, setIsExpanded] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(() => {
+    const saved = sessionStorage.getItem('actions_log_expanded');
+    return saved !== null ? JSON.parse(saved) : false;
+  });
   const [editingAction, setEditingAction] = useState<ActionLogEntry | null>(null);
 
   // Group actions by open/closed
@@ -184,7 +187,11 @@ export const ActionsLog = ({
       </div>;
   };
   return <div className="bg-white rounded-2xl p-6 shadow-lg border border-border/50">
-      <div className="flex items-center justify-between cursor-pointer mb-4" onClick={() => setIsExpanded(!isExpanded)}>
+      <div className="flex items-center justify-between cursor-pointer mb-4" onClick={() => {
+        const newState = !isExpanded;
+        setIsExpanded(newState);
+        sessionStorage.setItem('actions_log_expanded', JSON.stringify(newState));
+      }}>
         <div className="flex items-center gap-2">
           <h3 className="text-xl font-bold text-foreground flex items-center gap-2">
             

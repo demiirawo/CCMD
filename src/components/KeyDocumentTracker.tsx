@@ -34,7 +34,10 @@ export const KeyDocumentTracker = ({
   onDocumentsChange,
   attendees = []
 }: KeyDocumentTrackerProps) => {
-  const [isExpanded, setIsExpanded] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(() => {
+    const saved = sessionStorage.getItem('key_documents_expanded');
+    return saved !== null ? JSON.parse(saved) : false;
+  });
   const calculateNextReviewDate = (lastReviewDate: string | null, number: string, period: string): Date | null => {
     if (!lastReviewDate) return null;
     const lastDate = new Date(lastReviewDate);
@@ -155,7 +158,11 @@ export const KeyDocumentTracker = ({
     groupedDocuments.push(["Uncategorized", uncategorizedDocs]);
   }
   return <Card className="bg-white rounded-2xl p-6 shadow-lg border border-border/50">
-      <div className="flex items-center justify-between cursor-pointer mb-6" onClick={() => setIsExpanded(!isExpanded)}>
+      <div className="flex items-center justify-between cursor-pointer mb-6" onClick={() => {
+        const newState = !isExpanded;
+        setIsExpanded(newState);
+        sessionStorage.setItem('key_documents_expanded', JSON.stringify(newState));
+      }}>
         <div className="flex items-center gap-3">
           
           <h3 className="text-xl font-bold text-foreground">Key Review Dates</h3>
