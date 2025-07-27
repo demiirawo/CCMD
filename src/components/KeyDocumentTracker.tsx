@@ -85,11 +85,21 @@ export const KeyDocumentTracker = ({
 
   const getDaysRemaining = (nextReviewDate: Date | null) => {
     if (!nextReviewDate) return null;
+    
     const today = new Date();
-    today.setHours(0, 0, 0, 0);
     const reviewDate = new Date(nextReviewDate);
+    
+    // Check if dates are valid
+    if (isNaN(today.getTime()) || isNaN(reviewDate.getTime())) {
+      console.warn('Invalid date in getDaysRemaining:', nextReviewDate);
+      return null;
+    }
+    
+    today.setHours(0, 0, 0, 0);
     reviewDate.setHours(0, 0, 0, 0);
-    return differenceInDays(reviewDate, today);
+    
+    const diffDays = differenceInDays(reviewDate, today);
+    return isNaN(diffDays) ? null : diffDays;
   };
 
   const getDocumentStatus = (nextReviewDate: string | null): StatusType => {

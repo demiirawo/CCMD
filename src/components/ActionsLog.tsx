@@ -41,11 +41,24 @@ export const ActionsLog = ({
   });
   // Function to calculate days remaining and get color
   const getDaysRemaining = (dueDate: string): number => {
+    if (!dueDate || dueDate.trim() === '') return 0;
+    
     const due = new Date(dueDate);
     const today = new Date();
+    
+    // Check if date is valid
+    if (isNaN(due.getTime())) {
+      console.warn('Invalid due date:', dueDate);
+      return 0;
+    }
+    
     today.setHours(0, 0, 0, 0);
     due.setHours(0, 0, 0, 0);
-    return Math.ceil((due.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+    
+    const diffTime = due.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    return isNaN(diffDays) ? 0 : diffDays;
   };
 
   const getActionRowClass = (action: ActionLogEntry): string => {
@@ -112,12 +125,16 @@ export const ActionsLog = ({
                                ? 'bg-amber-100 text-amber-700'
                                : 'bg-green-100 text-green-700'
                          }`}>
-                           {getDaysRemaining(action.dueDate) < 0 
-                             ? `${Math.abs(getDaysRemaining(action.dueDate))} days overdue`
-                             : getDaysRemaining(action.dueDate) === 0 
-                               ? 'Due today'
-                               : `${getDaysRemaining(action.dueDate)} days left`
-                           }
+                           {(() => {
+                             const days = getDaysRemaining(action.dueDate);
+                             if (days < 0) {
+                               return `${Math.abs(days)} days overdue`;
+                             } else if (days === 0) {
+                               return 'Due today';
+                             } else {
+                               return `${days} days left`;
+                             }
+                           })()}
                          </span>
                        )}
                      </div>
