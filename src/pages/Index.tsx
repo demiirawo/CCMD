@@ -592,18 +592,41 @@ const Index = () => {
             onAttendeesChange={handleAttendeesChange}
           />
           
-          {dashboardData.sections.filter(section => section.id !== "meeting-overview").map(section => 
-            <DashboardSection 
-              key={section.id} 
-              title={section.title} 
-              items={section.items} 
-              onItemStatusChange={(itemId, status) => handleStatusChange(section.id, itemId, status)} 
-              onItemObservationChange={(itemId, observation) => handleObservationChange(section.id, itemId, observation)}
-              onItemActionsChange={(itemId, actions) => handleActionsChange(section.id, itemId, actions)}
-              onActionCreated={handleActionCreated}
-              attendees={getAttendeesList()}
-            />
-          )}
+          {dashboardData.sections.filter(section => section.id !== "meeting-overview").map(section => {
+            // Parse the meeting date for analytics
+            const parseDateString = (dateString: string) => {
+              try {
+                const parts = dateString.match(/(\d{2})\/(\d{2})\/(\d{4})\s+(\d{2}):(\d{2})/);
+                if (parts) {
+                  const [, day, month, year, hour, minute] = parts;
+                  return new Date(parseInt(year), parseInt(month) - 1, parseInt(day), parseInt(hour), parseInt(minute));
+                }
+                const directParse = new Date(dateString);
+                if (!isNaN(directParse.getTime())) {
+                  return directParse;
+                }
+                return new Date();
+              } catch (error) {
+                return new Date();
+              }
+            };
+            
+            const meetingDate = parseDateString(headerData.date);
+            
+            return (
+              <DashboardSection 
+                key={section.id} 
+                title={section.title} 
+                items={section.items} 
+                onItemStatusChange={(itemId, status) => handleStatusChange(section.id, itemId, status)} 
+                onItemObservationChange={(itemId, observation) => handleObservationChange(section.id, itemId, observation)}
+                onItemActionsChange={(itemId, actions) => handleActionsChange(section.id, itemId, actions)}
+                onActionCreated={handleActionCreated}
+                attendees={getAttendeesList()}
+                meetingDate={meetingDate}
+              />
+            );
+          })}
           
           <ActionsLog actions={actionsLog} onActionComplete={handleActionComplete} onActionDelete={handleActionDelete} />
         </div>

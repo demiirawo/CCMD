@@ -35,6 +35,7 @@ interface StatusItemProps {
   attendees?: string[];
   monthlyStaffData?: Array<{month: string, currentStaff: number, probationStaff?: number}>;
   onMonthlyStaffDataChange?: (data: Array<{month: string, currentStaff: number, probationStaff?: number}>) => void;
+  meetingDate?: Date;
 }
 export const StatusItem = ({
   item,
@@ -45,7 +46,8 @@ export const StatusItem = ({
   onActionCreated,
   attendees = [],
   monthlyStaffData = [],
-  onMonthlyStaffDataChange
+  onMonthlyStaffDataChange,
+  meetingDate
 }: StatusItemProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isEditingObservation, setIsEditingObservation] = useState(false);
@@ -136,11 +138,11 @@ export const StatusItem = ({
           
           {item.title.toLowerCase().includes('medication management') && <MedicationAnalytics />}
           
-          {item.title.toLowerCase().includes('care notes') && <CareNotesAnalytics />}
+          {item.title.toLowerCase().includes('care notes') && <CareNotesAnalytics meetingDate={meetingDate} />}
           
-          {item.title.toLowerCase().includes('incidents') && <IncidentsAnalytics />}
+          {item.title.toLowerCase().includes('incidents') && <IncidentsAnalytics meetingDate={meetingDate} />}
           
-          {item.title.toLowerCase().includes('feedback') && <FeedbackAnalytics />}
+          {item.title.toLowerCase().includes('feedback') && <FeedbackAnalytics meetingDate={meetingDate} />}
           
         </div>}
     </div>;

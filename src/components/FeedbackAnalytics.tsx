@@ -4,9 +4,9 @@ import { Input } from "@/components/ui/input";
 import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 
-const generateInitialData = () => {
+const generateInitialData = (meetingDate?: Date) => {
   const months = [];
-  const currentDate = new Date();
+  const currentDate = meetingDate || new Date();
   
   for (let i = 11; i >= 0; i--) {
     const date = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1);
@@ -92,8 +92,12 @@ const EditableCell: React.FC<EditableCellProps> = ({ value, onChange, placeholde
   );
 };
 
-export const FeedbackAnalytics = () => {
-  const [monthlyData, setMonthlyData] = useState(generateInitialData());
+interface FeedbackAnalyticsProps {
+  meetingDate?: Date;
+}
+
+export const FeedbackAnalytics = ({ meetingDate }: FeedbackAnalyticsProps) => {
+  const [monthlyData, setMonthlyData] = useState(generateInitialData(meetingDate));
 
   const handleCellEdit = (monthIndex: number, field: 'compliments' | 'complaints' | 'suggestions' | 'resolved', value: number) => {
     const newData = [...monthlyData];

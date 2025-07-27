@@ -3,13 +3,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "./ui/chart";
 
-const generateInitialData = () => {
+const generateInitialData = (meetingDate?: Date) => {
   const months = [];
-  const now = new Date();
+  const now = meetingDate || new Date();
   
   for (let i = 11; i >= 0; i--) {
     const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    const monthName = date.toLocaleDateString('en-US', { month: 'short' });
+    const monthName = date.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
     
     months.push({
       month: monthName,
@@ -97,8 +97,12 @@ const EditableCell = ({ value, onValueChange, className = "" }: EditableCellProp
   );
 };
 
-export const IncidentsAnalytics = () => {
-  const [monthlyData, setMonthlyData] = useState(generateInitialData());
+interface IncidentsAnalyticsProps {
+  meetingDate?: Date;
+}
+
+export const IncidentsAnalytics = ({ meetingDate }: IncidentsAnalyticsProps) => {
+  const [monthlyData, setMonthlyData] = useState(generateInitialData(meetingDate));
 
   const handleCellEdit = (monthIndex: number, field: 'incidents' | 'accidents' | 'safeguarding' | 'resolved', value: number) => {
     setMonthlyData(prev => {

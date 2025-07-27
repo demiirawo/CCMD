@@ -15,6 +15,7 @@ interface DashboardSectionProps {
   onActionCreated?: (itemTitle: string, mentionedAttendee: string, comment: string, action: string, dueDate: string) => void;
   attendees?: string[];
   defaultOpen?: boolean;
+  meetingDate?: Date;
 }
 
 export const DashboardSection = ({
@@ -27,7 +28,8 @@ export const DashboardSection = ({
   onAddItem,
   onActionCreated,
   attendees = [],
-  defaultOpen = true
+  defaultOpen = true,
+  meetingDate
 }: DashboardSectionProps) => {
   const [isOpen, setIsOpen] = useState(defaultOpen);
   const [monthlyStaffData, setMonthlyStaffData] = useState<Array<{month: string, currentStaff: number, probationStaff?: number}>>([]);
@@ -96,6 +98,7 @@ export const DashboardSection = ({
               attendees={attendees}
               monthlyStaffData={monthlyStaffData}
               onMonthlyStaffDataChange={setMonthlyStaffData}
+              meetingDate={meetingDate}
             />
           ))}
           

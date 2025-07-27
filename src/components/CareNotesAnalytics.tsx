@@ -4,9 +4,9 @@ import { Input } from "@/components/ui/input";
 import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 
-const generateInitialData = () => {
+const generateInitialData = (meetingDate?: Date) => {
   const months = [];
-  const currentDate = new Date();
+  const currentDate = meetingDate || new Date();
   
   for (let i = 11; i >= 0; i--) {
     const date = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1);
@@ -82,8 +82,12 @@ const EditableCell: React.FC<EditableCellProps> = ({ value, onChange, placeholde
   );
 };
 
-export const CareNotesAnalytics = () => {
-  const [monthlyData, setMonthlyData] = useState(generateInitialData());
+interface CareNotesAnalyticsProps {
+  meetingDate?: Date;
+}
+
+export const CareNotesAnalytics = ({ meetingDate }: CareNotesAnalyticsProps) => {
+  const [monthlyData, setMonthlyData] = useState(generateInitialData(meetingDate));
 
   const handleCellEdit = (monthIndex: number, field: 'totalRecordedCareNotes' | 'nonCompliantCareNotes', value: number) => {
     const newData = [...monthlyData];
