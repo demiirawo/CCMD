@@ -16,6 +16,7 @@ import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 
 const Index = () => {
+  const [currentMeetingId, setCurrentMeetingId] = useState<string | null>(null);
   const [actionsLog, setActionsLog] = useState<ActionLogEntry[]>([]);
 
   // Reset actions log function
@@ -763,6 +764,11 @@ const Index = () => {
         return;
       }
 
+      // Set the current meeting ID for data persistence
+      if (data && data[0]) {
+        setCurrentMeetingId(data[0].id);
+      }
+
       // Success
       toast({
         title: "Meeting Saved",
@@ -901,7 +907,8 @@ const Index = () => {
                   onActionCreated={handleActionCreated}
                   onSubsectionActionEdit={handleSubsectionActionEdit}
                   attendees={getAttendeesList()}
-                  meetingDate={meetingDate}
+                   meetingDate={meetingDate}
+                   meetingId={currentMeetingId}
                 />
             );
           })}

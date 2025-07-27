@@ -57,6 +57,7 @@ interface StatusItemProps {
   monthlyStaffData?: Array<{month: string, currentStaff: number, probationStaff?: number}>;
   onMonthlyStaffDataChange?: (data: Array<{month: string, currentStaff: number, probationStaff?: number}>) => void;
   meetingDate?: Date;
+  meetingId?: string;
 }
 export const StatusItem = ({
   item,
@@ -71,7 +72,8 @@ export const StatusItem = ({
   attendees = [],
   monthlyStaffData = [],
   onMonthlyStaffDataChange,
-  meetingDate
+  meetingDate,
+  meetingId
 }: StatusItemProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isEditingObservation, setIsEditingObservation] = useState(false);
@@ -262,7 +264,7 @@ export const StatusItem = ({
             {/* Additional content */}
           </div>
           
-          {item.title.toLowerCase().includes('resourcing') && <CapacityAnalytics onMonthlyStaffDataChange={onMonthlyStaffDataChange} meetingDate={meetingDate} />}
+          {item.title.toLowerCase().includes('resourcing') && <CapacityAnalytics onMonthlyStaffDataChange={onMonthlyStaffDataChange} meetingDate={meetingDate} meetingId={meetingId} />}
           
           {item.title.toLowerCase().includes('staff documents') && <StaffDocumentsAnalytics />}
           

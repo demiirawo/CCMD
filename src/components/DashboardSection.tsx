@@ -20,6 +20,7 @@ interface DashboardSectionProps {
   attendees?: string[];
   defaultOpen?: boolean;
   meetingDate?: Date;
+  meetingId?: string;
 }
 
 export const DashboardSection = ({
@@ -36,7 +37,8 @@ export const DashboardSection = ({
   onSubsectionActionEdit,
   attendees = [],
   defaultOpen = true,
-  meetingDate
+  meetingDate,
+  meetingId
 }: DashboardSectionProps) => {
   const [isOpen, setIsOpen] = useState(defaultOpen);
   const [monthlyStaffData, setMonthlyStaffData] = useState<Array<{month: string, currentStaff: number, probationStaff?: number}>>([]);
@@ -118,6 +120,7 @@ export const DashboardSection = ({
               monthlyStaffData={monthlyStaffData}
               onMonthlyStaffDataChange={setMonthlyStaffData}
               meetingDate={meetingDate}
+              meetingId={meetingId}
             />
           ))}
           
