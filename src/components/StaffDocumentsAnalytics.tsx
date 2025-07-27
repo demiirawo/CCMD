@@ -2,7 +2,8 @@ import { Card } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer } from "recharts";
 import { Input } from "@/components/ui/input";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 const initialDocumentsData = {
   activeFullyCompliant: 0,
   activePendingDocuments: 0,
@@ -19,14 +20,62 @@ const chartConfig = {
     color: "#f59e0b"
   }
 };
-export const StaffDocumentsAnalytics = () => {
+interface StaffDocumentsAnalyticsProps {
+  meetingId?: string;
+}
+
+export const StaffDocumentsAnalytics = ({ meetingId }: StaffDocumentsAnalyticsProps = {}) => {
   const [documentsData, setDocumentsData] = useState(initialDocumentsData);
-  const handleInputChange = (field: string, value: string) => {
+  
+  // Load data from database when component mounts or meetingId changes
+  useEffect(() => {
+    const loadData = async () => {
+      if (meetingId) {
+        const { data, error } = await supabase
+          .from('staff_documents_analytics')
+          .select('*')
+          .eq('meeting_id', meetingId)
+          .maybeSingle();
+        
+        if (data) {
+          setDocumentsData({
+            activeFullyCompliant: data.active_fully_compliant,
+            activePendingDocuments: data.active_pending_documents,
+            onboardingPendingDocuments: data.onboarding_pending_documents,
+            onboardingFullyCompliant: data.onboarding_fully_compliant
+          });
+        }
+      }
+    };
+    
+    loadData();
+  }, [meetingId]);
+  const handleInputChange = async (field: string, value: string) => {
     const numValue = parseInt(value) || 0;
-    setDocumentsData(prev => ({
-      ...prev,
+    const newData = {
+      ...documentsData,
       [field]: numValue
-    }));
+    };
+    setDocumentsData(newData);
+
+    // Save to database if meetingId is available
+    if (meetingId) {
+      const { error } = await supabase
+        .from('staff_documents_analytics')
+        .upsert({
+          meeting_id: meetingId,
+          active_fully_compliant: newData.activeFullyCompliant,
+          active_pending_documents: newData.activePendingDocuments,
+          onboarding_pending_documents: newData.onboardingPendingDocuments,
+          onboarding_fully_compliant: newData.onboardingFullyCompliant
+        }, {
+          onConflict: 'meeting_id'
+        });
+      
+      if (error) {
+        console.error('Error saving staff documents data:', error);
+      }
+    }
   };
   const EditableInput = ({
     value,
@@ -56,13 +105,13 @@ export const StaffDocumentsAnalytics = () => {
   const onboardingPendingPercentage = onboardingTotal > 0 ? Math.round(documentsData.onboardingPendingDocuments / onboardingTotal * 100) : 0;
   const onboardingCompliantPercentage = onboardingTotal > 0 ? Math.round(documentsData.onboardingFullyCompliant / onboardingTotal * 100) : 0;
   const barData = total > 0 ? [{
-    name: "Active Staff",
-    fullyCompliant: documentsData.activeFullyCompliant,
-    pendingDocuments: documentsData.activePendingDocuments
-  }, {
     name: "Onboarding Staff",
     fullyCompliant: documentsData.onboardingFullyCompliant,
     pendingDocuments: documentsData.onboardingPendingDocuments
+  }, {
+    name: "Active Staff",
+    fullyCompliant: documentsData.activeFullyCompliant,
+    pendingDocuments: documentsData.activePendingDocuments
   }].filter(item => item.fullyCompliant + item.pendingDocuments > 0) : [];
   return <div className="space-y-8 mt-6 p-8 border border-border rounded-lg min-h-[600px] w-full bg-white">
       <div className="flex items-center justify-between">
@@ -76,8 +125,8 @@ export const StaffDocumentsAnalytics = () => {
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <EditableInput value={documentsData.activeFullyCompliant} onEdit={val => handleInputChange('activeFullyCompliant', val)} label="Active - Compliant" />
-          <EditableInput value={documentsData.activePendingDocuments} onEdit={val => handleInputChange('activePendingDocuments', val)} label="Active - Pending Documents" />
           <EditableInput value={documentsData.onboardingPendingDocuments} onEdit={val => handleInputChange('onboardingPendingDocuments', val)} label="Onboarding - Pending Documents" />
+          <EditableInput value={documentsData.activePendingDocuments} onEdit={val => handleInputChange('activePendingDocuments', val)} label="Active - Pending Documents" />
           <EditableInput value={documentsData.onboardingFullyCompliant} onEdit={val => handleInputChange('onboardingFullyCompliant', val)} label="Onboarding - Compliant" />
         </div>
       </div>
