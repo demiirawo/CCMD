@@ -42,13 +42,6 @@ const SERVICES = [
   "Early Help and Family Support Services"
 ];
 
-const LOGO_OPTIONS = [
-  { name: "Robot", url: "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=200&h=200&fit=crop&crop=center" },
-  { name: "Code", url: "https://images.unsplash.com/photo-1487058792275-0ad4aaf24ca7?w=200&h=200&fit=crop&crop=center" },
-  { name: "MacBook", url: "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=200&h=200&fit=crop&crop=center" },
-  { name: "iMac", url: "https://images.unsplash.com/photo-1483058712412-4245e9b90334?w=200&h=200&fit=crop&crop=center" },
-  { name: "Building", url: "https://images.unsplash.com/photo-1459767129954-1b1c1f9b9ace?w=200&h=200&fit=crop&crop=center" }
-];
 
 export const Settings = () => {
   const { profile, companies, fetchCompanies } = useAuth();
@@ -192,6 +185,19 @@ export const Settings = () => {
 
       // Refresh companies data to update the cache
       await fetchCompanies();
+
+      // Force reload the current company settings to ensure UI stays consistent
+      const { data } = await supabase
+        .from("companies")
+        .select("theme_color, services, logo_url")
+        .eq("id", currentCompany.id)
+        .maybeSingle();
+
+      if (data) {
+        setSelectedTheme(data.theme_color || "#3b82f6");
+        setSelectedServices(data.services || []);
+        setSelectedLogo(data.logo_url || "");
+      }
 
       toast({
         title: "Settings saved",
@@ -353,32 +359,6 @@ export const Settings = () => {
               />
             </div>
 
-            {/* Predefined Options */}
-            <div className="border-t pt-4">
-              <p className="text-sm font-medium mb-3">Or choose from predefined options:</p>
-              <div className="grid grid-cols-2 gap-3">
-                {LOGO_OPTIONS.map((logo) => (
-                  <div
-                    key={logo.url}
-                    className={`p-2 rounded-lg border-2 cursor-pointer transition-all hover:scale-102 ${
-                      selectedLogo === logo.url 
-                        ? "border-primary shadow-md" 
-                        : "border-border hover:border-muted-foreground"
-                    }`}
-                    onClick={() => setSelectedLogo(logo.url)}
-                  >
-                    <div className="flex items-center gap-2">
-                      <img 
-                        src={logo.url} 
-                        alt={logo.name}
-                        className="w-8 h-8 rounded object-cover"
-                      />
-                      <p className="text-sm font-medium">{logo.name}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
           </CardContent>
         </Card>
       </div>
