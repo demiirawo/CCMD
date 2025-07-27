@@ -164,15 +164,25 @@ export const KeyDocumentTracker = ({
         );
         updatedDocuments[index].nextReviewDate = nextReview ? format(nextReview, 'yyyy-MM-dd') : null;
         
-        // Update corresponding action in actions log if it exists
-        if (nextReview && onActionUpdated && doc.name && doc.owner) {
-          const formattedDate = nextReview.toLocaleDateString('en-GB');
+        // Check if action should exist based on due date
+        if (nextReview && doc.name && doc.owner) {
           const daysRemaining = getDaysRemaining(nextReview);
-          const isOverdue = daysRemaining < 0;
-          const urgencyText = isOverdue ? 'OVERDUE' : daysRemaining <= 7 ? 'URGENT' : '';
-          const newAction = `${urgencyText ? `[${urgencyText}] ` : ''}Review document: ${doc.name} (${doc.category})`;
           
-          onActionUpdated(doc.id, formattedDate, newAction);
+          // If document is due within 30 days, update the action
+          if (daysRemaining !== null && daysRemaining <= 30 && onActionUpdated) {
+            const formattedDate = nextReview.toLocaleDateString('en-GB');
+            const isOverdue = daysRemaining < 0;
+            const urgencyText = isOverdue ? 'OVERDUE' : daysRemaining <= 7 ? 'URGENT' : '';
+            const newAction = `${urgencyText ? `[${urgencyText}] ` : ''}Review document: ${doc.name} (${doc.category})`;
+            
+            onActionUpdated(doc.id, formattedDate, newAction);
+          } 
+          // If document is beyond 30 days, remove the action
+          else if (daysRemaining !== null && daysRemaining > 30 && onActionRemoved) {
+            onActionRemoved(doc.id);
+            // Remove from created actions set so it can be recreated later if needed
+            createdActionsRef.current.delete(`doc-review-${doc.id}`);
+          }
         }
       }
       
