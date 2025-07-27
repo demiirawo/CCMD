@@ -18,7 +18,7 @@ import jsPDF from "jspdf";
 
 const Index = () => {
   const [currentMeetingId, setCurrentMeetingId] = useState<string | null>(null);
-  const [tempMeetingId, setTempMeetingId] = useState<string>(() => `temp-${Date.now()}`);
+  const [tempMeetingId, setTempMeetingId] = useState<string>(() => crypto.randomUUID());
   const [actionsLog, setActionsLog] = useState<ActionLogEntry[]>([]);
 
   // Function to update temporary analytics data with real meeting ID
