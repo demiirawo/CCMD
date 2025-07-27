@@ -143,10 +143,14 @@ export const ActionsLog = ({
                       <div className="text-xs text-muted-foreground mt-1 break-words">
                         From: {action.itemTitle}
                       </div>
-                      {/* Show latest comment from audit trail */}
+                      {/* Show full audit trail */}
                       {action.auditTrail && action.auditTrail.length > 0 && (
-                        <div className="text-xs text-blue-600 mt-1 italic">
-                          Latest update: {action.auditTrail[action.auditTrail.length - 1].change}
+                        <div className="text-xs mt-2 space-y-1">
+                          {action.auditTrail.map((entry, entryIndex) => (
+                            <div key={entryIndex} className="text-blue-600 bg-blue-50 p-1 rounded border-l-2 border-blue-200">
+                              <span className="font-medium">{entry.timestamp}:</span> {entry.change}
+                            </div>
+                          ))}
                         </div>
                       )}
                     </div>
