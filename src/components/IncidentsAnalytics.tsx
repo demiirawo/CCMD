@@ -165,10 +165,13 @@ export const IncidentsAnalytics = () => {
           </div>
 
           {/* Chart */}
-          <div className="h-64 w-full">
+          <div className="h-48 w-full overflow-hidden">
             <ChartContainer config={chartConfig}>
               <ResponsiveContainer width="100%" height="100%">
-                <ComposedChart data={monthlyData} margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
+                <ComposedChart 
+                  data={monthlyData} 
+                  margin={{ top: 10, right: 10, bottom: 10, left: 10 }}
+                >
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="month" />
                   <YAxis />
