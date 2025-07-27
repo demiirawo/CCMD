@@ -154,10 +154,10 @@ export const KeyDocumentTracker = ({
                       value={doc.category}
                       onValueChange={(value) => handleDocumentChange(documentIndex, 'category', value)}
                     >
-                      <SelectTrigger className="text-sm h-9">
+                      <SelectTrigger className="text-sm h-9 bg-white">
                         <SelectValue placeholder="Select category" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="bg-white">
                         {categories.map((cat) => (
                           <SelectItem key={cat} value={cat}>{cat}</SelectItem>
                         ))}
