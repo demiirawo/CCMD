@@ -159,10 +159,10 @@ export const KeyDocumentTracker = ({
   }
   return <Card className="bg-primary/10 rounded-2xl p-6 shadow-lg border border-border/50">
       <div className="flex items-center justify-between cursor-pointer mb-6" onClick={() => {
-        const newState = !isExpanded;
-        setIsExpanded(newState);
-        sessionStorage.setItem('key_documents_expanded', JSON.stringify(newState));
-      }}>
+      const newState = !isExpanded;
+      setIsExpanded(newState);
+      sessionStorage.setItem('key_documents_expanded', JSON.stringify(newState));
+    }}>
         <div className="flex items-center gap-3">
           
           <h3 className="text-xl font-bold text-foreground">Key Review Dates</h3>
@@ -171,10 +171,7 @@ export const KeyDocumentTracker = ({
           </div>
         </div>
         <div className="p-1 rounded-lg hover:bg-accent/50 transition-colors">
-          {isExpanded ? 
-            <ChevronDown className="w-5 h-5 text-muted-foreground" /> : 
-            <ChevronRight className="w-5 h-5 text-muted-foreground" />
-          }
+          {isExpanded ? <ChevronDown className="w-5 h-5 text-muted-foreground" /> : <ChevronRight className="w-5 h-5 text-muted-foreground" />}
         </div>
       </div>
       
@@ -279,7 +276,7 @@ export const KeyDocumentTracker = ({
           </div>)}
         
         {documents.length === 0 && <div className="text-center py-8 text-muted-foreground">
-            <FileText className="w-12 h-12 mx-auto mb-4 opacity-50" />
+            
             <p className="mb-4">No documents tracked yet.</p>
           </div>}
         
