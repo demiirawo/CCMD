@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { AlertCircle, Check, Minus, Edit } from "lucide-react";
+import { AlertCircle, Check, Minus, Edit, ChevronDown, ChevronRight } from "lucide-react";
 import { StatusBadge } from "./StatusBadge";
 import { Button } from "./ui/button";
 import { ActionEditDialog } from "./ActionEditDialog";
@@ -238,6 +238,12 @@ export const ActionsLog = ({
   return (
     <div className="bg-white rounded-2xl p-6 shadow-lg border border-border/50">
       <div className="flex items-center gap-2 cursor-pointer mb-4" onClick={() => setIsExpanded(!isExpanded)}>
+        <div className="p-1 rounded-lg hover:bg-accent/50 transition-colors">
+          {isExpanded ? 
+            <ChevronDown className="w-5 h-5 text-muted-foreground" /> : 
+            <ChevronRight className="w-5 h-5 text-muted-foreground" />
+          }
+        </div>
         <h3 className="text-xl font-bold text-foreground flex items-center gap-2">
           <AlertCircle className="w-5 h-5 text-primary" />
           Actions
