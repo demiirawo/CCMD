@@ -43,12 +43,29 @@ export const ActionsLog = ({
   const getDaysRemaining = (dueDate: string): number => {
     if (!dueDate || dueDate.trim() === '') return 0;
     
-    const due = new Date(dueDate);
+    let due: Date;
+    
+    // Handle DD/MM/YYYY format (e.g., "28/07/2026")
+    if (dueDate.includes('/') && dueDate.split('/').length === 3) {
+      const parts = dueDate.split('/');
+      if (parts.length === 3 && parts[0].length <= 2 && parts[1].length <= 2 && parts[2].length === 4) {
+        // DD/MM/YYYY format - convert to YYYY-MM-DD
+        const [day, month, year] = parts;
+        due = new Date(`${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`);
+      } else {
+        // Try standard parsing
+        due = new Date(dueDate);
+      }
+    } else {
+      // Try standard parsing
+      due = new Date(dueDate);
+    }
+    
     const today = new Date();
     
     // Check if date is valid
     if (isNaN(due.getTime())) {
-      console.warn('Invalid due date:', dueDate);
+      console.warn('Invalid due date after parsing:', dueDate);
       return 0;
     }
     
