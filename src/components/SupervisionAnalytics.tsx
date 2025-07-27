@@ -4,6 +4,7 @@ import { ComposedChart, Bar, Line, XAxis, YAxis, ResponsiveContainer } from "rec
 import { Input } from "@/components/ui/input";
 import { useState, useEffect } from "react";
 import { format, subMonths } from "date-fns";
+import { supabase } from "@/integrations/supabase/client";
 
 // Generate 12 months of data from meeting date back to same month last year
 const generateInitialData = (meetingDate?: Date) => {
@@ -28,9 +29,10 @@ const chartConfig = {
 interface SupervisionAnalyticsProps {
   monthlyStaffData?: Array<{month: string, currentStaff: number, probationStaff?: number}>;
   meetingDate?: Date;
+  meetingId?: string;
 }
 
-export const SupervisionAnalytics = ({ monthlyStaffData = [], meetingDate }: SupervisionAnalyticsProps) => {
+export const SupervisionAnalytics = ({ monthlyStaffData = [], meetingDate, meetingId }: SupervisionAnalyticsProps) => {
   const [monthlyData, setMonthlyData] = useState(generateInitialData(meetingDate));
   
   // Update data when meeting date changes
@@ -42,6 +44,66 @@ export const SupervisionAnalytics = ({ monthlyStaffData = [], meetingDate }: Sup
     passedFrequency: 3,
     probationFrequency: 1
   });
+
+  // Load data from database on component mount
+  useEffect(() => {
+    const loadData = async () => {
+      if (!meetingId) return;
+
+      try {
+        const { data, error } = await supabase
+          .from('supervision_analytics')
+          .select('*')
+          .eq('meeting_id', meetingId)
+          .maybeSingle();
+
+        if (error) {
+          console.error('Error loading supervision analytics:', error);
+          return;
+        }
+
+        if (data) {
+          setMetrics({
+            passedFrequency: data.passed_frequency,
+            probationFrequency: data.probation_frequency
+          });
+          if (data.monthly_data && Array.isArray(data.monthly_data)) {
+            setMonthlyData(data.monthly_data);
+          }
+        }
+      } catch (error) {
+        console.error('Error loading supervision analytics:', error);
+      }
+    };
+
+    loadData();
+  }, [meetingId]);
+
+  // Save data to database
+  const saveData = async (newMetrics?: typeof metrics, newMonthlyData?: typeof monthlyData) => {
+    if (!meetingId) return;
+
+    try {
+      const dataToSave = {
+        meeting_id: meetingId,
+        passed_frequency: newMetrics?.passedFrequency ?? metrics.passedFrequency,
+        probation_frequency: newMetrics?.probationFrequency ?? metrics.probationFrequency,
+        monthly_data: newMonthlyData ?? monthlyData
+      };
+
+      const { error } = await supabase
+        .from('supervision_analytics')
+        .upsert(dataToSave, {
+          onConflict: 'meeting_id'
+        });
+
+      if (error) {
+        console.error('Error saving supervision analytics:', error);
+      }
+    } catch (error) {
+      console.error('Error saving supervision analytics:', error);
+    }
+  };
 
   // Calculate monthly targets for each month based on that month's passed and probation staff
   const dataWithTargets = monthlyData.map((item, index) => {
@@ -60,10 +122,12 @@ export const SupervisionAnalytics = ({ monthlyStaffData = [], meetingDate }: Sup
   
   const handleMetricChange = (field: string, value: string) => {
     const numValue = parseInt(value) || 0;
-    setMetrics(prev => ({
-      ...prev,
+    const newMetrics = {
+      ...metrics,
       [field]: numValue
-    }));
+    };
+    setMetrics(newMetrics);
+    saveData(newMetrics);
   };
 
   const handleCellEdit = (rowIndex: number, value: string) => {
@@ -74,6 +138,7 @@ export const SupervisionAnalytics = ({ monthlyStaffData = [], meetingDate }: Sup
       completed: numValue
     };
     setMonthlyData(newData);
+    saveData(undefined, newData);
   };
 
   const EditableCell = ({
