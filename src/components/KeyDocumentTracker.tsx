@@ -175,14 +175,32 @@ export const KeyDocumentTracker = ({
         if (nextReview && doc.name && doc.owner) {
           const daysRemaining = getDaysRemaining(nextReview);
           
-          // If document is due within 30 days, update the action
-          if (daysRemaining !== null && daysRemaining <= 30 && onActionUpdated) {
-            const formattedDate = nextReview.toLocaleDateString('en-GB');
-            const isOverdue = daysRemaining < 0;
-            const urgencyText = isOverdue ? 'OVERDUE' : daysRemaining <= 7 ? 'DUE SOON' : '';
-            const newAction = `${urgencyText ? `[${urgencyText}] ` : ''}Review: ${doc.name} (${doc.category})`;
+          // If document is due within 30 days, recreate the action to ensure all details are current
+          if (daysRemaining !== null && daysRemaining <= 30) {
+            // Remove existing action first
+            if (onActionRemoved) {
+              onActionRemoved(doc.id);
+              createdActionsRef.current.delete(`doc-review-${doc.id}`);
+            }
             
-            onActionUpdated(doc.id, formattedDate, newAction);
+            // Create new action with current details
+            if (onActionCreated) {
+              const formattedDate = nextReview.toLocaleDateString('en-GB');
+              const isOverdue = daysRemaining < 0;
+              const urgencyText = isOverdue ? 'OVERDUE' : daysRemaining <= 7 ? 'DUE SOON' : '';
+              
+              onActionCreated({
+                itemTitle: "Key Review Dates",
+                mentionedAttendee: doc.owner,
+                comment: `Document review ${isOverdue ? 'overdue' : 'due'} for: ${doc.name}`,
+                action: `${urgencyText ? `[${urgencyText}] ` : ''}Review: ${doc.name} (${doc.category})`,
+                dueDate: formattedDate,
+                sourceType: "document",
+                sourceId: doc.id
+              });
+              
+              createdActionsRef.current.add(`doc-review-${doc.id}`);
+            }
           } 
           // If document is beyond 30 days, remove the action
           else if (daysRemaining !== null && daysRemaining > 30 && onActionRemoved) {
@@ -251,7 +269,7 @@ export const KeyDocumentTracker = ({
         const urgencyText = isOverdue ? 'OVERDUE' : daysRemaining <= 7 ? 'DUE SOON' : '';
         
         onActionCreated({
-          itemTitle: "Key Document Review",
+          itemTitle: "Key Review Dates",
           mentionedAttendee: document.owner,
           comment: `Document review ${isOverdue ? 'overdue' : 'due'} for: ${document.name}`,
           action: `${urgencyText ? `[${urgencyText}] ` : ''}Review: ${document.name} (${document.category})`,
