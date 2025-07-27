@@ -137,7 +137,7 @@ export const StatusItem = ({
           
           {item.title.toLowerCase().includes('care notes') && <CareNotesAnalytics />}
           
-          {item.title.toLowerCase().includes('incidents') && <IncidentsAnalytics />}
+          {(item.title.toLowerCase().includes('incidents') || item.title.toLowerCase().includes('safeguarding')) && <IncidentsAnalytics />}
           
         </div>}
     </div>;
