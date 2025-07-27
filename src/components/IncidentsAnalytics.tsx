@@ -25,13 +25,21 @@ const generateInitialData = () => {
 };
 
 const chartConfig = {
-  total: {
-    label: "Total Cases",
+  incidents: {
+    label: "Incidents",
     color: "hsl(var(--chart-1))",
+  },
+  accidents: {
+    label: "Accidents", 
+    color: "hsl(var(--chart-2))",
+  },
+  safeguarding: {
+    label: "Safeguarding",
+    color: "hsl(var(--chart-3))",
   },
   resolved: {
     label: "Resolved",
-    color: "hsl(var(--chart-2))",
+    color: "hsl(var(--chart-4))",
   },
 };
 
@@ -186,9 +194,24 @@ export const IncidentsAnalytics = () => {
                   />
                   <ChartTooltip content={<ChartTooltipContent />} />
                   <Bar 
-                    dataKey="total" 
-                    fill="var(--color-total)" 
-                    name="Total Cases"
+                    dataKey="incidents" 
+                    stackId="cases"
+                    fill="var(--color-incidents)" 
+                    name="Incidents"
+                    radius={[0, 0, 0, 0]}
+                  />
+                  <Bar 
+                    dataKey="accidents" 
+                    stackId="cases"
+                    fill="var(--color-accidents)" 
+                    name="Accidents"
+                    radius={[0, 0, 0, 0]}
+                  />
+                  <Bar 
+                    dataKey="safeguarding" 
+                    stackId="cases"
+                    fill="var(--color-safeguarding)" 
+                    name="Safeguarding"
                     radius={[2, 2, 0, 0]}
                   />
                   <Line 
