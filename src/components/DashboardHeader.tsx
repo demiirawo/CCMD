@@ -1,6 +1,7 @@
 import { StatusBadge } from "./StatusBadge";
 import { MeetingDateTimePicker } from "./MeetingDateTimePicker";
 import { MeetingAttendeesManager, Attendee } from "./MeetingAttendeesManager";
+import { useAuth } from "@/hooks/useAuth";
 import { useState } from "react";
 interface DashboardHeaderProps {
   date: string;
@@ -24,7 +25,11 @@ export const DashboardHeader = ({
   onDataChange,
   onAttendeesChange
 }: DashboardHeaderProps) => {
+  const { profile, companies } = useAuth();
   const [editingField, setEditingField] = useState<string | null>(null);
+  
+  const currentCompany = companies.find(c => c.id === profile?.company_id);
+  
   const handleFieldEdit = (field: string, value: string) => {
     setEditingField(null);
     onDataChange?.(field, value);
@@ -38,7 +43,7 @@ export const DashboardHeader = ({
     value: string;
     label: string;
   }) => <div className="p-4 rounded-lg border border-gray-100 h-24 bg-white">
-      <h3 className="text-sm font-medium text-muted-foreground mb-2">Meeting Title</h3>
+      <h3 className="text-sm font-medium text-muted-foreground mb-2">{label}</h3>
       {editingField === field ? <textarea defaultValue={value} className="w-full h-12 p-2 text-lg font-semibold text-foreground bg-white border border-gray-300 rounded resize-none" onBlur={e => handleFieldEdit(field, e.target.value)} onKeyDown={e => {
       if (e.key === "Enter" && !e.shiftKey) {
         e.preventDefault();
@@ -52,8 +57,28 @@ export const DashboardHeader = ({
         </button>}
     </div>;
   return <div className="bg-white p-8 mb-8 rounded-xl shadow-sm">
-      {/* Meeting Overview Section */}
-      <div className="grid grid-cols-2 gap-6 mb-6">
+      {/* Company Info and Meeting Overview Section */}
+      <div className="grid grid-cols-3 gap-6 mb-6">
+        {/* Company Info Panel */}
+        <div className="space-y-4">
+          <div className="p-4 rounded-lg border border-gray-100 bg-white text-center">
+            <h3 className="text-sm font-medium text-muted-foreground mb-3">Company</h3>
+            <h2 className="text-lg font-bold text-foreground mb-3">
+              {currentCompany?.name || "No Company Selected"}
+            </h2>
+            {currentCompany?.logo_url && (
+              <div className="flex justify-center">
+                <img 
+                  src={currentCompany.logo_url} 
+                  alt={`${currentCompany.name} logo`}
+                  className="w-16 h-16 rounded-lg object-cover border border-gray-200"
+                />
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Meeting Info Panel */}
         <div className="space-y-4">
           <EditableField field="title" value={title} label="Meeting Title" />
           <div className="p-4 rounded-lg border border-gray-100 min-h-24 bg-white">
@@ -62,6 +87,7 @@ export const DashboardHeader = ({
           </div>
         </div>
         
+        {/* Date and Purpose Panel */}
         <div className="space-y-4">
           <div className="p-4 rounded-lg border border-gray-100 h-24 bg-white">
             <h3 className="text-sm font-medium text-muted-foreground mb-2">Meeting Date & Time</h3>

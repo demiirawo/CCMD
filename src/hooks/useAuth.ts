@@ -15,6 +15,9 @@ interface Profile {
 interface Company {
   id: string;
   name: string;
+  theme_color?: string;
+  services?: string[];
+  logo_url?: string;
   created_at: string;
   updated_at: string;
 }
