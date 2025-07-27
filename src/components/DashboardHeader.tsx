@@ -62,8 +62,7 @@ export const DashboardHeader = ({
         {/* Company Info Panel */}
         <div className="space-y-4">
           <div className="p-4 rounded-lg border border-gray-100 bg-white text-center">
-            <h3 className="text-sm font-medium text-muted-foreground mb-3">Company</h3>
-            <h2 className="text-lg font-bold text-foreground mb-3">
+            <h2 className="text-lg font-bold text-foreground mb-4">
               {currentCompany?.name || "No Company Selected"}
             </h2>
             {currentCompany?.logo_url && (
@@ -71,7 +70,7 @@ export const DashboardHeader = ({
                 <img 
                   src={currentCompany.logo_url} 
                   alt={`${currentCompany.name} logo`}
-                  className="w-16 h-16 rounded-lg object-cover border border-gray-200"
+                  className="w-20 h-20 rounded-lg object-cover border border-gray-200"
                 />
               </div>
             )}
