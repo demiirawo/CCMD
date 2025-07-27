@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { CalendarIcon, FileText, Plus, Minus, ChevronDown } from "lucide-react";
+import { CalendarIcon, FileText, Plus, Minus, ChevronDown, Check } from "lucide-react";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import { Calendar } from "./ui/calendar";
@@ -243,6 +243,14 @@ export const KeyDocumentTracker = ({
     onDocumentsChange?.(updatedDocuments);
   };
 
+  const markDocumentReviewed = (docId: string) => {
+    const docIndex = documents.findIndex(doc => doc.id === docId);
+    if (docIndex !== -1) {
+      const today = format(new Date(), 'yyyy-MM-dd');
+      handleDocumentChange(docIndex, 'lastReviewDate', today);
+    }
+  };
+
   // Effect to create actions for documents due within 30 days or overdue
   useEffect(() => {
     if (!onActionCreated || attendees.length === 0) return;
@@ -414,17 +422,29 @@ export const KeyDocumentTracker = ({
                    </div>
                  </div>
                 
-                <div className="col-span-1">
-                  <label className="text-xs text-muted-foreground mb-1 block opacity-0">Remove</label>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={() => removeDocument(doc.id)} 
-                    className="text-xs text-destructive hover:text-destructive w-full h-9 p-0"
-                  >
-                    <Minus className="w-3 h-3" />
-                  </Button>
-                </div>
+                 <div className="col-span-1">
+                   <label className="text-xs text-muted-foreground mb-1 block opacity-0">Actions</label>
+                   <div className="flex gap-1">
+                     <Button 
+                       variant="outline" 
+                       size="sm" 
+                       onClick={() => markDocumentReviewed(doc.id)} 
+                       className="text-xs text-green-600 hover:text-green-700 flex-1 h-9 p-0"
+                       title="Mark as reviewed (sets date to today)"
+                     >
+                       <Check className="w-3 h-3" />
+                     </Button>
+                     <Button 
+                       variant="outline" 
+                       size="sm" 
+                       onClick={() => removeDocument(doc.id)} 
+                       className="text-xs text-destructive hover:text-destructive flex-1 h-9 p-0"
+                       title="Remove document"
+                     >
+                       <Minus className="w-3 h-3" />
+                     </Button>
+                   </div>
+                 </div>
               </div>
             ))}
           </div>
