@@ -212,7 +212,7 @@ export const KeyDocumentTracker = ({
                 </div>
                 
                 <div>
-                  <label className="text-xs text-muted-foreground mb-1 block">Review Frequency</label>
+                  <label className="text-xs text-muted-foreground mb-1 block">Frequency</label>
                   <div className="flex gap-1">
                     <Select value={doc.reviewFrequencyNumber} onValueChange={(value) => handleDocumentChange(documents.indexOf(doc), 'reviewFrequencyNumber', value)}>
                       <SelectTrigger className="text-sm h-9 w-16">
