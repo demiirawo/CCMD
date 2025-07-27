@@ -180,7 +180,18 @@ export const StatusItem = ({
           {/* Actions Section */}
           <div>
             <label className="text-xs font-medium text-muted-foreground mb-1 block">ACTIONS</label>
-            <ActionForm actions={item.actions} attendees={attendees} onActionsChange={handleActionsChange} onActionCreated={handleActionCreated} onActionCompleted={handleActionCompleted} />
+            <ActionForm 
+              actions={item.actions} 
+              attendees={attendees} 
+              onActionsChange={handleActionsChange} 
+              onActionCreated={handleActionCreated} 
+              onActionCompleted={handleActionCompleted}
+              onActionEdit={(actionId, updates) => {
+                // Handle action edit at the section level - for now just trigger the action change
+                // This could be expanded to also notify the parent component if needed
+                console.log("Action edited in section:", actionId, updates);
+              }}
+            />
           </div>
         </div>
       </div>

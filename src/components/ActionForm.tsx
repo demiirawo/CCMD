@@ -1,16 +1,19 @@
 import { useState } from "react";
-import { Plus, Minus, Calendar, Check } from "lucide-react";
+import { Plus, Minus, Calendar, Check, Edit } from "lucide-react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { Calendar as CalendarComponent } from "./ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { format, differenceInDays } from "date-fns";
+import { ActionEditDialog } from "./ActionEditDialog";
+import { AuditEntry } from "./ActionsLog";
 export interface ActionItem {
   id: string;
   name: string;
   description: string;
   targetDate: string;
+  auditTrail?: AuditEntry[]; // Add audit trail to ActionItem
 }
 interface ActionFormProps {
   actions: ActionItem[];
@@ -18,13 +21,15 @@ interface ActionFormProps {
   onActionsChange: (actions: ActionItem[]) => void;
   onActionCreated?: (name: string, description: string, targetDate: string) => void;
   onActionCompleted?: (actionId: string) => void;
+  onActionEdit?: (actionId: string, updates: { comment?: string; dueDate?: string }) => void;
 }
 export const ActionForm = ({
   actions,
   attendees,
   onActionsChange,
   onActionCreated,
-  onActionCompleted
+  onActionCompleted,
+  onActionEdit
 }: ActionFormProps) => {
   const [newAction, setNewAction] = useState({
     name: "",
@@ -32,6 +37,7 @@ export const ActionForm = ({
     targetDate: ""
   });
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
+  const [editingAction, setEditingAction] = useState<ActionItem | null>(null);
   const addAction = () => {
     if (newAction.name && newAction.description && newAction.targetDate) {
       const actionItem: ActionItem = {
@@ -125,10 +131,50 @@ export const ActionForm = ({
       return `${daysRemaining} day(s) remaining`;
     }
   };
+
+  const handleActionEdit = (actionId: string, updates: { comment?: string; dueDate?: string }) => {
+    const updatedActions = actions.map(action => {
+      if (action.id !== actionId) return action;
+      
+      const updatedAction = { ...action };
+      const auditEntries: AuditEntry[] = action.auditTrail || [];
+      const timestamp = new Date().toLocaleString('en-GB', {
+        day: '2-digit',
+        month: 'short',
+        year: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+
+      // Add comment to audit trail
+      if (updates.comment) {
+        auditEntries.push({
+          timestamp,
+          change: `Comment added: ${updates.comment}`
+        });
+      }
+
+      // Update due date and add to audit trail
+      if (updates.dueDate && updates.dueDate !== action.targetDate) {
+        auditEntries.push({
+          timestamp,
+          change: `Due date changed from ${action.targetDate} to ${updates.dueDate}`
+        });
+        updatedAction.targetDate = updates.dueDate;
+      }
+
+      updatedAction.auditTrail = auditEntries;
+      return updatedAction;
+    });
+
+    onActionsChange(updatedActions);
+    onActionEdit?.(actionId, updates);
+  };
   return <div className="space-y-4">
       {/* Existing Actions */}
       {actions.length > 0 && <div className="space-y-2">
-          {actions.map(action => <div key={action.id} className={`flex items-start gap-2 p-3 rounded-lg border ${getActionColorClass(action.targetDate)}`}>
+          {actions.map(action => (
+            <div key={action.id} className={`flex items-start gap-2 p-3 rounded-lg border ${getActionColorClass(action.targetDate)}`}>
               <div className="flex-1 min-w-0">
                 <div className="font-medium break-words">
                   <span className="font-bold">{action.name}</span> - {action.description}
@@ -136,17 +182,71 @@ export const ActionForm = ({
                 <div className="text-sm opacity-80 mt-1">
                   Due: {action.targetDate} • {formatDaysRemaining(action.targetDate)}
                 </div>
+                {/* Show full audit trail */}
+                {action.auditTrail && action.auditTrail.length > 0 && (
+                  <div className="text-xs mt-2 space-y-1">
+                    {action.auditTrail.map((entry, entryIndex) => (
+                      <div key={entryIndex} className="text-blue-600 bg-blue-50 p-1 rounded border-l-2 border-blue-200">
+                        <span className="font-medium">{entry.timestamp}:</span> {entry.change}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
               <div className="flex gap-1">
-                <Button variant="ghost" size="sm" onClick={() => onActionCompleted?.(action.id)} className="h-8 w-8 p-0 text-green-600 hover:bg-green-100" title="Mark as completed">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => onActionCompleted?.(action.id)} 
+                  className="h-8 w-8 p-0 text-green-600 hover:bg-green-100" 
+                  title="Mark as completed"
+                >
                   <Check className="h-4 w-4" />
                 </Button>
-                <Button variant="ghost" size="sm" onClick={() => removeAction(action.id)} className="h-8 w-8 p-0 text-red-500 hover:bg-red-100" title="Delete action">
+                {onActionEdit && (
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => setEditingAction(action)}
+                    className="h-8 w-8 p-0 text-blue-500 hover:bg-blue-100" 
+                    title="Edit action"
+                  >
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                )}
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => removeAction(action.id)} 
+                  className="h-8 w-8 p-0 text-red-500 hover:bg-red-100" 
+                  title="Delete action"
+                >
                   <Minus className="h-4 w-4" />
                 </Button>
               </div>
-            </div>)}
+            </div>
+          ))}
         </div>}
+
+      {/* Action Edit Dialog */}
+      <ActionEditDialog 
+        isOpen={!!editingAction}
+        onClose={() => setEditingAction(null)}
+        action={editingAction ? {
+          ...editingAction,
+          itemTitle: "Section Action",
+          mentionedAttendee: editingAction.name,
+          comment: editingAction.description,
+          action: editingAction.description,
+          dueDate: editingAction.targetDate,
+          timestamp: new Date().toISOString(),
+          id: editingAction.id
+        } : null}
+        onSave={(actionId, updates) => {
+          handleActionEdit(actionId, updates);
+          setEditingAction(null);
+        }}
+      />
 
       {/* Add New Action Form */}
       <div className="border border-border rounded-lg p-4 space-y-3">
