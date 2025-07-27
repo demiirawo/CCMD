@@ -28,7 +28,7 @@ export const Navigation = () => {
   };
 
   return (
-    <nav className="bg-background border-b border-border px-6 py-3">
+    <nav className="bg-primary text-primary-foreground border-b border-primary/20 px-6 py-3">
       <div className="max-w-7xl mx-auto">
         <div className="flex items-center justify-between">
           <div className="flex space-x-8">
@@ -39,8 +39,8 @@ export const Navigation = () => {
                 className={cn(
                   "px-3 py-2 text-sm font-medium rounded-md transition-colors",
                   location.pathname === item.path
-                    ? "bg-blue-100 text-blue-700"
-                    : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                    ? "bg-primary-foreground/20 text-primary-foreground"
+                    : "text-primary-foreground/80 hover:text-primary-foreground hover:bg-primary-foreground/10"
                 )}
               >
                 {item.name}
@@ -50,7 +50,7 @@ export const Navigation = () => {
 
           <div className="flex items-center gap-4">
             {currentCompany && (
-              <div className="flex items-center gap-2 text-sm text-gray-600">
+              <div className="flex items-center gap-2 text-sm text-primary-foreground/80">
                 <Building2 className="h-4 w-4" />
                 <span>{currentCompany.name}</span>
               </div>
@@ -58,7 +58,7 @@ export const Navigation = () => {
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm">
+                <Button variant="ghost" size="sm" className="text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground">
                   <User className="h-4 w-4 mr-2" />
                   {profile?.username || 'User'}
                 </Button>
