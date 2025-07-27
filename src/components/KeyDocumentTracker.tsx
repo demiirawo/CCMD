@@ -154,7 +154,7 @@ export const KeyDocumentTracker = ({
               {category}
             </h4>
             {docs.map((doc) => (
-              <div key={doc.id} className={`grid grid-cols-7 gap-3 p-4 border rounded-lg ${getDocumentColorClass(doc.nextReviewDate)}`}>
+              <div key={doc.id} className={`grid grid-cols-8 gap-3 p-4 border rounded-lg ${getDocumentColorClass(doc.nextReviewDate)}`}>
                 <div>
                   <label className="text-xs text-muted-foreground mb-1 block">Category</label>
                   <Select value={doc.category} onValueChange={(value) => handleDocumentChange(documents.indexOf(doc), 'category', value)}>
@@ -171,7 +171,7 @@ export const KeyDocumentTracker = ({
                   </Select>
                 </div>
                 
-                <div>
+                <div className="col-span-2">
                   <label className="text-xs text-muted-foreground mb-1 block">Document Name</label>
                   <Input 
                     value={doc.documentName} 
