@@ -2,7 +2,6 @@ import { useState } from "react";
 import { AlertCircle, Check, Minus } from "lucide-react";
 import { StatusBadge } from "./StatusBadge";
 import { Button } from "./ui/button";
-
 export interface ActionLogEntry {
   id: string;
   timestamp: string;
@@ -15,32 +14,30 @@ export interface ActionLogEntry {
   closed?: boolean;
   closedDate?: string;
 }
-
 interface ActionsLogProps {
   actions: ActionLogEntry[];
   onActionComplete?: (actionId: string) => void;
   onActionDelete?: (actionId: string) => void;
 }
-
-export const ActionsLog = ({ actions, onActionComplete, onActionDelete }: ActionsLogProps) => {
+export const ActionsLog = ({
+  actions,
+  onActionComplete,
+  onActionDelete
+}: ActionsLogProps) => {
   const [isExpanded, setIsExpanded] = useState(true);
 
   // Group actions by open/closed
   const now = new Date();
   const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-  
   const openActions = actions.filter(action => !action.closed);
   const closedActions = actions.filter(action => {
     if (!action.closed || !action.closedDate) return false;
     const closedDate = new Date(action.closedDate);
     return closedDate >= thirtyDaysAgo;
   });
-
   const renderActionsTable = (actionsList: ActionLogEntry[], title: string) => {
     if (actionsList.length === 0) return null;
-    
-    return (
-      <div className="mb-6">
+    return <div className="mb-6">
         <h4 className="text-lg font-semibold text-foreground mb-3 flex items-center gap-2">
           {title}
           <span className="text-sm text-muted-foreground font-normal">
@@ -56,14 +53,11 @@ export const ActionsLog = ({ actions, onActionComplete, onActionDelete }: Action
                 <th className="text-left py-2 px-3 text-sm font-semibold text-foreground">Owner</th>
                 <th className="text-left py-2 px-3 text-sm font-semibold text-foreground">Due Date</th>
                 <th className="text-left py-2 px-3 text-sm font-semibold text-foreground">Actions</th>
-                {title.includes("Closed") && (
-                  <th className="text-left py-2 px-3 text-sm font-semibold text-foreground">Closed</th>
-                )}
+                {title.includes("Closed") && <th className="text-left py-2 px-3 text-sm font-semibold text-foreground">Closed</th>}
               </tr>
             </thead>
             <tbody>
-              {actionsList.map((action, index) => (
-                <tr key={action.id} className={`border-b border-border/20 hover:bg-gray-50/50 ${action.closed ? 'opacity-75' : ''}`}>
+              {actionsList.map((action, index) => <tr key={action.id} className={`border-b border-border/20 hover:bg-gray-50/50 ${action.closed ? 'opacity-75' : ''}`}>
                   <td className="py-3 px-3 text-sm text-foreground">
                     {index + 1}
                   </td>
@@ -85,49 +79,25 @@ export const ActionsLog = ({ actions, onActionComplete, onActionDelete }: Action
                   </td>
                   <td className="py-3 px-3">
                     <div className="flex gap-1">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => onActionComplete?.(action.id)}
-                        disabled={action.closed}
-                        className={`h-8 w-8 p-0 ${action.closed ? 'opacity-50' : 'hover:bg-green-100'}`}
-                        title="Mark as completed"
-                      >
+                      <Button variant="ghost" size="sm" onClick={() => onActionComplete?.(action.id)} disabled={action.closed} className={`h-8 w-8 p-0 ${action.closed ? 'opacity-50' : 'hover:bg-green-100'}`} title="Mark as completed">
                         <Check className={`h-4 w-4 ${action.closed ? 'text-green-600' : 'text-muted-foreground'}`} />
                       </Button>
-                      {!action.closed && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => onActionDelete?.(action.id)}
-                          className="h-8 w-8 p-0 text-red-500 hover:bg-red-100"
-                          title="Delete action"
-                        >
+                      {!action.closed && <Button variant="ghost" size="sm" onClick={() => onActionDelete?.(action.id)} className="h-8 w-8 p-0 text-red-500 hover:bg-red-100" title="Delete action">
                           <Minus className="h-4 w-4" />
-                        </Button>
-                      )}
+                        </Button>}
                     </div>
                   </td>
-                  {title.includes("Closed") && (
-                    <td className="py-3 px-3 text-sm text-muted-foreground">
+                  {title.includes("Closed") && <td className="py-3 px-3 text-sm text-muted-foreground">
                       {action.closedDate ? new Date(action.closedDate).toLocaleDateString('en-GB') : '-'}
-                    </td>
-                  )}
-                </tr>
-              ))}
+                    </td>}
+                </tr>)}
             </tbody>
           </table>
         </div>
-      </div>
-    );
+      </div>;
   };
-
-  return (
-    <div className="bg-white rounded-2xl p-6 shadow-lg border border-border/50">
-      <div 
-        className="flex items-center justify-between cursor-pointer mb-4"
-        onClick={() => setIsExpanded(!isExpanded)}
-      >
+  return <div className="bg-white rounded-2xl p-6 shadow-lg border border-border/50">
+      <div className="flex items-center justify-between cursor-pointer mb-4" onClick={() => setIsExpanded(!isExpanded)}>
         <h3 className="text-xl font-bold text-foreground flex items-center gap-2">
           <AlertCircle className="w-5 h-5 text-primary" />
           Actions
@@ -137,27 +107,19 @@ export const ActionsLog = ({ actions, onActionComplete, onActionDelete }: Action
         </span>
       </div>
 
-      {isExpanded && (
-        <div>
-          {actions.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
+      {isExpanded && <div>
+          {actions.length === 0 ? <div className="text-center py-8 text-muted-foreground">
               <p>No actions logged yet.</p>
-              <p className="text-sm">Actions will appear when attendees are @ mentioned in comments.</p>
-            </div>
-          ) : (
-            <>
+              <p className="text-sm">
+        </p>
+            </div> : <>
               {renderActionsTable(openActions, "Open Actions")}
               {renderActionsTable(closedActions, "Closed Actions (Last 30 Days)")}
               
-              {openActions.length === 0 && closedActions.length === 0 && (
-                <div className="text-center py-8 text-muted-foreground">
+              {openActions.length === 0 && closedActions.length === 0 && <div className="text-center py-8 text-muted-foreground">
                   <p>No recent actions to display.</p>
-                </div>
-              )}
-            </>
-          )}
-        </div>
-      )}
-    </div>
-  );
+                </div>}
+            </>}
+        </div>}
+    </div>;
 };
