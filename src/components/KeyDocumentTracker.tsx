@@ -192,7 +192,7 @@ export const KeyDocumentTracker = ({
                 itemTitle: "Key Review Dates",
                 mentionedAttendee: doc.owner,
                 comment: `Document review ${isOverdue ? 'overdue' : 'due'} for: ${doc.name}`,
-                action: `Review: ${doc.name} (${doc.category})`,
+                action: `Action: Review: ${doc.name} (${doc.category})`,
                 dueDate: formattedDate,
                 sourceType: "document",
                 sourceId: doc.id
@@ -270,7 +270,7 @@ export const KeyDocumentTracker = ({
           itemTitle: "Key Review Dates",
           mentionedAttendee: document.owner,
           comment: `Document review ${isOverdue ? 'overdue' : 'due'} for: ${document.name}`,
-          action: `Review: ${document.name} (${document.category})`,
+          action: `Action: Review: ${document.name} (${document.category})`,
           dueDate: formattedDate,
           sourceType: "document",
           sourceId: document.id
