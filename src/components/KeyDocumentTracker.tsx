@@ -6,7 +6,6 @@ import { Calendar } from "./ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { format, addDays, addWeeks, addMonths, addYears, differenceInDays } from "date-fns";
-import { cn } from "@/lib/utils";
 import { Card } from "./ui/card";
 import { StatusBadge, StatusType } from "./StatusBadge";
 
