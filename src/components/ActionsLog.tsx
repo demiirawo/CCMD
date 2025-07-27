@@ -237,20 +237,22 @@ export const ActionsLog = ({
   
   return (
     <div className="bg-white rounded-2xl p-6 shadow-lg border border-border/50">
-      <div className="flex items-center gap-2 cursor-pointer mb-4" onClick={() => setIsExpanded(!isExpanded)}>
+      <div className="flex items-center justify-between cursor-pointer mb-4" onClick={() => setIsExpanded(!isExpanded)}>
+        <div className="flex items-center gap-2">
+          <h3 className="text-xl font-bold text-foreground flex items-center gap-2">
+            <AlertCircle className="w-5 h-5 text-primary" />
+            Actions
+          </h3>
+          <span className="text-sm text-muted-foreground">
+            {openActions.length} open, {closedActions.length} closed (30 days)
+          </span>
+        </div>
         <div className="p-1 rounded-lg hover:bg-accent/50 transition-colors">
           {isExpanded ? 
             <ChevronDown className="w-5 h-5 text-muted-foreground" /> : 
             <ChevronRight className="w-5 h-5 text-muted-foreground" />
           }
         </div>
-        <h3 className="text-xl font-bold text-foreground flex items-center gap-2">
-          <AlertCircle className="w-5 h-5 text-primary" />
-          Actions
-        </h3>
-        <span className="text-sm text-muted-foreground">
-          {openActions.length} open, {closedActions.length} closed (30 days)
-        </span>
       </div>
 
       {isExpanded && (
