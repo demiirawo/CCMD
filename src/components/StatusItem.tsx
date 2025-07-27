@@ -199,7 +199,7 @@ export const StatusItem = ({
             
             {item.metadata?.accountableOwner && (
               <p className="text-xs text-muted-foreground mt-1">
-                Accountable Owner: {item.metadata.accountableOwner}
+                Accountable: {item.metadata.accountableOwner}
               </p>
             )}
             
