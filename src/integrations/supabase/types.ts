@@ -90,15 +90,7 @@ export type Database = {
           probation_staff?: number
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "resourcing_analytics_meeting_id_fkey"
-            columns: ["meeting_id"]
-            isOneToOne: false
-            referencedRelation: "meetings"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
     }
     Views: {
