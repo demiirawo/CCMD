@@ -55,12 +55,11 @@ export const ActionsLog = ({
     
     if (daysRemaining < 0) {
       return 'bg-red-50 border-l-4 border-l-red-500'; // Overdue
-    } else if (daysRemaining <= 7) {
-      return 'bg-amber-50 border-l-4 border-l-amber-500'; // Due within a week
-    } else if (daysRemaining <= 30) {
-      return 'bg-blue-50 border-l-4 border-l-blue-500'; // Due within a month
+    } else if (daysRemaining <= 5) {
+      return 'bg-amber-50 border-l-4 border-l-amber-500'; // Due within 5 days
+    } else {
+      return 'bg-green-50 border-l-4 border-l-green-500'; // More than 5 days
     }
-    return '';
   };
 
   const renderActionsTable = (actionsList: ActionLogEntry[], title: string) => {
@@ -109,11 +108,9 @@ export const ActionsLog = ({
                          <span className={`text-xs px-2 py-1 rounded-full ${
                            getDaysRemaining(action.dueDate) < 0 
                              ? 'bg-red-100 text-red-700' 
-                             : getDaysRemaining(action.dueDate) <= 7 
+                             : getDaysRemaining(action.dueDate) <= 5 
                                ? 'bg-amber-100 text-amber-700'
-                               : getDaysRemaining(action.dueDate) <= 30
-                                 ? 'bg-blue-100 text-blue-700'
-                                 : 'bg-gray-100 text-gray-700'
+                               : 'bg-green-100 text-green-700'
                          }`}>
                            {getDaysRemaining(action.dueDate) < 0 
                              ? `${Math.abs(getDaysRemaining(action.dueDate))} days overdue`

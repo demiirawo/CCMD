@@ -28,6 +28,7 @@ interface KeyDocumentTrackerProps {
   attendees?: string[];
   onActionCreated?: (actionData: { itemTitle: string; mentionedAttendee: string; comment: string; action: string; dueDate: string; sourceType: "document"; sourceId: string; }) => void;
   onActionRemoved?: (sourceId: string) => void;
+  onActionUpdated?: (sourceId: string, newDueDate: string, newAction: string) => void;
 }
 
 const categories = [
@@ -49,7 +50,8 @@ export const KeyDocumentTracker = ({
   onDocumentsChange,
   attendees = [],
   onActionCreated,
-  onActionRemoved
+  onActionRemoved,
+  onActionUpdated
 }: KeyDocumentTrackerProps) => {
   const [isExpanded, setIsExpanded] = useState(true);
   
@@ -136,8 +138,9 @@ export const KeyDocumentTracker = ({
   const handleDocumentChange = (index: number, field: keyof DocumentData, value: any) => {
     const updatedDocuments = [...documents];
     if (updatedDocuments[index]) {
+      const oldDoc = updatedDocuments[index];
       updatedDocuments[index] = {
-        ...updatedDocuments[index],
+        ...oldDoc,
         [field]: value
       };
 
@@ -150,6 +153,17 @@ export const KeyDocumentTracker = ({
           doc.reviewFrequencyPeriod
         );
         updatedDocuments[index].nextReviewDate = nextReview ? format(nextReview, 'yyyy-MM-dd') : null;
+        
+        // Update corresponding action in actions log if it exists
+        if (nextReview && onActionUpdated && doc.name && doc.owner) {
+          const formattedDate = nextReview.toLocaleDateString('en-GB');
+          const daysRemaining = getDaysRemaining(nextReview);
+          const isOverdue = daysRemaining < 0;
+          const urgencyText = isOverdue ? 'OVERDUE' : daysRemaining <= 7 ? 'URGENT' : '';
+          const newAction = `${urgencyText ? `[${urgencyText}] ` : ''}Review document: ${doc.name} (${doc.category})`;
+          
+          onActionUpdated(doc.id, formattedDate, newAction);
+        }
       }
       
       onDocumentsChange?.(updatedDocuments);

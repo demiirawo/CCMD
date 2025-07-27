@@ -480,6 +480,15 @@ const Index = () => {
     ));
   };
 
+  const handleDocumentActionUpdated = (sourceId: string, newDueDate: string, newAction: string) => {
+    // Update any actions that came from this document
+    setActionsLog(prev => prev.map(action => 
+      (action.sourceType === "document" && action.sourceId === sourceId)
+        ? { ...action, dueDate: newDueDate, action: newAction }
+        : action
+    ));
+  };
+
   const getAttendeesList = () => {
     return headerData.attendees
       .filter(attendee => attendee.name && attendee.name.trim() !== '') // Filter out empty names
@@ -723,6 +732,7 @@ const Index = () => {
             attendees={getAttendeesList()}
             onActionCreated={handleDocumentActionCreated}
             onActionRemoved={handleDocumentActionRemoved}
+            onActionUpdated={handleDocumentActionUpdated}
           />
           
           <ActionsLog actions={actionsLog} onActionComplete={handleActionComplete} onActionDelete={handleActionDelete} onResetActions={resetActionsLog} />
