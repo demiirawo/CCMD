@@ -18,6 +18,7 @@ export type Database = {
         Row: {
           care_plans_in_date: number
           care_plans_overdue: number
+          company_id: string | null
           created_at: string
           high_frequency: number
           id: string
@@ -33,6 +34,7 @@ export type Database = {
         Insert: {
           care_plans_in_date?: number
           care_plans_overdue?: number
+          company_id?: string | null
           created_at?: string
           high_frequency?: number
           id?: string
@@ -48,6 +50,7 @@ export type Database = {
         Update: {
           care_plans_in_date?: number
           care_plans_overdue?: number
+          company_id?: string | null
           created_at?: string
           high_frequency?: number
           id?: string
@@ -60,12 +63,42 @@ export type Database = {
           total_service_users?: number
           updated_at?: string
         }
+        Relationships: [
+          {
+            foreignKeyName: "care_plan_analytics_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      companies: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          updated_at?: string
+        }
         Relationships: []
       }
       meetings: {
         Row: {
           actions_log: Json
           attendees: Json
+          company_id: string | null
           created_at: string
           date: string
           id: string
@@ -79,6 +112,7 @@ export type Database = {
         Insert: {
           actions_log?: Json
           attendees?: Json
+          company_id?: string | null
           created_at?: string
           date: string
           id?: string
@@ -92,6 +126,7 @@ export type Database = {
         Update: {
           actions_log?: Json
           attendees?: Json
+          company_id?: string | null
           created_at?: string
           date?: string
           id?: string
@@ -102,10 +137,57 @@ export type Database = {
           updated_at?: string
           year?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "meetings_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          company_id: string | null
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["user_role"]
+          updated_at: string
+          user_id: string
+          username: string | null
+        }
+        Insert: {
+          company_id?: string | null
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string
+          user_id: string
+          username?: string | null
+        }
+        Update: {
+          company_id?: string | null
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string
+          user_id?: string
+          username?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       resourcing_analytics: {
         Row: {
+          company_id: string | null
           created_at: string
           current_staff: number
           id: string
@@ -117,6 +199,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          company_id?: string | null
           created_at?: string
           current_staff?: number
           id?: string
@@ -128,6 +211,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          company_id?: string | null
           created_at?: string
           current_staff?: number
           id?: string
@@ -138,10 +222,19 @@ export type Database = {
           probation_staff?: number
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "resourcing_analytics_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       spot_check_analytics: {
         Row: {
+          company_id: string | null
           created_at: string
           id: string
           meeting_id: string | null
@@ -151,6 +244,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          company_id?: string | null
           created_at?: string
           id?: string
           meeting_id?: string | null
@@ -160,6 +254,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          company_id?: string | null
           created_at?: string
           id?: string
           meeting_id?: string | null
@@ -168,12 +263,21 @@ export type Database = {
           probation_frequency?: number
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "spot_check_analytics_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       staff_documents_analytics: {
         Row: {
           active_fully_compliant: number
           active_pending_documents: number
+          company_id: string | null
           created_at: string
           id: string
           meeting_id: string | null
@@ -184,6 +288,7 @@ export type Database = {
         Insert: {
           active_fully_compliant?: number
           active_pending_documents?: number
+          company_id?: string | null
           created_at?: string
           id?: string
           meeting_id?: string | null
@@ -194,6 +299,7 @@ export type Database = {
         Update: {
           active_fully_compliant?: number
           active_pending_documents?: number
+          company_id?: string | null
           created_at?: string
           id?: string
           meeting_id?: string | null
@@ -201,10 +307,19 @@ export type Database = {
           onboarding_pending_documents?: number
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "staff_documents_analytics_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       staff_training_analytics: {
         Row: {
+          company_id: string | null
           created_at: string
           id: string
           mandatory_compliant: number
@@ -215,6 +330,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          company_id?: string | null
           created_at?: string
           id?: string
           mandatory_compliant?: number
@@ -225,6 +341,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          company_id?: string | null
           created_at?: string
           id?: string
           mandatory_compliant?: number
@@ -234,10 +351,19 @@ export type Database = {
           specialist_pending?: number
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "staff_training_analytics_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       supervision_analytics: {
         Row: {
+          company_id: string | null
           created_at: string
           id: string
           meeting_id: string | null
@@ -247,6 +373,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          company_id?: string | null
           created_at?: string
           id?: string
           meeting_id?: string | null
@@ -256,6 +383,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          company_id?: string | null
           created_at?: string
           id?: string
           meeting_id?: string | null
@@ -264,17 +392,32 @@ export type Database = {
           probation_frequency?: number
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "supervision_analytics_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_user_company_id: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      is_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      user_role: "admin" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -401,6 +544,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      user_role: ["admin", "user"],
+    },
   },
 } as const
