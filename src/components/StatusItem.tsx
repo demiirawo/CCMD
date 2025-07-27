@@ -165,6 +165,13 @@ export const StatusItem = ({
           <div>
             <h4 className="font-semibold text-foreground text-sm truncate">{item.title}</h4>
             <p className="text-xs text-muted-foreground">Updated: {item.lastReviewed}</p>
+            <div className="mt-2">
+              <AccountableManager
+                accountable={item.accountable || []}
+                attendees={attendees}
+                onChange={(newAccountable) => onAccountableChange?.(item.id, newAccountable)}
+              />
+            </div>
           </div>
         </div>
         
