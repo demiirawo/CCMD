@@ -33,7 +33,6 @@ export const MeetingAttendeesManager = ({
       [field]: value
     } : attendee));
   };
-  
   const toggleAttendance = (id: string, attended: boolean) => {
     updateAttendee(id, 'attended', attended);
   };
@@ -43,18 +42,10 @@ export const MeetingAttendeesManager = ({
           <div className="flex items-center gap-2">
             <Input placeholder="Email" type="email" value={attendee.email} onChange={e => updateAttendee(attendee.id, 'email', e.target.value)} className="text-sm bg-white" />
             <div className="flex gap-1">
-              <button 
-                onClick={() => toggleAttendance(attendee.id, true)}
-                className={`p-1 hover:scale-110 transition-transform ${attendee.attended === true ? 'opacity-100' : 'opacity-30'}`}
-                title="Present"
-              >
+              <button onClick={() => toggleAttendance(attendee.id, true)} className={`p-1 hover:scale-110 transition-transform ${attendee.attended === true ? 'opacity-100' : 'opacity-30'}`} title="Present">
                 <Check className="h-4 w-4 text-green-600" />
               </button>
-              <button 
-                onClick={() => toggleAttendance(attendee.id, false)}
-                className={`p-1 hover:scale-110 transition-transform ${attendee.attended === false ? 'opacity-100' : 'opacity-30'}`}
-                title="Absent"
-              >
+              <button onClick={() => toggleAttendance(attendee.id, false)} className={`p-1 hover:scale-110 transition-transform ${attendee.attended === false ? 'opacity-100' : 'opacity-30'}`} title="Absent">
                 <X className="h-4 w-4 text-red-500" />
               </button>
             </div>
@@ -64,7 +55,7 @@ export const MeetingAttendeesManager = ({
             </Button>}
         </div>)}
       
-      <Button variant="outline" size="sm" onClick={addAttendee} className="w-full gap-2 text-sm bg-gray-400 hover:bg-gray-300">
+      <Button variant="outline" size="sm" onClick={addAttendee} className="w-full gap-2 text-sm bg-gray-300 hover:bg-gray-200">
         <Plus className="h-4 w-4" />
       </Button>
     </div>;
