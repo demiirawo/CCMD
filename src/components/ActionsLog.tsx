@@ -241,7 +241,7 @@ export const ActionsLog = ({
         <div className="flex items-center gap-2">
           <h3 className="text-xl font-bold text-foreground flex items-center gap-2">
             <AlertCircle className="w-5 h-5 text-primary" />
-            Actions
+            Action Summary
           </h3>
           <span className="text-sm text-muted-foreground">
             {openActions.length} open, {closedActions.length} closed (30 days)

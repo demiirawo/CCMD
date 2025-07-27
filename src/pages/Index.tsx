@@ -911,6 +911,21 @@ const Index = () => {
             onAttendeesChange={handleAttendeesChange}
           />
           
+          <KeyDocumentTracker 
+            documents={keyDocuments}
+            onDocumentsChange={setKeyDocuments}
+            attendees={getAttendeesList()}
+          />
+          
+          <ActionsLog 
+            actions={actionsLog} 
+            onActionComplete={handleActionComplete} 
+            onActionDelete={handleActionDelete} 
+            onResetActions={resetActionsLog}
+            onActionEdit={handleActionEdit}
+            attendees={getAttendeesList()}
+          />
+          
           {dashboardData.sections.filter(section => section.id !== "meeting-overview").map(section => {
             // Parse the meeting date for analytics
             const parseDateString = (dateString: string) => {
@@ -950,21 +965,6 @@ const Index = () => {
                 />
             );
           })}
-          
-          <KeyDocumentTracker 
-            documents={keyDocuments}
-            onDocumentsChange={setKeyDocuments}
-            attendees={getAttendeesList()}
-          />
-          
-          <ActionsLog 
-            actions={actionsLog} 
-            onActionComplete={handleActionComplete} 
-            onActionDelete={handleActionDelete} 
-            onResetActions={resetActionsLog}
-            onActionEdit={handleActionEdit}
-            attendees={getAttendeesList()}
-          />
         </div>
       </div>
     </div>
