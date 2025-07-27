@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef } from "react";
-import { CalendarIcon, FileText, Plus, Minus, ChevronDown, Check } from "lucide-react";
+import { useState } from "react";
+import { CalendarIcon, FileText, Plus, Minus, ChevronDown } from "lucide-react";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import { Calendar } from "./ui/calendar";
@@ -12,23 +12,20 @@ import { StatusBadge, StatusType } from "./StatusBadge";
 
 export interface DocumentData {
   id: string;
-  name: string; // Changed from documentName for consistency
-  owner: string; // Changed from documentOwner for consistency
+  name: string;
+  owner: string;
   category: string;
-  lastReviewDate: string; // Changed to string to match date inputs
+  lastReviewDate: string;
   reviewFrequency: string;
   reviewFrequencyNumber: string;
   reviewFrequencyPeriod: string;
-  nextReviewDate: string | null; // Changed to string to match date inputs
+  nextReviewDate: string | null;
 }
 
 interface KeyDocumentTrackerProps {
   documents?: DocumentData[];
   onDocumentsChange?: (documents: DocumentData[]) => void;
   attendees?: string[];
-  onActionCreated?: (actionData: { itemTitle: string; mentionedAttendee: string; comment: string; action: string; dueDate: string; sourceType: "document"; sourceId: string; }) => void;
-  onActionRemoved?: (sourceId: string) => void;
-  onActionUpdated?: (sourceId: string, newDueDate: string, newAction: string) => void;
 }
 
 const categories = [
@@ -48,15 +45,9 @@ const numbers = Array.from({ length: 12 }, (_, i) => (i + 1).toString());
 export const KeyDocumentTracker = ({
   documents = [],
   onDocumentsChange,
-  attendees = [],
-  onActionCreated,
-  onActionRemoved,
-  onActionUpdated
+  attendees = []
 }: KeyDocumentTrackerProps) => {
   const [isExpanded, setIsExpanded] = useState(true);
-  
-  // Track which documents have had actions created to prevent duplicates
-  const createdActionsRef = useRef<Set<string>>(new Set());
   
   const calculateNextReviewDate = (lastReviewDate: string | null, number: string, period: string): Date | null => {
     if (!lastReviewDate) return null;
@@ -165,56 +156,6 @@ export const KeyDocumentTracker = ({
         updatedDocuments[index].nextReviewDate = nextReview ? format(nextReview, 'yyyy-MM-dd') : null;
       }
       
-      // Update action when any relevant field changes (name, owner, category, or date fields)
-      if (field === 'name' || field === 'owner' || field === 'category' || 
-          field === 'lastReviewDate' || field === 'reviewFrequencyNumber' || field === 'reviewFrequencyPeriod') {
-        const doc = updatedDocuments[index];
-        const nextReview = doc.nextReviewDate ? new Date(doc.nextReviewDate) : null;
-        
-        // Check if action should exist based on due date and document completeness
-        if (nextReview && doc.name && doc.owner) {
-          const daysRemaining = getDaysRemaining(nextReview);
-          
-          // If document is due within 30 days, recreate the action to ensure all details are current
-          if (daysRemaining !== null && daysRemaining <= 30) {
-            // Remove existing action first
-            if (onActionRemoved) {
-              onActionRemoved(doc.id);
-              createdActionsRef.current.delete(`doc-review-${doc.id}`);
-            }
-            
-            // Create new action with current details
-            if (onActionCreated) {
-              const formattedDate = nextReview.toLocaleDateString('en-GB');
-              const isOverdue = daysRemaining < 0;
-              
-              onActionCreated({
-                itemTitle: "Key Review Dates",
-                mentionedAttendee: doc.owner,
-                comment: `Document review ${isOverdue ? 'overdue' : 'due'} for: ${doc.name}`,
-                action: `Action: Review: ${doc.name} (${doc.category})`,
-                dueDate: formattedDate,
-                sourceType: "document",
-                sourceId: doc.id
-              });
-              
-              createdActionsRef.current.add(`doc-review-${doc.id}`);
-            }
-          } 
-          // If document is beyond 30 days, remove the action
-          else if (daysRemaining !== null && daysRemaining > 30 && onActionRemoved) {
-            onActionRemoved(doc.id);
-            // Remove from created actions set so it can be recreated later if needed
-            createdActionsRef.current.delete(`doc-review-${doc.id}`);
-          }
-        }
-        // If document is incomplete (missing name or owner), remove any existing action
-        else if ((!doc.name || !doc.owner) && onActionRemoved) {
-          onActionRemoved(doc.id);
-          createdActionsRef.current.delete(`doc-review-${doc.id}`);
-        }
-      }
-      
       onDocumentsChange?.(updatedDocuments);
     }
   };
@@ -236,58 +177,9 @@ export const KeyDocumentTracker = ({
   };
 
   const removeDocument = (docId: string) => {
-    // Remove any associated actions
-    onActionRemoved?.(docId);
-    
     const updatedDocuments = documents.filter(doc => doc.id !== docId);
     onDocumentsChange?.(updatedDocuments);
   };
-
-  const markDocumentReviewed = (docId: string) => {
-    const docIndex = documents.findIndex(doc => doc.id === docId);
-    if (docIndex !== -1) {
-      const today = format(new Date(), 'yyyy-MM-dd');
-      handleDocumentChange(docIndex, 'lastReviewDate', today);
-    }
-  };
-
-  // Effect to create actions for documents due within 30 days or overdue
-  useEffect(() => {
-    if (!onActionCreated || attendees.length === 0) return;
-
-    documents.forEach(document => {
-      if (!document.name || !document.owner || !document.lastReviewDate) return;
-
-      const nextReview = calculateNextReviewDate(
-        document.lastReviewDate,
-        document.reviewFrequencyNumber,
-        document.reviewFrequencyPeriod
-      );
-
-      if (!nextReview) return;
-
-      const daysRemaining = getDaysRemaining(nextReview);
-      const actionId = `doc-review-${document.id}`;
-
-      // Create action if document is overdue or due within 30 days
-      if (daysRemaining !== null && daysRemaining <= 30 && !createdActionsRef.current.has(actionId)) {
-        const formattedDate = nextReview.toLocaleDateString('en-GB');
-        const isOverdue = daysRemaining < 0;
-        
-        onActionCreated({
-          itemTitle: "Key Review Dates",
-          mentionedAttendee: document.owner,
-          comment: `Document review ${isOverdue ? 'overdue' : 'due'} for: ${document.name}`,
-          action: `Action: Review: ${document.name} (${document.category})`,
-          dueDate: formattedDate,
-          sourceType: "document",
-          sourceId: document.id
-        });
-        
-        createdActionsRef.current.add(actionId);
-      }
-    });
-  }, [documents, onActionCreated, attendees]);
 
   // Group documents by category
   const groupedDocuments = categories.map(category => {
@@ -422,29 +314,17 @@ export const KeyDocumentTracker = ({
                    </div>
                  </div>
                 
-                 <div className="col-span-1">
-                   <label className="text-xs text-muted-foreground mb-1 block opacity-0">Actions</label>
-                   <div className="flex gap-1">
-                     <Button 
-                       variant="outline" 
-                       size="sm" 
-                       onClick={() => markDocumentReviewed(doc.id)} 
-                       className="text-xs text-green-600 hover:text-green-700 flex-1 h-9 p-0"
-                       title="Mark as reviewed (sets date to today)"
-                     >
-                       <Check className="w-3 h-3" />
-                     </Button>
-                     <Button 
-                       variant="outline" 
-                       size="sm" 
-                       onClick={() => removeDocument(doc.id)} 
-                       className="text-xs text-destructive hover:text-destructive flex-1 h-9 p-0"
-                       title="Remove document"
-                     >
-                       <Minus className="w-3 h-3" />
-                     </Button>
-                   </div>
-                 </div>
+                <div className="col-span-1">
+                  <label className="text-xs text-muted-foreground mb-1 block opacity-0">Remove</label>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => removeDocument(doc.id)} 
+                    className="text-xs text-destructive hover:text-destructive w-full h-9 p-0"
+                  >
+                    <Minus className="w-3 h-3" />
+                  </Button>
+                </div>
               </div>
             ))}
           </div>

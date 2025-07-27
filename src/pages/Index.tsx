@@ -405,29 +405,6 @@ const Index = () => {
     });
   };
 
-  const handleDocumentActionCreated = (actionData: { itemTitle: string; mentionedAttendee: string; comment: string; action: string; dueDate: string; sourceType: "document"; sourceId: string; }) => {
-    const newAction: ActionLogEntry = {
-      id: `action-${Date.now()}`,
-      timestamp: new Date().toLocaleString(),
-      itemTitle: actionData.itemTitle,
-      mentionedAttendee: actionData.mentionedAttendee,
-      comment: actionData.comment,
-      action: actionData.action,
-      dueDate: actionData.dueDate,
-      status: "green",
-      closed: false,
-      sourceType: actionData.sourceType,
-      sourceId: actionData.sourceId
-    };
-    
-    setActionsLog(prev => [newAction, ...prev]);
-    
-    toast({
-      title: "Action Created",
-      description: `Action assigned to @${actionData.mentionedAttendee} for ${actionData.itemTitle}`
-    });
-  };
-  
   const handleActionComplete = (actionId: string) => {
     // Mark action as complete in actions log
     setActionsLog(prev => prev.map(action => 
@@ -435,18 +412,6 @@ const Index = () => {
         ? { ...action, closed: true, closedDate: new Date().toISOString() }
         : action
     ));
-
-    // Remove the completed action from section items
-    setDashboardData(prev => ({
-      ...prev,
-      sections: prev.sections.map(section => ({
-        ...section,
-        items: section.items.map(item => ({
-          ...item,
-          actions: item.actions.filter(action => action.id !== actionId)
-        }))
-      }))
-    }));
     
     toast({
       title: "Action Completed",
@@ -457,18 +422,6 @@ const Index = () => {
   const handleActionDelete = (actionId: string) => {
     // Remove action from actions log
     setActionsLog(prev => prev.filter(action => action.id !== actionId));
-
-    // Remove action from section items
-    setDashboardData(prev => ({
-      ...prev,
-      sections: prev.sections.map(section => ({
-        ...section,
-        items: section.items.map(item => ({
-          ...item,
-          actions: item.actions.filter(action => action.id !== actionId)
-        }))
-      }))
-    }));
     
     toast({
       title: "Action Deleted",
@@ -476,21 +429,6 @@ const Index = () => {
     });
   };
 
-  const handleDocumentActionRemoved = (sourceId: string) => {
-    // Remove any actions that came from this document
-    setActionsLog(prev => prev.filter(action => 
-      !(action.sourceType === "document" && action.sourceId === sourceId)
-    ));
-  };
-
-  const handleDocumentActionUpdated = (sourceId: string, newDueDate: string, newAction: string) => {
-    // Update any actions that came from this document
-    setActionsLog(prev => prev.map(action => 
-      (action.sourceType === "document" && action.sourceId === sourceId)
-        ? { ...action, dueDate: newDueDate, action: newAction }
-        : action
-    ));
-  };
 
   const handleActionEdit = (actionId: string, updates: { comment?: string; dueDate?: string; owner?: string }) => {
     const timestamp = new Date().toLocaleString('en-GB', {
@@ -932,9 +870,6 @@ const Index = () => {
             documents={keyDocuments}
             onDocumentsChange={setKeyDocuments}
             attendees={getAttendeesList()}
-            onActionCreated={handleDocumentActionCreated}
-            onActionRemoved={handleDocumentActionRemoved}
-            onActionUpdated={handleDocumentActionUpdated}
           />
           
           <ActionsLog 
