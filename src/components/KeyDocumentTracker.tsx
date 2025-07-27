@@ -173,7 +173,7 @@ export const KeyDocumentTracker = ({
             const formattedDate = nextReview.toLocaleDateString('en-GB');
             const isOverdue = daysRemaining < 0;
             const urgencyText = isOverdue ? 'OVERDUE' : daysRemaining <= 7 ? 'DUE SOON' : '';
-            const newAction = `${urgencyText ? `[${urgencyText}] ` : ''}Review document: ${doc.name} (${doc.category})`;
+            const newAction = `${urgencyText ? `[${urgencyText}] ` : ''}Review: ${doc.name} (${doc.category})`;
             
             onActionUpdated(doc.id, formattedDate, newAction);
           } 
@@ -242,7 +242,7 @@ export const KeyDocumentTracker = ({
           itemTitle: "Key Document Review",
           mentionedAttendee: document.owner,
           comment: `Document review ${isOverdue ? 'overdue' : 'due'} for: ${document.name}`,
-          action: `${urgencyText ? `[${urgencyText}] ` : ''}Review document: ${document.name} (${document.category})`,
+          action: `${urgencyText ? `[${urgencyText}] ` : ''}Review: ${document.name} (${document.category})`,
           dueDate: formattedDate,
           sourceType: "document",
           sourceId: document.id
