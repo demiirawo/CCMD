@@ -7,67 +7,57 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { Palette, Building, Image, Upload, X } from "lucide-react";
-
-const THEME_COLORS = [
-  { name: "Lavender", value: "#b4a7d6" },
-  { name: "Sage", value: "#9fc5af" },
-  { name: "Peach", value: "#ffb3ba" },
-  { name: "Sky", value: "#a8dadc" },
-  { name: "Coral", value: "#ffaaa5" },
-  { name: "Mint", value: "#b5ead7" },
-  { name: "Rose", value: "#e8b4cb" },
-  { name: "Butter", value: "#ffd3a5" }
-];
-
-const SERVICES = [
-  "Domiciliary (Home) Care",
-  "Supported Living",
-  "Residential Care Homes",
-  "Nursing Homes",
-  "Children's Residential Services",
-  "Fostering and Adoption Services",
-  "Semi-Independent (16+) Living",
-  "Mental Health Support Services",
-  "Day Services and Community Support",
-  "Live-in Care",
-  "Specialist Clinical Services",
-  "Outreach and Floating Support",
-  "Palliative and End-of-Life Care",
-  "Substance Misuse Support",
-  "Reablement Services",
-  "Short Breaks and Respite Care",
-  "Advocacy and Independent Living Support",
-  "Community Nursing",
-  "Housing-Related Support",
-  "Early Help and Family Support Services"
-];
-
-
+const THEME_COLORS = [{
+  name: "Lavender",
+  value: "#b4a7d6"
+}, {
+  name: "Sage",
+  value: "#9fc5af"
+}, {
+  name: "Peach",
+  value: "#ffb3ba"
+}, {
+  name: "Sky",
+  value: "#a8dadc"
+}, {
+  name: "Coral",
+  value: "#ffaaa5"
+}, {
+  name: "Mint",
+  value: "#b5ead7"
+}, {
+  name: "Rose",
+  value: "#e8b4cb"
+}, {
+  name: "Butter",
+  value: "#ffd3a5"
+}];
+const SERVICES = ["Domiciliary (Home) Care", "Supported Living", "Residential Care Homes", "Nursing Homes", "Children's Residential Services", "Fostering and Adoption Services", "Semi-Independent (16+) Living", "Mental Health Support Services", "Day Services and Community Support", "Live-in Care", "Specialist Clinical Services", "Outreach and Floating Support", "Palliative and End-of-Life Care", "Substance Misuse Support", "Reablement Services", "Short Breaks and Respite Care", "Advocacy and Independent Living Support", "Community Nursing", "Housing-Related Support", "Early Help and Family Support Services"];
 export const Settings = () => {
-  const { profile, companies, fetchCompanies } = useAuth();
-  const { toast } = useToast();
+  const {
+    profile,
+    companies,
+    fetchCompanies
+  } = useAuth();
+  const {
+    toast
+  } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(false);
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [selectedTheme, setSelectedTheme] = useState("#3b82f6");
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
   const [selectedLogo, setSelectedLogo] = useState<string>("");
-
   const currentCompany = companies.find(c => c.id === profile?.company_id);
-
   useEffect(() => {
     const loadCompanySettings = async () => {
       if (!currentCompany) return;
-
       try {
-        const { data, error } = await supabase
-          .from("companies")
-          .select("theme_color, services, logo_url")
-          .eq("id", currentCompany.id)
-          .maybeSingle();
-
+        const {
+          data,
+          error
+        } = await supabase.from("companies").select("theme_color, services, logo_url").eq("id", currentCompany.id).maybeSingle();
         if (error) throw error;
-
         if (data) {
           setSelectedTheme(data.theme_color || "#3b82f6");
           setSelectedServices(data.services || []);
@@ -77,18 +67,11 @@ export const Settings = () => {
         console.error("Error loading company settings:", error);
       }
     };
-
     loadCompanySettings();
   }, [currentCompany]);
-
   const handleServiceChange = (service: string, checked: boolean) => {
-    setSelectedServices(prev => 
-      checked 
-        ? [...prev, service]
-        : prev.filter(s => s !== service)
-    );
+    setSelectedServices(prev => checked ? [...prev, service] : prev.filter(s => s !== service));
   };
-
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file || !currentCompany) return;
@@ -98,7 +81,7 @@ export const Settings = () => {
       toast({
         title: "Invalid file type",
         description: "Please select an image file.",
-        variant: "destructive",
+        variant: "destructive"
       });
       return;
     }
@@ -108,20 +91,17 @@ export const Settings = () => {
       toast({
         title: "File too large",
         description: "Please select an image smaller than 5MB.",
-        variant: "destructive",
+        variant: "destructive"
       });
       return;
     }
-
     setUploadingLogo(true);
     try {
       // Delete existing logo if any
       if (selectedLogo && selectedLogo.includes('supabase')) {
         const oldPath = selectedLogo.split('/').pop();
         if (oldPath) {
-          await supabase.storage
-            .from('company-logos')
-            .remove([`${currentCompany.id}/${oldPath}`]);
+          await supabase.storage.from('company-logos').remove([`${currentCompany.id}/${oldPath}`]);
         }
       }
 
@@ -129,30 +109,26 @@ export const Settings = () => {
       const fileExt = file.name.split('.').pop();
       const fileName = `${Date.now()}.${fileExt}`;
       const filePath = `${currentCompany.id}/${fileName}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from('company-logos')
-        .upload(filePath, file);
-
+      const {
+        error: uploadError
+      } = await supabase.storage.from('company-logos').upload(filePath, file);
       if (uploadError) throw uploadError;
 
       // Get public URL
-      const { data } = supabase.storage
-        .from('company-logos')
-        .getPublicUrl(filePath);
-
+      const {
+        data
+      } = supabase.storage.from('company-logos').getPublicUrl(filePath);
       setSelectedLogo(data.publicUrl);
-
       toast({
         title: "Logo uploaded",
-        description: "Your company logo has been uploaded successfully.",
+        description: "Your company logo has been uploaded successfully."
       });
     } catch (error) {
       console.error("Error uploading logo:", error);
       toast({
         title: "Upload failed",
         description: "Failed to upload logo. Please try again.",
-        variant: "destructive",
+        variant: "destructive"
       });
     } finally {
       setUploadingLogo(false);
@@ -162,46 +138,37 @@ export const Settings = () => {
       }
     }
   };
-
   const handleRemoveLogo = () => {
     setSelectedLogo("");
   };
-
   const handleSave = async () => {
     if (!currentCompany) return;
-
     setLoading(true);
     try {
-      const { error } = await supabase
-        .from("companies")
-        .update({
-          theme_color: selectedTheme,
-          services: selectedServices,
-          logo_url: selectedLogo
-        })
-        .eq("id", currentCompany.id);
-
+      const {
+        error
+      } = await supabase.from("companies").update({
+        theme_color: selectedTheme,
+        services: selectedServices,
+        logo_url: selectedLogo
+      }).eq("id", currentCompany.id);
       if (error) throw error;
 
       // Refresh companies data to update the cache
       await fetchCompanies();
 
       // Force reload the current company settings to ensure UI stays consistent
-      const { data } = await supabase
-        .from("companies")
-        .select("theme_color, services, logo_url")
-        .eq("id", currentCompany.id)
-        .maybeSingle();
-
+      const {
+        data
+      } = await supabase.from("companies").select("theme_color, services, logo_url").eq("id", currentCompany.id).maybeSingle();
       if (data) {
         setSelectedTheme(data.theme_color || "#3b82f6");
         setSelectedServices(data.services || []);
         setSelectedLogo(data.logo_url || "");
       }
-
       toast({
         title: "Settings saved",
-        description: "Your company settings have been updated successfully.",
+        description: "Your company settings have been updated successfully."
       });
 
       // Apply theme color to CSS variables
@@ -211,25 +178,20 @@ export const Settings = () => {
       toast({
         title: "Error",
         description: "Failed to save settings. Please try again.",
-        variant: "destructive",
+        variant: "destructive"
       });
     } finally {
       setLoading(false);
     }
   };
-
   if (!currentCompany) {
-    return (
-      <div className="container mx-auto p-6">
+    return <div className="container mx-auto p-6">
         <div className="text-center">
           <p className="text-muted-foreground">No company selected</p>
         </div>
-      </div>
-    );
+      </div>;
   }
-
-  return (
-    <div className="container mx-auto p-6 space-y-6">
+  return <div className="container mx-auto p-6 space-y-6">
       <div className="flex items-center gap-3 mb-6">
         <Building className="h-8 w-8 text-primary" />
         <div>
@@ -252,25 +214,14 @@ export const Settings = () => {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
-              {THEME_COLORS.map((color) => (
-                <div
-                  key={color.value}
-                  className={`p-3 rounded-lg border-2 cursor-pointer transition-all hover:scale-105 ${
-                    selectedTheme === color.value 
-                      ? "border-primary shadow-md" 
-                      : "border-border hover:border-muted-foreground"
-                  }`}
-                  onClick={() => setSelectedTheme(color.value)}
-                >
-                  <div 
-                    className="w-full h-12 rounded-md mb-2"
-                    style={{ backgroundColor: color.value }}
-                  />
+              {THEME_COLORS.map(color => <div key={color.value} className={`p-3 rounded-lg border-2 cursor-pointer transition-all hover:scale-105 ${selectedTheme === color.value ? "border-primary shadow-md" : "border-border hover:border-muted-foreground"}`} onClick={() => setSelectedTheme(color.value)}>
+                  <div className="w-full h-12 rounded-md mb-2" style={{
+                backgroundColor: color.value
+              }} />
                   <div className="text-center">
-                    <p className="font-medium text-sm">{color.name}</p>
+                    
                   </div>
-                </div>
-              ))}
+                </div>)}
             </div>
           </CardContent>
         </Card>
@@ -288,20 +239,12 @@ export const Settings = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-3 max-h-80 overflow-y-auto">
-              {SERVICES.map((service) => (
-                <div key={service} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={service}
-                    checked={selectedServices.includes(service)}
-                    onCheckedChange={(checked) => 
-                      handleServiceChange(service, checked as boolean)
-                    }
-                  />
+              {SERVICES.map(service => <div key={service} className="flex items-center space-x-2">
+                  <Checkbox id={service} checked={selectedServices.includes(service)} onCheckedChange={checked => handleServiceChange(service, checked as boolean)} />
                   <Label htmlFor={service} className="text-sm font-normal cursor-pointer">
                     {service}
                   </Label>
-                </div>
-              ))}
+                </div>)}
             </div>
           </CardContent>
         </Card>
@@ -319,43 +262,21 @@ export const Settings = () => {
           </CardHeader>
           <CardContent className="space-y-4">
             {/* Current Logo Display */}
-            {selectedLogo && (
-              <div className="relative inline-block">
-                <img 
-                  src={selectedLogo} 
-                  alt="Company Logo"
-                  className="w-32 h-32 rounded-lg object-cover border-2 border-border"
-                />
-                <Button
-                  size="sm"
-                  variant="destructive"
-                  className="absolute -top-2 -right-2 h-6 w-6 p-0 rounded-full"
-                  onClick={handleRemoveLogo}
-                >
+            {selectedLogo && <div className="relative inline-block">
+                <img src={selectedLogo} alt="Company Logo" className="w-32 h-32 rounded-lg object-cover border-2 border-border" />
+                <Button size="sm" variant="destructive" className="absolute -top-2 -right-2 h-6 w-6 p-0 rounded-full" onClick={handleRemoveLogo}>
                   <X className="h-3 w-3" />
                 </Button>
-              </div>
-            )}
+              </div>}
 
             {/* Upload Button */}
             <div className="flex gap-3">
-              <Button
-                variant="outline"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={uploadingLogo}
-                className="flex items-center gap-2"
-              >
+              <Button variant="outline" onClick={() => fileInputRef.current?.click()} disabled={uploadingLogo} className="flex items-center gap-2">
                 <Upload className="h-4 w-4" />
                 {uploadingLogo ? "Uploading..." : "Upload Logo"}
               </Button>
               
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handleFileUpload}
-                className="hidden"
-              />
+              <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileUpload} className="hidden" />
             </div>
 
           </CardContent>
@@ -378,6 +299,5 @@ export const Settings = () => {
           </div>
         </CardContent>
       </Card>
-    </div>
-  );
+    </div>;
 };
