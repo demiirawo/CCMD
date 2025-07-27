@@ -31,20 +31,26 @@ const App = () => (
             } />
             <Route path="/" element={
               <ProtectedRoute requireCompany>
-                <Navigation />
-                <Index />
+                <>
+                  <Navigation />
+                  <Index />
+                </>
               </ProtectedRoute>
             } />
             <Route path="/reports" element={
               <ProtectedRoute requireCompany>
-                <Navigation />
-                <Reports />
+                <>
+                  <Navigation />
+                  <Reports />
+                </>
               </ProtectedRoute>
             } />
             <Route path="/settings" element={
               <ProtectedRoute requireCompany>
-                <Navigation />
-                <Settings />
+                <>
+                  <Navigation />
+                  <Settings />
+                </>
               </ProtectedRoute>
             } />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
