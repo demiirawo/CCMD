@@ -187,16 +187,6 @@ export const ActionsLog = ({
                   </td>
                   <td className="py-3 px-3">
                     <div className="flex gap-1">
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        onClick={() => onActionComplete?.(action.id)} 
-                        disabled={action.closed} 
-                        className={`h-8 w-8 p-0 ${action.closed ? 'opacity-50' : 'hover:bg-green-100'}`} 
-                        title="Mark as completed"
-                      >
-                        <Check className={`h-4 w-4 ${action.closed ? 'text-green-600' : 'text-muted-foreground'}`} />
-                      </Button>
                       {!action.closed && onActionEdit && action.sourceType !== "document" && (
                         <Button 
                           variant="ghost" 
@@ -208,6 +198,16 @@ export const ActionsLog = ({
                           <Edit className="h-4 w-4" />
                         </Button>
                       )}
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => onActionComplete?.(action.id)} 
+                        disabled={action.closed} 
+                        className={`h-8 w-8 p-0 ${action.closed ? 'opacity-50' : 'hover:bg-green-100'}`} 
+                        title="Mark as completed"
+                      >
+                        <Check className={`h-4 w-4 ${action.closed ? 'text-green-600' : 'text-muted-foreground'}`} />
+                      </Button>
                       {!action.closed && (
                         <Button 
                           variant="ghost" 
