@@ -35,7 +35,7 @@ export const AccountableManager = ({
   return <div className="space-y-2">
       {/* Label and dropdown on same line */}
       <div className="flex items-center gap-2 ml-0">
-        <label className="text-xs font-medium text-muted-foreground">ACCOUNTABLE:</label>
+        <label className="text-xs font-medium text-muted-foreground -ml-2">ACCOUNTABLE:</label>
         <Select onValueChange={addFromAttendees}>
           <SelectTrigger className="flex-1 bg-white">
             <SelectValue placeholder="Select from attendees..." />
