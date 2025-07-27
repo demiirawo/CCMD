@@ -53,13 +53,6 @@ export const CarePlanAnalytics = ({ meetingDate, meetingId }: CarePlanAnalyticsP
     low: 24
   });
 
-  const [currentData, setCurrentData] = useState({
-    totalServiceUsers: 0,
-    carePlansInDate: 0,
-    carePlansOverdue: 0,
-    riskAssessmentsInDate: 0,
-    riskAssessmentsOverdue: 0
-  });
 
   // Load data from database on component mount
   useEffect(() => {
@@ -81,16 +74,6 @@ export const CarePlanAnalytics = ({ meetingDate, meetingId }: CarePlanAnalyticsP
         console.log('CarePlanAnalytics - loaded data:', data);
 
         if (data) {
-          const newData = {
-            totalServiceUsers: data.total_service_users,
-            carePlansInDate: data.care_plans_in_date,
-            carePlansOverdue: data.care_plans_overdue,
-            riskAssessmentsInDate: data.risk_assessments_in_date,
-            riskAssessmentsOverdue: data.risk_assessments_overdue
-          };
-          console.log('CarePlanAnalytics - setting currentData to:', newData);
-          setCurrentData(newData);
-
           // Load monthly data if it exists
           if (data.monthly_data && Array.isArray(data.monthly_data) && data.monthly_data.length > 0) {
             setMonthlyData(data.monthly_data);
@@ -112,17 +95,12 @@ export const CarePlanAnalytics = ({ meetingDate, meetingId }: CarePlanAnalyticsP
   }, [meetingId]);
 
   // Save all data to database
-  const saveAllData = async (newCurrentData?: typeof currentData, newMonthlyData?: typeof monthlyData, newFrequencies?: typeof frequencies) => {
+  const saveAllData = async (newMonthlyData?: typeof monthlyData, newFrequencies?: typeof frequencies) => {
     if (!meetingId) return;
 
     try {
       const dataToSave = {
         meeting_id: meetingId,
-        total_service_users: newCurrentData?.totalServiceUsers ?? currentData.totalServiceUsers,
-        care_plans_in_date: newCurrentData?.carePlansInDate ?? currentData.carePlansInDate,
-        care_plans_overdue: newCurrentData?.carePlansOverdue ?? currentData.carePlansOverdue,
-        risk_assessments_in_date: newCurrentData?.riskAssessmentsInDate ?? currentData.riskAssessmentsInDate,
-        risk_assessments_overdue: newCurrentData?.riskAssessmentsOverdue ?? currentData.riskAssessmentsOverdue,
         monthly_data: newMonthlyData ?? monthlyData,
         high_frequency: newFrequencies?.high ?? frequencies.high,
         medium_frequency: newFrequencies?.medium ?? frequencies.medium,
@@ -159,7 +137,7 @@ export const CarePlanAnalytics = ({ meetingDate, meetingId }: CarePlanAnalyticsP
       [category]: numValue
     };
     setFrequencies(newFrequencies);
-    saveAllData(undefined, undefined, newFrequencies);
+    saveAllData(undefined, newFrequencies);
   };
   const handleCellEdit = (monthIndex: number, field: string, value: string) => {
     const numValue = parseInt(value) || 0;
@@ -168,7 +146,7 @@ export const CarePlanAnalytics = ({ meetingDate, meetingId }: CarePlanAnalyticsP
       [field]: numValue
     } : month);
     setMonthlyData(newMonthlyData);
-    saveAllData(undefined, newMonthlyData, undefined);
+    saveAllData(newMonthlyData, undefined);
   };
   const EditableCell = ({
     value,
@@ -214,34 +192,6 @@ export const CarePlanAnalytics = ({ meetingDate, meetingId }: CarePlanAnalyticsP
       <Input type="number" value={value} onChange={e => onChange(e.target.value)} className="w-20 h-8" min="1" />
       <span className="text-sm text-muted-foreground">months</span>
     </div>;
-  const handleCurrentDataChange = (field: keyof typeof currentData, value: string) => {
-    const numValue = parseInt(value) || 0;
-    const newData = {
-      ...currentData,
-      [field]: numValue
-    };
-    setCurrentData(newData);
-    saveAllData(newData, undefined, undefined);
-  };
-
-  const EditableDataInput = ({
-    label,
-    value,
-    onChange
-  }: {
-    label: string;
-    value: number;
-    onChange: (value: string) => void;
-  }) => <div className="space-y-2">
-      <Label className="text-sm font-medium">{label}</Label>
-      <Input 
-        type="number" 
-        value={value} 
-        onChange={e => onChange(e.target.value)} 
-        className="w-full" 
-        min="0" 
-      />
-    </div>;
 
   return <Card className="w-full">
       <CardHeader className="bg-white">
@@ -251,37 +201,6 @@ export const CarePlanAnalytics = ({ meetingDate, meetingId }: CarePlanAnalyticsP
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6 bg-white">
-        {/* Current Data Section */}
-        <div className="space-y-4">
-          <h3 className="text-lg font-semibold">Current Care Plan & Risk Assessment Data</h3>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 p-4 rounded-lg bg-white border">
-            <EditableDataInput 
-              label="Total Service Users" 
-              value={currentData.totalServiceUsers} 
-              onChange={value => handleCurrentDataChange('totalServiceUsers', value)} 
-            />
-            <EditableDataInput 
-              label="Care Plans In Date" 
-              value={currentData.carePlansInDate} 
-              onChange={value => handleCurrentDataChange('carePlansInDate', value)} 
-            />
-            <EditableDataInput 
-              label="Care Plans Overdue" 
-              value={currentData.carePlansOverdue} 
-              onChange={value => handleCurrentDataChange('carePlansOverdue', value)} 
-            />
-            <EditableDataInput 
-              label="Risk Assessments In Date" 
-              value={currentData.riskAssessmentsInDate} 
-              onChange={value => handleCurrentDataChange('riskAssessmentsInDate', value)} 
-            />
-            <EditableDataInput 
-              label="Risk Assessments Overdue" 
-              value={currentData.riskAssessmentsOverdue} 
-              onChange={value => handleCurrentDataChange('riskAssessmentsOverdue', value)} 
-            />
-          </div>
-        </div>
 
         {/* Frequency Settings */}
         <div className="grid grid-cols-3 gap-4 p-4 rounded-lg bg-white">
