@@ -16,6 +16,34 @@ import html2canvas from "html2canvas";
 
 const Index = () => {
   const [actionsLog, setActionsLog] = useState<ActionLogEntry[]>([]);
+
+  // Reset actions log function
+  const resetActionsLog = async () => {
+    try {
+      // Clear local state
+      setActionsLog([]);
+      
+      // Clear from database by updating all meetings to have empty actions_log
+      const { error } = await supabase
+        .from('meetings')
+        .update({ actions_log: [] })
+        .not('id', 'is', null);
+      
+      if (error) throw error;
+      
+      toast({
+        title: "Actions Log Reset",
+        description: "All actions have been cleared successfully"
+      });
+    } catch (error) {
+      console.error('Error resetting actions log:', error);
+      toast({
+        title: "Error",
+        description: "Failed to reset actions log",
+        variant: "destructive"
+      });
+    }
+  };
   const [keyDocuments, setKeyDocuments] = useState<DocumentData[]>([]);
   const { toast } = useToast();
   
@@ -670,7 +698,7 @@ const Index = () => {
             onActionCreated={handleDocumentActionCreated}
           />
           
-          <ActionsLog actions={actionsLog} onActionComplete={handleActionComplete} onActionDelete={handleActionDelete} />
+          <ActionsLog actions={actionsLog} onActionComplete={handleActionComplete} onActionDelete={handleActionDelete} onResetActions={resetActionsLog} />
         </div>
       </div>
     </div>
