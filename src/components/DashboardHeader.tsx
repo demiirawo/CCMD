@@ -38,7 +38,7 @@ export const DashboardHeader = ({
     value: string;
     label: string;
   }) => <div className="p-4 rounded-lg border border-gray-100 h-24 bg-white">
-      <h3 className="text-sm font-medium text-muted-foreground mb-2">Meeting Summary</h3>
+      <h3 className="text-sm font-medium text-muted-foreground mb-2">Meeting Title</h3>
       {editingField === field ? <textarea defaultValue={value} className="w-full h-12 p-2 text-lg font-semibold text-foreground bg-white border border-gray-300 rounded resize-none" onBlur={e => handleFieldEdit(field, e.target.value)} onKeyDown={e => {
       if (e.key === "Enter" && !e.shiftKey) {
         e.preventDefault();
