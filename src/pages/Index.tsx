@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Attendee } from "@/components/MeetingAttendeesManager";
 import { DashboardSection } from "@/components/DashboardSection";
 import { ActionsLog, ActionLogEntry } from "@/components/ActionsLog";
+import { KeyDocumentTracker, DocumentData } from "@/components/KeyDocumentTracker";
 import { StatusItemData } from "@/components/StatusItem";
 import { ActionItem } from "@/components/ActionForm";
 import { StatusType } from "@/components/StatusBadge";
@@ -15,6 +16,7 @@ import html2canvas from "html2canvas";
 
 const Index = () => {
   const [actionsLog, setActionsLog] = useState<ActionLogEntry[]>([]);
+  const [keyDocuments, setKeyDocuments] = useState<DocumentData[]>([]);
   const { toast } = useToast();
   
   const [headerData, setHeaderData] = useState({
@@ -656,6 +658,11 @@ const Index = () => {
               />
             );
           })}
+          
+          <KeyDocumentTracker 
+            documents={keyDocuments}
+            onDocumentsChange={setKeyDocuments}
+          />
           
           <ActionsLog actions={actionsLog} onActionComplete={handleActionComplete} onActionDelete={handleActionDelete} />
         </div>
