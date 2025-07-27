@@ -11,6 +11,7 @@ interface DashboardSectionProps {
   onItemStatusChange?: (id: string, status: StatusType) => void;
   onItemObservationChange?: (id: string, observation: string) => void;
   onItemActionsChange?: (id: string, actions: import("./ActionForm").ActionItem[]) => void;
+  onItemDocumentsChange?: (id: string, documents: import("./StatusItem").DocumentData[]) => void;
   onAddItem?: (sectionTitle: string) => void;
   onActionCreated?: (itemTitle: string, mentionedAttendee: string, comment: string, action: string, dueDate: string) => void;
   attendees?: string[];
@@ -25,6 +26,7 @@ export const DashboardSection = ({
   onItemStatusChange,
   onItemObservationChange,
   onItemActionsChange,
+  onItemDocumentsChange,
   onAddItem,
   onActionCreated,
   attendees = [],
@@ -94,6 +96,7 @@ export const DashboardSection = ({
               onStatusChange={onItemStatusChange}
               onObservationChange={onItemObservationChange}
               onActionsChange={onItemActionsChange}
+              onDocumentsChange={onItemDocumentsChange}
               onActionCreated={onActionCreated}
               attendees={attendees}
               monthlyStaffData={monthlyStaffData}

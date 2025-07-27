@@ -322,6 +322,34 @@ const Index = () => {
       description: "Item actions have been saved"
     });
   };
+
+  const handleDocumentsChange = (sectionId: string, itemId: string, newDocuments: import("@/components/StatusItem").DocumentData[]) => {
+    setDashboardData(prev => ({
+      ...prev,
+      sections: prev.sections.map(section => 
+        section.id === sectionId ? {
+          ...section,
+          items: section.items.map(item => 
+            item.id === itemId ? {
+              ...item,
+              documents: newDocuments,
+              lastReviewed: new Date().toLocaleString('en-GB', {
+                day: '2-digit',
+                month: 'short',
+                year: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+              })
+            } : item
+          )
+        } : section
+      )
+    }));
+    toast({
+      title: "Documents Updated",
+      description: "Item documents have been saved"
+    });
+  };
   
   const handleActionCreated = (itemTitle: string, mentionedAttendee: string, comment: string, action: string, dueDate: string) => {
     const newAction: ActionLogEntry = {
@@ -621,6 +649,7 @@ const Index = () => {
                 onItemStatusChange={(itemId, status) => handleStatusChange(section.id, itemId, status)} 
                 onItemObservationChange={(itemId, observation) => handleObservationChange(section.id, itemId, observation)}
                 onItemActionsChange={(itemId, actions) => handleActionsChange(section.id, itemId, actions)}
+                onItemDocumentsChange={(itemId, documents) => handleDocumentsChange(section.id, itemId, documents)}
                 onActionCreated={handleActionCreated}
                 attendees={getAttendeesList()}
                 meetingDate={meetingDate}
