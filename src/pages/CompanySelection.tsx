@@ -14,9 +14,21 @@ export const CompanySelection = () => {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   
-  const { profile, companies, createCompany, selectCompany, signOut } = useAuth();
+  const { profile, companies, createCompany, selectCompany, signOut, fetchCompanies } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  // Debug logging
+  console.log('CompanySelection Debug:', {
+    profile,
+    companies,
+    companiesLength: companies.length
+  });
+
+  const handleRefreshCompanies = async () => {
+    console.log('Manually refreshing companies...');
+    await fetchCompanies();
+  };
 
   const clearAllCompanyData = (companyId: string) => {
     // Clear all localStorage data related to meetings and forms for new companies
@@ -113,6 +125,9 @@ export const CompanySelection = () => {
             </div>
             <Button variant="outline" onClick={handleSignOut}>
               Sign Out
+            </Button>
+            <Button variant="outline" onClick={handleRefreshCompanies}>
+              Refresh
             </Button>
           </div>
         </CardHeader>

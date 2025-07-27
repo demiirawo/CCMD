@@ -85,24 +85,39 @@ export const useAuthProvider = (): AuthContextType => {
   };
 
   const fetchCompanies = async () => {
-    if (!profile) return;
+    console.log('fetchCompanies called, profile:', profile);
+    if (!profile) {
+      console.log('No profile found, returning early');
+      return;
+    }
     
     try {
       let query = supabase.from('companies').select('*');
       
+      console.log('Profile role:', profile.role, 'Company ID:', profile.company_id);
+      
       // If user is not admin, only show their company
       if (profile.role !== 'admin') {
-        if (!profile.company_id) return;
+        if (!profile.company_id) {
+          console.log('Non-admin user has no company_id, returning early');
+          return;
+        }
         query = query.eq('id', profile.company_id);
+        console.log('Fetching specific company for non-admin user');
+      } else {
+        console.log('Fetching all companies for admin user');
       }
       
       const { data, error } = await query;
+      
+      console.log('Companies fetch result:', { data, error });
       
       if (error) {
         console.error('Error fetching companies:', error);
         return;
       }
       
+      console.log('Setting companies:', data || []);
       setCompanies(data || []);
     } catch (error) {
       console.error('Error fetching companies:', error);
