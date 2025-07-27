@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { CalendarIcon, FileText, Plus, Minus } from "lucide-react";
+import { CalendarIcon, FileText, Plus, Minus, ChevronDown, Circle } from "lucide-react";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import { Calendar } from "./ui/calendar";
@@ -50,6 +50,7 @@ export const KeyDocumentTracker = ({
   onActionCreated,
   onActionRemoved
 }: KeyDocumentTrackerProps) => {
+  const [isExpanded, setIsExpanded] = useState(true);
   
   // Track which documents have had actions created to prevent duplicates
   const createdActionsRef = useRef<Set<string>>(new Set());
@@ -88,6 +89,21 @@ export const KeyDocumentTracker = ({
     return differenceInDays(reviewDate, today);
   };
 
+  const getDocumentStatus = (nextReviewDate: string | null): "green" | "amber" | "red" => {
+    if (!nextReviewDate) return "green";
+    
+    const daysRemaining = getDaysRemaining(new Date(nextReviewDate));
+    if (daysRemaining === null) return "green";
+    
+    if (daysRemaining < 0) {
+      return "red"; // Overdue
+    } else if (daysRemaining <= 5) {
+      return "amber"; // Due within 5 days
+    } else {
+      return "green"; // More than 5 days
+    }
+  };
+
   const getDocumentColorClass = (nextReviewDate: string | null) => {
     if (!nextReviewDate) return "bg-white";
     
@@ -100,6 +116,31 @@ export const KeyDocumentTracker = ({
       return "bg-amber-50 border-amber-200";
     } else {
       return "bg-green-50 border-green-200";
+    }
+  };
+
+  // Calculate overall status for the section
+  const getOverallStatus = (): "green" | "amber" | "red" => {
+    if (documents.length === 0) return "green";
+    
+    const statuses = documents
+      .filter(doc => doc.name && doc.lastReviewDate) // Only consider documents with name and date
+      .map(doc => getDocumentStatus(doc.nextReviewDate));
+    
+    if (statuses.some(status => status === "red")) return "red";
+    if (statuses.some(status => status === "amber")) return "amber";
+    return "green";
+  };
+
+  const getStatusIcon = (status: "green" | "amber" | "red") => {
+    const baseClasses = "w-3 h-3";
+    switch (status) {
+      case "red":
+        return <Circle className={`${baseClasses} text-red-500 fill-red-500`} />;
+      case "amber":
+        return <Circle className={`${baseClasses} text-amber-500 fill-amber-500`} />;
+      case "green":
+        return <Circle className={`${baseClasses} text-green-500 fill-green-500`} />;
     }
   };
 
@@ -203,10 +244,15 @@ export const KeyDocumentTracker = ({
 
   return (
     <Card className="bg-white rounded-2xl p-8 mb-8 shadow-lg border border-border/50">
-      <div className="flex items-center gap-3 mb-6">
-        <h3 className="text-xl font-bold text-foreground">Key Review Dates</h3>
+      <div className="flex items-center justify-between cursor-pointer mb-6" onClick={() => setIsExpanded(!isExpanded)}>
+        <div className="flex items-center gap-3">
+          <h3 className="text-xl font-bold text-foreground">Key Review Dates</h3>
+          {getStatusIcon(getOverallStatus())}
+        </div>
+        <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform duration-200 ${isExpanded ? 'transform rotate-180' : ''}`} />
       </div>
       
+      {isExpanded && (
       <div className="space-y-6">
         {groupedDocuments.map(([category, docs]) => (
           <div key={category} className="space-y-3">
@@ -342,6 +388,7 @@ export const KeyDocumentTracker = ({
           Add Document
         </Button>
       </div>
+      )}
     </Card>
   );
 };
