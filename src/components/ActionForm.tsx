@@ -194,11 +194,11 @@ export const ActionForm = ({
                 {/* Show full audit trail */}
                 {action.auditTrail && action.auditTrail.length > 0 && (
                   <div className="text-xs mt-2 space-y-1">
-                    {action.auditTrail.map((entry, entryIndex) => (
-                      <div key={entryIndex} className="text-blue-600 bg-blue-50 p-1 rounded border-l-2 border-blue-200">
-                        <span className="font-medium">{entry.timestamp}:</span> {entry.change}
-                      </div>
-                    ))}
+                     {action.auditTrail.map((entry, entryIndex) => (
+                       <div key={`${action.id}-audit-${entryIndex}`} className="text-blue-600 bg-blue-50 p-1 rounded border-l-2 border-blue-200">
+                         <span className="font-medium">{entry.timestamp}:</span> {entry.change}
+                       </div>
+                     ))}
                   </div>
                 )}
               </div>
@@ -272,7 +272,7 @@ export const ActionForm = ({
                 <SelectValue placeholder="Select person..." />
               </SelectTrigger>
               <SelectContent className="bg-white">
-                {attendees.map(attendee => <SelectItem key={attendee} value={attendee}>
+                {attendees.map((attendee, index) => <SelectItem key={`${attendee}-${index}`} value={attendee}>
                     {attendee}
                   </SelectItem>)}
               </SelectContent>
