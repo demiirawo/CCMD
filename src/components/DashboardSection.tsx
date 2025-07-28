@@ -17,6 +17,8 @@ interface DashboardSectionProps {
   onAddItem?: (sectionTitle: string) => void;
   onActionCreated?: (itemTitle: string, mentionedAttendee: string, comment: string, action: string, dueDate: string, subsectionActionId?: string) => void;
   onSubsectionActionEdit?: (sectionId: string, actionId: string, updates: { comment?: string; dueDate?: string }) => void;
+  onSubsectionActionComplete?: (actionId: string) => void;
+  onSubsectionActionDelete?: (actionId: string) => void;
   attendees?: string[];
   defaultOpen?: boolean;
   meetingDate?: Date;
@@ -35,6 +37,8 @@ export const DashboardSection = ({
   onAddItem,
   onActionCreated,
   onSubsectionActionEdit,
+  onSubsectionActionComplete,
+  onSubsectionActionDelete,
   attendees = [],
   defaultOpen = true,
   meetingDate,
@@ -215,6 +219,8 @@ export const DashboardSection = ({
               onMetadataChange={onItemMetadataChange}
               onActionCreated={onActionCreated}
               onSubsectionActionEdit={onSubsectionActionEdit}
+              onSubsectionActionComplete={onSubsectionActionComplete}
+              onSubsectionActionDelete={onSubsectionActionDelete}
               attendees={attendees}
               monthlyStaffData={monthlyStaffData}
               onMonthlyStaffDataChange={setMonthlyStaffData}

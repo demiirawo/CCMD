@@ -867,6 +867,30 @@ const Index = () => {
     });
   };
 
+  const handleSubsectionActionComplete = (actionId: string) => {
+    // Mark action as complete in main Actions Log
+    setActionsLog(prev => prev.map(action => 
+      action.id === actionId 
+        ? { ...action, closed: true, closedDate: new Date().toISOString() }
+        : action
+    ));
+    
+    toast({
+      title: "Action Completed",
+      description: "Action has been marked as complete in Actions Log"
+    });
+  };
+
+  const handleSubsectionActionDelete = (actionId: string) => {
+    // Remove action from main Actions Log
+    setActionsLog(prev => prev.filter(action => action.id !== actionId));
+    
+    toast({
+      title: "Action Deleted",
+      description: "Action has been removed from Actions Log"
+    });
+  };
+
   const getAttendeesList = () => {
     return headerData.attendees
       .filter(attendee => attendee.name && attendee.name.trim() !== '') // Filter out empty names
@@ -1127,9 +1151,11 @@ const Index = () => {
                  onItemObservationChange={(itemId, observation) => handleObservationChange(section.id, itemId, observation)}
                  onItemActionsChange={(itemId, actions) => handleActionsChange(section.id, itemId, actions)}
                   onItemDocumentsChange={(itemId, documents) => handleDocumentsChange(section.id, itemId, documents)}
-                  onItemMetadataChange={(itemId, metadata) => handleMetadataChange(section.id, itemId, metadata)}
-                  onActionCreated={handleActionCreated}
-                  onSubsectionActionEdit={handleSubsectionActionEdit}
+                   onItemMetadataChange={(itemId, metadata) => handleMetadataChange(section.id, itemId, metadata)}
+                   onActionCreated={handleActionCreated}
+                   onSubsectionActionEdit={handleSubsectionActionEdit}
+                   onSubsectionActionComplete={handleSubsectionActionComplete}
+                   onSubsectionActionDelete={handleSubsectionActionDelete}
                   attendees={getAttendeesList()}
                    meetingDate={meetingDate}
                    meetingId={currentMeetingId || tempMeetingId}

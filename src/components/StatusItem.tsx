@@ -52,6 +52,8 @@ interface StatusItemProps {
   onActionCreated?: (itemTitle: string, mentionedAttendee: string, comment: string, action: string, dueDate: string, subsectionActionId?: string) => void;
   onDocumentsChange?: (id: string, documents: DocumentData[]) => void;
   onSubsectionActionEdit?: (sectionId: string, actionId: string, updates: { comment?: string; dueDate?: string }) => void;
+  onSubsectionActionComplete?: (actionId: string) => void;
+  onSubsectionActionDelete?: (actionId: string) => void;
   onMetadataChange?: (id: string, metadata: SubsectionMetadata) => void;
   attendees?: string[];
   monthlyStaffData?: Array<{month: string, currentStaff: number, probationStaff?: number}>;
@@ -68,6 +70,8 @@ export const StatusItem = ({
   onActionCreated,
   onDocumentsChange,
   onSubsectionActionEdit,
+  onSubsectionActionComplete,
+  onSubsectionActionDelete,
   onMetadataChange,
   attendees = [],
   monthlyStaffData = [],
@@ -84,6 +88,16 @@ export const StatusItem = ({
     setIsEditingObservation(false);
   };
   const handleActionsChange = (actions: ActionItem[]) => {
+    // Check if any actions were removed (deleted) by comparing with previous state
+    const removedActions = item.actions.filter(oldAction => 
+      !actions.find(newAction => newAction.id === oldAction.id)
+    );
+    
+    // For each removed action, delete it from the main Actions Log
+    removedActions.forEach(removedAction => {
+      onSubsectionActionDelete?.(removedAction.id);
+    });
+    
     onActionsChange?.(item.id, actions);
   };
   const handleActionCreated = (name: string, description: string, targetDate: string, actionId: string) => {
@@ -95,6 +109,9 @@ export const StatusItem = ({
     // Remove the completed action from the local actions
     const updatedActions = item.actions.filter(action => action.id !== actionId);
     onActionsChange?.(item.id, updatedActions);
+    
+    // Mark the action as completed in the main Actions Log
+    onSubsectionActionComplete?.(actionId);
   };
 
   const handleAccountableChange = (accountable: string[]) => {
