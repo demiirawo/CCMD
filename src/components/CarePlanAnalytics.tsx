@@ -38,41 +38,36 @@ interface CarePlanAnalyticsProps {
   meetingDate?: Date;
   meetingId?: string;
 }
-
-export const CarePlanAnalytics = ({ meetingDate, meetingId }: CarePlanAnalyticsProps) => {
+export const CarePlanAnalytics = ({
+  meetingDate,
+  meetingId
+}: CarePlanAnalyticsProps) => {
   const [monthlyData, setMonthlyData] = useState(generateInitialData(meetingDate));
-  
+
   // Update data when meeting date changes
   useEffect(() => {
     setMonthlyData(generateInitialData(meetingDate));
   }, [meetingDate]);
-  
   const [frequencies, setFrequencies] = useState({
     high: 6,
     medium: 12,
     low: 24
   });
 
-
   // Load data from database on component mount
   useEffect(() => {
     const loadData = async () => {
       if (!meetingId) return;
-
       try {
-        const { data, error } = await supabase
-          .from('care_plan_analytics')
-          .select('*')
-          .eq('meeting_id', meetingId)
-          .maybeSingle();
-
+        const {
+          data,
+          error
+        } = await supabase.from('care_plan_analytics').select('*').eq('meeting_id', meetingId).maybeSingle();
         if (error) {
           console.error('Error loading care plan analytics:', error);
           return;
         }
-
         console.log('CarePlanAnalytics - loaded data:', data);
-
         if (data) {
           // Load monthly data if it exists
           if (data.monthly_data && Array.isArray(data.monthly_data) && data.monthly_data.length > 0) {
@@ -90,14 +85,12 @@ export const CarePlanAnalytics = ({ meetingDate, meetingId }: CarePlanAnalyticsP
         console.error('Error loading care plan analytics:', error);
       }
     };
-
     loadData();
   }, [meetingId]);
 
   // Save all data to database
   const saveAllData = async (newMonthlyData?: typeof monthlyData, newFrequencies?: typeof frequencies) => {
     if (!meetingId) return;
-
     try {
       const dataToSave = {
         meeting_id: meetingId,
@@ -106,13 +99,11 @@ export const CarePlanAnalytics = ({ meetingDate, meetingId }: CarePlanAnalyticsP
         medium_frequency: newFrequencies?.medium ?? frequencies.medium,
         low_frequency: newFrequencies?.low ?? frequencies.low
       };
-
-      const { error } = await supabase
-        .from('care_plan_analytics')
-        .upsert(dataToSave, {
-          onConflict: 'meeting_id'
-        });
-
+      const {
+        error
+      } = await supabase.from('care_plan_analytics').upsert(dataToSave, {
+        onConflict: 'meeting_id'
+      });
       if (error) {
         console.error('Error saving care plan analytics:', error);
       }
@@ -192,7 +183,6 @@ export const CarePlanAnalytics = ({ meetingDate, meetingId }: CarePlanAnalyticsP
       <Input type="number" value={value} onChange={e => onChange(e.target.value)} className="w-20 h-8" min="1" />
       <span className="text-sm text-muted-foreground">months</span>
     </div>;
-
   return <Card className="w-full">
       <CardHeader className="bg-white">
         <CardTitle>Care Plan & Risk Assessment Analytics</CardTitle>
@@ -239,7 +229,7 @@ export const CarePlanAnalytics = ({ meetingDate, meetingId }: CarePlanAnalyticsP
 
         {/* Chart */}
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold">Care Plan Reviews: Target vs Completed</h3>
+          
           <ChartContainer config={chartConfig} className="h-[500px] w-full">
             <ResponsiveContainer width="100%" height="100%">
               <ComposedChart data={dataWithTargets} margin={{
@@ -263,11 +253,11 @@ export const CarePlanAnalytics = ({ meetingDate, meetingId }: CarePlanAnalyticsP
           <div className="flex gap-6 text-sm">
             <div className="flex items-center gap-2">
               <div className="w-4 h-4 bg-chart-1 rounded"></div>
-              <span>Completed Reviews</span>
+              
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-chart-2 rounded"></div>
-              <span>Target Reviews</span>
+              
+              
             </div>
           </div>
         </div>
