@@ -1512,57 +1512,54 @@ const Index = () => {
             onAttendeesChange={handleAttendeesChange}
           />
           
-          {/* Actions and Key Documents in a 2-column grid to match staff panel width */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <ActionsLog 
-              actions={actionsLog} 
-              onActionComplete={handleActionComplete} 
-              onActionDelete={handleActionDelete} 
-              onResetActions={resetActionsLog}
-              onActionEdit={handleActionEdit}
-              attendees={getAttendeesList()}
-            />
-            
-            <KeyDocumentTracker 
-              documents={keyDocuments}
-              onDocumentsChange={async (newDocuments) => {
-                setKeyDocuments(newDocuments);
-                
-                // Save key documents to database immediately
-                if (profile?.company_id) {
-                  try {
-                    // Clear existing documents for this company
-                    await supabase
-                      .from('key_documents')
-                      .delete()
-                      .eq('company_id', profile.company_id);
+          <ActionsLog 
+            actions={actionsLog} 
+            onActionComplete={handleActionComplete} 
+            onActionDelete={handleActionDelete} 
+            onResetActions={resetActionsLog}
+            onActionEdit={handleActionEdit}
+            attendees={getAttendeesList()}
+          />
+          
+          <KeyDocumentTracker 
+            documents={keyDocuments}
+            onDocumentsChange={async (newDocuments) => {
+              setKeyDocuments(newDocuments);
+              
+              // Save key documents to database immediately
+              if (profile?.company_id) {
+                try {
+                  // Clear existing documents for this company
+                  await supabase
+                    .from('key_documents')
+                    .delete()
+                    .eq('company_id', profile.company_id);
+                  
+                  // Insert new documents
+                  if (newDocuments.length > 0) {
+                    const documentsToInsert = newDocuments.map(doc => ({
+                      company_id: profile.company_id,
+                      name: doc.name,
+                      status: 'missing', // Default status since KeyDocumentTracker doesn't use the status we stored
+                      due_date: '',
+                      notes: ''
+                    }));
                     
-                    // Insert new documents
-                    if (newDocuments.length > 0) {
-                      const documentsToInsert = newDocuments.map(doc => ({
-                        company_id: profile.company_id,
-                        name: doc.name,
-                        status: 'missing', // Default status since KeyDocumentTracker doesn't use the status we stored
-                        due_date: '',
-                        notes: ''
-                      }));
-                      
-                      const { error } = await supabase
-                        .from('key_documents')
-                        .insert(documentsToInsert);
-                      
-                      if (error) {
-                        console.error('Error saving key documents:', error);
-                      }
+                    const { error } = await supabase
+                      .from('key_documents')
+                      .insert(documentsToInsert);
+                    
+                    if (error) {
+                      console.error('Error saving key documents:', error);
                     }
-                  } catch (error) {
-                    console.error('Failed to save key documents to database:', error);
                   }
+                } catch (error) {
+                  console.error('Failed to save key documents to database:', error);
                 }
-              }}
-              attendees={getAttendeesList()}
-            />
-          </div>
+              }
+            }}
+            attendees={getAttendeesList()}
+          />
           
           {dashboardData.sections.filter(section => section.id !== "meeting-overview").map(section => {
             // Parse the meeting date for analytics

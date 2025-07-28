@@ -275,30 +275,30 @@ export const Reports = () => {
                                       
                                       <div className="space-y-6">
                                         {/* Meeting Header Info */}
-                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                          <div className="p-4 bg-gray-50 rounded-lg">
-                                            <div className="flex items-center gap-2 mb-2">
-                                              <CalendarDays className="h-5 w-5 text-gray-500" />
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
+                                          <div className="flex items-center gap-2">
+                                            <CalendarDays className="h-5 w-5 text-gray-500" />
+                                            <div>
                                               <p className="text-sm font-medium">Date & Time</p>
+                                              <p className="text-sm text-gray-600">{formatDate(meeting.date)}</p>
                                             </div>
-                                            <p className="text-sm text-gray-600">{formatDate(meeting.date)}</p>
                                           </div>
-                                          
-                                          <div className="p-4 bg-gray-50 rounded-lg">
-                                            <div className="flex items-center gap-2 mb-2">
-                                              <Users className="h-5 w-5 text-gray-500" />
+                                          <div className="flex items-center gap-2">
+                                            <Users className="h-5 w-5 text-gray-500" />
+                                            <div>
                                               <p className="text-sm font-medium">Attendees</p>
+                                              <p className="text-sm text-gray-600">{meeting.attendees.length} people</p>
                                             </div>
-                                            <p className="text-sm text-gray-600">{meeting.attendees.length} people</p>
                                           </div>
-                                          
-                                          <div className="p-4 bg-gray-50 rounded-lg">
-                                            <div className="flex items-center gap-2 mb-2">
-                                              <Target className="h-5 w-5 text-gray-500" />
-                                              <p className="text-sm font-medium">Purpose</p>
+                                          {meeting.purpose && (
+                                            <div className="md:col-span-2 flex items-start gap-2">
+                                              <Target className="h-5 w-5 text-gray-500 mt-0.5" />
+                                              <div>
+                                                <p className="text-sm font-medium">Purpose</p>
+                                                <p className="text-sm text-gray-600">{meeting.purpose}</p>
+                                              </div>
                                             </div>
-                                            <p className="text-sm text-gray-600">{meeting.purpose || 'No purpose specified'}</p>
-                                          </div>
+                                          )}
                                         </div>
 
                                         {/* Attendees List */}
