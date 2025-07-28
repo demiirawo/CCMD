@@ -144,24 +144,33 @@ export const SpotCheckAnalytics = ({ monthlyStaffData = [], meetingDate, meeting
     };
   });
   
-  const handleMetricChange = (field: string, value: string) => {
+  const handleMetricChange = async (field: string, value: string) => {
     const numValue = parseInt(value) || 0;
     const newMetrics = {
       ...metrics,
       [field]: numValue
     };
+    
+    // Update local state immediately for UI responsiveness
     setMetrics(newMetrics);
-    saveData(newMetrics);
+    
+    // Save to database immediately
+    await saveData(newMetrics);
   };
-  const handleCellEdit = (rowIndex: number, value: string) => {
+
+  const handleCellEdit = async (rowIndex: number, value: string) => {
     const numValue = parseInt(value) || 0;
     const newData = [...monthlyData];
     newData[rowIndex] = {
       ...newData[rowIndex],
       completed: numValue
     };
+    
+    // Update local state immediately for UI responsiveness
     setMonthlyData(newData);
-    saveData(undefined, newData);
+    
+    // Save to database immediately
+    await saveData(undefined, newData);
   };
   const EditableCell = ({
     value,
@@ -172,15 +181,34 @@ export const SpotCheckAnalytics = ({ monthlyStaffData = [], meetingDate, meeting
   }) => {
     const [editing, setEditing] = useState(false);
     const [editValue, setEditValue] = useState(value.toString());
-    const handleSave = () => {
-      onEdit(editValue);
+    
+    // Update editValue when value prop changes
+    useEffect(() => {
+      setEditValue(value.toString());
+    }, [value]);
+    
+    const handleSave = async () => {
+      await onEdit(editValue);
       setEditing(false);
     };
+    
+    const handleCancel = () => {
+      setEditValue(value.toString()); // Reset to original value
+      setEditing(false);
+    };
+    
     if (editing) {
-      return <Input value={editValue} onChange={e => setEditValue(e.target.value)} onBlur={handleSave} onKeyDown={e => {
-        if (e.key === 'Enter') handleSave();
-        if (e.key === 'Escape') setEditing(false);
-      }} className="w-full h-auto text-center border-none bg-white p-1 text-sm focus:ring-0 focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0" autoFocus />;
+      return <Input 
+        value={editValue} 
+        onChange={e => setEditValue(e.target.value)} 
+        onBlur={handleSave} 
+        onKeyDown={e => {
+          if (e.key === 'Enter') handleSave();
+          if (e.key === 'Escape') handleCancel();
+        }} 
+        className="w-full h-auto text-center border-none bg-white p-1 text-sm focus:ring-0 focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0" 
+        autoFocus 
+      />;
     }
     return <span className="cursor-pointer hover:bg-accent/50 p-1 rounded" onClick={() => setEditing(true)}>
         {value}
