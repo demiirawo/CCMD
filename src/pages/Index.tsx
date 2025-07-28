@@ -155,12 +155,13 @@ const Index = () => {
 
         if (data && data.length > 0) {
           const headerRecord = data[0];
+          console.log('Loading header data from database:', headerRecord);
           setHeaderData({
             date: new Date(headerRecord.meeting_date).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }) + ' ' + 
                   new Date(headerRecord.meeting_date).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false }),
-            title: headerRecord.title,
+            title: headerRecord.title || '',
             attendees: Array.isArray(headerRecord.attendees) ? headerRecord.attendees as unknown as Attendee[] : [],
-            purpose: headerRecord.purpose
+            purpose: headerRecord.purpose || ''
           });
         }
       } catch (error) {
@@ -610,6 +611,9 @@ const Index = () => {
           }, {
             onConflict: 'company_id'
           });
+        
+        console.log('Saving attendees to database:', attendees);
+        console.log('Company ID:', profile.company_id);
         
         if (error) {
           console.error('Error saving attendees:', error);
