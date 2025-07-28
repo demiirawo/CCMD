@@ -216,16 +216,19 @@ export const FeedbackAnalytics = ({ meetingDate, meetingId }: FeedbackAnalyticsP
                 dataKey="compliments" 
                 fill="#22c55e"
                 name="Compliments"
+                stackId="feedback"
               />
               <Bar 
                 dataKey="complaints" 
                 fill="#ef4444"
                 name="Complaints"
+                stackId="feedback"
               />
               <Bar 
                 dataKey="suggestions" 
                 fill="#3b82f6"
                 name="Suggestions"
+                stackId="feedback"
               />
               <Line 
                 type="monotone" 

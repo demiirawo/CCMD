@@ -203,8 +203,8 @@ export const StaffTrainingAnalytics = ({ meetingDate, meetingId }: StaffTraining
                 <XAxis dataKey="category" axisLine={false} tickLine={false} className="text-xs" />
                 <YAxis axisLine={false} tickLine={false} className="text-xs" />
                 <ChartTooltip content={<ChartTooltipContent />} />
-                <Bar dataKey="compliant" fill="#22c55e" name="Compliant" />
-                <Bar dataKey="pending" fill="#f59e0b" name="Pending" />
+                <Bar dataKey="compliant" fill="#22c55e" name="Compliant" stackId="training" />
+                <Bar dataKey="pending" fill="#f59e0b" name="Pending" stackId="training" />
               </BarChart>
             </ResponsiveContainer>
           </ChartContainer>

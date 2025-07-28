@@ -216,16 +216,19 @@ export const IncidentsAnalytics = ({ meetingDate, meetingId }: IncidentsAnalytic
                 dataKey="incidents" 
                 fill="#ef4444"
                 name="Incidents"
+                stackId="incidents"
               />
               <Bar 
                 dataKey="accidents" 
                 fill="#f59e0b"
                 name="Accidents"
+                stackId="incidents"
               />
               <Bar 
                 dataKey="safeguarding" 
                 fill="#dc2626"
                 name="Safeguarding"
+                stackId="incidents"
               />
               <Line 
                 type="monotone" 
