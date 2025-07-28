@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { useState, useEffect } from "react";
 import { format, subMonths } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 // Generate 12 months of data from meeting date back to same month last year
 const generateInitialData = (meetingDate?: Date) => {
@@ -33,6 +34,7 @@ interface SupervisionAnalyticsProps {
 }
 
 export const SupervisionAnalytics = ({ monthlyStaffData = [], meetingDate, meetingId }: SupervisionAnalyticsProps) => {
+  const { profile } = useAuth();
   const [monthlyData, setMonthlyData] = useState(generateInitialData(meetingDate));
   
   // Update data when meeting date changes
@@ -48,13 +50,14 @@ export const SupervisionAnalytics = ({ monthlyStaffData = [], meetingDate, meeti
   // Load data from database on component mount
   useEffect(() => {
     const loadData = async () => {
-      if (!meetingId) return;
+      if (!meetingId || !profile?.company_id) return;
 
       try {
         const { data, error } = await supabase
           .from('supervision_analytics')
           .select('*')
           .eq('meeting_id', meetingId)
+          .eq('company_id', profile.company_id)
           .maybeSingle();
 
         if (error) {
@@ -77,15 +80,16 @@ export const SupervisionAnalytics = ({ monthlyStaffData = [], meetingDate, meeti
     };
 
     loadData();
-  }, [meetingId]);
+  }, [meetingId, profile?.company_id]);
 
   // Save data to database
   const saveData = async (newMetrics?: typeof metrics, newMonthlyData?: typeof monthlyData) => {
-    if (!meetingId) return;
+    if (!meetingId || !profile?.company_id) return;
 
     try {
       const dataToSave = {
         meeting_id: meetingId,
+        company_id: profile.company_id,
         passed_frequency: newMetrics?.passedFrequency ?? metrics.passedFrequency,
         probation_frequency: newMetrics?.probationFrequency ?? metrics.probationFrequency,
         monthly_data: newMonthlyData ?? monthlyData
@@ -94,7 +98,7 @@ export const SupervisionAnalytics = ({ monthlyStaffData = [], meetingDate, meeti
       const { error } = await supabase
         .from('supervision_analytics')
         .upsert(dataToSave, {
-          onConflict: 'meeting_id'
+          onConflict: 'meeting_id,company_id'
         });
 
       if (error) {

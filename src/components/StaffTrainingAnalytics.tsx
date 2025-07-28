@@ -4,6 +4,7 @@ import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer } from "recharts";
 import { Input } from "@/components/ui/input";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 const initialTrainingData = {
   mandatoryPending: 0,
   mandatoryCompliant: 0,
@@ -26,16 +27,18 @@ interface StaffTrainingAnalyticsProps {
 }
 
 export const StaffTrainingAnalytics = ({ meetingId }: StaffTrainingAnalyticsProps = {}) => {
+  const { profile } = useAuth();
   const [trainingData, setTrainingData] = useState(initialTrainingData);
   
   // Load data from database when component mounts or meetingId changes
   useEffect(() => {
     const loadData = async () => {
-      if (meetingId) {
+      if (meetingId && profile?.company_id) {
         const { data, error } = await supabase
           .from('staff_training_analytics')
           .select('*')
           .eq('meeting_id', meetingId)
+          .eq('company_id', profile.company_id)
           .maybeSingle();
         
         if (data) {
@@ -50,7 +53,7 @@ export const StaffTrainingAnalytics = ({ meetingId }: StaffTrainingAnalyticsProp
     };
     
     loadData();
-  }, [meetingId]);
+  }, [meetingId, profile?.company_id]);
 
   const handleInputChange = async (field: string, value: string) => {
     const numValue = parseInt(value) || 0;
@@ -61,17 +64,18 @@ export const StaffTrainingAnalytics = ({ meetingId }: StaffTrainingAnalyticsProp
     setTrainingData(newData);
 
     // Always save to database immediately
-    if (meetingId) {
+    if (meetingId && profile?.company_id) {
       const { error } = await supabase
         .from('staff_training_analytics')
         .upsert({
           meeting_id: meetingId,
+          company_id: profile.company_id,
           mandatory_pending: newData.mandatoryPending,
           mandatory_compliant: newData.mandatoryCompliant,
           specialist_pending: newData.specialistPending,
           specialist_compliant: newData.specialistCompliant
         }, {
-          onConflict: 'meeting_id'
+          onConflict: 'meeting_id,company_id'
         });
       
       if (error) {
