@@ -905,6 +905,18 @@ const Index = () => {
         : action
     ));
 
+    // Also remove the same action from subsections (actions disappear when completed)
+    setDashboardData(prev => ({
+      ...prev,
+      sections: prev.sections.map(section => ({
+        ...section,
+        items: section.items.map(item => ({
+          ...item,
+          actions: item.actions.filter(action => action.id !== actionId)
+        }))
+      }))
+    }));
+
     // Update action in database immediately
     if (profile?.company_id) {
       try {
@@ -927,7 +939,7 @@ const Index = () => {
     
     toast({
       title: "Action Completed",
-      description: "Action has been marked as complete and saved"
+      description: "Action has been marked as complete and removed from subsection"
     });
   };
 
