@@ -1,198 +1,244 @@
+import React, { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer } from "recharts";
 import { Input } from "@/components/ui/input";
-import { useState, useEffect } from "react";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from "recharts";
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { supabase } from "@/integrations/supabase/client";
-const initialDocumentsData = {
-  activeFullyCompliant: 0,
-  activePendingDocuments: 0,
-  onboardingPendingDocuments: 0,
-  onboardingFullyCompliant: 0
-};
+import { useAuth } from "@/hooks/useAuth";
+
 const chartConfig = {
-  fullyCompliant: {
-    label: "Compliant",
-    color: "#22c55e"
+  compliant: {
+    label: "Fully Compliant",
+    color: "hsl(var(--chart-1))",
   },
-  pendingDocuments: {
+  pending: {
     label: "Pending Documents",
-    color: "#f59e0b"
-  }
+    color: "hsl(var(--chart-2))",
+  },
 };
+
 interface StaffDocumentsAnalyticsProps {
+  meetingDate?: Date;
   meetingId?: string;
 }
 
-export const StaffDocumentsAnalytics = ({ meetingId }: StaffDocumentsAnalyticsProps = {}) => {
-  const [documentsData, setDocumentsData] = useState(initialDocumentsData);
-  
-  // Load data from database when component mounts or meetingId changes
-  useEffect(() => {
-    const loadData = async () => {
-      if (meetingId) {
-        const { data, error } = await supabase
-          .from('staff_documents_analytics')
-          .select('*')
-          .eq('meeting_id', meetingId)
-          .maybeSingle();
-        
-        if (data) {
-          setDocumentsData({
-            activeFullyCompliant: data.active_fully_compliant,
-            activePendingDocuments: data.active_pending_documents,
-            onboardingPendingDocuments: data.onboarding_pending_documents,
-            onboardingFullyCompliant: data.onboarding_fully_compliant
-          });
-        }
-      }
-    };
-    
-    loadData();
-  }, [meetingId]);
-  const handleInputChange = async (field: string, value: string) => {
-    const numValue = parseInt(value) || 0;
-    const newData = {
-      ...documentsData,
-      [field]: numValue
-    };
-    setDocumentsData(newData);
+export const StaffDocumentsAnalytics = ({ meetingDate, meetingId }: StaffDocumentsAnalyticsProps) => {
+  const { profile } = useAuth();
+  const [documentsData, setDocumentsData] = useState({
+    activeFullyCompliant: 0,
+    activePendingDocuments: 0,
+    onboardingFullyCompliant: 0,
+    onboardingPendingDocuments: 0
+  });
 
-    // Always save to database immediately
-    if (meetingId) {
+  useEffect(() => {
+    if (profile?.company_id) {
+      loadData();
+    }
+  }, [profile?.company_id]);
+
+  const loadData = async () => {
+    if (!profile?.company_id) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('staff_documents_analytics')
+        .select('*')
+        .eq('company_id', profile.company_id)
+        .maybeSingle();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error loading staff documents analytics:', error);
+        return;
+      }
+
+      if (data) {
+        setDocumentsData({
+          activeFullyCompliant: data.active_fully_compliant,
+          activePendingDocuments: data.active_pending_documents,
+          onboardingFullyCompliant: data.onboarding_fully_compliant,
+          onboardingPendingDocuments: data.onboarding_pending_documents
+        });
+      }
+    } catch (error) {
+      console.error('Error loading staff documents analytics:', error);
+    }
+  };
+
+  const saveData = async (newData: typeof documentsData) => {
+    if (!profile?.company_id) return;
+
+    try {
       const { error } = await supabase
         .from('staff_documents_analytics')
         .upsert({
-          meeting_id: meetingId,
+          company_id: profile.company_id,
           active_fully_compliant: newData.activeFullyCompliant,
           active_pending_documents: newData.activePendingDocuments,
-          onboarding_pending_documents: newData.onboardingPendingDocuments,
-          onboarding_fully_compliant: newData.onboardingFullyCompliant
+          onboarding_fully_compliant: newData.onboardingFullyCompliant,
+          onboarding_pending_documents: newData.onboardingPendingDocuments
         }, {
-          onConflict: 'meeting_id'
+          onConflict: 'company_id'
         });
-      
+
       if (error) {
-        console.error('Error saving staff documents data:', error);
+        console.error('Error saving staff documents analytics:', error);
       }
+    } catch (error) {
+      console.error('Error saving staff documents analytics:', error);
     }
   };
-  const EditableInput = ({
-    value,
-    onEdit,
-    label
-  }: {
-    value: number;
-    onEdit: (val: string) => void;
-    label: string;
-  }) => {
-    return <div className="flex items-center justify-between p-3 border border-border/30 rounded">
-        <span className="text-sm">{label}</span>
-        <Input value={value} onChange={e => onEdit(e.target.value)} style={{
-        MozAppearance: 'textfield'
-      }} type="number" min="0" className="w-16 h-8 text-sm text-right [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none bg-white" />
-      </div>;
+
+  const handleInputChange = (field: keyof typeof documentsData, value: number) => {
+    const newData = { ...documentsData, [field]: value };
+    setDocumentsData(newData);
+    saveData(newData);
   };
 
-  // Calculate bar chart data with stacking
-  const total = Object.values(documentsData).reduce((sum, val) => sum + val, 0);
+  const EditableInput = ({ label, value, onChange }: { label: string; value: number; onChange: (value: number) => void }) => {
+    const [editing, setEditing] = useState(false);
+    const [editValue, setEditValue] = useState('');
 
-  // Calculate totals and percentages for each category
+    const handleStartEdit = () => {
+      setEditing(true);
+      setEditValue(value.toString());
+    };
+
+    const handleSave = () => {
+      const numValue = parseInt(editValue) || 0;
+      onChange(numValue);
+      setEditing(false);
+    };
+
+    return (
+      <div className="flex flex-col gap-2">
+        <span className="text-sm font-medium">{label}:</span>
+        {editing ? (
+          <Input 
+            value={editValue} 
+            onChange={e => setEditValue(e.target.value)} 
+            onBlur={handleSave} 
+            onKeyDown={e => {
+              if (e.key === 'Enter') handleSave();
+              if (e.key === 'Escape') setEditing(false);
+            }} 
+            className="w-20 h-8 text-sm" 
+            autoFocus 
+          />
+        ) : (
+          <span className="cursor-pointer hover:bg-accent/50 p-2 rounded text-sm border" onClick={handleStartEdit}>
+            {value}
+          </span>
+        )}
+      </div>
+    );
+  };
+
   const activeTotal = documentsData.activeFullyCompliant + documentsData.activePendingDocuments;
   const onboardingTotal = documentsData.onboardingFullyCompliant + documentsData.onboardingPendingDocuments;
-  const activePendingPercentage = activeTotal > 0 ? Math.round(documentsData.activePendingDocuments / activeTotal * 100) : 0;
-  const activeCompliantPercentage = activeTotal > 0 ? Math.round(documentsData.activeFullyCompliant / activeTotal * 100) : 0;
-  const onboardingPendingPercentage = onboardingTotal > 0 ? Math.round(documentsData.onboardingPendingDocuments / onboardingTotal * 100) : 0;
-  const onboardingCompliantPercentage = onboardingTotal > 0 ? Math.round(documentsData.onboardingFullyCompliant / onboardingTotal * 100) : 0;
-  const barData = total > 0 ? [{
-    name: "Onboarding Staff",
-    fullyCompliant: documentsData.onboardingFullyCompliant,
-    pendingDocuments: documentsData.onboardingPendingDocuments
-  }, {
-    name: "Active Staff",
-    fullyCompliant: documentsData.activeFullyCompliant,
-    pendingDocuments: documentsData.activePendingDocuments
-  }].filter(item => item.fullyCompliant + item.pendingDocuments > 0) : [];
-  return <div className="space-y-8 mt-6 p-8 border border-border rounded-lg min-h-[600px] w-full bg-white">
+  
+  const barData = [
+    {
+      category: "Active Staff",
+      compliant: documentsData.activeFullyCompliant,
+      pending: documentsData.activePendingDocuments,
+    },
+    {
+      category: "Onboarding Staff", 
+      compliant: documentsData.onboardingFullyCompliant,
+      pending: documentsData.onboardingPendingDocuments,
+    },
+  ].filter(item => item.compliant > 0 || item.pending > 0);
+
+  return (
+    <div className="space-y-6 mt-4 p-6 border border-border rounded-lg bg-white">
       <div className="flex items-center justify-between">
-        <h4 className="text-xl font-semibold text-foreground">Staff Documents Analytics</h4>
-        
+        <h4 className="text-lg font-semibold text-foreground">Staff Documents Analytics</h4>
       </div>
       
-      {/* Staff Documents Input Section */}
-      <div className="space-y-2">
-        <div className="text-sm font-medium text-foreground">Staff Documents Numbers</div>
+      <div className="text-sm text-muted-foreground">Staff document compliance overview</div>
+      
+      {/* Input Grid */}
+      <div className="grid grid-cols-2 gap-6">
+        <div className="space-y-4 p-4 border rounded-lg">
+          <h5 className="font-medium">Active Staff</h5>
+          <div className="grid grid-cols-2 gap-4">
+            <EditableInput 
+              label="Fully Compliant" 
+              value={documentsData.activeFullyCompliant} 
+              onChange={(value) => handleInputChange('activeFullyCompliant', value)} 
+            />
+            <EditableInput 
+              label="Pending Documents" 
+              value={documentsData.activePendingDocuments} 
+              onChange={(value) => handleInputChange('activePendingDocuments', value)} 
+            />
+          </div>
+        </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <EditableInput value={documentsData.activeFullyCompliant} onEdit={val => handleInputChange('activeFullyCompliant', val)} label="Active - Compliant" />
-          <EditableInput value={documentsData.onboardingPendingDocuments} onEdit={val => handleInputChange('onboardingPendingDocuments', val)} label="Onboarding - Pending Documents" />
-          <EditableInput value={documentsData.activePendingDocuments} onEdit={val => handleInputChange('activePendingDocuments', val)} label="Active - Pending Documents" />
-          <EditableInput value={documentsData.onboardingFullyCompliant} onEdit={val => handleInputChange('onboardingFullyCompliant', val)} label="Onboarding - Compliant" />
+        <div className="space-y-4 p-4 border rounded-lg">
+          <h5 className="font-medium">Onboarding Staff</h5>
+          <div className="grid grid-cols-2 gap-4">
+            <EditableInput 
+              label="Fully Compliant" 
+              value={documentsData.onboardingFullyCompliant} 
+              onChange={(value) => handleInputChange('onboardingFullyCompliant', value)} 
+            />
+            <EditableInput 
+              label="Pending Documents" 
+              value={documentsData.onboardingPendingDocuments} 
+              onChange={(value) => handleInputChange('onboardingPendingDocuments', value)} 
+            />
+          </div>
         </div>
       </div>
 
-      {/* Bar Chart Section */}
-      {total > 0 && <div className="space-y-4">
-          <div className="text-sm font-medium text-foreground">Staff Documents Breakdown</div>
+      {/* Chart */}
+      {barData.length > 0 && (
+        <Card className="p-4 bg-white">
+          <ChartContainer config={chartConfig} className="h-64 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={barData} margin={{ top: 5, right: 5, bottom: 25, left: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
+                <XAxis dataKey="category" axisLine={false} tickLine={false} className="text-xs" />
+                <YAxis axisLine={false} tickLine={false} className="text-xs" />
+                <ChartTooltip content={<ChartTooltipContent />} />
+                <Bar dataKey="compliant" fill="#22c55e" name="Fully Compliant" />
+                <Bar dataKey="pending" fill="#f59e0b" name="Pending Documents" />
+              </BarChart>
+            </ResponsiveContainer>
+          </ChartContainer>
           
-          <Card className="p-8 bg-white">
-            <div className="flex flex-col items-center gap-8">
-              <div className="text-lg font-semibold text-center">Staff Documents Status Overview</div>
-              
-              <div className="w-full h-[400px]">
-                <ChartContainer config={chartConfig} className="w-full h-full">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={barData} margin={{
-                  top: 20,
-                  right: 30,
-                  left: 20,
-                  bottom: 5
-                }}>
-                      <XAxis dataKey="name" tick={{
-                    fontSize: 12
-                  }} angle={-45} textAnchor="end" height={80} />
-                      <YAxis />
-                      <ChartTooltip content={<ChartTooltipContent />} />
-                       <Bar dataKey="fullyCompliant" stackId="a" fill="#22c55e" />
-                       <Bar dataKey="pendingDocuments" stackId="a" fill="#f59e0b" />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </ChartContainer>
+          {/* Legend and Percentages */}
+          <div className="mt-4 pt-4 border-t border-border space-y-2">
+            <div className="flex justify-center gap-6">
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 bg-green-500 rounded"></div>
+                <span className="text-xs text-muted-foreground">Fully Compliant</span>
               </div>
-              
-               {/* Legend and Percentages */}
-               <div className="space-y-6">
-                 <div className="grid grid-cols-2 gap-4">
-                   <div className="flex items-center gap-3">
-                     <div className="w-4 h-4 rounded bg-[#22c55e]" />
-                     <span className="text-sm font-medium">Compliant</span>
-                   </div>
-                   <div className="flex items-center gap-3">
-                     <div className="w-4 h-4 rounded bg-[#f59e0b]" />
-                     <span className="text-sm font-medium">Pending Documents</span>
-                   </div>
-                 </div>
-                 
-                 {/* Percentage Breakdown */}
-                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-center">
-                   {activeTotal > 0 && <div className="space-y-2">
-                       <h5 className="font-medium text-foreground">Active Staff</h5>
-                       <div className="text-sm text-muted-foreground">
-                         <div>Compliant: {activeCompliantPercentage}%</div>
-                         
-                       </div>
-                     </div>}
-                   {onboardingTotal > 0 && <div className="space-y-2">
-                       <h5 className="font-medium text-foreground">Onboarding Staff</h5>
-                       <div className="text-sm text-muted-foreground">
-                         <div>Compliant: {onboardingCompliantPercentage}%</div>
-                         
-                       </div>
-                     </div>}
-                 </div>
-               </div>
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 bg-amber-500 rounded"></div>
+                <span className="text-xs text-muted-foreground">Pending Documents</span>
+              </div>
             </div>
-          </Card>
-        </div>}
-    </div>;
+            
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div className="text-center">
+                <div className="font-medium">Active Staff</div>
+                <div className="text-muted-foreground">
+                  {activeTotal > 0 ? `${Math.round((documentsData.activeFullyCompliant / activeTotal) * 100)}% Compliant` : 'No data'}
+                </div>
+              </div>
+              <div className="text-center">
+                <div className="font-medium">Onboarding Staff</div>
+                <div className="text-muted-foreground">
+                  {onboardingTotal > 0 ? `${Math.round((documentsData.onboardingFullyCompliant / onboardingTotal) * 100)}% Compliant` : 'No data'}
+                </div>
+              </div>
+            </div>
+          </div>
+        </Card>
+      )}
+    </div>
+  );
 };

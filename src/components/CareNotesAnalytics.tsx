@@ -15,8 +15,8 @@ const generateInitialData = (meetingDate?: Date) => {
     const monthName = date.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
     months.push({
       month: monthName,
-      totalRecordedCareNotes: 0,
-      nonCompliantCareNotes: 0
+      totalCareNotes: 0,
+      nonCompliant: 0
     });
   }
   
@@ -24,58 +24,14 @@ const generateInitialData = (meetingDate?: Date) => {
 };
 
 const chartConfig = {
-  totalRecordedCareNotes: {
-    label: "Total Recorded Care Notes",
+  totalCareNotes: {
+    label: "Total Care Notes",
     color: "hsl(var(--chart-1))",
   },
-  nonCompliantCareNotes: {
-    label: "Non Compliant Care Notes", 
+  nonCompliant: {
+    label: "Non-Compliant", 
     color: "hsl(var(--chart-2))",
   },
-};
-
-interface EditableCellProps {
-  value: number;
-  onChange: (value: number) => void;
-  placeholder?: string;
-}
-
-const EditableCell: React.FC<EditableCellProps> = ({ value, onChange, placeholder }) => {
-  const [editing, setEditing] = useState(false);
-  const [editValue, setEditValue] = useState('');
-
-  const handleStartEdit = () => {
-    setEditing(true);
-    setEditValue('');
-  };
-
-  const handleSave = () => {
-    const numValue = parseInt(editValue) || 0;
-    onChange(numValue);
-    setEditing(false);
-  };
-
-  if (editing) {
-    return (
-      <Input 
-        value={editValue} 
-        onChange={e => setEditValue(e.target.value)} 
-        onBlur={handleSave} 
-        onKeyDown={e => {
-          if (e.key === 'Enter') handleSave();
-          if (e.key === 'Escape') setEditing(false);
-        }} 
-        className="w-16 h-8 text-sm" 
-        autoFocus 
-      />
-    );
-  }
-
-  return (
-    <span className="cursor-pointer hover:bg-accent/50 p-1 rounded" onClick={handleStartEdit}>
-      {value}
-    </span>
-  );
 };
 
 interface CareNotesAnalyticsProps {
@@ -87,25 +43,35 @@ export const CareNotesAnalytics = ({ meetingDate, meetingId }: CareNotesAnalytic
   const { profile } = useAuth();
   const [monthlyData, setMonthlyData] = useState(generateInitialData(meetingDate));
 
-  // Load data from Supabase when component mounts or meetingId changes
   useEffect(() => {
-    if (meetingId && profile?.company_id) {
+    if (profile?.company_id) {
       loadData();
-    } else {
-      setMonthlyData(generateInitialData(meetingDate));
     }
-  }, [meetingId, profile?.company_id, meetingDate]);
+  }, [profile?.company_id]);
+
+  useEffect(() => {
+    const newMonthStructure = generateInitialData(meetingDate);
+    
+    if (monthlyData.length > 0) {
+      const preservedData = newMonthStructure.map(newMonth => {
+        const existingMonth = monthlyData.find(existing => existing.month === newMonth.month);
+        return existingMonth || newMonth;
+      });
+      setMonthlyData(preservedData);
+    } else {
+      setMonthlyData(newMonthStructure);
+    }
+  }, [meetingDate]);
 
   const loadData = async () => {
-    if (!meetingId || !profile?.company_id) return;
+    if (!profile?.company_id) return;
 
     try {
       const { data, error } = await supabase
         .from('care_notes_analytics')
         .select('monthly_data')
-        .eq('meeting_id', meetingId)
         .eq('company_id', profile.company_id)
-        .single();
+        .maybeSingle();
 
       if (error && error.code !== 'PGRST116') {
         console.error('Error loading care notes analytics:', error);
@@ -113,28 +79,32 @@ export const CareNotesAnalytics = ({ meetingDate, meetingId }: CareNotesAnalytic
       }
 
       if (data?.monthly_data) {
-        setMonthlyData(data.monthly_data as any[]);
-      } else {
-        setMonthlyData(generateInitialData(meetingDate));
+        const loadedData = data.monthly_data as any[];
+        const currentStructure = generateInitialData(meetingDate);
+        
+        const mergedData = currentStructure.map(current => {
+          const existing = loadedData.find(item => item.month === current.month);
+          return existing || current;
+        });
+        
+        setMonthlyData(mergedData);
       }
     } catch (error) {
       console.error('Error loading care notes analytics:', error);
-      setMonthlyData(generateInitialData(meetingDate));
     }
   };
 
   const saveData = async (newData: any[]) => {
-    if (!meetingId || !profile?.company_id) return;
+    if (!profile?.company_id) return;
 
     try {
       const { error } = await supabase
         .from('care_notes_analytics')
         .upsert({
-          meeting_id: meetingId,
           company_id: profile.company_id,
           monthly_data: newData
         }, {
-          onConflict: 'meeting_id,company_id'
+          onConflict: 'company_id'
         });
 
       if (error) {
@@ -145,11 +115,49 @@ export const CareNotesAnalytics = ({ meetingDate, meetingId }: CareNotesAnalytic
     }
   };
 
-  const handleCellEdit = (monthIndex: number, field: 'totalRecordedCareNotes' | 'nonCompliantCareNotes', value: number) => {
+  const handleCellEdit = (monthIndex: number, field: 'totalCareNotes' | 'nonCompliant', value: number) => {
     const newData = [...monthlyData];
     newData[monthIndex] = { ...newData[monthIndex], [field]: value };
     setMonthlyData(newData);
     saveData(newData);
+  };
+
+  const EditableCell = ({ value, onChange }: { value: number; onChange: (value: number) => void }) => {
+    const [editing, setEditing] = useState(false);
+    const [editValue, setEditValue] = useState('');
+
+    const handleStartEdit = () => {
+      setEditing(true);
+      setEditValue('');
+    };
+
+    const handleSave = () => {
+      const numValue = parseInt(editValue) || 0;
+      onChange(numValue);
+      setEditing(false);
+    };
+
+    if (editing) {
+      return (
+        <Input 
+          value={editValue} 
+          onChange={e => setEditValue(e.target.value)} 
+          onBlur={handleSave} 
+          onKeyDown={e => {
+            if (e.key === 'Enter') handleSave();
+            if (e.key === 'Escape') setEditing(false);
+          }} 
+          className="w-16 h-8 text-sm" 
+          autoFocus 
+        />
+      );
+    }
+
+    return (
+      <span className="cursor-pointer hover:bg-accent/50 p-1 rounded" onClick={handleStartEdit}>
+        {value}
+      </span>
+    );
   };
 
   return (
@@ -158,77 +166,68 @@ export const CareNotesAnalytics = ({ meetingDate, meetingId }: CareNotesAnalytic
         <h4 className="text-lg font-semibold text-foreground">Care Notes Analytics</h4>
       </div>
       
-      <div className="text-sm text-muted-foreground">Monthly care notes tracking and compliance monitoring across all service users (Past 12 Months)</div>
+      <div className="text-sm text-muted-foreground">Monthly care note compliance tracking (Past 12 Months)</div>
       
-      {/* Data Table */}
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm table-fixed">
-          <thead>
-            <tr className="border-b">
-              <th className="text-left p-3 font-medium w-1/3">Month</th>
-              <th className="text-left p-3 font-medium w-1/3">Total Recorded Care Notes</th>
-              <th className="text-left p-3 font-medium w-1/3">Non Compliant Care Notes</th>
-            </tr>
-          </thead>
-          <tbody>
-            {monthlyData.map((row, index) => (
-              <tr key={index} className="border-b border-border/30 hover:bg-accent/30">
-                <td className="p-3">{row.month}</td>
-                <td className="p-3">
-                  <EditableCell value={row.totalRecordedCareNotes} onChange={(value) => handleCellEdit(index, 'totalRecordedCareNotes', value)} />
-                </td>
-                <td className="p-3">
-                  <EditableCell value={row.nonCompliantCareNotes} onChange={(value) => handleCellEdit(index, 'nonCompliantCareNotes', value)} />
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      {/* Data Grid */}
+      <div className="grid grid-cols-4 gap-4">
+        {monthlyData.map((row, index) => (
+          <div key={index} className="p-3 border rounded-lg">
+            <div className="text-sm font-medium mb-2">{row.month}</div>
+            <div className="space-y-2">
+              <div>
+                <div className="text-xs text-muted-foreground mb-1">Total Notes:</div>
+                <EditableCell value={row.totalCareNotes} onChange={(value) => handleCellEdit(index, 'totalCareNotes', value)} />
+              </div>
+              <div>
+                <div className="text-xs text-muted-foreground mb-1">Non-Compliant:</div>
+                <EditableCell value={row.nonCompliant} onChange={(value) => handleCellEdit(index, 'nonCompliant', value)} />
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
 
       {/* Chart */}
-      <div className="space-y-2">
-        <Card className="p-4 bg-white">
-          <ChartContainer config={chartConfig} className="h-64 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <ComposedChart 
-                data={monthlyData} 
-                margin={{ top: 5, right: 5, bottom: 25, left: 5 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
-                <XAxis dataKey="month" axisLine={false} tickLine={false} className="text-xs" />
-                <YAxis axisLine={false} tickLine={false} className="text-xs" />
-                <ChartTooltip content={<ChartTooltipContent />} />
-                <Bar 
-                  dataKey="totalRecordedCareNotes" 
-                  fill="#3b82f6"
-                  name="Total Recorded Care Notes"
-                />
-                <Line 
-                  type="monotone" 
-                  dataKey="nonCompliantCareNotes" 
-                  stroke="#f59e0b"
-                  strokeWidth={2}
-                  dot={{ r: 3, fill: "#f59e0b" }}
-                  name="Non Compliant Care Notes"
-                />
-              </ComposedChart>
-            </ResponsiveContainer>
-          </ChartContainer>
-          
-          {/* Legend */}
-          <div className="flex flex-wrap justify-center gap-4 mt-4 pt-4 border-t border-border">
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-blue-500 rounded"></div>
-              <span className="text-xs text-muted-foreground">Total Recorded Care Notes</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-3 border-b-2 border-amber-500"></div>
-              <span className="text-xs text-muted-foreground">Non Compliant Care Notes</span>
-            </div>
+      <Card className="p-4 bg-white">
+        <ChartContainer config={chartConfig} className="h-64 w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            <ComposedChart 
+              data={monthlyData} 
+              margin={{ top: 5, right: 5, bottom: 25, left: 5 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
+              <XAxis dataKey="month" axisLine={false} tickLine={false} className="text-xs" />
+              <YAxis axisLine={false} tickLine={false} className="text-xs" />
+              <ChartTooltip content={<ChartTooltipContent />} />
+              <Bar 
+                dataKey="totalCareNotes" 
+                fill="#3b82f6"
+                name="Total Care Notes"
+              />
+              <Line 
+                type="monotone" 
+                dataKey="nonCompliant" 
+                stroke="#f59e0b"
+                strokeWidth={2}
+                dot={{ r: 3, fill: "#f59e0b" }}
+                name="Non-Compliant"
+              />
+            </ComposedChart>
+          </ResponsiveContainer>
+        </ChartContainer>
+        
+        {/* Legend */}
+        <div className="flex flex-wrap justify-center gap-4 mt-4 pt-4 border-t border-border">
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 bg-blue-500 rounded"></div>
+            <span className="text-xs text-muted-foreground">Total Care Notes</span>
           </div>
-        </Card>
-      </div>
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-3 border-b-2 border-amber-500"></div>
+            <span className="text-xs text-muted-foreground">Non-Compliant</span>
+          </div>
+        </div>
+      </Card>
     </div>
   );
 };

@@ -47,18 +47,15 @@ export const SpotCheckAnalytics = ({ monthlyStaffData = [], meetingDate, meeting
     probationFrequency: 1
   });
 
-  // Load data and regenerate months when meeting date or ID changes
   useEffect(() => {
-    if (meetingId && profile?.company_id) {
+    if (profile?.company_id) {
       loadData();
     }
-  }, [meetingId, profile?.company_id]);
+  }, [profile?.company_id]);
 
-  // Regenerate month structure when meeting date changes
   useEffect(() => {
     const newMonthStructure = generateInitialData(meetingDate);
     
-    // Preserve existing data by mapping it to the new structure
     if (monthlyData.length > 0) {
       const preservedData = newMonthStructure.map(newMonth => {
         const existingMonth = monthlyData.find(existing => existing.month === newMonth.month);
@@ -71,17 +68,16 @@ export const SpotCheckAnalytics = ({ monthlyStaffData = [], meetingDate, meeting
   }, [meetingDate]);
 
   const loadData = async () => {
-    if (!meetingId || !profile?.company_id) return;
+    if (!profile?.company_id) return;
 
     try {
       const { data, error } = await supabase
         .from('spot_check_analytics')
         .select('*')
-        .eq('meeting_id', meetingId)
         .eq('company_id', profile.company_id)
         .maybeSingle();
 
-      if (error) {
+      if (error && error.code !== 'PGRST116') {
         console.error('Error loading spot check data:', error);
         return;
       }
@@ -91,7 +87,18 @@ export const SpotCheckAnalytics = ({ monthlyStaffData = [], meetingDate, meeting
           passedFrequency: data.passed_frequency,
           probationFrequency: data.probation_frequency
         });
-        setMonthlyData((data.monthly_data as any[]) || generateInitialData(meetingDate));
+        
+        if (data.monthly_data) {
+          const loadedData = data.monthly_data as any[];
+          const currentStructure = generateInitialData(meetingDate);
+          
+          const mergedData = currentStructure.map(current => {
+            const existing = loadedData.find(item => item.month === current.month);
+            return existing || current;
+          });
+          
+          setMonthlyData(mergedData);
+        }
       }
     } catch (error) {
       console.error('Error in loadData:', error);
@@ -99,21 +106,18 @@ export const SpotCheckAnalytics = ({ monthlyStaffData = [], meetingDate, meeting
   };
 
   const saveData = async (newMetrics?: typeof metrics, newMonthlyData?: typeof monthlyData) => {
-    if (!meetingId || !profile?.company_id) return;
-
-    const dataToSave = {
-      meeting_id: meetingId,
-      company_id: profile.company_id,
-      passed_frequency: newMetrics?.passedFrequency ?? metrics.passedFrequency,
-      probation_frequency: newMetrics?.probationFrequency ?? metrics.probationFrequency,
-      monthly_data: newMonthlyData || monthlyData
-    };
+    if (!profile?.company_id) return;
 
     try {
       const { error } = await supabase
         .from('spot_check_analytics')
-        .upsert(dataToSave, {
-          onConflict: 'meeting_id,company_id'
+        .upsert({
+          company_id: profile.company_id,
+          passed_frequency: newMetrics?.passedFrequency ?? metrics.passedFrequency,
+          probation_frequency: newMetrics?.probationFrequency ?? metrics.probationFrequency,
+          monthly_data: newMonthlyData || monthlyData
+        }, {
+          onConflict: 'company_id'
         });
 
       if (error) {

@@ -1,112 +1,130 @@
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import React, { useState, useEffect } from "react";
+import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+
 const generateInitialData = (meetingDate?: Date) => {
   const months = [];
-  const now = meetingDate || new Date();
+  const currentDate = meetingDate || new Date();
+  
   for (let i = 11; i >= 0; i--) {
-    const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    const monthStr = date.toLocaleDateString('en-GB', {
-      month: 'short',
-      year: '2-digit'
-    });
+    const date = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1);
+    const monthName = date.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
     months.push({
-      month: monthStr,
+      month: monthName,
       highSU: 0,
       mediumSU: 0,
       lowSU: 0,
       completed: 0
     });
   }
+  
   return months;
 };
+
 const chartConfig = {
   completed: {
-    label: "Completed",
-    color: "hsl(var(--chart-1))"
+    label: "Completed Reviews",
+    color: "hsl(var(--chart-1))",
   },
   target: {
-    label: "Target",
-    color: "hsl(var(--chart-2))"
-  }
+    label: "Target Reviews", 
+    color: "hsl(var(--chart-2))",
+  },
 };
+
 interface CarePlanAnalyticsProps {
   meetingDate?: Date;
   meetingId?: string;
 }
-export const CarePlanAnalytics = ({
-  meetingDate,
-  meetingId
-}: CarePlanAnalyticsProps) => {
+
+export const CarePlanAnalytics = ({ meetingDate, meetingId }: CarePlanAnalyticsProps) => {
   const { profile } = useAuth();
   const [monthlyData, setMonthlyData] = useState(generateInitialData(meetingDate));
-
-  // Update data when meeting date changes
-  useEffect(() => {
-    setMonthlyData(generateInitialData(meetingDate));
-  }, [meetingDate]);
   const [frequencies, setFrequencies] = useState({
-    high: 6,
-    medium: 12,
-    low: 24
+    highFrequency: 6,
+    mediumFrequency: 12,
+    lowFrequency: 24
   });
 
-  // Load data from database on component mount
   useEffect(() => {
-    const loadData = async () => {
-      if (!meetingId) return;
-      try {
-        const {
-          data,
-          error
-        } = await supabase.from('care_plan_analytics').select('*').eq('meeting_id', meetingId).maybeSingle();
-        if (error) {
-          console.error('Error loading care plan analytics:', error);
-          return;
-        }
-        console.log('CarePlanAnalytics - loaded data:', data);
-        if (data) {
-          // Load monthly data if it exists
-          if (data.monthly_data && Array.isArray(data.monthly_data) && data.monthly_data.length > 0) {
-            setMonthlyData(data.monthly_data);
-          }
+    if (profile?.company_id) {
+      loadData();
+    }
+  }, [profile?.company_id]);
 
-          // Load frequency settings
-          setFrequencies({
-            high: data.high_frequency || 6,
-            medium: data.medium_frequency || 12,
-            low: data.low_frequency || 24
-          });
-        }
-      } catch (error) {
-        console.error('Error loading care plan analytics:', error);
-      }
-    };
-    loadData();
-  }, [meetingId]);
-
-  // Save all data to database
-  const saveAllData = async (newMonthlyData?: typeof monthlyData, newFrequencies?: typeof frequencies) => {
-    if (!meetingId || !profile?.company_id) return;
-    try {
-      const dataToSave = {
-        meeting_id: meetingId,
-        company_id: profile.company_id,
-        monthly_data: newMonthlyData ?? monthlyData,
-        high_frequency: newFrequencies?.high ?? frequencies.high,
-        medium_frequency: newFrequencies?.medium ?? frequencies.medium,
-        low_frequency: newFrequencies?.low ?? frequencies.low
-      };
-      const {
-        error
-      } = await supabase.from('care_plan_analytics').upsert(dataToSave, {
-        onConflict: 'meeting_id,company_id'
+  useEffect(() => {
+    const newMonthStructure = generateInitialData(meetingDate);
+    
+    if (monthlyData.length > 0) {
+      const preservedData = newMonthStructure.map(newMonth => {
+        const existingMonth = monthlyData.find(existing => existing.month === newMonth.month);
+        return existingMonth || newMonth;
       });
+      setMonthlyData(preservedData);
+    } else {
+      setMonthlyData(newMonthStructure);
+    }
+  }, [meetingDate]);
+
+  const loadData = async () => {
+    if (!profile?.company_id) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('care_plan_analytics')
+        .select('*')
+        .eq('company_id', profile.company_id)
+        .maybeSingle();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error loading care plan analytics:', error);
+        return;
+      }
+
+      if (data) {
+        setFrequencies({
+          highFrequency: data.high_frequency,
+          mediumFrequency: data.medium_frequency,
+          lowFrequency: data.low_frequency
+        });
+        
+        if (data.monthly_data) {
+          const loadedData = data.monthly_data as any[];
+          const currentStructure = generateInitialData(meetingDate);
+          
+          const mergedData = currentStructure.map(current => {
+            const existing = loadedData.find(item => item.month === current.month);
+            return existing || current;
+          });
+          
+          setMonthlyData(mergedData);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading care plan analytics:', error);
+    }
+  };
+
+  const saveData = async (newFrequencies?: typeof frequencies, newMonthlyData?: typeof monthlyData) => {
+    if (!profile?.company_id) return;
+
+    try {
+      const { error } = await supabase
+        .from('care_plan_analytics')
+        .upsert({
+          company_id: profile.company_id,
+          high_frequency: newFrequencies?.highFrequency ?? frequencies.highFrequency,
+          medium_frequency: newFrequencies?.mediumFrequency ?? frequencies.mediumFrequency,
+          low_frequency: newFrequencies?.lowFrequency ?? frequencies.lowFrequency,
+          monthly_data: newMonthlyData || monthlyData
+        }, {
+          onConflict: 'company_id'
+        });
+
       if (error) {
         console.error('Error saving care plan analytics:', error);
       }
@@ -114,156 +132,204 @@ export const CarePlanAnalytics = ({
       console.error('Error saving care plan analytics:', error);
     }
   };
-  const dataWithTargets = monthlyData.map(month => {
-    const highTarget = month.highSU / frequencies.high;
-    const mediumTarget = month.mediumSU / frequencies.medium;
-    const lowTarget = month.lowSU / frequencies.low;
-    const totalTarget = Math.round(highTarget + mediumTarget + lowTarget);
+
+  const handleFrequencyChange = (field: keyof typeof frequencies, value: number) => {
+    const newFrequencies = { ...frequencies, [field]: value };
+    setFrequencies(newFrequencies);
+    saveData(newFrequencies);
+  };
+
+  const handleCellEdit = (monthIndex: number, field: 'highSU' | 'mediumSU' | 'lowSU' | 'completed', value: number) => {
+    const newData = [...monthlyData];
+    newData[monthIndex] = { ...newData[monthIndex], [field]: value };
+    setMonthlyData(newData);
+    saveData(undefined, newData);
+  };
+
+  // Calculate targets based on service users and frequencies
+  const dataWithTargets = monthlyData.map((month) => {
+    const highTarget = Math.ceil(month.highSU / frequencies.highFrequency);
+    const mediumTarget = Math.ceil(month.mediumSU / frequencies.mediumFrequency);
+    const lowTarget = Math.ceil(month.lowSU / frequencies.lowFrequency);
+    
     return {
       ...month,
-      target: totalTarget
+      target: highTarget + mediumTarget + lowTarget
     };
   });
-  const handleFrequencyChange = (category: keyof typeof frequencies, value: string) => {
-    const numValue = parseInt(value) || 1;
-    const newFrequencies = {
-      ...frequencies,
-      [category]: numValue
+
+  const EditableCell = ({ value, onChange }: { value: number; onChange: (value: number) => void }) => {
+    const [editing, setEditing] = useState(false);
+    const [editValue, setEditValue] = useState('');
+
+    const handleStartEdit = () => {
+      setEditing(true);
+      setEditValue('');
     };
-    setFrequencies(newFrequencies);
-    saveAllData(undefined, newFrequencies);
-  };
-  const handleCellEdit = (monthIndex: number, field: string, value: string) => {
-    const numValue = parseInt(value) || 0;
-    const newMonthlyData = monthlyData.map((month, index) => index === monthIndex ? {
-      ...month,
-      [field]: numValue
-    } : month);
-    setMonthlyData(newMonthlyData);
-    saveAllData(newMonthlyData, undefined);
-  };
-  const EditableCell = ({
-    value,
-    onEdit
-  }: {
-    value: number;
-    onEdit: (value: string) => void;
-  }) => {
-    const [isEditing, setIsEditing] = useState(false);
-    const [editValue, setEditValue] = useState(value.toString());
-    useEffect(() => {
-      setEditValue(value.toString());
-    }, [value]);
-    const handleSubmit = () => {
-      onEdit(editValue);
-      setIsEditing(false);
+
+    const handleSave = () => {
+      const numValue = parseInt(editValue) || 0;
+      onChange(numValue);
+      setEditing(false);
     };
-    const handleKeyPress = (e: React.KeyboardEvent) => {
-      if (e.key === 'Enter') {
-        handleSubmit();
-      } else if (e.key === 'Escape') {
-        setEditValue(value.toString());
-        setIsEditing(false);
-      }
-    };
-    if (isEditing) {
-      return <Input value={editValue} onChange={e => setEditValue(e.target.value)} onBlur={handleSubmit} onKeyDown={handleKeyPress} className="h-8 w-16 text-center" autoFocus />;
+
+    if (editing) {
+      return (
+        <Input 
+          value={editValue} 
+          onChange={e => setEditValue(e.target.value)} 
+          onBlur={handleSave} 
+          onKeyDown={e => {
+            if (e.key === 'Enter') handleSave();
+            if (e.key === 'Escape') setEditing(false);
+          }} 
+          className="w-16 h-8 text-sm" 
+          autoFocus 
+        />
+      );
     }
-    return <div onClick={() => setIsEditing(true)} className="h-8 w-16 flex items-center justify-center cursor-pointer hover:bg-muted rounded text-center">
+
+    return (
+      <span className="cursor-pointer hover:bg-accent/50 p-1 rounded" onClick={handleStartEdit}>
         {value}
-      </div>;
+      </span>
+    );
   };
-  const EditableInput = ({
-    label,
-    value,
-    onChange
-  }: {
-    label: string;
-    value: number;
-    onChange: (value: string) => void;
-  }) => <div className="flex items-center gap-2">
-      <Label className="text-sm font-medium whitespace-nowrap">{label}:</Label>
-      <Input type="number" value={value} onChange={e => onChange(e.target.value)} className="w-20 h-8" min="1" />
-      <span className="text-sm text-muted-foreground">months</span>
-    </div>;
-  return <Card className="w-full">
-      <CardHeader className="bg-white">
-        <CardTitle>Care Plan & Risk Assessment Analytics</CardTitle>
-        <CardDescription>
-          Monthly service user categories, completed reviews, and targets based on review frequencies
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-6 bg-white">
 
-        {/* Frequency Settings */}
-        <div className="grid grid-cols-3 gap-4 p-4 rounded-lg bg-white">
-          <EditableInput label="High Frequency" value={frequencies.high} onChange={value => handleFrequencyChange('high', value)} />
-          <EditableInput label="Medium Frequency" value={frequencies.medium} onChange={value => handleFrequencyChange('medium', value)} />
-          <EditableInput label="Low Frequency" value={frequencies.low} onChange={value => handleFrequencyChange('low', value)} />
-        </div>
+  const EditableInput = ({ label, value, onChange }: { label: string; value: number; onChange: (value: number) => void }) => {
+    const [editing, setEditing] = useState(false);
+    const [editValue, setEditValue] = useState('');
 
-        {/* Monthly Data Grid */}
-        <div className="space-y-4">
-          <h3 className="text-lg font-semibold">Monthly Data</h3>
-          <div className="grid grid-cols-5 gap-2 text-sm font-medium p-2 bg-muted/30 rounded">
-            <div>Month</div>
-            <div className="text-center">High SU</div>
-            <div className="text-center">Medium SU</div>
-            <div className="text-center">Low SU</div>
-            <div className="text-center">Completed</div>
-          </div>
-          
-          {monthlyData.map((month, index) => <div key={month.month} className="grid grid-cols-5 gap-2 items-center p-2 hover:bg-muted/20 rounded">
-              <div className="font-medium">{month.month}</div>
-              <div className="flex justify-center">
-                <EditableCell value={month.highSU} onEdit={value => handleCellEdit(index, 'highSU', value)} />
-              </div>
-              <div className="flex justify-center">
-                <EditableCell value={month.mediumSU} onEdit={value => handleCellEdit(index, 'mediumSU', value)} />
-              </div>
-              <div className="flex justify-center">
-                <EditableCell value={month.lowSU} onEdit={value => handleCellEdit(index, 'lowSU', value)} />
-              </div>
-              <div className="flex justify-center">
-                <EditableCell value={month.completed} onEdit={value => handleCellEdit(index, 'completed', value)} />
-              </div>
-            </div>)}
-        </div>
+    const handleStartEdit = () => {
+      setEditing(true);
+      setEditValue(value.toString());
+    };
 
-        {/* Chart */}
-        <div className="space-y-4">
-          
-          <ChartContainer config={chartConfig} className="h-[500px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <ComposedChart data={dataWithTargets} margin={{
-              top: 20,
-              right: 30,
-              left: 20,
-              bottom: 5
-            }}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
-                <YAxis />
-                <ChartTooltip content={<ChartTooltipContent />} />
-                <Bar dataKey="completed" fill="var(--color-completed)" name="Completed Reviews" />
-                <Line type="monotone" dataKey="target" stroke="var(--color-target)" strokeWidth={3} dot={{
-                r: 4
-              }} name="Target Reviews" />
-              </ComposedChart>
-            </ResponsiveContainer>
-          </ChartContainer>
-          
-          <div className="flex gap-6 text-sm">
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-chart-1 rounded"></div>
-              
+    const handleSave = () => {
+      const numValue = parseInt(editValue) || 1;
+      onChange(Math.max(1, numValue));
+      setEditing(false);
+    };
+
+    return (
+      <div className="flex items-center gap-2">
+        <span className="text-sm font-medium">{label}:</span>
+        {editing ? (
+          <Input 
+            value={editValue} 
+            onChange={e => setEditValue(e.target.value)} 
+            onBlur={handleSave} 
+            onKeyDown={e => {
+              if (e.key === 'Enter') handleSave();
+              if (e.key === 'Escape') setEditing(false);
+            }} 
+            className="w-20 h-8 text-sm" 
+            autoFocus 
+          />
+        ) : (
+          <span className="cursor-pointer hover:bg-accent/50 p-1 rounded text-sm" onClick={handleStartEdit}>
+            {value} {value === 1 ? 'month' : 'months'}
+          </span>
+        )}
+      </div>
+    );
+  };
+
+  return (
+    <div className="space-y-6 mt-4 p-6 border border-border rounded-lg bg-white">
+      <div className="flex items-center justify-between">
+        <h4 className="text-lg font-semibold text-foreground">Care Plan Analytics</h4>
+      </div>
+      
+      <div className="text-sm text-muted-foreground">Monthly care plan review tracking with calculated targets (Past 12 Months)</div>
+      
+      {/* Frequency Settings */}
+      <div className="flex flex-wrap gap-6 p-4 bg-accent/30 rounded-lg">
+        <EditableInput 
+          label="High Risk Frequency" 
+          value={frequencies.highFrequency} 
+          onChange={(value) => handleFrequencyChange('highFrequency', value)} 
+        />
+        <EditableInput 
+          label="Medium Risk Frequency" 
+          value={frequencies.mediumFrequency} 
+          onChange={(value) => handleFrequencyChange('mediumFrequency', value)} 
+        />
+        <EditableInput 
+          label="Low Risk Frequency" 
+          value={frequencies.lowFrequency} 
+          onChange={(value) => handleFrequencyChange('lowFrequency', value)} 
+        />
+      </div>
+
+      {/* Data Grid */}
+      <div className="grid grid-cols-4 gap-4">
+        {monthlyData.map((row, index) => (
+          <div key={index} className="p-3 border rounded-lg">
+            <div className="text-sm font-medium mb-2">{row.month}</div>
+            <div className="space-y-2">
+              <div>
+                <div className="text-xs text-muted-foreground mb-1">High SU:</div>
+                <EditableCell value={row.highSU} onChange={(value) => handleCellEdit(index, 'highSU', value)} />
+              </div>
+              <div>
+                <div className="text-xs text-muted-foreground mb-1">Medium SU:</div>
+                <EditableCell value={row.mediumSU} onChange={(value) => handleCellEdit(index, 'mediumSU', value)} />
+              </div>
+              <div>
+                <div className="text-xs text-muted-foreground mb-1">Low SU:</div>
+                <EditableCell value={row.lowSU} onChange={(value) => handleCellEdit(index, 'lowSU', value)} />
+              </div>
+              <div>
+                <div className="text-xs text-muted-foreground mb-1">Completed:</div>
+                <EditableCell value={row.completed} onChange={(value) => handleCellEdit(index, 'completed', value)} />
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              
-              
-            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Chart */}
+      <Card className="p-4 bg-white">
+        <ChartContainer config={chartConfig} className="h-64 w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            <ComposedChart 
+              data={dataWithTargets} 
+              margin={{ top: 5, right: 5, bottom: 25, left: 5 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
+              <XAxis dataKey="month" axisLine={false} tickLine={false} className="text-xs" />
+              <YAxis axisLine={false} tickLine={false} className="text-xs" />
+              <ChartTooltip content={<ChartTooltipContent />} />
+              <Bar 
+                dataKey="completed" 
+                fill="#3b82f6"
+                name="Completed Reviews"
+              />
+              <Line 
+                type="monotone" 
+                dataKey="target" 
+                stroke="#f59e0b"
+                strokeWidth={2}
+                dot={{ r: 3, fill: "#f59e0b" }}
+                name="Target Reviews"
+              />
+            </ComposedChart>
+          </ResponsiveContainer>
+        </ChartContainer>
+        
+        {/* Legend */}
+        <div className="flex flex-wrap justify-center gap-4 mt-4 pt-4 border-t border-border">
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 bg-blue-500 rounded"></div>
+            <span className="text-xs text-muted-foreground">Completed Reviews</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-3 border-b-2 border-amber-500"></div>
+            <span className="text-xs text-muted-foreground">Target Reviews</span>
           </div>
         </div>
-      </CardContent>
-    </Card>;
+      </Card>
+    </div>
+  );
 };

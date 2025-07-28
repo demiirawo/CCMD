@@ -34,50 +34,6 @@ const chartConfig = {
   },
 };
 
-interface EditableCellProps {
-  value: number;
-  onChange: (value: number) => void;
-  placeholder?: string;
-}
-
-const EditableCell: React.FC<EditableCellProps> = ({ value, onChange, placeholder }) => {
-  const [editing, setEditing] = useState(false);
-  const [editValue, setEditValue] = useState('');
-
-  const handleStartEdit = () => {
-    setEditing(true);
-    setEditValue('');
-  };
-
-  const handleSave = () => {
-    const numValue = parseInt(editValue) || 0;
-    onChange(numValue);
-    setEditing(false);
-  };
-
-  if (editing) {
-    return (
-      <Input 
-        value={editValue} 
-        onChange={e => setEditValue(e.target.value)} 
-        onBlur={handleSave} 
-        onKeyDown={e => {
-          if (e.key === 'Enter') handleSave();
-          if (e.key === 'Escape') setEditing(false);
-        }} 
-        className="w-16 h-8 text-sm" 
-        autoFocus 
-      />
-    );
-  }
-
-  return (
-    <span className="cursor-pointer hover:bg-accent/50 p-1 rounded" onClick={handleStartEdit}>
-      {value}
-    </span>
-  );
-};
-
 interface MedicationAnalyticsProps {
   meetingDate?: Date;
   meetingId?: string;
@@ -87,25 +43,37 @@ export const MedicationAnalytics = ({ meetingDate, meetingId }: MedicationAnalyt
   const { profile } = useAuth();
   const [monthlyData, setMonthlyData] = useState(generateInitialData(meetingDate));
 
-  // Load data from Supabase when component mounts or meetingId changes
+  // Load data from company (not per meeting) to ensure persistence
   useEffect(() => {
-    if (meetingId && profile?.company_id) {
+    if (profile?.company_id) {
       loadData();
-    } else {
-      setMonthlyData(generateInitialData(meetingDate));
     }
-  }, [meetingId, profile?.company_id, meetingDate]);
+  }, [profile?.company_id]);
+
+  // Regenerate month structure when meeting date changes, preserving data
+  useEffect(() => {
+    const newMonthStructure = generateInitialData(meetingDate);
+    
+    if (monthlyData.length > 0) {
+      const preservedData = newMonthStructure.map(newMonth => {
+        const existingMonth = monthlyData.find(existing => existing.month === newMonth.month);
+        return existingMonth || newMonth;
+      });
+      setMonthlyData(preservedData);
+    } else {
+      setMonthlyData(newMonthStructure);
+    }
+  }, [meetingDate]);
 
   const loadData = async () => {
-    if (!meetingId || !profile?.company_id) return;
+    if (!profile?.company_id) return;
 
     try {
       const { data, error } = await supabase
         .from('medication_analytics')
         .select('monthly_data')
-        .eq('meeting_id', meetingId)
         .eq('company_id', profile.company_id)
-        .single();
+        .maybeSingle();
 
       if (error && error.code !== 'PGRST116') {
         console.error('Error loading medication analytics:', error);
@@ -113,28 +81,33 @@ export const MedicationAnalytics = ({ meetingDate, meetingId }: MedicationAnalyt
       }
 
       if (data?.monthly_data) {
-        setMonthlyData(data.monthly_data as any[]);
-      } else {
-        setMonthlyData(generateInitialData(meetingDate));
+        const loadedData = data.monthly_data as any[];
+        const currentStructure = generateInitialData(meetingDate);
+        
+        // Merge loaded data with current structure
+        const mergedData = currentStructure.map(current => {
+          const existing = loadedData.find(item => item.month === current.month);
+          return existing || current;
+        });
+        
+        setMonthlyData(mergedData);
       }
     } catch (error) {
       console.error('Error loading medication analytics:', error);
-      setMonthlyData(generateInitialData(meetingDate));
     }
   };
 
   const saveData = async (newData: any[]) => {
-    if (!meetingId || !profile?.company_id) return;
+    if (!profile?.company_id) return;
 
     try {
       const { error } = await supabase
         .from('medication_analytics')
         .upsert({
-          meeting_id: meetingId,
           company_id: profile.company_id,
           monthly_data: newData
         }, {
-          onConflict: 'meeting_id,company_id'
+          onConflict: 'company_id'
         });
 
       if (error) {
@@ -152,83 +125,112 @@ export const MedicationAnalytics = ({ meetingDate, meetingId }: MedicationAnalyt
     saveData(newData);
   };
 
+  const EditableCell = ({ value, onChange }: { value: number; onChange: (value: number) => void }) => {
+    const [editing, setEditing] = useState(false);
+    const [editValue, setEditValue] = useState('');
+
+    const handleStartEdit = () => {
+      setEditing(true);
+      setEditValue('');
+    };
+
+    const handleSave = () => {
+      const numValue = parseInt(editValue) || 0;
+      onChange(numValue);
+      setEditing(false);
+    };
+
+    if (editing) {
+      return (
+        <Input 
+          value={editValue} 
+          onChange={e => setEditValue(e.target.value)} 
+          onBlur={handleSave} 
+          onKeyDown={e => {
+            if (e.key === 'Enter') handleSave();
+            if (e.key === 'Escape') setEditing(false);
+          }} 
+          className="w-16 h-8 text-sm" 
+          autoFocus 
+        />
+      );
+    }
+
+    return (
+      <span className="cursor-pointer hover:bg-accent/50 p-1 rounded" onClick={handleStartEdit}>
+        {value}
+      </span>
+    );
+  };
+
   return (
     <div className="space-y-6 mt-4 p-6 border border-border rounded-lg bg-white">
       <div className="flex items-center justify-between">
         <h4 className="text-lg font-semibold text-foreground">Medication Analytics</h4>
       </div>
       
-      <div className="text-sm text-muted-foreground">Monthly medication records and error tracking across all service users (Past 12 Months)</div>
+      <div className="text-sm text-muted-foreground">Monthly medication records and error tracking (Past 12 Months)</div>
       
-      {/* Data Table */}
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm table-fixed">
-          <thead>
-            <tr className="border-b">
-              <th className="text-left p-3 font-medium w-1/3">Month</th>
-              <th className="text-left p-3 font-medium w-1/3">Medication Records</th>
-              <th className="text-left p-3 font-medium w-1/3">Incorrect Outcomes</th>
-            </tr>
-          </thead>
-          <tbody>
-            {monthlyData.map((row, index) => (
-              <tr key={index} className="border-b border-border/30 hover:bg-accent/30">
-                <td className="p-3">{row.month}</td>
-                <td className="p-3">
-                  <EditableCell value={row.medicationRecords} onChange={(value) => handleCellEdit(index, 'medicationRecords', value)} />
-                </td>
-                <td className="p-3">
-                  <EditableCell value={row.incorrectOutcomes} onChange={(value) => handleCellEdit(index, 'incorrectOutcomes', value)} />
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      {/* Data Grid */}
+      <div className="grid grid-cols-4 gap-4">
+        {monthlyData.map((row, index) => (
+          <div key={index} className="p-3 border rounded-lg">
+            <div className="text-sm font-medium mb-2">{row.month}</div>
+            <div className="space-y-2">
+              <div>
+                <div className="text-xs text-muted-foreground mb-1">Records:</div>
+                <EditableCell value={row.medicationRecords} onChange={(value) => handleCellEdit(index, 'medicationRecords', value)} />
+              </div>
+              <div>
+                <div className="text-xs text-muted-foreground mb-1">Errors:</div>
+                <EditableCell value={row.incorrectOutcomes} onChange={(value) => handleCellEdit(index, 'incorrectOutcomes', value)} />
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
 
       {/* Chart */}
-      <div className="space-y-2">
-        <Card className="p-4 bg-white">
-          <ChartContainer config={chartConfig} className="h-64 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <ComposedChart 
-                data={monthlyData} 
-                margin={{ top: 5, right: 5, bottom: 25, left: 5 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
-                <XAxis dataKey="month" axisLine={false} tickLine={false} className="text-xs" />
-                <YAxis axisLine={false} tickLine={false} className="text-xs" />
-                <ChartTooltip content={<ChartTooltipContent />} />
-                <Bar 
-                  dataKey="medicationRecords" 
-                  fill="#3b82f6"
-                  name="Medication Records"
-                />
-                <Line 
-                  type="monotone" 
-                  dataKey="incorrectOutcomes" 
-                  stroke="#f59e0b"
-                  strokeWidth={2}
-                  dot={{ r: 3, fill: "#f59e0b" }}
-                  name="Incorrect Outcomes"
-                />
-              </ComposedChart>
-            </ResponsiveContainer>
-          </ChartContainer>
-          
-          {/* Legend */}
-          <div className="flex flex-wrap justify-center gap-4 mt-4 pt-4 border-t border-border">
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-blue-500 rounded"></div>
-              <span className="text-xs text-muted-foreground">Medication Records</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-3 border-b-2 border-amber-500"></div>
-              <span className="text-xs text-muted-foreground">Incorrect Outcomes</span>
-            </div>
+      <Card className="p-4 bg-white">
+        <ChartContainer config={chartConfig} className="h-64 w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            <ComposedChart 
+              data={monthlyData} 
+              margin={{ top: 5, right: 5, bottom: 25, left: 5 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
+              <XAxis dataKey="month" axisLine={false} tickLine={false} className="text-xs" />
+              <YAxis axisLine={false} tickLine={false} className="text-xs" />
+              <ChartTooltip content={<ChartTooltipContent />} />
+              <Bar 
+                dataKey="medicationRecords" 
+                fill="#3b82f6"
+                name="Medication Records"
+              />
+              <Line 
+                type="monotone" 
+                dataKey="incorrectOutcomes" 
+                stroke="#f59e0b"
+                strokeWidth={2}
+                dot={{ r: 3, fill: "#f59e0b" }}
+                name="Incorrect Outcomes"
+              />
+            </ComposedChart>
+          </ResponsiveContainer>
+        </ChartContainer>
+        
+        {/* Legend */}
+        <div className="flex flex-wrap justify-center gap-4 mt-4 pt-4 border-t border-border">
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 bg-blue-500 rounded"></div>
+            <span className="text-xs text-muted-foreground">Medication Records</span>
           </div>
-        </Card>
-      </div>
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-3 border-b-2 border-amber-500"></div>
+            <span className="text-xs text-muted-foreground">Incorrect Outcomes</span>
+          </div>
+        </div>
+      </Card>
     </div>
   );
 };
