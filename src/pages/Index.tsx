@@ -1048,6 +1048,8 @@ const Index = () => {
     }
   };
 
+  console.log('Rendering Index with actionsLog length:', actionsLog.length, 'actionsLog:', actionsLog);
+  
   return (
     <div className="min-h-screen bg-gray-100 p-4 lg:p-8">
       <div className="w-[90%] mx-auto space-y-6">
