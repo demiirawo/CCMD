@@ -302,28 +302,28 @@ export const StatusItem = ({
             console.log('StatusItem: Checking resourcing for title:', item.title, 'toLowerCase:', item.title.toLowerCase(), 'shouldRender:', shouldRender);
             if (shouldRender) {
               console.log('StatusItem: Rendering CapacityAnalytics for:', item.title, 'meetingId:', meetingId);
-              return <CapacityAnalytics onMonthlyStaffDataChange={onMonthlyStaffDataChange} meetingDate={meetingDate} meetingId={meetingId} />;
+              return <CapacityAnalytics onMonthlyStaffDataChange={onMonthlyStaffDataChange} meetingDate={meetingDate} sessionId={meetingId} />;
             }
             return null;
           })()}
           
-          {item.title.toLowerCase().includes('staff documents') && <StaffDocumentsAnalytics meetingId={meetingId} />}
+          {item.title.toLowerCase().includes('staff documents') && <StaffDocumentsAnalytics sessionId={meetingId} />}
           
-          {item.title.toLowerCase().includes('training') && <StaffTrainingAnalytics meetingId={meetingId} />}
+          {item.title.toLowerCase().includes('training') && <StaffTrainingAnalytics sessionId={meetingId} />}
           
-          {item.title.toLowerCase().includes('spot check') && <SpotCheckAnalytics monthlyStaffData={monthlyStaffData} meetingDate={meetingDate} meetingId={meetingId} />}
+          {item.title.toLowerCase().includes('spot check') && <SpotCheckAnalytics monthlyStaffData={monthlyStaffData} meetingDate={meetingDate} sessionId={meetingId} />}
           
-          {item.title.toLowerCase().includes('supervision') && <SupervisionAnalytics monthlyStaffData={monthlyStaffData} meetingDate={meetingDate} meetingId={meetingId} />}
+          {item.title.toLowerCase().includes('supervision') && <SupervisionAnalytics monthlyStaffData={monthlyStaffData} meetingDate={meetingDate} sessionId={meetingId} />}
           
-          {item.title.toLowerCase().includes('care plans') && <CarePlanAnalytics meetingDate={meetingDate} meetingId={meetingId} />}
+          {item.title.toLowerCase().includes('care plans') && <CarePlanAnalytics meetingDate={meetingDate} sessionId={meetingId} />}
           
-          {item.title.toLowerCase().includes('medication management') && <MedicationAnalytics meetingDate={meetingDate} meetingId={meetingId} />}
+          {item.title.toLowerCase().includes('medication management') && <MedicationAnalytics meetingDate={meetingDate} sessionId={meetingId} />}
           
-          {item.title.toLowerCase().includes('care notes') && <CareNotesAnalytics meetingDate={meetingDate} meetingId={meetingId} />}
+          {item.title.toLowerCase().includes('care notes') && <CareNotesAnalytics meetingDate={meetingDate} sessionId={meetingId} />}
           
-          {item.title.toLowerCase().includes('incidents') && <IncidentsAnalytics meetingDate={meetingDate} meetingId={meetingId} />}
+          {item.title.toLowerCase().includes('incidents') && <IncidentsAnalytics meetingDate={meetingDate} sessionId={meetingId} />}
           
-          {item.title.toLowerCase().includes('feedback') && <FeedbackAnalytics meetingDate={meetingDate} meetingId={meetingId} />}
+          {item.title.toLowerCase().includes('feedback') && <FeedbackAnalytics meetingDate={meetingDate} sessionId={meetingId} />}
           
         </div>}
     </div>;
