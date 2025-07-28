@@ -226,7 +226,7 @@ export const IncidentsAnalytics = ({ meetingDate, meetingId }: IncidentsAnalytic
               />
               <Bar 
                 dataKey="safeguarding" 
-                fill="#dc2626"
+                fill="#3b82f6"
                 name="Safeguarding"
                 stackId="incidents"
               />
@@ -253,7 +253,7 @@ export const IncidentsAnalytics = ({ meetingDate, meetingId }: IncidentsAnalytic
             <span className="text-xs text-muted-foreground">Accidents</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-4 h-4 bg-red-600 rounded"></div>
+            <div className="w-4 h-4 bg-blue-500 rounded"></div>
             <span className="text-xs text-muted-foreground">Safeguarding</span>
           </div>
           <div className="flex items-center gap-2">
