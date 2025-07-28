@@ -47,12 +47,28 @@ export const SupervisionAnalytics = ({ monthlyStaffData = [], meetingDate, meeti
     probationFrequency: 1
   });
 
-  // Load data on mount
+  // Load data and regenerate months when meeting date or ID changes
   useEffect(() => {
     if (meetingId && profile?.company_id) {
       loadData();
     }
   }, [meetingId, profile?.company_id]);
+
+  // Regenerate month structure when meeting date changes
+  useEffect(() => {
+    const newMonthStructure = generateInitialData(meetingDate);
+    
+    // Preserve existing data by mapping it to the new structure
+    if (monthlyData.length > 0) {
+      const preservedData = newMonthStructure.map(newMonth => {
+        const existingMonth = monthlyData.find(existing => existing.month === newMonth.month);
+        return existingMonth || newMonth;
+      });
+      setMonthlyData(preservedData);
+    } else {
+      setMonthlyData(newMonthStructure);
+    }
+  }, [meetingDate]);
 
   const loadData = async () => {
     if (!meetingId || !profile?.company_id) return;
