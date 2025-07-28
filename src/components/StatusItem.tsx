@@ -87,6 +87,7 @@ export const StatusItem = ({
     onActionsChange?.(item.id, actions);
   };
   const handleActionCreated = (name: string, description: string, targetDate: string, actionId: string) => {
+    console.log('Action created in StatusItem:', { name, description, targetDate, actionId, itemTitle: item.title });
     // Create action entry for the actions log with the same ID for syncing
     onActionCreated?.(item.title, name, `Action from ${item.title}`, description, targetDate, actionId);
   };

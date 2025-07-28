@@ -629,7 +629,14 @@ const Index = () => {
       sourceId: subsectionActionId ? `subsection-${itemTitle}` : undefined
     };
     
-    setActionsLog(prev => [newAction, ...prev]);
+    console.log('Action created in Index.tsx:', newAction);
+    console.log('Current actions log before adding:', actionsLog);
+    
+    setActionsLog(prev => {
+      const newLog = [newAction, ...prev];
+      console.log('New actions log after adding:', newLog);
+      return newLog;
+    });
     
     toast({
       title: "Action Created",
