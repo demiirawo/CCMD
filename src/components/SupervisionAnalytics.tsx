@@ -49,6 +49,7 @@ export const SupervisionAnalytics = ({ monthlyStaffData = [], meetingDate, meeti
 
   // Load data from database on component mount
   useEffect(() => {
+    console.log('SupervisionAnalytics: useEffect triggered with meetingId:', meetingId, 'companyId:', profile?.company_id);
     const loadData = async () => {
       if (!meetingId || !profile?.company_id) return;
 

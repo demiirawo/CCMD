@@ -845,6 +845,8 @@ const Index = () => {
   };
   
   const handleActionCreated = async (itemTitle: string, mentionedAttendee: string, comment: string, action: string, dueDate: string, subsectionActionId?: string) => {
+    console.log('Index: handleActionCreated called with meetingIds:', { currentMeetingId, tempMeetingId });
+    
     const actionId = subsectionActionId || `action-${Date.now()}`;
     const newAction: ActionLogEntry = {
       id: actionId,
@@ -860,14 +862,16 @@ const Index = () => {
       sourceId: subsectionActionId ? `subsection-${itemTitle}` : undefined
     };
     
-    console.log('Action created in Index.tsx:', newAction);
-    console.log('Current actions log before adding:', actionsLog);
+    console.log('Index: Action created:', newAction);
+    console.log('Index: Current actions log before adding:', actionsLog);
     
     setActionsLog(prev => {
       const newLog = [newAction, ...prev];
-      console.log('New actions log after adding:', newLog);
+      console.log('Index: New actions log after adding:', newLog);
       return newLog;
     });
+
+    console.log('Index: meetingIds after setActionsLog:', { currentMeetingId, tempMeetingId });
 
     // Save action to database immediately
     if (profile?.company_id) {

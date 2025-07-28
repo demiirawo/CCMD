@@ -48,6 +48,7 @@ export const SpotCheckAnalytics = ({ monthlyStaffData = [], meetingDate, meeting
 
   // Load data from database on component mount
   useEffect(() => {
+    console.log('SpotCheckAnalytics: useEffect triggered with meetingId:', meetingId, 'companyId:', profile?.company_id);
     const loadData = async () => {
       console.log('SpotCheckAnalytics: Loading data with meetingId:', meetingId, 'companyId:', profile?.company_id);
       
