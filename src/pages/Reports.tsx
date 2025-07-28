@@ -4,9 +4,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CalendarDays, FileText, Users } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { CalendarDays, FileText, Users, Eye, Trash2, Clock, Target } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { MeetingStatusSummary } from "@/components/MeetingStatusSummary";
+import { StatusBadge } from "@/components/StatusBadge";
 
 interface Meeting {
   id: string;
@@ -81,6 +84,40 @@ export const Reports = () => {
       console.error('Error:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const deleteMeeting = async (meetingId: string) => {
+    try {
+      const { error } = await supabase
+        .from('meetings')
+        .delete()
+        .eq('id', meetingId);
+
+      if (error) {
+        console.error('Error deleting meeting:', error);
+        toast({
+          title: "Delete Failed",
+          description: "Failed to delete the meeting",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Remove from local state
+      setMeetings(meetings.filter(meeting => meeting.id !== meetingId));
+      
+      toast({
+        title: "Meeting Deleted",
+        description: "The meeting has been successfully deleted"
+      });
+    } catch (error) {
+      console.error('Error deleting meeting:', error);
+      toast({
+        title: "Delete Failed", 
+        description: "An unexpected error occurred",
+        variant: "destructive"
+      });
     }
   };
 
@@ -220,8 +257,135 @@ export const Reports = () => {
                                     <p className="text-sm text-gray-700">{meeting.purpose}</p>
                                   )}
                                 </div>
-                                <div className="ml-4 flex-shrink-0">
+                                <div className="ml-4 flex items-center gap-2">
                                   <MeetingStatusSummary sections={meeting.sections} />
+                                  
+                                  {/* View Details Dialog */}
+                                  <Dialog>
+                                    <DialogTrigger asChild>
+                                      <Button variant="outline" size="sm" className="gap-1">
+                                        <Eye className="h-4 w-4" />
+                                        View
+                                      </Button>
+                                    </DialogTrigger>
+                                    <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+                                      <DialogHeader>
+                                        <DialogTitle className="text-xl">{meeting.title}</DialogTitle>
+                                      </DialogHeader>
+                                      
+                                      <div className="space-y-6">
+                                        {/* Meeting Header Info */}
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
+                                          <div className="flex items-center gap-2">
+                                            <CalendarDays className="h-5 w-5 text-gray-500" />
+                                            <div>
+                                              <p className="text-sm font-medium">Date & Time</p>
+                                              <p className="text-sm text-gray-600">{formatDate(meeting.date)}</p>
+                                            </div>
+                                          </div>
+                                          <div className="flex items-center gap-2">
+                                            <Users className="h-5 w-5 text-gray-500" />
+                                            <div>
+                                              <p className="text-sm font-medium">Attendees</p>
+                                              <p className="text-sm text-gray-600">{meeting.attendees.length} people</p>
+                                            </div>
+                                          </div>
+                                          {meeting.purpose && (
+                                            <div className="md:col-span-2 flex items-start gap-2">
+                                              <Target className="h-5 w-5 text-gray-500 mt-0.5" />
+                                              <div>
+                                                <p className="text-sm font-medium">Purpose</p>
+                                                <p className="text-sm text-gray-600">{meeting.purpose}</p>
+                                              </div>
+                                            </div>
+                                          )}
+                                        </div>
+
+                                        {/* Attendees List */}
+                                        {meeting.attendees.length > 0 && (
+                                          <div>
+                                            <h3 className="text-lg font-semibold mb-3">Attendees</h3>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                              {meeting.attendees.map((attendee, index) => (
+                                                <div key={index} className="flex items-center gap-2 p-2 bg-gray-50 rounded">
+                                                  <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                                                    <span className="text-sm font-medium text-blue-700">
+                                                      {attendee.name.charAt(0).toUpperCase()}
+                                                    </span>
+                                                  </div>
+                                                  <div>
+                                                    <p className="text-sm font-medium">{attendee.name}</p>
+                                                    {attendee.email && (
+                                                      <p className="text-xs text-gray-500">{attendee.email}</p>
+                                                    )}
+                                                  </div>
+                                                </div>
+                                              ))}
+                                            </div>
+                                          </div>
+                                        )}
+
+                                        {/* Sections Overview */}
+                                        <div>
+                                          <h3 className="text-lg font-semibold mb-3">Meeting Sections</h3>
+                                          <div className="space-y-3">
+                                            {meeting.sections.map((section) => {
+                                              const statusCounts = section.items.reduce((acc, item) => {
+                                                acc[item.status] = (acc[item.status] || 0) + 1;
+                                                return acc;
+                                              }, {} as Record<string, number>);
+
+                                              return (
+                                                <div key={section.id} className="border rounded-lg p-4">
+                                                  <div className="flex items-center justify-between mb-2">
+                                                    <h4 className="font-medium">{section.title}</h4>
+                                                    <div className="flex items-center gap-1">
+                                                      {Object.entries(statusCounts).map(([status, count]) => (
+                                                        <div key={status} className="flex items-center gap-1">
+                                                          <StatusBadge status={status as any} />
+                                                          <span className="text-sm text-gray-600">{count}</span>
+                                                        </div>
+                                                      ))}
+                                                    </div>
+                                                  </div>
+                                                  <p className="text-sm text-gray-600">
+                                                    {section.items.length} item{section.items.length !== 1 ? 's' : ''} reviewed
+                                                  </p>
+                                                </div>
+                                              );
+                                            })}
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </DialogContent>
+                                  </Dialog>
+
+                                  {/* Delete Meeting Dialog */}
+                                  <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                      <Button variant="outline" size="sm" className="gap-1 text-red-600 hover:text-red-700 hover:bg-red-50">
+                                        <Trash2 className="h-4 w-4" />
+                                        Delete
+                                      </Button>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                      <AlertDialogHeader>
+                                        <AlertDialogTitle>Delete Meeting</AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                          Are you sure you want to delete "{meeting.title}"? This action cannot be undone.
+                                        </AlertDialogDescription>
+                                      </AlertDialogHeader>
+                                      <AlertDialogFooter>
+                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                        <AlertDialogAction 
+                                          onClick={() => deleteMeeting(meeting.id)}
+                                          className="bg-red-600 hover:bg-red-700"
+                                        >
+                                          Delete
+                                        </AlertDialogAction>
+                                      </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                  </AlertDialog>
                                 </div>
                               </div>
                             </div>
