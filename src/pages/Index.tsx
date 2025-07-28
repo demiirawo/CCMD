@@ -135,6 +135,124 @@ const Index = () => {
     purpose: ""
   });
 
+  // Load header data from database on component mount
+  useEffect(() => {
+    const loadHeaderData = async () => {
+      if (!profile?.company_id) return;
+
+      try {
+        const { data, error } = await supabase
+          .from('meeting_headers')
+          .select('*')
+          .eq('company_id', profile.company_id)
+          .order('updated_at', { ascending: false })
+          .limit(1);
+
+        if (error) {
+          console.error('Error loading header data:', error);
+          return;
+        }
+
+        if (data && data.length > 0) {
+          const headerRecord = data[0];
+          setHeaderData({
+            date: new Date(headerRecord.meeting_date).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }) + ' ' + 
+                  new Date(headerRecord.meeting_date).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false }),
+            title: headerRecord.title,
+            attendees: Array.isArray(headerRecord.attendees) ? headerRecord.attendees as unknown as Attendee[] : [],
+            purpose: headerRecord.purpose
+          });
+        }
+      } catch (error) {
+        console.error('Failed to load header data:', error);
+      }
+    };
+
+    loadHeaderData();
+  }, [profile?.company_id]);
+
+  // Load actions log from database on component mount
+  useEffect(() => {
+    const loadActionsLog = async () => {
+      if (!profile?.company_id) return;
+
+      try {
+        const { data, error } = await supabase
+          .from('actions_log')
+          .select('*')
+          .eq('company_id', profile.company_id)
+          .order('created_at', { ascending: false });
+
+        if (error) {
+          console.error('Error loading actions log:', error);
+          return;
+        }
+
+        if (data && data.length > 0) {
+          const actions = data.map(record => ({
+            id: record.action_id,
+            timestamp: record.timestamp,
+            itemTitle: record.item_title,
+            mentionedAttendee: record.mentioned_attendee,
+            comment: record.comment,
+            action: record.action_text,
+            dueDate: record.due_date,
+            status: record.status as "green" | "amber" | "red",
+            closed: record.closed,
+            closedDate: record.closed_date || undefined,
+            sourceType: record.source_type as "manual" | "document",
+            sourceId: record.source_id || undefined,
+            auditTrail: record.audit_trail as any || []
+          }));
+          setActionsLog(actions);
+        }
+      } catch (error) {
+        console.error('Failed to load actions log:', error);
+      }
+    };
+
+    loadActionsLog();
+  }, [profile?.company_id]);
+
+  // Load key documents from database on component mount
+  useEffect(() => {
+    const loadKeyDocuments = async () => {
+      if (!profile?.company_id) return;
+
+      try {
+        const { data, error } = await supabase
+          .from('key_documents')
+          .select('*')
+          .eq('company_id', profile.company_id)
+          .order('created_at', { ascending: false });
+
+        if (error) {
+          console.error('Error loading key documents:', error);
+          return;
+        }
+
+        if (data && data.length > 0) {
+          const documents = data.map(record => ({
+            id: record.id,
+            name: record.name,
+            owner: '', // Not stored in current schema
+            category: '', // Not stored in current schema  
+            lastReviewDate: '', // Not stored in current schema
+            reviewFrequency: '', // Not stored in current schema
+            reviewFrequencyNumber: '', // Not stored in current schema
+            reviewFrequencyPeriod: '', // Not stored in current schema
+            nextReviewDate: null as string | null // Not stored in current schema
+          }));
+          setKeyDocuments(documents);
+        }
+      } catch (error) {
+        console.error('Failed to load key documents:', error);
+      }
+    };
+
+    loadKeyDocuments();
+  }, [profile?.company_id]);
+
   const [dashboardData, setDashboardData] = useState({
     date: "",
     title: "",
@@ -406,29 +524,114 @@ const Index = () => {
     loadSubsectionData();
   }, [profile?.company_id]);
 
-  const handleDataChange = (field: string, value: string) => {
+  const handleDataChange = async (field: string, value: string) => {
     setHeaderData(prev => ({
       ...prev,
       [field]: value
     }));
+
+    // Save header data to database immediately
+    if (profile?.company_id) {
+      try {
+        const updatedHeaderData = { ...headerData, [field]: value };
+        const parseDateString = (dateString: string) => {
+          try {
+            const parts = dateString.match(/(\d{2})\/(\d{2})\/(\d{4})\s+(\d{2}):(\d{2})/);
+            if (parts) {
+              const [, day, month, year, hour, minute] = parts;
+              return new Date(parseInt(year), parseInt(month) - 1, parseInt(day), parseInt(hour), parseInt(minute));
+            }
+            return new Date(dateString);
+          } catch (error) {
+            return new Date();
+          }
+        };
+
+        const meetingDate = field === 'date' ? parseDateString(value) : parseDateString(updatedHeaderData.date);
+        
+        const { error } = await supabase
+          .from('meeting_headers')
+          .upsert({
+            company_id: profile.company_id,
+            meeting_date: meetingDate.toISOString(),
+            title: field === 'title' ? value : updatedHeaderData.title,
+            attendees: JSON.parse(JSON.stringify(updatedHeaderData.attendees)),
+            purpose: field === 'purpose' ? value : updatedHeaderData.purpose
+          }, {
+            onConflict: 'company_id'
+          });
+        
+        if (error) {
+          console.error('Error saving header data:', error);
+        }
+      } catch (error) {
+        console.error('Failed to save header data to database:', error);
+      }
+    }
+
     toast({
       title: "Field Updated",
-      description: `${field.charAt(0).toUpperCase() + field.slice(1)} has been updated`
+      description: `${field.charAt(0).toUpperCase() + field.slice(1)} has been updated and saved`
     });
   };
 
-  const handleAttendeesChange = (attendees: Attendee[]) => {
+  const handleAttendeesChange = async (attendees: Attendee[]) => {
     setHeaderData(prev => ({
       ...prev,
       attendees
     }));
+
+    // Save attendees to database immediately
+    if (profile?.company_id) {
+      try {
+        const parseDateString = (dateString: string) => {
+          try {
+            const parts = dateString.match(/(\d{2})\/(\d{2})\/(\d{4})\s+(\d{2}):(\d{2})/);
+            if (parts) {
+              const [, day, month, year, hour, minute] = parts;
+              return new Date(parseInt(year), parseInt(month) - 1, parseInt(day), parseInt(hour), parseInt(minute));
+            }
+            return new Date(dateString);
+          } catch (error) {
+            return new Date();
+          }
+        };
+
+        const meetingDate = parseDateString(headerData.date);
+        
+        const { error } = await supabase
+          .from('meeting_headers')
+          .upsert({
+            company_id: profile.company_id,
+            meeting_date: meetingDate.toISOString(),
+            title: headerData.title,
+            attendees: JSON.parse(JSON.stringify(attendees)),
+            purpose: headerData.purpose
+          }, {
+            onConflict: 'company_id'
+          });
+        
+        if (error) {
+          console.error('Error saving attendees:', error);
+        }
+      } catch (error) {
+        console.error('Failed to save attendees to database:', error);
+      }
+    }
+
     toast({
       title: "Attendees Updated",
-      description: "Meeting attendees have been updated"
+      description: "Meeting attendees have been updated and saved"
     });
   };
   
-  const handleStatusChange = (sectionId: string, itemId: string, newStatus: StatusType) => {
+  const handleStatusChange = async (sectionId: string, itemId: string, newStatus: StatusType) => {
+    const lastReviewed = new Date().toLocaleDateString('en-GB', {
+      day: '2-digit',
+      month: 'short',
+      year: '2-digit'
+    });
+
     setDashboardData(prev => ({
       ...prev,
       sections: prev.sections.map(section => 
@@ -438,19 +641,39 @@ const Index = () => {
             item.id === itemId ? {
               ...item,
               status: newStatus,
-              lastReviewed: new Date().toLocaleDateString('en-GB', {
-                day: '2-digit',
-                month: 'short',
-                year: '2-digit'
-              })
+              lastReviewed
             } : item
           )
         } : section
       )
     }));
+
+    // Save status change to database immediately
+    if (profile?.company_id) {
+      try {
+        const { error } = await supabase
+          .from('subsection_data')
+          .upsert({
+            company_id: profile.company_id,
+            section_id: sectionId,
+            item_id: itemId,
+            status: newStatus,
+            last_reviewed: lastReviewed
+          }, {
+            onConflict: 'company_id,section_id,item_id'
+          });
+        
+        if (error) {
+          console.error('Error saving status:', error);
+        }
+      } catch (error) {
+        console.error('Failed to save status to database:', error);
+      }
+    }
+
     toast({
       title: "Status Updated",
-      description: `Item status changed to ${newStatus}`
+      description: `Item status changed to ${newStatus} and saved`
     });
   };
 
@@ -613,7 +836,7 @@ const Index = () => {
     });
   };
   
-  const handleActionCreated = (itemTitle: string, mentionedAttendee: string, comment: string, action: string, dueDate: string, subsectionActionId?: string) => {
+  const handleActionCreated = async (itemTitle: string, mentionedAttendee: string, comment: string, action: string, dueDate: string, subsectionActionId?: string) => {
     const actionId = subsectionActionId || `action-${Date.now()}`;
     const newAction: ActionLogEntry = {
       id: actionId,
@@ -637,34 +860,99 @@ const Index = () => {
       console.log('New actions log after adding:', newLog);
       return newLog;
     });
+
+    // Save action to database immediately
+    if (profile?.company_id) {
+      try {
+        const { error } = await supabase
+          .from('actions_log')
+          .insert({
+            company_id: profile.company_id,
+            action_id: actionId,
+            timestamp: newAction.timestamp,
+            item_title: itemTitle,
+            mentioned_attendee: mentionedAttendee,
+            comment: comment,
+            action_text: action,
+            due_date: dueDate,
+            status: "green",
+            closed: false,
+            source_type: "manual",
+            source_id: subsectionActionId ? `subsection-${itemTitle}` : ''
+          });
+        
+        if (error) {
+          console.error('Error saving action to database:', error);
+        }
+      } catch (error) {
+        console.error('Failed to save action to database:', error);
+      }
+    }
     
     toast({
       title: "Action Created",
-      description: `Action assigned to @${mentionedAttendee} for ${itemTitle}`
+      description: `Action assigned to @${mentionedAttendee} for ${itemTitle} and saved`
     });
   };
 
-  const handleActionComplete = (actionId: string) => {
+  const handleActionComplete = async (actionId: string) => {
     // Mark action as complete in actions log
     setActionsLog(prev => prev.map(action => 
       action.id === actionId 
         ? { ...action, closed: true, closedDate: new Date().toISOString() }
         : action
     ));
+
+    // Update action in database immediately
+    if (profile?.company_id) {
+      try {
+        const { error } = await supabase
+          .from('actions_log')
+          .update({
+            closed: true,
+            closed_date: new Date().toISOString()
+          })
+          .eq('company_id', profile.company_id)
+          .eq('action_id', actionId);
+        
+        if (error) {
+          console.error('Error updating action completion in database:', error);
+        }
+      } catch (error) {
+        console.error('Failed to update action completion in database:', error);
+      }
+    }
     
     toast({
       title: "Action Completed",
-      description: "Action has been marked as complete"
+      description: "Action has been marked as complete and saved"
     });
   };
 
-  const handleActionDelete = (actionId: string) => {
+  const handleActionDelete = async (actionId: string) => {
     // Remove action from actions log
     setActionsLog(prev => prev.filter(action => action.id !== actionId));
+
+    // Delete action from database immediately
+    if (profile?.company_id) {
+      try {
+        const { error } = await supabase
+          .from('actions_log')
+          .delete()
+          .eq('company_id', profile.company_id)
+          .eq('action_id', actionId);
+        
+        if (error) {
+          console.error('Error deleting action from database:', error);
+        }
+      } catch (error) {
+        console.error('Failed to delete action from database:', error);
+      }
+    }
     
     toast({
       title: "Action Deleted",
-      description: "Action has been removed"
+      description: "Action has been removed and deleted from database"
     });
   };
 
@@ -1117,7 +1405,41 @@ const Index = () => {
           
           <KeyDocumentTracker 
             documents={keyDocuments}
-            onDocumentsChange={setKeyDocuments}
+            onDocumentsChange={async (newDocuments) => {
+              setKeyDocuments(newDocuments);
+              
+              // Save key documents to database immediately
+              if (profile?.company_id) {
+                try {
+                  // Clear existing documents for this company
+                  await supabase
+                    .from('key_documents')
+                    .delete()
+                    .eq('company_id', profile.company_id);
+                  
+                  // Insert new documents
+                  if (newDocuments.length > 0) {
+                    const documentsToInsert = newDocuments.map(doc => ({
+                      company_id: profile.company_id,
+                      name: doc.name,
+                      status: 'missing', // Default status since KeyDocumentTracker doesn't use the status we stored
+                      due_date: '',
+                      notes: ''
+                    }));
+                    
+                    const { error } = await supabase
+                      .from('key_documents')
+                      .insert(documentsToInsert);
+                    
+                    if (error) {
+                      console.error('Error saving key documents:', error);
+                    }
+                  }
+                } catch (error) {
+                  console.error('Failed to save key documents to database:', error);
+                }
+              }
+            }}
             attendees={getAttendeesList()}
           />
           

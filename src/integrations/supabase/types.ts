@@ -14,6 +14,66 @@ export type Database = {
   }
   public: {
     Tables: {
+      actions_log: {
+        Row: {
+          action_id: string
+          action_text: string
+          audit_trail: Json | null
+          closed: boolean
+          closed_date: string | null
+          comment: string
+          company_id: string
+          created_at: string
+          due_date: string
+          id: string
+          item_title: string
+          mentioned_attendee: string
+          source_id: string | null
+          source_type: string | null
+          status: string
+          timestamp: string
+          updated_at: string
+        }
+        Insert: {
+          action_id: string
+          action_text: string
+          audit_trail?: Json | null
+          closed?: boolean
+          closed_date?: string | null
+          comment: string
+          company_id: string
+          created_at?: string
+          due_date: string
+          id?: string
+          item_title: string
+          mentioned_attendee: string
+          source_id?: string | null
+          source_type?: string | null
+          status?: string
+          timestamp: string
+          updated_at?: string
+        }
+        Update: {
+          action_id?: string
+          action_text?: string
+          audit_trail?: Json | null
+          closed?: boolean
+          closed_date?: string | null
+          comment?: string
+          company_id?: string
+          created_at?: string
+          due_date?: string
+          id?: string
+          item_title?: string
+          mentioned_attendee?: string
+          source_id?: string | null
+          source_type?: string | null
+          status?: string
+          timestamp?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       care_notes_analytics: {
         Row: {
           company_id: string | null
@@ -184,6 +244,39 @@ export type Database = {
         }
         Relationships: []
       }
+      key_documents: {
+        Row: {
+          company_id: string
+          created_at: string
+          due_date: string | null
+          id: string
+          name: string
+          notes: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          due_date?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          due_date?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       medication_analytics: {
         Row: {
           company_id: string | null
@@ -207,6 +300,39 @@ export type Database = {
           id?: string
           meeting_id?: string | null
           monthly_data?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      meeting_headers: {
+        Row: {
+          attendees: Json
+          company_id: string
+          created_at: string
+          id: string
+          meeting_date: string
+          purpose: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          attendees?: Json
+          company_id: string
+          created_at?: string
+          id?: string
+          meeting_date?: string
+          purpose?: string
+          title?: string
+          updated_at?: string
+        }
+        Update: {
+          attendees?: Json
+          company_id?: string
+          created_at?: string
+          id?: string
+          meeting_date?: string
+          purpose?: string
+          title?: string
           updated_at?: string
         }
         Relationships: []
@@ -485,9 +611,11 @@ export type Database = {
           created_at: string
           id: string
           item_id: string
+          last_reviewed: string | null
           metadata: Json | null
           observation: string | null
           section_id: string
+          status: string | null
           updated_at: string
         }
         Insert: {
@@ -496,9 +624,11 @@ export type Database = {
           created_at?: string
           id?: string
           item_id: string
+          last_reviewed?: string | null
           metadata?: Json | null
           observation?: string | null
           section_id: string
+          status?: string | null
           updated_at?: string
         }
         Update: {
@@ -507,9 +637,11 @@ export type Database = {
           created_at?: string
           id?: string
           item_id?: string
+          last_reviewed?: string | null
           metadata?: Json | null
           observation?: string | null
           section_id?: string
+          status?: string | null
           updated_at?: string
         }
         Relationships: []
