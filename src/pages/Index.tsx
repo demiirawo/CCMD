@@ -50,47 +50,36 @@ const Index = () => {
   // Function to update temporary analytics data with real meeting ID
   const updateTemporaryAnalyticsData = async (tempId: string, realId: string) => {
     try {
-      // List of all analytics tables to update
-      const analyticsTabels = [
-        'resourcing_analytics',
-        'care_plan_analytics', 
-        'spot_check_analytics',
-        'staff_documents_analytics',
-        'staff_training_analytics',
-        'supervision_analytics',
-        'incidents_analytics',
-        'medication_analytics',
-        'care_notes_analytics',
-        'feedback_analytics'
-      ];
-
-      for (const tableName of analyticsTabels) {
-        // Get all temporary analytics data for this table
-        const { data: tempData } = await supabase
-          .from(tableName as any)
-          .select('*')
-          .eq('meeting_id', tempId);
+      // Update dashboard_data records that were stored with the temporary session ID
+      const { data: tempData, error: fetchError } = await (supabase as any)
+        .from('dashboard_data')
+        .select('*')
+        .eq('meeting_id', tempId);
+      
+      if (fetchError) {
+        console.error('Error fetching temporary dashboard data:', fetchError);
+        return;
+      }
+      
+      if (tempData && tempData.length > 0) {
+        console.log(`Found ${tempData.length} temporary dashboard data records to update`);
         
-        if (tempData && tempData.length > 0) {
-          // Update each record with the real meeting ID
-          for (const record of tempData) {
-            if (record && typeof record === 'object') {
-              const { id, ...recordWithoutId } = record as any;
-              await supabase
-                .from(tableName as any)
-                .upsert({
-                  ...recordWithoutId,
-                  meeting_id: realId
-                });
-            }
-          }
+        // Update each record with the real meeting ID
+        for (const record of tempData) {
+          const { id, ...recordWithoutId } = record;
+          const { error: updateError } = await (supabase as any)
+            .from('dashboard_data')
+            .update({ meeting_id: realId })
+            .eq('id', id);
           
-          // Delete the temporary records
-          await supabase
-            .from(tableName as any)
-            .delete()
-            .eq('meeting_id', tempId);
+          if (updateError) {
+            console.error('Error updating dashboard data record:', updateError);
+          }
         }
+        
+        console.log('Successfully updated temporary analytics data with real meeting ID');
+      } else {
+        console.log('No temporary analytics data found to update');
       }
     } catch (error) {
       console.error('Error updating temporary analytics data:', error);

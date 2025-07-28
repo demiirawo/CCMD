@@ -70,13 +70,15 @@ export const CapacityAnalytics = ({ onMonthlyStaffDataChange, meetingDate, meeti
   }, [meetingDate, profile?.company_id]);
 
   const loadData = async () => {
-    if (!profile?.company_id) return;
+    if (!profile?.company_id || !meetingId) return;
 
     try {
-      const { data, error } = await supabase
-        .from('resourcing_analytics')
-        .select('monthly_data')
+      const { data, error } = await (supabase as any)
+        .from('dashboard_data')
+        .select('data_content')
         .eq('company_id', profile.company_id)
+        .eq('meeting_id', meetingId)
+        .eq('data_type', 'resourcing_analytics')
         .maybeSingle();
 
       if (error && error.code !== 'PGRST116') {
@@ -84,8 +86,8 @@ export const CapacityAnalytics = ({ onMonthlyStaffDataChange, meetingDate, meeti
         return;
       }
 
-      if (data?.monthly_data) {
-        const loadedData = data.monthly_data as any[];
+      if (data?.data_content?.monthly_data) {
+        const loadedData = data.data_content.monthly_data as any[];
         const currentStructure = generateInitialData(meetingDate);
         
         const mergedData = currentStructure.map(current => {
@@ -94,28 +96,37 @@ export const CapacityAnalytics = ({ onMonthlyStaffDataChange, meetingDate, meeti
         });
         
         setMonthlyData(mergedData);
+        console.log('Successfully loaded resourcing analytics data');
+      } else {
+        // Initialize with empty data if no existing data found
+        setMonthlyData(generateInitialData(meetingDate));
       }
     } catch (error) {
       console.error('Error loading resourcing analytics:', error);
+      // Fallback to initial data
+      setMonthlyData(generateInitialData(meetingDate));
     }
   };
 
   const saveData = async (newData: any[]) => {
-    if (!profile?.company_id) return;
+    if (!profile?.company_id || !meetingId) return;
 
     try {
-      const { error } = await supabase
-        .from('resourcing_analytics')
+      const { error } = await (supabase as any)
+        .from('dashboard_data')
         .upsert({
           company_id: profile.company_id,
-          month: 'all',
-          monthly_data: newData
+          meeting_id: meetingId,
+          data_type: 'resourcing_analytics',
+          data_content: { monthly_data: newData }
         }, {
-          onConflict: 'company_id'
+          onConflict: 'company_id,meeting_id,data_type'
         });
 
       if (error) {
         console.error('Error saving resourcing analytics:', error);
+      } else {
+        console.log('Successfully saved resourcing analytics data');
       }
     } catch (error) {
       console.error('Error saving resourcing analytics:', error);
