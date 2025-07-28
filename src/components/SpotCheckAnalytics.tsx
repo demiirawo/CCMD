@@ -78,9 +78,10 @@ export const SpotCheckAnalytics = ({ monthlyStaffData = [], meetingDate, meeting
       }
 
       if (data) {
+        const savedMetrics = (data.metrics as any) || {};
         setMetrics({
-          passedFrequency: data.passed_frequency,
-          probationFrequency: data.probation_frequency
+          passedFrequency: savedMetrics.passedFrequency || 12,
+          probationFrequency: savedMetrics.probationFrequency || 4
         });
         
         if (data.monthly_data) {
@@ -108,11 +109,11 @@ export const SpotCheckAnalytics = ({ monthlyStaffData = [], meetingDate, meeting
         .from('spot_check_analytics')
         .upsert({
           company_id: profile.company_id,
-          passed_frequency: newMetrics?.passedFrequency ?? metrics.passedFrequency,
-          probation_frequency: newMetrics?.probationFrequency ?? metrics.probationFrequency,
+          meeting_id: meetingId,
+          metrics: newMetrics || metrics,
           monthly_data: newMonthlyData || monthlyData
         }, {
-          onConflict: 'company_id'
+          onConflict: 'company_id,meeting_id'
         });
 
       if (error) {

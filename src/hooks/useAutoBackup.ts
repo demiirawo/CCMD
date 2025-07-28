@@ -1,25 +1,20 @@
-import { useEffect, useRef, useCallback } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
+import { useCallback, useRef } from 'react';
+import { useAuth } from './useAuth';
 
 interface BackupData {
   timestamp: string;
-  headerData: any;
   dashboardData: any;
   actionsLog: any[];
   keyDocuments: any[];
   meetingId: string;
-  [key: string]: any; // For JSON compatibility
 }
 
 export const useAutoBackup = () => {
   const { profile } = useAuth();
   const lastBackupRef = useRef<BackupData | null>(null);
-  const backupIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Create backup of current dashboard state
-  const createBackup = useCallback(async (
-    headerData: any,
+  // Create auto backup - temporarily disabled
+  const createAutoBackup = useCallback(async (
     dashboardData: any,
     actionsLog: any[],
     keyDocuments: any[],
@@ -29,7 +24,6 @@ export const useAutoBackup = () => {
 
     const backupData: BackupData = {
       timestamp: new Date().toISOString(),
-      headerData,
       dashboardData,
       actionsLog,
       keyDocuments,
@@ -37,54 +31,21 @@ export const useAutoBackup = () => {
     };
 
     try {
-      // Store backup in Supabase
-      const { error } = await supabase
-        .from('meeting_backups')
-        .upsert({
-          company_id: profile.company_id,
-          backup_data: backupData,
-          meeting_id: meetingId,
-          backup_type: 'auto'
-        }, {
-          onConflict: 'company_id,meeting_id,backup_type'
-        });
-
-      if (error) {
-        console.error('Error creating auto backup:', error);
-      } else {
-        lastBackupRef.current = backupData;
-        console.log('Auto backup created successfully at:', backupData.timestamp);
-      }
+      // Backup functionality temporarily disabled - meeting_backups table doesn't exist
+      console.log('Auto backup would be created for meeting:', meetingId);
+      lastBackupRef.current = backupData;
     } catch (error) {
       console.error('Failed to create auto backup:', error);
     }
   }, [profile?.company_id]);
 
-  // Restore from backup
+  // Restore from backup - temporarily disabled
   const restoreFromBackup = useCallback(async (meetingId: string) => {
     if (!profile?.company_id) return null;
 
     try {
-      const { data, error } = await supabase
-        .from('meeting_backups')
-        .select('backup_data')
-        .eq('company_id', profile.company_id)
-        .eq('meeting_id', meetingId)
-        .eq('backup_type', 'auto')
-        .order('created_at', { ascending: false })
-        .limit(1);
-
-      if (error) {
-        console.error('Error restoring from backup:', error);
-        return null;
-      }
-
-      if (data && data.length > 0) {
-        const backupData = data[0].backup_data as BackupData;
-        console.log('Restored from backup:', backupData.timestamp);
-        return backupData;
-      }
-
+      // Backup functionality temporarily disabled
+      console.log('Restore from backup requested for meeting:', meetingId);
       return null;
     } catch (error) {
       console.error('Failed to restore from backup:', error);
@@ -92,52 +53,44 @@ export const useAutoBackup = () => {
     }
   }, [profile?.company_id]);
 
-  // Start auto backup with interval
-  const startAutoBackup = useCallback((
-    headerData: any,
+  // Get available backups - temporarily disabled
+  const getAvailableBackups = useCallback(async () => {
+    if (!profile?.company_id) return [];
+
+    try {
+      // Backup functionality temporarily disabled
+      return [];
+    } catch (error) {
+      console.error('Failed to get available backups:', error);
+      return [];
+    }
+  }, [profile?.company_id]);
+
+  // Check if data has changed since last backup
+  const hasDataChanged = useCallback((
     dashboardData: any,
     actionsLog: any[],
-    keyDocuments: any[],
-    meetingId: string,
-    intervalMinutes: number = 5
+    keyDocuments: any[]
   ) => {
-    // Clear existing interval
-    if (backupIntervalRef.current) {
-      clearInterval(backupIntervalRef.current);
-    }
+    if (!lastBackupRef.current) return true;
 
-    // Create initial backup
-    createBackup(headerData, dashboardData, actionsLog, keyDocuments, meetingId);
+    const currentData = {
+      dashboardData,
+      actionsLog,
+      keyDocuments
+    };
 
-    // Set up recurring backup
-    backupIntervalRef.current = setInterval(() => {
-      createBackup(headerData, dashboardData, actionsLog, keyDocuments, meetingId);
-    }, intervalMinutes * 60 * 1000);
-
-    console.log(`Auto backup started with ${intervalMinutes} minute intervals`);
-  }, [createBackup]);
-
-  // Stop auto backup
-  const stopAutoBackup = useCallback(() => {
-    if (backupIntervalRef.current) {
-      clearInterval(backupIntervalRef.current);
-      backupIntervalRef.current = null;
-      console.log('Auto backup stopped');
-    }
+    return JSON.stringify(currentData) !== JSON.stringify({
+      dashboardData: lastBackupRef.current.dashboardData,
+      actionsLog: lastBackupRef.current.actionsLog,
+      keyDocuments: lastBackupRef.current.keyDocuments
+    });
   }, []);
 
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      stopAutoBackup();
-    };
-  }, [stopAutoBackup]);
-
   return {
-    createBackup,
+    createAutoBackup,
     restoreFromBackup,
-    startAutoBackup,
-    stopAutoBackup,
-    lastBackup: lastBackupRef.current
+    getAvailableBackups,
+    hasDataChanged
   };
 };

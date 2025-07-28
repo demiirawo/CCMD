@@ -53,11 +53,12 @@ export const StaffDocumentsAnalytics = ({ meetingDate, meetingId }: StaffDocumen
       }
 
       if (data) {
+        const savedData = (data.documents_data as any) || {};
         setDocumentsData({
-          activeFullyCompliant: data.active_fully_compliant,
-          activePendingDocuments: data.active_pending_documents,
-          onboardingFullyCompliant: data.onboarding_fully_compliant,
-          onboardingPendingDocuments: data.onboarding_pending_documents
+          activeFullyCompliant: savedData.activeFullyCompliant || 0,
+          activePendingDocuments: savedData.activePendingDocuments || 0,
+          onboardingFullyCompliant: savedData.onboardingFullyCompliant || 0,
+          onboardingPendingDocuments: savedData.onboardingPendingDocuments || 0
         });
       }
     } catch (error) {
@@ -73,10 +74,7 @@ export const StaffDocumentsAnalytics = ({ meetingDate, meetingId }: StaffDocumen
         .from('staff_documents_analytics')
         .upsert({
           company_id: profile.company_id,
-          active_fully_compliant: newData.activeFullyCompliant,
-          active_pending_documents: newData.activePendingDocuments,
-          onboarding_fully_compliant: newData.onboardingFullyCompliant,
-          onboarding_pending_documents: newData.onboardingPendingDocuments
+          documents_data: newData
         }, {
           onConflict: 'company_id'
         });

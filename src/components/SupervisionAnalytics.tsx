@@ -80,9 +80,10 @@ export const SupervisionAnalytics = ({ monthlyStaffData = [], meetingDate, meeti
       }
 
       if (data) {
+        const savedMetrics = (data.metrics as any) || {};
         setMetrics({
-          passedFrequency: data.passed_frequency,
-          probationFrequency: data.probation_frequency
+          passedFrequency: savedMetrics.passedFrequency || 12,
+          probationFrequency: savedMetrics.probationFrequency || 4
         });
         setMonthlyData((data.monthly_data as any[]) || generateInitialData(meetingDate));
       }
@@ -97,8 +98,7 @@ export const SupervisionAnalytics = ({ monthlyStaffData = [], meetingDate, meeti
     const dataToSave = {
       meeting_id: meetingId,
       company_id: profile.company_id,
-      passed_frequency: newMetrics?.passedFrequency ?? metrics.passedFrequency,
-      probation_frequency: newMetrics?.probationFrequency ?? metrics.probationFrequency,
+      metrics: newMetrics || metrics,
       monthly_data: newMonthlyData || monthlyData
     };
 

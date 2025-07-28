@@ -86,10 +86,11 @@ export const CarePlanAnalytics = ({ meetingDate, meetingId }: CarePlanAnalyticsP
       }
 
       if (data) {
+        const savedFrequencies = (data.frequencies as any) || {};
         setFrequencies({
-          highFrequency: data.high_frequency,
-          mediumFrequency: data.medium_frequency,
-          lowFrequency: data.low_frequency
+          highFrequency: savedFrequencies.highFrequency || 12,
+          mediumFrequency: savedFrequencies.mediumFrequency || 6,
+          lowFrequency: savedFrequencies.lowFrequency || 12
         });
         
         if (data.monthly_data) {
@@ -117,12 +118,11 @@ export const CarePlanAnalytics = ({ meetingDate, meetingId }: CarePlanAnalyticsP
         .from('care_plan_analytics')
         .upsert({
           company_id: profile.company_id,
-          high_frequency: newFrequencies?.highFrequency ?? frequencies.highFrequency,
-          medium_frequency: newFrequencies?.mediumFrequency ?? frequencies.mediumFrequency,
-          low_frequency: newFrequencies?.lowFrequency ?? frequencies.lowFrequency,
+          meeting_id: meetingId,
+          frequencies: newFrequencies || frequencies,
           monthly_data: newMonthlyData || monthlyData
         }, {
-          onConflict: 'company_id'
+          onConflict: 'company_id,meeting_id'
         });
 
       if (error) {

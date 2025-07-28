@@ -28,6 +28,7 @@ export type Database = {
           id: string
           item_title: string
           mentioned_attendee: string
+          session_id: string | null
           source_id: string | null
           source_type: string | null
           status: string
@@ -47,6 +48,7 @@ export type Database = {
           id?: string
           item_title: string
           mentioned_attendee: string
+          session_id?: string | null
           source_id?: string | null
           source_type?: string | null
           status?: string
@@ -66,6 +68,7 @@ export type Database = {
           id?: string
           item_title?: string
           mentioned_attendee?: string
+          session_id?: string | null
           source_id?: string | null
           source_type?: string | null
           status?: string
@@ -76,26 +79,23 @@ export type Database = {
       }
       care_notes_analytics: {
         Row: {
-          company_id: string | null
+          company_id: string
           created_at: string
           id: string
-          meeting_id: string | null
           monthly_data: Json
           updated_at: string
         }
         Insert: {
-          company_id?: string | null
+          company_id: string
           created_at?: string
           id?: string
-          meeting_id?: string | null
           monthly_data?: Json
           updated_at?: string
         }
         Update: {
-          company_id?: string | null
+          company_id?: string
           created_at?: string
           id?: string
-          meeting_id?: string | null
           monthly_data?: Json
           updated_at?: string
         }
@@ -103,62 +103,33 @@ export type Database = {
       }
       care_plan_analytics: {
         Row: {
-          care_plans_in_date: number
-          care_plans_overdue: number
-          company_id: string | null
+          company_id: string
           created_at: string
-          high_frequency: number
+          frequencies: Json
           id: string
-          low_frequency: number
-          medium_frequency: number
           meeting_id: string | null
           monthly_data: Json
-          risk_assessments_in_date: number
-          risk_assessments_overdue: number
-          total_service_users: number
           updated_at: string
         }
         Insert: {
-          care_plans_in_date?: number
-          care_plans_overdue?: number
-          company_id?: string | null
+          company_id: string
           created_at?: string
-          high_frequency?: number
+          frequencies?: Json
           id?: string
-          low_frequency?: number
-          medium_frequency?: number
           meeting_id?: string | null
           monthly_data?: Json
-          risk_assessments_in_date?: number
-          risk_assessments_overdue?: number
-          total_service_users?: number
           updated_at?: string
         }
         Update: {
-          care_plans_in_date?: number
-          care_plans_overdue?: number
-          company_id?: string | null
+          company_id?: string
           created_at?: string
-          high_frequency?: number
+          frequencies?: Json
           id?: string
-          low_frequency?: number
-          medium_frequency?: number
           meeting_id?: string | null
           monthly_data?: Json
-          risk_assessments_in_date?: number
-          risk_assessments_overdue?: number
-          total_service_users?: number
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "care_plan_analytics_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       companies: {
         Row: {
@@ -190,9 +161,39 @@ export type Database = {
         }
         Relationships: []
       }
+      dashboard_data: {
+        Row: {
+          company_id: string
+          created_at: string
+          data_content: Json
+          data_type: string
+          id: string
+          meeting_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          data_content?: Json
+          data_type: string
+          id?: string
+          meeting_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          data_content?: Json
+          data_type?: string
+          id?: string
+          meeting_id?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       feedback_analytics: {
         Row: {
-          company_id: string | null
+          company_id: string
           created_at: string
           id: string
           meeting_id: string | null
@@ -200,7 +201,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
-          company_id?: string | null
+          company_id: string
           created_at?: string
           id?: string
           meeting_id?: string | null
@@ -208,7 +209,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
-          company_id?: string | null
+          company_id?: string
           created_at?: string
           id?: string
           meeting_id?: string | null
@@ -219,26 +220,23 @@ export type Database = {
       }
       incidents_analytics: {
         Row: {
-          company_id: string | null
+          company_id: string
           created_at: string
           id: string
-          meeting_id: string | null
           monthly_data: Json
           updated_at: string
         }
         Insert: {
-          company_id?: string | null
+          company_id: string
           created_at?: string
           id?: string
-          meeting_id?: string | null
           monthly_data?: Json
           updated_at?: string
         }
         Update: {
-          company_id?: string | null
+          company_id?: string
           created_at?: string
           id?: string
-          meeting_id?: string | null
           monthly_data?: Json
           updated_at?: string
         }
@@ -252,6 +250,7 @@ export type Database = {
           id: string
           name: string
           notes: string | null
+          session_id: string | null
           status: string
           updated_at: string
         }
@@ -262,6 +261,7 @@ export type Database = {
           id?: string
           name: string
           notes?: string | null
+          session_id?: string | null
           status?: string
           updated_at?: string
         }
@@ -272,6 +272,7 @@ export type Database = {
           id?: string
           name?: string
           notes?: string | null
+          session_id?: string | null
           status?: string
           updated_at?: string
         }
@@ -279,57 +280,24 @@ export type Database = {
       }
       medication_analytics: {
         Row: {
-          company_id: string | null
+          company_id: string
           created_at: string
           id: string
-          meeting_id: string | null
           monthly_data: Json
           updated_at: string
         }
         Insert: {
-          company_id?: string | null
+          company_id: string
           created_at?: string
           id?: string
-          meeting_id?: string | null
           monthly_data?: Json
           updated_at?: string
         }
         Update: {
-          company_id?: string | null
-          created_at?: string
-          id?: string
-          meeting_id?: string | null
-          monthly_data?: Json
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      meeting_backups: {
-        Row: {
-          backup_data: Json
-          backup_type: string
-          company_id: string
-          created_at: string
-          id: string
-          meeting_id: string
-          updated_at: string
-        }
-        Insert: {
-          backup_data: Json
-          backup_type?: string
-          company_id: string
-          created_at?: string
-          id?: string
-          meeting_id: string
-          updated_at?: string
-        }
-        Update: {
-          backup_data?: Json
-          backup_type?: string
           company_id?: string
           created_at?: string
           id?: string
-          meeting_id?: string
+          monthly_data?: Json
           updated_at?: string
         }
         Relationships: []
@@ -363,6 +331,48 @@ export type Database = {
           meeting_date?: string
           purpose?: string
           title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      meeting_sessions: {
+        Row: {
+          attendees: Json | null
+          company_id: string
+          created_at: string
+          id: string
+          meeting_date: string
+          meeting_quarter: string
+          meeting_year: number
+          purpose: string | null
+          session_id: string
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          attendees?: Json | null
+          company_id: string
+          created_at?: string
+          id?: string
+          meeting_date: string
+          meeting_quarter: string
+          meeting_year: number
+          purpose?: string | null
+          session_id: string
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          attendees?: Json | null
+          company_id?: string
+          created_at?: string
+          id?: string
+          meeting_date?: string
+          meeting_quarter?: string
+          meeting_year?: number
+          purpose?: string | null
+          session_id?: string
+          title?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -458,184 +468,83 @@ export type Database = {
           },
         ]
       }
-      resourcing_analytics: {
-        Row: {
-          company_id: string | null
-          created_at: string
-          current_staff: number
-          id: string
-          ideal_staff: number
-          meeting_id: string | null
-          month: string
-          monthly_data: Json | null
-          onboarding_staff: number
-          probation_staff: number
-          updated_at: string
-        }
-        Insert: {
-          company_id?: string | null
-          created_at?: string
-          current_staff?: number
-          id?: string
-          ideal_staff?: number
-          meeting_id?: string | null
-          month: string
-          monthly_data?: Json | null
-          onboarding_staff?: number
-          probation_staff?: number
-          updated_at?: string
-        }
-        Update: {
-          company_id?: string | null
-          created_at?: string
-          current_staff?: number
-          id?: string
-          ideal_staff?: number
-          meeting_id?: string | null
-          month?: string
-          monthly_data?: Json | null
-          onboarding_staff?: number
-          probation_staff?: number
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "resourcing_analytics_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: true
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       spot_check_analytics: {
         Row: {
-          company_id: string | null
+          company_id: string
           created_at: string
           id: string
           meeting_id: string | null
+          metrics: Json
           monthly_data: Json
-          passed_frequency: number
-          probation_frequency: number
           updated_at: string
         }
         Insert: {
-          company_id?: string | null
+          company_id: string
           created_at?: string
           id?: string
           meeting_id?: string | null
+          metrics?: Json
           monthly_data?: Json
-          passed_frequency?: number
-          probation_frequency?: number
           updated_at?: string
         }
         Update: {
-          company_id?: string | null
+          company_id?: string
           created_at?: string
           id?: string
           meeting_id?: string | null
+          metrics?: Json
           monthly_data?: Json
-          passed_frequency?: number
-          probation_frequency?: number
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "spot_check_analytics_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       staff_documents_analytics: {
         Row: {
-          active_fully_compliant: number
-          active_pending_documents: number
-          company_id: string | null
+          company_id: string
           created_at: string
+          documents_data: Json
           id: string
-          meeting_id: string | null
-          onboarding_fully_compliant: number
-          onboarding_pending_documents: number
           updated_at: string
         }
         Insert: {
-          active_fully_compliant?: number
-          active_pending_documents?: number
-          company_id?: string | null
+          company_id: string
           created_at?: string
+          documents_data?: Json
           id?: string
-          meeting_id?: string | null
-          onboarding_fully_compliant?: number
-          onboarding_pending_documents?: number
           updated_at?: string
         }
         Update: {
-          active_fully_compliant?: number
-          active_pending_documents?: number
-          company_id?: string | null
+          company_id?: string
           created_at?: string
+          documents_data?: Json
           id?: string
-          meeting_id?: string | null
-          onboarding_fully_compliant?: number
-          onboarding_pending_documents?: number
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "staff_documents_analytics_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       staff_training_analytics: {
         Row: {
-          company_id: string | null
+          company_id: string
           created_at: string
           id: string
-          mandatory_compliant: number
-          mandatory_pending: number
-          meeting_id: string | null
-          specialist_compliant: number
-          specialist_pending: number
+          training_data: Json
           updated_at: string
         }
         Insert: {
-          company_id?: string | null
+          company_id: string
           created_at?: string
           id?: string
-          mandatory_compliant?: number
-          mandatory_pending?: number
-          meeting_id?: string | null
-          specialist_compliant?: number
-          specialist_pending?: number
+          training_data?: Json
           updated_at?: string
         }
         Update: {
-          company_id?: string | null
+          company_id?: string
           created_at?: string
           id?: string
-          mandatory_compliant?: number
-          mandatory_pending?: number
-          meeting_id?: string | null
-          specialist_compliant?: number
-          specialist_pending?: number
+          training_data?: Json
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "staff_training_analytics_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       subsection_data: {
         Row: {
@@ -648,6 +557,7 @@ export type Database = {
           metadata: Json | null
           observation: string | null
           section_id: string
+          session_id: string | null
           status: string | null
           updated_at: string
         }
@@ -661,6 +571,7 @@ export type Database = {
           metadata?: Json | null
           observation?: string | null
           section_id: string
+          session_id?: string | null
           status?: string | null
           updated_at?: string
         }
@@ -674,6 +585,7 @@ export type Database = {
           metadata?: Json | null
           observation?: string | null
           section_id?: string
+          session_id?: string | null
           status?: string | null
           updated_at?: string
         }
@@ -681,44 +593,33 @@ export type Database = {
       }
       supervision_analytics: {
         Row: {
-          company_id: string | null
+          company_id: string
           created_at: string
           id: string
           meeting_id: string | null
+          metrics: Json
           monthly_data: Json
-          passed_frequency: number
-          probation_frequency: number
           updated_at: string
         }
         Insert: {
-          company_id?: string | null
+          company_id: string
           created_at?: string
           id?: string
           meeting_id?: string | null
+          metrics?: Json
           monthly_data?: Json
-          passed_frequency?: number
-          probation_frequency?: number
           updated_at?: string
         }
         Update: {
-          company_id?: string | null
+          company_id?: string
           created_at?: string
           id?: string
           meeting_id?: string | null
+          metrics?: Json
           monthly_data?: Json
-          passed_frequency?: number
-          probation_frequency?: number
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "supervision_analytics_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
     }
     Views: {

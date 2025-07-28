@@ -53,11 +53,12 @@ export const StaffTrainingAnalytics = ({ meetingDate, meetingId }: StaffTraining
       }
 
       if (data) {
+        const savedData = (data.training_data as any) || {};
         setTrainingData({
-          mandatoryCompliant: data.mandatory_compliant,
-          mandatoryPending: data.mandatory_pending,
-          specialistCompliant: data.specialist_compliant,
-          specialistPending: data.specialist_pending
+          mandatoryCompliant: savedData.mandatoryCompliant || 0,
+          mandatoryPending: savedData.mandatoryPending || 0,
+          specialistCompliant: savedData.specialistCompliant || 0,
+          specialistPending: savedData.specialistPending || 0
         });
       }
     } catch (error) {
@@ -73,10 +74,7 @@ export const StaffTrainingAnalytics = ({ meetingDate, meetingId }: StaffTraining
         .from('staff_training_analytics')
         .upsert({
           company_id: profile.company_id,
-          mandatory_compliant: newData.mandatoryCompliant,
-          mandatory_pending: newData.mandatoryPending,
-          specialist_compliant: newData.specialistCompliant,
-          specialist_pending: newData.specialistPending
+          training_data: newData
         }, {
           onConflict: 'company_id'
         });
