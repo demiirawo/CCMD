@@ -74,6 +74,10 @@ export const SupervisionAnalytics = ({ monthlyStaffData = [], meetingDate, meeti
           if (data.monthly_data && Array.isArray(data.monthly_data)) {
             setMonthlyData(data.monthly_data);
           }
+        } else {
+          // Only set defaults if we haven't already set data in this session
+          setMetrics(prev => prev.passedFrequency === 0 && prev.probationFrequency === 0 ? 
+            { passedFrequency: 2, probationFrequency: 1 } : prev);
         }
       } catch (error) {
         console.error('Error loading supervision analytics:', error);

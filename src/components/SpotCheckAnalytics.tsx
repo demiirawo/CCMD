@@ -83,6 +83,9 @@ export const SpotCheckAnalytics = ({ monthlyStaffData = [], meetingDate, meeting
           }
         } else {
           console.log('SpotCheckAnalytics: No data found, using defaults');
+          // Only set defaults if we haven't already set data in this session
+          setMetrics(prev => prev.passedFrequency === 0 && prev.probationFrequency === 0 ? 
+            { passedFrequency: 3, probationFrequency: 1 } : prev);
         }
       } catch (error) {
         console.error('SpotCheckAnalytics: Exception loading data:', error);
