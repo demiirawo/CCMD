@@ -1,30 +1,36 @@
+import React, { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { ComposedChart, Bar, Line, XAxis, YAxis, ResponsiveContainer } from "recharts";
 import { Input } from "@/components/ui/input";
-import { useState, useEffect } from "react";
-import { format, subMonths } from "date-fns";
+import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from "recharts";
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 
-// Generate 12 months of data from meeting date back to same month last year
 const generateInitialData = (meetingDate?: Date) => {
+  const months = [];
   const currentDate = meetingDate || new Date();
-  const data = [];
-  for (let i = 0; i < 12; i++) {
-    const monthDate = subMonths(currentDate, i);
-    data.unshift({
-      month: format(monthDate, "MMM yy"),
+  
+  for (let i = 11; i >= 0; i--) {
+    const date = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1);
+    const monthName = date.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
+    months.push({
+      month: monthName,
       completed: 0
     });
   }
-  return data;
+  
+  return months;
 };
+
 const chartConfig = {
   completed: {
-    label: "Supervisions Completed",
-    color: "hsl(var(--chart-1))"
-  }
+    label: "Completed Supervisions",
+    color: "hsl(var(--chart-1))",
+  },
+  target: {
+    label: "Monthly Target", 
+    color: "hsl(var(--chart-2))",
+  },
 };
 
 interface SupervisionAnalyticsProps {
@@ -36,70 +42,58 @@ interface SupervisionAnalyticsProps {
 export const SupervisionAnalytics = ({ monthlyStaffData = [], meetingDate, meetingId }: SupervisionAnalyticsProps) => {
   const { profile } = useAuth();
   const [monthlyData, setMonthlyData] = useState(generateInitialData(meetingDate));
-  
-  // Update data when meeting date changes
-  useEffect(() => {
-    setMonthlyData(generateInitialData(meetingDate));
-  }, [meetingDate]);
-  
   const [metrics, setMetrics] = useState({
-    passedFrequency: 3,
+    passedFrequency: 2,
     probationFrequency: 1
   });
 
-  // Load data from database on component mount
+  // Load data on mount
   useEffect(() => {
-    console.log('SupervisionAnalytics: useEffect triggered with meetingId:', meetingId, 'companyId:', profile?.company_id);
-    const loadData = async () => {
-      if (!meetingId || !profile?.company_id) return;
-
-      try {
-        const { data, error } = await supabase
-          .from('supervision_analytics')
-          .select('*')
-          .eq('meeting_id', meetingId)
-          .eq('company_id', profile.company_id)
-          .maybeSingle();
-
-        if (error) {
-          console.error('Error loading supervision analytics:', error);
-          return;
-        }
-
-        if (data) {
-          setMetrics({
-            passedFrequency: data.passed_frequency,
-            probationFrequency: data.probation_frequency
-          });
-          if (data.monthly_data && Array.isArray(data.monthly_data)) {
-            setMonthlyData(data.monthly_data);
-          }
-        } else {
-          // Only set defaults if we haven't already set data in this session
-          setMetrics(prev => prev.passedFrequency === 0 && prev.probationFrequency === 0 ? 
-            { passedFrequency: 2, probationFrequency: 1 } : prev);
-        }
-      } catch (error) {
-        console.error('Error loading supervision analytics:', error);
-      }
-    };
-
-    loadData();
+    if (meetingId && profile?.company_id) {
+      loadData();
+    }
   }, [meetingId, profile?.company_id]);
 
-  // Save data to database
-  const saveData = async (newMetrics?: typeof metrics, newMonthlyData?: typeof monthlyData) => {
+  const loadData = async () => {
     if (!meetingId || !profile?.company_id) return;
 
     try {
-      const dataToSave = {
-        meeting_id: meetingId,
-        company_id: profile.company_id,
-        passed_frequency: newMetrics?.passedFrequency ?? metrics.passedFrequency,
-        probation_frequency: newMetrics?.probationFrequency ?? metrics.probationFrequency,
-        monthly_data: newMonthlyData ?? monthlyData
-      };
+      const { data, error } = await supabase
+        .from('supervision_analytics')
+        .select('*')
+        .eq('meeting_id', meetingId)
+        .eq('company_id', profile.company_id)
+        .maybeSingle();
 
+      if (error) {
+        console.error('Error loading supervision data:', error);
+        return;
+      }
+
+      if (data) {
+        setMetrics({
+          passedFrequency: data.passed_frequency,
+          probationFrequency: data.probation_frequency
+        });
+        setMonthlyData((data.monthly_data as any[]) || generateInitialData(meetingDate));
+      }
+    } catch (error) {
+      console.error('Error in loadData:', error);
+    }
+  };
+
+  const saveData = async (newMetrics?: typeof metrics, newMonthlyData?: typeof monthlyData) => {
+    if (!meetingId || !profile?.company_id) return;
+
+    const dataToSave = {
+      meeting_id: meetingId,
+      company_id: profile.company_id,
+      passed_frequency: newMetrics?.passedFrequency ?? metrics.passedFrequency,
+      probation_frequency: newMetrics?.probationFrequency ?? metrics.probationFrequency,
+      monthly_data: newMonthlyData || monthlyData
+    };
+
+    try {
       const { error } = await supabase
         .from('supervision_analytics')
         .upsert(dataToSave, {
@@ -107,144 +101,193 @@ export const SupervisionAnalytics = ({ monthlyStaffData = [], meetingDate, meeti
         });
 
       if (error) {
-        console.error('Error saving supervision analytics:', error);
+        console.error('Error saving supervision data:', error);
       }
     } catch (error) {
-      console.error('Error saving supervision analytics:', error);
+      console.error('Error in saveData:', error);
     }
   };
 
-  // Calculate monthly targets for each month based on that month's passed and probation staff
-  const dataWithTargets = monthlyData.map((item, index) => {
-    const passedStaff = monthlyStaffData[index]?.currentStaff || 0;
-    const probationStaff = monthlyStaffData[index]?.probationStaff || 0;
+  // Calculate targets based on monthly staff data and frequencies
+  const dataWithTargets = monthlyData.map((month) => {
+    const staffMonth = monthlyStaffData.find(staff => staff.month === month.month);
+    const currentStaff = staffMonth?.currentStaff || 0;
+    const probationStaff = staffMonth?.probationStaff || 0;
     
-    const passedTarget = passedStaff > 0 ? Math.round(passedStaff / metrics.passedFrequency) : 0;
-    const probationTarget = probationStaff > 0 ? Math.round(probationStaff / metrics.probationFrequency) : 0;
-    const monthlyTarget = passedTarget + probationTarget;
+    const passedStaff = Math.max(0, currentStaff - probationStaff);
+    const passedTarget = Math.ceil(passedStaff / metrics.passedFrequency);
+    const probationTarget = probationStaff * metrics.probationFrequency;
     
     return {
-      ...item,
-      target: monthlyTarget
+      ...month,
+      target: passedTarget + probationTarget
     };
   });
-  
-  const handleMetricChange = (field: string, value: string) => {
-    const numValue = parseInt(value) || 0;
-    const newMetrics = {
-      ...metrics,
-      [field]: numValue
-    };
+
+  const handleMetricChange = (field: 'passedFrequency' | 'probationFrequency', value: number) => {
+    const newMetrics = { ...metrics, [field]: value };
     setMetrics(newMetrics);
     saveData(newMetrics);
   };
 
-  const handleCellEdit = (rowIndex: number, value: string) => {
-    const numValue = parseInt(value) || 0;
+  const handleCellEdit = (monthIndex: number, value: number) => {
     const newData = [...monthlyData];
-    newData[rowIndex] = {
-      ...newData[rowIndex],
-      completed: numValue
-    };
+    newData[monthIndex] = { ...newData[monthIndex], completed: value };
     setMonthlyData(newData);
     saveData(undefined, newData);
   };
 
-  const EditableCell = ({
-    value,
-    onEdit
-  }: {
-    value: number;
-    onEdit: (val: string) => void;
-  }) => {
+  const EditableCell = ({ value, onChange }: { value: number; onChange: (value: number) => void }) => {
     const [editing, setEditing] = useState(false);
-    const [editValue, setEditValue] = useState(value.toString());
+    const [editValue, setEditValue] = useState('');
+
+    const handleStartEdit = () => {
+      setEditing(true);
+      setEditValue('');
+    };
+
     const handleSave = () => {
-      onEdit(editValue);
+      const numValue = parseInt(editValue) || 0;
+      onChange(numValue);
       setEditing(false);
     };
+
     if (editing) {
-      return <Input value={editValue} onChange={e => setEditValue(e.target.value)} onBlur={handleSave} onKeyDown={e => {
-        if (e.key === 'Enter') handleSave();
-        if (e.key === 'Escape') setEditing(false);
-      }} className="w-full h-auto text-center border-none bg-white p-1 text-sm focus:ring-0 focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0" autoFocus />;
+      return (
+        <Input 
+          value={editValue} 
+          onChange={e => setEditValue(e.target.value)} 
+          onBlur={handleSave} 
+          onKeyDown={e => {
+            if (e.key === 'Enter') handleSave();
+            if (e.key === 'Escape') setEditing(false);
+          }} 
+          className="w-16 h-8 text-sm" 
+          autoFocus 
+        />
+      );
     }
-    return <span className="cursor-pointer hover:bg-accent/50 p-1 rounded" onClick={() => setEditing(true)}>
+
+    return (
+      <span className="cursor-pointer hover:bg-accent/50 p-1 rounded" onClick={handleStartEdit}>
         {value}
-      </span>;
+      </span>
+    );
   };
 
-  const EditableInput = ({
-    label,
-    value,
-    onChange,
-    className = ""
-  }: {
-    label: string;
-    value: number;
-    onChange: (value: string) => void;
-    className?: string;
-  }) => <div className={`space-y-2 ${className}`}>
-      <label className="text-sm font-medium text-muted-foreground">{label}</label>
-      <Input type="number" value={value} onChange={e => onChange(e.target.value)} className="text-center bg-white" />
-    </div>;
+  const EditableInput = ({ label, value, onChange }: { label: string; value: number; onChange: (value: number) => void }) => {
+    const [editing, setEditing] = useState(false);
+    const [editValue, setEditValue] = useState('');
 
-  return <div className="space-y-6 mt-4 p-6 border border-border rounded-lg bg-white">
+    const handleStartEdit = () => {
+      setEditing(true);
+      setEditValue(value.toString());
+    };
+
+    const handleSave = () => {
+      const numValue = parseInt(editValue) || 1;
+      onChange(Math.max(1, numValue));
+      setEditing(false);
+    };
+
+    return (
+      <div className="flex items-center gap-2">
+        <span className="text-sm font-medium">{label}:</span>
+        {editing ? (
+          <Input 
+            value={editValue} 
+            onChange={e => setEditValue(e.target.value)} 
+            onBlur={handleSave} 
+            onKeyDown={e => {
+              if (e.key === 'Enter') handleSave();
+              if (e.key === 'Escape') setEditing(false);
+            }} 
+            className="w-20 h-8 text-sm" 
+            autoFocus 
+          />
+        ) : (
+          <span className="cursor-pointer hover:bg-accent/50 p-1 rounded text-sm" onClick={handleStartEdit}>
+            {value} {value === 1 ? 'month' : 'months'}
+          </span>
+        )}
+      </div>
+    );
+  };
+
+  return (
+    <div className="space-y-6 mt-4 p-6 border border-border rounded-lg bg-white">
       <div className="flex items-center justify-between">
         <h4 className="text-lg font-semibold text-foreground">Supervision Analytics</h4>
       </div>
-
-      {/* Top Metrics */}
-      <div className="grid grid-cols-2 gap-4">
-        <EditableInput label="Passed Staff Frequency (Months)" value={metrics.passedFrequency} onChange={val => handleMetricChange('passedFrequency', val)} />
-        <EditableInput label="Probation Staff Frequency (Months)" value={metrics.probationFrequency} onChange={val => handleMetricChange('probationFrequency', val)} />
+      
+      <div className="text-sm text-muted-foreground">Monthly supervision completion tracking (Past 12 Months)</div>
+      
+      {/* Frequency Settings */}
+      <div className="flex flex-wrap gap-6 p-4 bg-accent/30 rounded-lg">
+        <EditableInput 
+          label="Passed Staff Frequency" 
+          value={metrics.passedFrequency} 
+          onChange={(value) => handleMetricChange('passedFrequency', value)} 
+        />
+        <EditableInput 
+          label="Probation Staff Frequency" 
+          value={metrics.probationFrequency} 
+          onChange={(value) => handleMetricChange('probationFrequency', value)} 
+        />
       </div>
 
-      {/* Monthly Data Section */}
-      <div>
-        <h5 className="text-base font-medium text-foreground mb-4">
-          Monthly Supervisions Completed (Last 12 Months)
-        </h5>
-
-        {/* Data Grid */}
-        <div className="grid grid-cols-4 gap-4 mb-6">
-          {monthlyData.map((row, index) => <div key={index} className="space-y-1">
-              <div className="text-sm font-medium text-muted-foreground">{row.month}</div>
-              <div className="border rounded p-2 text-center">
-                <EditableCell value={row.completed} onEdit={val => handleCellEdit(index, val)} />
-              </div>
-            </div>)}
-        </div>
-
-        {/* Chart */}
-        <Card className="p-4 bg-white">
-          <ChartContainer config={chartConfig} className="h-64 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <ComposedChart data={dataWithTargets}>
-                <XAxis dataKey="month" axisLine={false} tickLine={false} className="text-xs" />
-                <YAxis axisLine={false} tickLine={false} className="text-xs" />
-                <ChartTooltip content={<ChartTooltipContent />} />
-                <Bar dataKey="completed" fill="hsl(var(--chart-1))" name="Completed" />
-                <Line type="monotone" dataKey="target" stroke="#22c55e" strokeWidth={2} dot={{
-                r: 3,
-                fill: "#22c55e"
-              }} name="Monthly Target" />
-              </ComposedChart>
-            </ResponsiveContainer>
-          </ChartContainer>
-          
-          {/* Legend */}
-          <div className="flex justify-center gap-6 mt-4 pt-4 border-t border-border">
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 rounded" style={{ backgroundColor: "hsl(var(--chart-1))" }}></div>
-              <span className="text-xs text-muted-foreground">Completed</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-3 border-b-2 border-green-500"></div>
-              <span className="text-xs text-muted-foreground">Monthly Target</span>
-            </div>
+      {/* Data Grid */}
+      <div className="grid grid-cols-4 gap-4">
+        {monthlyData.map((row, index) => (
+          <div key={index} className="p-3 border rounded-lg">
+            <div className="text-sm font-medium mb-2">{row.month}</div>
+            <div className="text-xs text-muted-foreground mb-1">Completed:</div>
+            <EditableCell value={row.completed} onChange={(value) => handleCellEdit(index, value)} />
           </div>
-        </Card>
+        ))}
       </div>
-    </div>;
+
+      {/* Chart */}
+      <Card className="p-4 bg-white">
+        <ChartContainer config={chartConfig} className="h-64 w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            <ComposedChart 
+              data={dataWithTargets} 
+              margin={{ top: 5, right: 5, bottom: 25, left: 5 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
+              <XAxis dataKey="month" axisLine={false} tickLine={false} className="text-xs" />
+              <YAxis axisLine={false} tickLine={false} className="text-xs" />
+              <ChartTooltip content={<ChartTooltipContent />} />
+              <Bar 
+                dataKey="completed" 
+                fill="#3b82f6"
+                name="Completed Supervisions"
+              />
+              <Line 
+                type="monotone" 
+                dataKey="target" 
+                stroke="#f59e0b"
+                strokeWidth={2}
+                dot={{ r: 3, fill: "#f59e0b" }}
+                name="Monthly Target"
+              />
+            </ComposedChart>
+          </ResponsiveContainer>
+        </ChartContainer>
+        
+        {/* Legend */}
+        <div className="flex flex-wrap justify-center gap-4 mt-4 pt-4 border-t border-border">
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 bg-blue-500 rounded"></div>
+            <span className="text-xs text-muted-foreground">Completed Supervisions</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-3 border-b-2 border-amber-500"></div>
+            <span className="text-xs text-muted-foreground">Monthly Target</span>
+          </div>
+        </div>
+      </Card>
+    </div>
+  );
 };
