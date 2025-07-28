@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 const generateInitialData = (meetingDate?: Date) => {
   const months = [];
   const now = meetingDate || new Date();
@@ -42,6 +43,7 @@ export const CarePlanAnalytics = ({
   meetingDate,
   meetingId
 }: CarePlanAnalyticsProps) => {
+  const { profile } = useAuth();
   const [monthlyData, setMonthlyData] = useState(generateInitialData(meetingDate));
 
   // Update data when meeting date changes
@@ -90,10 +92,11 @@ export const CarePlanAnalytics = ({
 
   // Save all data to database
   const saveAllData = async (newMonthlyData?: typeof monthlyData, newFrequencies?: typeof frequencies) => {
-    if (!meetingId) return;
+    if (!meetingId || !profile?.company_id) return;
     try {
       const dataToSave = {
         meeting_id: meetingId,
+        company_id: profile.company_id,
         monthly_data: newMonthlyData ?? monthlyData,
         high_frequency: newFrequencies?.high ?? frequencies.high,
         medium_frequency: newFrequencies?.medium ?? frequencies.medium,
@@ -102,7 +105,7 @@ export const CarePlanAnalytics = ({
       const {
         error
       } = await supabase.from('care_plan_analytics').upsert(dataToSave, {
-        onConflict: 'meeting_id'
+        onConflict: 'meeting_id,company_id'
       });
       if (error) {
         console.error('Error saving care plan analytics:', error);
