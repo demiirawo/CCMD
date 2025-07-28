@@ -49,7 +49,12 @@ export const SpotCheckAnalytics = ({ monthlyStaffData = [], meetingDate, meeting
   // Load data from database on component mount
   useEffect(() => {
     const loadData = async () => {
-      if (!meetingId || !profile?.company_id) return;
+      console.log('SpotCheckAnalytics: Loading data with meetingId:', meetingId, 'companyId:', profile?.company_id);
+      
+      if (!meetingId || !profile?.company_id) {
+        console.log('SpotCheckAnalytics: Cannot load - missing meetingId or company_id');
+        return;
+      }
 
       try {
         const { data, error } = await supabase
@@ -59,12 +64,15 @@ export const SpotCheckAnalytics = ({ monthlyStaffData = [], meetingDate, meeting
           .eq('company_id', profile.company_id)
           .maybeSingle();
 
+        console.log('SpotCheckAnalytics: Load result:', { data, error });
+
         if (error) {
-          console.error('Error loading spot check analytics:', error);
+          console.error('SpotCheckAnalytics: Error loading data:', error);
           return;
         }
 
         if (data) {
+          console.log('SpotCheckAnalytics: Setting loaded data:', data);
           setMetrics({
             passedFrequency: data.passed_frequency,
             probationFrequency: data.probation_frequency
@@ -72,9 +80,11 @@ export const SpotCheckAnalytics = ({ monthlyStaffData = [], meetingDate, meeting
           if (data.monthly_data && Array.isArray(data.monthly_data)) {
             setMonthlyData(data.monthly_data);
           }
+        } else {
+          console.log('SpotCheckAnalytics: No data found, using defaults');
         }
       } catch (error) {
-        console.error('Error loading spot check analytics:', error);
+        console.error('SpotCheckAnalytics: Exception loading data:', error);
       }
     };
 
@@ -83,7 +93,10 @@ export const SpotCheckAnalytics = ({ monthlyStaffData = [], meetingDate, meeting
 
   // Save data to database
   const saveData = async (newMetrics?: typeof metrics, newMonthlyData?: typeof monthlyData) => {
-    if (!meetingId || !profile?.company_id) return;
+    if (!meetingId || !profile?.company_id) {
+      console.log('SpotCheckAnalytics: Cannot save - missing meetingId or company_id', { meetingId, companyId: profile?.company_id });
+      return;
+    }
 
     try {
       const dataToSave = {
@@ -94,6 +107,8 @@ export const SpotCheckAnalytics = ({ monthlyStaffData = [], meetingDate, meeting
         monthly_data: newMonthlyData ?? monthlyData
       };
 
+      console.log('SpotCheckAnalytics: Saving data:', dataToSave);
+
       const { error } = await supabase
         .from('spot_check_analytics')
         .upsert(dataToSave, {
@@ -101,10 +116,12 @@ export const SpotCheckAnalytics = ({ monthlyStaffData = [], meetingDate, meeting
         });
 
       if (error) {
-        console.error('Error saving spot check analytics:', error);
+        console.error('SpotCheckAnalytics: Error saving data:', error);
+      } else {
+        console.log('SpotCheckAnalytics: Data saved successfully');
       }
     } catch (error) {
-      console.error('Error saving spot check analytics:', error);
+      console.error('SpotCheckAnalytics: Exception saving data:', error);
     }
   };
 
