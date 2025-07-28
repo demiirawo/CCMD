@@ -1,9 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { useDashboardData } from "@/hooks/useDashboardData";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 const chartConfig = {
   compliant: {
@@ -18,25 +19,79 @@ const chartConfig = {
 
 interface StaffTrainingAnalyticsProps {
   meetingDate?: Date;
-  sessionId?: string;
+  meetingId?: string;
 }
 
-export const StaffTrainingAnalytics = ({ meetingDate, sessionId }: StaffTrainingAnalyticsProps) => {
-  const defaultData = {
+export const StaffTrainingAnalytics = ({ meetingDate, meetingId }: StaffTrainingAnalyticsProps) => {
+  const { profile } = useAuth();
+  const [trainingData, setTrainingData] = useState({
     mandatoryCompliant: 0,
     mandatoryPending: 0,
     specialistCompliant: 0,
     specialistPending: 0
+  });
+
+  useEffect(() => {
+    if (profile?.company_id) {
+      loadData();
+    }
+  }, [profile?.company_id]);
+
+  const loadData = async () => {
+    if (!profile?.company_id) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('staff_training_analytics')
+        .select('*')
+        .eq('company_id', profile.company_id)
+        .maybeSingle();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error loading staff training analytics:', error);
+        return;
+      }
+
+      if (data) {
+        setTrainingData({
+          mandatoryCompliant: data.mandatory_compliant,
+          mandatoryPending: data.mandatory_pending,
+          specialistCompliant: data.specialist_compliant,
+          specialistPending: data.specialist_pending
+        });
+      }
+    } catch (error) {
+      console.error('Error loading staff training analytics:', error);
+    }
   };
 
-  const { data: trainingData, loading, saveData } = useDashboardData(
-    'staff_training_analytics',
-    sessionId,
-    defaultData
-  );
+  const saveData = async (newData: typeof trainingData) => {
+    if (!profile?.company_id) return;
+
+    try {
+      const { error } = await supabase
+        .from('staff_training_analytics')
+        .upsert({
+          company_id: profile.company_id,
+          mandatory_compliant: newData.mandatoryCompliant,
+          mandatory_pending: newData.mandatoryPending,
+          specialist_compliant: newData.specialistCompliant,
+          specialist_pending: newData.specialistPending
+        }, {
+          onConflict: 'company_id'
+        });
+
+      if (error) {
+        console.error('Error saving staff training analytics:', error);
+      }
+    } catch (error) {
+      console.error('Error saving staff training analytics:', error);
+    }
+  };
 
   const handleInputChange = (field: keyof typeof trainingData, value: number) => {
     const newData = { ...trainingData, [field]: value };
+    setTrainingData(newData);
     saveData(newData);
   };
 

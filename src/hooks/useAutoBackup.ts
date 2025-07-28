@@ -37,16 +37,16 @@ export const useAutoBackup = () => {
     };
 
     try {
-      // Store backup in dashboard_data table
+      // Store backup in Supabase
       const { error } = await supabase
-        .from('dashboard_data')
+        .from('meeting_backups')
         .upsert({
           company_id: profile.company_id,
-          data_content: backupData,
+          backup_data: backupData,
           meeting_id: meetingId,
-          data_type: 'auto_backup'
+          backup_type: 'auto'
         }, {
-          onConflict: 'company_id,meeting_id,data_type'
+          onConflict: 'company_id,meeting_id,backup_type'
         });
 
       if (error) {
@@ -66,11 +66,11 @@ export const useAutoBackup = () => {
 
     try {
       const { data, error } = await supabase
-        .from('dashboard_data')
-        .select('data_content')
+        .from('meeting_backups')
+        .select('backup_data')
         .eq('company_id', profile.company_id)
         .eq('meeting_id', meetingId)
-        .eq('data_type', 'auto_backup')
+        .eq('backup_type', 'auto')
         .order('created_at', { ascending: false })
         .limit(1);
 
@@ -80,7 +80,7 @@ export const useAutoBackup = () => {
       }
 
       if (data && data.length > 0) {
-        const backupData = data[0].data_content as BackupData;
+        const backupData = data[0].backup_data as BackupData;
         console.log('Restored from backup:', backupData.timestamp);
         return backupData;
       }

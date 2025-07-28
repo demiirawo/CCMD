@@ -1,9 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { useDashboardData } from "@/hooks/useDashboardData";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 const generateInitialData = (meetingDate?: Date) => {
   const months = [];
@@ -37,35 +38,116 @@ const chartConfig = {
 
 interface CarePlanAnalyticsProps {
   meetingDate?: Date;
-  sessionId?: string;
+  meetingId?: string;
 }
 
-export const CarePlanAnalytics = ({ meetingDate, sessionId }: CarePlanAnalyticsProps) => {
-  const { data: frequencies, saveData: saveFrequencies } = useDashboardData(
-    'care_plan_frequencies',
-    sessionId,
-    { highFrequency: 6, mediumFrequency: 12, lowFrequency: 24 }
-  );
+export const CarePlanAnalytics = ({ meetingDate, meetingId }: CarePlanAnalyticsProps) => {
+  const { profile } = useAuth();
+  const [monthlyData, setMonthlyData] = useState(generateInitialData(meetingDate));
+  const [frequencies, setFrequencies] = useState({
+    highFrequency: 6,
+    mediumFrequency: 12,
+    lowFrequency: 24
+  });
 
-  const { data: monthlyData, saveData } = useDashboardData(
-    'care_plan_analytics', 
-    sessionId, 
-    generateInitialData(meetingDate)
-  );
+  useEffect(() => {
+    if (profile?.company_id) {
+      loadData();
+    }
+  }, [profile?.company_id]);
 
-  const handleFrequencyChange = (field: string, value: number) => {
+  useEffect(() => {
+    const newMonthStructure = generateInitialData(meetingDate);
+    
+    if (monthlyData.length > 0) {
+      const preservedData = newMonthStructure.map(newMonth => {
+        const existingMonth = monthlyData.find(existing => existing.month === newMonth.month);
+        return existingMonth || newMonth;
+      });
+      setMonthlyData(preservedData);
+    } else {
+      setMonthlyData(newMonthStructure);
+    }
+  }, [meetingDate]);
+
+  const loadData = async () => {
+    if (!profile?.company_id) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('care_plan_analytics')
+        .select('*')
+        .eq('company_id', profile.company_id)
+        .maybeSingle();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error loading care plan analytics:', error);
+        return;
+      }
+
+      if (data) {
+        setFrequencies({
+          highFrequency: data.high_frequency,
+          mediumFrequency: data.medium_frequency,
+          lowFrequency: data.low_frequency
+        });
+        
+        if (data.monthly_data) {
+          const loadedData = data.monthly_data as any[];
+          const currentStructure = generateInitialData(meetingDate);
+          
+          const mergedData = currentStructure.map(current => {
+            const existing = loadedData.find(item => item.month === current.month);
+            return existing || current;
+          });
+          
+          setMonthlyData(mergedData);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading care plan analytics:', error);
+    }
+  };
+
+  const saveData = async (newFrequencies?: typeof frequencies, newMonthlyData?: typeof monthlyData) => {
+    if (!profile?.company_id) return;
+
+    try {
+      const { error } = await supabase
+        .from('care_plan_analytics')
+        .upsert({
+          company_id: profile.company_id,
+          high_frequency: newFrequencies?.highFrequency ?? frequencies.highFrequency,
+          medium_frequency: newFrequencies?.mediumFrequency ?? frequencies.mediumFrequency,
+          low_frequency: newFrequencies?.lowFrequency ?? frequencies.lowFrequency,
+          monthly_data: newMonthlyData || monthlyData
+        }, {
+          onConflict: 'company_id'
+        });
+
+      if (error) {
+        console.error('Error saving care plan analytics:', error);
+      }
+    } catch (error) {
+      console.error('Error saving care plan analytics:', error);
+    }
+  };
+
+  const handleFrequencyChange = (field: keyof typeof frequencies, value: number) => {
     const newFrequencies = { ...frequencies, [field]: value };
-    saveFrequencies(newFrequencies);
+    setFrequencies(newFrequencies);
+    saveData(newFrequencies);
   };
 
   const handleCellEdit = (monthIndex: number, field: 'highSU' | 'mediumSU' | 'lowSU' | 'completed', value: number) => {
     const newData = [...monthlyData];
     newData[monthIndex] = { ...newData[monthIndex], [field]: value };
-    saveData(newData);
+    setMonthlyData(newData);
+    saveData(undefined, newData);
   };
 
   // Calculate targets based on service users and frequencies
-  const dataWithTargets = monthlyData.map((month: any) => {
+  const dataWithTargets = monthlyData.map((month) => {
     const highTarget = Math.ceil(month.highSU / frequencies.highFrequency);
     const mediumTarget = Math.ceil(month.mediumSU / frequencies.mediumFrequency);
     const lowTarget = Math.ceil(month.lowSU / frequencies.lowFrequency);
@@ -182,7 +264,7 @@ export const CarePlanAnalytics = ({ meetingDate, sessionId }: CarePlanAnalyticsP
 
       {/* Data Grid */}
       <div className="grid grid-cols-4 gap-4">
-        {monthlyData.map((row: any, index: number) => (
+        {monthlyData.map((row, index) => (
           <div key={index} className="p-3 border rounded-lg">
             <div className="text-sm font-medium mb-2">{row.month}</div>
             <div className="space-y-2">

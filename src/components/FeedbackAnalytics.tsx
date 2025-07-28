@@ -1,9 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { useDashboardData } from "@/hooks/useDashboardData";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 const generateInitialData = (meetingDate?: Date) => {
   const months = [];
   const currentDate = meetingDate || new Date();
@@ -43,24 +44,98 @@ const chartConfig = {
 };
 interface FeedbackAnalyticsProps {
   meetingDate?: Date;
-  sessionId?: string;
+  meetingId?: string;
 }
-
 export const FeedbackAnalytics = ({
   meetingDate,
-  sessionId
+  meetingId
 }: FeedbackAnalyticsProps) => {
-  const { data: monthlyData, saveData } = useDashboardData(
-    'feedback_analytics', 
-    sessionId, 
-    generateInitialData(meetingDate)
-  );
+  const {
+    profile
+  } = useAuth();
+  const [monthlyData, setMonthlyData] = useState(generateInitialData(meetingDate));
+  useEffect(() => {
+    if (profile?.company_id) {
+      loadData();
+    }
+  }, [profile?.company_id, meetingId]);
+  useEffect(() => {
+    // Always reload from database when meeting date changes to preserve all data
+    if (profile?.company_id) {
+      loadData();
+    } else {
+      setMonthlyData(generateInitialData(meetingDate));
+    }
+  }, [meetingDate, profile?.company_id, meetingId]);
+  const loadData = async () => {
+    if (!profile?.company_id) return;
+    console.log('FeedbackAnalytics: Loading data for company_id:', profile.company_id, 'meetingId:', meetingId);
+    try {
+      // Load data for the specific meeting if meetingId is provided, otherwise load company-wide data
+      let query = supabase
+        .from('feedback_analytics')
+        .select('monthly_data')
+        .eq('company_id', profile.company_id);
+      
+      if (meetingId) {
+        query = query.eq('meeting_id', meetingId);
+      } else {
+        query = query.is('meeting_id', null);
+      }
+      
+      const { data, error } = await query.maybeSingle();
+      
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error loading feedback analytics:', error);
+        return;
+      }
+      if (data?.monthly_data) {
+        console.log('FeedbackAnalytics: Found existing data:', data.monthly_data);
+        const loadedData = data.monthly_data as any[];
+        const currentStructure = generateInitialData(meetingDate);
+        const mergedData = currentStructure.map(current => {
+          const existing = loadedData.find(item => item.month === current.month);
+          return existing || current;
+        });
+        console.log('FeedbackAnalytics: Setting merged data:', mergedData);
+        setMonthlyData(mergedData);
+      } else {
+        console.log('FeedbackAnalytics: No existing data found, using initial data');
+        setMonthlyData(generateInitialData(meetingDate));
+      }
+    } catch (error) {
+      console.error('Error loading feedback analytics:', error);
+    }
+  };
+  const saveData = async (newData: any[]) => {
+    if (!profile?.company_id) return;
+    console.log('FeedbackAnalytics: Saving data for company_id:', profile.company_id, 'meetingId:', meetingId, 'Data:', newData);
+    try {
+      const {
+        error
+      } = await supabase.from('feedback_analytics').upsert({
+        company_id: profile.company_id,
+        meeting_id: meetingId || null,
+        monthly_data: newData
+      }, {
+        onConflict: meetingId ? 'company_id,meeting_id' : 'company_id'
+      });
+      if (error) {
+        console.error('Error saving feedback analytics:', error);
+      } else {
+        console.log('FeedbackAnalytics: Data saved successfully');
+      }
+    } catch (error) {
+      console.error('Error saving feedback analytics:', error);
+    }
+  };
   const handleCellEdit = (monthIndex: number, field: 'compliments' | 'complaints' | 'suggestions' | 'resolved', value: number) => {
     const newData = [...monthlyData];
     newData[monthIndex] = {
       ...newData[monthIndex],
       [field]: value
     };
+    setMonthlyData(newData);
     saveData(newData);
   };
   const EditableCell = ({

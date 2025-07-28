@@ -1,9 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { useDashboardData } from "@/hooks/useDashboardData";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 const chartConfig = {
   compliant: {
@@ -18,25 +19,79 @@ const chartConfig = {
 
 interface StaffDocumentsAnalyticsProps {
   meetingDate?: Date;
-  sessionId?: string;
+  meetingId?: string;
 }
 
-export const StaffDocumentsAnalytics = ({ meetingDate, sessionId }: StaffDocumentsAnalyticsProps) => {
-  const defaultData = {
+export const StaffDocumentsAnalytics = ({ meetingDate, meetingId }: StaffDocumentsAnalyticsProps) => {
+  const { profile } = useAuth();
+  const [documentsData, setDocumentsData] = useState({
     activeFullyCompliant: 0,
     activePendingDocuments: 0,
     onboardingFullyCompliant: 0,
     onboardingPendingDocuments: 0
+  });
+
+  useEffect(() => {
+    if (profile?.company_id) {
+      loadData();
+    }
+  }, [profile?.company_id]);
+
+  const loadData = async () => {
+    if (!profile?.company_id) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('staff_documents_analytics')
+        .select('*')
+        .eq('company_id', profile.company_id)
+        .maybeSingle();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error loading staff documents analytics:', error);
+        return;
+      }
+
+      if (data) {
+        setDocumentsData({
+          activeFullyCompliant: data.active_fully_compliant,
+          activePendingDocuments: data.active_pending_documents,
+          onboardingFullyCompliant: data.onboarding_fully_compliant,
+          onboardingPendingDocuments: data.onboarding_pending_documents
+        });
+      }
+    } catch (error) {
+      console.error('Error loading staff documents analytics:', error);
+    }
   };
 
-  const { data: documentsData, loading, saveData } = useDashboardData(
-    'staff_documents_analytics',
-    sessionId,
-    defaultData
-  );
+  const saveData = async (newData: typeof documentsData) => {
+    if (!profile?.company_id) return;
+
+    try {
+      const { error } = await supabase
+        .from('staff_documents_analytics')
+        .upsert({
+          company_id: profile.company_id,
+          active_fully_compliant: newData.activeFullyCompliant,
+          active_pending_documents: newData.activePendingDocuments,
+          onboarding_fully_compliant: newData.onboardingFullyCompliant,
+          onboarding_pending_documents: newData.onboardingPendingDocuments
+        }, {
+          onConflict: 'company_id'
+        });
+
+      if (error) {
+        console.error('Error saving staff documents analytics:', error);
+      }
+    } catch (error) {
+      console.error('Error saving staff documents analytics:', error);
+    }
+  };
 
   const handleInputChange = (field: keyof typeof documentsData, value: number) => {
     const newData = { ...documentsData, [field]: value };
+    setDocumentsData(newData);
     saveData(newData);
   };
 

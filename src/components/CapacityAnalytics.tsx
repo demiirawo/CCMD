@@ -1,9 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { useDashboardData } from "@/hooks/useDashboardData";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 const generateInitialData = (meetingDate?: Date) => {
   const months = [];
@@ -46,24 +47,90 @@ const chartConfig = {
 interface CapacityAnalyticsProps {
   onMonthlyStaffDataChange?: (data: Array<{month: string, currentStaff: number, probationStaff?: number}>) => void;
   meetingDate?: Date;
-  sessionId?: string;
+  meetingId?: string;
 }
 
-export const CapacityAnalytics = ({ onMonthlyStaffDataChange, meetingDate, sessionId }: CapacityAnalyticsProps) => {
-  const { data: monthlyData, saveData } = useDashboardData(
-    'capacity_analytics', 
-    sessionId, 
-    generateInitialData(meetingDate)
-  );
+export const CapacityAnalytics = ({ onMonthlyStaffDataChange, meetingDate, meetingId }: CapacityAnalyticsProps) => {
+  const { profile } = useAuth();
+  const [monthlyData, setMonthlyData] = useState(generateInitialData(meetingDate));
+
+  useEffect(() => {
+    if (profile?.company_id) {
+      loadData();
+    }
+  }, [profile?.company_id]);
+
+  useEffect(() => {
+    // Always reload from database when meeting date changes to preserve all data
+    if (profile?.company_id) {
+      loadData();
+    } else {
+      setMonthlyData(generateInitialData(meetingDate));
+    }
+  }, [meetingDate, profile?.company_id]);
+
+  const loadData = async () => {
+    if (!profile?.company_id) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('resourcing_analytics')
+        .select('monthly_data')
+        .eq('company_id', profile.company_id)
+        .maybeSingle();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error loading resourcing analytics:', error);
+        return;
+      }
+
+      if (data?.monthly_data) {
+        const loadedData = data.monthly_data as any[];
+        const currentStructure = generateInitialData(meetingDate);
+        
+        const mergedData = currentStructure.map(current => {
+          const existing = loadedData.find(item => item.month === current.month);
+          return existing || current;
+        });
+        
+        setMonthlyData(mergedData);
+      }
+    } catch (error) {
+      console.error('Error loading resourcing analytics:', error);
+    }
+  };
+
+  const saveData = async (newData: any[]) => {
+    if (!profile?.company_id) return;
+
+    try {
+      const { error } = await supabase
+        .from('resourcing_analytics')
+        .upsert({
+          company_id: profile.company_id,
+          month: 'all',
+          monthly_data: newData
+        }, {
+          onConflict: 'company_id'
+        });
+
+      if (error) {
+        console.error('Error saving resourcing analytics:', error);
+      }
+    } catch (error) {
+      console.error('Error saving resourcing analytics:', error);
+    }
+  };
 
   const handleCellEdit = (monthIndex: number, field: 'onboardingStaff' | 'probationStaff' | 'currentStaff' | 'idealStaff', value: number) => {
     const newData = [...monthlyData];
     newData[monthIndex] = { ...newData[monthIndex], [field]: value };
+    setMonthlyData(newData);
     saveData(newData);
 
     // Notify parent component of monthly staff data changes
     if (onMonthlyStaffDataChange) {
-      const staffData = newData.map((item: any) => ({
+      const staffData = newData.map(item => ({
         month: item.month,
         currentStaff: item.currentStaff,
         probationStaff: item.probationStaff
@@ -120,7 +187,7 @@ export const CapacityAnalytics = ({ onMonthlyStaffDataChange, meetingDate, sessi
       
       {/* Data Grid */}
       <div className="grid grid-cols-4 gap-4">
-        {monthlyData.map((row: any, index: number) => (
+        {monthlyData.map((row, index) => (
           <div key={index} className="p-3 border rounded-lg">
             <div className="text-sm font-medium mb-2">{row.month}</div>
             <div className="space-y-2">
