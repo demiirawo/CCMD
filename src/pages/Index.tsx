@@ -951,6 +951,18 @@ const Index = () => {
     // Remove action from actions log
     setActionsLog(prev => prev.filter(action => action.id !== actionId));
 
+    // Also remove the same action from subsections
+    setDashboardData(prev => ({
+      ...prev,
+      sections: prev.sections.map(section => ({
+        ...section,
+        items: section.items.map(item => ({
+          ...item,
+          actions: item.actions.filter(action => action.id !== actionId)
+        }))
+      }))
+    }));
+
     // Delete action from database immediately
     if (profile?.company_id) {
       try {
@@ -970,7 +982,7 @@ const Index = () => {
     
     toast({
       title: "Action Deleted",
-      description: "Action has been removed and deleted from database"
+      description: "Action has been removed from both Actions Log and subsections"
     });
   };
 
