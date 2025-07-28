@@ -3,10 +3,12 @@ import { AlertCircle, Check, Minus, Edit, ChevronDown, ChevronRight } from "luci
 import { StatusBadge } from "./StatusBadge";
 import { Button } from "./ui/button";
 import { ActionEditDialog } from "./ActionEditDialog";
+
 export interface AuditEntry {
   timestamp: string;
   change: string;
 }
+
 export interface ActionLogEntry {
   id: string;
   timestamp: string;
@@ -22,6 +24,7 @@ export interface ActionLogEntry {
   sourceId?: string; // ID of the source document if applicable
   auditTrail?: AuditEntry[]; // New audit trail
 }
+
 interface ActionsLogProps {
   actions: ActionLogEntry[];
   onActionComplete?: (actionId: string) => void;
@@ -34,6 +37,7 @@ interface ActionsLogProps {
   }) => void;
   attendees?: string[];
 }
+
 export const ActionsLog = ({
   actions,
   onActionComplete,
@@ -186,7 +190,7 @@ export const ActionsLog = ({
         </div>
       </div>;
   };
-  return <div className="bg-primary/10 rounded-2xl p-6 shadow-lg border border-border/50">
+  return <div className="bg-primary/10 rounded-2xl p-6 shadow-lg border border-border/50 -mx-8 px-14">
       <div className="flex items-center justify-between cursor-pointer mb-4" onClick={() => {
         const newState = !isExpanded;
         setIsExpanded(newState);
