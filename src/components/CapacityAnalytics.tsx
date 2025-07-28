@@ -45,11 +45,12 @@ const chartConfig = {
 };
 
 interface CapacityAnalyticsProps {
+  onMonthlyStaffDataChange?: (data: Array<{month: string, currentStaff: number, probationStaff?: number}>) => void;
   meetingDate?: Date;
   meetingId?: string;
 }
 
-export const CapacityAnalytics = ({ meetingDate, meetingId }: CapacityAnalyticsProps) => {
+export const CapacityAnalytics = ({ onMonthlyStaffDataChange, meetingDate, meetingId }: CapacityAnalyticsProps) => {
   const { profile } = useAuth();
   const [monthlyData, setMonthlyData] = useState(generateInitialData(meetingDate));
 
@@ -112,6 +113,7 @@ export const CapacityAnalytics = ({ meetingDate, meetingId }: CapacityAnalyticsP
         .from('resourcing_analytics')
         .upsert({
           company_id: profile.company_id,
+          month: 'all',
           monthly_data: newData
         }, {
           onConflict: 'company_id'
@@ -130,6 +132,16 @@ export const CapacityAnalytics = ({ meetingDate, meetingId }: CapacityAnalyticsP
     newData[monthIndex] = { ...newData[monthIndex], [field]: value };
     setMonthlyData(newData);
     saveData(newData);
+
+    // Notify parent component of monthly staff data changes
+    if (onMonthlyStaffDataChange) {
+      const staffData = newData.map(item => ({
+        month: item.month,
+        currentStaff: item.currentStaff,
+        probationStaff: item.probationStaff
+      }));
+      onMonthlyStaffDataChange(staffData);
+    }
   };
 
   const EditableCell = ({ value, onChange }: { value: number; onChange: (value: number) => void }) => {

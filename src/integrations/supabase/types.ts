@@ -437,6 +437,7 @@ export type Database = {
           ideal_staff: number
           meeting_id: string | null
           month: string
+          monthly_data: Json | null
           onboarding_staff: number
           probation_staff: number
           updated_at: string
@@ -449,6 +450,7 @@ export type Database = {
           ideal_staff?: number
           meeting_id?: string | null
           month: string
+          monthly_data?: Json | null
           onboarding_staff?: number
           probation_staff?: number
           updated_at?: string
@@ -461,6 +463,7 @@ export type Database = {
           ideal_staff?: number
           meeting_id?: string | null
           month?: string
+          monthly_data?: Json | null
           onboarding_staff?: number
           probation_staff?: number
           updated_at?: string
@@ -469,7 +472,7 @@ export type Database = {
           {
             foreignKeyName: "resourcing_analytics_company_id_fkey"
             columns: ["company_id"]
-            isOneToOne: false
+            isOneToOne: true
             referencedRelation: "companies"
             referencedColumns: ["id"]
           },
