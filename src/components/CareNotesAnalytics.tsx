@@ -1,10 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
+import { useDashboardData } from "@/hooks/useDashboardData";
 
 const generateInitialData = (meetingDate?: Date) => {
   const months = [];
@@ -36,84 +35,19 @@ const chartConfig = {
 
 interface CareNotesAnalyticsProps {
   meetingDate?: Date;
-  meetingId?: string;
+  sessionId?: string;
 }
 
-export const CareNotesAnalytics = ({ meetingDate, meetingId }: CareNotesAnalyticsProps) => {
-  const { profile } = useAuth();
-  const [monthlyData, setMonthlyData] = useState(generateInitialData(meetingDate));
-
-  useEffect(() => {
-    if (profile?.company_id) {
-      loadData();
-    }
-  }, [profile?.company_id]);
-
-  useEffect(() => {
-    // Always reload from database when meeting date changes to preserve all data
-    if (profile?.company_id) {
-      loadData();
-    } else {
-      setMonthlyData(generateInitialData(meetingDate));
-    }
-  }, [meetingDate, profile?.company_id]);
-
-  const loadData = async () => {
-    if (!profile?.company_id) return;
-
-    try {
-      const { data, error } = await supabase
-        .from('care_notes_analytics')
-        .select('monthly_data')
-        .eq('company_id', profile.company_id)
-        .maybeSingle();
-
-      if (error && error.code !== 'PGRST116') {
-        console.error('Error loading care notes analytics:', error);
-        return;
-      }
-
-      if (data?.monthly_data) {
-        const loadedData = data.monthly_data as any[];
-        const currentStructure = generateInitialData(meetingDate);
-        
-        const mergedData = currentStructure.map(current => {
-          const existing = loadedData.find(item => item.month === current.month);
-          return existing || current;
-        });
-        
-        setMonthlyData(mergedData);
-      }
-    } catch (error) {
-      console.error('Error loading care notes analytics:', error);
-    }
-  };
-
-  const saveData = async (newData: any[]) => {
-    if (!profile?.company_id) return;
-
-    try {
-      const { error } = await supabase
-        .from('care_notes_analytics')
-        .upsert({
-          company_id: profile.company_id,
-          monthly_data: newData
-        }, {
-          onConflict: 'company_id'
-        });
-
-      if (error) {
-        console.error('Error saving care notes analytics:', error);
-      }
-    } catch (error) {
-      console.error('Error saving care notes analytics:', error);
-    }
-  };
+export const CareNotesAnalytics = ({ meetingDate, sessionId }: CareNotesAnalyticsProps) => {
+  const { data: monthlyData, saveData } = useDashboardData(
+    'care_notes_analytics', 
+    sessionId, 
+    generateInitialData(meetingDate)
+  );
 
   const handleCellEdit = (monthIndex: number, field: 'totalCareNotes' | 'nonCompliant', value: number) => {
     const newData = [...monthlyData];
     newData[monthIndex] = { ...newData[monthIndex], [field]: value };
-    setMonthlyData(newData);
     saveData(newData);
   };
 
@@ -165,7 +99,7 @@ export const CareNotesAnalytics = ({ meetingDate, meetingId }: CareNotesAnalytic
       
       {/* Data Grid */}
       <div className="grid grid-cols-4 gap-4">
-        {monthlyData.map((row, index) => (
+        {monthlyData.map((row: any, index: number) => (
           <div key={index} className="p-3 border rounded-lg">
             <div className="text-sm font-medium mb-2">{row.month}</div>
             <div className="space-y-2">

@@ -1,10 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
+import { useDashboardData } from "@/hooks/useDashboardData";
 
 const generateInitialData = (meetingDate?: Date) => {
   const months = [];
@@ -36,86 +35,19 @@ const chartConfig = {
 
 interface MedicationAnalyticsProps {
   meetingDate?: Date;
-  meetingId?: string;
+  sessionId?: string;
 }
 
-export const MedicationAnalytics = ({ meetingDate, meetingId }: MedicationAnalyticsProps) => {
-  const { profile } = useAuth();
-  const [monthlyData, setMonthlyData] = useState(generateInitialData(meetingDate));
-
-  // Load data from company (not per meeting) to ensure persistence
-  useEffect(() => {
-    if (profile?.company_id) {
-      loadData();
-    }
-  }, [profile?.company_id]);
-
-  // Always reload from database when meeting date changes to preserve all data
-  useEffect(() => {
-    if (profile?.company_id) {
-      loadData();
-    } else {
-      setMonthlyData(generateInitialData(meetingDate));
-    }
-  }, [meetingDate, profile?.company_id]);
-
-  const loadData = async () => {
-    if (!profile?.company_id) return;
-
-    try {
-      const { data, error } = await supabase
-        .from('medication_analytics')
-        .select('monthly_data')
-        .eq('company_id', profile.company_id)
-        .maybeSingle();
-
-      if (error && error.code !== 'PGRST116') {
-        console.error('Error loading medication analytics:', error);
-        return;
-      }
-
-      if (data?.monthly_data) {
-        const loadedData = data.monthly_data as any[];
-        const currentStructure = generateInitialData(meetingDate);
-        
-        // Merge loaded data with current structure
-        const mergedData = currentStructure.map(current => {
-          const existing = loadedData.find(item => item.month === current.month);
-          return existing || current;
-        });
-        
-        setMonthlyData(mergedData);
-      }
-    } catch (error) {
-      console.error('Error loading medication analytics:', error);
-    }
-  };
-
-  const saveData = async (newData: any[]) => {
-    if (!profile?.company_id) return;
-
-    try {
-      const { error } = await supabase
-        .from('medication_analytics')
-        .upsert({
-          company_id: profile.company_id,
-          monthly_data: newData
-        }, {
-          onConflict: 'company_id'
-        });
-
-      if (error) {
-        console.error('Error saving medication analytics:', error);
-      }
-    } catch (error) {
-      console.error('Error saving medication analytics:', error);
-    }
-  };
+export const MedicationAnalytics = ({ meetingDate, sessionId }: MedicationAnalyticsProps) => {
+  const { data: monthlyData, saveData } = useDashboardData(
+    'medication_analytics', 
+    sessionId, 
+    generateInitialData(meetingDate)
+  );
 
   const handleCellEdit = (monthIndex: number, field: 'medicationRecords' | 'incorrectOutcomes', value: number) => {
     const newData = [...monthlyData];
     newData[monthIndex] = { ...newData[monthIndex], [field]: value };
-    setMonthlyData(newData);
     saveData(newData);
   };
 
