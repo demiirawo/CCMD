@@ -9,6 +9,7 @@ interface BackupData {
   actionsLog: any[];
   keyDocuments: any[];
   meetingId: string;
+  [key: string]: any; // For JSON compatibility
 }
 
 export const useAutoBackup = () => {
