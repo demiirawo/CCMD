@@ -1,279 +1,348 @@
-import React, { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { ComposedChart, Bar, Line, XAxis, YAxis, ResponsiveContainer } from "recharts";
+import { Input } from "@/components/ui/input";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useState, useEffect } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { format, subMonths } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
 
+// Generate 12 months of data from meeting date back to same month last year
 const generateInitialData = (meetingDate?: Date) => {
-  const months = [];
   const currentDate = meetingDate || new Date();
-  
-  for (let i = 11; i >= 0; i--) {
-    const date = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1);
-    const monthName = date.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
-    months.push({
-      month: monthName,
-      onboarding: 0,
-      probation: 0,
-      passed: 0,
-      target: 0
+  const data = [];
+  for (let i = 0; i < 12; i++) {
+    const monthDate = subMonths(currentDate, i);
+    data.unshift({
+      month: format(monthDate, "MMM yy"),
+      onboardingStaff: 0,
+      probationStaff: 0,
+      currentStaff: 0,
+      idealStaff: 0
     });
   }
-  
-  return months;
+  return data;
+};
+
+const initialCurrentMetrics = {
+  activeOnboardingStaff: 0,
+  currentStaffingLevel: 0,
+  minimumStaffingLevel: 0,
+  idealStaffingLevel: 0,
+  capacityCoverage: 0
 };
 
 const chartConfig = {
-  onboarding: {
-    label: "Onboarding",
-    color: "hsl(var(--chart-1))",
+  onboardingStaff: {
+    label: "Onboarding Staff",
+    color: "hsl(var(--chart-1))"
   },
-  probation: {
-    label: "Probation",
-    color: "hsl(var(--chart-2))",
+  probationStaff: {
+    label: "Probation Staff",
+    color: "hsl(var(--chart-2))"
   },
-  passed: {
-    label: "Passed",
-    color: "hsl(var(--chart-3))",
+  currentStaff: {
+    label: "Current Staff",
+    color: "hsl(var(--chart-3))"
   },
-  target: {
-    label: "Target",
-    color: "hsl(var(--chart-4))",
-  },
+  idealStaff: {
+    label: "Ideal Staff",
+    color: "hsl(var(--chart-4))"
+  }
 };
 
 interface CapacityAnalyticsProps {
+  onMonthlyStaffDataChange?: (data: Array<{month: string, currentStaff: number, probationStaff?: number}>) => void;
   meetingDate?: Date;
   meetingId?: string;
-  onMonthlyStaffDataChange?: (data: any) => void;
 }
 
-export const CapacityAnalytics = ({ meetingDate, meetingId, onMonthlyStaffDataChange }: CapacityAnalyticsProps) => {
-  const { profile } = useAuth();
+export const CapacityAnalytics = ({ onMonthlyStaffDataChange, meetingDate, meetingId }: CapacityAnalyticsProps = {}) => {
+  console.log('CapacityAnalytics: Component initialized with meetingId:', meetingId);
   const [monthlyData, setMonthlyData] = useState(generateInitialData(meetingDate));
-
+  const [currentMetrics, setCurrentMetrics] = useState(initialCurrentMetrics);
+  
+  // Load data from database when component mounts or meetingId changes
   useEffect(() => {
-    if (profile?.company_id) {
-      loadData();
-    }
-  }, [profile?.company_id]);
-
-  useEffect(() => {
-    const newMonthStructure = generateInitialData(meetingDate);
+    const loadData = async () => {
+      console.log('CapacityAnalytics: loadData called with meetingId:', meetingId);
+      if (meetingId) {
+        const { data, error } = await supabase
+          .from('resourcing_analytics')
+          .select('*')
+          .eq('meeting_id', meetingId)
+          .order('month');
+        
+        console.log('CapacityAnalytics: Database query result:', { data, error });
+        
+        if (data && data.length > 0) {
+          const loadedData = generateInitialData(meetingDate).map(defaultRow => {
+            const dbRow = data.find(d => d.month === defaultRow.month);
+            return dbRow ? {
+              month: dbRow.month,
+              onboardingStaff: dbRow.onboarding_staff,
+              probationStaff: dbRow.probation_staff,
+              currentStaff: dbRow.current_staff,
+              idealStaff: dbRow.ideal_staff
+            } : defaultRow;
+          });
+          console.log('CapacityAnalytics: Setting loaded data:', loadedData);
+          setMonthlyData(loadedData);
+        } else {
+          console.log('CapacityAnalytics: No data found, using initial data');
+          setMonthlyData(generateInitialData(meetingDate));
+        }
+      } else {
+        console.log('CapacityAnalytics: No meetingId, using initial data');
+        setMonthlyData(generateInitialData(meetingDate));
+      }
+    };
     
-    if (monthlyData.length > 0) {
-      const preservedData = newMonthStructure.map(newMonth => {
-        const existingMonth = monthlyData.find(existing => existing.month === newMonth.month);
-        return existingMonth || newMonth;
+    loadData();
+  }, [meetingDate, meetingId]);
+  
+  // Send initial monthly staff data to parent component
+  useEffect(() => {
+    if (onMonthlyStaffDataChange) {
+      const staffData = monthlyData.map(item => ({
+        month: item.month,
+        currentStaff: item.currentStaff,
+        probationStaff: item.probationStaff
+      }));
+      onMonthlyStaffDataChange(staffData);
+    }
+  }, [onMonthlyStaffDataChange, monthlyData]);
+  
+  const handleCellEdit = async (rowIndex: number, field: string, value: string) => {
+    console.log('CapacityAnalytics: Starting handleCellEdit', { rowIndex, field, value, meetingId });
+    const numValue = parseInt(value) || 0;
+    const newData = [...monthlyData];
+    newData[rowIndex] = {
+      ...newData[rowIndex],
+      [field]: numValue
+    };
+    setMonthlyData(newData);
+
+    // Always save to database immediately
+    if (meetingId) {
+      console.log('CapacityAnalytics: meetingId exists, attempting to save:', meetingId);
+      const row = newData[rowIndex];
+      
+      console.log('CapacityAnalytics: Saving to database:', {
+        meeting_id: meetingId,
+        month: row.month,
+        onboarding_staff: row.onboardingStaff,
+        probation_staff: row.probationStaff,
+        current_staff: row.currentStaff,
+        ideal_staff: row.idealStaff
       });
-      setMonthlyData(preservedData);
-    } else {
-      setMonthlyData(newMonthStructure);
-    }
-  }, [meetingDate]);
-
-  const loadData = async () => {
-    if (!profile?.company_id) return;
-
-    try {
-      // @ts-ignore - Types will be updated after migration
-      const { data, error } = await supabase
-        .from('resourcing_analytics')
-        .select('monthly_data')
-        .eq('company_id', profile.company_id)
-        .maybeSingle();
-
-      if (error && error.code !== 'PGRST116') {
-        console.error('Error loading resourcing analytics:', error);
-        return;
-      }
-
-      // @ts-ignore - Types will be updated after migration
-      if (data?.monthly_data) {
-        // @ts-ignore - Types will be updated after migration
-        const loadedData = data.monthly_data as any[];
-        const currentStructure = generateInitialData(meetingDate);
-        
-        const mergedData = currentStructure.map(current => {
-          const existing = loadedData.find(item => item.month === current.month);
-          return existing || current;
-        });
-        
-        setMonthlyData(mergedData);
-      }
-    } catch (error) {
-      console.error('Error loading resourcing analytics:', error);
-    }
-  };
-
-  const saveData = async (newData: any[]) => {
-    if (!profile?.company_id) return;
-
-    try {
-      // @ts-ignore - Types will be updated after migration
+      
+      // Use upsert with proper conflict resolution
       const { error } = await supabase
         .from('resourcing_analytics')
         .upsert({
-          company_id: profile.company_id,
-          month: 'all', // Use a default value since we're storing all months in monthly_data
-          monthly_data: newData
+          meeting_id: meetingId,
+          month: row.month,
+          onboarding_staff: row.onboardingStaff,
+          probation_staff: row.probationStaff,
+          current_staff: row.currentStaff,
+          ideal_staff: row.idealStaff
         }, {
-          onConflict: 'company_id'
+          onConflict: 'meeting_id,month'
         });
-
-      if (error) {
-        console.error('Error saving resourcing analytics:', error);
-      }
-    } catch (error) {
-      console.error('Error saving resourcing analytics:', error);
+      
+      console.log('CapacityAnalytics: Save result:', { error });
+    } else {
+      console.log('CapacityAnalytics: meetingId is null/undefined, data not saved:', meetingId);
     }
-  };
 
-  const handleCellEdit = (monthIndex: number, field: 'onboarding' | 'probation' | 'passed' | 'target', value: number) => {
-    const newData = [...monthlyData];
-    newData[monthIndex] = { ...newData[monthIndex], [field]: value };
-    setMonthlyData(newData);
-    saveData(newData);
-    
+    // Update current metrics based on latest data
+    const latestRow = newData[newData.length - 1];
+    const totalStaff = latestRow.onboardingStaff + latestRow.probationStaff + latestRow.currentStaff;
+    const coverage = latestRow.idealStaff > 0 ? totalStaff / latestRow.idealStaff * 100 : 0;
+    setCurrentMetrics({
+      activeOnboardingStaff: latestRow.onboardingStaff,
+      currentStaffingLevel: totalStaff,
+      minimumStaffingLevel: 0,
+      idealStaffingLevel: latestRow.idealStaff,
+      capacityCoverage: Math.round(coverage * 10) / 10
+    });
+
+    // Notify parent component of monthly staff data changes
     if (onMonthlyStaffDataChange) {
-      onMonthlyStaffDataChange(newData);
+      const staffData = newData.map(item => ({
+        month: item.month,
+        currentStaff: item.currentStaff,
+        probationStaff: item.probationStaff
+      }));
+      onMonthlyStaffDataChange(staffData);
     }
   };
 
-  const EditableCell = ({ value, onChange }: { value: number; onChange: (value: number) => void }) => {
+  const EditableCell = ({
+    value,
+    onEdit
+  }: {
+    value: number;
+    onEdit: (val: string) => void;
+  }) => {
     const [editing, setEditing] = useState(false);
-    const [editValue, setEditValue] = useState('');
-
+    const [editValue, setEditValue] = useState("");
+    
     const handleStartEdit = () => {
+      setEditValue("");
       setEditing(true);
-      setEditValue('');
     };
-
+    
     const handleSave = () => {
-      const numValue = parseInt(editValue) || 0;
-      onChange(numValue);
+      onEdit(editValue);
       setEditing(false);
     };
-
+    
     if (editing) {
-      return (
-        <Input 
-          value={editValue} 
-          onChange={e => setEditValue(e.target.value)} 
-          onBlur={handleSave} 
-          onKeyDown={e => {
-            if (e.key === 'Enter') handleSave();
-            if (e.key === 'Escape') setEditing(false);
-          }} 
-          className="w-16 h-8 text-sm" 
-          autoFocus 
-        />
-      );
+      return <Input 
+        value={editValue} 
+        onChange={e => setEditValue(e.target.value)} 
+        onBlur={handleSave} 
+        onKeyDown={e => {
+          if (e.key === 'Enter') handleSave();
+          if (e.key === 'Escape') setEditing(false);
+        }} 
+        className="w-16 h-8 text-sm" 
+        autoFocus 
+      />;
     }
-
-    return (
-      <span className="cursor-pointer hover:bg-accent/50 p-1 rounded" onClick={handleStartEdit}>
+    return <span className="cursor-pointer hover:bg-accent/50 p-1 rounded" onClick={handleStartEdit}>
         {value}
-      </span>
-    );
+      </span>;
   };
 
-  return (
+  return <TooltipProvider>
     <div className="space-y-6 mt-4 p-6 border border-border rounded-lg bg-white">
       <div className="flex items-center justify-between">
         <h4 className="text-lg font-semibold text-foreground">Resourcing Analytics</h4>
+        
       </div>
       
       <div className="text-sm text-muted-foreground">Recruitment progress, monitoring workforce pipeline against monthly staffing targets (Past 12 Months)</div>
       
-      {/* Data Grid */}
-      <div className="grid grid-cols-4 gap-4">
-        {monthlyData.map((row, index) => (
-          <div key={index} className="p-3 border rounded-lg">
-            <div className="text-sm font-medium mb-2">{row.month}</div>
-            <div className="space-y-2">
-              <div>
-                <div className="text-xs text-muted-foreground mb-1">Onboarding:</div>
-                <EditableCell value={row.onboarding} onChange={(value) => handleCellEdit(index, 'onboarding', value)} />
-              </div>
-              <div>
-                <div className="text-xs text-muted-foreground mb-1">Probation:</div>
-                <EditableCell value={row.probation} onChange={(value) => handleCellEdit(index, 'probation', value)} />
-              </div>
-              <div>
-                <div className="text-xs text-muted-foreground mb-1">Passed:</div>
-                <EditableCell value={row.passed} onChange={(value) => handleCellEdit(index, 'passed', value)} />
-              </div>
-              <div>
-                <div className="text-xs text-muted-foreground mb-1">Target:</div>
-                <EditableCell value={row.target} onChange={(value) => handleCellEdit(index, 'target', value)} />
-              </div>
-            </div>
-          </div>
-        ))}
+      {/* Data Table */}
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm table-fixed">
+          <thead>
+            <tr className="border-b">
+              <th className="text-left p-3 font-medium w-1/5">Month</th>
+              <th className="text-left p-3 font-medium w-1/5">
+                <Tooltip>
+                  <TooltipTrigger className="cursor-help">
+                    Onboarding
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="max-w-xs">The number of individuals who have been offered a role and are in the pre-employment stage, pending completion of recruitment checks such as DBS clearance, references, right to work, and mandatory training.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </th>
+              <th className="text-left p-3 font-medium w-1/5">
+                <Tooltip>
+                  <TooltipTrigger className="cursor-help">
+                    Probation
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="max-w-xs">The number of staff who have officially started work and are currently within their probationary period.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </th>
+              <th className="text-left p-3 font-medium w-1/5">
+                <Tooltip>
+                  <TooltipTrigger className="cursor-help">
+                    Passed
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="max-w-xs">The number of staff who have successfully completed their probation and are now confirmed as permanent or long-term members of the team.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </th>
+              <th className="text-left p-3 font-medium w-1/5">
+                <Tooltip>
+                  <TooltipTrigger className="cursor-help">
+                    Target
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="max-w-xs">The number of new staff the organisation aims to bring on board based on workforce planning and service demand.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {monthlyData.map((row, index) => <tr key={index} className="border-b border-border/30 hover:bg-accent/30">
+                <td className="p-3">{row.month}</td>
+                <td className="p-3">
+                  <EditableCell value={row.onboardingStaff} onEdit={val => handleCellEdit(index, 'onboardingStaff', val)} />
+                </td>
+                <td className="p-3">
+                  <EditableCell value={row.probationStaff} onEdit={val => handleCellEdit(index, 'probationStaff', val)} />
+                </td>
+                <td className="p-3">
+                  <EditableCell value={row.currentStaff} onEdit={val => handleCellEdit(index, 'currentStaff', val)} />
+                </td>
+                <td className="p-3">
+                  <EditableCell value={row.idealStaff} onEdit={val => handleCellEdit(index, 'idealStaff', val)} />
+                </td>
+              </tr>)}
+          </tbody>
+        </table>
       </div>
 
+      {/* Metrics Cards */}
+
       {/* Chart */}
-      <Card className="p-4 bg-white">
-        <ChartContainer config={chartConfig} className="h-64 w-full">
-          <ResponsiveContainer width="100%" height="100%">
-            <ComposedChart 
-              data={monthlyData} 
-              margin={{ top: 5, right: 5, bottom: 25, left: 5 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
-              <XAxis dataKey="month" axisLine={false} tickLine={false} className="text-xs" />
-              <YAxis axisLine={false} tickLine={false} className="text-xs" />
-              <ChartTooltip content={<ChartTooltipContent />} />
-              <Bar 
-                dataKey="onboarding" 
-                fill="#3b82f6"
-                name="Onboarding"
-              />
-              <Bar 
-                dataKey="probation" 
-                fill="#f59e0b"
-                name="Probation"
-              />
-              <Bar 
-                dataKey="passed" 
-                fill="#10b981"
-                name="Passed"
-              />
-              <Line 
-                type="monotone" 
-                dataKey="target" 
-                stroke="#ef4444"
-                strokeWidth={2}
-                dot={{ r: 3, fill: "#ef4444" }}
-                name="Target"
-              />
-            </ComposedChart>
-          </ResponsiveContainer>
-        </ChartContainer>
-        
-        {/* Legend */}
-        <div className="flex flex-wrap justify-center gap-4 mt-4 pt-4 border-t border-border">
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 bg-blue-500 rounded"></div>
-            <span className="text-xs text-muted-foreground">Onboarding</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 bg-amber-500 rounded"></div>
-            <span className="text-xs text-muted-foreground">Probation</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 bg-emerald-500 rounded"></div>
-            <span className="text-xs text-muted-foreground">Passed</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-3 border-b-2 border-red-500"></div>
-            <span className="text-xs text-muted-foreground">Target</span>
-          </div>
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          
+          
         </div>
-      </Card>
+        <Card className="p-4 bg-white">
+          <ChartContainer config={chartConfig} className="h-64 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <ComposedChart data={monthlyData}>
+                <XAxis dataKey="month" axisLine={false} tickLine={false} className="text-xs" />
+                <YAxis axisLine={false} tickLine={false} className="text-xs" />
+                <ChartTooltip content={<ChartTooltipContent />} />
+                <Bar dataKey="currentStaff" fill="#3b82f6" name="Current Staff" stackId="staff" />
+                <Bar dataKey="probationStaff" fill="#f59e0b" name="Probation Staff" stackId="staff" />
+                <Bar dataKey="onboardingStaff" fill="#8b5cf6" name="Onboarding Staff" stackId="staff" />
+                <Line type="monotone" dataKey="idealStaff" stroke="#22c55e" strokeWidth={2} dot={{
+                r: 3,
+                fill: "#22c55e"
+              }} name="Ideal Staff" />
+              </ComposedChart>
+            </ResponsiveContainer>
+          </ChartContainer>
+          
+          
+          {/* Legend */}
+          <div className="flex flex-wrap justify-center gap-4 mt-4 pt-4 border-t border-border">
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 bg-blue-500 rounded"></div>
+              <span className="text-xs text-muted-foreground">Passed</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 bg-amber-500 rounded"></div>
+              <span className="text-xs text-muted-foreground">Probation</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 bg-purple-500 rounded"></div>
+              <span className="text-xs text-muted-foreground">Onboarding</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-3 border-b-2 border-green-500"></div>
+              <span className="text-xs text-muted-foreground">Target</span>
+            </div>
+          </div>
+        </Card>
+      </div>
     </div>
-  );
+  </TooltipProvider>;
 };
