@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { format, addDays, addWeeks, addMonths, addYears, differenceInDays } from "date-fns";
 import { Card } from "./ui/card";
 import { StatusBadge, StatusType } from "./StatusBadge";
+
 export interface DocumentData {
   id: string;
   name: string;
@@ -19,16 +20,19 @@ export interface DocumentData {
   reviewFrequencyPeriod: string;
   nextReviewDate: string | null;
 }
+
 interface KeyDocumentTrackerProps {
   documents?: DocumentData[];
   onDocumentsChange?: (documents: DocumentData[]) => void;
   attendees?: string[];
 }
+
 const categories = ["Governance and Compliance", "Care Delivery", "Staffing and HR", "Finance and Payroll", "Health and Safety", "Client Records and Contracts", "Quality Assurance and Audit", "Transportation and Logistics"];
 const periods = ["days", "weeks", "months", "years"];
 const numbers = Array.from({
   length: 12
 }, (_, i) => (i + 1).toString());
+
 export const KeyDocumentTracker = ({
   documents = [],
   onDocumentsChange,
@@ -38,6 +42,7 @@ export const KeyDocumentTracker = ({
     const saved = sessionStorage.getItem('key_documents_expanded');
     return saved !== null ? JSON.parse(saved) : false;
   });
+
   const calculateNextReviewDate = (lastReviewDate: string | null, number: string, period: string): Date | null => {
     if (!lastReviewDate) return null;
     const lastDate = new Date(lastReviewDate);
@@ -59,6 +64,7 @@ export const KeyDocumentTracker = ({
         return lastDate;
     }
   };
+
   const getDaysRemaining = (nextReviewDate: Date | null) => {
     if (!nextReviewDate) return null;
     const today = new Date();
@@ -74,6 +80,7 @@ export const KeyDocumentTracker = ({
     const diffDays = differenceInDays(reviewDate, today);
     return isNaN(diffDays) ? null : diffDays;
   };
+
   const getDocumentStatus = (nextReviewDate: string | null): StatusType => {
     if (!nextReviewDate) return "green";
     const daysRemaining = getDaysRemaining(new Date(nextReviewDate));
@@ -86,6 +93,7 @@ export const KeyDocumentTracker = ({
       return "green"; // More than 5 days
     }
   };
+
   const getDocumentColorClass = (nextReviewDate: string | null) => {
     if (!nextReviewDate) return "bg-white";
     const daysRemaining = getDaysRemaining(new Date(nextReviewDate));
@@ -108,6 +116,7 @@ export const KeyDocumentTracker = ({
     if (statuses.some(status => status === "amber")) return "amber";
     return "green";
   };
+
   const handleDocumentChange = (index: number, field: keyof DocumentData, value: any) => {
     const updatedDocuments = [...documents];
     if (updatedDocuments[index]) {
@@ -126,6 +135,7 @@ export const KeyDocumentTracker = ({
       onDocumentsChange?.(updatedDocuments);
     }
   };
+
   const addDocument = () => {
     const newDocument: DocumentData = {
       id: `doc-${Date.now()}`,
@@ -141,6 +151,7 @@ export const KeyDocumentTracker = ({
     const updatedDocuments = [...documents, newDocument];
     onDocumentsChange?.(updatedDocuments);
   };
+
   const removeDocument = (docId: string) => {
     const updatedDocuments = documents.filter(doc => doc.id !== docId);
     onDocumentsChange?.(updatedDocuments);
@@ -157,7 +168,8 @@ export const KeyDocumentTracker = ({
   if (uncategorizedDocs.length > 0) {
     groupedDocuments.push(["Uncategorized", uncategorizedDocs]);
   }
-  return <Card className="bg-primary/10 rounded-2xl p-6 shadow-lg border border-border/50">
+
+  return <Card className="bg-primary/10 rounded-2xl p-6 shadow-lg border border-border/50 -mx-8 px-14">
       <div className="flex items-center justify-between cursor-pointer mb-6" onClick={() => {
       const newState = !isExpanded;
       setIsExpanded(newState);
