@@ -61,18 +61,13 @@ export const CapacityAnalytics = ({ onMonthlyStaffDataChange, meetingDate, meeti
   }, [profile?.company_id]);
 
   useEffect(() => {
-    const newMonthStructure = generateInitialData(meetingDate);
-    
-    if (monthlyData.length > 0) {
-      const preservedData = newMonthStructure.map(newMonth => {
-        const existingMonth = monthlyData.find(existing => existing.month === newMonth.month);
-        return existingMonth || newMonth;
-      });
-      setMonthlyData(preservedData);
+    // Always reload from database when meeting date changes to preserve all data
+    if (profile?.company_id) {
+      loadData();
     } else {
-      setMonthlyData(newMonthStructure);
+      setMonthlyData(generateInitialData(meetingDate));
     }
-  }, [meetingDate]);
+  }, [meetingDate, profile?.company_id]);
 
   const loadData = async () => {
     if (!profile?.company_id) return;

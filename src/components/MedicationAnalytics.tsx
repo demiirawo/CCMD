@@ -50,20 +50,14 @@ export const MedicationAnalytics = ({ meetingDate, meetingId }: MedicationAnalyt
     }
   }, [profile?.company_id]);
 
-  // Regenerate month structure when meeting date changes, preserving data
+  // Always reload from database when meeting date changes to preserve all data
   useEffect(() => {
-    const newMonthStructure = generateInitialData(meetingDate);
-    
-    if (monthlyData.length > 0) {
-      const preservedData = newMonthStructure.map(newMonth => {
-        const existingMonth = monthlyData.find(existing => existing.month === newMonth.month);
-        return existingMonth || newMonth;
-      });
-      setMonthlyData(preservedData);
+    if (profile?.company_id) {
+      loadData();
     } else {
-      setMonthlyData(newMonthStructure);
+      setMonthlyData(generateInitialData(meetingDate));
     }
-  }, [meetingDate]);
+  }, [meetingDate, profile?.company_id]);
 
   const loadData = async () => {
     if (!profile?.company_id) return;

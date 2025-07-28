@@ -54,21 +54,14 @@ export const SupervisionAnalytics = ({ monthlyStaffData = [], meetingDate, meeti
     }
   }, [meetingId, profile?.company_id]);
 
-  // Regenerate month structure when meeting date changes
+  // Always reload from database when meeting date changes to preserve all data
   useEffect(() => {
-    const newMonthStructure = generateInitialData(meetingDate);
-    
-    // Preserve existing data by mapping it to the new structure
-    if (monthlyData.length > 0) {
-      const preservedData = newMonthStructure.map(newMonth => {
-        const existingMonth = monthlyData.find(existing => existing.month === newMonth.month);
-        return existingMonth || newMonth;
-      });
-      setMonthlyData(preservedData);
+    if (meetingId && profile?.company_id) {
+      loadData();
     } else {
-      setMonthlyData(newMonthStructure);
+      setMonthlyData(generateInitialData(meetingDate));
     }
-  }, [meetingDate]);
+  }, [meetingDate, meetingId, profile?.company_id]);
 
   const loadData = async () => {
     if (!meetingId || !profile?.company_id) return;
