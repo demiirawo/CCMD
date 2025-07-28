@@ -866,7 +866,7 @@ const Index = () => {
       try {
         const { error } = await supabase
           .from('actions_log')
-          .insert({
+          .upsert({
             company_id: profile.company_id,
             action_id: actionId,
             timestamp: newAction.timestamp,
@@ -879,6 +879,8 @@ const Index = () => {
             closed: false,
             source_type: "manual",
             source_id: subsectionActionId ? `subsection-${itemTitle}` : ''
+          }, {
+            onConflict: 'company_id,action_id'
           });
         
         if (error) {
@@ -957,7 +959,7 @@ const Index = () => {
   };
 
 
-  const handleActionEdit = (actionId: string, updates: { comment?: string; dueDate?: string; owner?: string }) => {
+  const handleActionEdit = async (actionId: string, updates: { comment?: string; dueDate?: string; owner?: string }) => {
     const timestamp = new Date().toLocaleString('en-GB', {
       day: '2-digit',
       month: 'short',
@@ -1002,6 +1004,60 @@ const Index = () => {
       updatedAction.auditTrail = auditEntries;
       return updatedAction;
     }));
+
+    // Update action in database immediately
+    if (profile?.company_id) {
+      try {
+        const updateData: any = {};
+        
+        if (updates.dueDate) {
+          updateData.due_date = updates.dueDate;
+        }
+        
+        if (updates.owner) {
+          updateData.mentioned_attendee = updates.owner;
+        }
+
+        // Add audit trail update
+        const currentAction = actionsLog.find(a => a.id === actionId);
+        const newAuditTrail = [...(currentAction?.auditTrail || [])];
+        
+        if (updates.comment) {
+          newAuditTrail.push({
+            timestamp,
+            change: `Comment added: ${updates.comment}`
+          });
+        }
+        
+        if (updates.dueDate && currentAction && updates.dueDate !== currentAction.dueDate) {
+          newAuditTrail.push({
+            timestamp,
+            change: `Due date changed from ${currentAction.dueDate} to ${updates.dueDate}`
+          });
+        }
+        
+        if (updates.owner && currentAction && updates.owner !== currentAction.mentionedAttendee) {
+          newAuditTrail.push({
+            timestamp,
+            change: `Action owner changed to ${updates.owner}`
+          });
+        }
+        
+        updateData.audit_trail = newAuditTrail;
+
+        const { error } = await supabase
+          .from('actions_log')
+          .update(updateData)
+          .eq('company_id', profile.company_id)
+          .eq('action_id', actionId);
+        
+        if (error) {
+          console.error('Error updating action in database:', error);
+        }
+      } catch (error) {
+        console.error('Failed to update action in database:', error);
+      }
+    }
 
     // Sync the same changes to subsection actions using the same actionId
     setDashboardData(prev => ({
@@ -1051,7 +1107,7 @@ const Index = () => {
 
     toast({
       title: "Action Updated",
-      description: "Action has been updated successfully"
+      description: "Action has been updated and saved to database"
     });
   };
 
@@ -1155,27 +1211,64 @@ const Index = () => {
     });
   };
 
-  const handleSubsectionActionComplete = (actionId: string) => {
+  const handleSubsectionActionComplete = async (actionId: string) => {
     // Mark action as complete in main Actions Log
     setActionsLog(prev => prev.map(action => 
       action.id === actionId 
         ? { ...action, closed: true, closedDate: new Date().toISOString() }
         : action
     ));
+
+    // Update action in database immediately
+    if (profile?.company_id) {
+      try {
+        const { error } = await supabase
+          .from('actions_log')
+          .update({
+            closed: true,
+            closed_date: new Date().toISOString()
+          })
+          .eq('company_id', profile.company_id)
+          .eq('action_id', actionId);
+        
+        if (error) {
+          console.error('Error updating action completion in database:', error);
+        }
+      } catch (error) {
+        console.error('Failed to update action completion in database:', error);
+      }
+    }
     
     toast({
       title: "Action Completed",
-      description: "Action has been marked as complete in Actions Log"
+      description: "Action has been marked as complete and saved to database"
     });
   };
 
-  const handleSubsectionActionDelete = (actionId: string) => {
+  const handleSubsectionActionDelete = async (actionId: string) => {
     // Remove action from main Actions Log
     setActionsLog(prev => prev.filter(action => action.id !== actionId));
+
+    // Delete action from database immediately
+    if (profile?.company_id) {
+      try {
+        const { error } = await supabase
+          .from('actions_log')
+          .delete()
+          .eq('company_id', profile.company_id)
+          .eq('action_id', actionId);
+        
+        if (error) {
+          console.error('Error deleting action from database:', error);
+        }
+      } catch (error) {
+        console.error('Failed to delete action from database:', error);
+      }
+    }
     
     toast({
       title: "Action Deleted",
-      description: "Action has been removed from Actions Log"
+      description: "Action has been removed from Actions Log and database"
     });
   };
 
