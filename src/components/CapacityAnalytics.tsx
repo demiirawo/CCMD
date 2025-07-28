@@ -78,33 +78,27 @@ export const CapacityAnalytics = ({ meetingDate, meetingId, onMonthlyStaffDataCh
     if (!profile?.company_id) return;
 
     try {
-      // For now, use the individual records approach until migration is approved
+      // @ts-ignore - Types will be updated after migration
       const { data, error } = await supabase
         .from('resourcing_analytics')
-        .select('*')
+        .select('monthly_data')
         .eq('company_id', profile.company_id)
-        .order('month');
+        .maybeSingle();
 
       if (error && error.code !== 'PGRST116') {
         console.error('Error loading resourcing analytics:', error);
         return;
       }
 
-      if (data && data.length > 0) {
+      // @ts-ignore - Types will be updated after migration
+      if (data?.monthly_data) {
+        // @ts-ignore - Types will be updated after migration
+        const loadedData = data.monthly_data as any[];
         const currentStructure = generateInitialData(meetingDate);
         
         const mergedData = currentStructure.map(current => {
-          const existing = data.find(item => item.month === current.month);
-          if (existing) {
-            return {
-              month: current.month,
-              onboarding: existing.onboarding_staff || 0,
-              probation: existing.probation_staff || 0,
-              passed: existing.current_staff || 0,
-              target: existing.ideal_staff || 0
-            };
-          }
-          return current;
+          const existing = loadedData.find(item => item.month === current.month);
+          return existing || current;
         });
         
         setMonthlyData(mergedData);
@@ -118,24 +112,19 @@ export const CapacityAnalytics = ({ meetingDate, meetingId, onMonthlyStaffDataCh
     if (!profile?.company_id) return;
 
     try {
-      // Save each month as a separate record
-      for (const monthData of newData) {
-        const { error } = await supabase
-          .from('resourcing_analytics')
-          .upsert({
-            company_id: profile.company_id,
-            month: monthData.month,
-            onboarding_staff: monthData.onboarding,
-            probation_staff: monthData.probation,
-            current_staff: monthData.passed,
-            ideal_staff: monthData.target
-          }, {
-            onConflict: 'company_id,month'
-          });
+      // @ts-ignore - Types will be updated after migration
+      const { error } = await supabase
+        .from('resourcing_analytics')
+        .upsert({
+          company_id: profile.company_id,
+          month: 'all', // Use a default value since we're storing all months in monthly_data
+          monthly_data: newData
+        }, {
+          onConflict: 'company_id'
+        });
 
-        if (error) {
-          console.error('Error saving resourcing analytics:', error);
-        }
+      if (error) {
+        console.error('Error saving resourcing analytics:', error);
       }
     } catch (error) {
       console.error('Error saving resourcing analytics:', error);
