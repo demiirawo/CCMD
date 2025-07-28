@@ -155,10 +155,10 @@ export const DashboardSection = ({
   };
 
   return (
-    <div className={`rounded-2xl p-6 shadow-lg border border-border/50 ${
+    <div className={`rounded-2xl shadow-lg border border-border/50 ${
       ["Staff", "Care Planning & Delivery", "Safety", "Continuous Improvement"].includes(title) 
-        ? "bg-primary/10" 
-        : "bg-white"
+        ? "bg-primary/10 -mx-8 px-14 py-6" 
+        : "bg-white p-6"
     }`}>
       <div 
         className="flex items-center justify-between cursor-pointer mb-4"
