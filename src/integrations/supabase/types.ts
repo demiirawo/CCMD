@@ -304,6 +304,36 @@ export type Database = {
         }
         Relationships: []
       }
+      meeting_backups: {
+        Row: {
+          backup_data: Json
+          backup_type: string
+          company_id: string
+          created_at: string
+          id: string
+          meeting_id: string
+          updated_at: string
+        }
+        Insert: {
+          backup_data: Json
+          backup_type?: string
+          company_id: string
+          created_at?: string
+          id?: string
+          meeting_id: string
+          updated_at?: string
+        }
+        Update: {
+          backup_data?: Json
+          backup_type?: string
+          company_id?: string
+          created_at?: string
+          id?: string
+          meeting_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       meeting_headers: {
         Row: {
           attendees: Json
