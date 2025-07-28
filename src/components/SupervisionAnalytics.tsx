@@ -5,6 +5,7 @@ import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, ResponsiveContai
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useTheme } from "@/hooks/useTheme";
 
 const generateInitialData = (meetingDate?: Date) => {
   const months = [];
@@ -41,6 +42,7 @@ interface SupervisionAnalyticsProps {
 
 export const SupervisionAnalytics = ({ monthlyStaffData = [], meetingDate, meetingId }: SupervisionAnalyticsProps) => {
   const { profile } = useAuth();
+  useTheme();
   const [monthlyData, setMonthlyData] = useState(generateInitialData(meetingDate));
   const [metrics, setMetrics] = useState({
     passedFrequency: 2,
@@ -249,7 +251,7 @@ export const SupervisionAnalytics = ({ monthlyStaffData = [], meetingDate, meeti
       <div className="grid grid-cols-4 gap-4">
         {monthlyData.map((row, index) => (
           <div key={index} className="p-3 border rounded-lg">
-            <div className="text-sm font-medium mb-2">{row.month}</div>
+            <div className="text-sm font-medium mb-2 bg-primary text-primary-foreground px-3 py-2 rounded-t-lg -mx-3 -mt-3">{row.month}</div>
             <div className="text-xs text-muted-foreground mb-1">Completed:</div>
             <EditableCell value={row.completed} onChange={(value) => handleCellEdit(index, value)} />
           </div>

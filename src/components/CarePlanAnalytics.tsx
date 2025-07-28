@@ -5,6 +5,7 @@ import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, ResponsiveContai
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useTheme } from "@/hooks/useTheme";
 
 const generateInitialData = (meetingDate?: Date) => {
   const months = [];
@@ -43,6 +44,7 @@ interface CarePlanAnalyticsProps {
 
 export const CarePlanAnalytics = ({ meetingDate, meetingId }: CarePlanAnalyticsProps) => {
   const { profile } = useAuth();
+  useTheme();
   const [monthlyData, setMonthlyData] = useState(generateInitialData(meetingDate));
   const [frequencies, setFrequencies] = useState({
     highFrequency: 6,
@@ -266,7 +268,7 @@ export const CarePlanAnalytics = ({ meetingDate, meetingId }: CarePlanAnalyticsP
       <div className="grid grid-cols-4 gap-4">
         {monthlyData.map((row, index) => (
           <div key={index} className="p-3 border rounded-lg">
-            <div className="text-sm font-medium mb-2">{row.month}</div>
+            <div className="text-sm font-medium mb-2 bg-primary text-primary-foreground px-3 py-2 rounded-t-lg -mx-3 -mt-3">{row.month}</div>
             <div className="space-y-2">
               <div>
                 <div className="text-xs text-muted-foreground mb-1">High SU:</div>

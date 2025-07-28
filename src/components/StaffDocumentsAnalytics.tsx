@@ -5,6 +5,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useTheme } from "@/hooks/useTheme";
 
 const chartConfig = {
   compliant: {
@@ -24,6 +25,7 @@ interface StaffDocumentsAnalyticsProps {
 
 export const StaffDocumentsAnalytics = ({ meetingDate, meetingId }: StaffDocumentsAnalyticsProps) => {
   const { profile } = useAuth();
+  useTheme();
   const [documentsData, setDocumentsData] = useState({
     activeFullyCompliant: 0,
     activePendingDocuments: 0,
