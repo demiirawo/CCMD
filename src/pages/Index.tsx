@@ -57,7 +57,11 @@ const Index = () => {
         'spot_check_analytics',
         'staff_documents_analytics',
         'staff_training_analytics',
-        'supervision_analytics'
+        'supervision_analytics',
+        'incidents_analytics',
+        'medication_analytics',
+        'care_notes_analytics',
+        'feedback_analytics'
       ];
 
       for (const tableName of analyticsTabels) {
