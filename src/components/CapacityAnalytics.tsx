@@ -78,24 +78,33 @@ export const CapacityAnalytics = ({ meetingDate, meetingId, onMonthlyStaffDataCh
     if (!profile?.company_id) return;
 
     try {
+      // For now, use the individual records approach until migration is approved
       const { data, error } = await supabase
         .from('resourcing_analytics')
-        .select('monthly_data')
+        .select('*')
         .eq('company_id', profile.company_id)
-        .maybeSingle();
+        .order('month');
 
       if (error && error.code !== 'PGRST116') {
         console.error('Error loading resourcing analytics:', error);
         return;
       }
 
-      if (data?.monthly_data) {
-        const loadedData = data.monthly_data as any[];
+      if (data && data.length > 0) {
         const currentStructure = generateInitialData(meetingDate);
         
         const mergedData = currentStructure.map(current => {
-          const existing = loadedData.find(item => item.month === current.month);
-          return existing || current;
+          const existing = data.find(item => item.month === current.month);
+          if (existing) {
+            return {
+              month: current.month,
+              onboarding: existing.onboarding_staff || 0,
+              probation: existing.probation_staff || 0,
+              passed: existing.current_staff || 0,
+              target: existing.ideal_staff || 0
+            };
+          }
+          return current;
         });
         
         setMonthlyData(mergedData);
@@ -109,17 +118,24 @@ export const CapacityAnalytics = ({ meetingDate, meetingId, onMonthlyStaffDataCh
     if (!profile?.company_id) return;
 
     try {
-      const { error } = await supabase
-        .from('resourcing_analytics')
-        .upsert({
-          company_id: profile.company_id,
-          monthly_data: newData
-        }, {
-          onConflict: 'company_id'
-        });
+      // Save each month as a separate record
+      for (const monthData of newData) {
+        const { error } = await supabase
+          .from('resourcing_analytics')
+          .upsert({
+            company_id: profile.company_id,
+            month: monthData.month,
+            onboarding_staff: monthData.onboarding,
+            probation_staff: monthData.probation,
+            current_staff: monthData.passed,
+            ideal_staff: monthData.target
+          }, {
+            onConflict: 'company_id,month'
+          });
 
-      if (error) {
-        console.error('Error saving resourcing analytics:', error);
+        if (error) {
+          console.error('Error saving resourcing analytics:', error);
+        }
       }
     } catch (error) {
       console.error('Error saving resourcing analytics:', error);
