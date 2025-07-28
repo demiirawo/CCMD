@@ -3,8 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
+import { useDashboardData } from "@/hooks/useDashboardData";
 
 const generateInitialData = (meetingDate?: Date) => {
   const months = [];
@@ -36,86 +35,42 @@ const chartConfig = {
 interface SupervisionAnalyticsProps {
   monthlyStaffData?: Array<{month: string, currentStaff: number, probationStaff?: number}>;
   meetingDate?: Date;
-  meetingId?: string;
+  sessionId?: string;
 }
 
-export const SupervisionAnalytics = ({ monthlyStaffData = [], meetingDate, meetingId }: SupervisionAnalyticsProps) => {
-  const { profile } = useAuth();
-  const [monthlyData, setMonthlyData] = useState(generateInitialData(meetingDate));
-  const [metrics, setMetrics] = useState({
-    passedFrequency: 2,
-    probationFrequency: 1
-  });
-
-  // Load data and regenerate months when meeting date or ID changes
-  useEffect(() => {
-    if (meetingId && profile?.company_id) {
-      loadData();
-    }
-  }, [meetingId, profile?.company_id]);
-
-  // Always reload from database when meeting date changes to preserve all data
-  useEffect(() => {
-    if (meetingId && profile?.company_id) {
-      loadData();
-    } else {
-      setMonthlyData(generateInitialData(meetingDate));
-    }
-  }, [meetingDate, meetingId, profile?.company_id]);
-
-  const loadData = async () => {
-    if (!meetingId || !profile?.company_id) return;
-
-    try {
-      const { data, error } = await supabase
-        .from('supervision_analytics')
-        .select('*')
-        .eq('meeting_id', meetingId)
-        .eq('company_id', profile.company_id)
-        .maybeSingle();
-
-      if (error) {
-        console.error('Error loading supervision data:', error);
-        return;
-      }
-
-      if (data) {
-        setMetrics({
-          passedFrequency: data.passed_frequency,
-          probationFrequency: data.probation_frequency
-        });
-        setMonthlyData((data.monthly_data as any[]) || generateInitialData(meetingDate));
-      }
-    } catch (error) {
-      console.error('Error in loadData:', error);
-    }
+export const SupervisionAnalytics = ({ monthlyStaffData = [], meetingDate, sessionId }: SupervisionAnalyticsProps) => {
+  const defaultData = {
+    metrics: {
+      passedFrequency: 3,
+      probationFrequency: 1
+    },
+    monthlyData: generateInitialData(meetingDate)
   };
 
-  const saveData = async (newMetrics?: typeof metrics, newMonthlyData?: typeof monthlyData) => {
-    if (!meetingId || !profile?.company_id) return;
+  const { data, loading, saveData } = useDashboardData(
+    'supervision_analytics',
+    sessionId,
+    defaultData
+  );
 
-    const dataToSave = {
-      meeting_id: meetingId,
-      company_id: profile.company_id,
-      passed_frequency: newMetrics?.passedFrequency ?? metrics.passedFrequency,
-      probation_frequency: newMetrics?.probationFrequency ?? metrics.probationFrequency,
-      monthly_data: newMonthlyData || monthlyData
-    };
+  const [monthlyData, setMonthlyData] = useState(data.monthlyData || generateInitialData(meetingDate));
+  const [metrics, setMetrics] = useState(data.metrics || { passedFrequency: 3, probationFrequency: 1 });
 
-    try {
-      const { error } = await supabase
-        .from('supervision_analytics')
-        .upsert(dataToSave, {
-          onConflict: 'meeting_id,company_id'
-        });
-
-      if (error) {
-        console.error('Error saving supervision data:', error);
-      }
-    } catch (error) {
-      console.error('Error in saveData:', error);
+  useEffect(() => {
+    if (data.monthlyData) {
+      setMonthlyData(data.monthlyData);
     }
-  };
+    if (data.metrics) {
+      setMetrics(data.metrics);
+    }
+  }, [data]);
+
+  useEffect(() => {
+    // Update monthly data structure when meeting date changes
+    const newMonthlyData = generateInitialData(meetingDate);
+    setMonthlyData(newMonthlyData);
+    saveData({ ...data, monthlyData: newMonthlyData });
+  }, [meetingDate]);
 
   // Calculate targets based on monthly staff data and frequencies
   const dataWithTargets = monthlyData.map((month) => {
@@ -136,14 +91,14 @@ export const SupervisionAnalytics = ({ monthlyStaffData = [], meetingDate, meeti
   const handleMetricChange = (field: 'passedFrequency' | 'probationFrequency', value: number) => {
     const newMetrics = { ...metrics, [field]: value };
     setMetrics(newMetrics);
-    saveData(newMetrics);
+    saveData({ ...data, metrics: newMetrics, monthlyData });
   };
 
   const handleCellEdit = (monthIndex: number, value: number) => {
     const newData = [...monthlyData];
     newData[monthIndex] = { ...newData[monthIndex], completed: value };
     setMonthlyData(newData);
-    saveData(undefined, newData);
+    saveData({ ...data, metrics, monthlyData: newData });
   };
 
   const EditableCell = ({ value, onChange }: { value: number; onChange: (value: number) => void }) => {

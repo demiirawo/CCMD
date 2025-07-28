@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from "recharts";
@@ -35,92 +35,42 @@ const chartConfig = {
 interface SpotCheckAnalyticsProps {
   monthlyStaffData?: Array<{month: string, currentStaff: number, probationStaff?: number}>;
   meetingDate?: Date;
-  meetingId?: string;
+  sessionId?: string;
 }
 
-export const SpotCheckAnalytics = ({ monthlyStaffData = [], meetingDate, meetingId }: SpotCheckAnalyticsProps) => {
-  const { profile } = useAuth();
-  const [monthlyData, setMonthlyData] = useState(generateInitialData(meetingDate));
-  const [metrics, setMetrics] = useState({
-    passedFrequency: 3,
-    probationFrequency: 1
-  });
-
-  useEffect(() => {
-    if (profile?.company_id) {
-      loadData();
-    }
-  }, [profile?.company_id]);
-
-  useEffect(() => {
-    // Always reload from database when meeting date changes to preserve all data
-    if (profile?.company_id) {
-      loadData();
-    } else {
-      setMonthlyData(generateInitialData(meetingDate));
-    }
-  }, [meetingDate, profile?.company_id]);
-
-  const loadData = async () => {
-    if (!profile?.company_id) return;
-
-    try {
-      const { data, error } = await supabase
-        .from('spot_check_analytics')
-        .select('*')
-        .eq('company_id', profile.company_id)
-        .maybeSingle();
-
-      if (error && error.code !== 'PGRST116') {
-        console.error('Error loading spot check data:', error);
-        return;
-      }
-
-      if (data) {
-        setMetrics({
-          passedFrequency: data.passed_frequency,
-          probationFrequency: data.probation_frequency
-        });
-        
-        if (data.monthly_data) {
-          const loadedData = data.monthly_data as any[];
-          const currentStructure = generateInitialData(meetingDate);
-          
-          const mergedData = currentStructure.map(current => {
-            const existing = loadedData.find(item => item.month === current.month);
-            return existing || current;
-          });
-          
-          setMonthlyData(mergedData);
-        }
-      }
-    } catch (error) {
-      console.error('Error in loadData:', error);
-    }
+export const SpotCheckAnalytics = ({ monthlyStaffData = [], meetingDate, sessionId }: SpotCheckAnalyticsProps) => {
+  const defaultData = {
+    metrics: {
+      passedFrequency: 3,
+      probationFrequency: 1
+    },
+    monthlyData: generateInitialData(meetingDate)
   };
 
-  const saveData = async (newMetrics?: typeof metrics, newMonthlyData?: typeof monthlyData) => {
-    if (!profile?.company_id) return;
+  const { data, loading, saveData } = useDashboardData(
+    'spot_check_analytics',
+    sessionId,
+    defaultData
+  );
 
-    try {
-      const { error } = await supabase
-        .from('spot_check_analytics')
-        .upsert({
-          company_id: profile.company_id,
-          passed_frequency: newMetrics?.passedFrequency ?? metrics.passedFrequency,
-          probation_frequency: newMetrics?.probationFrequency ?? metrics.probationFrequency,
-          monthly_data: newMonthlyData || monthlyData
-        }, {
-          onConflict: 'company_id'
-        });
+  const [monthlyData, setMonthlyData] = useState(data.monthlyData || generateInitialData(meetingDate));
+  const [metrics, setMetrics] = useState(data.metrics || { passedFrequency: 3, probationFrequency: 1 });
 
-      if (error) {
-        console.error('Error saving spot check data:', error);
-      }
-    } catch (error) {
-      console.error('Error in saveData:', error);
+  useEffect(() => {
+    if (data.monthlyData) {
+      setMonthlyData(data.monthlyData);
     }
-  };
+    if (data.metrics) {
+      setMetrics(data.metrics);
+    }
+  }, [data]);
+
+  useEffect(() => {
+    // Update monthly data structure when meeting date changes
+    const newMonthlyData = generateInitialData(meetingDate);
+    setMonthlyData(newMonthlyData);
+    saveData({ ...data, monthlyData: newMonthlyData });
+  }, [meetingDate]);
 
   // Calculate targets based on monthly staff data and frequencies
   const dataWithTargets = monthlyData.map((month) => {
@@ -141,14 +91,14 @@ export const SpotCheckAnalytics = ({ monthlyStaffData = [], meetingDate, meeting
   const handleMetricChange = (field: 'passedFrequency' | 'probationFrequency', value: number) => {
     const newMetrics = { ...metrics, [field]: value };
     setMetrics(newMetrics);
-    saveData(newMetrics);
+    saveData({ ...data, metrics: newMetrics, monthlyData });
   };
 
   const handleCellEdit = (monthIndex: number, value: number) => {
     const newData = [...monthlyData];
     newData[monthIndex] = { ...newData[monthIndex], completed: value };
     setMonthlyData(newData);
-    saveData(undefined, newData);
+    saveData({ ...data, metrics, monthlyData: newData });
   };
 
   const EditableCell = ({ value, onChange }: { value: number; onChange: (value: number) => void }) => {
