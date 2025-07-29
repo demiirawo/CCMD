@@ -31,5 +31,17 @@ export const StatusBadge = ({
   className
 }: StatusBadgeProps) => {
   const config = statusConfig[status];
-  return;
+  
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center justify-center rounded-full text-xs font-medium min-w-6 h-6 px-1",
+        config.className,
+        className
+      )}
+      title={config.title}
+    >
+      {config.label}
+    </span>
+  );
 };
