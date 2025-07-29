@@ -48,6 +48,14 @@ export const Navigation = () => {
             ))}
           </div>
 
+          <div className="absolute left-1/2 transform -translate-x-1/2">
+            <img 
+              src="/lovable-uploads/e1ca0619-7102-433c-b82c-7559369d24e5.png" 
+              alt="Application Logo" 
+              className="h-8 w-auto"
+            />
+          </div>
+
           <div className="flex items-center gap-4">
             {currentCompany && (
               <div className="flex items-center gap-2 text-sm text-primary-foreground/80">
