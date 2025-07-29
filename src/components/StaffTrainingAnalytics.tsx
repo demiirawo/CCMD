@@ -163,29 +163,27 @@ export const StaffTrainingAnalytics = ({
         
         {/* Box 1: Staff By Recruitment Stage (Read-only from resourcing data) */}
         <Card className="p-6">
-          <h5 className="text-md font-medium mb-4 text-foreground">Staff By Recruitment Stage</h5>
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
-              <span className="text-sm font-medium">Onboarding:</span>
-              <span className="text-lg font-semibold text-primary text-right">{staffData.onboarding}</span>
+              <span className="text-sm">Onboarding:</span>
+              <span className="text-lg text-primary text-right">{staffData.onboarding}</span>
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <span className="text-sm font-medium">On Probation:</span>
-              <span className="text-lg font-semibold text-primary text-right">{staffData.onProbation}</span>
+              <span className="text-sm">On Probation:</span>
+              <span className="text-lg text-primary text-right">{staffData.onProbation}</span>
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <span className="text-sm font-medium">Passed Probation:</span>
-              <span className="text-lg font-semibold text-primary text-right">{staffData.active}</span>
+              <span className="text-sm">Passed Probation:</span>
+              <span className="text-lg text-primary text-right">{staffData.active}</span>
             </div>
           </div>
         </Card>
 
         {/* Box 2: Number of Staff Who Are Compliant */}
         <Card className="p-6">
-          <h5 className="text-md font-medium mb-4 text-foreground">Staff Who Are Compliant</h5>
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4 items-center">
-              <Label htmlFor="onboarding-compliant" className="text-sm font-medium">Onboarding:</Label>
+              <Label htmlFor="onboarding-compliant" className="text-sm">Onboarding:</Label>
               <Input 
                 id="onboarding-compliant" 
                 type="number" 
@@ -198,7 +196,7 @@ export const StaffTrainingAnalytics = ({
               />
             </div>
             <div className="grid grid-cols-2 gap-4 items-center">
-              <Label htmlFor="probation-compliant" className="text-sm font-medium">On Probation:</Label>
+              <Label htmlFor="probation-compliant" className="text-sm">On Probation:</Label>
               <Input 
                 id="probation-compliant" 
                 type="number" 
@@ -211,7 +209,7 @@ export const StaffTrainingAnalytics = ({
               />
             </div>
             <div className="grid grid-cols-2 gap-4 items-center">
-              <Label htmlFor="active-compliant" className="text-sm font-medium">Passed Probation:</Label>
+              <Label htmlFor="active-compliant" className="text-sm">Passed Probation:</Label>
               <Input 
                 id="active-compliant" 
                 type="number" 
@@ -228,23 +226,22 @@ export const StaffTrainingAnalytics = ({
 
         {/* Box 3: Compliance % by Each Stage of Recruitment */}
         <Card className="p-6">
-          <h5 className="text-md font-medium mb-4 text-foreground">Compliance % By Stage</h5>
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
-              <span className="text-sm font-medium">Onboarding:</span>
-              <span className="text-lg font-semibold text-blue-600 text-right">
+              <span className="text-sm">Onboarding:</span>
+              <span className="text-lg text-blue-600 text-right">
                 {getCompliancePercentage(complianceData.onboardingCompliant, staffData.onboarding)}%
               </span>
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <span className="text-sm font-medium">On Probation:</span>
-              <span className="text-lg font-semibold text-yellow-600 text-right">
+              <span className="text-sm">On Probation:</span>
+              <span className="text-lg text-yellow-600 text-right">
                 {getCompliancePercentage(complianceData.onProbationCompliant, staffData.onProbation)}%
               </span>
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <span className="text-sm font-medium">Passed Probation:</span>
-              <span className="text-lg font-semibold text-green-600 text-right">
+              <span className="text-sm">Passed Probation:</span>
+              <span className="text-lg text-green-600 text-right">
                 {getCompliancePercentage(complianceData.activeCompliant, staffData.active)}%
               </span>
             </div>
