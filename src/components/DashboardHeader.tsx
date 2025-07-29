@@ -71,7 +71,7 @@ export const DashboardHeader = ({
 
         {/* Meeting Summary Panel */}
         <div className="space-y-4">
-          <EditableField field="title" value={title} label="Meeting Summary" />
+          <EditableField field="title" value={title} label="Meeting Title" />
         </div>
         
         {/* Date and Purpose Panel */}
