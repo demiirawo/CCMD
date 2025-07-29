@@ -160,7 +160,7 @@ export const StaffDocumentsAnalytics = ({
               <span className="text-lg font-semibold text-primary">{staffData.onProbation}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">Active:</span>
+              <span className="text-sm font-medium">Passed Probation:</span>
               <span className="text-lg font-semibold text-primary">{staffData.active}</span>
             </div>
             
@@ -180,7 +180,7 @@ export const StaffDocumentsAnalytics = ({
               <Input id="probation-compliant" type="number" value={complianceData.onProbationCompliant} onChange={e => handleComplianceChange('onProbationCompliant', parseInt(e.target.value) || 0)} className="w-20 h-8 text-center" min="0" max={staffData.onProbation} />
             </div>
             <div className="flex items-center justify-between">
-              <Label htmlFor="active-compliant" className="text-sm font-medium">Active:</Label>
+              <Label htmlFor="active-compliant" className="text-sm font-medium">Passed Probation:</Label>
               <Input id="active-compliant" type="number" value={complianceData.activeCompliant} onChange={e => handleComplianceChange('activeCompliant', parseInt(e.target.value) || 0)} className="w-20 h-8 text-center" min="0" max={staffData.active} />
             </div>
             
@@ -204,7 +204,7 @@ export const StaffDocumentsAnalytics = ({
               </span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">Active:</span>
+              <span className="text-sm font-medium">Passed Probation:</span>
               <span className="text-lg font-semibold text-green-600">
                 {getCompliancePercentage(complianceData.activeCompliant, staffData.active)}%
               </span>

@@ -160,7 +160,7 @@ export const ResourcingOverview = ({
               />
             </div>
             <div className="flex items-center justify-between">
-              <Label htmlFor="active" className="text-sm font-medium">Active:</Label>
+              <Label htmlFor="active" className="text-sm font-medium">Passed Probation:</Label>
               <Input 
                 id="active" 
                 type="number" 
