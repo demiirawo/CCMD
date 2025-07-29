@@ -4,53 +4,48 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-
-
 interface StaffDocumentsAnalyticsProps {
   meetingDate?: Date;
   meetingId?: string;
 }
+export const StaffDocumentsAnalytics = ({
+  meetingDate,
+  meetingId
+}: StaffDocumentsAnalyticsProps) => {
+  const {
+    profile
+  } = useAuth();
 
-export const StaffDocumentsAnalytics = ({ meetingDate, meetingId }: StaffDocumentsAnalyticsProps) => {
-  const { profile } = useAuth();
-  
   // Staff recruitment stage data (fetched from resourcing overview)
   const [staffData, setStaffData] = useState({
     onboarding: 0,
     onProbation: 0,
     active: 0
   });
-  
+
   // Staff compliance data
   const [complianceData, setComplianceData] = useState({
     onboardingCompliant: 0,
     onProbationCompliant: 0,
     activeCompliant: 0
   });
-
   useEffect(() => {
     if (profile?.company_id) {
       loadStaffData();
       loadComplianceData();
     }
   }, [profile?.company_id]);
-
   const loadStaffData = async () => {
     if (!profile?.company_id) return;
-
     try {
-      const { data: savedData, error } = await supabase
-        .from('dashboard_data')
-        .select('data_content')
-        .eq('company_id', profile.company_id)
-        .eq('data_type', 'resourcing_overview')
-        .maybeSingle();
-
+      const {
+        data: savedData,
+        error
+      } = await supabase.from('dashboard_data').select('data_content').eq('company_id', profile.company_id).eq('data_type', 'resourcing_overview').maybeSingle();
       if (error && error.code !== 'PGRST116') {
         console.error('Error loading staff data:', error);
         return;
       }
-
       if (savedData?.data_content) {
         const resourcingData = savedData.data_content as any;
         setStaffData({
@@ -63,24 +58,19 @@ export const StaffDocumentsAnalytics = ({ meetingDate, meetingId }: StaffDocumen
       console.error('Error loading staff data:', error);
     }
   };
-
   const loadComplianceData = async () => {
     if (!profile?.company_id) return;
-
     try {
-      const { data, error } = await supabase
-        .from('staff_documents_analytics')
-        .select('*')
-        .eq('company_id', profile.company_id)
-        .maybeSingle();
-
+      const {
+        data,
+        error
+      } = await supabase.from('staff_documents_analytics').select('*').eq('company_id', profile.company_id).maybeSingle();
       if (error && error.code !== 'PGRST116') {
         console.error('Error loading compliance data:', error);
         return;
       }
-
       if (data) {
-        const savedData = (data.documents_data as any) || {};
+        const savedData = data.documents_data as any || {};
         setComplianceData({
           onboardingCompliant: savedData.onboardingCompliant || 0,
           onProbationCompliant: savedData.onProbationCompliant || 0,
@@ -114,21 +104,18 @@ export const StaffDocumentsAnalytics = ({ meetingDate, meetingId }: StaffDocumen
       }
     }
   };
-
   const saveComplianceData = async (newData: typeof complianceData) => {
     if (!profile?.company_id) return;
-
     try {
-      const { error } = await supabase
-        .from('staff_documents_analytics')
-        .upsert({
-          company_id: profile.company_id,
-          documents_data: newData,
-          updated_at: new Date().toISOString()
-        }, {
-          onConflict: 'company_id'
-        });
-
+      const {
+        error
+      } = await supabase.from('staff_documents_analytics').upsert({
+        company_id: profile.company_id,
+        documents_data: newData,
+        updated_at: new Date().toISOString()
+      }, {
+        onConflict: 'company_id'
+      });
       if (error) {
         console.error('Error saving compliance data:', error);
         throw error;
@@ -144,23 +131,20 @@ export const StaffDocumentsAnalytics = ({ meetingDate, meetingId }: StaffDocumen
       }
     }
   };
-
   const handleComplianceChange = (field: keyof typeof complianceData, value: number) => {
-    const newData = { ...complianceData, [field]: value };
+    const newData = {
+      ...complianceData,
+      [field]: value
+    };
     setComplianceData(newData);
     saveComplianceData(newData);
   };
-
   const totalCompliant = complianceData.onboardingCompliant + complianceData.onProbationCompliant + complianceData.activeCompliant;
   const totalStaff = staffData.onboarding + staffData.onProbation + staffData.active;
-  
   const getCompliancePercentage = (compliant: number, total: number) => {
-    return total > 0 ? Math.round((compliant / total) * 100) : 0;
+    return total > 0 ? Math.round(compliant / total * 100) : 0;
   };
-
-
-  return (
-    <div className="space-y-6 mt-4 p-6 border border-border rounded-lg bg-stone-50">
+  return <div className="space-y-6 mt-4 p-6 border border-border rounded-lg bg-stone-50">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         
         {/* Box 1: Staff By Recruitment Stage (Read-only from resourcing data) */}
@@ -179,12 +163,7 @@ export const StaffDocumentsAnalytics = ({ meetingDate, meetingId }: StaffDocumen
               <span className="text-sm font-medium">Active:</span>
               <span className="text-lg font-semibold text-primary">{staffData.active}</span>
             </div>
-            <div className="border-t pt-2">
-              <div className="flex items-center justify-between font-medium">
-                <span>Total Staff:</span>
-                <span className="text-primary">{totalStaff}</span>
-              </div>
-            </div>
+            
           </div>
         </Card>
 
@@ -194,46 +173,17 @@ export const StaffDocumentsAnalytics = ({ meetingDate, meetingId }: StaffDocumen
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <Label htmlFor="onboarding-compliant" className="text-sm font-medium">Onboarding:</Label>
-              <Input 
-                id="onboarding-compliant" 
-                type="number" 
-                value={complianceData.onboardingCompliant} 
-                onChange={e => handleComplianceChange('onboardingCompliant', parseInt(e.target.value) || 0)} 
-                className="w-20 h-8 text-center" 
-                min="0" 
-                max={staffData.onboarding}
-              />
+              <Input id="onboarding-compliant" type="number" value={complianceData.onboardingCompliant} onChange={e => handleComplianceChange('onboardingCompliant', parseInt(e.target.value) || 0)} className="w-20 h-8 text-center" min="0" max={staffData.onboarding} />
             </div>
             <div className="flex items-center justify-between">
               <Label htmlFor="probation-compliant" className="text-sm font-medium">On Probation:</Label>
-              <Input 
-                id="probation-compliant" 
-                type="number" 
-                value={complianceData.onProbationCompliant} 
-                onChange={e => handleComplianceChange('onProbationCompliant', parseInt(e.target.value) || 0)} 
-                className="w-20 h-8 text-center" 
-                min="0" 
-                max={staffData.onProbation}
-              />
+              <Input id="probation-compliant" type="number" value={complianceData.onProbationCompliant} onChange={e => handleComplianceChange('onProbationCompliant', parseInt(e.target.value) || 0)} className="w-20 h-8 text-center" min="0" max={staffData.onProbation} />
             </div>
             <div className="flex items-center justify-between">
               <Label htmlFor="active-compliant" className="text-sm font-medium">Active:</Label>
-              <Input 
-                id="active-compliant" 
-                type="number" 
-                value={complianceData.activeCompliant} 
-                onChange={e => handleComplianceChange('activeCompliant', parseInt(e.target.value) || 0)} 
-                className="w-20 h-8 text-center" 
-                min="0" 
-                max={staffData.active}
-              />
+              <Input id="active-compliant" type="number" value={complianceData.activeCompliant} onChange={e => handleComplianceChange('activeCompliant', parseInt(e.target.value) || 0)} className="w-20 h-8 text-center" min="0" max={staffData.active} />
             </div>
-            <div className="border-t pt-2">
-              <div className="flex items-center justify-between font-medium">
-                <span>Total Compliant:</span>
-                <span className="text-green-600">{totalCompliant}</span>
-              </div>
-            </div>
+            
           </div>
         </Card>
 
@@ -259,17 +209,9 @@ export const StaffDocumentsAnalytics = ({ meetingDate, meetingId }: StaffDocumen
                 {getCompliancePercentage(complianceData.activeCompliant, staffData.active)}%
               </span>
             </div>
-            <div className="border-t pt-2">
-              <div className="flex items-center justify-between font-medium">
-                <span>Overall:</span>
-                <span className="text-primary font-bold">
-                  {getCompliancePercentage(totalCompliant, totalStaff)}%
-                </span>
-              </div>
-            </div>
+            
           </div>
         </Card>
       </div>
-    </div>
-  );
+    </div>;
 };
