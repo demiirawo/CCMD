@@ -4,18 +4,18 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-
 interface SpotCheckAnalyticsProps {
   meetingDate?: Date;
   meetingId?: string;
 }
-
 export const SpotCheckAnalytics = ({
   meetingDate,
   meetingId
 }: SpotCheckAnalyticsProps) => {
-  const { profile } = useAuth();
-  
+  const {
+    profile
+  } = useAuth();
+
   // Staff data from resourcing overview (probation staff only)
   const [staffData, setStaffData] = useState({
     onProbation: 0,
@@ -26,35 +26,25 @@ export const SpotCheckAnalytics = ({
   const [spotCheckData, setSpotCheckData] = useState({
     overdueSpotChecks: 0
   });
-
   const totalStaffNeedingSpotChecks = staffData.onProbation + staffData.active;
-  const spotCheckCompliance = totalStaffNeedingSpotChecks > 0 
-    ? Math.round(((totalStaffNeedingSpotChecks - spotCheckData.overdueSpotChecks) / totalStaffNeedingSpotChecks) * 100) 
-    : 100;
-
+  const spotCheckCompliance = totalStaffNeedingSpotChecks > 0 ? Math.round((totalStaffNeedingSpotChecks - spotCheckData.overdueSpotChecks) / totalStaffNeedingSpotChecks * 100) : 100;
   useEffect(() => {
     if (profile?.company_id) {
       loadStaffData();
       loadSpotCheckData();
     }
   }, [profile?.company_id, meetingId]);
-
   const loadStaffData = async () => {
     if (!profile?.company_id) return;
-
     try {
-      const { data: savedData, error } = await supabase
-        .from('dashboard_data')
-        .select('data_content')
-        .eq('company_id', profile.company_id)
-        .eq('data_type', 'resourcing_overview')
-        .maybeSingle();
-
+      const {
+        data: savedData,
+        error
+      } = await supabase.from('dashboard_data').select('data_content').eq('company_id', profile.company_id).eq('data_type', 'resourcing_overview').maybeSingle();
       if (error && error.code !== 'PGRST116') {
         console.error('Error loading staff data:', error);
         return;
       }
-
       if (savedData?.data_content) {
         const resourcingData = savedData.data_content as any;
         setStaffData({
@@ -66,23 +56,17 @@ export const SpotCheckAnalytics = ({
       console.error('Error loading staff data:', error);
     }
   };
-
   const loadSpotCheckData = async () => {
     if (!profile?.company_id) return;
-
     try {
-      const { data, error } = await supabase
-        .from('dashboard_data')
-        .select('data_content')
-        .eq('company_id', profile.company_id)
-        .eq('data_type', 'spot_check_analytics')
-        .maybeSingle();
-
+      const {
+        data,
+        error
+      } = await supabase.from('dashboard_data').select('data_content').eq('company_id', profile.company_id).eq('data_type', 'spot_check_analytics').maybeSingle();
       if (error && error.code !== 'PGRST116') {
         console.error('Error loading spot check data:', error);
         return;
       }
-
       if (data?.data_content) {
         setSpotCheckData(data.data_content as typeof spotCheckData);
       } else {
@@ -113,23 +97,20 @@ export const SpotCheckAnalytics = ({
       }
     }
   };
-
   const saveSpotCheckData = async (newData: typeof spotCheckData) => {
     if (!profile?.company_id) return;
-
     try {
-      const { error } = await supabase
-        .from('dashboard_data')
-        .upsert({
-          company_id: profile.company_id,
-          meeting_id: meetingId,
-          data_type: 'spot_check_analytics',
-          data_content: newData,
-          updated_at: new Date().toISOString()
-        }, {
-          onConflict: 'company_id,meeting_id,data_type'
-        });
-
+      const {
+        error
+      } = await supabase.from('dashboard_data').upsert({
+        company_id: profile.company_id,
+        meeting_id: meetingId,
+        data_type: 'spot_check_analytics',
+        data_content: newData,
+        updated_at: new Date().toISOString()
+      }, {
+        onConflict: 'company_id,meeting_id,data_type'
+      });
       if (error) {
         console.error('Error saving spot check data:', error);
         throw error;
@@ -145,31 +126,29 @@ export const SpotCheckAnalytics = ({
       }
     }
   };
-
   const handleOverdueChange = (value: number) => {
-    const newData = { ...spotCheckData, overdueSpotChecks: value };
+    const newData = {
+      ...spotCheckData,
+      overdueSpotChecks: value
+    };
     setSpotCheckData(newData);
     saveSpotCheckData(newData);
   };
-
   const getComplianceColor = () => {
     if (spotCheckCompliance >= 98) return "text-green-600"; // Green: 98-100%
     if (spotCheckCompliance >= 89) return "text-amber-600"; // Amber: 89-97%
     return "text-red-600"; // Red: Below 89%
   };
-
   const getComplianceStatus = () => {
     if (spotCheckCompliance >= 98) return "Excellent";
     if (spotCheckCompliance >= 89) return "Good";
     return "Needs Improvement";
   };
-
-  return (
-    <div className="space-y-6 mt-4 p-6 border border-border rounded-lg bg-stone-50">
+  return <div className="space-y-6 mt-4 p-6 border border-border rounded-lg bg-stone-50">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Staff Requiring Spot Checks */}
         <Card className="p-6">
-          <h5 className="text-md font-medium mb-4 text-foreground">Staff Requiring Spot Checks</h5>
+          
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium">On Probation:</span>
@@ -190,20 +169,12 @@ export const SpotCheckAnalytics = ({
 
         {/* Overdue Spot Checks */}
         <Card className="p-6">
-          <h5 className="text-md font-medium mb-4 text-foreground">Overdue Spot Checks</h5>
+          
           <div className="flex flex-col items-center justify-center space-y-4">
             <div className="text-center">
               <Label htmlFor="overdue-spot-checks" className="text-sm font-medium">Overdue Count:</Label>
             </div>
-            <Input 
-              id="overdue-spot-checks" 
-              type="number" 
-              value={spotCheckData.overdueSpotChecks} 
-              onChange={e => handleOverdueChange(parseInt(e.target.value) || 0)} 
-              className="w-24 h-12 text-center text-lg font-semibold" 
-              min="0" 
-              max={totalStaffNeedingSpotChecks}
-            />
+            <Input id="overdue-spot-checks" type="number" value={spotCheckData.overdueSpotChecks} onChange={e => handleOverdueChange(parseInt(e.target.value) || 0)} className="w-24 h-12 text-center text-lg font-semibold" min="0" max={totalStaffNeedingSpotChecks} />
             <div className="text-xs text-muted-foreground text-center">
               Number of overdue spot checks
             </div>
@@ -212,7 +183,7 @@ export const SpotCheckAnalytics = ({
 
         {/* Spot Check Compliance */}
         <Card className="p-6">
-          <h5 className="text-md font-medium mb-4 text-foreground">Spot Check Compliance</h5>
+          
           <div className="flex flex-col items-center justify-center space-y-4">
             <div className={`text-4xl font-bold ${getComplianceColor()}`}>
               {spotCheckCompliance}%
@@ -226,6 +197,5 @@ export const SpotCheckAnalytics = ({
           </div>
         </Card>
       </div>
-    </div>
-  );
+    </div>;
 };
