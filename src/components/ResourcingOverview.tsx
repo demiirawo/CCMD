@@ -173,9 +173,7 @@ export const ResourcingOverview = ({
               
             </div>
             <EditableCell value={data.requiredStaffingLevel} onChange={value => handleInputChange('requiredStaffingLevel', value)} />
-            <div className="text-xs text-muted-foreground text-center">
-              Required for full capacity
-            </div>
+            <div className="text-xs text-muted-foreground text-center">Target staffing level</div>
           </div>
         </Card>
 
