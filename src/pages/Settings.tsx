@@ -248,7 +248,7 @@ export const Settings = () => {
       <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-3">
         {/* Theme Color Selection */}
         <Card>
-          <CardHeader>
+          <CardHeader className="bg-stone-50">
             <CardTitle className="flex items-center gap-2">
               <Palette className="h-5 w-5" />
               Theme Color
@@ -257,7 +257,7 @@ export const Settings = () => {
               Choose a primary color for your company's interface
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4 bg-stone-50">
             <div className="grid grid-cols-2 gap-3">
               {THEME_COLORS.map(color => <div key={color.value} className={`p-3 rounded-lg border-2 cursor-pointer transition-all hover:scale-105 ${selectedTheme === color.value ? "border-primary shadow-md" : "border-border hover:border-muted-foreground"}`} onClick={() => setSelectedTheme(color.value)}>
                   <div className="w-full h-12 rounded-md mb-2" style={{
@@ -272,7 +272,7 @@ export const Settings = () => {
         </Card>
 
         {/* Services Selection */}
-        <Card>
+        <Card className="bg-stone-50">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Building className="h-5 w-5" />
@@ -295,7 +295,7 @@ export const Settings = () => {
         </Card>
 
         {/* Logo Upload */}
-        <Card>
+        <Card className="bg-stone-50">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Image className="h-5 w-5" />
@@ -330,7 +330,7 @@ export const Settings = () => {
 
       {/* Save Button */}
       <Card>
-        <CardContent className="pt-6">
+        <CardContent className="pt-6 bg-stone-50">
           <div className="flex justify-between items-center">
             <div>
               <p className="font-medium">Save Settings</p>
