@@ -38,19 +38,16 @@ export const SpotCheckAnalytics = ({
     if (!profile?.company_id) return;
     try {
       // Load data for the specific meeting if meetingId is provided, otherwise load company-wide data
-      let query = supabase
-        .from('dashboard_data')
-        .select('data_content')
-        .eq('company_id', profile.company_id)
-        .eq('data_type', 'resourcing_overview');
-      
+      let query = supabase.from('dashboard_data').select('data_content').eq('company_id', profile.company_id).eq('data_type', 'resourcing_overview');
       if (meetingId) {
         query = query.eq('meeting_id', meetingId);
       } else {
         query = query.is('meeting_id', null);
       }
-      
-      const { data: savedData, error } = await query.maybeSingle();
+      const {
+        data: savedData,
+        error
+      } = await query.maybeSingle();
       if (error && error.code !== 'PGRST116') {
         console.error('Error loading staff data:', error);
         return;
@@ -187,7 +184,7 @@ export const SpotCheckAnalytics = ({
             <div className="text-center">
               
             </div>
-            <Input id="overdue-spot-checks" type="number" value={spotCheckData.overdueSpotChecks} onChange={e => handleOverdueChange(e.target.value)} onFocus={e => e.target.select()} className="w-24 h-12 text-center text-lg font-semibold [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" min="0" max={totalStaffNeedingSpotChecks} />
+            <Input id="overdue-spot-checks" type="number" value={spotCheckData.overdueSpotChecks} onChange={e => handleOverdueChange(e.target.value)} onFocus={e => e.target.select()} min="0" max={totalStaffNeedingSpotChecks} className="w-24 h-12 text-center text-lg font-semibold [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none bg-stone-50" />
             <div className="text-xs text-muted-foreground text-center">
               Number of overdue spot checks
             </div>
