@@ -21,12 +21,14 @@ const generateChartData = (entries: StaffEntry[], meetingDate?: Date) => {
   const weeks = [];
   const referenceDate = meetingDate || new Date();
   
+  // Calculate the Monday of the week containing the meeting date
+  const meetingWeekStart = new Date(referenceDate);
+  const dayOfWeek = meetingWeekStart.getDay();
+  const daysToSubtract = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // Sunday = 0, so subtract 6; Monday = 1, so subtract 0
+  meetingWeekStart.setDate(meetingWeekStart.getDate() - daysToSubtract);
+  meetingWeekStart.setHours(0, 0, 0, 0);
+  
   for (let i = 11; i >= 0; i--) {
-    // Calculate week start (Monday) and end (Sunday) for the meeting date's week
-    const meetingWeekStart = new Date(referenceDate);
-    meetingWeekStart.setDate(referenceDate.getDate() - (referenceDate.getDay() === 0 ? 6 : referenceDate.getDay() - 1));
-    meetingWeekStart.setHours(0, 0, 0, 0);
-    
     // Calculate the week start for the current iteration (going backwards from meeting week)
     const weekStart = new Date(meetingWeekStart);
     weekStart.setDate(meetingWeekStart.getDate() - (i * 7));
@@ -35,7 +37,7 @@ const generateChartData = (entries: StaffEntry[], meetingDate?: Date) => {
     weekEnd.setDate(weekStart.getDate() + 6);
     weekEnd.setHours(23, 59, 59, 999);
     
-    // Format week label (e.g., "Dec 4" or "Jan 15")
+    // Format week label to show the week start date
     const weekLabel = weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     
     // Find the most recent entry for this week
