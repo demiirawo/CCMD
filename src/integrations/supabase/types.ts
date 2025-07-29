@@ -82,6 +82,7 @@ export type Database = {
           company_id: string
           created_at: string
           id: string
+          meeting_id: string | null
           monthly_data: Json
           updated_at: string
         }
@@ -89,6 +90,7 @@ export type Database = {
           company_id: string
           created_at?: string
           id?: string
+          meeting_id?: string | null
           monthly_data?: Json
           updated_at?: string
         }
@@ -96,10 +98,19 @@ export type Database = {
           company_id?: string
           created_at?: string
           id?: string
+          meeting_id?: string | null
           monthly_data?: Json
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "care_notes_analytics_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: false
+            referencedRelation: "meetings"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       care_plan_analytics: {
         Row: {

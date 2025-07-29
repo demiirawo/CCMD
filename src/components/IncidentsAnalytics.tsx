@@ -76,10 +76,19 @@ export const IncidentsAnalytics = ({
   const loadData = async () => {
     if (!profile?.company_id) return;
     try {
-      const {
-        data,
-        error
-      } = await supabase.from('incidents_analytics').select('monthly_data').eq('company_id', profile.company_id).maybeSingle();
+      // Load data for the specific meeting if meetingId is provided, otherwise load company-wide data
+      let query = supabase
+        .from('incidents_analytics')
+        .select('monthly_data')
+        .eq('company_id', profile.company_id);
+      
+      if (meetingId) {
+        query = query.eq('meeting_id', meetingId);
+      } else {
+        query = query.is('meeting_id', null);
+      }
+      
+      const { data, error } = await query.maybeSingle();
       if (error && error.code !== 'PGRST116') {
         console.error('Error loading incidents analytics:', error);
         return;
@@ -94,7 +103,7 @@ export const IncidentsAnalytics = ({
         setMonthlyData(mergedData);
       } else {
         // Try to load from localStorage backup
-        const backupKey = `incidents_backup_${profile.company_id}`;
+        const backupKey = meetingId ? `incidents_backup_${profile.company_id}_${meetingId}` : `incidents_backup_${profile.company_id}`;
         const backupData = localStorage.getItem(backupKey);
         if (backupData) {
           try {
@@ -113,7 +122,7 @@ export const IncidentsAnalytics = ({
     } catch (error) {
       console.error('Error loading incidents analytics:', error);
       // Try to load from localStorage backup
-      const backupKey = `incidents_backup_${profile.company_id}`;
+      const backupKey = meetingId ? `incidents_backup_${profile.company_id}_${meetingId}` : `incidents_backup_${profile.company_id}`;
       const backupData = localStorage.getItem(backupKey);
       if (backupData) {
         try {
@@ -137,23 +146,24 @@ export const IncidentsAnalytics = ({
         error
       } = await supabase.from('incidents_analytics').upsert({
         company_id: profile.company_id,
+        meeting_id: meetingId || null,
         monthly_data: newData,
         updated_at: new Date().toISOString()
       }, {
-        onConflict: 'company_id'
+        onConflict: meetingId ? 'company_id,meeting_id' : 'company_id'
       });
       if (error) {
         console.error('Error saving incidents analytics:', error);
         throw error;
       } else {
         // Save to localStorage as backup
-        localStorage.setItem(`incidents_backup_${profile.company_id}`, JSON.stringify(newData));
+        localStorage.setItem(meetingId ? `incidents_backup_${profile.company_id}_${meetingId}` : `incidents_backup_${profile.company_id}`, JSON.stringify(newData));
       }
     } catch (error) {
       console.error('Error saving incidents analytics:', error);
       // Save to localStorage as fallback
       if (profile?.company_id) {
-        localStorage.setItem(`incidents_backup_${profile.company_id}`, JSON.stringify(newData));
+        localStorage.setItem(meetingId ? `incidents_backup_${profile.company_id}_${meetingId}` : `incidents_backup_${profile.company_id}`, JSON.stringify(newData));
       }
     }
   };
