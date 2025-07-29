@@ -28,10 +28,6 @@ const generateChartData = (entries: StaffEntry[], meetingDate?: Date) => {
   meetingWeekStart.setDate(meetingWeekStart.getDate() - daysToSubtract);
   meetingWeekStart.setHours(0, 0, 0, 0);
   
-  // Debug: Log the meeting date and calculated week start
-  console.log('Meeting Date:', referenceDate.toDateString());
-  console.log('Meeting Week Start (Monday):', meetingWeekStart.toDateString());
-  
   for (let i = 11; i >= 0; i--) {
     // Calculate the week start for the current iteration (going backwards from meeting week)
     const weekStart = new Date(meetingWeekStart);
@@ -43,11 +39,6 @@ const generateChartData = (entries: StaffEntry[], meetingDate?: Date) => {
     
     // Format week label to show the week start date
     const weekLabel = weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    
-    // Debug: Log week ranges for verification
-    if (i === 0) {
-      console.log('Last week (should contain meeting date):', weekStart.toDateString(), 'to', weekEnd.toDateString());
-    }
     
     // Find the most recent entry for this week
     const weekEntries = entries.filter(entry => {
@@ -68,7 +59,6 @@ const generateChartData = (entries: StaffEntry[], meetingDate?: Date) => {
     });
   }
   
-  console.log('Generated weeks:', weeks.map(w => w.month));
   return weeks;
 };
 
