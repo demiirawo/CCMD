@@ -135,14 +135,16 @@ export const SupervisionAnalytics = ({
     saveSupervisionData(newData);
   };
   const getComplianceColor = () => {
-    if (supervisionCompliance >= 98) return "text-green-600"; // Green: 98-100%
-    if (supervisionCompliance >= 89) return "text-amber-600"; // Amber: 89-97%
-    return "text-red-600"; // Red: Below 89%
+    if (supervisionCompliance === 100) return "text-blue-600"; // Outstanding: 100%
+    if (supervisionCompliance >= 98) return "text-green-600"; // Good: 98-100%
+    if (supervisionCompliance >= 90) return "text-amber-600"; // Needs improvement: 90-97%
+    return "text-red-600"; // Inadequate: Below 90%
   };
   const getComplianceStatus = () => {
-    if (supervisionCompliance >= 98) return "Excellent";
-    if (supervisionCompliance >= 89) return "Good";
-    return "Needs Improvement";
+    if (supervisionCompliance === 100) return "Outstanding";
+    if (supervisionCompliance >= 98) return "Good";
+    if (supervisionCompliance >= 90) return "Needs Improvement";
+    return "Inadequate";
   };
   return <div className="space-y-6 mt-4 p-6 border border-border rounded-lg bg-stone-50">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

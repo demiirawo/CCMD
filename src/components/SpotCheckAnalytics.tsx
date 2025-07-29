@@ -135,14 +135,16 @@ export const SpotCheckAnalytics = ({
     saveSpotCheckData(newData);
   };
   const getComplianceColor = () => {
-    if (spotCheckCompliance >= 98) return "text-green-600"; // Green: 98-100%
-    if (spotCheckCompliance >= 89) return "text-amber-600"; // Amber: 89-97%
-    return "text-red-600"; // Red: Below 89%
+    if (spotCheckCompliance === 100) return "text-blue-600"; // Outstanding: 100%
+    if (spotCheckCompliance >= 98) return "text-green-600"; // Good: 98-100%
+    if (spotCheckCompliance >= 90) return "text-amber-600"; // Needs improvement: 90-97%
+    return "text-red-600"; // Inadequate: Below 90%
   };
   const getComplianceStatus = () => {
-    if (spotCheckCompliance >= 98) return "Excellent";
-    if (spotCheckCompliance >= 89) return "Good";
-    return "Needs Improvement";
+    if (spotCheckCompliance === 100) return "Outstanding";
+    if (spotCheckCompliance >= 98) return "Good";
+    if (spotCheckCompliance >= 90) return "Needs Improvement";
+    return "Inadequate";
   };
   return <div className="space-y-6 mt-4 p-6 border border-border rounded-lg bg-stone-50">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

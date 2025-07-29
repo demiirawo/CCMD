@@ -108,9 +108,10 @@ export const CarePlanOverview = ({
     saveData(newData);
   };
   const getComplianceColor = () => {
-    if (compliancePercentage >= 95) return "text-green-600";
-    if (compliancePercentage >= 85) return "text-yellow-600";
-    return "text-red-600";
+    if (compliancePercentage === 100) return "text-blue-600"; // Outstanding: 100%
+    if (compliancePercentage >= 98) return "text-green-600"; // Good: 98-100%
+    if (compliancePercentage >= 90) return "text-amber-600"; // Needs improvement: 90-97%
+    return "text-red-600"; // Inadequate: Below 90%
   };
   return <div className="space-y-6 mt-4 p-6 border border-border rounded-lg bg-stone-50">
       
