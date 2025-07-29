@@ -168,7 +168,7 @@ export const Reports = () => {
             <CardContent className="py-8 text-center">
               <FileText className="mx-auto h-12 w-12 text-gray-400 mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">No meetings saved yet</h3>
-              <p className="text-gray-600">Save a meeting from the Dashboard to see it appear here</p>
+              
             </CardContent>
           </Card> : <div className="space-y-8">
             {Object.entries(groupedMeetings).sort(([a], [b]) => b.localeCompare(a)).map(([quarterKey, quarterMeetings]) => {
