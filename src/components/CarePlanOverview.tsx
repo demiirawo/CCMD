@@ -118,7 +118,7 @@ export const CarePlanOverview = ({
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Service Users by Risk Level */}
         <Card className="p-6">
-          <h5 className="text-md font-medium mb-4 text-foreground">Service Users By Priority Level</h5>
+          
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <Label htmlFor="high-risk" className="text-sm font-medium">High:</Label>
@@ -148,7 +148,7 @@ export const CarePlanOverview = ({
 
         {/* Overdue Care Plans */}
         <Card className="p-6">
-          <h5 className="text-md font-medium mb-4 text-foreground">Overdue Care Plans</h5>
+          
           <div className="flex flex-col items-center justify-center space-y-4">
             <div className="text-center">
               <Label htmlFor="overdue" className="text-sm font-medium">Plans Overdue:</Label>
@@ -162,7 +162,7 @@ export const CarePlanOverview = ({
 
         {/* Compliance Percentage */}
         <Card className="p-6">
-          <h5 className="text-md font-medium mb-4 text-foreground">Compliance Rate</h5>
+          
           <div className="flex flex-col items-center justify-center space-y-4">
             <div className={`text-4xl font-bold ${getComplianceColor()}`}>
               {compliancePercentage}%
