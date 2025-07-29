@@ -28,6 +28,15 @@ const generateChartData = (entries: StaffEntry[], meetingDate?: Date) => {
   meetingWeekStart.setDate(meetingWeekStart.getDate() - daysToSubtract);
   meetingWeekStart.setHours(0, 0, 0, 0);
   
+  // Get current week start for comparison
+  const currentWeekStart = new Date();
+  const currentDayOfWeek = currentWeekStart.getDay();
+  const currentDaysToSubtract = currentDayOfWeek === 0 ? 6 : currentDayOfWeek - 1;
+  currentWeekStart.setDate(currentWeekStart.getDate() - currentDaysToSubtract);
+  currentWeekStart.setHours(0, 0, 0, 0);
+  
+  let lastKnownValues = { onboardingStaff: 0, probationStaff: 0, currentStaff: 0, idealStaff: 0 };
+  
   for (let i = 11; i >= 0; i--) {
     // Calculate the week start for the current iteration (going backwards from meeting week)
     const weekStart = new Date(meetingWeekStart);
@@ -50,12 +59,31 @@ const generateChartData = (entries: StaffEntry[], meetingDate?: Date) => {
       ? weekEntries.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())[0]
       : null;
     
+    // Check if this is the current week and it's not concluded
+    const isCurrentWeek = weekStart.getTime() === currentWeekStart.getTime();
+    const isWeekConcluded = new Date() > weekEnd;
+    
+    let weekData;
+    if (latestEntry) {
+      // Week has data, update last known values
+      lastKnownValues = {
+        onboardingStaff: latestEntry.onboardingStaff,
+        probationStaff: latestEntry.probationStaff,
+        currentStaff: latestEntry.currentStaff,
+        idealStaff: latestEntry.idealStaff
+      };
+      weekData = lastKnownValues;
+    } else if (isCurrentWeek && !isWeekConcluded) {
+      // Current week that's not concluded - leave blank
+      weekData = { onboardingStaff: 0, probationStaff: 0, currentStaff: 0, idealStaff: 0 };
+    } else {
+      // Gap week - inherit from last known values
+      weekData = lastKnownValues;
+    }
+    
     weeks.push({
-      month: weekLabel, // Keep the same property name for chart compatibility
-      onboardingStaff: latestEntry?.onboardingStaff || 0,
-      probationStaff: latestEntry?.probationStaff || 0,
-      currentStaff: latestEntry?.currentStaff || 0,
-      idealStaff: latestEntry?.idealStaff || 0
+      month: weekLabel,
+      ...weekData
     });
   }
   
