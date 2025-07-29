@@ -62,30 +62,17 @@ export const DashboardHeader = ({
         </button>}
     </div>;
   return <div className="bg-primary/10 p-8 mb-8 rounded-xl shadow-sm -mx-8 px-14">
-      {/* Office Team Section - Spans 2 columns */}
+      {/* Office Team and Meeting Info Section */}
       <div className="grid grid-cols-3 gap-6 mb-6">
+        {/* Office Team - Spans 2 columns */}
         <div className="col-span-2">
           <div className="p-4 rounded-lg border border-gray-100 min-h-24 bg-white">
             <h3 className="text-sm font-medium text-muted-foreground mb-2">Office Team</h3>
             <MeetingAttendeesManager attendees={attendees} onChange={onAttendeesChange || (() => {})} />
           </div>
         </div>
-        <div></div> {/* Empty column to maintain grid structure */}
-      </div>
-
-      {/* Company Info and Meeting Overview Section */}
-      <div className="grid grid-cols-3 gap-6 mb-6">
-        {/* Company Info Panel */}
-        <div className="space-y-4">
-          
-        </div>
-
-        {/* Meeting Summary Panel */}
-        <div className="space-y-4">
-          
-        </div>
         
-        {/* Date and Purpose Panel */}
+        {/* Meeting Info Panel */}
         <div className="space-y-4">
           <EditableField field="title" value={title} label="Meeting Title" />
           <div className="p-4 rounded-lg border border-gray-100 h-24 bg-white">
@@ -95,6 +82,5 @@ export const DashboardHeader = ({
           <EditableField field="purpose" value={purpose} label="Meeting Purpose" containerClass="min-h-24" textClass="" />
         </div>
       </div>
-
     </div>;
 };
