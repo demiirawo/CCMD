@@ -8,7 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
-import { Document, Packer, Paragraph, TextRun, HeadingLevel } from 'docx';
+import { Document, Packer, Paragraph, TextRun, HeadingLevel, ImageRun } from 'docx';
 
 interface CompanyInfo {
   name: string;
@@ -217,43 +217,81 @@ export const QuarterlyReport = () => {
 
     setIsExporting(true);
     try {
+      // Fetch logo if available
+      let logoImage = null;
+      if (companyInfo?.logo_url) {
+        try {
+          const response = await fetch(companyInfo.logo_url);
+          const arrayBuffer = await response.arrayBuffer();
+          logoImage = arrayBuffer;
+        } catch (error) {
+          console.warn('Could not fetch logo for Word export:', error);
+        }
+      }
+
+      // Create document children array
+      const documentChildren: Paragraph[] = [];
+
+      // Add logo if available
+      if (logoImage) {
+        documentChildren.push(
+          new Paragraph({
+            children: [
+              new ImageRun({
+                data: logoImage,
+                type: 'png',
+                transformation: {
+                  width: 150,
+                  height: 75,
+                },
+              }),
+            ],
+            alignment: 'center',
+            spacing: { after: 400 }
+          })
+        );
+      }
+
+      // Add cover page content
+      documentChildren.push(
+        new Paragraph({
+          text: companyInfo?.name || 'Care Agency',
+          heading: HeadingLevel.TITLE,
+          alignment: 'center',
+          spacing: { after: 400 }
+        }),
+        new Paragraph({
+          text: 'Quarterly Report',
+          heading: HeadingLevel.HEADING_1,
+          alignment: 'center',
+          spacing: { after: 200 }
+        }),
+        new Paragraph({
+          text: `${quarter} ${year}`,
+          heading: HeadingLevel.HEADING_2,
+          alignment: 'center',
+          spacing: { after: 200 }
+        }),
+        new Paragraph({
+          text: getQuarterDates(quarter, year),
+          alignment: 'center',
+          spacing: { after: 400 }
+        }),
+        new Paragraph({
+          text: `Report Generated: ${getCurrentDate()}`,
+          alignment: 'center',
+          spacing: { after: 800 }
+        })
+      );
+
+      // Add content
+      documentChildren.push(...parseContentForWord(reportContent));
+
       // Parse the report content and create Word document structure
       const doc = new Document({
         sections: [{
           properties: {},
-          children: [
-            // Cover Page
-            new Paragraph({
-              text: companyInfo?.name || 'Care Agency',
-              heading: HeadingLevel.TITLE,
-              alignment: 'center',
-              spacing: { after: 400 }
-            }),
-            new Paragraph({
-              text: 'Quarterly Report',
-              heading: HeadingLevel.HEADING_1,
-              alignment: 'center',
-              spacing: { after: 200 }
-            }),
-            new Paragraph({
-              text: `${quarter} ${year}`,
-              heading: HeadingLevel.HEADING_2,
-              alignment: 'center',
-              spacing: { after: 200 }
-            }),
-            new Paragraph({
-              text: getQuarterDates(quarter, year),
-              alignment: 'center',
-              spacing: { after: 400 }
-            }),
-            new Paragraph({
-              text: `Report Generated: ${getCurrentDate()}`,
-              alignment: 'center',
-              spacing: { after: 800 }
-            }),
-            // Content
-            ...parseContentForWord(reportContent)
-          ]
+          children: documentChildren
         }]
       });
 
