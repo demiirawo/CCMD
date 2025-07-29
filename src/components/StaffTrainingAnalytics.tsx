@@ -155,8 +155,9 @@ export const StaffTrainingAnalytics = ({
     }
   };
 
-  const handleComplianceChange = (field: keyof typeof complianceData, value: number) => {
-    const newData = { ...complianceData, [field]: value };
+  const handleComplianceChange = (field: keyof typeof complianceData, value: string) => {
+    const numValue = value === '' ? 0 : parseInt(value) || 0;
+    const newData = { ...complianceData, [field]: numValue };
     setComplianceData(newData);
     saveComplianceData(newData);
   };
@@ -187,8 +188,8 @@ export const StaffTrainingAnalytics = ({
         <div className="flex justify-center">
           <Input 
             type="number" 
-            value={complianceData.onboardingCompliant} 
-            onChange={e => handleComplianceChange('onboardingCompliant', parseInt(e.target.value) || 0)} 
+            value={complianceData.onboardingCompliant === 0 ? '' : complianceData.onboardingCompliant} 
+            onChange={e => handleComplianceChange('onboardingCompliant', e.target.value)}
             onFocus={e => e.target.select()}
             className="w-16 h-8 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" 
             min="0" 
@@ -205,8 +206,8 @@ export const StaffTrainingAnalytics = ({
         <div className="flex justify-center">
           <Input 
             type="number" 
-            value={complianceData.onProbationCompliant} 
-            onChange={e => handleComplianceChange('onProbationCompliant', parseInt(e.target.value) || 0)} 
+            value={complianceData.onProbationCompliant === 0 ? '' : complianceData.onProbationCompliant} 
+            onChange={e => handleComplianceChange('onProbationCompliant', e.target.value)}
             onFocus={e => e.target.select()}
             className="w-16 h-8 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" 
             min="0" 
@@ -223,8 +224,8 @@ export const StaffTrainingAnalytics = ({
         <div className="flex justify-center">
           <Input 
             type="number" 
-            value={complianceData.activeCompliant} 
-            onChange={e => handleComplianceChange('activeCompliant', parseInt(e.target.value) || 0)} 
+            value={complianceData.activeCompliant === 0 ? '' : complianceData.activeCompliant} 
+            onChange={e => handleComplianceChange('activeCompliant', e.target.value)}
             onFocus={e => e.target.select()}
             className="w-16 h-8 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" 
             min="0" 

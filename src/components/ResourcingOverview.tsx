@@ -98,10 +98,11 @@ export const ResourcingOverview = ({
       }
     }
   };
-  const handleInputChange = (field: keyof typeof data, value: number) => {
+  const handleInputChange = (field: keyof typeof data, value: string) => {
+    const numValue = value === '' ? 0 : parseInt(value) || 0;
     const newData = {
       ...data,
-      [field]: value
+      [field]: numValue
     };
     setData(newData);
     saveData(newData);
@@ -126,15 +127,15 @@ export const ResourcingOverview = ({
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <Label htmlFor="onboarding" className="text-sm font-medium">Onboarding:</Label>
-              <Input id="onboarding" type="number" value={data.onboarding} onChange={e => handleInputChange('onboarding', parseInt(e.target.value) || 0)} onFocus={e => e.target.select()} className="w-20 h-8 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" min="0" />
+              <Input id="onboarding" type="number" value={data.onboarding === 0 ? '' : data.onboarding} onChange={e => handleInputChange('onboarding', e.target.value)} onFocus={e => e.target.select()} className="w-20 h-8 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" min="0" />
             </div>
             <div className="flex items-center justify-between">
               <Label htmlFor="on-probation" className="text-sm font-medium">On Probation:</Label>
-              <Input id="on-probation" type="number" value={data.onProbation} onChange={e => handleInputChange('onProbation', parseInt(e.target.value) || 0)} onFocus={e => e.target.select()} className="w-20 h-8 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" min="0" />
+              <Input id="on-probation" type="number" value={data.onProbation === 0 ? '' : data.onProbation} onChange={e => handleInputChange('onProbation', e.target.value)} onFocus={e => e.target.select()} className="w-20 h-8 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" min="0" />
             </div>
             <div className="flex items-center justify-between">
               <Label htmlFor="active" className="text-sm font-medium">Passed Probation:</Label>
-              <Input id="active" type="number" value={data.active} onChange={e => handleInputChange('active', parseInt(e.target.value) || 0)} onFocus={e => e.target.select()} className="w-20 h-8 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" min="0" />
+              <Input id="active" type="number" value={data.active === 0 ? '' : data.active} onChange={e => handleInputChange('active', e.target.value)} onFocus={e => e.target.select()} className="w-20 h-8 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" min="0" />
             </div>
             <div className="border-t pt-2">
               <div className="flex items-center justify-between font-medium">
@@ -152,7 +153,7 @@ export const ResourcingOverview = ({
             <div className="text-center">
               <Label htmlFor="required-staff" className="text-sm font-medium">Target Staff:</Label>
             </div>
-            <Input id="required-staff" type="number" value={data.requiredStaffingLevel} onChange={e => handleInputChange('requiredStaffingLevel', parseInt(e.target.value) || 0)} onFocus={e => e.target.select()} className="w-24 h-12 text-center text-lg font-semibold [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" min="0" />
+            <Input id="required-staff" type="number" value={data.requiredStaffingLevel === 0 ? '' : data.requiredStaffingLevel} onChange={e => handleInputChange('requiredStaffingLevel', e.target.value)} onFocus={e => e.target.select()} className="w-24 h-12 text-center text-lg font-semibold [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" min="0" />
             <div className="text-xs text-muted-foreground text-center">
               Required for full capacity
             </div>

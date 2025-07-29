@@ -136,10 +136,11 @@ export const SupervisionAnalytics = ({
       }
     }
   };
-  const handleOverdueChange = (value: number) => {
+  const handleOverdueChange = (value: string) => {
+    const numValue = value === '' ? 0 : parseInt(value) || 0;
     const newData = {
       ...supervisionData,
-      overdueSupervisions: value
+      overdueSupervisions: numValue
     };
     setSupervisionData(newData);
     saveSupervisionData(newData);
@@ -184,7 +185,7 @@ export const SupervisionAnalytics = ({
             <div className="text-center">
               
             </div>
-            <Input id="overdue-supervisions" type="number" value={supervisionData.overdueSupervisions} onChange={e => handleOverdueChange(parseInt(e.target.value) || 0)} onFocus={e => e.target.select()} className="w-24 h-12 text-center text-lg font-semibold [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" min="0" max={totalStaffNeedingSupervisions} />
+            <Input id="overdue-supervisions" type="number" value={supervisionData.overdueSupervisions === 0 ? '' : supervisionData.overdueSupervisions} onChange={e => handleOverdueChange(e.target.value)} onFocus={e => e.target.select()} className="w-24 h-12 text-center text-lg font-semibold [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" min="0" max={totalStaffNeedingSupervisions} />
             <div className="text-xs text-muted-foreground text-center">
               Number of overdue supervisions
             </div>
