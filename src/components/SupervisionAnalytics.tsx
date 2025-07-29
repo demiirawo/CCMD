@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from "recharts";
@@ -48,6 +48,51 @@ export const SupervisionAnalytics = ({ monthlyStaffData = [], meetingDate, meeti
     passedFrequency: 2,
     probationFrequency: 1
   });
+  const [hasUnsavedDraft, setHasUnsavedDraft] = useState(false);
+
+  // Load draft data from localStorage on mount
+  useEffect(() => {
+    if (profile?.company_id && meetingId) {
+      const draftKey = `supervision_draft_${profile.company_id}_${meetingId}`;
+      const savedDraft = localStorage.getItem(draftKey);
+      if (savedDraft) {
+        try {
+          const draft = JSON.parse(savedDraft);
+          if (draft.monthlyData) {
+            setMonthlyData(draft.monthlyData);
+          }
+          if (draft.metrics) {
+            setMetrics(draft.metrics);
+          }
+          setHasUnsavedDraft(true);
+        } catch (error) {
+          console.error('Error loading draft:', error);
+        }
+      }
+    }
+  }, [profile?.company_id, meetingId]);
+
+  // Save draft to localStorage
+  const saveDraft = useCallback((newMonthlyData?: typeof monthlyData, newMetrics?: typeof metrics) => {
+    if (profile?.company_id && meetingId) {
+      const draftKey = `supervision_draft_${profile.company_id}_${meetingId}`;
+      const draftData = {
+        monthlyData: newMonthlyData || monthlyData,
+        metrics: newMetrics || metrics
+      };
+      localStorage.setItem(draftKey, JSON.stringify(draftData));
+      setHasUnsavedDraft(true);
+    }
+  }, [profile?.company_id, meetingId, monthlyData, metrics]);
+
+  // Clear draft from localStorage
+  const clearDraft = useCallback(() => {
+    if (profile?.company_id && meetingId) {
+      const draftKey = `supervision_draft_${profile.company_id}_${meetingId}`;
+      localStorage.removeItem(draftKey);
+      setHasUnsavedDraft(false);
+    }
+  }, [profile?.company_id, meetingId]);
 
   // Load data and regenerate months when meeting date or ID changes
   useEffect(() => {
@@ -138,14 +183,16 @@ export const SupervisionAnalytics = ({ monthlyStaffData = [], meetingDate, meeti
   const handleMetricChange = (field: 'passedFrequency' | 'probationFrequency', value: number) => {
     const newMetrics = { ...metrics, [field]: value };
     setMetrics(newMetrics);
-    saveData(newMetrics);
+    saveDraft(undefined, newMetrics);
+    saveData(newMetrics).then(() => clearDraft());
   };
 
   const handleCellEdit = (monthIndex: number, value: number) => {
     const newData = [...monthlyData];
     newData[monthIndex] = { ...newData[monthIndex], completed: value };
     setMonthlyData(newData);
-    saveData(undefined, newData);
+    saveDraft(newData);
+    saveData(undefined, newData).then(() => clearDraft());
   };
 
   const EditableCell = ({ value, onChange }: { value: number; onChange: (value: number) => void }) => {
@@ -229,6 +276,12 @@ export const SupervisionAnalytics = ({ monthlyStaffData = [], meetingDate, meeti
     <div className="space-y-6 mt-4 p-6 border border-border rounded-lg bg-white">
       <div className="flex items-center justify-between">
         <h4 className="text-lg font-semibold text-foreground">Supervision Analytics</h4>
+        {hasUnsavedDraft && (
+          <div className="flex items-center gap-2 text-xs text-amber-600">
+            <div className="w-2 h-2 bg-amber-500 rounded-full"></div>
+            Unsaved draft
+          </div>
+        )}
       </div>
       
       <div className="text-sm text-muted-foreground">Monthly supervision completion tracking (Past 12 Months)</div>
