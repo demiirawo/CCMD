@@ -134,38 +134,56 @@ export const QuarterlyReport = () => {
 
     setIsExporting(true);
     try {
-      const reportElement = document.getElementById('quarterly-report-content');
-      if (!reportElement) {
-        throw new Error('Report content not found');
-      }
-
-      // Create PDF
-      const canvas = await html2canvas(reportElement, {
-        scale: 2,
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: '#ffffff'
-      });
-
-      const imgData = canvas.toDataURL('image/png');
+      // Get each page individually for better quality
       const pdf = new jsPDF('p', 'mm', 'a4');
+      const pageWidth = 210; // A4 width in mm
+      const pageHeight = 297; // A4 height in mm
       
-      const imgWidth = 210; // A4 width in mm
-      const pageHeight = 295; // A4 height in mm
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      let heightLeft = imgHeight;
-      let position = 0;
+      let isFirstPage = true;
 
-      // Add first page
-      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-      heightLeft -= pageHeight;
+      for (let i = 0; i < reportPages.length; i++) {
+        // Find the specific page element
+        const pageElement = document.querySelector(`[data-page-index="${i}"]`) as HTMLElement;
+        
+        if (!pageElement) {
+          console.warn(`Page ${i} element not found`);
+          continue;
+        }
 
-      // Add additional pages if needed
-      while (heightLeft >= 0) {
-        position = heightLeft - imgHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
+        // Capture the page with high quality settings
+        const canvas = await html2canvas(pageElement, {
+          scale: 2,
+          useCORS: true,
+          allowTaint: true,
+          backgroundColor: '#ffffff',
+          logging: false,
+          width: pageElement.scrollWidth,
+          height: pageElement.scrollHeight,
+          windowWidth: 1200,
+          windowHeight: 1600
+        });
+
+        const imgData = canvas.toDataURL('image/png', 1.0);
+        
+        // Add new page for each page after the first
+        if (!isFirstPage) {
+          pdf.addPage();
+        }
+        isFirstPage = false;
+
+        // Calculate dimensions to fit A4 page
+        const imgWidth = pageWidth;
+        const imgHeight = (canvas.height * pageWidth) / canvas.width;
+        
+        // If image is taller than page, scale it down
+        const finalHeight = Math.min(imgHeight, pageHeight);
+        const finalWidth = (finalHeight * canvas.width) / canvas.height;
+        
+        // Center the image on the page
+        const xOffset = (pageWidth - finalWidth) / 2;
+        const yOffset = (pageHeight - finalHeight) / 2;
+        
+        pdf.addImage(imgData, 'PNG', xOffset, yOffset, finalWidth, finalHeight);
       }
 
       pdf.save(`quarterly-report-${quarter}-${year}.pdf`);
@@ -239,7 +257,11 @@ export const QuarterlyReport = () => {
           
           {/* Display all pages with gaps */}
           {reportPages.map((pageContent, index) => (
-            <div key={index} className="bg-white shadow-lg print:shadow-none page-break min-h-screen">
+            <div 
+              key={index} 
+              data-page-index={index}
+              className="bg-white shadow-lg print:shadow-none page-break min-h-screen"
+            >
               {index === 0 ? (
                 // Cover Page
                 <div className="p-12 min-h-screen flex flex-col justify-between">
@@ -319,9 +341,16 @@ export const QuarterlyReport = () => {
                         }
                         if (line.trim().startsWith('• ') || line.trim().startsWith('- ')) {
                           return (
-                            <li key={lineIndex} className="ml-6 mb-2 text-gray-700">
+                            <li key={lineIndex} className="ml-6 mb-2 text-gray-700 list-disc">
                               {line.trim().substring(2)}
                             </li>
+                          );
+                        }
+                        if (line.trim().startsWith('**') && line.trim().endsWith('**')) {
+                          return (
+                            <p key={lineIndex} className="mb-4 text-gray-700 leading-relaxed font-semibold">
+                              {line.trim().slice(2, -2)}
+                            </p>
                           );
                         }
                         if (line.trim()) {
