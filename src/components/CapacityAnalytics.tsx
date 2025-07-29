@@ -276,6 +276,23 @@ export const CapacityAnalytics = ({ onMonthlyStaffDataChange, meetingDate, meeti
     console.log('Creating new entry with meetingDate:', meetingDate);
     console.log('Using baseDate for timestamp:', baseDate);
     
+    // Calculate the week start for the entry date
+    const entryWeekStart = new Date(baseDate);
+    const dayOfWeek = entryWeekStart.getDay();
+    const daysToSubtract = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+    entryWeekStart.setDate(entryWeekStart.getDate() - daysToSubtract);
+    entryWeekStart.setHours(0, 0, 0, 0);
+    
+    const entryWeekEnd = new Date(entryWeekStart);
+    entryWeekEnd.setDate(entryWeekStart.getDate() + 6);
+    entryWeekEnd.setHours(23, 59, 59, 999);
+    
+    // Remove any existing entries for the same week
+    const entriesWithoutCurrentWeek = entries.filter(entry => {
+      const entryDate = new Date(entry.timestamp);
+      return !(entryDate >= entryWeekStart && entryDate <= entryWeekEnd);
+    });
+    
     const newEntry: StaffEntry = {
       id: crypto.randomUUID(),
       timestamp: baseDate.toISOString(),
@@ -283,8 +300,9 @@ export const CapacityAnalytics = ({ onMonthlyStaffDataChange, meetingDate, meeti
     };
     
     console.log('New entry created:', newEntry);
+    console.log('Replacing any existing entries for week starting:', entryWeekStart.toDateString());
 
-    const updatedEntries = [...entries, newEntry];
+    const updatedEntries = [...entriesWithoutCurrentWeek, newEntry];
     
     // Keep only entries from the last 12 weeks
     const twelveWeeksAgo = new Date();
