@@ -188,10 +188,10 @@ export const StaffTrainingAnalytics = ({
         <div className="flex justify-center">
           <Input 
             type="number" 
-            value={complianceData.onboardingCompliant === 0 ? '' : complianceData.onboardingCompliant} 
+            value={complianceData.onboardingCompliant} 
             onChange={e => handleComplianceChange('onboardingCompliant', e.target.value)}
             onFocus={e => e.target.select()}
-            className="w-16 h-8 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" 
+            className="w-16 h-8 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
             min="0" 
             max={staffData.onboarding} 
           />
@@ -206,10 +206,10 @@ export const StaffTrainingAnalytics = ({
         <div className="flex justify-center">
           <Input 
             type="number" 
-            value={complianceData.onProbationCompliant === 0 ? '' : complianceData.onProbationCompliant} 
+            value={complianceData.onProbationCompliant} 
             onChange={e => handleComplianceChange('onProbationCompliant', e.target.value)}
             onFocus={e => e.target.select()}
-            className="w-16 h-8 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" 
+            className="w-16 h-8 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
             min="0" 
             max={staffData.onProbation} 
           />
@@ -224,10 +224,10 @@ export const StaffTrainingAnalytics = ({
         <div className="flex justify-center">
           <Input 
             type="number" 
-            value={complianceData.activeCompliant === 0 ? '' : complianceData.activeCompliant} 
+            value={complianceData.activeCompliant} 
             onChange={e => handleComplianceChange('activeCompliant', e.target.value)}
             onFocus={e => e.target.select()}
-            className="w-16 h-8 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" 
+            className="w-16 h-8 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
             min="0" 
             max={staffData.active} 
           />

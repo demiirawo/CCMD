@@ -155,7 +155,7 @@ export const CarePlanOverview = ({
             <div className="text-center">
               
             </div>
-            <Input id="overdue" type="number" value={data.overdue === 0 ? '' : data.overdue} onChange={e => handleInputChange('overdue', e.target.value)} onFocus={e => e.target.select()} className="w-24 h-12 text-center text-lg font-semibold [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" min="0" max={totalServiceUsers} />
+            <Input id="overdue" type="number" value={data.overdue} onChange={e => handleInputChange('overdue', e.target.value)} onFocus={e => e.target.select()} className="w-24 h-12 text-center text-lg font-semibold [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" min="0" max={totalServiceUsers} />
             <div className="text-xs text-muted-foreground text-center">
               Number overdue
             </div>
