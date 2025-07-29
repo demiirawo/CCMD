@@ -10,7 +10,7 @@ import { StatusItemData } from "@/components/StatusItem";
 import { ActionItem } from "@/components/ActionForm";
 import { SubsectionMetadata } from "@/components/SubsectionMetadataDialog";
 import { StatusType } from "@/components/StatusBadge";
-import { Users, Target, BarChart3, FileText, Heart, Shield, Calendar, UserCheck, ClipboardList, HeartHandshake, TrendingUp, Save, Download } from "lucide-react";
+import { Users, Target, BarChart3, FileText, Heart, Shield, Calendar, UserCheck, ClipboardList, HeartHandshake, TrendingUp, Save, Download, ChevronDown, ChevronUp } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
@@ -46,6 +46,7 @@ const Index = () => {
     }
   });
   const [actionsLog, setActionsLog] = useState<ActionLogEntry[]>([]);
+  const [allSectionsExpanded, setAllSectionsExpanded] = useState<boolean>(false);
 
   // Function to update temporary analytics data with real meeting ID
   const updateTemporaryAnalyticsData = async (tempId: string, realId: string) => {
@@ -1485,6 +1486,14 @@ const Index = () => {
       <div className="w-[90%] mx-auto space-y-6">
         <div className="flex justify-end gap-4 mb-6">
           <Button 
+            onClick={() => setAllSectionsExpanded(!allSectionsExpanded)}
+            variant="outline"
+            className="gap-2"
+          >
+            {allSectionsExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            {allSectionsExpanded ? 'Collapse All' : 'Expand All'}
+          </Button>
+          <Button 
             onClick={saveMeetingToDatabase}
             variant="outline"
             className="gap-2"
@@ -1599,7 +1608,7 @@ const Index = () => {
                   attendees={getAttendeesList()}
                    meetingDate={meetingDate}
                    meetingId={currentMeetingId || tempMeetingId}
-                   defaultOpen={false}
+                   defaultOpen={allSectionsExpanded}
                 />
             );
           })}
