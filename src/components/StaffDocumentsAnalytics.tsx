@@ -34,7 +34,7 @@ export const StaffDocumentsAnalytics = ({
       loadStaffData();
       loadComplianceData();
     }
-  }, [profile?.company_id]);
+  }, [profile?.company_id, meetingId]);
   const loadStaffData = async () => {
     if (!profile?.company_id) return;
     try {

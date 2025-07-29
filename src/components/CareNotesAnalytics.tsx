@@ -77,7 +77,7 @@ export const CareNotesAnalytics = ({ meetingDate, meetingId }: CareNotesAnalytic
     if (profile?.company_id) {
       loadData();
     }
-  }, [profile?.company_id]);
+  }, [profile?.company_id, meetingId]);
 
   useEffect(() => {
     // Always reload from database when meeting date changes to preserve all data
@@ -86,17 +86,25 @@ export const CareNotesAnalytics = ({ meetingDate, meetingId }: CareNotesAnalytic
     } else {
       setMonthlyData(generateInitialData(meetingDate));
     }
-  }, [meetingDate, profile?.company_id]);
+  }, [meetingDate, profile?.company_id, meetingId]);
 
   const loadData = async () => {
     if (!profile?.company_id) return;
 
     try {
-      const { data, error } = await supabase
+      // Load data for the specific meeting if meetingId is provided, otherwise load company-wide data
+      let query = supabase
         .from('care_notes_analytics')
         .select('monthly_data')
-        .eq('company_id', profile.company_id)
-        .maybeSingle();
+        .eq('company_id', profile.company_id);
+      
+      if (meetingId) {
+        query = query.eq('meeting_id', meetingId);
+      } else {
+        query = query.is('meeting_id', null);
+      }
+      
+      const { data, error } = await query.maybeSingle();
 
       if (error && error.code !== 'PGRST116') {
         console.error('Error loading care notes analytics:', error);
@@ -115,7 +123,7 @@ export const CareNotesAnalytics = ({ meetingDate, meetingId }: CareNotesAnalytic
         setMonthlyData(mergedData);
       } else {
         // Try to load from localStorage backup
-        const backupKey = `care_notes_backup_${profile.company_id}`;
+        const backupKey = meetingId ? `care_notes_backup_${profile.company_id}_${meetingId}` : `care_notes_backup_${profile.company_id}`;
         const backupData = localStorage.getItem(backupKey);
         if (backupData) {
           try {
@@ -144,10 +152,11 @@ export const CareNotesAnalytics = ({ meetingDate, meetingId }: CareNotesAnalytic
         .from('care_notes_analytics')
         .upsert({
           company_id: profile.company_id,
+          meeting_id: meetingId || null,
           monthly_data: newData,
           updated_at: new Date().toISOString()
         }, {
-          onConflict: 'company_id'
+          onConflict: meetingId ? 'company_id,meeting_id' : 'company_id'
         });
 
       if (error) {
@@ -155,13 +164,15 @@ export const CareNotesAnalytics = ({ meetingDate, meetingId }: CareNotesAnalytic
         throw error;
       } else {
         // Save to localStorage as backup
-        localStorage.setItem(`care_notes_backup_${profile.company_id}`, JSON.stringify(newData));
+        const backupKey = meetingId ? `care_notes_backup_${profile.company_id}_${meetingId}` : `care_notes_backup_${profile.company_id}`;
+        localStorage.setItem(backupKey, JSON.stringify(newData));
       }
     } catch (error) {
       console.error('Error saving care notes analytics:', error);
       // Save to localStorage as fallback
       if (profile?.company_id) {
-        localStorage.setItem(`care_notes_backup_${profile.company_id}`, JSON.stringify(newData));
+        const backupKey = meetingId ? `care_notes_backup_${profile.company_id}_${meetingId}` : `care_notes_backup_${profile.company_id}`;
+        localStorage.setItem(backupKey, JSON.stringify(newData));
       }
     }
   };

@@ -64,7 +64,7 @@ export const IncidentsAnalytics = ({
     if (profile?.company_id) {
       loadData();
     }
-  }, [profile?.company_id]);
+  }, [profile?.company_id, meetingId]);
   useEffect(() => {
     // Always reload from database when meeting date changes to preserve all data
     if (profile?.company_id) {
@@ -72,7 +72,7 @@ export const IncidentsAnalytics = ({
     } else {
       setMonthlyData(generateInitialData(meetingDate));
     }
-  }, [meetingDate, profile?.company_id]);
+  }, [meetingDate, profile?.company_id, meetingId]);
   const loadData = async () => {
     if (!profile?.company_id) return;
     try {
