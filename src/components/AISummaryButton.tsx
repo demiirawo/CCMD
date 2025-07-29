@@ -14,65 +14,85 @@ export const AISummaryButton = ({ onSummaryGenerated }: AISummaryButtonProps) =>
   const [isGenerating, setIsGenerating] = useState(false);
 
   const collectMeetingData = () => {
-    // Get meeting header data
-    const headerElements = document.querySelectorAll('[class*="DashboardHeader"]');
-    let headerData = "";
+    console.log('Starting data collection...');
+    let allData = "";
     
-    // Get title
-    const titleElement = document.querySelector('button[class*="text-left"]');
-    if (titleElement) {
-      headerData += `Meeting Title: ${titleElement.textContent}\n`;
-    }
-    
-    // Get attendees
-    const attendeesSection = document.querySelector('h3:contains("Office Team")');
-    if (attendeesSection) {
-      const attendeesList = attendeesSection.parentElement?.querySelectorAll('[class*="attendee"]');
-      if (attendeesList && attendeesList.length > 0) {
-        headerData += `Attendees: ${Array.from(attendeesList).map(el => el.textContent).join(', ')}\n`;
+    // Get meeting title from the editable field
+    const titleButton = document.querySelector('button[class*="text-left"]');
+    if (titleButton) {
+      const titleText = titleButton.textContent?.trim();
+      if (titleText) {
+        allData += `Meeting Title: ${titleText}\n`;
       }
     }
-
-    // Get all dashboard sections content
-    const sections = document.querySelectorAll('[class*="DashboardSection"]');
-    let sectionsData = "";
     
+    // Get meeting purpose from the Meeting Summary section
+    const purposeElements = document.querySelectorAll('button[class*="text-left"]');
+    purposeElements.forEach((element) => {
+      const text = element.textContent?.trim();
+      if (text && text !== titleButton?.textContent?.trim()) {
+        allData += `Meeting Purpose: ${text}\n`;
+      }
+    });
+    
+    // Get attendees - look for elements with attendee data
+    const attendeeElements = document.querySelectorAll('[class*="attendee"], [class*="MeetingAttendeesManager"] input, [class*="MeetingAttendeesManager"] button');
+    const attendees: string[] = [];
+    attendeeElements.forEach((element) => {
+      const text = element.textContent?.trim() || (element as HTMLInputElement).value?.trim();
+      if (text && text.length > 0 && !attendees.includes(text)) {
+        attendees.push(text);
+      }
+    });
+    if (attendees.length > 0) {
+      allData += `Attendees: ${attendees.join(', ')}\n`;
+    }
+
+    // Get all dashboard sections and their items
+    const sections = document.querySelectorAll('[data-section-id], [class*="DashboardSection"]');
     sections.forEach((section) => {
       const sectionTitle = section.querySelector('h2, h3, [class*="title"]');
-      if (sectionTitle) {
-        sectionsData += `\n\n=== ${sectionTitle.textContent} ===\n`;
+      if (sectionTitle?.textContent) {
+        allData += `\n=== ${sectionTitle.textContent} ===\n`;
         
-        // Get all status items in this section
-        const statusItems = section.querySelectorAll('[class*="StatusItem"], [class*="status"]');
-        statusItems.forEach((item) => {
-          const itemTitle = item.querySelector('[class*="title"], h4, h5');
-          const observation = item.querySelector('[class*="observation"], [class*="comment"]');
-          const status = item.querySelector('[class*="badge"], [class*="status"]');
+        // Get all items in this section
+        const items = section.querySelectorAll('[class*="StatusItem"], [data-item-id]');
+        items.forEach((item) => {
+          const itemTitle = item.querySelector('h4, h5, [class*="title"]');
+          const observation = item.querySelector('textarea, [class*="observation"]');
+          const statusBadge = item.querySelector('[class*="badge"]');
           
-          if (itemTitle) {
-            sectionsData += `\n- ${itemTitle.textContent}`;
-            if (status) sectionsData += ` (Status: ${status.textContent})`;
-            if (observation) sectionsData += `\n  Observation: ${observation.textContent}`;
+          if (itemTitle?.textContent) {
+            allData += `- ${itemTitle.textContent}`;
+            if (statusBadge?.textContent) {
+              allData += ` (Status: ${statusBadge.textContent})`;
+            }
+            if (observation?.textContent || (observation as HTMLTextAreaElement)?.value) {
+              const obsText = observation?.textContent || (observation as HTMLTextAreaElement)?.value;
+              if (obsText?.trim()) {
+                allData += `\n  Observation: ${obsText.trim()}`;
+              }
+            }
+            allData += '\n';
           }
         });
       }
     });
 
-    // Get actions log
-    const actionsSection = document.querySelector('[class*="ActionsLog"]');
-    let actionsData = "";
-    if (actionsSection) {
-      actionsData += "\n\n=== Actions Log ===\n";
-      const actionItems = actionsSection.querySelectorAll('[class*="action-item"]');
-      actionItems.forEach((action) => {
-        const actionText = action.textContent;
+    // Get actions from the actions log
+    const actionsElements = document.querySelectorAll('[class*="ActionsLog"] [class*="action"], [data-action-id]');
+    if (actionsElements.length > 0) {
+      allData += '\n=== Actions Log ===\n';
+      actionsElements.forEach((action) => {
+        const actionText = action.textContent?.trim();
         if (actionText) {
-          actionsData += `- ${actionText}\n`;
+          allData += `- ${actionText}\n`;
         }
       });
     }
 
-    return headerData + sectionsData + actionsData;
+    console.log('Data collection completed. Total data length:', allData.length);
+    return allData;
   };
 
   const generateAISummary = async () => {
