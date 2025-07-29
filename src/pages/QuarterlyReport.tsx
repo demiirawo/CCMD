@@ -6,8 +6,6 @@ import { ArrowLeft, Download, FileText, Printer, ChevronLeft, ChevronRight } fro
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import jsPDF from "jspdf";
-import html2canvas from "html2canvas";
 import { Document, Packer, Paragraph, TextRun, HeadingLevel, ImageRun } from 'docx';
 
 interface CompanyInfo {
@@ -120,88 +118,6 @@ export const QuarterlyReport = () => {
         return `October - December ${yearNum}`;
       default:
         return `${quarter} ${year}`;
-    }
-  };
-
-  const exportToPDF = async () => {
-    if (!reportContent) {
-      toast({
-        title: "No Content",
-        description: "No report content to export",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsExporting(true);
-    try {
-      // Get each page individually for better quality
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      const pageWidth = 210; // A4 width in mm
-      const pageHeight = 297; // A4 height in mm
-      
-      let isFirstPage = true;
-
-      for (let i = 0; i < reportPages.length; i++) {
-        // Find the specific page element
-        const pageElement = document.querySelector(`[data-page-index="${i}"]`) as HTMLElement;
-        
-        if (!pageElement) {
-          console.warn(`Page ${i} element not found`);
-          continue;
-        }
-
-        // Capture the page with high quality settings
-        const canvas = await html2canvas(pageElement, {
-          scale: 2,
-          useCORS: true,
-          allowTaint: true,
-          backgroundColor: '#ffffff',
-          logging: false,
-          width: pageElement.scrollWidth,
-          height: pageElement.scrollHeight,
-          windowWidth: 1200,
-          windowHeight: 1600
-        });
-
-        const imgData = canvas.toDataURL('image/png', 1.0);
-        
-        // Add new page for each page after the first
-        if (!isFirstPage) {
-          pdf.addPage();
-        }
-        isFirstPage = false;
-
-        // Calculate dimensions to fit A4 page
-        const imgWidth = pageWidth;
-        const imgHeight = (canvas.height * pageWidth) / canvas.width;
-        
-        // If image is taller than page, scale it down
-        const finalHeight = Math.min(imgHeight, pageHeight);
-        const finalWidth = (finalHeight * canvas.width) / canvas.height;
-        
-        // Center the image on the page
-        const xOffset = (pageWidth - finalWidth) / 2;
-        const yOffset = (pageHeight - finalHeight) / 2;
-        
-        pdf.addImage(imgData, 'PNG', xOffset, yOffset, finalWidth, finalHeight);
-      }
-
-      pdf.save(`quarterly-report-${quarter}-${year}.pdf`);
-      
-      toast({
-        title: "Export Successful",
-        description: "Report has been exported to PDF",
-      });
-    } catch (error) {
-      console.error('Error exporting PDF:', error);
-      toast({
-        title: "Export Failed",
-        description: "Failed to export report to PDF",
-        variant: "destructive",
-      });
-    } finally {
-      setIsExporting(false);
     }
   };
 
@@ -436,14 +352,6 @@ export const QuarterlyReport = () => {
             >
               <FileText className="h-4 w-4" />
               {isExporting ? 'Exporting...' : 'Export Word'}
-            </Button>
-            <Button 
-              onClick={exportToPDF} 
-              disabled={isExporting}
-              className="gap-2"
-            >
-              <Download className="h-4 w-4" />
-              {isExporting ? 'Exporting...' : 'Export PDF'}
             </Button>
           </div>
         </div>
