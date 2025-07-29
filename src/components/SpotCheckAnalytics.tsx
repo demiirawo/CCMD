@@ -172,7 +172,7 @@ export const SpotCheckAnalytics = ({
           
           <div className="flex flex-col items-center justify-center space-y-4">
             <div className="text-center">
-              <Label htmlFor="overdue-spot-checks" className="text-sm font-medium">Overdue Count:</Label>
+              
             </div>
             <Input id="overdue-spot-checks" type="number" value={spotCheckData.overdueSpotChecks} onChange={e => handleOverdueChange(parseInt(e.target.value) || 0)} className="w-24 h-12 text-center text-lg font-semibold" min="0" max={totalStaffNeedingSpotChecks} />
             <div className="text-xs text-muted-foreground text-center">
