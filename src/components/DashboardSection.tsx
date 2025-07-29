@@ -22,6 +22,7 @@ interface DashboardSectionProps {
   attendees?: string[];
   defaultOpen?: boolean;
   forceOpen?: boolean;
+  onPanelStateChange?: () => void;
   meetingDate?: Date;
   meetingId?: string;
 }
@@ -43,6 +44,7 @@ export const DashboardSection = ({
   attendees = [],
   defaultOpen = true,
   forceOpen,
+  onPanelStateChange,
   meetingDate,
   meetingId
 }: DashboardSectionProps) => {
@@ -173,6 +175,7 @@ export const DashboardSection = ({
             setIsOpen(newState);
             const storageKey = `section_${title.replace(/\s+/g, '_').toLowerCase()}_open`;
             sessionStorage.setItem(storageKey, JSON.stringify(newState));
+            onPanelStateChange?.();
           }
         }}
       >

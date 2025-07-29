@@ -47,6 +47,7 @@ const Index = () => {
   });
   const [actionsLog, setActionsLog] = useState<ActionLogEntry[]>([]);
   const [allSectionsExpanded, setAllSectionsExpanded] = useState<boolean | undefined>(undefined);
+  const [panelStateTracker, setPanelStateTracker] = useState<number>(0); // Force re-render when panels change
 
   // Function to update temporary analytics data with real meeting ID
   const updateTemporaryAnalyticsData = async (tempId: string, realId: string) => {
@@ -1481,6 +1482,11 @@ const Index = () => {
 
   console.log('Rendering Index with actionsLog length:', actionsLog.length, 'actionsLog:', actionsLog);
   
+  // Function to trigger re-evaluation of panel states
+  const triggerPanelStateUpdate = () => {
+    setPanelStateTracker(prev => prev + 1);
+  };
+  
   // Check if any individual panels are open
   const areAnyPanelsOpen = () => {
     const actionsLogExpanded = JSON.parse(sessionStorage.getItem('actions_log_expanded') || 'false');
@@ -1497,6 +1503,21 @@ const Index = () => {
     return actionsLogExpanded || keyDocsExpanded || anySectionOpen;
   };
   
+  const areAllPanelsClosed = () => {
+    const actionsLogExpanded = JSON.parse(sessionStorage.getItem('actions_log_expanded') || 'false');
+    const keyDocsExpanded = JSON.parse(sessionStorage.getItem('key_documents_expanded') || 'false');
+    
+    // Check if any dashboard sections are open
+    const sectionKeys = dashboardData.sections.map(section => 
+      `section_${section.title.replace(/\s+/g, '_').toLowerCase()}_open`
+    );
+    const anySectionOpen = sectionKeys.some(key => 
+      JSON.parse(sessionStorage.getItem(key) || 'true')
+    );
+    
+    return !actionsLogExpanded && !keyDocsExpanded && !anySectionOpen;
+  };
+  
   const handleToggleAll = () => {
     if (allSectionsExpanded === true) {
       // Currently expanded, so collapse all
@@ -1510,8 +1531,9 @@ const Index = () => {
   const getToggleButtonText = () => {
     if (allSectionsExpanded === true) return 'Collapse All';
     if (allSectionsExpanded === false) return 'Expand All';
-    // When undefined, check individual states
-    return areAnyPanelsOpen() ? 'Collapse All' : 'Expand All';
+    // When undefined, check individual states dynamically
+    if (areAllPanelsClosed()) return 'Expand All';
+    return 'Collapse All';
   };
   
   return (
@@ -1562,6 +1584,7 @@ const Index = () => {
             onActionEdit={handleActionEdit}
             attendees={getAttendeesList()}
             forceOpen={allSectionsExpanded}
+            onPanelStateChange={triggerPanelStateUpdate}
           />
           
           <KeyDocumentTracker 
@@ -1603,6 +1626,7 @@ const Index = () => {
             }}
             attendees={getAttendeesList()}
             forceOpen={allSectionsExpanded}
+            onPanelStateChange={triggerPanelStateUpdate}
           />
           
           {dashboardData.sections.filter(section => section.id !== "meeting-overview").map(section => {
@@ -1644,6 +1668,7 @@ const Index = () => {
                     meetingDate={meetingDate}
                     meetingId={currentMeetingId || tempMeetingId}
                     forceOpen={allSectionsExpanded}
+                    onPanelStateChange={triggerPanelStateUpdate}
                  />
             );
           })}

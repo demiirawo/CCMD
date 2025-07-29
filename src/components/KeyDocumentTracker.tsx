@@ -26,6 +26,7 @@ interface KeyDocumentTrackerProps {
   onDocumentsChange?: (documents: DocumentData[]) => void;
   attendees?: string[];
   forceOpen?: boolean;
+  onPanelStateChange?: () => void;
 }
 
 const categories = ["Governance and Compliance", "Care Delivery", "Staffing and HR", "Finance and Payroll", "Health and Safety", "Client Records and Contracts", "Quality Assurance and Audit", "Transportation and Logistics"];
@@ -38,7 +39,8 @@ export const KeyDocumentTracker = ({
   documents = [],
   onDocumentsChange,
   attendees = [],
-  forceOpen
+  forceOpen,
+  onPanelStateChange
 }: KeyDocumentTrackerProps) => {
   const [isExpanded, setIsExpanded] = useState(() => {
     const saved = sessionStorage.getItem('key_documents_expanded');
@@ -180,6 +182,7 @@ export const KeyDocumentTracker = ({
           const newState = !isExpanded;
           setIsExpanded(newState);
           sessionStorage.setItem('key_documents_expanded', JSON.stringify(newState));
+          onPanelStateChange?.();
         }
       }}>
         <div className="flex items-center gap-3">

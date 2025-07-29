@@ -37,6 +37,7 @@ interface ActionsLogProps {
   }) => void;
   attendees?: string[];
   forceOpen?: boolean;
+  onPanelStateChange?: () => void;
 }
 
 export const ActionsLog = ({
@@ -46,7 +47,8 @@ export const ActionsLog = ({
   onResetActions,
   onActionEdit,
   attendees = [],
-  forceOpen
+  forceOpen,
+  onPanelStateChange
 }: ActionsLogProps) => {
   const [isExpanded, setIsExpanded] = useState(() => {
     const saved = sessionStorage.getItem('actions_log_expanded');
@@ -201,6 +203,7 @@ export const ActionsLog = ({
           const newState = !isExpanded;
           setIsExpanded(newState);
           sessionStorage.setItem('actions_log_expanded', JSON.stringify(newState));
+          onPanelStateChange?.();
         }
       }}>
         <div className="flex items-center gap-2">
