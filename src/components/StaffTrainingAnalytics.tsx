@@ -41,12 +41,20 @@ export const StaffTrainingAnalytics = ({
     if (!profile?.company_id) return;
 
     try {
-      const { data: savedData, error } = await supabase
+      // Load data for the specific meeting if meetingId is provided, otherwise load company-wide data
+      let query = supabase
         .from('dashboard_data')
         .select('data_content')
         .eq('company_id', profile.company_id)
-        .eq('data_type', 'resourcing_overview')
-        .maybeSingle();
+        .eq('data_type', 'resourcing_overview');
+      
+      if (meetingId) {
+        query = query.eq('meeting_id', meetingId);
+      } else {
+        query = query.is('meeting_id', null);
+      }
+      
+      const { data: savedData, error } = await query.maybeSingle();
 
       if (error && error.code !== 'PGRST116') {
         console.error('Error loading staff data:', error);
