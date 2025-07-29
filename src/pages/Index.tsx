@@ -46,7 +46,7 @@ const Index = () => {
     }
   });
   const [actionsLog, setActionsLog] = useState<ActionLogEntry[]>([]);
-  const [allSectionsExpanded, setAllSectionsExpanded] = useState<boolean>(false);
+  const [allSectionsExpanded, setAllSectionsExpanded] = useState<boolean | undefined>(undefined);
 
   // Function to update temporary analytics data with real meeting ID
   const updateTemporaryAnalyticsData = async (tempId: string, realId: string) => {
@@ -1481,17 +1481,50 @@ const Index = () => {
 
   console.log('Rendering Index with actionsLog length:', actionsLog.length, 'actionsLog:', actionsLog);
   
+  // Check if any individual panels are open
+  const areAnyPanelsOpen = () => {
+    const actionsLogExpanded = JSON.parse(sessionStorage.getItem('actions_log_expanded') || 'false');
+    const keyDocsExpanded = JSON.parse(sessionStorage.getItem('key_documents_expanded') || 'false');
+    
+    // Check if any dashboard sections are open
+    const sectionKeys = dashboardData.sections.map(section => 
+      `section_${section.title.replace(/\s+/g, '_').toLowerCase()}_open`
+    );
+    const anySectionOpen = sectionKeys.some(key => 
+      JSON.parse(sessionStorage.getItem(key) || 'true')
+    );
+    
+    return actionsLogExpanded || keyDocsExpanded || anySectionOpen;
+  };
+  
+  const handleToggleAll = () => {
+    if (allSectionsExpanded === true) {
+      // Currently expanded, so collapse all
+      setAllSectionsExpanded(false);
+    } else {
+      // Either collapsed or individual panels open, so expand all
+      setAllSectionsExpanded(true);
+    }
+  };
+  
+  const getToggleButtonText = () => {
+    if (allSectionsExpanded === true) return 'Collapse All';
+    if (allSectionsExpanded === false) return 'Expand All';
+    // When undefined, check individual states
+    return areAnyPanelsOpen() ? 'Collapse All' : 'Expand All';
+  };
+  
   return (
     <div className="min-h-screen bg-gray-100 p-4 lg:p-8">
       <div className="w-[90%] mx-auto space-y-6">
         <div className="flex justify-end gap-4 mb-6">
           <Button 
-            onClick={() => setAllSectionsExpanded(!allSectionsExpanded)}
+            onClick={handleToggleAll}
             variant="outline"
             className="gap-2"
           >
-            {allSectionsExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-            {allSectionsExpanded ? 'Collapse All' : 'Expand All'}
+            {allSectionsExpanded === true ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            {getToggleButtonText()}
           </Button>
           <Button 
             onClick={saveMeetingToDatabase}

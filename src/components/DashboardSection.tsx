@@ -168,10 +168,12 @@ export const DashboardSection = ({
       <div 
         className="flex items-center justify-between cursor-pointer mb-4"
         onClick={() => {
-          const newState = !isOpen;
-          setIsOpen(newState);
-          const storageKey = `section_${title.replace(/\s+/g, '_').toLowerCase()}_open`;
-          sessionStorage.setItem(storageKey, JSON.stringify(newState));
+          if (forceOpen === undefined) {
+            const newState = !isOpen;
+            setIsOpen(newState);
+            const storageKey = `section_${title.replace(/\s+/g, '_').toLowerCase()}_open`;
+            sessionStorage.setItem(storageKey, JSON.stringify(newState));
+          }
         }}
       >
         <div className="flex items-center gap-3">
