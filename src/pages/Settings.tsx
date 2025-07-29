@@ -293,8 +293,7 @@ export const Settings = () => {
         {/* Logo Upload */}
         <Card className="bg-stone-50">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Image className="h-5 w-5" />
+            <CardTitle>
               Company Logo
             </CardTitle>
           </CardHeader>
