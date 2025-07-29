@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -30,6 +31,7 @@ export const QuarterlyReportGenerator: React.FC<QuarterlyReportGeneratorProps> =
   const [isOpen, setIsOpen] = useState(false);
   const { generateResponse, isLoading } = useOpenAI();
   const { profile } = useAuth();
+  const navigate = useNavigate();
   const { toast } = useToast();
 
   const collectAnalyticsData = async () => {
@@ -148,6 +150,12 @@ Use professional, clear language. Be specific with numbers and metrics where ava
 
       if (response) {
         setGeneratedReport(response);
+        setIsOpen(false);
+        
+        // Navigate to the quarterly report page with the content
+        const encodedContent = encodeURIComponent(response);
+        navigate(`/quarterly-report?quarter=${quarter}&year=${year}&content=${encodedContent}`);
+        
         toast({
           title: "Report Generated",
           description: "Your quarterly report has been generated successfully",
@@ -163,18 +171,6 @@ Use professional, clear language. Be specific with numbers and metrics where ava
     }
   };
 
-  const downloadReport = () => {
-    const blob = new Blob([generatedReport], { type: 'text/markdown' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `quarterly-report-${quarter}-${year}.md`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
-
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
@@ -183,63 +179,43 @@ Use professional, clear language. Be specific with numbers and metrics where ava
           Generate AI Report
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden flex flex-col">
+      <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Quarterly Report - {quarter} {year}</DialogTitle>
+          <DialogTitle>Generate Quarterly Report - {quarter} {year}</DialogTitle>
         </DialogHeader>
         
-        <div className="flex-1 overflow-y-auto">
-          {!generatedReport ? (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Generate Quarterly Report</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="text-sm text-muted-foreground">
-                  This will analyze all management meetings and analytics data from {quarter} {year} 
-                  to generate a comprehensive quarterly report covering successes, lessons learned, 
-                  capacity planning, staffing, care delivery, safety, and continuous improvement.
-                </p>
-                <Button 
-                  onClick={generateReport} 
-                  disabled={isLoading}
-                  className="w-full"
-                >
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Generating Report...
-                    </>
-                  ) : (
-                    <>
-                      <FileText className="mr-2 h-4 w-4" />
-                      Generate Report
-                    </>
-                  )}
-                </Button>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <h3 className="text-lg font-semibold">Generated Report</h3>
-                <Button onClick={downloadReport} variant="outline" size="sm" className="gap-2">
-                  <Download className="h-4 w-4" />
-                  Download
-                </Button>
-              </div>
-              <Card>
-                <CardContent className="p-6">
-                  <div className="prose prose-sm max-w-none">
-                    <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed">
-                      {generatedReport}
-                    </pre>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          )}
-        </div>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">AI-Powered Quarterly Analysis</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              This will analyze all management meetings and analytics data from {quarter} {year} 
+              to generate a comprehensive quarterly report covering successes, lessons learned, 
+              capacity planning, staffing, care delivery, safety, and continuous improvement.
+            </p>
+            <p className="text-sm text-muted-foreground">
+              The report will be displayed in a professional print-ready format with options to export to PDF.
+            </p>
+            <Button 
+              onClick={generateReport} 
+              disabled={isLoading}
+              className="w-full"
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Generating Report...
+                </>
+              ) : (
+                <>
+                  <FileText className="mr-2 h-4 w-4" />
+                  Generate Report
+                </>
+              )}
+            </Button>
+          </CardContent>
+        </Card>
       </DialogContent>
     </Dialog>
   );

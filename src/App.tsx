@@ -7,6 +7,7 @@ import { ProtectedRoute } from "./components/ProtectedRoute";
 import { useTheme } from "./hooks/useTheme";
 import Index from "./pages/Index";
 import { Reports } from "./pages/Reports";
+import { QuarterlyReport } from "./pages/QuarterlyReport";
 import { Settings } from "./pages/Settings";
 import { Auth } from "./pages/Auth";
 import { CompanySelection } from "./pages/CompanySelection";
@@ -39,6 +40,11 @@ const AppContent = () => {
             <Navigation />
             <Reports />
           </>
+        </ProtectedRoute>
+      } />
+      <Route path="/quarterly-report" element={
+        <ProtectedRoute requireCompany>
+          <QuarterlyReport />
         </ProtectedRoute>
       } />
       <Route path="/settings" element={
