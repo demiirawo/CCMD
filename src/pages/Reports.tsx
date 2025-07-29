@@ -290,7 +290,7 @@ export const Reports = () => {
                                       acc[item.status] = (acc[item.status] || 0) + 1;
                                       return acc;
                                     }, {} as Record<string, number>);
-                                    return <div key={section.id} className="border rounded-lg p-4">
+                                    return <div key={section.id} className="border rounded-lg p-4 bg-white">
                                                   <div className="flex items-center justify-between mb-2">
                                                     <h4 className="font-medium">{section.title}</h4>
                                                     <div className="flex items-center gap-1">
