@@ -133,52 +133,67 @@ export const QuarterlyReportGenerator: React.FC<QuarterlyReportGeneratorProps> =
     if (!profile?.company_id) return {};
     
     try {
+      console.log('🔍 Starting analytics data collection for company:', profile.company_id);
+      
       // Get the latest meeting to determine which analytics to include
       const latestMeeting = meetings.length > 0 ? meetings[0] : null;
       const meetingId = latestMeeting?.id;
       
+      console.log('📊 Latest meeting ID:', meetingId);
+      console.log('📋 Available meetings:', meetings.length);
+      
       const analyticsData: { [key: string]: any } = {};
+      
+      // First, try to get any analytics data regardless of meeting_id
+      const { data: allAnalytics, error: allError } = await supabase
+        .from('dashboard_data')
+        .select('data_type, data_content, meeting_id')
+        .eq('company_id', profile.company_id);
+      
+      console.log('📈 All analytics data found:', allAnalytics?.length || 0);
+      console.log('📈 Analytics data:', allAnalytics);
+      
+      if (allError) {
+        console.error('❌ Error fetching analytics:', allError);
+      }
       
       // Define analytics types to check based on meeting sections
       const analyticsTypes = [
-        { key: 'staffTraining', title: 'Staff Training Analytics', dataType: 'staff_training_analytics' },
-        { key: 'incidents', title: 'Incident Analytics', dataType: 'incidents_analytics' },
-        { key: 'feedback', title: 'Feedback Analytics', dataType: 'feedback_analytics' },
-        { key: 'spotCheck', title: 'Spot Check Analytics', dataType: 'spot_check_analytics' },
-        { key: 'supervision', title: 'Supervision Analytics', dataType: 'supervision_analytics' },
-        { key: 'staffDocuments', title: 'Staff Documents Analytics', dataType: 'staff_documents_analytics' },
+        { key: 'staffTraining', title: 'Staff Training Analytics', dataTypes: ['resourcing_analytics', 'staff_training_analytics', 'resourcing_overview'] },
+        { key: 'incidents', title: 'Incident Analytics', dataTypes: ['incidents_analytics'] },
+        { key: 'feedback', title: 'Feedback Analytics', dataTypes: ['feedback_analytics'] },
+        { key: 'spotCheck', title: 'Spot Check Analytics', dataTypes: ['spot_check_analytics'] },
+        { key: 'supervision', title: 'Supervision Analytics', dataTypes: ['supervision_analytics'] },
+        { key: 'staffDocuments', title: 'Staff Documents Analytics', dataTypes: ['staff_documents_analytics'] },
+        { key: 'carePlan', title: 'Care Plan Analytics', dataTypes: ['care_plan_overview', 'care_plan_analytics'] }
       ];
 
       // Get analytics data for each type
-      for (const { key, title, dataType } of analyticsTypes) {
-        try {
-          let query = supabase
-            .from('dashboard_data')
-            .select('data_content')
-            .eq('company_id', profile.company_id)
-            .eq('data_type', dataType);
-          
-          if (meetingId) {
-            query = query.eq('meeting_id', meetingId);
+      for (const { key, title, dataTypes } of analyticsTypes) {
+        for (const dataType of dataTypes) {
+          try {
+            const matchingData = allAnalytics?.find(item => item.data_type === dataType);
+            
+            if (matchingData?.data_content && Object.keys(matchingData.data_content).length > 0) {
+              console.log(`✅ Found ${title} data:`, matchingData.data_content);
+              analyticsData[key] = {
+                title,
+                data: matchingData.data_content,
+                hasData: true,
+                meetingId: matchingData.meeting_id
+              };
+              break; // Use the first matching data type
+            }
+          } catch (error) {
+            console.warn(`⚠️ Failed to process ${title}:`, error);
           }
-          
-          const { data, error } = await query.maybeSingle();
-          
-          if (data?.data_content && Object.keys(data.data_content).length > 0) {
-            analyticsData[key] = {
-              title,
-              data: data.data_content,
-              hasData: true
-            };
-          }
-        } catch (error) {
-          console.warn(`Failed to load ${title}:`, error);
         }
       }
 
+      console.log('📊 Final analytics data for report:', analyticsData);
       return analyticsData;
     } catch (error) {
-      console.error('Error collecting analytics data for report:', error);
+      console.error('❌ Error collecting analytics data for report:', error);
       return {};
     }
   };
