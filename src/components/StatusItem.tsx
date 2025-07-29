@@ -4,6 +4,7 @@ import { StaffDocumentsAnalytics } from "./StaffDocumentsAnalytics";
 import { StaffTrainingAnalytics } from "./StaffTrainingAnalytics";
 import { SpotCheckAnalytics } from "./SpotCheckAnalytics";
 import { SupervisionAnalytics } from "./SupervisionAnalytics";
+import { ResourcingOverview } from "./ResourcingOverview";
 import { CarePlanOverview } from "./CarePlanOverview";
 
 
@@ -299,7 +300,7 @@ export const StatusItem = ({
           </div>
           
           
-          {item.title.toLowerCase().includes('staff documents') && <StaffDocumentsAnalytics meetingId={meetingId} />}
+          {item.title.toLowerCase().includes('resourcing') && <ResourcingOverview meetingDate={meetingDate} meetingId={meetingId} />}
           
           {item.title.toLowerCase().includes('training') && <StaffTrainingAnalytics meetingId={meetingId} />}
           
