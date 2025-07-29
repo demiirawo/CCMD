@@ -186,7 +186,7 @@ export const SpotCheckAnalytics = ({
             <div className="text-center">
               
             </div>
-            <Input id="overdue-spot-checks" type="number" value={spotCheckData.overdueSpotChecks} onChange={e => handleOverdueChange(parseInt(e.target.value) || 0)} className="w-24 h-12 text-center text-lg font-semibold" min="0" max={totalStaffNeedingSpotChecks} />
+            <Input id="overdue-spot-checks" type="number" value={spotCheckData.overdueSpotChecks} onChange={e => handleOverdueChange(parseInt(e.target.value) || 0)} onFocus={e => e.target.select()} className="w-24 h-12 text-center text-lg font-semibold [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" min="0" max={totalStaffNeedingSpotChecks} />
             <div className="text-xs text-muted-foreground text-center">
               Number of overdue spot checks
             </div>
