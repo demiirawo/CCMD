@@ -292,7 +292,12 @@ export const Settings = () => {
 
         {/* Logo Upload */}
         <Card className="bg-stone-50">
-          
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Image className="h-5 w-5" />
+              Company Logo
+            </CardTitle>
+          </CardHeader>
           <CardContent className="space-y-4">
             {/* Current Logo Display */}
             {selectedLogo && <div className="relative inline-block">
