@@ -74,7 +74,7 @@ export const DashboardHeader = ({
         
         {/* Meeting Info Panel */}
         <div className="space-y-4">
-          <EditableField field="title" value={title} label="Meeting Title" />
+          <EditableField field="title" value={title} label="Meeting Title" textClass="" />
           <div className="p-4 rounded-lg border border-gray-100 h-24 bg-white">
             <h3 className="text-sm font-medium text-muted-foreground mb-2">Meeting Date & Time</h3>
             <MeetingDateTimePicker value={date} onChange={value => onDataChange?.("date", value)} />
