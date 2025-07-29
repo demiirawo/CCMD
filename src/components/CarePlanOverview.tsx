@@ -151,7 +151,7 @@ export const CarePlanOverview = ({
           
           <div className="flex flex-col items-center justify-center space-y-4">
             <div className="text-center">
-              <Label htmlFor="overdue" className="text-sm font-medium">Plans Overdue:</Label>
+              
             </div>
             <Input id="overdue" type="number" value={data.overdue} onChange={e => handleInputChange('overdue', parseInt(e.target.value) || 0)} className="w-24 h-12 text-center text-lg font-semibold" min="0" max={totalServiceUsers} />
             <div className="text-xs text-muted-foreground text-center">
