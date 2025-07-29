@@ -113,7 +113,7 @@ export const CarePlanOverview = ({
     return "text-red-600";
   };
   return <div className="space-y-6 mt-4 p-6 border border-border rounded-lg bg-stone-50">
-      <h4 className="text-lg font-semibold text-foreground">Care Plan Overview</h4>
+      
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Service Users by Risk Level */}
@@ -124,10 +124,7 @@ export const CarePlanOverview = ({
               <Label htmlFor="high-risk" className="text-sm font-medium">High Risk:</Label>
               <Input id="high-risk" type="number" value={data.highRisk} onChange={e => handleInputChange('highRisk', parseInt(e.target.value) || 0)} className="w-20 h-8 text-center" min="0" />
             </div>
-            <div className="flex items-center justify-between">
-              <Label htmlFor="medium-risk" className="text-sm font-medium">Medium Risk:</Label>
-              <Input id="medium-risk" type="number" value={data.mediumRisk} onChange={e => handleInputChange('mediumRisk', parseInt(e.target.value) || 0)} className="w-20 h-8 text-center" min="0" />
-            </div>
+            
             <div className="flex items-center justify-between">
               <Label htmlFor="low-risk" className="text-sm font-medium">Low Risk:</Label>
               <Input id="low-risk" type="number" value={data.lowRisk} onChange={e => handleInputChange('lowRisk', parseInt(e.target.value) || 0)} className="w-20 h-8 text-center" min="0" />
