@@ -1527,9 +1527,16 @@ const Index = () => {
     if (allSectionsExpanded === true) {
       // Currently expanded, so collapse all
       setAllSectionsExpanded(false);
-    } else {
-      // Either collapsed or individual panels open, so expand all
+    } else if (allSectionsExpanded === false) {
+      // Currently collapsed, so expand all
       setAllSectionsExpanded(true);
+    } else {
+      // undefined state - check current panel states and toggle accordingly
+      if (areAllPanelsClosed()) {
+        setAllSectionsExpanded(true); // Expand all
+      } else {
+        setAllSectionsExpanded(false); // Collapse all
+      }
     }
   };
   
