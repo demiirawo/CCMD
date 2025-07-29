@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
+import { Document, Packer, Paragraph, TextRun, HeadingLevel } from 'docx';
 
 interface CompanyInfo {
   name: string;
@@ -204,6 +205,125 @@ export const QuarterlyReport = () => {
     }
   };
 
+  const exportToWord = async () => {
+    if (!reportContent) {
+      toast({
+        title: "No Content",
+        description: "No report content to export",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsExporting(true);
+    try {
+      // Parse the report content and create Word document structure
+      const doc = new Document({
+        sections: [{
+          properties: {},
+          children: [
+            // Cover Page
+            new Paragraph({
+              text: companyInfo?.name || 'Care Agency',
+              heading: HeadingLevel.TITLE,
+              alignment: 'center',
+              spacing: { after: 400 }
+            }),
+            new Paragraph({
+              text: 'Quarterly Report',
+              heading: HeadingLevel.HEADING_1,
+              alignment: 'center',
+              spacing: { after: 200 }
+            }),
+            new Paragraph({
+              text: `${quarter} ${year}`,
+              heading: HeadingLevel.HEADING_2,
+              alignment: 'center',
+              spacing: { after: 200 }
+            }),
+            new Paragraph({
+              text: getQuarterDates(quarter, year),
+              alignment: 'center',
+              spacing: { after: 400 }
+            }),
+            new Paragraph({
+              text: `Report Generated: ${getCurrentDate()}`,
+              alignment: 'center',
+              spacing: { after: 800 }
+            }),
+            // Content
+            ...parseContentForWord(reportContent)
+          ]
+        }]
+      });
+
+      // Generate and download the document
+      const buffer = await Packer.toBuffer(doc);
+      const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
+      const url = URL.createObjectURL(blob);
+      
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `quarterly-report-${quarter}-${year}.docx`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      toast({
+        title: "Export Successful",
+        description: "Report has been exported to Word document",
+      });
+    } catch (error) {
+      console.error('Error exporting Word document:', error);
+      toast({
+        title: "Export Failed",
+        description: "Failed to export report to Word document",
+        variant: "destructive",
+      });
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const parseContentForWord = (content: string): Paragraph[] => {
+    const paragraphs: Paragraph[] = [];
+    const lines = content.split('\n');
+
+    for (const line of lines) {
+      const trimmedLine = line.trim();
+      
+      if (trimmedLine === '') {
+        // Add spacing for empty lines
+        paragraphs.push(new Paragraph({ text: '', spacing: { after: 200 } }));
+      } else if (trimmedLine.match(/^\d+\.\s/)) {
+        // Section headers (e.g., "1. Executive Summary")
+        paragraphs.push(new Paragraph({
+          children: [new TextRun({ text: trimmedLine, bold: true, size: 28 })],
+          heading: HeadingLevel.HEADING_1,
+          spacing: { before: 400, after: 200 }
+        }));
+      } else if (trimmedLine.startsWith('Care Agency Quarterly Report')) {
+        // Main title
+        paragraphs.push(new Paragraph({
+          children: [new TextRun({ text: trimmedLine, bold: true, size: 32 })],
+          heading: HeadingLevel.TITLE,
+          alignment: 'center',
+          spacing: { after: 400 }
+        }));
+      } else if (trimmedLine.length > 0) {
+        // Regular paragraphs
+        paragraphs.push(new Paragraph({
+          children: [new TextRun({ text: trimmedLine, size: 22 })],
+          spacing: { after: 120 },
+          alignment: 'both'
+        }));
+      }
+    }
+
+    return paragraphs;
+  };
+
   const printReport = () => {
     window.print();
   };
@@ -238,6 +358,15 @@ export const QuarterlyReport = () => {
             <Button onClick={printReport} variant="outline" className="gap-2">
               <Printer className="h-4 w-4" />
               Print
+            </Button>
+            <Button 
+              onClick={exportToWord} 
+              disabled={isExporting}
+              variant="outline"
+              className="gap-2"
+            >
+              <FileText className="h-4 w-4" />
+              {isExporting ? 'Exporting...' : 'Export Word'}
             </Button>
             <Button 
               onClick={exportToPDF} 
