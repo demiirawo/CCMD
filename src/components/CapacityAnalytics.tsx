@@ -205,11 +205,16 @@ export const CapacityAnalytics = ({ onMonthlyStaffDataChange, meetingDate, meeti
   const handleSubmit = () => {
     // Use meeting date as the base timestamp, or current date if no meeting date is set
     const baseDate = meetingDate || new Date();
+    console.log('Creating new entry with meetingDate:', meetingDate);
+    console.log('Using baseDate for timestamp:', baseDate);
+    
     const newEntry: StaffEntry = {
       id: crypto.randomUUID(),
       timestamp: baseDate.toISOString(),
       ...currentInput
     };
+    
+    console.log('New entry created:', newEntry);
 
     const updatedEntries = [...entries, newEntry];
     
