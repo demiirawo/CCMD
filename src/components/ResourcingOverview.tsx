@@ -150,7 +150,7 @@ export const ResourcingOverview = ({
             </div>
             <Input id="required-staff" type="number" value={data.requiredStaffingLevel} onChange={e => handleInputChange('requiredStaffingLevel', e.target.value)} onFocus={e => e.target.select()} className="w-24 h-12 text-center text-lg font-semibold [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" min="0" />
             <div className="text-xs text-muted-foreground text-center">
-              Required for full capacity
+              Target staffing level
             </div>
           </div>
         </Card>
