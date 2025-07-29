@@ -155,7 +155,7 @@ export const CarePlanOverview = ({
             </div>
             <Input id="overdue" type="number" value={data.overdue} onChange={e => handleInputChange('overdue', parseInt(e.target.value) || 0)} className="w-24 h-12 text-center text-lg font-semibold" min="0" max={totalServiceUsers} />
             <div className="text-xs text-muted-foreground text-center">
-              Out of {totalServiceUsers} total service users
+              Number overdue
             </div>
           </div>
         </Card>
