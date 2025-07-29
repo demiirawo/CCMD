@@ -318,49 +318,52 @@ export const QuarterlyReport = () => {
                       color: '#374151'
                     }}>
                       {pageContent.split('\n').map((line, lineIndex) => {
-                        if (line.startsWith('# ')) {
+                        // Handle natural language prose content
+                        if (line.trim().match(/^\d+\.\s/)) {
+                          // Section headers (e.g., "1. Executive Summary")
                           return (
-                            <h1 key={lineIndex} className="text-3xl font-bold text-gray-900 mb-6 mt-8 border-b-2 border-gray-200 pb-2">
-                              {line.substring(2)}
-                            </h1>
-                          );
-                        }
-                        if (line.startsWith('## ')) {
-                          return (
-                            <h2 key={lineIndex} className="text-2xl font-semibold text-gray-800 mb-4 mt-8">
-                              {line.substring(3)}
+                            <h2 key={lineIndex} className="text-2xl font-semibold text-gray-800 mb-6 mt-8 border-b border-gray-200 pb-2">
+                              {line.trim()}
                             </h2>
                           );
                         }
-                        if (line.startsWith('### ')) {
+                        if (line.trim().startsWith('Care Agency Quarterly Report')) {
+                          // Main title
                           return (
-                            <h3 key={lineIndex} className="text-xl font-medium text-gray-700 mb-3 mt-6">
-                              {line.substring(4)}
-                            </h3>
+                            <h1 key={lineIndex} className="text-3xl font-bold text-gray-900 mb-8 text-center border-b-2 border-gray-200 pb-4">
+                              {line.trim()}
+                            </h1>
                           );
                         }
-                        if (line.trim().startsWith('• ') || line.trim().startsWith('- ')) {
+                        if (line.trim().length > 50 && (line.trim().endsWith('.') || line.trim().endsWith(':') || line.trim().endsWith('.'))) {
+                          // Regular paragraphs - substantial text ending with period
                           return (
-                            <li key={lineIndex} className="ml-6 mb-2 text-gray-700 list-disc">
-                              {line.trim().substring(2)}
-                            </li>
-                          );
-                        }
-                        if (line.trim().startsWith('**') && line.trim().endsWith('**')) {
-                          return (
-                            <p key={lineIndex} className="mb-4 text-gray-700 leading-relaxed font-semibold">
-                              {line.trim().slice(2, -2)}
+                            <p key={lineIndex} className="mb-5 text-gray-700 leading-relaxed text-justify font-normal">
+                              {line.trim()}
                             </p>
                           );
                         }
-                        if (line.trim()) {
+                        if (line.trim().length > 20 && line.trim().length <= 50) {
+                          // Shorter content lines - subheadings or brief statements
                           return (
-                            <p key={lineIndex} className="mb-4 text-gray-700 leading-relaxed">
-                              {line}
+                            <p key={lineIndex} className="mb-4 text-gray-800 leading-relaxed font-medium">
+                              {line.trim()}
                             </p>
                           );
                         }
-                        return <br key={lineIndex} />;
+                        if (line.trim().length > 0) {
+                          // Other content - brief lines
+                          return (
+                            <p key={lineIndex} className="mb-3 text-gray-700 leading-relaxed">
+                              {line.trim()}
+                            </p>
+                          );
+                        }
+                        if (line.trim() === '') {
+                          // Empty lines for spacing
+                          return <div key={lineIndex} className="mb-2"></div>;
+                        }
+                         return null;
                       })}
                     </div>
                   </div>

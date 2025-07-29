@@ -34,6 +34,52 @@ export const QuarterlyReportGenerator: React.FC<QuarterlyReportGeneratorProps> =
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  const processAnalyticsForReport = (analyticsData: any) => {
+    // Extract key insights and trends from analytics data
+    const insights = {
+      staffingTrends: {
+        activeStaff: analyticsData.staff_training?.map((d: any) => d.active_staff_with_training).filter((v: any) => v != null) || [],
+        onboardingStaff: analyticsData.staff_training?.map((d: any) => d.onboarding_staff_with_training).filter((v: any) => v != null) || [],
+        trainingCompliance: analyticsData.staff_training?.map((d: any) => d.probationary_staff_with_training).filter((v: any) => v != null) || []
+      },
+      incidentPatterns: {
+        totalIncidents: analyticsData.incidents?.reduce((sum: number, d: any) => sum + (d.total_incidents || 0), 0) || 0,
+        resolvedIncidents: analyticsData.incidents?.reduce((sum: number, d: any) => sum + (d.resolved_incidents || 0), 0) || 0,
+        safeguardingConcerns: analyticsData.incidents?.reduce((sum: number, d: any) => sum + (d.safeguarding_concerns || 0), 0) || 0
+      },
+      carePlanMetrics: {
+        totalPlans: analyticsData.care_plan?.reduce((sum: number, d: any) => sum + (d.total_care_plans || 0), 0) || 0,
+        overduePlans: analyticsData.care_plan?.reduce((sum: number, d: any) => sum + (d.overdue_care_plans || 0), 0) || 0,
+        highRiskPlans: analyticsData.care_plan?.reduce((sum: number, d: any) => sum + (d.high_risk_care_plans || 0), 0) || 0
+      },
+      feedbackTrends: {
+        totalComplaints: analyticsData.feedback?.reduce((sum: number, d: any) => sum + (d.total_complaints || 0), 0) || 0,
+        resolvedComplaints: analyticsData.feedback?.reduce((sum: number, d: any) => sum + (d.resolved_complaints || 0), 0) || 0,
+        suggestions: analyticsData.feedback?.reduce((sum: number, d: any) => sum + (d.total_suggestions || 0), 0) || 0
+      }
+    };
+    return insights;
+  };
+
+  const extractKeyMetrics = (analyticsData: any, meetings: any[]) => {
+    // Calculate key performance indicators
+    const totalMeetingItems = meetings.reduce((sum, meeting) => 
+      sum + meeting.sections.reduce((sectionSum: number, section: any) => 
+        sectionSum + (section.items?.length || 0), 0), 0);
+    
+    const completedItems = meetings.reduce((sum, meeting) => 
+      sum + meeting.sections.reduce((sectionSum: number, section: any) => 
+        sectionSum + (section.items?.filter((item: any) => item.status === 'green').length || 0), 0), 0);
+
+    return {
+      meetingEffectiveness: totalMeetingItems > 0 ? Math.round((completedItems / totalMeetingItems) * 100) : 0,
+      totalActionItems: totalMeetingItems,
+      completedActionItems: completedItems,
+      quarterlyMeetingCount: meetings.length,
+      averageAttendeesPerMeeting: meetings.length > 0 ? Math.round(meetings.reduce((sum, m) => sum + m.attendees.length, 0) / meetings.length) : 0
+    };
+  };
+
   const collectAnalyticsData = async () => {
     if (!profile?.company_id) return {};
 
@@ -86,62 +132,94 @@ export const QuarterlyReportGenerator: React.FC<QuarterlyReportGeneratorProps> =
     try {
       const analyticsData = await collectAnalyticsData();
       
-      // Create comprehensive data summary for AI
+      // Pre-process analytics data to extract key insights and trends
+      const processedAnalytics = processAnalyticsForReport(analyticsData);
+      
+      // Create comprehensive data summary for AI with better structuring
       const dataContext = {
         quarter,
         year,
-        meetings: meetings.map(m => ({
+        totalMeetings: meetings.length,
+        meetingDetails: meetings.map(m => ({
           title: m.title,
           date: m.date,
-          purpose: m.purpose,
+          purpose: m.purpose || 'Regular management meeting',
           attendeeCount: m.attendees.length,
-          sections: m.sections.map(s => ({
+          attendees: m.attendees,
+          sectionSummary: m.sections.map(s => ({
             title: s.title,
-            itemCount: s.items?.length || 0,
-            statusBreakdown: s.items?.reduce((acc: any, item: any) => {
-              acc[item.status] = (acc[item.status] || 0) + 1;
-              return acc;
-            }, {}) || {}
+            totalItems: s.items?.length || 0,
+            completedItems: s.items?.filter((item: any) => item.status === 'green').length || 0,
+            inProgressItems: s.items?.filter((item: any) => item.status === 'amber').length || 0,
+            overdueItems: s.items?.filter((item: any) => item.status === 'red').length || 0,
+            achievements: s.items?.filter((item: any) => item.status === 'green').map((item: any) => item.content || item.title) || [],
+            challenges: s.items?.filter((item: any) => item.status === 'red' || item.status === 'amber').map((item: any) => item.content || item.title) || []
           }))
         })),
-        analytics: analyticsData
+        analyticsInsights: processedAnalytics,
+        keyMetrics: extractKeyMetrics(analyticsData, meetings)
       };
 
-      const systemPrompt = `You are a care agency report generator. Generate a comprehensive quarterly report based on the provided management meeting data and analytics.
+      const systemPrompt = `You are an expert care agency analyst writing a professional quarterly report. Your task is to generate a comprehensive, detailed quarterly report that reads like a professional business document - NOT a markdown document.
 
-IMPORTANT: Only include sections where you have relevant data. If no relevant information is found for a section, omit it entirely.
+CRITICAL FORMATTING REQUIREMENTS:
+- Write in flowing, natural language prose with complete sentences and paragraphs
+- Each section must contain a minimum of 3-4 substantial paragraphs (100-150 words each)
+- Use professional business language suitable for board presentations and regulatory reviews
+- DO NOT use markdown formatting (no #, ##, *, -, etc.)
+- DO NOT use bullet points or lists - write in paragraph format only
+- Include specific numbers, percentages, and metrics throughout your analysis
+- Provide detailed interpretations and insights, not just data summaries
 
-Structure your report exactly as follows:
+CONTENT REQUIREMENTS:
+- Each section should demonstrate deep analysis of trends, patterns, and implications
+- Include comparative analysis (month-to-month, quarter-to-quarter where possible)
+- Provide specific examples and case studies from the meeting data
+- Draw connections between different data points and metrics
+- Offer strategic insights and forward-looking observations
 
-# Care Agency Quarterly Report - ${quarter} ${year}
+REPORT STRUCTURE (only include sections with relevant data):
 
-## 1. Successes
-[Only include if you find positive achievements, improvements, or good outcomes]
+Care Agency Quarterly Report - ${quarter} ${year}
 
-## 2. Lessons Learned  
-[Only include if you find challenges, incidents, or areas for improvement mentioned]
+1. Executive Summary
+Write a comprehensive 200-300 word executive summary that captures the quarter's key achievements, challenges, and strategic outlook.
 
-## 3. Capacity Planning
-[Only include if you have staffing/capacity data]
+2. Operational Successes
+Analyze positive outcomes, achievements, and improvements. Include detailed discussion of performance metrics, successful initiatives, compliance achievements, and operational excellence examples.
 
-## 4. Staffing
-[Only include if you have staff-related data like training, supervision, etc.]
+3. Learning Opportunities and Challenges
+Examine areas for improvement, incidents, challenges faced, and lessons learned. Provide detailed analysis of root causes and impacts on operations.
 
-## 5. Care Planning & Delivery
-[Only include if you have care plan or service delivery information]
+4. Workforce and Capacity Analysis
+Detailed analysis of staffing levels, recruitment, retention, training compliance, supervision quality, and capacity planning initiatives.
 
-## 6. Safety
-[Only include if you have incident, safeguarding, or safety-related data]
+5. Care Quality and Service Delivery
+Comprehensive review of care planning effectiveness, service quality metrics, care plan compliance, risk management, and client outcomes.
 
-## 7. Digital & Data Security
-[Only include if you have information governance or digital security information]
+6. Health, Safety and Risk Management
+Thorough analysis of incident patterns, safety performance, risk mitigation strategies, safeguarding effectiveness, and regulatory compliance.
 
-## 8. Continuous Improvement
-[Only include if you have improvement initiatives or quality measures]
+7. Continuous Improvement and Innovation
+Detailed discussion of improvement initiatives, quality enhancement programs, feedback integration, and innovation projects.
 
-Use professional, clear language. Be specific with numbers and metrics where available. Focus on insights and trends rather than just listing data.`;
+8. Strategic Outlook and Recommendations
+Forward-looking analysis with strategic recommendations, priority areas for focus, and planned initiatives for the coming quarter.
 
-      const userPrompt = `Generate a quarterly report for ${quarter} ${year} based on this data: ${JSON.stringify(dataContext, null, 2)}`;
+WRITING STYLE:
+- Professional, analytical tone appropriate for senior management and regulatory bodies
+- Use industry-standard terminology and professional care sector language
+- Ensure each paragraph flows logically to the next
+- Include quantitative analysis with qualitative interpretation
+- Demonstrate understanding of care sector challenges and best practices`;
+
+      const userPrompt = `Generate a detailed quarterly report for ${quarter} ${year}. Analyze the following comprehensive dataset and create substantial, insightful content for each relevant section. Focus on trends, patterns, and strategic implications rather than just listing data points.
+
+Meeting Analysis: ${meetings.length} management meetings were held during this quarter, covering ${dataContext.meetingDetails.map(m => m.sectionSummary.length).reduce((a, b) => a + b, 0)} different operational areas.
+
+Data Context: ${JSON.stringify(dataContext, null, 2)}
+
+Remember: Write in natural language prose with detailed paragraphs. No markdown formatting. Each section should provide deep analysis and strategic insights.`;
 
       const response = await generateResponse([
         { role: 'system', content: systemPrompt },
