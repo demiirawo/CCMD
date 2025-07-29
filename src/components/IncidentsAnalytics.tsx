@@ -58,32 +58,8 @@ export const IncidentsAnalytics = ({
   } = useAuth();
   useTheme();
   const [monthlyData, setMonthlyData] = useState(generateInitialData(meetingDate));
-  const [currentViewStart, setCurrentViewStart] = useState(0);
-
-  // Calculate which 4-month period the meeting date falls into
-  const getMeetingDateViewStart = (meetingDate?: Date) => {
-    if (!meetingDate) return 8; // Default to last 4 months if no meeting date
-    
-    const currentDate = new Date();
-    const meetingMonth = meetingDate.getMonth();
-    const meetingYear = meetingDate.getFullYear();
-    const currentMonth = currentDate.getMonth();
-    const currentYear = currentDate.getFullYear();
-    
-    // Calculate how many months back the meeting date is from current date
-    const monthsDiff = (currentYear - meetingYear) * 12 + (currentMonth - meetingMonth);
-    
-    // Each view shows 4 months, so calculate which view the meeting date should be in
-    const viewIndex = Math.floor((11 - monthsDiff) / 4);
-    return Math.max(0, Math.min(8, viewIndex * 4)); // Ensure it's within valid range (0-8)
-  };
-
-  // Set the initial view based on meeting date
-  useEffect(() => {
-    setCurrentViewStart(getMeetingDateViewStart(meetingDate));
-  }, [meetingDate]);
-
-  const visibleData = monthlyData.slice(currentViewStart, currentViewStart + 4);
+  // Show all 12 months in view
+  const visibleData = monthlyData;
   useEffect(() => {
     if (profile?.company_id) {
       loadData();
@@ -183,21 +159,12 @@ export const IncidentsAnalytics = ({
   };
   const handleCellEdit = (monthIndex: number, field: 'incidents' | 'accidents' | 'safeguarding' | 'resolved', value: number) => {
     const newData = [...monthlyData];
-    const actualIndex = currentViewStart + monthIndex;
-    newData[actualIndex] = {
-      ...newData[actualIndex],
+    newData[monthIndex] = {
+      ...newData[monthIndex],
       [field]: value
     };
     setMonthlyData(newData);
     saveData(newData);
-  };
-
-  const handlePrevious = () => {
-    setCurrentViewStart(Math.max(0, currentViewStart - 4));
-  };
-
-  const handleNext = () => {
-    setCurrentViewStart(Math.min(8, currentViewStart + 4));
   };
   const EditableCell = ({
     value,
@@ -230,33 +197,15 @@ export const IncidentsAnalytics = ({
   return <div className="space-y-6 mt-4 p-6 border border-border rounded-lg bg-stone-50">
       <div className="flex items-center justify-between">
         <h4 className="text-lg font-semibold text-foreground">Incidents Analytics</h4>
-        <div className="flex items-center gap-2">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={handlePrevious}
-            disabled={currentViewStart === 0}
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <span className="text-sm text-muted-foreground px-2">
-            {visibleData[0]?.month} - {visibleData[visibleData.length - 1]?.month}
-          </span>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={handleNext}
-            disabled={currentViewStart >= 8}
-          >
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-        </div>
+        <span className="text-sm text-muted-foreground px-2">
+          {visibleData[0]?.month} - {visibleData[visibleData.length - 1]?.month}
+        </span>
       </div>
       
       <div className="text-sm text-muted-foreground">Monthly incident tracking and resolution</div>
       
       {/* Data Grid */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {visibleData.map((row, index) => <div key={index} className="p-3 border rounded-lg bg-white">
             <div className="text-sm font-medium mb-2 bg-primary text-primary-foreground px-3 py-2 rounded-t-lg -mx-3 -mt-3">{row.month}</div>
             <div className="space-y-2">
