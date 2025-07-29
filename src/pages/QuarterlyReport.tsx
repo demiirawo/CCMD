@@ -434,10 +434,11 @@ export const QuarterlyReport = () => {
                           );
                         }
                         if (line.trim().startsWith('Care Agency Quarterly Report') || line.trim().includes('Quarterly Report')) {
-                          // Main title
+                          // Main title - replace with actual company name
+                          const titleText = line.trim().replace('Care Agency', companyInfo?.name || 'Care Agency');
                           return (
                             <h1 key={lineIndex} className="text-3xl font-bold text-gray-900 mb-8 text-center border-b-2 border-gray-200 pb-4">
-                              {line.trim()}
+                              {titleText}
                             </h1>
                           );
                         }
