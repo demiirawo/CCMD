@@ -190,8 +190,7 @@ export const Reports = () => {
                         </p>
                       </Link>
                       
-                      {!isCurrent && <Button variant="outline" className="gap-2">
-                          <FileText className="h-4 w-4" />
+                      {!isCurrent && <Button variant="outline">
                           Quarterly Report
                         </Button>}
                     </div>
