@@ -146,11 +146,11 @@ export const ResourcingOverview = ({
           
           <div className="flex flex-col items-center justify-center space-y-4">
             <div className="text-center">
-              <Label htmlFor="required-staff" className="text-sm font-medium">Target Staff:</Label>
+              
             </div>
             <Input id="required-staff" type="number" value={data.requiredStaffingLevel} onChange={e => handleInputChange('requiredStaffingLevel', e.target.value)} onFocus={e => e.target.select()} className="w-24 h-12 text-center text-lg font-semibold [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" min="0" />
             <div className="text-xs text-muted-foreground text-center">
-              Target staffing level
+              Required for full capacity
             </div>
           </div>
         </Card>
