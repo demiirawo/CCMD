@@ -200,25 +200,29 @@ export const Reports = () => {
                       <CardContent className="pt-6 bg-primary/5">
                         <div className="space-y-3">
                           {quarterMeetings.map(meeting => <div key={meeting.id} className="rounded-lg p-4 border bg-white">
-                              <div className="flex items-start justify-between">
-                                <div className="flex-1">
-                                  <h4 className="font-medium text-gray-900 mb-1">
-                                    {meeting.title}
-                                  </h4>
-                                  <div className="flex items-center gap-4 text-sm text-gray-600 mb-2">
-                                    <div className="flex items-center gap-1">
-                                      <CalendarDays className="h-4 w-4" />
-                                      {formatDate(meeting.date)}
-                                    </div>
-                                    <div className="flex items-center gap-1">
-                                      <Users className="h-4 w-4" />
-                                      {meeting.attendees.length} attendee{meeting.attendees.length !== 1 ? 's' : ''}
+                              <div className="space-y-3">
+                                <div className="flex items-start justify-between">
+                                  <div className="flex-1">
+                                    <h4 className="font-medium text-gray-900 mb-1">
+                                      {meeting.title}
+                                    </h4>
+                                    <div className="flex items-center gap-4 text-sm text-gray-600 mb-2">
+                                      <div className="flex items-center gap-1">
+                                        <CalendarDays className="h-4 w-4" />
+                                        {formatDate(meeting.date)}
+                                      </div>
+                                      <div className="flex items-center gap-1">
+                                        <Users className="h-4 w-4" />
+                                        {meeting.attendees.length} attendee{meeting.attendees.length !== 1 ? 's' : ''}
+                                      </div>
                                     </div>
                                   </div>
-                                  {meeting.purpose && <p className="text-sm text-gray-700">{meeting.purpose}</p>}
+                                  <div className="ml-4 flex items-center gap-2">
+                                    <MeetingStatusSummary sections={meeting.sections} />
+                                  </div>
                                 </div>
-                                <div className="ml-4 flex items-center gap-2">
-                                  <MeetingStatusSummary sections={meeting.sections} />
+                                {meeting.purpose && <p className="text-sm text-gray-700 w-full">{meeting.purpose}</p>}
+                                <div className="flex items-center gap-2">
                                   
                                   {/* View Details Dialog */}
                                   <Dialog>
