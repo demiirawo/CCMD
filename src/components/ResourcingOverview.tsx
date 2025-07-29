@@ -117,7 +117,7 @@ export const ResourcingOverview = ({
 
     const handleStartEdit = () => {
       setEditing(true);
-      setEditValue(value.toString());
+      setEditValue('');
     };
 
     const handleSave = () => {
