@@ -232,7 +232,7 @@ export const Reports = () => {
                                         View
                                       </Button>
                                     </DialogTrigger>
-                                    <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto bg-primary">
+                                    <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto bg-primary/10">
                                       <DialogHeader>
                                         <DialogTitle className="text-xl">{meeting.title}</DialogTitle>
                                       </DialogHeader>
