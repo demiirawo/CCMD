@@ -322,7 +322,7 @@ export const CapacityAnalytics = ({ onMonthlyStaffDataChange, meetingDate, meeti
       {latestEntry && (
         <Card className="p-4 bg-accent/50">
           <div className="text-sm font-medium text-foreground mb-2">
-            Latest Entry ({new Date(latestEntry.timestamp).toLocaleDateString()})
+            Latest Entry ({meetingDate ? meetingDate.toLocaleDateString() : new Date(latestEntry.timestamp).toLocaleDateString()})
           </div>
           <div className="grid grid-cols-4 gap-4 text-sm">
             <div>
