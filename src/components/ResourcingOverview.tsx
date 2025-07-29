@@ -137,12 +137,7 @@ export const ResourcingOverview = ({
               <Label htmlFor="active" className="text-sm font-medium">Passed Probation:</Label>
               <Input id="active" type="number" value={data.active === 0 ? '' : data.active} onChange={e => handleInputChange('active', e.target.value)} onFocus={e => e.target.select()} className="w-20 h-8 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" min="0" />
             </div>
-            <div className="border-t pt-2">
-              <div className="flex items-center justify-between font-medium">
-                <span>Total Current:</span>
-                <span className="text-primary">{totalCurrentStaff}</span>
-              </div>
-            </div>
+            
           </div>
         </Card>
 
