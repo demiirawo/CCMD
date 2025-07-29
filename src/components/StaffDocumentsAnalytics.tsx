@@ -173,15 +173,15 @@ export const StaffDocumentsAnalytics = ({
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <Label htmlFor="onboarding-compliant" className="text-sm font-medium">Onboarding:</Label>
-              <Input id="onboarding-compliant" type="number" value={complianceData.onboardingCompliant} onChange={e => handleComplianceChange('onboardingCompliant', parseInt(e.target.value) || 0)} className="w-20 h-8 text-center" min="0" max={staffData.onboarding} />
+              <Input id="onboarding-compliant" type="number" value={complianceData.onboardingCompliant} onChange={e => handleComplianceChange('onboardingCompliant', parseInt(e.target.value) || 0)} onFocus={e => e.target.select()} className="w-20 h-8 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" min="0" max={staffData.onboarding} />
             </div>
             <div className="flex items-center justify-between">
               <Label htmlFor="probation-compliant" className="text-sm font-medium">On Probation:</Label>
-              <Input id="probation-compliant" type="number" value={complianceData.onProbationCompliant} onChange={e => handleComplianceChange('onProbationCompliant', parseInt(e.target.value) || 0)} className="w-20 h-8 text-center" min="0" max={staffData.onProbation} />
+              <Input id="probation-compliant" type="number" value={complianceData.onProbationCompliant} onChange={e => handleComplianceChange('onProbationCompliant', parseInt(e.target.value) || 0)} onFocus={e => e.target.select()} className="w-20 h-8 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" min="0" max={staffData.onProbation} />
             </div>
             <div className="flex items-center justify-between">
               <Label htmlFor="active-compliant" className="text-sm font-medium">Passed Probation:</Label>
-              <Input id="active-compliant" type="number" value={complianceData.activeCompliant} onChange={e => handleComplianceChange('activeCompliant', parseInt(e.target.value) || 0)} className="w-20 h-8 text-center" min="0" max={staffData.active} />
+              <Input id="active-compliant" type="number" value={complianceData.activeCompliant} onChange={e => handleComplianceChange('activeCompliant', parseInt(e.target.value) || 0)} onFocus={e => e.target.select()} className="w-20 h-8 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" min="0" max={staffData.active} />
             </div>
             
           </div>

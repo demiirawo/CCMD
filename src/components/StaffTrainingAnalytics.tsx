@@ -191,7 +191,8 @@ export const StaffTrainingAnalytics = ({
                 type="number" 
                 value={complianceData.onboardingCompliant} 
                 onChange={e => handleComplianceChange('onboardingCompliant', parseInt(e.target.value) || 0)} 
-                className="w-20 h-8 text-center justify-self-end" 
+                onFocus={e => e.target.select()}
+                className="w-20 h-8 text-center justify-self-end [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" 
                 min="0" 
                 max={staffData.onboarding} 
               />
@@ -203,7 +204,8 @@ export const StaffTrainingAnalytics = ({
                 type="number" 
                 value={complianceData.onProbationCompliant} 
                 onChange={e => handleComplianceChange('onProbationCompliant', parseInt(e.target.value) || 0)} 
-                className="w-20 h-8 text-center justify-self-end" 
+                onFocus={e => e.target.select()}
+                className="w-20 h-8 text-center justify-self-end [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" 
                 min="0" 
                 max={staffData.onProbation} 
               />
@@ -215,7 +217,8 @@ export const StaffTrainingAnalytics = ({
                 type="number" 
                 value={complianceData.activeCompliant} 
                 onChange={e => handleComplianceChange('activeCompliant', parseInt(e.target.value) || 0)} 
-                className="w-20 h-8 text-center justify-self-end" 
+                onFocus={e => e.target.select()}
+                className="w-20 h-8 text-center justify-self-end [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" 
                 min="0" 
                 max={staffData.active} 
               />
