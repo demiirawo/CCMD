@@ -132,6 +132,23 @@ export const QuarterlyReportGenerator: React.FC<QuarterlyReportGeneratorProps> =
     try {
       const analyticsData = await collectAnalyticsData();
       
+      // Get company information for proper naming
+      let companyName = 'Care Agency';
+      if (profile?.company_id) {
+        try {
+          const { data: companyData } = await supabase
+            .from('companies')
+            .select('name')
+            .eq('id', profile.company_id)
+            .single();
+          if (companyData?.name) {
+            companyName = companyData.name;
+          }
+        } catch (error) {
+          console.warn('Could not fetch company name:', error);
+        }
+      }
+      
       // Pre-process analytics data to extract key insights and trends
       const processedAnalytics = processAnalyticsForReport(analyticsData);
       
@@ -170,6 +187,7 @@ CRITICAL FORMATTING REQUIREMENTS:
 - DO NOT use bullet points or lists - write in paragraph format only
 - Include specific numbers, percentages, and metrics throughout your analysis
 - Provide detailed interpretations and insights, not just data summaries
+- Use the actual company name "${companyName}" throughout the report instead of generic terms like "the agency"
 
 CONTENT REQUIREMENTS:
 - Each section should demonstrate deep analysis of trends, patterns, and implications
@@ -180,38 +198,39 @@ CONTENT REQUIREMENTS:
 
 REPORT STRUCTURE (only include sections with relevant data):
 
-Care Agency Quarterly Report - ${quarter} ${year}
+${companyName} Quarterly Report - ${quarter} ${year}
 
 1. Executive Summary
-Write a comprehensive 200-300 word executive summary that captures the quarter's key achievements, challenges, and strategic outlook.
+Write a comprehensive 200-300 word executive summary that captures the quarter's key achievements, challenges, and strategic outlook for ${companyName}.
 
 2. Operational Successes
-Analyze positive outcomes, achievements, and improvements. Include detailed discussion of performance metrics, successful initiatives, compliance achievements, and operational excellence examples.
+Analyze positive outcomes, achievements, and improvements for ${companyName}. Include detailed discussion of performance metrics, successful initiatives, compliance achievements, and operational excellence examples.
 
 3. Learning Opportunities and Challenges
-Examine areas for improvement, incidents, challenges faced, and lessons learned. Provide detailed analysis of root causes and impacts on operations.
+Examine areas for improvement, incidents, challenges faced, and lessons learned by ${companyName}. Provide detailed analysis of root causes and impacts on operations.
 
 4. Workforce and Capacity Analysis
-Detailed analysis of staffing levels, recruitment, retention, training compliance, supervision quality, and capacity planning initiatives.
+Detailed analysis of ${companyName}'s staffing levels, recruitment, retention, training compliance, supervision quality, and capacity planning initiatives.
 
 5. Care Quality and Service Delivery
-Comprehensive review of care planning effectiveness, service quality metrics, care plan compliance, risk management, and client outcomes.
+Comprehensive review of ${companyName}'s care planning effectiveness, service quality metrics, care plan compliance, risk management, and client outcomes.
 
 6. Health, Safety and Risk Management
-Thorough analysis of incident patterns, safety performance, risk mitigation strategies, safeguarding effectiveness, and regulatory compliance.
+Thorough analysis of ${companyName}'s incident patterns, safety performance, risk mitigation strategies, safeguarding effectiveness, and regulatory compliance.
 
 7. Continuous Improvement and Innovation
-Detailed discussion of improvement initiatives, quality enhancement programs, feedback integration, and innovation projects.
+Detailed discussion of ${companyName}'s improvement initiatives, quality enhancement programs, feedback integration, and innovation projects.
 
 8. Strategic Outlook and Recommendations
-Forward-looking analysis with strategic recommendations, priority areas for focus, and planned initiatives for the coming quarter.
+Forward-looking analysis with strategic recommendations for ${companyName}, priority areas for focus, and planned initiatives for the coming quarter.
 
 WRITING STYLE:
 - Professional, analytical tone appropriate for senior management and regulatory bodies
 - Use industry-standard terminology and professional care sector language
 - Ensure each paragraph flows logically to the next
 - Include quantitative analysis with qualitative interpretation
-- Demonstrate understanding of care sector challenges and best practices`;
+- Demonstrate understanding of care sector challenges and best practices
+- Always refer to ${companyName} by name rather than using generic terms`;
 
       const userPrompt = `Generate a detailed quarterly report for ${quarter} ${year}. Analyze the following comprehensive dataset and create substantial, insightful content for each relevant section. Focus on trends, patterns, and strategic implications rather than just listing data points.
 

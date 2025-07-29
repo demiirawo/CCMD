@@ -226,7 +226,7 @@ export const QuarterlyReport = () => {
           spacing: { after: 400 }
         }),
         new Paragraph({
-          text: `Report Generated: ${getCurrentDate()}`,
+          text: `Report Created: ${getCurrentDate()}`,
           alignment: 'center',
           spacing: { after: 800 }
         })
@@ -410,7 +410,7 @@ export const QuarterlyReport = () => {
                   {/* Footer */}
                   <div className="text-center text-gray-600">
                     <p className="text-lg">
-                      Report Generated: {getCurrentDate()}
+                      Report Created: {getCurrentDate()}
                     </p>
                   </div>
                 </div>
