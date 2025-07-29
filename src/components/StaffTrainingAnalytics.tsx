@@ -159,94 +159,66 @@ export const StaffTrainingAnalytics = ({
 
   return (
     <div className="space-y-6 mt-4 p-6 border border-border rounded-lg bg-stone-50">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-4 gap-4">
+        {/* Header Row */}
+        <div className="text-sm font-medium text-gray-600"></div>
+        <div className="text-sm font-medium text-gray-600 text-center">Staff Count</div>
+        <div className="text-sm font-medium text-gray-600 text-center">Compliant</div>
+        <div className="text-sm font-medium text-gray-600 text-center">Compliance %</div>
         
-        {/* Box 1: Staff By Recruitment Stage */}
-        <Card className="p-6">
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <span className="text-sm">Onboarding:</span>
-              <span className="text-lg text-primary text-right">{staffData.onboarding}</span>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <span className="text-sm">On Probation:</span>
-              <span className="text-lg text-primary text-right">{staffData.onProbation}</span>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <span className="text-sm">Passed Probation:</span>
-              <span className="text-lg text-primary text-right">{staffData.active}</span>
-            </div>
-          </div>
-        </Card>
-
-        {/* Box 2: Staff Who Are Compliant */}
-        <Card className="p-6">
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4 items-center">
-              <Label htmlFor="onboarding-compliant" className="text-sm">Onboarding:</Label>
-              <Input 
-                id="onboarding-compliant" 
-                type="number" 
-                value={complianceData.onboardingCompliant} 
-                onChange={e => handleComplianceChange('onboardingCompliant', parseInt(e.target.value) || 0)} 
-                onFocus={e => e.target.select()}
-                className="w-20 h-8 text-center justify-self-end [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" 
-                min="0" 
-                max={staffData.onboarding} 
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4 items-center">
-              <Label htmlFor="probation-compliant" className="text-sm">On Probation:</Label>
-              <Input 
-                id="probation-compliant" 
-                type="number" 
-                value={complianceData.onProbationCompliant} 
-                onChange={e => handleComplianceChange('onProbationCompliant', parseInt(e.target.value) || 0)} 
-                onFocus={e => e.target.select()}
-                className="w-20 h-8 text-center justify-self-end [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" 
-                min="0" 
-                max={staffData.onProbation} 
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4 items-center">
-              <Label htmlFor="active-compliant" className="text-sm">Passed Probation:</Label>
-              <Input 
-                id="active-compliant" 
-                type="number" 
-                value={complianceData.activeCompliant} 
-                onChange={e => handleComplianceChange('activeCompliant', parseInt(e.target.value) || 0)} 
-                onFocus={e => e.target.select()}
-                className="w-20 h-8 text-center justify-self-end [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" 
-                min="0" 
-                max={staffData.active} 
-              />
-            </div>
-          </div>
-        </Card>
-
-        {/* Box 3: Compliance % By Stage */}
-        <Card className="p-6">
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <span className="text-sm">Onboarding:</span>
-              <span className="text-lg text-blue-600 text-right">
-                {getCompliancePercentage(complianceData.onboardingCompliant, staffData.onboarding)}%
-              </span>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <span className="text-sm">On Probation:</span>
-              <span className="text-lg text-yellow-600 text-right">
-                {getCompliancePercentage(complianceData.onProbationCompliant, staffData.onProbation)}%
-              </span>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <span className="text-sm">Passed Probation:</span>
-              <span className="text-lg text-green-600 text-right">
-                {getCompliancePercentage(complianceData.activeCompliant, staffData.active)}%
-              </span>
-            </div>
-          </div>
-        </Card>
+        {/* Onboarding Row */}
+        <div className="text-sm">Onboarding:</div>
+        <div className="text-lg text-primary text-center">{staffData.onboarding}</div>
+        <div className="flex justify-center">
+          <Input 
+            type="number" 
+            value={complianceData.onboardingCompliant} 
+            onChange={e => handleComplianceChange('onboardingCompliant', parseInt(e.target.value) || 0)} 
+            onFocus={e => e.target.select()}
+            className="w-16 h-8 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" 
+            min="0" 
+            max={staffData.onboarding} 
+          />
+        </div>
+        <div className="text-lg text-blue-600 text-center">
+          {getCompliancePercentage(complianceData.onboardingCompliant, staffData.onboarding)}%
+        </div>
+        
+        {/* On Probation Row */}
+        <div className="text-sm">On Probation:</div>
+        <div className="text-lg text-primary text-center">{staffData.onProbation}</div>
+        <div className="flex justify-center">
+          <Input 
+            type="number" 
+            value={complianceData.onProbationCompliant} 
+            onChange={e => handleComplianceChange('onProbationCompliant', parseInt(e.target.value) || 0)} 
+            onFocus={e => e.target.select()}
+            className="w-16 h-8 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" 
+            min="0" 
+            max={staffData.onProbation} 
+          />
+        </div>
+        <div className="text-lg text-yellow-600 text-center">
+          {getCompliancePercentage(complianceData.onProbationCompliant, staffData.onProbation)}%
+        </div>
+        
+        {/* Passed Probation Row */}
+        <div className="text-sm">Passed Probation:</div>
+        <div className="text-lg text-primary text-center">{staffData.active}</div>
+        <div className="flex justify-center">
+          <Input 
+            type="number" 
+            value={complianceData.activeCompliant} 
+            onChange={e => handleComplianceChange('activeCompliant', parseInt(e.target.value) || 0)} 
+            onFocus={e => e.target.select()}
+            className="w-16 h-8 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" 
+            min="0" 
+            max={staffData.active} 
+          />
+        </div>
+        <div className="text-lg text-green-600 text-center">
+          {getCompliancePercentage(complianceData.activeCompliant, staffData.active)}%
+        </div>
       </div>
     </div>
   );
