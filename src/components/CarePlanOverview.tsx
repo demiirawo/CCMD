@@ -23,8 +23,8 @@ export const CarePlanOverview = ({
     overdue: 0
   });
 
-  const [focusedField, setFocusedField] = useState<string | null>(null);
-  const [inputValues, setInputValues] = useState<Record<string, string>>({});
+  // Store display values separately from data values
+  const [displayValues, setDisplayValues] = useState<Record<string, string>>({});
   const totalServiceUsers = data.highRisk + data.mediumRisk + data.lowRisk + data.naRisk;
   const compliancePercentage = totalServiceUsers > 0 ? Math.round((totalServiceUsers - data.overdue) / totalServiceUsers * 100) : 100;
   useEffect(() => {
@@ -44,7 +44,16 @@ export const CarePlanOverview = ({
         return;
       }
       if (savedData?.data_content) {
-        setData(savedData.data_content as typeof data);
+        const loadedData = savedData.data_content as typeof data;
+        setData(loadedData);
+        // Initialize display values with loaded data (show numbers, but allow empty fields)
+        setDisplayValues({
+          highRisk: loadedData.highRisk === 0 ? '' : loadedData.highRisk.toString(),
+          mediumRisk: loadedData.mediumRisk === 0 ? '' : loadedData.mediumRisk.toString(),
+          lowRisk: loadedData.lowRisk === 0 ? '' : loadedData.lowRisk.toString(),
+          naRisk: loadedData.naRisk === 0 ? '' : loadedData.naRisk.toString(),
+          overdue: loadedData.overdue === 0 ? '' : loadedData.overdue.toString(),
+        });
       } else {
         // Try to load from localStorage backup
         const backupKey = `care_plan_overview_backup_${profile.company_id}`;
@@ -53,6 +62,14 @@ export const CarePlanOverview = ({
           try {
             const backup = JSON.parse(backupData);
             setData(backup);
+            // Initialize display values with backup data
+            setDisplayValues({
+              highRisk: backup.highRisk === 0 ? '' : backup.highRisk.toString(),
+              mediumRisk: backup.mediumRisk === 0 ? '' : backup.mediumRisk.toString(),
+              lowRisk: backup.lowRisk === 0 ? '' : backup.lowRisk.toString(),
+              naRisk: backup.naRisk === 0 ? '' : backup.naRisk.toString(),
+              overdue: backup.overdue === 0 ? '' : backup.overdue.toString(),
+            });
           } catch (error) {
             console.error('Error loading backup data:', error);
           }
@@ -103,7 +120,10 @@ export const CarePlanOverview = ({
     }
   };
   const handleInputChange = (field: keyof typeof data, value: string) => {
-    setInputValues(prev => ({ ...prev, [field]: value }));
+    // Update display value immediately
+    setDisplayValues(prev => ({ ...prev, [field]: value }));
+    
+    // Convert to number for data storage (empty string becomes 0)
     const numValue = value === '' ? 0 : parseInt(value) || 0;
     const newData = {
       ...data,
@@ -113,24 +133,8 @@ export const CarePlanOverview = ({
     saveData(newData);
   };
 
-  const handleInputFocus = (field: keyof typeof data) => {
-    setFocusedField(field);
-    setInputValues(prev => ({ ...prev, [field]: '' }));
-  };
-
-  const handleInputBlur = (field: keyof typeof data) => {
-    setFocusedField(null);
-    // If input is empty, show the actual value
-    if (inputValues[field] === '') {
-      setInputValues(prev => ({ ...prev, [field]: data[field].toString() }));
-    }
-  };
-
-  const getInputValue = (field: keyof typeof data) => {
-    if (focusedField === field) {
-      return inputValues[field] || '';
-    }
-    return data[field].toString();
+  const getDisplayValue = (field: keyof typeof data) => {
+    return displayValues[field] ?? (data[field] === 0 ? '' : data[field].toString());
   };
   const getComplianceColor = () => {
     if (compliancePercentage === 100) return "text-blue-600"; // Outstanding: 100%
@@ -148,20 +152,20 @@ export const CarePlanOverview = ({
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <Label htmlFor="high-risk" className="text-sm font-medium">High:</Label>
-              <Input id="high-risk" type="number" value={getInputValue('highRisk')} onChange={e => handleInputChange('highRisk', e.target.value)} onFocus={() => handleInputFocus('highRisk')} onBlur={() => handleInputBlur('highRisk')} min="0" className="w-20 h-8 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none bg-stone-50" />
+              <Input id="high-risk" type="number" value={getDisplayValue('highRisk')} onChange={e => handleInputChange('highRisk', e.target.value)} min="0" className="w-20 h-8 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none bg-stone-50" />
             </div>
             
             <div className="flex items-center justify-between">
               <Label htmlFor="medium-risk" className="text-sm font-medium">Medium:</Label>
-              <Input id="medium-risk" type="number" value={getInputValue('mediumRisk')} onChange={e => handleInputChange('mediumRisk', e.target.value)} onFocus={() => handleInputFocus('mediumRisk')} onBlur={() => handleInputBlur('mediumRisk')} min="0" className="w-20 h-8 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none bg-stone-50" />
+              <Input id="medium-risk" type="number" value={getDisplayValue('mediumRisk')} onChange={e => handleInputChange('mediumRisk', e.target.value)} min="0" className="w-20 h-8 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none bg-stone-50" />
             </div>
             <div className="flex items-center justify-between">
               <Label htmlFor="low-risk" className="text-sm font-medium">Low:</Label>
-              <Input id="low-risk" type="number" value={getInputValue('lowRisk')} onChange={e => handleInputChange('lowRisk', e.target.value)} onFocus={() => handleInputFocus('lowRisk')} onBlur={() => handleInputBlur('lowRisk')} min="0" className="w-20 h-8 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none bg-stone-50" />
+              <Input id="low-risk" type="number" value={getDisplayValue('lowRisk')} onChange={e => handleInputChange('lowRisk', e.target.value)} min="0" className="w-20 h-8 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none bg-stone-50" />
             </div>
             <div className="flex items-center justify-between">
               <Label htmlFor="na-risk" className="text-sm font-medium">N/A:</Label>
-              <Input id="na-risk" type="number" value={getInputValue('naRisk')} onChange={e => handleInputChange('naRisk', e.target.value)} onFocus={() => handleInputFocus('naRisk')} onBlur={() => handleInputBlur('naRisk')} min="0" className="w-20 h-8 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none bg-stone-50" />
+              <Input id="na-risk" type="number" value={getDisplayValue('naRisk')} onChange={e => handleInputChange('naRisk', e.target.value)} min="0" className="w-20 h-8 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none bg-stone-50" />
             </div>
             <div className="border-t pt-2">
               <div className="flex items-center justify-between font-medium">
@@ -179,7 +183,7 @@ export const CarePlanOverview = ({
             <div className="text-center">
               
             </div>
-            <Input id="overdue" type="number" value={getInputValue('overdue')} onChange={e => handleInputChange('overdue', e.target.value)} onFocus={() => handleInputFocus('overdue')} onBlur={() => handleInputBlur('overdue')} min="0" max={totalServiceUsers} className="w-24 h-12 text-center text-lg font-semibold [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none bg-stone-50" />
+            <Input id="overdue" type="number" value={getDisplayValue('overdue')} onChange={e => handleInputChange('overdue', e.target.value)} min="0" max={totalServiceUsers} className="w-24 h-12 text-center text-lg font-semibold [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none bg-stone-50" />
             <div className="text-xs text-muted-foreground text-center">
               Number overdue
             </div>
