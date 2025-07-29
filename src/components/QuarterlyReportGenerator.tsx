@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { FileText, Download, Loader2 } from "lucide-react";
+import { FileText, Download, Loader2, Trash2 } from "lucide-react";
 import { useOpenAI } from "@/hooks/useOpenAI";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -28,6 +28,7 @@ export const QuarterlyReportGenerator: React.FC<QuarterlyReportGeneratorProps> =
   meetings
 }) => {
   const [generatedReport, setGeneratedReport] = useState<string>("");
+  const [hasGeneratedReport, setHasGeneratedReport] = useState<boolean>(false);
   const [isOpen, setIsOpen] = useState(false);
   const { generateResponse, isLoading } = useOpenAI();
   const { profile } = useAuth();
@@ -247,6 +248,7 @@ Remember: Write in natural language prose with detailed paragraphs. No markdown 
 
       if (response) {
         setGeneratedReport(response);
+        setHasGeneratedReport(true);
         setIsOpen(false);
         
         // Navigate to the quarterly report page with the content
@@ -254,8 +256,8 @@ Remember: Write in natural language prose with detailed paragraphs. No markdown 
         navigate(`/quarterly-report?quarter=${quarter}&year=${year}&content=${encodedContent}`);
         
         toast({
-          title: "Report Generated",
-          description: "Your quarterly report has been generated successfully",
+          title: "Report Created",
+          description: "Your quarterly report has been created successfully",
         });
       }
     } catch (error) {
@@ -267,6 +269,37 @@ Remember: Write in natural language prose with detailed paragraphs. No markdown 
       });
     }
   };
+
+  const viewReport = () => {
+    if (generatedReport) {
+      const encodedContent = encodeURIComponent(generatedReport);
+      navigate(`/quarterly-report?quarter=${quarter}&year=${year}&content=${encodedContent}`);
+    }
+  };
+
+  const deleteReport = () => {
+    setGeneratedReport("");
+    setHasGeneratedReport(false);
+    toast({
+      title: "Report Deleted",
+      description: "The quarterly report has been deleted",
+    });
+  };
+
+  // If report has been generated, show view and delete buttons
+  if (hasGeneratedReport && generatedReport) {
+    return (
+      <div className="flex gap-2">
+        <Button variant="outline" className="gap-2" onClick={viewReport}>
+          <FileText className="h-4 w-4" />
+          View Report
+        </Button>
+        <Button variant="outline" size="icon" onClick={deleteReport}>
+          <Trash2 className="h-4 w-4" />
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
