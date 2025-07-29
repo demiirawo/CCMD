@@ -107,14 +107,16 @@ export const ResourcingOverview = ({
     saveData(newData);
   };
   const getCapacityColor = () => {
-    if (capacityPercentage >= 100) return "text-green-600";
-    if (capacityPercentage >= 80) return "text-yellow-600";
-    return "text-red-600";
+    if (capacityPercentage === 100) return "text-blue-600"; // Outstanding: 100%
+    if (capacityPercentage >= 98) return "text-green-600"; // Good: 98-100%
+    if (capacityPercentage >= 90) return "text-amber-600"; // Needs improvement: 90-97%
+    return "text-red-600"; // Inadequate: Below 90%
   };
   const getCapacityStatus = () => {
-    if (capacityPercentage >= 100) return "Fully Staffed";
-    if (capacityPercentage >= 80) return "Nearly Staffed";
-    return "Understaffed";
+    if (capacityPercentage === 100) return "Outstanding";
+    if (capacityPercentage >= 98) return "Good";
+    if (capacityPercentage >= 90) return "Needs Improvement";
+    return "Inadequate";
   };
   return <div className="space-y-6 mt-4 p-6 border border-border rounded-lg bg-stone-50">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

@@ -146,9 +146,10 @@ export const StaffDocumentsAnalytics = ({
   };
 
   const getComplianceColor = (percentage: number) => {
-    if (percentage >= 98) return "text-green-600"; // Green: 98-100%
-    if (percentage >= 89) return "text-amber-600"; // Amber: 89-97%
-    return "text-red-600"; // Red: Below 89%
+    if (percentage === 100) return "text-blue-600"; // Outstanding: 100%
+    if (percentage >= 98) return "text-green-600"; // Good: 98-100%
+    if (percentage >= 90) return "text-amber-600"; // Needs improvement: 90-97%
+    return "text-red-600"; // Inadequate: Below 90%
   };
   return <div className="space-y-6 mt-4 p-6 border border-border rounded-lg bg-stone-50">
       <div className="grid grid-cols-4 gap-4">
