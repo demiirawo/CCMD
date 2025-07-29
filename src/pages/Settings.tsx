@@ -238,10 +238,10 @@ export const Settings = () => {
   }
   return <div className="container mx-auto p-6 space-y-6 bg-white">
       <div className="flex items-center gap-3 mb-6">
-        <Building className="h-8 w-8 text-primary" />
+        
         <div>
-          <h1 className="text-3xl font-bold">Company Settings</h1>
-          <p className="text-muted-foreground">Configure your company's appearance and services</p>
+          
+          
         </div>
       </div>
 
@@ -250,12 +250,10 @@ export const Settings = () => {
         <Card>
           <CardHeader className="bg-stone-50">
             <CardTitle className="flex items-center gap-2">
-              <Palette className="h-5 w-5" />
+              
               Theme Color
             </CardTitle>
-            <CardDescription>
-              Choose a primary color for your company's interface
-            </CardDescription>
+            
           </CardHeader>
           <CardContent className="space-y-4 bg-stone-50">
             <div className="grid grid-cols-2 gap-3">
@@ -275,12 +273,10 @@ export const Settings = () => {
         <Card className="bg-stone-50">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Building className="h-5 w-5" />
+              
               Services Provided
             </CardTitle>
-            <CardDescription>
-              Select the services your company provides
-            </CardDescription>
+            
           </CardHeader>
           <CardContent>
             <div className="space-y-3 max-h-80 overflow-y-auto">
@@ -296,15 +292,7 @@ export const Settings = () => {
 
         {/* Logo Upload */}
         <Card className="bg-stone-50">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Image className="h-5 w-5" />
-              Company Logo
-            </CardTitle>
-            <CardDescription>
-              Upload your company logo (max 5MB, image files only)
-            </CardDescription>
-          </CardHeader>
+          
           <CardContent className="space-y-4">
             {/* Current Logo Display */}
             {selectedLogo && <div className="relative inline-block">
@@ -333,10 +321,8 @@ export const Settings = () => {
         <CardContent className="pt-6 bg-stone-50">
           <div className="flex justify-between items-center">
             <div>
-              <p className="font-medium">Save Settings</p>
-              <p className="text-sm text-muted-foreground">
-                Apply your changes to {currentCompany.name}
-              </p>
+              
+              
             </div>
             <Button onClick={handleSave} disabled={loading}>
               {loading ? "Saving..." : "Save Changes"}
