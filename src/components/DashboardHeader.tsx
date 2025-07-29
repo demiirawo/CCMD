@@ -79,7 +79,7 @@ export const DashboardHeader = ({
             <h3 className="text-sm font-medium text-muted-foreground mb-2">Meeting Date & Time</h3>
             <MeetingDateTimePicker value={date} onChange={value => onDataChange?.("date", value)} />
           </div>
-          <EditableField field="purpose" value={purpose} label="Meeting Purpose" containerClass="min-h-24" textClass="" />
+          <EditableField field="purpose" value={purpose} label="Meeting Summary" containerClass="min-h-24" textClass="" />
         </div>
       </div>
     </div>;
