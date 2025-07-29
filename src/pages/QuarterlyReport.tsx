@@ -258,8 +258,7 @@ export const QuarterlyReport = () => {
       });
 
       // Generate and download the document
-      const buffer = await Packer.toBuffer(doc);
-      const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
+      const blob = await Packer.toBlob(doc);
       const url = URL.createObjectURL(blob);
       
       const link = document.createElement('a');
