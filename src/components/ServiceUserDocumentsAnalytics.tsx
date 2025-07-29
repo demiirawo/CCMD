@@ -110,6 +110,44 @@ export const ServiceUserDocumentsAnalytics = ({
     }
   };
 
+  const EditableCell = ({ value, onChange }: { value: number; onChange: (value: number) => void }) => {
+    const [editing, setEditing] = useState(false);
+    const [editValue, setEditValue] = useState('');
+
+    const handleStartEdit = () => {
+      setEditing(true);
+      setEditValue('');
+    };
+
+    const handleSave = () => {
+      const numValue = parseInt(editValue) || 0;
+      onChange(numValue);
+      setEditing(false);
+    };
+
+    if (editing) {
+      return (
+        <Input
+          value={editValue}
+          onChange={(e) => setEditValue(e.target.value)}
+          onBlur={handleSave}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') handleSave();
+            if (e.key === 'Escape') setEditing(false);
+          }}
+          className="w-16 h-8 text-sm"
+          autoFocus
+        />
+      );
+    }
+
+    return (
+      <span className="cursor-pointer hover:bg-accent/50 p-1 rounded" onClick={handleStartEdit}>
+        {value}
+      </span>
+    );
+  };
+
   const handleInputChange = (field: keyof typeof data, value: number) => {
     const newData = { ...data, [field]: value };
     setData(newData);
@@ -131,12 +169,9 @@ export const ServiceUserDocumentsAnalytics = ({
             <div className="text-center">
               <h3 className="text-lg font-semibold mb-2">Total Service Users</h3>
             </div>
-            <Input
-              type="number"
-              value={data.totalServiceUsers}
-              onChange={(e) => handleInputChange('totalServiceUsers', parseInt(e.target.value) || 0)}
-              className="w-24 h-12 text-center text-lg font-semibold"
-              min="0"
+            <EditableCell 
+              value={data.totalServiceUsers} 
+              onChange={(value) => handleInputChange('totalServiceUsers', value)} 
             />
           </div>
         </Card>
@@ -147,13 +182,9 @@ export const ServiceUserDocumentsAnalytics = ({
             <div className="text-center">
               <h3 className="text-lg font-semibold mb-2">Missing Documents</h3>
             </div>
-            <Input
-              type="number"
-              value={data.missingDocuments}
-              onChange={(e) => handleInputChange('missingDocuments', parseInt(e.target.value) || 0)}
-              className="w-24 h-12 text-center text-lg font-semibold"
-              min="0"
-              max={data.totalServiceUsers}
+            <EditableCell 
+              value={data.missingDocuments} 
+              onChange={(value) => handleInputChange('missingDocuments', value)} 
             />
             <div className="text-xs text-muted-foreground text-center">
               Number with missing documents

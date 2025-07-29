@@ -155,9 +155,46 @@ export const StaffTrainingAnalytics = ({
     }
   };
 
-  const handleComplianceChange = (field: keyof typeof complianceData, value: string) => {
-    const numValue = value === '' ? 0 : parseInt(value) || 0;
-    const newData = { ...complianceData, [field]: numValue };
+  const EditableCell = ({ value, onChange }: { value: number; onChange: (value: number) => void }) => {
+    const [editing, setEditing] = useState(false);
+    const [editValue, setEditValue] = useState('');
+
+    const handleStartEdit = () => {
+      setEditing(true);
+      setEditValue('');
+    };
+
+    const handleSave = () => {
+      const numValue = parseInt(editValue) || 0;
+      onChange(numValue);
+      setEditing(false);
+    };
+
+    if (editing) {
+      return (
+        <Input
+          value={editValue}
+          onChange={(e) => setEditValue(e.target.value)}
+          onBlur={handleSave}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') handleSave();
+            if (e.key === 'Escape') setEditing(false);
+          }}
+          className="w-16 h-8 text-sm"
+          autoFocus
+        />
+      );
+    }
+
+    return (
+      <span className="cursor-pointer hover:bg-accent/50 p-1 rounded" onClick={handleStartEdit}>
+        {value}
+      </span>
+    );
+  };
+
+  const handleComplianceChange = (field: keyof typeof complianceData, value: number) => {
+    const newData = { ...complianceData, [field]: value };
     setComplianceData(newData);
     saveComplianceData(newData);
   };
@@ -186,14 +223,9 @@ export const StaffTrainingAnalytics = ({
         <div className="text-sm">Onboarding:</div>
         <div className="text-lg text-primary text-center">{staffData.onboarding}</div>
         <div className="flex justify-center">
-          <Input 
-            type="number" 
+          <EditableCell 
             value={complianceData.onboardingCompliant} 
-            onChange={e => handleComplianceChange('onboardingCompliant', e.target.value)}
-            onFocus={e => e.target.select()}
-            className="w-16 h-8 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-            min="0" 
-            max={staffData.onboarding} 
+            onChange={(value) => handleComplianceChange('onboardingCompliant', value)}
           />
         </div>
         <div className={`text-lg text-center ${getComplianceColor(getCompliancePercentage(complianceData.onboardingCompliant, staffData.onboarding))}`}>
@@ -204,14 +236,9 @@ export const StaffTrainingAnalytics = ({
         <div className="text-sm">On Probation:</div>
         <div className="text-lg text-primary text-center">{staffData.onProbation}</div>
         <div className="flex justify-center">
-          <Input 
-            type="number" 
+          <EditableCell 
             value={complianceData.onProbationCompliant} 
-            onChange={e => handleComplianceChange('onProbationCompliant', e.target.value)}
-            onFocus={e => e.target.select()}
-            className="w-16 h-8 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-            min="0" 
-            max={staffData.onProbation} 
+            onChange={(value) => handleComplianceChange('onProbationCompliant', value)}
           />
         </div>
         <div className={`text-lg text-center ${getComplianceColor(getCompliancePercentage(complianceData.onProbationCompliant, staffData.onProbation))}`}>
@@ -222,14 +249,9 @@ export const StaffTrainingAnalytics = ({
         <div className="text-sm">Passed Probation:</div>
         <div className="text-lg text-primary text-center">{staffData.active}</div>
         <div className="flex justify-center">
-          <Input 
-            type="number" 
+          <EditableCell 
             value={complianceData.activeCompliant} 
-            onChange={e => handleComplianceChange('activeCompliant', e.target.value)}
-            onFocus={e => e.target.select()}
-            className="w-16 h-8 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-            min="0" 
-            max={staffData.active} 
+            onChange={(value) => handleComplianceChange('activeCompliant', value)}
           />
         </div>
         <div className={`text-lg text-center ${getComplianceColor(getCompliancePercentage(complianceData.activeCompliant, staffData.active))}`}>

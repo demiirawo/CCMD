@@ -4,17 +4,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+
 interface StaffDocumentsAnalyticsProps {
   meetingDate?: Date;
   meetingId?: string;
 }
+
 export const StaffDocumentsAnalytics = ({
   meetingDate,
   meetingId
 }: StaffDocumentsAnalyticsProps) => {
-  const {
-    profile
-  } = useAuth();
+  const { profile } = useAuth();
 
   // Staff recruitment stage data (fetched from resourcing overview)
   const [staffData, setStaffData] = useState({
@@ -29,14 +29,17 @@ export const StaffDocumentsAnalytics = ({
     onProbationCompliant: 0,
     activeCompliant: 0
   });
+
   useEffect(() => {
     if (profile?.company_id) {
       loadStaffData();
       loadComplianceData();
     }
   }, [profile?.company_id, meetingId]);
+
   const loadStaffData = async () => {
     if (!profile?.company_id) return;
+
     try {
       // Load data for the specific meeting if meetingId is provided, otherwise load company-wide data
       let query = supabase
@@ -52,10 +55,12 @@ export const StaffDocumentsAnalytics = ({
       }
       
       const { data: savedData, error } = await query.maybeSingle();
+
       if (error && error.code !== 'PGRST116') {
         console.error('Error loading staff data:', error);
         return;
       }
+
       if (savedData?.data_content) {
         const resourcingData = savedData.data_content as any;
         setStaffData({
@@ -68,17 +73,18 @@ export const StaffDocumentsAnalytics = ({
       console.error('Error loading staff data:', error);
     }
   };
+
   const loadComplianceData = async () => {
     if (!profile?.company_id) return;
+
     try {
-      const {
-        data,
-        error
-      } = await supabase.from('staff_documents_analytics').select('*').eq('company_id', profile.company_id).maybeSingle();
+      const { data, error } = await supabase.from('staff_documents_analytics').select('*').eq('company_id', profile.company_id).maybeSingle();
+
       if (error && error.code !== 'PGRST116') {
         console.error('Error loading compliance data:', error);
         return;
       }
+
       if (data) {
         const savedData = data.documents_data as any || {};
         setComplianceData({
@@ -114,18 +120,19 @@ export const StaffDocumentsAnalytics = ({
       }
     }
   };
+
   const saveComplianceData = async (newData: typeof complianceData) => {
     if (!profile?.company_id) return;
+
     try {
-      const {
-        error
-      } = await supabase.from('staff_documents_analytics').upsert({
+      const { error } = await supabase.from('staff_documents_analytics').upsert({
         company_id: profile.company_id,
         documents_data: newData,
         updated_at: new Date().toISOString()
       }, {
         onConflict: 'company_id'
       });
+
       if (error) {
         console.error('Error saving compliance data:', error);
         throw error;
@@ -141,17 +148,54 @@ export const StaffDocumentsAnalytics = ({
       }
     }
   };
-  const handleComplianceChange = (field: keyof typeof complianceData, value: string) => {
-    const numValue = value === '' ? 0 : parseInt(value) || 0;
+
+  const EditableCell = ({ value, onChange }: { value: number; onChange: (value: number) => void }) => {
+    const [editing, setEditing] = useState(false);
+    const [editValue, setEditValue] = useState('');
+
+    const handleStartEdit = () => {
+      setEditing(true);
+      setEditValue('');
+    };
+
+    const handleSave = () => {
+      const numValue = parseInt(editValue) || 0;
+      onChange(numValue);
+      setEditing(false);
+    };
+
+    if (editing) {
+      return (
+        <Input
+          value={editValue}
+          onChange={(e) => setEditValue(e.target.value)}
+          onBlur={handleSave}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') handleSave();
+            if (e.key === 'Escape') setEditing(false);
+          }}
+          className="w-16 h-8 text-sm"
+          autoFocus
+        />
+      );
+    }
+
+    return (
+      <span className="cursor-pointer hover:bg-accent/50 p-1 rounded" onClick={handleStartEdit}>
+        {value}
+      </span>
+    );
+  };
+
+  const handleComplianceChange = (field: keyof typeof complianceData, value: number) => {
     const newData = {
       ...complianceData,
-      [field]: numValue
+      [field]: value
     };
     setComplianceData(newData);
     saveComplianceData(newData);
   };
-  const totalCompliant = complianceData.onboardingCompliant + complianceData.onProbationCompliant + complianceData.activeCompliant;
-  const totalStaff = staffData.onboarding + staffData.onProbation + staffData.active;
+
   const getCompliancePercentage = (compliant: number, total: number) => {
     return total > 0 ? Math.round((compliant / total) * 100) : 0;
   };
@@ -162,7 +206,9 @@ export const StaffDocumentsAnalytics = ({
     if (percentage >= 90) return "text-amber-600"; // Needs improvement: 90-97%
     return "text-red-600"; // Inadequate: Below 90%
   };
-  return <div className="space-y-6 mt-4 p-6 border border-border rounded-lg bg-stone-50">
+
+  return (
+    <div className="space-y-6 mt-4 p-6 border border-border rounded-lg bg-stone-50">
       <div className="grid grid-cols-4 gap-4">
         {/* Header Row */}
         <div className="text-sm font-medium text-gray-600"></div>
@@ -174,14 +220,9 @@ export const StaffDocumentsAnalytics = ({
         <div className="text-sm">Onboarding:</div>
         <div className="text-lg text-primary text-center">{staffData.onboarding}</div>
         <div className="flex justify-center">
-          <Input 
-            type="number" 
+          <EditableCell 
             value={complianceData.onboardingCompliant} 
-            onChange={e => handleComplianceChange('onboardingCompliant', e.target.value)}
-            onFocus={e => e.target.select()}
-            className="w-16 h-8 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-            min="0" 
-            max={staffData.onboarding} 
+            onChange={(value) => handleComplianceChange('onboardingCompliant', value)}
           />
         </div>
         <div className={`text-lg text-center ${getComplianceColor(getCompliancePercentage(complianceData.onboardingCompliant, staffData.onboarding))}`}>
@@ -192,14 +233,9 @@ export const StaffDocumentsAnalytics = ({
         <div className="text-sm">On Probation:</div>
         <div className="text-lg text-primary text-center">{staffData.onProbation}</div>
         <div className="flex justify-center">
-          <Input 
-            type="number" 
+          <EditableCell 
             value={complianceData.onProbationCompliant} 
-            onChange={e => handleComplianceChange('onProbationCompliant', e.target.value)}
-            onFocus={e => e.target.select()}
-            className="w-16 h-8 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-            min="0" 
-            max={staffData.onProbation} 
+            onChange={(value) => handleComplianceChange('onProbationCompliant', value)}
           />
         </div>
         <div className={`text-lg text-center ${getComplianceColor(getCompliancePercentage(complianceData.onProbationCompliant, staffData.onProbation))}`}>
@@ -210,19 +246,15 @@ export const StaffDocumentsAnalytics = ({
         <div className="text-sm">Passed Probation:</div>
         <div className="text-lg text-primary text-center">{staffData.active}</div>
         <div className="flex justify-center">
-          <Input 
-            type="number" 
+          <EditableCell 
             value={complianceData.activeCompliant} 
-            onChange={e => handleComplianceChange('activeCompliant', e.target.value)}
-            onFocus={e => e.target.select()}
-            className="w-16 h-8 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-            min="0" 
-            max={staffData.active} 
+            onChange={(value) => handleComplianceChange('activeCompliant', value)}
           />
         </div>
         <div className={`text-lg text-center ${getComplianceColor(getCompliancePercentage(complianceData.activeCompliant, staffData.active))}`}>
           {getCompliancePercentage(complianceData.activeCompliant, staffData.active)}%
         </div>
       </div>
-    </div>;
+    </div>
+  );
 };
