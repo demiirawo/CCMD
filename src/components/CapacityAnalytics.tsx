@@ -184,6 +184,12 @@ export const CapacityAnalytics = ({ onMonthlyStaffDataChange, meetingDate, meeti
     }
   }, [profile?.company_id, meetingId]);
 
+  // Ensure chart updates when meetingDate changes
+  useEffect(() => {
+    const newChartData = generateChartData(entries, meetingDate);
+    setChartData(newChartData);
+  }, [meetingDate]); // Add this separate effect for meetingDate changes
+
   useEffect(() => {
     const newChartData = generateChartData(entries, meetingDate);
     setChartData(newChartData);
@@ -228,7 +234,21 @@ export const CapacityAnalytics = ({ onMonthlyStaffDataChange, meetingDate, meeti
         setEntries(recentEntries);
         console.log('Successfully loaded resourcing analytics data');
       } else {
-        setEntries([]);
+        // Try to load from localStorage backup if no database data
+        const backupKey = `resourcing_backup_${profile.company_id}`;
+        const backupData = localStorage.getItem(backupKey);
+        if (backupData) {
+          try {
+            const backupEntries = JSON.parse(backupData) as StaffEntry[];
+            setEntries(backupEntries);
+            console.log('Loaded resourcing analytics from localStorage backup');
+          } catch (error) {
+            console.error('Error loading backup data:', error);
+            setEntries([]);
+          }
+        } else {
+          setEntries([]);
+        }
       }
     } catch (error) {
       console.error('Error loading resourcing analytics:', error);
@@ -246,18 +266,30 @@ export const CapacityAnalytics = ({ onMonthlyStaffDataChange, meetingDate, meeti
           company_id: profile.company_id,
           meeting_id: meetingId || null,
           data_type: 'resourcing_analytics',
-          data_content: { entries: newEntries } as any
+          data_content: { entries: newEntries } as any,
+          updated_at: new Date().toISOString()
         }, {
           onConflict: 'company_id,data_type'
         });
 
       if (error) {
         console.error('Error saving resourcing analytics:', error);
+        throw error;
       } else {
         console.log('Successfully saved resourcing analytics data');
+        // Also save to localStorage as backup
+        if (profile?.company_id) {
+          localStorage.setItem(`resourcing_backup_${profile.company_id}`, JSON.stringify(newEntries));
+        }
       }
     } catch (error) {
       console.error('Error saving resourcing analytics:', error);
+      // Save to localStorage as fallback
+      if (profile?.company_id) {
+        localStorage.setItem(`resourcing_backup_${profile.company_id}`, JSON.stringify(newEntries));
+        console.log('Saved to localStorage as fallback');
+      }
+      throw error;
     }
   };
 
