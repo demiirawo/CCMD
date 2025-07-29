@@ -36,6 +36,7 @@ interface ActionsLogProps {
     owner?: string;
   }) => void;
   attendees?: string[];
+  forceOpen?: boolean;
 }
 
 export const ActionsLog = ({
@@ -44,12 +45,16 @@ export const ActionsLog = ({
   onActionDelete,
   onResetActions,
   onActionEdit,
-  attendees = []
+  attendees = [],
+  forceOpen
 }: ActionsLogProps) => {
   const [isExpanded, setIsExpanded] = useState(() => {
     const saved = sessionStorage.getItem('actions_log_expanded');
     return saved !== null ? JSON.parse(saved) : false;
   });
+  
+  // Use forceOpen if provided, otherwise use internal state
+  const isOpen = forceOpen !== undefined ? forceOpen : isExpanded;
   const [editingAction, setEditingAction] = useState<ActionLogEntry | null>(null);
 
   // Group actions by open/closed
@@ -192,9 +197,11 @@ export const ActionsLog = ({
   };
   return <div className="bg-primary/10 rounded-2xl p-6 shadow-lg border border-border/50 -mx-8 px-14">
       <div className="flex items-center justify-between cursor-pointer mb-4" onClick={() => {
-        const newState = !isExpanded;
-        setIsExpanded(newState);
-        sessionStorage.setItem('actions_log_expanded', JSON.stringify(newState));
+        if (forceOpen === undefined) {
+          const newState = !isExpanded;
+          setIsExpanded(newState);
+          sessionStorage.setItem('actions_log_expanded', JSON.stringify(newState));
+        }
       }}>
         <div className="flex items-center gap-2">
           <h3 className="text-xl font-bold text-foreground flex items-center gap-2">
@@ -206,11 +213,11 @@ export const ActionsLog = ({
           </span>
         </div>
         <div className="p-1 rounded-lg hover:bg-accent/50 transition-colors">
-          {isExpanded ? <ChevronDown className="w-5 h-5 text-muted-foreground" /> : <ChevronRight className="w-5 h-5 text-muted-foreground" />}
+          {isOpen ? <ChevronDown className="w-5 h-5 text-muted-foreground" /> : <ChevronRight className="w-5 h-5 text-muted-foreground" />}
         </div>
       </div>
 
-      {isExpanded && <div>
+      {isOpen && <div>
           {actions.length === 0 ? <div className="text-center py-8 text-muted-foreground">
               <p>No actions logged yet.</p>
             </div> : <>

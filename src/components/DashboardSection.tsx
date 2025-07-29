@@ -21,6 +21,7 @@ interface DashboardSectionProps {
   onSubsectionActionDelete?: (actionId: string) => void;
   attendees?: string[];
   defaultOpen?: boolean;
+  forceOpen?: boolean;
   meetingDate?: Date;
   meetingId?: string;
 }
@@ -41,6 +42,7 @@ export const DashboardSection = ({
   onSubsectionActionDelete,
   attendees = [],
   defaultOpen = true,
+  forceOpen,
   meetingDate,
   meetingId
 }: DashboardSectionProps) => {
@@ -49,6 +51,9 @@ export const DashboardSection = ({
     const saved = sessionStorage.getItem(storageKey);
     return saved !== null ? JSON.parse(saved) : defaultOpen;
   });
+  
+  // Use forceOpen if provided, otherwise use internal state
+  const isExpanded = forceOpen !== undefined ? forceOpen : isOpen;
   const [monthlyStaffData, setMonthlyStaffData] = useState<Array<{month: string, currentStaff: number, probationStaff?: number}>>([]);
 
   const statusCounts = items.reduce((acc, item) => {
@@ -198,7 +203,7 @@ export const DashboardSection = ({
           )}
           
           <div className="p-1 rounded-lg hover:bg-accent/50 transition-colors">
-            {isOpen ? 
+            {isExpanded ? 
               <ChevronDown className="w-5 h-5 text-muted-foreground" /> : 
               <ChevronRight className="w-5 h-5 text-muted-foreground" />
             }
@@ -206,7 +211,7 @@ export const DashboardSection = ({
         </div>
       </div>
       
-      {isOpen && (
+      {isExpanded && (
         <div className="space-y-2">
            {items.map((item) => (
             <StatusItem

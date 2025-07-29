@@ -25,6 +25,7 @@ interface KeyDocumentTrackerProps {
   documents?: DocumentData[];
   onDocumentsChange?: (documents: DocumentData[]) => void;
   attendees?: string[];
+  forceOpen?: boolean;
 }
 
 const categories = ["Governance and Compliance", "Care Delivery", "Staffing and HR", "Finance and Payroll", "Health and Safety", "Client Records and Contracts", "Quality Assurance and Audit", "Transportation and Logistics"];
@@ -36,12 +37,16 @@ const numbers = Array.from({
 export const KeyDocumentTracker = ({
   documents = [],
   onDocumentsChange,
-  attendees = []
+  attendees = [],
+  forceOpen
 }: KeyDocumentTrackerProps) => {
   const [isExpanded, setIsExpanded] = useState(() => {
     const saved = sessionStorage.getItem('key_documents_expanded');
     return saved !== null ? JSON.parse(saved) : false;
   });
+  
+  // Use forceOpen if provided, otherwise use internal state
+  const isOpen = forceOpen !== undefined ? forceOpen : isExpanded;
 
   const calculateNextReviewDate = (lastReviewDate: string | null, number: string, period: string): Date | null => {
     if (!lastReviewDate) return null;
@@ -171,10 +176,12 @@ export const KeyDocumentTracker = ({
 
   return <Card className="bg-primary/10 rounded-2xl p-6 shadow-lg border border-border/50 -mx-8 px-14">
       <div className="flex items-center justify-between cursor-pointer mb-6" onClick={() => {
-      const newState = !isExpanded;
-      setIsExpanded(newState);
-      sessionStorage.setItem('key_documents_expanded', JSON.stringify(newState));
-    }}>
+        if (forceOpen === undefined) {
+          const newState = !isExpanded;
+          setIsExpanded(newState);
+          sessionStorage.setItem('key_documents_expanded', JSON.stringify(newState));
+        }
+      }}>
         <div className="flex items-center gap-3">
           
           <h3 className="text-xl font-bold text-foreground">Key Review Dates</h3>
@@ -183,11 +190,11 @@ export const KeyDocumentTracker = ({
           </div>
         </div>
         <div className="p-1 rounded-lg hover:bg-accent/50 transition-colors">
-          {isExpanded ? <ChevronDown className="w-5 h-5 text-muted-foreground" /> : <ChevronRight className="w-5 h-5 text-muted-foreground" />}
+          {isOpen ? <ChevronDown className="w-5 h-5 text-muted-foreground" /> : <ChevronRight className="w-5 h-5 text-muted-foreground" />}
         </div>
       </div>
       
-      {isExpanded && <div className="space-y-6">
+      {isOpen && <div className="space-y-6">
         {groupedDocuments.map(([category, docs]) => <div key={category} className="space-y-3">
             <h4 className="text-sm font-medium text-foreground border-b border-border/20 pb-2">
               {category}

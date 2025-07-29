@@ -1528,6 +1528,7 @@ const Index = () => {
             onResetActions={resetActionsLog}
             onActionEdit={handleActionEdit}
             attendees={getAttendeesList()}
+            forceOpen={allSectionsExpanded}
           />
           
           <KeyDocumentTracker 
@@ -1568,6 +1569,7 @@ const Index = () => {
               }
             }}
             attendees={getAttendeesList()}
+            forceOpen={allSectionsExpanded}
           />
           
           {dashboardData.sections.filter(section => section.id !== "meeting-overview").map(section => {
@@ -1605,11 +1607,11 @@ const Index = () => {
                    onSubsectionActionEdit={handleSubsectionActionEdit}
                    onSubsectionActionComplete={handleSubsectionActionComplete}
                    onSubsectionActionDelete={handleSubsectionActionDelete}
-                  attendees={getAttendeesList()}
-                   meetingDate={meetingDate}
-                   meetingId={currentMeetingId || tempMeetingId}
-                   defaultOpen={allSectionsExpanded}
-                />
+                    attendees={getAttendeesList()}
+                    meetingDate={meetingDate}
+                    meetingId={currentMeetingId || tempMeetingId}
+                    forceOpen={allSectionsExpanded}
+                 />
             );
           })}
         </div>
