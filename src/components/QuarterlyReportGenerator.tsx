@@ -8,7 +8,6 @@ import { useOpenAI } from "@/hooks/useOpenAI";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/components/ui/use-toast";
-import html2canvas from "html2canvas";
 
 interface QuarterlyReportGeneratorProps {
   quarter: string;
@@ -130,55 +129,66 @@ export const QuarterlyReportGenerator: React.FC<QuarterlyReportGeneratorProps> =
     }
   };
 
-  const captureAnalyticsScreenshots = async () => {
-    const screenshots: { [key: string]: { title: string; dataUrl: string; hasData: boolean } } = {};
+  const getAnalyticsDataForReport = async () => {
+    if (!profile?.company_id) return {};
     
-    // Define analytics components to capture with their selectors
-    const analyticsSelectors = [
-      { key: 'staffTraining', selector: '[data-analytics="staff-training"]', title: 'Staff Training Analytics' },
-      { key: 'incidents', selector: '[data-analytics="incidents"]', title: 'Incident Analytics' },
-      { key: 'feedback', selector: '[data-analytics="feedback"]', title: 'Feedback Analytics' },
-      { key: 'carePlan', selector: '[data-analytics="care-plan"]', title: 'Care Plan Analytics' },
-      { key: 'spotCheck', selector: '[data-analytics="spot-check"]', title: 'Spot Check Analytics' },
-      { key: 'supervision', selector: '[data-analytics="supervision"]', title: 'Supervision Analytics' },
-      { key: 'staffDocuments', selector: '[data-analytics="staff-documents"]', title: 'Staff Documents Analytics' },
-      { key: 'serviceUserDocuments', selector: '[data-analytics="service-user-documents"]', title: 'Service User Documents Analytics' }
-    ];
+    try {
+      // Get the latest meeting to determine which analytics to include
+      const latestMeeting = meetings.length > 0 ? meetings[0] : null;
+      const meetingId = latestMeeting?.id;
+      
+      const analyticsData: { [key: string]: any } = {};
+      
+      // Define analytics types to check based on meeting sections
+      const analyticsTypes = [
+        { key: 'staffTraining', title: 'Staff Training Analytics', dataType: 'staff_training_analytics' },
+        { key: 'incidents', title: 'Incident Analytics', dataType: 'incidents_analytics' },
+        { key: 'feedback', title: 'Feedback Analytics', dataType: 'feedback_analytics' },
+        { key: 'spotCheck', title: 'Spot Check Analytics', dataType: 'spot_check_analytics' },
+        { key: 'supervision', title: 'Supervision Analytics', dataType: 'supervision_analytics' },
+        { key: 'staffDocuments', title: 'Staff Documents Analytics', dataType: 'staff_documents_analytics' },
+      ];
 
-    for (const { key, selector, title } of analyticsSelectors) {
-      try {
-        const element = document.querySelector(selector);
-        if (element && element.children.length > 0) {
-          // Check if the analytics component has meaningful content (not empty)
-          const hasContent = element.textContent && element.textContent.trim().length > 100;
-          if (hasContent) {
-            const canvas = await html2canvas(element as HTMLElement, {
-              backgroundColor: '#ffffff',
-              scale: 1,
-              useCORS: true,
-              allowTaint: true
-            });
-            screenshots[key] = {
+      // Get analytics data for each type
+      for (const { key, title, dataType } of analyticsTypes) {
+        try {
+          let query = supabase
+            .from('dashboard_data')
+            .select('data_content')
+            .eq('company_id', profile.company_id)
+            .eq('data_type', dataType);
+          
+          if (meetingId) {
+            query = query.eq('meeting_id', meetingId);
+          }
+          
+          const { data, error } = await query.maybeSingle();
+          
+          if (data?.data_content && Object.keys(data.data_content).length > 0) {
+            analyticsData[key] = {
               title,
-              dataUrl: canvas.toDataURL('image/png'),
+              data: data.data_content,
               hasData: true
             };
           }
+        } catch (error) {
+          console.warn(`Failed to load ${title}:`, error);
         }
-      } catch (error) {
-        console.warn(`Failed to capture screenshot for ${title}:`, error);
       }
-    }
 
-    return screenshots;
+      return analyticsData;
+    } catch (error) {
+      console.error('Error collecting analytics data for report:', error);
+      return {};
+    }
   };
 
   const generateReport = async () => {
     try {
       const analyticsData = await collectAnalyticsData();
       
-      // Capture analytics screenshots
-      const analyticsScreenshots = await captureAnalyticsScreenshots();
+      // Get analytics data for report context
+      const reportAnalytics = await getAnalyticsDataForReport();
       
       // Get company information for proper naming
       let companyName = 'Care Agency';
@@ -223,7 +233,7 @@ export const QuarterlyReportGenerator: React.FC<QuarterlyReportGeneratorProps> =
         })),
         analyticsInsights: processedAnalytics,
         keyMetrics: extractKeyMetrics(analyticsData, meetings),
-        availableAnalytics: Object.keys(analyticsScreenshots)
+        availableAnalytics: Object.keys(reportAnalytics)
       };
 
       const systemPrompt = `You are an expert care agency analyst writing a professional quarterly report. Your task is to generate a comprehensive, detailed quarterly report that reads like a professional business document - NOT a markdown document.
@@ -238,12 +248,12 @@ CRITICAL FORMATTING REQUIREMENTS:
 - Provide detailed interpretations and insights, not just data summaries
 - Use the actual company name "${companyName}" throughout the report instead of generic terms like "the agency"
 
-ANALYTICS IMAGES INTEGRATION:
-You have access to analytics screenshots for the following areas where available: ${Object.keys(analyticsScreenshots).join(', ')}
-- Include placeholders for these analytics images in contextually relevant sections
-- Use the format: [ANALYTICS IMAGE: {type}] where {type} is one of the available analytics (e.g., [ANALYTICS IMAGE: staffTraining])
-- Only include analytics images where they add meaningful context to the narrative
-- Suggest where specific analytics would best support your written analysis
+ANALYTICS DATA INTEGRATION:
+You have access to analytics data for the following areas where available: ${Object.keys(reportAnalytics).join(', ')}
+- Include contextual references to analytics data in relevant sections
+- Use the format: [ANALYTICS DATA: {type}] where {type} is one of the available analytics (e.g., [ANALYTICS DATA: staffTraining])
+- Only include analytics references where they add meaningful context to the narrative
+- Provide data-driven insights based on the available analytics
 
 CONTENT REQUIREMENTS:
 - Each section should demonstrate deep analysis of trends, patterns, and implications
@@ -260,10 +270,10 @@ ${companyName} Quarterly Report - ${quarter} ${year}
 Write a comprehensive 200-300 word executive summary that captures the quarter's key achievements, challenges, and strategic outlook for ${companyName}.
 
 2. Operational Successes
-Analyze positive outcomes, achievements, and improvements for ${companyName}. Include detailed discussion of performance metrics, successful initiatives, compliance achievements, and operational excellence examples. Include relevant analytics images to support your analysis.
+Analyze positive outcomes, achievements, and improvements for ${companyName}. Include detailed discussion of performance metrics, successful initiatives, compliance achievements, and operational excellence examples. Include relevant analytics data to support your analysis.
 
 3. Learning Opportunities and Challenges
-Examine areas for improvement, incidents, challenges faced, and lessons learned by ${companyName}. Provide detailed analysis of root causes and impacts on operations. Use analytics images to illustrate trends where appropriate.
+Examine areas for improvement, incidents, challenges faced, and lessons learned by ${companyName}. Provide detailed analysis of root causes and impacts on operations. Use analytics data to illustrate trends where appropriate.
 
 4. Workforce and Capacity Analysis
 Detailed analysis of ${companyName}'s staffing levels, recruitment, retention, training compliance, supervision quality, and capacity planning initiatives. Include staff training analytics if available.
@@ -303,14 +313,14 @@ Remember: Write in natural language prose with detailed paragraphs. No markdown 
 
       if (response) {
         setGeneratedReport(response);
-        setAnalyticsScreenshots(analyticsScreenshots);
+        setAnalyticsScreenshots(reportAnalytics);
         setHasGeneratedReport(true);
         setIsOpen(false);
         
-        // Navigate to the quarterly report page with the content and screenshots
+        // Navigate to the quarterly report page with the content and analytics data
         const encodedContent = encodeURIComponent(response);
-        const encodedScreenshots = encodeURIComponent(JSON.stringify(analyticsScreenshots));
-        navigate(`/quarterly-report?quarter=${quarter}&year=${year}&content=${encodedContent}&analytics=${encodedScreenshots}`);
+        const encodedAnalytics = encodeURIComponent(JSON.stringify(reportAnalytics));
+        navigate(`/quarterly-report?quarter=${quarter}&year=${year}&content=${encodedContent}&analytics=${encodedAnalytics}`);
         
         toast({
           title: "Report Created",
@@ -327,13 +337,13 @@ Remember: Write in natural language prose with detailed paragraphs. No markdown 
     }
   };
 
-  const [analyticsScreenshots, setAnalyticsScreenshots] = useState<{ [key: string]: { title: string; dataUrl: string; hasData: boolean } }>({});
+  const [analyticsScreenshots, setAnalyticsScreenshots] = useState<{ [key: string]: any }>({});
 
   const viewReport = () => {
     if (generatedReport) {
       const encodedContent = encodeURIComponent(generatedReport);
-      const encodedScreenshots = encodeURIComponent(JSON.stringify(analyticsScreenshots));
-      navigate(`/quarterly-report?quarter=${quarter}&year=${year}&content=${encodedContent}&analytics=${encodedScreenshots}`);
+      const encodedAnalytics = encodeURIComponent(JSON.stringify(analyticsScreenshots));
+      navigate(`/quarterly-report?quarter=${quarter}&year=${year}&content=${encodedContent}&analytics=${encodedAnalytics}`);
     }
   };
 

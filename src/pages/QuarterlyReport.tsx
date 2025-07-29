@@ -24,7 +24,7 @@ export const QuarterlyReport = () => {
   const [reportContent, setReportContent] = useState<string>("");
   const [reportPages, setReportPages] = useState<string[]>([]);
   const [isExporting, setIsExporting] = useState(false);
-  const [analyticsImages, setAnalyticsImages] = useState<{ [key: string]: { title: string; dataUrl: string; hasData: boolean } }>({});
+  const [analyticsImages, setAnalyticsImages] = useState<{ [key: string]: any }>({});
   
   const quarter = searchParams.get("quarter") || "";
   const year = searchParams.get("year") || "";
@@ -434,22 +434,21 @@ export const QuarterlyReport = () => {
                        color: '#374151'
                      }}>
                        {pageContent.split('\n').map((line, lineIndex) => {
-                         // Check for analytics image placeholders
-                         const analyticsImageMatch = line.trim().match(/\[ANALYTICS IMAGE: (\w+)\]/);
-                         if (analyticsImageMatch) {
-                           const analyticsType = analyticsImageMatch[1];
+                         // Check for analytics data placeholders
+                         const analyticsDataMatch = line.trim().match(/\[ANALYTICS DATA: (\w+)\]/);
+                         if (analyticsDataMatch) {
+                           const analyticsType = analyticsDataMatch[1];
                            const analyticsData = analyticsImages[analyticsType];
                            
-                           if (analyticsData && analyticsData.dataUrl) {
+                           if (analyticsData && analyticsData.hasData) {
                              return (
-                               <div key={lineIndex} className="my-6">
+                               <div key={lineIndex} className="my-6 p-4 border border-gray-200 rounded-lg bg-gray-50">
                                  <h3 className="text-lg font-semibold text-gray-800 mb-3">{analyticsData.title}</h3>
-                                 <div className="border border-gray-200 rounded-lg overflow-hidden">
-                                   <img 
-                                     src={analyticsData.dataUrl} 
-                                     alt={analyticsData.title}
-                                     className="w-full h-auto"
-                                   />
+                                 <div className="text-sm text-gray-600">
+                                   <p>Analytics data available for this section shows:</p>
+                                   <pre className="mt-2 text-xs bg-white p-3 rounded border overflow-auto max-h-40">
+                                     {JSON.stringify(analyticsData.data, null, 2)}
+                                   </pre>
                                  </div>
                                </div>
                              );
