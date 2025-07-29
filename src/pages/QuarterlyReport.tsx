@@ -428,17 +428,36 @@ export const QuarterlyReport = () => {
                         if (line.trim().match(/^\d+\.\s/)) {
                           // Section headers (e.g., "1. Executive Summary")
                           return (
-                            <h2 key={lineIndex} className="text-2xl font-semibold text-gray-800 mb-6 mt-8 border-b border-gray-200 pb-2">
+                            <h2 key={lineIndex} className="text-2xl font-bold text-gray-800 mb-6 mt-8 border-b border-gray-200 pb-2">
                               {line.trim()}
                             </h2>
                           );
                         }
-                        if (line.trim().startsWith('Care Agency Quarterly Report')) {
+                        if (line.trim().startsWith('Care Agency Quarterly Report') || line.trim().includes('Quarterly Report')) {
                           // Main title
                           return (
                             <h1 key={lineIndex} className="text-3xl font-bold text-gray-900 mb-8 text-center border-b-2 border-gray-200 pb-4">
                               {line.trim()}
                             </h1>
+                          );
+                        }
+                        // Check for standalone section titles (without numbers)
+                        if (line.trim().length > 0 && line.trim().length < 100 && 
+                            (line.trim() === 'Executive Summary' || 
+                             line.trim() === 'Operational Successes' ||
+                             line.trim() === 'Learning Opportunities and Challenges' ||
+                             line.trim() === 'Workforce and Capacity Analysis' ||
+                             line.trim() === 'Care Quality and Service Delivery' ||
+                             line.trim() === 'Health, Safety and Risk Management' ||
+                             line.trim() === 'Continuous Improvement and Innovation' ||
+                             line.trim() === 'Strategic Outlook and Recommendations' ||
+                             line.trim().includes('Summary') ||
+                             line.trim().includes('Analysis') ||
+                             line.trim().includes('Outlook'))) {
+                          return (
+                            <h2 key={lineIndex} className="text-2xl font-bold text-gray-800 mb-6 mt-8 border-b border-gray-200 pb-2">
+                              {line.trim()}
+                            </h2>
                           );
                         }
                         if (line.trim().length > 50 && (line.trim().endsWith('.') || line.trim().endsWith(':') || line.trim().endsWith('.'))) {
