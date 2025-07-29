@@ -1492,13 +1492,15 @@ const Index = () => {
     const actionsLogExpanded = JSON.parse(sessionStorage.getItem('actions_log_expanded') || 'false');
     const keyDocsExpanded = JSON.parse(sessionStorage.getItem('key_documents_expanded') || 'false');
     
-    // Check if any dashboard sections are open
-    const sectionKeys = dashboardData.sections.map(section => 
+    // Check if any dashboard sections are open - they default to TRUE when no storage value exists
+    const sectionKeys = dashboardData.sections.filter(section => section.id !== "meeting-overview").map(section => 
       `section_${section.title.replace(/\s+/g, '_').toLowerCase()}_open`
     );
-    const anySectionOpen = sectionKeys.some(key => 
-      JSON.parse(sessionStorage.getItem(key) || 'true')
-    );
+    const anySectionOpen = sectionKeys.some(key => {
+      const stored = sessionStorage.getItem(key);
+      // If no value stored, it defaults to true (open), otherwise use stored value
+      return stored !== null ? JSON.parse(stored) : true;
+    });
     
     return actionsLogExpanded || keyDocsExpanded || anySectionOpen;
   };
@@ -1507,15 +1509,17 @@ const Index = () => {
     const actionsLogExpanded = JSON.parse(sessionStorage.getItem('actions_log_expanded') || 'false');
     const keyDocsExpanded = JSON.parse(sessionStorage.getItem('key_documents_expanded') || 'false');
     
-    // Check if any dashboard sections are open
-    const sectionKeys = dashboardData.sections.map(section => 
+    // Check if all dashboard sections are closed
+    const sectionKeys = dashboardData.sections.filter(section => section.id !== "meeting-overview").map(section => 
       `section_${section.title.replace(/\s+/g, '_').toLowerCase()}_open`
     );
-    const anySectionOpen = sectionKeys.some(key => 
-      JSON.parse(sessionStorage.getItem(key) || 'true')
-    );
+    const allSectionsClosed = sectionKeys.every(key => {
+      const stored = sessionStorage.getItem(key);
+      // If no value stored, it defaults to true (open), otherwise use stored value
+      return stored !== null ? !JSON.parse(stored) : false; // If no storage, section is open by default
+    });
     
-    return !actionsLogExpanded && !keyDocsExpanded && !anySectionOpen;
+    return !actionsLogExpanded && !keyDocsExpanded && allSectionsClosed;
   };
   
   const handleToggleAll = () => {
