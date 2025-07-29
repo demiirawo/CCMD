@@ -16,14 +16,14 @@ export const StaffTrainingAnalytics = ({
 }: StaffTrainingAnalyticsProps) => {
   const { profile } = useAuth();
 
-  // Staff recruitment stage data (fetched from resourcing overview)
+  // Staff data from resourcing overview
   const [staffData, setStaffData] = useState({
     onboarding: 0,
     onProbation: 0,
     active: 0
   });
 
-  // Staff compliance data
+  // Training compliance data
   const [complianceData, setComplianceData] = useState({
     onboardingCompliant: 0,
     onProbationCompliant: 0,
@@ -89,13 +89,13 @@ export const StaffTrainingAnalytics = ({
           activeCompliant: savedData.activeCompliant || 0
         });
       } else {
-        // Try to load from localStorage backup
+        // Try localStorage backup
         const backupKey = `staff_training_backup_${profile.company_id}`;
         const backupData = localStorage.getItem(backupKey);
         if (backupData) {
           try {
-            const backupComplianceData = JSON.parse(backupData);
-            setComplianceData(backupComplianceData);
+            const backup = JSON.parse(backupData);
+            setComplianceData(backup);
           } catch (error) {
             console.error('Error loading backup data:', error);
           }
@@ -103,13 +103,13 @@ export const StaffTrainingAnalytics = ({
       }
     } catch (error) {
       console.error('Error loading training compliance data:', error);
-      // Try to load from localStorage backup
+      // Try localStorage backup
       const backupKey = `staff_training_backup_${profile.company_id}`;
       const backupData = localStorage.getItem(backupKey);
       if (backupData) {
         try {
-          const backupComplianceData = JSON.parse(backupData);
-          setComplianceData(backupComplianceData);
+          const backup = JSON.parse(backupData);
+          setComplianceData(backup);
         } catch (error) {
           console.error('Error loading backup data:', error);
         }
@@ -135,12 +135,12 @@ export const StaffTrainingAnalytics = ({
         console.error('Error saving training compliance data:', error);
         throw error;
       } else {
-        // Save to localStorage as backup
+        // Save backup to localStorage
         localStorage.setItem(`staff_training_backup_${profile.company_id}`, JSON.stringify(newData));
       }
     } catch (error) {
       console.error('Error saving training compliance data:', error);
-      // Save to localStorage as fallback
+      // Fallback to localStorage
       if (profile?.company_id) {
         localStorage.setItem(`staff_training_backup_${profile.company_id}`, JSON.stringify(newData));
       }
@@ -161,7 +161,7 @@ export const StaffTrainingAnalytics = ({
     <div className="space-y-6 mt-4 p-6 border border-border rounded-lg bg-stone-50">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         
-        {/* Box 1: Staff By Recruitment Stage (Read-only from resourcing data) */}
+        {/* Box 1: Staff By Recruitment Stage */}
         <Card className="p-6">
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
@@ -179,7 +179,7 @@ export const StaffTrainingAnalytics = ({
           </div>
         </Card>
 
-        {/* Box 2: Number of Staff Who Are Compliant */}
+        {/* Box 2: Staff Who Are Compliant */}
         <Card className="p-6">
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4 items-center">
@@ -224,7 +224,7 @@ export const StaffTrainingAnalytics = ({
           </div>
         </Card>
 
-        {/* Box 3: Compliance % by Each Stage of Recruitment */}
+        {/* Box 3: Compliance % By Stage */}
         <Card className="p-6">
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">

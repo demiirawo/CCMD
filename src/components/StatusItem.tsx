@@ -3,6 +3,7 @@ import { StatusBadge, StatusType } from "./StatusBadge";
 import { StaffDocumentsAnalytics } from "./StaffDocumentsAnalytics";
 import { StaffTrainingAnalytics } from "./StaffTrainingAnalytics";
 
+
 import { SpotCheckAnalytics } from "./SpotCheckAnalytics";
 import { SupervisionAnalytics } from "./SupervisionAnalytics";
 import { ResourcingOverview } from "./ResourcingOverview";
@@ -304,6 +305,7 @@ export const StatusItem = ({
           {item.title.toLowerCase().includes('resourcing') && <ResourcingOverview meetingDate={meetingDate} meetingId={meetingId} />}
           
           {item.title.toLowerCase().includes('training') && <StaffTrainingAnalytics meetingDate={meetingDate} meetingId={meetingId} />}
+          
           
           
           {item.title.toLowerCase().includes('staff documents') && <StaffDocumentsAnalytics meetingDate={meetingDate} meetingId={meetingId} />}
