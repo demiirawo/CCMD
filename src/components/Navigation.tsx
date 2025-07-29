@@ -52,7 +52,7 @@ export const Navigation = () => {
             <img 
               src="/lovable-uploads/e1ca0619-7102-433c-b82c-7559369d24e5.png" 
               alt="Application Logo" 
-              className="h-12 w-auto"
+              className="h-16 w-auto"
             />
           </div>
 
