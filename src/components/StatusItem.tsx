@@ -10,7 +10,7 @@ import { ResourcingOverview } from "./ResourcingOverview";
 import { CarePlanOverview } from "./CarePlanOverview";
 
 
-import { CareNotesAnalytics } from "./CareNotesAnalytics";
+
 import { IncidentsAnalytics } from "./IncidentsAnalytics";
 import { FeedbackAnalytics } from "./FeedbackAnalytics";
 
@@ -317,8 +317,6 @@ export const StatusItem = ({
           
           {item.title.toLowerCase().includes('care plans') && <CarePlanOverview meetingDate={meetingDate} meetingId={meetingId} />}
           
-          
-          {item.title.toLowerCase().includes('care notes') && <CareNotesAnalytics meetingDate={meetingDate} meetingId={meetingId} />}
           
           {item.title.toLowerCase().includes('incidents') && <IncidentsAnalytics meetingDate={meetingDate} meetingId={meetingId} />}
           
