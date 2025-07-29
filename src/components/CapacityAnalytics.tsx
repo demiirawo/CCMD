@@ -17,14 +17,14 @@ interface StaffEntry {
   idealStaff: number;
 }
 
-const generateChartData = (entries: StaffEntry[]) => {
+const generateChartData = (entries: StaffEntry[], meetingDate?: Date) => {
   const weeks = [];
-  const currentDate = new Date();
+  const referenceDate = meetingDate || new Date();
   
   for (let i = 11; i >= 0; i--) {
     // Calculate week start (Monday) and end (Sunday)
-    const weekStart = new Date(currentDate);
-    weekStart.setDate(currentDate.getDate() - (currentDate.getDay() === 0 ? 6 : currentDate.getDay() - 1) - (i * 7));
+    const weekStart = new Date(referenceDate);
+    weekStart.setDate(referenceDate.getDate() - (referenceDate.getDay() === 0 ? 6 : referenceDate.getDay() - 1) - (i * 7));
     weekStart.setHours(0, 0, 0, 0);
     
     const weekEnd = new Date(weekStart);
@@ -113,7 +113,7 @@ export const CapacityAnalytics = ({ onMonthlyStaffDataChange, meetingDate, meeti
   }, [profile?.company_id, meetingId]);
 
   useEffect(() => {
-    const newChartData = generateChartData(entries);
+    const newChartData = generateChartData(entries, meetingDate);
     setChartData(newChartData);
     
     // Notify parent component of monthly staff data changes
@@ -125,7 +125,7 @@ export const CapacityAnalytics = ({ onMonthlyStaffDataChange, meetingDate, meeti
       }));
       onMonthlyStaffDataChange(staffData);
     }
-  }, [entries, onMonthlyStaffDataChange]);
+  }, [entries, meetingDate, onMonthlyStaffDataChange]);
 
   const loadData = async () => {
     if (!profile?.company_id) return;
