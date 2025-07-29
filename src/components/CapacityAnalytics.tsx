@@ -1,25 +1,49 @@
 import React, { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useTheme } from "@/hooks/useTheme";
 
-const generateInitialData = (meetingDate?: Date) => {
+interface StaffEntry {
+  id: string;
+  timestamp: string;
+  onboardingStaff: number;
+  probationStaff: number;
+  currentStaff: number;
+  idealStaff: number;
+}
+
+const generateChartData = (entries: StaffEntry[]) => {
   const months = [];
-  const currentDate = meetingDate || new Date();
+  const currentDate = new Date();
   
   for (let i = 11; i >= 0; i--) {
     const date = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1);
     const monthName = date.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
+    
+    // Find the most recent entry for this month
+    const monthStart = new Date(date.getFullYear(), date.getMonth(), 1);
+    const monthEnd = new Date(date.getFullYear(), date.getMonth() + 1, 0, 23, 59, 59);
+    
+    const monthEntries = entries.filter(entry => {
+      const entryDate = new Date(entry.timestamp);
+      return entryDate >= monthStart && entryDate <= monthEnd;
+    });
+    
+    const latestEntry = monthEntries.length > 0 
+      ? monthEntries.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())[0]
+      : null;
+    
     months.push({
       month: monthName,
-      onboardingStaff: 0,
-      probationStaff: 0,
-      currentStaff: 0,
-      idealStaff: 0
+      onboardingStaff: latestEntry?.onboardingStaff || 0,
+      probationStaff: latestEntry?.probationStaff || 0,
+      currentStaff: latestEntry?.currentStaff || 0,
+      idealStaff: latestEntry?.idealStaff || 0
     });
   }
   
@@ -54,32 +78,44 @@ interface CapacityAnalyticsProps {
 export const CapacityAnalytics = ({ onMonthlyStaffDataChange, meetingDate, meetingId }: CapacityAnalyticsProps) => {
   const { profile } = useAuth();
   useTheme();
-  const [monthlyData, setMonthlyData] = useState(generateInitialData(meetingDate));
+  const [entries, setEntries] = useState<StaffEntry[]>([]);
+  const [chartData, setChartData] = useState(generateChartData([]));
+  const [currentInput, setCurrentInput] = useState({
+    onboardingStaff: 0,
+    probationStaff: 0,
+    currentStaff: 0,
+    idealStaff: 0
+  });
 
   useEffect(() => {
     if (profile?.company_id) {
       loadData();
     }
-  }, [profile?.company_id]);
+  }, [profile?.company_id, meetingId]);
 
   useEffect(() => {
-    // Always reload from database when meeting date changes to preserve all data
-    if (profile?.company_id) {
-      loadData();
-    } else {
-      setMonthlyData(generateInitialData(meetingDate));
+    const newChartData = generateChartData(entries);
+    setChartData(newChartData);
+    
+    // Notify parent component of monthly staff data changes
+    if (onMonthlyStaffDataChange) {
+      const staffData = newChartData.map(item => ({
+        month: item.month,
+        currentStaff: item.currentStaff,
+        probationStaff: item.probationStaff
+      }));
+      onMonthlyStaffDataChange(staffData);
     }
-  }, [meetingDate, profile?.company_id]);
+  }, [entries, onMonthlyStaffDataChange]);
 
   const loadData = async () => {
-    if (!profile?.company_id || !meetingId) return;
+    if (!profile?.company_id) return;
 
     try {
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('dashboard_data')
         .select('data_content')
         .eq('company_id', profile.company_id)
-        .eq('meeting_id', meetingId)
         .eq('data_type', 'resourcing_analytics')
         .maybeSingle();
 
@@ -88,41 +124,40 @@ export const CapacityAnalytics = ({ onMonthlyStaffDataChange, meetingDate, meeti
         return;
       }
 
-      if (data?.data_content?.monthly_data) {
-        const loadedData = data.data_content.monthly_data as any[];
-        const currentStructure = generateInitialData(meetingDate);
+      if (data?.data_content && typeof data.data_content === 'object' && 'entries' in data.data_content) {
+        const loadedEntries = (data.data_content as any).entries as StaffEntry[];
+        // Filter to only show entries from the last 12 months
+        const twelveMonthsAgo = new Date();
+        twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 12);
         
-        const mergedData = currentStructure.map(current => {
-          const existing = loadedData.find(item => item.month === current.month);
-          return existing || current;
-        });
+        const recentEntries = loadedEntries.filter(entry => 
+          new Date(entry.timestamp) >= twelveMonthsAgo
+        );
         
-        setMonthlyData(mergedData);
+        setEntries(recentEntries);
         console.log('Successfully loaded resourcing analytics data');
       } else {
-        // Initialize with empty data if no existing data found
-        setMonthlyData(generateInitialData(meetingDate));
+        setEntries([]);
       }
     } catch (error) {
       console.error('Error loading resourcing analytics:', error);
-      // Fallback to initial data
-      setMonthlyData(generateInitialData(meetingDate));
+      setEntries([]);
     }
   };
 
-  const saveData = async (newData: any[]) => {
-    if (!profile?.company_id || !meetingId) return;
+  const saveData = async (newEntries: StaffEntry[]) => {
+    if (!profile?.company_id) return;
 
     try {
-      const { error } = await (supabase as any)
+      const { error } = await supabase
         .from('dashboard_data')
         .upsert({
           company_id: profile.company_id,
-          meeting_id: meetingId,
+          meeting_id: meetingId || null,
           data_type: 'resourcing_analytics',
-          data_content: { monthly_data: newData }
+          data_content: { entries: newEntries } as any
         }, {
-          onConflict: 'company_id,meeting_id,data_type'
+          onConflict: 'company_id,data_type'
         });
 
       if (error) {
@@ -135,60 +170,48 @@ export const CapacityAnalytics = ({ onMonthlyStaffDataChange, meetingDate, meeti
     }
   };
 
-  const handleCellEdit = (monthIndex: number, field: 'onboardingStaff' | 'probationStaff' | 'currentStaff' | 'idealStaff', value: number) => {
-    const newData = [...monthlyData];
-    newData[monthIndex] = { ...newData[monthIndex], [field]: value };
-    setMonthlyData(newData);
-    saveData(newData);
-
-    // Notify parent component of monthly staff data changes
-    if (onMonthlyStaffDataChange) {
-      const staffData = newData.map(item => ({
-        month: item.month,
-        currentStaff: item.currentStaff,
-        probationStaff: item.probationStaff
-      }));
-      onMonthlyStaffDataChange(staffData);
-    }
+  const handleInputChange = (field: keyof typeof currentInput, value: string) => {
+    setCurrentInput(prev => ({
+      ...prev,
+      [field]: parseInt(value) || 0
+    }));
   };
 
-  const EditableCell = ({ value, onChange }: { value: number; onChange: (value: number) => void }) => {
-    const [editing, setEditing] = useState(false);
-    const [editValue, setEditValue] = useState('');
-
-    const handleStartEdit = () => {
-      setEditing(true);
-      setEditValue('');
+  const handleSubmit = () => {
+    const newEntry: StaffEntry = {
+      id: crypto.randomUUID(),
+      timestamp: new Date().toISOString(),
+      ...currentInput
     };
 
-    const handleSave = () => {
-      const numValue = parseInt(editValue) || 0;
-      onChange(numValue);
-      setEditing(false);
-    };
-
-    if (editing) {
-      return (
-        <Input 
-          value={editValue} 
-          onChange={e => setEditValue(e.target.value)} 
-          onBlur={handleSave} 
-          onKeyDown={e => {
-            if (e.key === 'Enter') handleSave();
-            if (e.key === 'Escape') setEditing(false);
-          }} 
-          className="w-16 h-8 text-sm" 
-          autoFocus 
-        />
-      );
-    }
-
-    return (
-      <span className="cursor-pointer hover:bg-accent/50 p-1 rounded" onClick={handleStartEdit}>
-        {value}
-      </span>
+    const updatedEntries = [...entries, newEntry];
+    
+    // Keep only entries from the last 12 months
+    const twelveMonthsAgo = new Date();
+    twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 12);
+    
+    const filteredEntries = updatedEntries.filter(entry => 
+      new Date(entry.timestamp) >= twelveMonthsAgo
     );
+
+    setEntries(filteredEntries);
+    saveData(filteredEntries);
+    
+    // Reset form
+    setCurrentInput({
+      onboardingStaff: 0,
+      probationStaff: 0,
+      currentStaff: 0,
+      idealStaff: 0
+    });
   };
+
+  const getLatestEntry = () => {
+    if (entries.length === 0) return null;
+    return entries.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())[0];
+  };
+
+  const latestEntry = getLatestEntry();
 
   return (
     <div className="space-y-6 mt-4 p-6 border border-border rounded-lg bg-white">
@@ -196,41 +219,89 @@ export const CapacityAnalytics = ({ onMonthlyStaffDataChange, meetingDate, meeti
         <h4 className="text-lg font-semibold text-foreground">Resourcing Analytics</h4>
       </div>
       
-      <div className="text-sm text-muted-foreground">Recruitment progress monitoring workforce pipeline against monthly staffing targets (Past 12 Months)</div>
-      
-      {/* Data Grid */}
-      <div className="grid grid-cols-4 gap-4">
-        {monthlyData.map((row, index) => (
-          <div key={index} className="p-3 border rounded-lg">
-            <div className="text-sm font-medium mb-2 bg-primary text-primary-foreground px-3 py-2 rounded-t-lg -mx-3 -mt-3">{row.month}</div>
-            <div className="space-y-2">
-              <div>
-                <div className="text-xs text-muted-foreground mb-1">Onboarding:</div>
-                <EditableCell value={row.onboardingStaff} onChange={(value) => handleCellEdit(index, 'onboardingStaff', value)} />
-              </div>
-              <div>
-                <div className="text-xs text-muted-foreground mb-1">Probation:</div>
-                <EditableCell value={row.probationStaff} onChange={(value) => handleCellEdit(index, 'probationStaff', value)} />
-              </div>
-              <div>
-                <div className="text-xs text-muted-foreground mb-1">Passed:</div>
-                <EditableCell value={row.currentStaff} onChange={(value) => handleCellEdit(index, 'currentStaff', value)} />
-              </div>
-              <div>
-                <div className="text-xs text-muted-foreground mb-1">Target:</div>
-                <EditableCell value={row.idealStaff} onChange={(value) => handleCellEdit(index, 'idealStaff', value)} />
-              </div>
+      <div className="text-sm text-muted-foreground">
+        Track your staffing levels over time. Enter current numbers and they'll be timestamped and added to your chart (Last 12 Months)
+      </div>
+
+      {/* Current Values Display */}
+      {latestEntry && (
+        <Card className="p-4 bg-accent/50">
+          <div className="text-sm font-medium text-foreground mb-2">
+            Latest Entry ({new Date(latestEntry.timestamp).toLocaleDateString()})
+          </div>
+          <div className="grid grid-cols-4 gap-4 text-sm">
+            <div>
+              <div className="text-xs text-muted-foreground">Onboarding:</div>
+              <div className="font-medium">{latestEntry.onboardingStaff}</div>
+            </div>
+            <div>
+              <div className="text-xs text-muted-foreground">Probation:</div>
+              <div className="font-medium">{latestEntry.probationStaff}</div>
+            </div>
+            <div>
+              <div className="text-xs text-muted-foreground">Passed:</div>
+              <div className="font-medium">{latestEntry.currentStaff}</div>
+            </div>
+            <div>
+              <div className="text-xs text-muted-foreground">Target:</div>
+              <div className="font-medium">{latestEntry.idealStaff}</div>
             </div>
           </div>
-        ))}
-      </div>
+        </Card>
+      )}
+      
+      {/* Input Form */}
+      <Card className="p-4">
+        <div className="text-sm font-medium text-foreground mb-4">Add New Entry</div>
+        <div className="grid grid-cols-4 gap-4 mb-4">
+          <div>
+            <label className="text-xs text-muted-foreground mb-1 block">Onboarding Staff</label>
+            <Input
+              type="number"
+              value={currentInput.onboardingStaff}
+              onChange={(e) => handleInputChange('onboardingStaff', e.target.value)}
+              className="h-8"
+            />
+          </div>
+          <div>
+            <label className="text-xs text-muted-foreground mb-1 block">Probation Staff</label>
+            <Input
+              type="number"
+              value={currentInput.probationStaff}
+              onChange={(e) => handleInputChange('probationStaff', e.target.value)}
+              className="h-8"
+            />
+          </div>
+          <div>
+            <label className="text-xs text-muted-foreground mb-1 block">Passed Staff</label>
+            <Input
+              type="number"
+              value={currentInput.currentStaff}
+              onChange={(e) => handleInputChange('currentStaff', e.target.value)}
+              className="h-8"
+            />
+          </div>
+          <div>
+            <label className="text-xs text-muted-foreground mb-1 block">Target Staff</label>
+            <Input
+              type="number"
+              value={currentInput.idealStaff}
+              onChange={(e) => handleInputChange('idealStaff', e.target.value)}
+              className="h-8"
+            />
+          </div>
+        </div>
+        <Button onClick={handleSubmit} className="w-full">
+          Add Entry
+        </Button>
+      </Card>
 
       {/* Chart */}
       <Card className="p-4 bg-white">
         <ChartContainer config={chartConfig} className="h-64 w-full">
           <ResponsiveContainer width="100%" height="100%">
             <ComposedChart 
-              data={monthlyData} 
+              data={chartData} 
               margin={{ top: 5, right: 5, bottom: 25, left: 5 }}
             >
               <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
