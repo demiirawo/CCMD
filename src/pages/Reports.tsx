@@ -10,6 +10,7 @@ import { CalendarDays, FileText, Users, Eye, Trash2, Clock, Target } from "lucid
 import { useToast } from "@/hooks/use-toast";
 import { MeetingStatusSummary } from "@/components/MeetingStatusSummary";
 import { StatusBadge } from "@/components/StatusBadge";
+import { QuarterlyReportGenerator } from "@/components/QuarterlyReportGenerator";
 interface Meeting {
   id: string;
   date: string;
@@ -190,9 +191,11 @@ export const Reports = () => {
                         </p>
                       </Link>
                       
-                      {!isCurrent && <Button variant="outline">
-                          Quarterly Report
-                        </Button>}
+                      {!isCurrent && <QuarterlyReportGenerator 
+                          quarter={quarter}
+                          year={year}
+                          meetings={quarterMeetings}
+                        />}
                     </div>
 
                     {/* Quarter Meetings */}
