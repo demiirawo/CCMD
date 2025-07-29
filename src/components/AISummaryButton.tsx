@@ -76,13 +76,19 @@ export const AISummaryButton = ({ onSummaryGenerated }: AISummaryButtonProps) =>
   };
 
   const generateAISummary = async () => {
-    if (isLoading || isGenerating) return;
+    console.log('AI Summary button clicked');
+    if (isLoading || isGenerating) {
+      console.log('Already generating, skipping');
+      return;
+    }
     
     setIsGenerating(true);
     try {
       const meetingData = collectMeetingData();
+      console.log('Collected meeting data:', meetingData);
       
       if (!meetingData.trim()) {
+        console.log('No meeting data found');
         toast({
           title: "No Data Found",
           description: "No meeting data available to summarize",
@@ -102,7 +108,9 @@ export const AISummaryButton = ({ onSummaryGenerated }: AISummaryButtonProps) =>
         }
       ];
 
+      console.log('Sending to OpenAI with messages:', messages);
       const summary = await generateResponse(messages, 'gpt-4.1-2025-04-14');
+      console.log('Received summary:', summary);
       
       if (summary) {
         onSummaryGenerated?.(summary);
