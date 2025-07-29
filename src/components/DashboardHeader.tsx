@@ -2,7 +2,6 @@ import { StatusBadge } from "./StatusBadge";
 import { MeetingDateTimePicker } from "./MeetingDateTimePicker";
 import { MeetingAttendeesManager, Attendee } from "./MeetingAttendeesManager";
 import { useAuth } from "@/hooks/useAuth";
-import { AISummaryButton } from "./AISummaryButton";
 import { useState } from "react";
 interface DashboardHeaderProps {
   date: string;
@@ -79,23 +78,6 @@ export const DashboardHeader = ({
           <div className="p-4 rounded-lg border border-gray-100 h-24 bg-white">
             <h3 className="text-sm font-medium text-muted-foreground mb-2">Meeting Date & Time</h3>
             <MeetingDateTimePicker value={date} onChange={value => onDataChange?.("date", value)} />
-          </div>
-          <div className="p-4 rounded-lg border border-gray-100 min-h-24 bg-white">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-sm font-medium text-muted-foreground">Meeting Summary</h3>
-              <AISummaryButton onSummaryGenerated={(summary) => onDataChange?.("purpose", summary)} />
-            </div>
-            {editingField === "purpose" ? <textarea defaultValue={purpose} className={`w-full min-h-12 p-2 text-sm text-foreground bg-white border border-gray-300 rounded resize-none whitespace-pre-wrap`} onBlur={e => handleFieldEdit("purpose", e.target.value)} onKeyDown={e => {
-              if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                handleFieldEdit("purpose", e.currentTarget.value);
-              }
-              if (e.key === "Escape") {
-                setEditingField(null);
-              }
-            }} autoFocus /> : <button onClick={() => setEditingField("purpose")} className={`w-full text-left min-h-12 p-2 text-sm text-foreground hover:bg-white hover:border-gray-400 transition-colors rounded whitespace-pre-wrap break-words overflow-wrap-anywhere`}>
-              {purpose}
-            </button>}
           </div>
         </div>
       </div>

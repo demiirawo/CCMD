@@ -5,6 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Attendee } from "@/components/MeetingAttendeesManager";
 import { DashboardSection } from "@/components/DashboardSection";
 import { ActionsLog, ActionLogEntry } from "@/components/ActionsLog";
+import { MeetingSummaryPanel } from "@/components/MeetingSummaryPanel";
 import { KeyDocumentTracker, DocumentData } from "@/components/KeyDocumentTracker";
 import { StatusItemData } from "@/components/StatusItem";
 import { ActionItem } from "@/components/ActionForm";
@@ -1580,7 +1581,12 @@ const Index = () => {
             onAttendeesChange={handleAttendeesChange}
           />
           
-          <ActionsLog 
+          <MeetingSummaryPanel 
+            purpose={headerData.purpose}
+            onPurposeChange={(value) => handleDataChange("purpose", value)}
+          />
+          
+          <ActionsLog
             actions={actionsLog} 
             onActionComplete={handleActionComplete} 
             onActionDelete={handleActionDelete} 
