@@ -1,5 +1,5 @@
 import { StatusBadge, StatusType } from "./StatusBadge";
-import { CapacityAnalytics } from "./CapacityAnalytics";
+
 import { StaffDocumentsAnalytics } from "./StaffDocumentsAnalytics";
 import { StaffTrainingAnalytics } from "./StaffTrainingAnalytics";
 import { SpotCheckAnalytics } from "./SpotCheckAnalytics";
@@ -298,15 +298,6 @@ export const StatusItem = ({
             {/* Additional content */}
           </div>
           
-          {(() => {
-            const shouldRender = item.title.toLowerCase().includes('resourcing');
-            console.log('StatusItem: Checking resourcing for title:', item.title, 'toLowerCase:', item.title.toLowerCase(), 'shouldRender:', shouldRender);
-            if (shouldRender) {
-              console.log('StatusItem: Rendering CapacityAnalytics for:', item.title, 'meetingId:', meetingId);
-              return <CapacityAnalytics onMonthlyStaffDataChange={onMonthlyStaffDataChange} meetingDate={meetingDate} meetingId={meetingId} />;
-            }
-            return null;
-          })()}
           
           {item.title.toLowerCase().includes('staff documents') && <StaffDocumentsAnalytics meetingId={meetingId} />}
           

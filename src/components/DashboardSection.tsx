@@ -1,6 +1,6 @@
 import { StatusItem, StatusItemData } from "./StatusItem";
 import { StatusType, StatusBadge } from "./StatusBadge";
-import { CapacityAnalytics } from "./CapacityAnalytics";
+
 import { SubsectionMetadata } from "./SubsectionMetadataDialog";
 import { ChevronDown, ChevronRight, Plus, CheckCircle, AlertTriangle, XCircle } from "lucide-react";
 import { useState } from "react";
