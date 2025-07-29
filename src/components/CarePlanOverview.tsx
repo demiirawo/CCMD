@@ -118,15 +118,19 @@ export const CarePlanOverview = ({
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Service Users by Risk Level */}
         <Card className="p-6">
-          <h5 className="text-md font-medium mb-4 text-foreground">Service Users by Risk Level</h5>
+          <h5 className="text-md font-medium mb-4 text-foreground">Service Users By Priority Level</h5>
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <Label htmlFor="high-risk" className="text-sm font-medium">High Risk:</Label>
+              <Label htmlFor="high-risk" className="text-sm font-medium">High:</Label>
               <Input id="high-risk" type="number" value={data.highRisk} onChange={e => handleInputChange('highRisk', parseInt(e.target.value) || 0)} className="w-20 h-8 text-center" min="0" />
             </div>
             
             <div className="flex items-center justify-between">
-              <Label htmlFor="low-risk" className="text-sm font-medium">Low Risk:</Label>
+              <Label htmlFor="medium-risk" className="text-sm font-medium">Medium:</Label>
+              <Input id="medium-risk" type="number" value={data.mediumRisk} onChange={e => handleInputChange('mediumRisk', parseInt(e.target.value) || 0)} className="w-20 h-8 text-center" min="0" />
+            </div>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="low-risk" className="text-sm font-medium">Low:</Label>
               <Input id="low-risk" type="number" value={data.lowRisk} onChange={e => handleInputChange('lowRisk', parseInt(e.target.value) || 0)} className="w-20 h-8 text-center" min="0" />
             </div>
             <div className="flex items-center justify-between">
