@@ -124,20 +124,20 @@ export const CarePlanOverview = ({
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <Label htmlFor="high-risk" className="text-sm font-medium">High:</Label>
-              <Input id="high-risk" type="number" value={data.highRisk === 0 ? '' : data.highRisk} onChange={e => handleInputChange('highRisk', e.target.value)} onFocus={e => e.target.select()} className="w-20 h-8 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" min="0" />
+              <Input id="high-risk" type="number" value={data.highRisk === 0 ? '' : data.highRisk} onChange={e => handleInputChange('highRisk', e.target.value)} onFocus={e => e.target.select()} min="0" className="w-20 h-8 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none bg-stone-50" />
             </div>
             
             <div className="flex items-center justify-between">
               <Label htmlFor="medium-risk" className="text-sm font-medium">Medium:</Label>
-              <Input id="medium-risk" type="number" value={data.mediumRisk === 0 ? '' : data.mediumRisk} onChange={e => handleInputChange('mediumRisk', e.target.value)} onFocus={e => e.target.select()} className="w-20 h-8 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" min="0" />
+              <Input id="medium-risk" type="number" value={data.mediumRisk === 0 ? '' : data.mediumRisk} onChange={e => handleInputChange('mediumRisk', e.target.value)} onFocus={e => e.target.select()} min="0" className="w-20 h-8 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none bg-stone-50" />
             </div>
             <div className="flex items-center justify-between">
               <Label htmlFor="low-risk" className="text-sm font-medium">Low:</Label>
-              <Input id="low-risk" type="number" value={data.lowRisk === 0 ? '' : data.lowRisk} onChange={e => handleInputChange('lowRisk', e.target.value)} onFocus={e => e.target.select()} className="w-20 h-8 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" min="0" />
+              <Input id="low-risk" type="number" value={data.lowRisk === 0 ? '' : data.lowRisk} onChange={e => handleInputChange('lowRisk', e.target.value)} onFocus={e => e.target.select()} min="0" className="w-20 h-8 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none bg-stone-50" />
             </div>
             <div className="flex items-center justify-between">
               <Label htmlFor="na-risk" className="text-sm font-medium">N/A:</Label>
-              <Input id="na-risk" type="number" value={data.naRisk === 0 ? '' : data.naRisk} onChange={e => handleInputChange('naRisk', e.target.value)} onFocus={e => e.target.select()} className="w-20 h-8 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" min="0" />
+              <Input id="na-risk" type="number" value={data.naRisk === 0 ? '' : data.naRisk} onChange={e => handleInputChange('naRisk', e.target.value)} onFocus={e => e.target.select()} min="0" className="w-20 h-8 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none bg-stone-50" />
             </div>
             <div className="border-t pt-2">
               <div className="flex items-center justify-between font-medium">
@@ -155,7 +155,7 @@ export const CarePlanOverview = ({
             <div className="text-center">
               
             </div>
-            <Input id="overdue" type="number" value={data.overdue} onChange={e => handleInputChange('overdue', e.target.value)} onFocus={e => e.target.select()} className="w-24 h-12 text-center text-lg font-semibold [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" min="0" max={totalServiceUsers} />
+            <Input id="overdue" type="number" value={data.overdue} onChange={e => handleInputChange('overdue', e.target.value)} onFocus={e => e.target.select()} min="0" max={totalServiceUsers} className="w-24 h-12 text-center text-lg font-semibold [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none bg-stone-50" />
             <div className="text-xs text-muted-foreground text-center">
               Number overdue
             </div>
