@@ -2,6 +2,7 @@ import { StatusBadge } from "./StatusBadge";
 import { MeetingDateTimePicker } from "./MeetingDateTimePicker";
 import { MeetingAttendeesManager, Attendee } from "./MeetingAttendeesManager";
 import { useAuth } from "@/hooks/useAuth";
+import { AISummaryButton } from "./AISummaryButton";
 import { useState } from "react";
 interface DashboardHeaderProps {
   date: string;
@@ -79,7 +80,13 @@ export const DashboardHeader = ({
             <h3 className="text-sm font-medium text-muted-foreground mb-2">Meeting Date & Time</h3>
             <MeetingDateTimePicker value={date} onChange={value => onDataChange?.("date", value)} />
           </div>
-          <EditableField field="purpose" value={purpose} label="Meeting Summary" containerClass="min-h-24" textClass="text-sm" />
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-medium text-muted-foreground">Meeting Summary</h3>
+              <AISummaryButton onSummaryGenerated={(summary) => onDataChange?.("purpose", summary)} />
+            </div>
+            <EditableField field="purpose" value={purpose} label="" containerClass="min-h-24" textClass="text-sm" />
+          </div>
         </div>
       </div>
     </div>;
