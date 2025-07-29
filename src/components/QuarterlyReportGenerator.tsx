@@ -8,6 +8,7 @@ import { useOpenAI } from "@/hooks/useOpenAI";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/components/ui/use-toast";
+import html2canvas from "html2canvas";
 
 interface QuarterlyReportGeneratorProps {
   quarter: string;
@@ -129,9 +130,55 @@ export const QuarterlyReportGenerator: React.FC<QuarterlyReportGeneratorProps> =
     }
   };
 
+  const captureAnalyticsScreenshots = async () => {
+    const screenshots: { [key: string]: { title: string; dataUrl: string; hasData: boolean } } = {};
+    
+    // Define analytics components to capture with their selectors
+    const analyticsSelectors = [
+      { key: 'staffTraining', selector: '[data-analytics="staff-training"]', title: 'Staff Training Analytics' },
+      { key: 'incidents', selector: '[data-analytics="incidents"]', title: 'Incident Analytics' },
+      { key: 'feedback', selector: '[data-analytics="feedback"]', title: 'Feedback Analytics' },
+      { key: 'carePlan', selector: '[data-analytics="care-plan"]', title: 'Care Plan Analytics' },
+      { key: 'spotCheck', selector: '[data-analytics="spot-check"]', title: 'Spot Check Analytics' },
+      { key: 'supervision', selector: '[data-analytics="supervision"]', title: 'Supervision Analytics' },
+      { key: 'staffDocuments', selector: '[data-analytics="staff-documents"]', title: 'Staff Documents Analytics' },
+      { key: 'serviceUserDocuments', selector: '[data-analytics="service-user-documents"]', title: 'Service User Documents Analytics' }
+    ];
+
+    for (const { key, selector, title } of analyticsSelectors) {
+      try {
+        const element = document.querySelector(selector);
+        if (element && element.children.length > 0) {
+          // Check if the analytics component has meaningful content (not empty)
+          const hasContent = element.textContent && element.textContent.trim().length > 100;
+          if (hasContent) {
+            const canvas = await html2canvas(element as HTMLElement, {
+              backgroundColor: '#ffffff',
+              scale: 1,
+              useCORS: true,
+              allowTaint: true
+            });
+            screenshots[key] = {
+              title,
+              dataUrl: canvas.toDataURL('image/png'),
+              hasData: true
+            };
+          }
+        }
+      } catch (error) {
+        console.warn(`Failed to capture screenshot for ${title}:`, error);
+      }
+    }
+
+    return screenshots;
+  };
+
   const generateReport = async () => {
     try {
       const analyticsData = await collectAnalyticsData();
+      
+      // Capture analytics screenshots
+      const analyticsScreenshots = await captureAnalyticsScreenshots();
       
       // Get company information for proper naming
       let companyName = 'Care Agency';
@@ -175,7 +222,8 @@ export const QuarterlyReportGenerator: React.FC<QuarterlyReportGeneratorProps> =
           }))
         })),
         analyticsInsights: processedAnalytics,
-        keyMetrics: extractKeyMetrics(analyticsData, meetings)
+        keyMetrics: extractKeyMetrics(analyticsData, meetings),
+        availableAnalytics: Object.keys(analyticsScreenshots)
       };
 
       const systemPrompt = `You are an expert care agency analyst writing a professional quarterly report. Your task is to generate a comprehensive, detailed quarterly report that reads like a professional business document - NOT a markdown document.
@@ -189,6 +237,13 @@ CRITICAL FORMATTING REQUIREMENTS:
 - Include specific numbers, percentages, and metrics throughout your analysis
 - Provide detailed interpretations and insights, not just data summaries
 - Use the actual company name "${companyName}" throughout the report instead of generic terms like "the agency"
+
+ANALYTICS IMAGES INTEGRATION:
+You have access to analytics screenshots for the following areas where available: ${Object.keys(analyticsScreenshots).join(', ')}
+- Include placeholders for these analytics images in contextually relevant sections
+- Use the format: [ANALYTICS IMAGE: {type}] where {type} is one of the available analytics (e.g., [ANALYTICS IMAGE: staffTraining])
+- Only include analytics images where they add meaningful context to the narrative
+- Suggest where specific analytics would best support your written analysis
 
 CONTENT REQUIREMENTS:
 - Each section should demonstrate deep analysis of trends, patterns, and implications
@@ -205,22 +260,22 @@ ${companyName} Quarterly Report - ${quarter} ${year}
 Write a comprehensive 200-300 word executive summary that captures the quarter's key achievements, challenges, and strategic outlook for ${companyName}.
 
 2. Operational Successes
-Analyze positive outcomes, achievements, and improvements for ${companyName}. Include detailed discussion of performance metrics, successful initiatives, compliance achievements, and operational excellence examples.
+Analyze positive outcomes, achievements, and improvements for ${companyName}. Include detailed discussion of performance metrics, successful initiatives, compliance achievements, and operational excellence examples. Include relevant analytics images to support your analysis.
 
 3. Learning Opportunities and Challenges
-Examine areas for improvement, incidents, challenges faced, and lessons learned by ${companyName}. Provide detailed analysis of root causes and impacts on operations.
+Examine areas for improvement, incidents, challenges faced, and lessons learned by ${companyName}. Provide detailed analysis of root causes and impacts on operations. Use analytics images to illustrate trends where appropriate.
 
 4. Workforce and Capacity Analysis
-Detailed analysis of ${companyName}'s staffing levels, recruitment, retention, training compliance, supervision quality, and capacity planning initiatives.
+Detailed analysis of ${companyName}'s staffing levels, recruitment, retention, training compliance, supervision quality, and capacity planning initiatives. Include staff training analytics if available.
 
 5. Care Quality and Service Delivery
 Comprehensive review of ${companyName}'s care planning effectiveness, service quality metrics, care plan compliance, risk management, and client outcomes.
 
 6. Health, Safety and Risk Management
-Thorough analysis of ${companyName}'s incident patterns, safety performance, risk mitigation strategies, safeguarding effectiveness, and regulatory compliance.
+Thorough analysis of ${companyName}'s incident patterns, safety performance, risk mitigation strategies, safeguarding effectiveness, and regulatory compliance. Include incident analytics to support findings.
 
 7. Continuous Improvement and Innovation
-Detailed discussion of ${companyName}'s improvement initiatives, quality enhancement programs, feedback integration, and innovation projects.
+Detailed discussion of ${companyName}'s improvement initiatives, quality enhancement programs, feedback integration, and innovation projects. Include feedback analytics if available.
 
 8. Strategic Outlook and Recommendations
 Forward-looking analysis with strategic recommendations for ${companyName}, priority areas for focus, and planned initiatives for the coming quarter.
@@ -248,12 +303,14 @@ Remember: Write in natural language prose with detailed paragraphs. No markdown 
 
       if (response) {
         setGeneratedReport(response);
+        setAnalyticsScreenshots(analyticsScreenshots);
         setHasGeneratedReport(true);
         setIsOpen(false);
         
-        // Navigate to the quarterly report page with the content
+        // Navigate to the quarterly report page with the content and screenshots
         const encodedContent = encodeURIComponent(response);
-        navigate(`/quarterly-report?quarter=${quarter}&year=${year}&content=${encodedContent}`);
+        const encodedScreenshots = encodeURIComponent(JSON.stringify(analyticsScreenshots));
+        navigate(`/quarterly-report?quarter=${quarter}&year=${year}&content=${encodedContent}&analytics=${encodedScreenshots}`);
         
         toast({
           title: "Report Created",
@@ -270,10 +327,13 @@ Remember: Write in natural language prose with detailed paragraphs. No markdown 
     }
   };
 
+  const [analyticsScreenshots, setAnalyticsScreenshots] = useState<{ [key: string]: { title: string; dataUrl: string; hasData: boolean } }>({});
+
   const viewReport = () => {
     if (generatedReport) {
       const encodedContent = encodeURIComponent(generatedReport);
-      navigate(`/quarterly-report?quarter=${quarter}&year=${year}&content=${encodedContent}`);
+      const encodedScreenshots = encodeURIComponent(JSON.stringify(analyticsScreenshots));
+      navigate(`/quarterly-report?quarter=${quarter}&year=${year}&content=${encodedContent}&analytics=${encodedScreenshots}`);
     }
   };
 

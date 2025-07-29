@@ -211,7 +211,7 @@ export const StaffTrainingAnalytics = ({
   };
 
   return (
-    <div className="space-y-6 mt-4 p-6 border border-border rounded-lg bg-stone-50">
+    <div data-analytics="staff-training" className="space-y-6 mt-4 p-6 border border-border rounded-lg bg-stone-50">
       <div className="grid grid-cols-4 gap-4">
         {/* Header Row */}
         <div className="text-sm font-medium text-gray-600"></div>

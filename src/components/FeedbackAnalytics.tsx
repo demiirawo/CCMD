@@ -220,7 +220,7 @@ export const FeedbackAnalytics = ({
         {value}
       </span>;
   };
-  return <div className="space-y-6 mt-4 p-6 border border-border rounded-lg bg-stone-50">
+  return <div data-analytics="feedback" className="space-y-6 mt-4 p-6 border border-border rounded-lg bg-stone-50">
       <div className="flex items-center justify-between">
         <h4 className="text-lg font-semibold text-foreground">Feedback Analytics</h4>
         <span className="text-sm text-muted-foreground px-2">
