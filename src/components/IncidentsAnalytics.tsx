@@ -88,9 +88,42 @@ export const IncidentsAnalytics = ({
           return existing || current;
         });
         setMonthlyData(mergedData);
+      } else {
+        // Try to load from localStorage backup
+        const backupKey = `incidents_backup_${profile.company_id}`;
+        const backupData = localStorage.getItem(backupKey);
+        if (backupData) {
+          try {
+            const backupEntries = JSON.parse(backupData) as any[];
+            const currentStructure = generateInitialData(meetingDate);
+            const mergedData = currentStructure.map(current => {
+              const existing = backupEntries.find(item => item.month === current.month);
+              return existing || current;
+            });
+            setMonthlyData(mergedData);
+          } catch (error) {
+            console.error('Error loading backup data:', error);
+          }
+        }
       }
     } catch (error) {
       console.error('Error loading incidents analytics:', error);
+      // Try to load from localStorage backup
+      const backupKey = `incidents_backup_${profile.company_id}`;
+      const backupData = localStorage.getItem(backupKey);
+      if (backupData) {
+        try {
+          const backupEntries = JSON.parse(backupData) as any[];
+          const currentStructure = generateInitialData(meetingDate);
+          const mergedData = currentStructure.map(current => {
+            const existing = backupEntries.find(item => item.month === current.month);
+            return existing || current;
+          });
+          setMonthlyData(mergedData);
+        } catch (error) {
+          console.error('Error loading backup data:', error);
+        }
+      }
     }
   };
   const saveData = async (newData: any[]) => {
@@ -100,15 +133,24 @@ export const IncidentsAnalytics = ({
         error
       } = await supabase.from('incidents_analytics').upsert({
         company_id: profile.company_id,
-        monthly_data: newData
+        monthly_data: newData,
+        updated_at: new Date().toISOString()
       }, {
         onConflict: 'company_id'
       });
       if (error) {
         console.error('Error saving incidents analytics:', error);
+        throw error;
+      } else {
+        // Save to localStorage as backup
+        localStorage.setItem(`incidents_backup_${profile.company_id}`, JSON.stringify(newData));
       }
     } catch (error) {
       console.error('Error saving incidents analytics:', error);
+      // Save to localStorage as fallback
+      if (profile?.company_id) {
+        localStorage.setItem(`incidents_backup_${profile.company_id}`, JSON.stringify(newData));
+      }
     }
   };
   const handleCellEdit = (monthIndex: number, field: 'incidents' | 'accidents' | 'safeguarding' | 'resolved', value: number) => {

@@ -62,9 +62,32 @@ export const StaffTrainingAnalytics = ({ meetingDate, meetingId }: StaffTraining
           specialistCompliant: savedData.specialistCompliant || 0,
           specialistPending: savedData.specialistPending || 0
         });
+      } else {
+        // Try to load from localStorage backup
+        const backupKey = `training_backup_${profile.company_id}`;
+        const backupData = localStorage.getItem(backupKey);
+        if (backupData) {
+          try {
+            const backupTrainingData = JSON.parse(backupData);
+            setTrainingData(backupTrainingData);
+          } catch (error) {
+            console.error('Error loading backup data:', error);
+          }
+        }
       }
     } catch (error) {
       console.error('Error loading staff training analytics:', error);
+      // Try to load from localStorage backup
+      const backupKey = `training_backup_${profile.company_id}`;
+      const backupData = localStorage.getItem(backupKey);
+      if (backupData) {
+        try {
+          const backupTrainingData = JSON.parse(backupData);
+          setTrainingData(backupTrainingData);
+        } catch (error) {
+          console.error('Error loading backup data:', error);
+        }
+      }
     }
   };
 
@@ -76,16 +99,25 @@ export const StaffTrainingAnalytics = ({ meetingDate, meetingId }: StaffTraining
         .from('staff_training_analytics')
         .upsert({
           company_id: profile.company_id,
-          training_data: newData
+          training_data: newData,
+          updated_at: new Date().toISOString()
         }, {
           onConflict: 'company_id'
         });
 
       if (error) {
         console.error('Error saving staff training analytics:', error);
+        throw error;
+      } else {
+        // Save to localStorage as backup
+        localStorage.setItem(`training_backup_${profile.company_id}`, JSON.stringify(newData));
       }
     } catch (error) {
       console.error('Error saving staff training analytics:', error);
+      // Save to localStorage as fallback
+      if (profile?.company_id) {
+        localStorage.setItem(`training_backup_${profile.company_id}`, JSON.stringify(newData));
+      }
     }
   };
 

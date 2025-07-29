@@ -97,9 +97,48 @@ export const SpotCheckAnalytics = ({ monthlyStaffData = [], meetingDate, meeting
           
           setMonthlyData(mergedData);
         }
+      } else {
+        // Try to load from localStorage backup
+        const backupKey = `spot_check_backup_${profile.company_id}`;
+        const backupData = localStorage.getItem(backupKey);
+        if (backupData) {
+          try {
+            const backup = JSON.parse(backupData);
+            setMetrics(backup.metrics || { passedFrequency: 12, probationFrequency: 4 });
+            if (backup.monthly_data) {
+              const currentStructure = generateInitialData(meetingDate);
+              const mergedData = currentStructure.map(current => {
+                const existing = backup.monthly_data.find((item: any) => item.month === current.month);
+                return existing || current;
+              });
+              setMonthlyData(mergedData);
+            }
+          } catch (error) {
+            console.error('Error loading backup data:', error);
+          }
+        }
       }
     } catch (error) {
       console.error('Error in loadData:', error);
+      // Try to load from localStorage backup
+      const backupKey = `spot_check_backup_${profile.company_id}`;
+      const backupData = localStorage.getItem(backupKey);
+      if (backupData) {
+        try {
+          const backup = JSON.parse(backupData);
+          setMetrics(backup.metrics || { passedFrequency: 12, probationFrequency: 4 });
+          if (backup.monthly_data) {
+            const currentStructure = generateInitialData(meetingDate);
+            const mergedData = currentStructure.map(current => {
+              const existing = backup.monthly_data.find((item: any) => item.month === current.month);
+              return existing || current;
+            });
+            setMonthlyData(mergedData);
+          }
+        } catch (error) {
+          console.error('Error loading backup data:', error);
+        }
+      }
     }
   };
 
@@ -113,16 +152,33 @@ export const SpotCheckAnalytics = ({ monthlyStaffData = [], meetingDate, meeting
           company_id: profile.company_id,
           meeting_id: meetingId,
           metrics: newMetrics || metrics,
-          monthly_data: newMonthlyData || monthlyData
+          monthly_data: newMonthlyData || monthlyData,
+          updated_at: new Date().toISOString()
         }, {
           onConflict: 'company_id,meeting_id'
         });
 
       if (error) {
         console.error('Error saving spot check data:', error);
+        throw error;
+      } else {
+        // Save to localStorage as backup
+        const dataToBackup = {
+          metrics: newMetrics || metrics,
+          monthly_data: newMonthlyData || monthlyData
+        };
+        localStorage.setItem(`spot_check_backup_${profile.company_id}`, JSON.stringify(dataToBackup));
       }
     } catch (error) {
       console.error('Error in saveData:', error);
+      // Save to localStorage as fallback
+      if (profile?.company_id) {
+        const dataToBackup = {
+          metrics: newMetrics || metrics,
+          monthly_data: newMonthlyData || monthlyData
+        };
+        localStorage.setItem(`spot_check_backup_${profile.company_id}`, JSON.stringify(dataToBackup));
+      }
     }
   };
 

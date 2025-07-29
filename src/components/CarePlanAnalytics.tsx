@@ -106,9 +106,48 @@ export const CarePlanAnalytics = ({ meetingDate, meetingId }: CarePlanAnalyticsP
           
           setMonthlyData(mergedData);
         }
+      } else {
+        // Try to load from localStorage backup
+        const backupKey = `care_plan_backup_${profile.company_id}`;
+        const backupData = localStorage.getItem(backupKey);
+        if (backupData) {
+          try {
+            const backup = JSON.parse(backupData);
+            setFrequencies(backup.frequencies || { highFrequency: 12, mediumFrequency: 6, lowFrequency: 12 });
+            if (backup.monthly_data) {
+              const currentStructure = generateInitialData(meetingDate);
+              const mergedData = currentStructure.map(current => {
+                const existing = backup.monthly_data.find((item: any) => item.month === current.month);
+                return existing || current;
+              });
+              setMonthlyData(mergedData);
+            }
+          } catch (error) {
+            console.error('Error loading backup data:', error);
+          }
+        }
       }
     } catch (error) {
       console.error('Error loading care plan analytics:', error);
+      // Try to load from localStorage backup
+      const backupKey = `care_plan_backup_${profile.company_id}`;
+      const backupData = localStorage.getItem(backupKey);
+      if (backupData) {
+        try {
+          const backup = JSON.parse(backupData);
+          setFrequencies(backup.frequencies || { highFrequency: 12, mediumFrequency: 6, lowFrequency: 12 });
+          if (backup.monthly_data) {
+            const currentStructure = generateInitialData(meetingDate);
+            const mergedData = currentStructure.map(current => {
+              const existing = backup.monthly_data.find((item: any) => item.month === current.month);
+              return existing || current;
+            });
+            setMonthlyData(mergedData);
+          }
+        } catch (error) {
+          console.error('Error loading backup data:', error);
+        }
+      }
     }
   };
 
@@ -122,16 +161,33 @@ export const CarePlanAnalytics = ({ meetingDate, meetingId }: CarePlanAnalyticsP
           company_id: profile.company_id,
           meeting_id: meetingId,
           frequencies: newFrequencies || frequencies,
-          monthly_data: newMonthlyData || monthlyData
+          monthly_data: newMonthlyData || monthlyData,
+          updated_at: new Date().toISOString()
         }, {
           onConflict: 'company_id,meeting_id'
         });
 
       if (error) {
         console.error('Error saving care plan analytics:', error);
+        throw error;
+      } else {
+        // Save to localStorage as backup
+        const dataToBackup = {
+          frequencies: newFrequencies || frequencies,
+          monthly_data: newMonthlyData || monthlyData
+        };
+        localStorage.setItem(`care_plan_backup_${profile.company_id}`, JSON.stringify(dataToBackup));
       }
     } catch (error) {
       console.error('Error saving care plan analytics:', error);
+      // Save to localStorage as fallback
+      if (profile?.company_id) {
+        const dataToBackup = {
+          frequencies: newFrequencies || frequencies,
+          monthly_data: newMonthlyData || monthlyData
+        };
+        localStorage.setItem(`care_plan_backup_${profile.company_id}`, JSON.stringify(dataToBackup));
+      }
     }
   };
 
