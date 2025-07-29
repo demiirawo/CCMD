@@ -43,18 +43,22 @@ export const DashboardHeader = ({
   const EditableField = ({
     field,
     value,
-    label
+    label,
+    containerClass = "h-24",
+    textClass = "font-semibold"
   }: {
     field: string;
     value: string;
     label: string;
+    containerClass?: string;
+    textClass?: string;
   }) => (
-    <div className="p-4 rounded-lg border border-gray-100 h-24 bg-white">
+    <div className={`p-4 rounded-lg border border-gray-100 ${containerClass} bg-white`}>
       <h3 className="text-sm font-medium text-muted-foreground mb-2">{label}</h3>
       {editingField === field ? (
         <textarea
           defaultValue={value}
-          className="w-full h-12 p-2 text-lg font-semibold text-foreground bg-white border border-gray-300 rounded resize-none"
+          className={`w-full h-12 p-2 text-lg ${textClass} text-foreground bg-white border border-gray-300 rounded resize-none`}
           onBlur={e => handleFieldEdit(field, e.target.value)}
           onKeyDown={e => {
             if (e.key === "Enter" && !e.shiftKey) {
@@ -70,7 +74,7 @@ export const DashboardHeader = ({
       ) : (
         <button
           onClick={() => setEditingField(field)}
-          className="w-full text-left h-12 p-2 text-lg font-semibold text-foreground hover:bg-white hover:border-gray-400 transition-colors rounded"
+          className={`w-full text-left h-12 p-2 text-lg ${textClass} text-foreground hover:bg-white hover:border-gray-400 transition-colors rounded`}
         >
           {value}
         </button>
@@ -114,7 +118,7 @@ export const DashboardHeader = ({
               onChange={value => onDataChange?.("date", value)}
             />
           </div>
-          <EditableField field="purpose" value={purpose} label="Meeting Purpose" />
+          <EditableField field="purpose" value={purpose} label="Meeting Purpose" containerClass="min-h-24" textClass="" />
         </div>
       </div>
 
