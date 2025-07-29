@@ -18,28 +18,34 @@ interface StaffEntry {
 }
 
 const generateChartData = (entries: StaffEntry[]) => {
-  const months = [];
+  const weeks = [];
   const currentDate = new Date();
   
   for (let i = 11; i >= 0; i--) {
-    const date = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1);
-    const monthName = date.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
+    // Calculate week start (Monday) and end (Sunday)
+    const weekStart = new Date(currentDate);
+    weekStart.setDate(currentDate.getDate() - (currentDate.getDay() === 0 ? 6 : currentDate.getDay() - 1) - (i * 7));
+    weekStart.setHours(0, 0, 0, 0);
     
-    // Find the most recent entry for this month
-    const monthStart = new Date(date.getFullYear(), date.getMonth(), 1);
-    const monthEnd = new Date(date.getFullYear(), date.getMonth() + 1, 0, 23, 59, 59);
+    const weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekStart.getDate() + 6);
+    weekEnd.setHours(23, 59, 59, 999);
     
-    const monthEntries = entries.filter(entry => {
+    // Format week label (e.g., "Dec 4" or "Jan 15")
+    const weekLabel = weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    
+    // Find the most recent entry for this week
+    const weekEntries = entries.filter(entry => {
       const entryDate = new Date(entry.timestamp);
-      return entryDate >= monthStart && entryDate <= monthEnd;
+      return entryDate >= weekStart && entryDate <= weekEnd;
     });
     
-    const latestEntry = monthEntries.length > 0 
-      ? monthEntries.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())[0]
+    const latestEntry = weekEntries.length > 0 
+      ? weekEntries.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())[0]
       : null;
     
-    months.push({
-      month: monthName,
+    weeks.push({
+      month: weekLabel, // Keep the same property name for chart compatibility
       onboardingStaff: latestEntry?.onboardingStaff || 0,
       probationStaff: latestEntry?.probationStaff || 0,
       currentStaff: latestEntry?.currentStaff || 0,
@@ -47,7 +53,7 @@ const generateChartData = (entries: StaffEntry[]) => {
     });
   }
   
-  return months;
+  return weeks;
 };
 
 const chartConfig = {
@@ -126,12 +132,12 @@ export const CapacityAnalytics = ({ onMonthlyStaffDataChange, meetingDate, meeti
 
       if (data?.data_content && typeof data.data_content === 'object' && 'entries' in data.data_content) {
         const loadedEntries = (data.data_content as any).entries as StaffEntry[];
-        // Filter to only show entries from the last 12 months
-        const twelveMonthsAgo = new Date();
-        twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 12);
+        // Filter to only show entries from the last 12 weeks
+        const twelveWeeksAgo = new Date();
+        twelveWeeksAgo.setDate(twelveWeeksAgo.getDate() - (12 * 7));
         
         const recentEntries = loadedEntries.filter(entry => 
-          new Date(entry.timestamp) >= twelveMonthsAgo
+          new Date(entry.timestamp) >= twelveWeeksAgo
         );
         
         setEntries(recentEntries);
@@ -186,12 +192,12 @@ export const CapacityAnalytics = ({ onMonthlyStaffDataChange, meetingDate, meeti
 
     const updatedEntries = [...entries, newEntry];
     
-    // Keep only entries from the last 12 months
-    const twelveMonthsAgo = new Date();
-    twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 12);
+    // Keep only entries from the last 12 weeks
+    const twelveWeeksAgo = new Date();
+    twelveWeeksAgo.setDate(twelveWeeksAgo.getDate() - (12 * 7));
     
     const filteredEntries = updatedEntries.filter(entry => 
-      new Date(entry.timestamp) >= twelveMonthsAgo
+      new Date(entry.timestamp) >= twelveWeeksAgo
     );
 
     setEntries(filteredEntries);
@@ -220,7 +226,7 @@ export const CapacityAnalytics = ({ onMonthlyStaffDataChange, meetingDate, meeti
       </div>
       
       <div className="text-sm text-muted-foreground">
-        Track your staffing levels over time. Enter current numbers and they'll be timestamped and added to your chart (Last 12 Months)
+        Track your staffing levels over time. Enter current numbers and they'll be timestamped and added to your chart (Last 12 Weeks)
       </div>
 
       {/* Current Values Display */}
