@@ -234,7 +234,7 @@ export const Reports = () => {
 
                     {/* Quarter Meetings */}
                     <Card>
-                      <CardContent className="pt-6">
+                      <CardContent className="pt-6 bg-primary/5">
                         <div className="space-y-3">
                           {quarterMeetings.map((meeting) => (
                             <div key={meeting.id} className="bg-gray-50 rounded-lg p-4 border">
