@@ -165,17 +165,17 @@ export const StaffTrainingAnalytics = ({
         <Card className="p-6">
           <h5 className="text-md font-medium mb-4 text-foreground">Staff By Recruitment Stage</h5>
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
+            <div className="grid grid-cols-2 gap-4">
               <span className="text-sm font-medium">Onboarding:</span>
-              <span className="text-lg font-semibold text-primary">{staffData.onboarding}</span>
+              <span className="text-lg font-semibold text-primary text-right">{staffData.onboarding}</span>
             </div>
-            <div className="flex items-center justify-between">
+            <div className="grid grid-cols-2 gap-4">
               <span className="text-sm font-medium">On Probation:</span>
-              <span className="text-lg font-semibold text-primary">{staffData.onProbation}</span>
+              <span className="text-lg font-semibold text-primary text-right">{staffData.onProbation}</span>
             </div>
-            <div className="flex items-center justify-between">
+            <div className="grid grid-cols-2 gap-4">
               <span className="text-sm font-medium">Passed Probation:</span>
-              <span className="text-lg font-semibold text-primary">{staffData.active}</span>
+              <span className="text-lg font-semibold text-primary text-right">{staffData.active}</span>
             </div>
           </div>
         </Card>
@@ -184,38 +184,38 @@ export const StaffTrainingAnalytics = ({
         <Card className="p-6">
           <h5 className="text-md font-medium mb-4 text-foreground">Staff Who Are Compliant</h5>
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="onboarding-compliant" className="text-sm font-medium flex-1">Onboarding:</Label>
+            <div className="grid grid-cols-2 gap-4 items-center">
+              <Label htmlFor="onboarding-compliant" className="text-sm font-medium">Onboarding:</Label>
               <Input 
                 id="onboarding-compliant" 
                 type="number" 
                 value={complianceData.onboardingCompliant} 
                 onChange={e => handleComplianceChange('onboardingCompliant', parseInt(e.target.value) || 0)} 
-                className="w-20 h-8 text-center" 
+                className="w-20 h-8 text-center justify-self-end" 
                 min="0" 
                 max={staffData.onboarding} 
               />
             </div>
-            <div className="flex items-center justify-between">
-              <Label htmlFor="probation-compliant" className="text-sm font-medium flex-1">On Probation:</Label>
+            <div className="grid grid-cols-2 gap-4 items-center">
+              <Label htmlFor="probation-compliant" className="text-sm font-medium">On Probation:</Label>
               <Input 
                 id="probation-compliant" 
                 type="number" 
                 value={complianceData.onProbationCompliant} 
                 onChange={e => handleComplianceChange('onProbationCompliant', parseInt(e.target.value) || 0)} 
-                className="w-20 h-8 text-center" 
+                className="w-20 h-8 text-center justify-self-end" 
                 min="0" 
                 max={staffData.onProbation} 
               />
             </div>
-            <div className="flex items-center justify-between">
-              <Label htmlFor="active-compliant" className="text-sm font-medium flex-1">Passed Probation:</Label>
+            <div className="grid grid-cols-2 gap-4 items-center">
+              <Label htmlFor="active-compliant" className="text-sm font-medium">Passed Probation:</Label>
               <Input 
                 id="active-compliant" 
                 type="number" 
                 value={complianceData.activeCompliant} 
                 onChange={e => handleComplianceChange('activeCompliant', parseInt(e.target.value) || 0)} 
-                className="w-20 h-8 text-center" 
+                className="w-20 h-8 text-center justify-self-end" 
                 min="0" 
                 max={staffData.active} 
               />
@@ -227,21 +227,21 @@ export const StaffTrainingAnalytics = ({
         <Card className="p-6">
           <h5 className="text-md font-medium mb-4 text-foreground">Compliance % By Stage</h5>
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
+            <div className="grid grid-cols-2 gap-4">
               <span className="text-sm font-medium">Onboarding:</span>
-              <span className="text-lg font-semibold text-blue-600">
+              <span className="text-lg font-semibold text-blue-600 text-right">
                 {getCompliancePercentage(complianceData.onboardingCompliant, staffData.onboarding)}%
               </span>
             </div>
-            <div className="flex items-center justify-between">
+            <div className="grid grid-cols-2 gap-4">
               <span className="text-sm font-medium">On Probation:</span>
-              <span className="text-lg font-semibold text-yellow-600">
+              <span className="text-lg font-semibold text-yellow-600 text-right">
                 {getCompliancePercentage(complianceData.onProbationCompliant, staffData.onProbation)}%
               </span>
             </div>
-            <div className="flex items-center justify-between">
+            <div className="grid grid-cols-2 gap-4">
               <span className="text-sm font-medium">Passed Probation:</span>
-              <span className="text-lg font-semibold text-green-600">
+              <span className="text-lg font-semibold text-green-600 text-right">
                 {getCompliancePercentage(complianceData.activeCompliant, staffData.active)}%
               </span>
             </div>
