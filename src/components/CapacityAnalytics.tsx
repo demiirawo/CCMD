@@ -93,6 +93,19 @@ export const CapacityAnalytics = ({ onMonthlyStaffDataChange, meetingDate, meeti
     idealStaff: 0
   });
 
+  // Update input defaults when entries change
+  useEffect(() => {
+    const latest = getLatestEntry();
+    if (latest) {
+      setCurrentInput({
+        onboardingStaff: latest.onboardingStaff,
+        probationStaff: latest.probationStaff,
+        currentStaff: latest.currentStaff,
+        idealStaff: latest.idealStaff
+      });
+    }
+  }, [entries]);
+
   useEffect(() => {
     if (profile?.company_id) {
       loadData();
@@ -203,13 +216,7 @@ export const CapacityAnalytics = ({ onMonthlyStaffDataChange, meetingDate, meeti
     setEntries(filteredEntries);
     saveData(filteredEntries);
     
-    // Reset form
-    setCurrentInput({
-      onboardingStaff: 0,
-      probationStaff: 0,
-      currentStaff: 0,
-      idealStaff: 0
-    });
+    // Keep the current values as defaults for next entry (they'll update via useEffect)
   };
 
   const getLatestEntry = () => {
