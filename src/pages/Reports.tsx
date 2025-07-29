@@ -250,9 +250,9 @@ export const Reports = () => {
                                               <p className="text-sm text-gray-600">{meeting.attendees.length} people</p>
                                             </div>
                                           </div>
-                                          {meeting.purpose && <div className="md:col-span-2 flex items-start gap-2">
+                                          {meeting.purpose && <div className="col-span-full flex items-start gap-2">
                                               <Target className="h-5 w-5 text-gray-500 mt-0.5" />
-                                              <div>
+                                              <div className="flex-1">
                                                 <p className="text-sm font-medium">Purpose</p>
                                                 <p className="text-sm text-gray-600">{meeting.purpose}</p>
                                               </div>
