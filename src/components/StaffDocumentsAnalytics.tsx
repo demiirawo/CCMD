@@ -142,7 +142,13 @@ export const StaffDocumentsAnalytics = ({
   const totalCompliant = complianceData.onboardingCompliant + complianceData.onProbationCompliant + complianceData.activeCompliant;
   const totalStaff = staffData.onboarding + staffData.onProbation + staffData.active;
   const getCompliancePercentage = (compliant: number, total: number) => {
-    return total > 0 ? Math.round(compliant / total * 100) : 0;
+    return total > 0 ? Math.round((compliant / total) * 100) : 0;
+  };
+
+  const getComplianceColor = (percentage: number) => {
+    if (percentage >= 98) return "text-green-600"; // Green: 98-100%
+    if (percentage >= 89) return "text-amber-600"; // Amber: 89-97%
+    return "text-red-600"; // Red: Below 89%
   };
   return <div className="space-y-6 mt-4 p-6 border border-border rounded-lg bg-stone-50">
       <div className="grid grid-cols-4 gap-4">
@@ -166,7 +172,7 @@ export const StaffDocumentsAnalytics = ({
             max={staffData.onboarding} 
           />
         </div>
-        <div className="text-lg text-blue-600 text-center">
+        <div className={`text-lg text-center ${getComplianceColor(getCompliancePercentage(complianceData.onboardingCompliant, staffData.onboarding))}`}>
           {getCompliancePercentage(complianceData.onboardingCompliant, staffData.onboarding)}%
         </div>
         
@@ -184,7 +190,7 @@ export const StaffDocumentsAnalytics = ({
             max={staffData.onProbation} 
           />
         </div>
-        <div className="text-lg text-yellow-600 text-center">
+        <div className={`text-lg text-center ${getComplianceColor(getCompliancePercentage(complianceData.onProbationCompliant, staffData.onProbation))}`}>
           {getCompliancePercentage(complianceData.onProbationCompliant, staffData.onProbation)}%
         </div>
         
@@ -202,7 +208,7 @@ export const StaffDocumentsAnalytics = ({
             max={staffData.active} 
           />
         </div>
-        <div className="text-lg text-green-600 text-center">
+        <div className={`text-lg text-center ${getComplianceColor(getCompliancePercentage(complianceData.activeCompliant, staffData.active))}`}>
           {getCompliancePercentage(complianceData.activeCompliant, staffData.active)}%
         </div>
       </div>
