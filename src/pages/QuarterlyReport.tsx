@@ -217,13 +217,45 @@ export const QuarterlyReport = () => {
 
     setIsExporting(true);
     try {
-      // Fetch logo if available
+      // Fetch logo if available and get its dimensions
       let logoImage = null;
+      let logoWidth = 150;
+      let logoHeight = 75;
+      
       if (companyInfo?.logo_url) {
         try {
           const response = await fetch(companyInfo.logo_url);
           const arrayBuffer = await response.arrayBuffer();
           logoImage = arrayBuffer;
+          
+          // Create a temporary image to get natural dimensions
+          const blob = new Blob([arrayBuffer]);
+          const imageUrl = URL.createObjectURL(blob);
+          const img = new Image();
+          
+          await new Promise((resolve, reject) => {
+            img.onload = () => {
+              // Calculate dimensions while maintaining aspect ratio
+              const maxWidth = 200;
+              const maxHeight = 100;
+              const aspectRatio = img.naturalWidth / img.naturalHeight;
+              
+              if (aspectRatio > maxWidth / maxHeight) {
+                // Logo is wider - constrain by width
+                logoWidth = maxWidth;
+                logoHeight = maxWidth / aspectRatio;
+              } else {
+                // Logo is taller - constrain by height
+                logoHeight = maxHeight;
+                logoWidth = maxHeight * aspectRatio;
+              }
+              
+              URL.revokeObjectURL(imageUrl);
+              resolve(null);
+            };
+            img.onerror = reject;
+            img.src = imageUrl;
+          });
         } catch (error) {
           console.warn('Could not fetch logo for Word export:', error);
         }
@@ -241,8 +273,8 @@ export const QuarterlyReport = () => {
                 data: logoImage,
                 type: 'png',
                 transformation: {
-                  width: 150,
-                  height: 75,
+                  width: Math.round(logoWidth),
+                  height: Math.round(logoHeight),
                 },
               }),
             ],
