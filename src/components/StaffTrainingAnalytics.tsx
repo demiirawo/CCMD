@@ -185,7 +185,7 @@ export const StaffTrainingAnalytics = ({
           <h5 className="text-md font-medium mb-4 text-foreground">Staff Who Are Compliant</h5>
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <Label htmlFor="onboarding-compliant" className="text-sm font-medium">Onboarding:</Label>
+              <Label htmlFor="onboarding-compliant" className="text-sm font-medium flex-1">Onboarding:</Label>
               <Input 
                 id="onboarding-compliant" 
                 type="number" 
@@ -197,7 +197,7 @@ export const StaffTrainingAnalytics = ({
               />
             </div>
             <div className="flex items-center justify-between">
-              <Label htmlFor="probation-compliant" className="text-sm font-medium">On Probation:</Label>
+              <Label htmlFor="probation-compliant" className="text-sm font-medium flex-1">On Probation:</Label>
               <Input 
                 id="probation-compliant" 
                 type="number" 
@@ -209,7 +209,7 @@ export const StaffTrainingAnalytics = ({
               />
             </div>
             <div className="flex items-center justify-between">
-              <Label htmlFor="active-compliant" className="text-sm font-medium">Passed Probation:</Label>
+              <Label htmlFor="active-compliant" className="text-sm font-medium flex-1">Passed Probation:</Label>
               <Input 
                 id="active-compliant" 
                 type="number" 
