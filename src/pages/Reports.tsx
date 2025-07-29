@@ -162,10 +162,7 @@ export const Reports = () => {
   }
   return <div className="min-h-screen bg-gray-100 p-4 lg:p-8">
       <div className="max-w-7xl mx-auto space-y-6">
-        <div className="bg-white p-6 rounded-xl shadow-sm">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Meeting Reports</h1>
-          <p className="text-gray-600">View and manage saved meeting iterations grouped by quarter</p>
-        </div>
+        
 
         {Object.keys(groupedMeetings).length === 0 ? <Card>
             <CardContent className="py-8 text-center">
