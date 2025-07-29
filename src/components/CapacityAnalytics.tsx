@@ -22,10 +22,14 @@ const generateChartData = (entries: StaffEntry[], meetingDate?: Date) => {
   const referenceDate = meetingDate || new Date();
   
   for (let i = 11; i >= 0; i--) {
-    // Calculate week start (Monday) and end (Sunday)
-    const weekStart = new Date(referenceDate);
-    weekStart.setDate(referenceDate.getDate() - (referenceDate.getDay() === 0 ? 6 : referenceDate.getDay() - 1) - (i * 7));
-    weekStart.setHours(0, 0, 0, 0);
+    // Calculate week start (Monday) and end (Sunday) for the meeting date's week
+    const meetingWeekStart = new Date(referenceDate);
+    meetingWeekStart.setDate(referenceDate.getDate() - (referenceDate.getDay() === 0 ? 6 : referenceDate.getDay() - 1));
+    meetingWeekStart.setHours(0, 0, 0, 0);
+    
+    // Calculate the week start for the current iteration (going backwards from meeting week)
+    const weekStart = new Date(meetingWeekStart);
+    weekStart.setDate(meetingWeekStart.getDate() - (i * 7));
     
     const weekEnd = new Date(weekStart);
     weekEnd.setDate(weekStart.getDate() + 6);
