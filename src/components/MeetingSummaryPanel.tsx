@@ -22,7 +22,6 @@ export const MeetingSummaryPanel = ({ purpose, onPurposeChange }: MeetingSummary
         <CardHeader className="pb-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <FileText className="w-5 h-5 text-primary" />
               <CardTitle className="text-lg">Meeting Summary</CardTitle>
             </div>
             <AISummaryButton onSummaryGenerated={(summary) => onPurposeChange?.(summary)} />
