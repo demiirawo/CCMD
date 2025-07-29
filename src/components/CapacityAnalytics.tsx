@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -126,19 +126,57 @@ export const CapacityAnalytics = ({ onMonthlyStaffDataChange, meetingDate, meeti
     currentStaff: 0,
     idealStaff: 0
   });
+  const [hasUnsavedDraft, setHasUnsavedDraft] = useState(false);
 
-  // Update input defaults when entries change
+  // Load draft input from localStorage on mount
   useEffect(() => {
-    const latest = getLatestEntry();
-    if (latest) {
-      setCurrentInput({
-        onboardingStaff: latest.onboardingStaff,
-        probationStaff: latest.probationStaff,
-        currentStaff: latest.currentStaff,
-        idealStaff: latest.idealStaff
-      });
+    if (profile?.company_id && meetingId) {
+      const draftKey = `resourcing_draft_${profile.company_id}_${meetingId}`;
+      const savedDraft = localStorage.getItem(draftKey);
+      if (savedDraft) {
+        try {
+          const draft = JSON.parse(savedDraft);
+          setCurrentInput(draft);
+          setHasUnsavedDraft(true);
+        } catch (error) {
+          console.error('Error loading draft:', error);
+        }
+      }
     }
-  }, [entries]);
+  }, [profile?.company_id, meetingId]);
+
+  // Save draft to localStorage whenever input changes
+  const saveDraft = useCallback((inputData: typeof currentInput) => {
+    if (profile?.company_id && meetingId) {
+      const draftKey = `resourcing_draft_${profile.company_id}_${meetingId}`;
+      localStorage.setItem(draftKey, JSON.stringify(inputData));
+      setHasUnsavedDraft(true);
+    }
+  }, [profile?.company_id, meetingId]);
+
+  // Clear draft from localStorage
+  const clearDraft = useCallback(() => {
+    if (profile?.company_id && meetingId) {
+      const draftKey = `resourcing_draft_${profile.company_id}_${meetingId}`;
+      localStorage.removeItem(draftKey);
+      setHasUnsavedDraft(false);
+    }
+  }, [profile?.company_id, meetingId]);
+
+  // Update input defaults when entries change (only if no draft exists)
+  useEffect(() => {
+    if (!hasUnsavedDraft) {
+      const latest = getLatestEntry();
+      if (latest) {
+        setCurrentInput({
+          onboardingStaff: latest.onboardingStaff,
+          probationStaff: latest.probationStaff,
+          currentStaff: latest.currentStaff,
+          idealStaff: latest.idealStaff
+        });
+      }
+    }
+  }, [entries, hasUnsavedDraft]);
 
   useEffect(() => {
     if (profile?.company_id) {
@@ -224,10 +262,12 @@ export const CapacityAnalytics = ({ onMonthlyStaffDataChange, meetingDate, meeti
   };
 
   const handleInputChange = (field: keyof typeof currentInput, value: string) => {
-    setCurrentInput(prev => ({
-      ...prev,
+    const newInput = {
+      ...currentInput,
       [field]: parseInt(value) || 0
-    }));
+    };
+    setCurrentInput(newInput);
+    saveDraft(newInput);
   };
 
   const handleSubmit = () => {
@@ -256,6 +296,7 @@ export const CapacityAnalytics = ({ onMonthlyStaffDataChange, meetingDate, meeti
 
     setEntries(filteredEntries);
     saveData(filteredEntries);
+    clearDraft(); // Clear the draft after successful submission
     
     // Keep the current values as defaults for next entry (they'll update via useEffect)
   };
@@ -306,7 +347,15 @@ export const CapacityAnalytics = ({ onMonthlyStaffDataChange, meetingDate, meeti
       
       {/* Input Form */}
       <Card className="p-4">
-        <div className="text-sm font-medium text-foreground mb-4">Add New Entry</div>
+        <div className="flex items-center justify-between mb-4">
+          <div className="text-sm font-medium text-foreground">Add New Entry</div>
+          {hasUnsavedDraft && (
+            <div className="flex items-center gap-2 text-xs text-amber-600">
+              <div className="w-2 h-2 bg-amber-500 rounded-full"></div>
+              Unsaved draft
+            </div>
+          )}
+        </div>
         <div className="grid grid-cols-4 gap-4 mb-4">
           <div>
             <label className="text-xs text-muted-foreground mb-1 block">Onboarding Staff</label>
