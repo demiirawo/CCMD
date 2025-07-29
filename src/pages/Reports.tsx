@@ -296,7 +296,7 @@ export const Reports = () => {
                                                     <div className="flex items-center gap-1">
                                                       {Object.entries(statusCounts).map(([status, count]) => <div key={status} className="flex items-center gap-1">
                                                           <StatusBadge status={status as any} />
-                                                          <span className="text-sm text-gray-600">{count}</span>
+                                                          
                                                         </div>)}
                                                     </div>
                                                   </div>
