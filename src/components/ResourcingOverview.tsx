@@ -127,15 +127,15 @@ export const ResourcingOverview = ({
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <Label htmlFor="onboarding" className="text-sm font-medium">Onboarding:</Label>
-              <Input id="onboarding" type="number" value={data.onboarding === 0 ? '' : data.onboarding} onChange={e => handleInputChange('onboarding', e.target.value)} onFocus={e => e.target.select()} min="0" className="w-20 h-8 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none bg-stone-50" />
+              <Input id="onboarding" type="number" value={data.onboarding} onChange={e => handleInputChange('onboarding', e.target.value)} onFocus={e => e.target.select()} min="0" className="w-20 h-8 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none bg-stone-50" />
             </div>
             <div className="flex items-center justify-between">
               <Label htmlFor="on-probation" className="text-sm font-medium">On Probation:</Label>
-              <Input id="on-probation" type="number" value={data.onProbation === 0 ? '' : data.onProbation} onChange={e => handleInputChange('onProbation', e.target.value)} onFocus={e => e.target.select()} min="0" className="w-20 h-8 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none bg-stone-50" />
+              <Input id="on-probation" type="number" value={data.onProbation} onChange={e => handleInputChange('onProbation', e.target.value)} onFocus={e => e.target.select()} min="0" className="w-20 h-8 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none bg-stone-50" />
             </div>
             <div className="flex items-center justify-between">
               <Label htmlFor="active" className="text-sm font-medium">Passed Probation:</Label>
-              <Input id="active" type="number" value={data.active === 0 ? '' : data.active} onChange={e => handleInputChange('active', e.target.value)} onFocus={e => e.target.select()} min="0" className="w-20 h-8 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none bg-stone-50" />
+              <Input id="active" type="number" value={data.active} onChange={e => handleInputChange('active', e.target.value)} onFocus={e => e.target.select()} min="0" className="w-20 h-8 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none bg-stone-50" />
             </div>
             
           </div>
