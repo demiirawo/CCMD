@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { Palette, Building, Image, Upload, X } from "lucide-react";
+import { TeamMembersManager } from "@/components/TeamMembersManager";
 
 // Helper function to convert hex to HSL
 const hexToHsl = (hex: string): string => {
@@ -245,7 +246,7 @@ export const Settings = () => {
         </div>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-3">
+      <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3">
         {/* Theme Color Selection */}
         <Card>
           <CardHeader className="bg-stone-50">
@@ -318,6 +319,11 @@ export const Settings = () => {
 
           </CardContent>
         </Card>
+      </div>
+
+      {/* Office Team Management */}
+      <div className="mt-6">
+        <TeamMembersManager companyId={currentCompany.id} />
       </div>
 
       {/* Save Button */}

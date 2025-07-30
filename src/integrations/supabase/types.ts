@@ -457,6 +457,7 @@ export type Database = {
           company_id: string | null
           created_at: string
           id: string
+          permission: Database["public"]["Enums"]["user_permission"]
           role: Database["public"]["Enums"]["user_role"]
           updated_at: string
           user_id: string
@@ -466,6 +467,7 @@ export type Database = {
           company_id?: string | null
           created_at?: string
           id?: string
+          permission?: Database["public"]["Enums"]["user_permission"]
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string
           user_id: string
@@ -475,6 +477,7 @@ export type Database = {
           company_id?: string | null
           created_at?: string
           id?: string
+          permission?: Database["public"]["Enums"]["user_permission"]
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string
           user_id?: string
@@ -676,11 +679,55 @@ export type Database = {
         }
         Relationships: []
       }
+      team_members: {
+        Row: {
+          company_id: string
+          created_at: string
+          email: string | null
+          id: string
+          name: string
+          permission: Database["public"]["Enums"]["user_permission"]
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          name: string
+          permission?: Database["public"]["Enums"]["user_permission"]
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string
+          permission?: Database["public"]["Enums"]["user_permission"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_team_members_company"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      check_user_permission: {
+        Args: {
+          required_permission: Database["public"]["Enums"]["user_permission"]
+        }
+        Returns: boolean
+      }
       get_user_company_id: {
         Args: Record<PropertyKey, never>
         Returns: string
@@ -691,6 +738,7 @@ export type Database = {
       }
     }
     Enums: {
+      user_permission: "read" | "edit" | "company_admin"
       user_role: "admin" | "user"
     }
     CompositeTypes: {
@@ -819,6 +867,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      user_permission: ["read", "edit", "company_admin"],
       user_role: ["admin", "user"],
     },
   },
