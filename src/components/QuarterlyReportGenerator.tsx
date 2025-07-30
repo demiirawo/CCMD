@@ -144,30 +144,53 @@ export const QuarterlyReportGenerator: React.FC<QuarterlyReportGeneratorProps> =
       return {};
     }
   };
+  const getPreviousQuarter = (currentQuarter: string, currentYear: string) => {
+    const quarterMap = { 'Q1': 'Q4', 'Q2': 'Q1', 'Q3': 'Q2', 'Q4': 'Q3' };
+    const prevQuarter = quarterMap[currentQuarter as keyof typeof quarterMap];
+    const prevYear = currentQuarter === 'Q1' ? (parseInt(currentYear) - 1).toString() : currentYear;
+    return { quarter: prevQuarter, year: prevYear };
+  };
+
   const getAnalyticsDataForReport = async () => {
     if (!profile?.company_id) return {};
     try {
       console.log('🔍 Starting analytics data collection for company:', profile.company_id);
+
+      // Get current and previous quarter data for comparison
+      const { quarter: prevQuarter, year: prevYear } = getPreviousQuarter(quarter, year);
+      console.log(`📊 Comparing ${quarter} ${year} with ${prevQuarter} ${prevYear}`);
 
       // Get the latest meeting to determine which analytics to include
       const latestMeeting = meetings.length > 0 ? meetings[0] : null;
       const meetingId = latestMeeting?.id;
       console.log('📊 Latest meeting ID:', meetingId);
       console.log('📋 Available meetings:', meetings.length);
+
+      // First, try to get current quarter analytics data
+      const {
+        data: currentAnalytics,
+        error: currentError
+      } = await supabase.from('dashboard_data').select('data_type, data_content, meeting_id').eq('company_id', profile.company_id);
+      
+      // Get previous quarter data from quarterly_reports table for comparison
+      const {
+        data: previousReports,
+        error: prevError
+      } = await supabase.from('quarterly_reports').select('analytics_data').eq('company_id', profile.company_id).eq('quarter', prevQuarter).eq('year', parseInt(prevYear));
+
+      console.log('📈 Current analytics data found:', currentAnalytics?.length || 0);
+      console.log('📈 Previous quarter reports found:', previousReports?.length || 0);
+      
+      if (currentError) {
+        console.error('❌ Error fetching current analytics:', currentError);
+      }
+      if (prevError) {
+        console.error('❌ Error fetching previous analytics:', prevError);
+      }
+
       const analyticsData: {
         [key: string]: any;
       } = {};
-
-      // First, try to get any analytics data regardless of meeting_id
-      const {
-        data: allAnalytics,
-        error: allError
-      } = await supabase.from('dashboard_data').select('data_type, data_content, meeting_id').eq('company_id', profile.company_id);
-      console.log('📈 All analytics data found:', allAnalytics?.length || 0);
-      console.log('📈 Analytics data:', allAnalytics);
-      if (allError) {
-        console.error('❌ Error fetching analytics:', allError);
-      }
 
       // Define analytics types to check based on meeting sections
       const analyticsTypes = [{
@@ -200,6 +223,9 @@ export const QuarterlyReportGenerator: React.FC<QuarterlyReportGeneratorProps> =
         dataTypes: ['care_plan_overview', 'care_plan_analytics']
       }];
 
+      // Get previous quarter analytics data for comparison
+      const previousAnalyticsData = previousReports?.[0]?.analytics_data || {};
+
       // Get analytics data for each type
       for (const {
         key,
@@ -208,14 +234,21 @@ export const QuarterlyReportGenerator: React.FC<QuarterlyReportGeneratorProps> =
       } of analyticsTypes) {
         for (const dataType of dataTypes) {
           try {
-            const matchingData = allAnalytics?.find(item => item.data_type === dataType);
+            const matchingData = currentAnalytics?.find(item => item.data_type === dataType);
             if (matchingData?.data_content && Object.keys(matchingData.data_content).length > 0) {
               console.log(`✅ Found ${title} data:`, matchingData.data_content);
+              
+              // Include previous quarter data for comparison if available
+              const previousData = previousAnalyticsData[key]?.data || null;
+              
               analyticsData[key] = {
                 title,
                 data: matchingData.data_content,
+                previousData: previousData,
                 hasData: true,
-                meetingId: matchingData.meeting_id
+                hasPreviousData: !!previousData,
+                meetingId: matchingData.meeting_id,
+                comparisonPeriod: `${prevQuarter} ${prevYear}`
               };
               break; // Use the first matching data type
             }
@@ -224,7 +257,8 @@ export const QuarterlyReportGenerator: React.FC<QuarterlyReportGeneratorProps> =
           }
         }
       }
-      console.log('📊 Final analytics data for report:', analyticsData);
+      
+      console.log('📊 Final analytics data for report with comparisons:', analyticsData);
       return analyticsData;
     } catch (error) {
       console.error('❌ Error collecting analytics data for report:', error);
@@ -293,6 +327,7 @@ export const QuarterlyReportGenerator: React.FC<QuarterlyReportGeneratorProps> =
         keyMetrics: extractKeyMetrics(analyticsData, meetings),
         availableAnalytics: Object.keys(reportAnalytics)
       };
+      const { quarter: prevQuarter, year: prevYear } = getPreviousQuarter(quarter, year);
       const systemPrompt = `You are an expert care agency analyst writing a professional quarterly report in British English. Your task is to generate a comprehensive, detailed quarterly report that reads like a professional business document - NOT a markdown document.
 
 CRITICAL FORMATTING REQUIREMENTS:
@@ -306,47 +341,64 @@ CRITICAL FORMATTING REQUIREMENTS:
 - Provide detailed interpretations and insights, not just data summaries
 - Use the actual company name "${companyName}" throughout the report instead of generic terms like "the agency"
 
+CONFIDENTIALITY AND ANONYMITY REQUIREMENTS:
+- NEVER mention individual staff names, service user names, or personal identifiers
+- Refer to staff collectively as "team members", "care staff", "management team", or similar
+- Use organisational-level language (e.g., "the workforce", "staffing levels", "team performance")
+- When discussing incidents or feedback, refer to them in aggregate terms without personal details
+- Focus on trends, patterns, and collective outcomes rather than individual cases
+
+COMPARATIVE ANALYSIS REQUIREMENTS:
+- Include quarter-to-quarter comparison analysis where previous data is available (comparing ${quarter} ${year} with ${prevQuarter} ${prevYear})
+- Identify trends, improvements, and areas of decline between quarters
+- Calculate percentage changes and growth rates where applicable
+- Highlight significant changes in performance metrics
+- Discuss whether changes represent improvements or areas needing attention
+- Use comparative language such as "increased by", "decreased from", "improved compared to", "declined since"
+
 ANALYTICS DATA INTEGRATION:
 You have access to analytics data for the following areas where available: ${Object.keys(reportAnalytics).join(', ')}
 - Include contextual references to analytics data in relevant sections
 - Use the format: [ANALYTICS DATA: {type}] where {type} is one of the available analytics (e.g., [ANALYTICS DATA: staffTraining])
 - Only include analytics references where they add meaningful context to the narrative
 - Provide data-driven insights based on the available analytics
+- When previous quarter data is available, include comparative analysis between current and previous periods
 
 CONTENT REQUIREMENTS:
 - Each section should demonstrate deep analysis of trends, patterns, and implications
-- Include comparative analysis (month-to-month, quarter-to-quarter where possible)
-- Provide specific examples and case studies from the meeting data
+- Include comprehensive quarter-to-quarter comparative analysis where data permits
+- Provide specific examples and case studies from the meeting data (without naming individuals)
 - Draw connections between different data points and metrics
 - Offer strategic insights and forward-looking observations
+- Highlight areas of improvement and decline since the previous quarter
 
 REPORT STRUCTURE (you MUST use these exact headings and include all sections):
 
 ${companyName} Quarterly Report - ${quarter} ${year}
 
 1. Executive Summary
-Write a comprehensive 200-300 word executive summary that captures the quarter's key achievements, challenges, and strategic outlook for ${companyName}.
+Write a comprehensive 200-300 word executive summary that captures the quarter's key achievements, challenges, strategic outlook, and significant changes since ${prevQuarter} ${prevYear} for ${companyName}.
 
 2. Successes and Achievements
-Analyze positive outcomes, achievements, and improvements for ${companyName}. Include detailed discussion of performance metrics, successful initiatives, compliance achievements, and operational excellence examples. Include relevant analytics data to support your analysis.
+Analyze positive outcomes, achievements, and improvements for ${companyName}. Include detailed discussion of performance metrics, successful initiatives, compliance achievements, and operational excellence examples. Compare performance with ${prevQuarter} ${prevYear} where data is available.
 
 3. Learning Opportunities and Challenges
-Examine areas for improvement, incidents, challenges faced, and lessons learned by ${companyName}. Provide detailed analysis of root causes and impacts on operations. Use analytics data to illustrate trends where appropriate.
+Examine areas for improvement, incidents, challenges faced, and lessons learned by ${companyName}. Provide detailed analysis of root causes and impacts on operations. Compare incident patterns and challenge areas with the previous quarter.
 
 4. Workforce Development and Capacity
-Detailed analysis of ${companyName}'s staffing levels, recruitment, retention, training compliance, supervision quality, and capacity planning initiatives. Include staff training analytics if available.
+Detailed analysis of ${companyName}'s staffing levels, recruitment, retention, training compliance, supervision quality, and capacity planning initiatives. Include comparative analysis of workforce metrics between ${quarter} ${year} and ${prevQuarter} ${prevYear}.
 
 5. Care Quality and Service Excellence
-Comprehensive review of ${companyName}'s care planning effectiveness, service quality metrics, care plan compliance, risk management, and client outcomes.
+Comprehensive review of ${companyName}'s care planning effectiveness, service quality metrics, care plan compliance, risk management, and client outcomes. Analyze improvements or declines in care quality since the previous quarter.
 
 6. Health, Safety and Risk Management
-Thorough analysis of ${companyName}'s incident patterns, safety performance, risk mitigation strategies, safeguarding effectiveness, and regulatory compliance. Include incident analytics to support findings.
+Thorough analysis of ${companyName}'s incident patterns, safety performance, risk mitigation strategies, safeguarding effectiveness, and regulatory compliance. Compare safety metrics and incident trends with ${prevQuarter} ${prevYear}.
 
 7. Continuous Improvement and Innovation
-Detailed discussion of ${companyName}'s improvement initiatives, quality enhancement programs, feedback integration, and innovation projects. Include feedback analytics if available.
+Detailed discussion of ${companyName}'s improvement initiatives, quality enhancement programs, feedback integration, and innovation projects. Analyze progress on improvement initiatives since the previous quarter.
 
 8. Strategic Outlook and Future Planning
-Forward-looking analysis with strategic recommendations for ${companyName}, priority areas for focus, and planned initiatives for the coming quarter.
+Forward-looking analysis with strategic recommendations for ${companyName}, priority areas for focus, planned initiatives for the coming quarter, and lessons learned from quarter-to-quarter performance trends.
 
 WRITING STYLE:
 - Professional, analytical tone appropriate for senior management and regulatory bodies
@@ -354,7 +406,8 @@ WRITING STYLE:
 - Ensure each paragraph flows logically to the next
 - Include quantitative analysis with qualitative interpretation
 - Demonstrate understanding of care sector challenges and best practices
-- Always refer to ${companyName} by name rather than using generic terms`;
+- Always refer to ${companyName} by name rather than using generic terms
+- Focus on organisational outcomes rather than individual performance`;
       const userPrompt = `Generate a detailed quarterly report for ${quarter} ${year}. Analyze the following comprehensive dataset and create substantial, insightful content for each relevant section. Focus on trends, patterns, and strategic implications rather than just listing data points.
 
 Meeting Analysis: ${meetings.length} management meetings were held during this quarter, covering ${dataContext.meetingDetails.map(m => m.sectionSummary.length).reduce((a, b) => a + b, 0)} different operational areas.
