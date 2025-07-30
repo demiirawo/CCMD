@@ -40,10 +40,15 @@ export const MagicLinkAuth = () => {
           .eq('email', email.trim().toLowerCase());
 
         console.log('Team member check result:', { teamMembers, checkError });
+        console.log('Team members found:', teamMembers?.length || 0);
 
-        if (checkError) throw checkError;
+        if (checkError) {
+          console.error('Team member check error:', checkError);
+          throw checkError;
+        }
 
         if (!teamMembers || teamMembers.length === 0) {
+          console.log('No team members found for email:', email.trim().toLowerCase());
           toast({
             title: "Email not found",
             description: "This email address is not associated with any company teams. Please contact your administrator.",
@@ -51,6 +56,8 @@ export const MagicLinkAuth = () => {
           });
           return;
         }
+
+        console.log('Team member found, proceeding with magic link');
       } else {
         console.log('Super admin email detected, proceeding with magic link');
       }
