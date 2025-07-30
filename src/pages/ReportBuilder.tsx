@@ -85,7 +85,7 @@ export const ReportBuilder: React.FC = () => {
                 Additional Context
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="bg-card">
               <div className="space-y-4">
                 <Label htmlFor="context">
                   Provide additional information to help the AI generate a more comprehensive report
