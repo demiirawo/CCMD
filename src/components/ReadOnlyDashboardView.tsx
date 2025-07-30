@@ -204,8 +204,7 @@ export const ReadOnlyDashboardView = ({ meetingId }: ReadOnlyDashboardViewProps)
         {meeting.purpose && (
           <Card className="bg-white shadow-lg">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Target className="h-5 w-5 text-blue-600" />
+              <CardTitle>
                 Meeting Purpose
               </CardTitle>
             </CardHeader>
@@ -218,8 +217,7 @@ export const ReadOnlyDashboardView = ({ meetingId }: ReadOnlyDashboardViewProps)
         {/* Static Attendees */}
         <Card className="bg-white shadow-lg">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Users className="h-5 w-5 text-purple-600" />
+            <CardTitle>
               Attendees ({meeting.attendees.length})
             </CardTitle>
           </CardHeader>
@@ -248,8 +246,7 @@ export const ReadOnlyDashboardView = ({ meetingId }: ReadOnlyDashboardViewProps)
         {meeting.actions_log && meeting.actions_log.length > 0 && (
           <Card className="bg-white shadow-lg">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Clock className="h-5 w-5 text-orange-600" />
+              <CardTitle>
                 Actions Log ({meeting.actions_log.length})
               </CardTitle>
             </CardHeader>
@@ -284,8 +281,7 @@ export const ReadOnlyDashboardView = ({ meetingId }: ReadOnlyDashboardViewProps)
         {meeting.sections.filter(section => section.id !== "meeting-overview").map(section => (
           <Card key={section.id} className="bg-white shadow-lg">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                {getSectionIcon(section.id)}
+              <CardTitle>
                 {section.title}
               </CardTitle>
             </CardHeader>
