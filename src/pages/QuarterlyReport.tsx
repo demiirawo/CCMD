@@ -115,7 +115,7 @@ Format the report in a professional, narrative style suitable for stakeholders a
       ];
 
       console.log('🚀 Calling OpenAI API...');
-      const generatedContent = await generateResponse(messages, 'gpt-4o-mini');
+      const generatedContent = await generateResponse(messages, 'gpt-4o');
       
       if (generatedContent && generatedContent.trim()) {
         console.log('✅ Report generated successfully');
