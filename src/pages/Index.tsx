@@ -1651,10 +1651,10 @@ const Index = () => {
           <Button 
             onClick={saveMeetingToDatabase}
             variant="outline"
-            className="gap-2"
+            className={`gap-2 transition-all duration-500 ${saveSuccess ? 'success-glow' : ''}`}
           >
-            <Save className={`w-4 h-4 transition-all duration-300 ${saveSuccess ? 'animate-scale-in text-green-600' : ''}`} />
-            Save Meeting
+            <Save className="w-4 h-4" />
+            Save
           </Button>
           <Button 
             onClick={handleExportPDF}

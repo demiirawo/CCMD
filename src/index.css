@@ -73,6 +73,9 @@ All colors MUST be HSL.
     --chart-2: 200 80% 70%;
     --chart-3: 0 70% 75%;
     --chart-4: 150 60% 75%;
+
+    /* Success glow effect */
+    --success-glow: 0 0 20px hsl(142 76% 36% / 0.6), 0 0 40px hsl(142 76% 36% / 0.3);
   }
 
   .dark {
@@ -206,6 +209,13 @@ All colors MUST be HSL.
 
   .status-badge {
     @apply w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold cursor-pointer transition-all duration-200;
+  }
+
+  .success-glow {
+    box-shadow: var(--success-glow);
+    background: hsl(142 76% 36%) !important;
+    color: white !important;
+    border-color: hsl(142 76% 36%) !important;
   }
 }
 
