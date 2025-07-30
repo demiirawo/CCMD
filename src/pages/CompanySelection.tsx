@@ -83,25 +83,30 @@ export const CompanySelection = () => {
   };
 
   const handleSelectCompany = async (companyId: string) => {
+    console.log('Selecting company:', companyId);
     setLoading(true);
     
     const { error } = await selectCompany(companyId);
     
+    console.log('Select company result:', { error });
+    
     if (error) {
+      console.error('Error selecting company:', error);
       toast({
         title: 'Error',
         description: error.message,
         variant: 'destructive'
       });
+      setLoading(false);
     } else {
+      console.log('Company selected successfully, navigating to /');
       toast({
         title: 'Success',
         description: 'Company selected successfully!',
       });
       navigate('/');
+      setLoading(false);
     }
-    
-    setLoading(false);
   };
 
   const handleSignOut = async () => {
