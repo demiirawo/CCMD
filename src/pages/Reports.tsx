@@ -309,18 +309,7 @@ export const Reports = () => {
         description: "Please wait while we generate your PDF..."
       });
 
-      // Find the preview dialog content
-      const previewElement = document.querySelector(`[data-meeting-preview="${meetingId}"]`);
-      if (!previewElement) {
-        toast({
-          title: "PDF Generation Failed",
-          description: "Please open the preview first, then try exporting to PDF",
-          variant: "destructive"
-        });
-        return;
-      }
-
-      // Create a temporary container with the exact preview content
+      // Create a temporary container for the ReadOnlyDashboardView
       const tempContainer = document.createElement('div');
       tempContainer.style.position = 'absolute';
       tempContainer.style.left = '-9999px';
@@ -329,55 +318,64 @@ export const Reports = () => {
       tempContainer.style.backgroundColor = 'white';
       tempContainer.style.padding = '15mm';
       tempContainer.style.boxSizing = 'border-box';
+      tempContainer.id = `pdf-export-${meetingId}`;
       
-      // Clone the preview content exactly
-      tempContainer.innerHTML = previewElement.innerHTML;
-      
-      // Apply PDF-specific styles to make it print-friendly
+      // Add PDF-specific styles
       const style = document.createElement('style');
       style.textContent = `
-        * { 
+        #pdf-export-${meetingId} * { 
           box-sizing: border-box !important; 
           color: #000 !important;
         }
-        body { 
+        #pdf-export-${meetingId} {
           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
           background: white !important;
         }
-        .bg-background { background: white !important; }
-        .bg-card { background: #f8f9fa !important; }
-        .bg-muted { background: #f1f3f4 !important; }
-        .text-foreground { color: #000 !important; }
-        .text-muted-foreground { color: #666 !important; }
-        .border { border-color: #e0e0e0 !important; }
-        .status-green { background-color: #d4edda !important; color: #155724 !important; }
-        .status-amber { background-color: #fff3cd !important; color: #856404 !important; }
-        .status-red { background-color: #f8d7da !important; color: #721c24 !important; }
-        .status-na { background-color: #e2e3e5 !important; color: #41464b !important; }
-        .shadow-lg { box-shadow: none !important; }
-        .rounded-lg { border-radius: 8px !important; }
-        .p-6 { padding: 16px !important; }
-        .p-4 { padding: 12px !important; }
-        .mb-6 { margin-bottom: 16px !important; }
-        .mb-4 { margin-bottom: 12px !important; }
-        .mb-2 { margin-bottom: 8px !important; }
-        .text-xl { font-size: 18px !important; }
-        .text-lg { font-size: 16px !important; }
-        .text-sm { font-size: 12px !important; }
-        .font-semibold { font-weight: 600 !important; }
-        .font-medium { font-weight: 500 !important; }
-        button { display: none !important; }
-        .grid { display: block !important; }
-        .flex { display: block !important; }
-        .space-y-4 > * + * { margin-top: 12px !important; }
-        .space-y-2 > * + * { margin-top: 6px !important; }
+        #pdf-export-${meetingId} .bg-background { background: white !important; }
+        #pdf-export-${meetingId} .bg-card { background: #f8f9fa !important; }
+        #pdf-export-${meetingId} .bg-muted { background: #f1f3f4 !important; }
+        #pdf-export-${meetingId} .text-foreground { color: #000 !important; }
+        #pdf-export-${meetingId} .text-muted-foreground { color: #666 !important; }
+        #pdf-export-${meetingId} .border { border-color: #e0e0e0 !important; }
+        #pdf-export-${meetingId} .status-green { background-color: #d4edda !important; color: #155724 !important; }
+        #pdf-export-${meetingId} .status-amber { background-color: #fff3cd !important; color: #856404 !important; }
+        #pdf-export-${meetingId} .status-red { background-color: #f8d7da !important; color: #721c24 !important; }
+        #pdf-export-${meetingId} .status-na { background-color: #e2e3e5 !important; color: #41464b !important; }
+        #pdf-export-${meetingId} .shadow-lg { box-shadow: none !important; }
+        #pdf-export-${meetingId} .rounded-lg { border-radius: 8px !important; }
+        #pdf-export-${meetingId} .p-6 { padding: 16px !important; }
+        #pdf-export-${meetingId} .p-4 { padding: 12px !important; }
+        #pdf-export-${meetingId} .mb-6 { margin-bottom: 16px !important; }
+        #pdf-export-${meetingId} .mb-4 { margin-bottom: 12px !important; }
+        #pdf-export-${meetingId} .mb-2 { margin-bottom: 8px !important; }
+        #pdf-export-${meetingId} .text-xl { font-size: 18px !important; }
+        #pdf-export-${meetingId} .text-lg { font-size: 16px !important; }
+        #pdf-export-${meetingId} .text-sm { font-size: 12px !important; }
+        #pdf-export-${meetingId} .font-semibold { font-weight: 600 !important; }
+        #pdf-export-${meetingId} .font-medium { font-weight: 500 !important; }
+        #pdf-export-${meetingId} button { display: none !important; }
+        #pdf-export-${meetingId} .grid { display: block !important; }
+        #pdf-export-${meetingId} .flex { display: block !important; }
+        #pdf-export-${meetingId} .space-y-4 > * + * { margin-top: 12px !important; }
+        #pdf-export-${meetingId} .space-y-2 > * + * { margin-top: 6px !important; }
       `;
       
       document.head.appendChild(style);
       document.body.appendChild(tempContainer);
 
-      // Wait a moment for styles to apply
-      await new Promise(resolve => setTimeout(resolve, 100));
+      // Dynamically import React and ReactDOM for rendering
+      const React = (await import('react')).default;
+      const ReactDOM = (await import('react-dom/client')).default;
+      const { ReadOnlyDashboardView } = await import('@/components/ReadOnlyDashboardView');
+
+      // Create a root and render the component
+      const root = ReactDOM.createRoot(tempContainer);
+      
+      // Render the ReadOnlyDashboardView component
+      root.render(React.createElement(ReadOnlyDashboardView, { meetingId }));
+
+      // Wait for component to render
+      await new Promise(resolve => setTimeout(resolve, 2000));
 
       // Generate PDF with proper A4 dimensions
       const canvas = await html2canvas(tempContainer, {
@@ -390,6 +388,7 @@ export const Reports = () => {
       });
 
       // Clean up
+      root.unmount();
       document.head.removeChild(style);
       document.body.removeChild(tempContainer);
 
@@ -424,13 +423,13 @@ export const Reports = () => {
 
       toast({
         title: "PDF Generated",
-        description: "Your meeting report has been downloaded exactly as shown in the preview"
+        description: "Your meeting report has been downloaded successfully"
       });
     } catch (error) {
       console.error('Error generating PDF:', error);
       toast({
         title: "PDF Generation Failed",
-        description: "There was an error generating the PDF",
+        description: "There was an error generating the PDF. Please try again.",
         variant: "destructive"
       });
     }
