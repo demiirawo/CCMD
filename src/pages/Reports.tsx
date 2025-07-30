@@ -602,17 +602,28 @@ export const Reports = () => {
                                  <DialogContent className="max-w-[95vw] max-h-[95vh] overflow-y-auto bg-background p-0">
                                    <div className="relative">
                                      {/* Close button */}
-                                     <div className="sticky top-0 z-10 bg-background border-b p-4 flex justify-between items-center">
-                                       <DialogTitle className="text-xl font-bold">
-                                         {meeting.title} - Dashboard View
-                                       </DialogTitle>
-                                       <DialogTrigger asChild>
-                                         <Button variant="ghost" size="sm" className="gap-1">
-                                           <X className="h-4 w-4" />
-                                           Close
-                                         </Button>
-                                       </DialogTrigger>
-                                     </div>
+                                      <div className="sticky top-0 z-10 bg-background border-b p-4 flex justify-between items-center">
+                                        <DialogTitle className="text-xl font-bold">
+                                          {meeting.title} - Dashboard View
+                                        </DialogTitle>
+                                        <div className="flex items-center gap-2">
+                                          <Button 
+                                            variant="outline" 
+                                            size="sm" 
+                                            className="gap-1"
+                                            onClick={() => handleExportPDF(meeting.id, meeting.title)}
+                                          >
+                                            <Download className="h-4 w-4" />
+                                            Save PDF
+                                          </Button>
+                                          <DialogTrigger asChild>
+                                            <Button variant="ghost" size="sm" className="gap-1">
+                                              <X className="h-4 w-4" />
+                                              Close
+                                            </Button>
+                                          </DialogTrigger>
+                                        </div>
+                                      </div>
                                      
                                       {/* Full Dashboard View */}
                                       <div className="p-4" data-meeting-preview={meeting.id}>
