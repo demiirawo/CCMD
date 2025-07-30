@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { createRoot } from "react-dom/client";
 import { DashboardHeader } from "@/components/DashboardHeader";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -12,7 +11,6 @@ import { StatusItemData } from "@/components/StatusItem";
 import { ActionItem } from "@/components/ActionForm";
 import { SubsectionMetadata } from "@/components/SubsectionMetadataDialog";
 import { StatusType } from "@/components/StatusBadge";
-import { PDFExportView } from "@/components/PDFExportView";
 import { Users, Target, BarChart3, FileText, Heart, Shield, Calendar, UserCheck, ClipboardList, HeartHandshake, TrendingUp, Save, Download, ChevronDown, ChevronUp } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -1435,74 +1433,38 @@ const Index = () => {
 
   const handleExportPDF = async () => {
     try {
-      // Create a temporary container for the PDF export view
-      const tempContainer = document.createElement('div');
-      tempContainer.style.position = 'absolute';
-      tempContainer.style.left = '-9999px';
-      tempContainer.style.top = '0';
-      tempContainer.style.width = '210mm'; // A4 width
-      document.body.appendChild(tempContainer);
-
-      // Parse the meeting date for analytics
-      const parseDateString = (dateString: string) => {
-        try {
-          const parts = dateString.match(/(\d{2})\/(\d{2})\/(\d{4})\s+(\d{2}):(\d{2})/);
-          if (parts) {
-            const [, day, month, year, hour, minute] = parts;
-            return new Date(parseInt(year), parseInt(month) - 1, parseInt(day), parseInt(hour), parseInt(minute));
-          }
-          const directParse = new Date(dateString);
-          if (!isNaN(directParse.getTime())) {
-            return directParse;
-          }
-          return new Date();
-        } catch (error) {
-          return new Date();
-        }
-      };
-
-      const meetingDate = parseDateString(headerData.date);
-
-      // Create the PDF export view with proper stats format
-      const pdfStats = calculateStats();
-
-      // Create and render the PDF export component
-      const root = createRoot(tempContainer);
+      // Force expand all sections first
+      setAllSectionsExpanded(true);
       
-      await new Promise<void>((resolve) => {
-        root.render(
-          <PDFExportView
-            headerData={headerData}
-            actionsLog={actionsLog}
-            keyDocuments={keyDocuments}
-            dashboardData={dashboardData}
-            stats={pdfStats}
-            getAttendeesList={getAttendeesList}
-            meetingDate={meetingDate}
-            meetingId={currentMeetingId || tempMeetingId}
-          />
-        );
-        
-        // Wait for render
-        setTimeout(() => {
-          resolve();
-        }, 500);
-      });
-
-      // Get the rendered element
-      const pdfElement = tempContainer.querySelector('#pdf-export-container') as HTMLElement;
-      if (!pdfElement) {
-        throw new Error('PDF export element not found');
+      // Wait for expansion to complete
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      const element = document.getElementById('dashboard-container');
+      if (!element) {
+        throw new Error('Dashboard container not found');
       }
 
-      // Capture the element with html2canvas
-      const canvas = await html2canvas(pdfElement, {
+      // Ensure all collapsible sections are expanded
+      const collapsedElements = element.querySelectorAll('[data-state="closed"]');
+      collapsedElements.forEach(el => {
+        const button = el.querySelector('button[aria-expanded="false"]');
+        if (button) {
+          (button as HTMLElement).click();
+        }
+      });
+
+      // Wait for all expansions to complete
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      // Capture the expanded dashboard
+      const canvas = await html2canvas(element, {
         scale: 2,
         useCORS: true,
         allowTaint: true,
         backgroundColor: '#f3f4f6', // gray-100 background
-        width: pdfElement.scrollWidth,
-        height: pdfElement.scrollHeight
+        width: element.scrollWidth,
+        height: element.scrollHeight,
+        logging: false
       });
       
       const imgData = canvas.toDataURL('image/png');
@@ -1538,10 +1500,6 @@ const Index = () => {
       // Generate filename with current date
       const filename = `dashboard-${headerData.title || 'meeting'}-${new Date().toISOString().split('T')[0]}.pdf`;
       pdf.save(filename);
-      
-      // Clean up
-      root.unmount();
-      document.body.removeChild(tempContainer);
       
       toast({
         title: "PDF Exported",
