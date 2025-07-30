@@ -4,51 +4,39 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-
 interface ServiceUserDocumentsAnalyticsProps {
   meetingDate?: Date;
   meetingId?: string;
 }
-
 export const ServiceUserDocumentsAnalytics = ({
   meetingDate,
   meetingId
 }: ServiceUserDocumentsAnalyticsProps) => {
-  const { profile } = useAuth();
-  
+  const {
+    profile
+  } = useAuth();
   const [data, setData] = useState({
     incompleteDocuments: 0
   });
-
   const [totalServiceUsers, setTotalServiceUsers] = useState(0);
-
-  const compliancePercentage = totalServiceUsers > 0 
-    ? Math.round((totalServiceUsers - data.incompleteDocuments) / totalServiceUsers * 100) 
-    : 100;
-
+  const compliancePercentage = totalServiceUsers > 0 ? Math.round((totalServiceUsers - data.incompleteDocuments) / totalServiceUsers * 100) : 100;
   useEffect(() => {
     if (profile?.company_id) {
       loadData();
       loadCarePlanData();
     }
   }, [profile?.company_id, meetingId]);
-
   const loadData = async () => {
     if (!profile?.company_id) return;
-
     try {
-      const { data: savedData, error } = await supabase
-        .from('dashboard_data')
-        .select('data_content')
-        .eq('company_id', profile.company_id)
-        .eq('data_type', 'service_user_documents')
-        .maybeSingle();
-
+      const {
+        data: savedData,
+        error
+      } = await supabase.from('dashboard_data').select('data_content').eq('company_id', profile.company_id).eq('data_type', 'service_user_documents').maybeSingle();
       if (error && error.code !== 'PGRST116') {
         console.error('Error loading service user documents:', error);
         return;
       }
-
       if (savedData?.data_content) {
         setData(savedData.data_content as typeof data);
       } else {
@@ -79,19 +67,14 @@ export const ServiceUserDocumentsAnalytics = ({
       }
     }
   };
-
   const loadCarePlanData = async () => {
     if (!profile?.company_id) return;
-
     try {
       // Use the same approach as CarePlanOverview to get care plan data
-      const { data: carePlanData, error } = await supabase
-        .from('dashboard_data')
-        .select('data_content')
-        .eq('company_id', profile.company_id)
-        .eq('data_type', 'care_plan_overview')
-        .maybeSingle();
-
+      const {
+        data: carePlanData,
+        error
+      } = await supabase.from('dashboard_data').select('data_content').eq('company_id', profile.company_id).eq('data_type', 'care_plan_overview').maybeSingle();
       if (carePlanData?.data_content) {
         const careData = carePlanData.data_content as any;
         const total = (careData.highRisk || 0) + (careData.mediumRisk || 0) + (careData.lowRisk || 0) + (careData.naRisk || 0);
@@ -118,23 +101,20 @@ export const ServiceUserDocumentsAnalytics = ({
       console.error('Error loading care plan data:', error);
     }
   };
-
   const saveData = async (newData: typeof data) => {
     if (!profile?.company_id) return;
-
     try {
-      const { error } = await supabase
-        .from('dashboard_data')
-        .upsert({
-          company_id: profile.company_id,
-          meeting_id: meetingId,
-          data_type: 'service_user_documents',
-          data_content: newData,
-          updated_at: new Date().toISOString()
-        }, {
-          onConflict: 'company_id,meeting_id,data_type'
-        });
-
+      const {
+        error
+      } = await supabase.from('dashboard_data').upsert({
+        company_id: profile.company_id,
+        meeting_id: meetingId,
+        data_type: 'service_user_documents',
+        data_content: newData,
+        updated_at: new Date().toISOString()
+      }, {
+        onConflict: 'company_id,meeting_id,data_type'
+      });
       if (error) {
         console.error('Error saving service user documents:', error);
         throw error;
@@ -150,59 +130,48 @@ export const ServiceUserDocumentsAnalytics = ({
       }
     }
   };
-
-  const EditableCell = ({ value, onChange }: { value: number; onChange: (value: number) => void }) => {
+  const EditableCell = ({
+    value,
+    onChange
+  }: {
+    value: number;
+    onChange: (value: number) => void;
+  }) => {
     const [editing, setEditing] = useState(false);
     const [editValue, setEditValue] = useState('');
-
     const handleStartEdit = () => {
       setEditing(true);
       setEditValue('');
     };
-
     const handleSave = () => {
       const numValue = parseInt(editValue) || 0;
       onChange(numValue);
       setEditing(false);
     };
-
     if (editing) {
-      return (
-        <Input
-          value={editValue}
-          onChange={(e) => setEditValue(e.target.value)}
-          onBlur={handleSave}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') handleSave();
-            if (e.key === 'Escape') setEditing(false);
-          }}
-          className="w-16 h-8 text-sm"
-          autoFocus
-        />
-      );
+      return <Input value={editValue} onChange={e => setEditValue(e.target.value)} onBlur={handleSave} onKeyDown={e => {
+        if (e.key === 'Enter') handleSave();
+        if (e.key === 'Escape') setEditing(false);
+      }} className="w-16 h-8 text-sm" autoFocus />;
     }
-
-    return (
-      <span className="cursor-pointer hover:bg-accent/50 p-1 rounded" onClick={handleStartEdit}>
+    return <span className="cursor-pointer hover:bg-accent/50 p-1 rounded" onClick={handleStartEdit}>
         {value}
-      </span>
-    );
+      </span>;
   };
-
   const handleInputChange = (field: keyof typeof data, value: number) => {
-    const newData = { ...data, [field]: value };
+    const newData = {
+      ...data,
+      [field]: value
+    };
     setData(newData);
     saveData(newData);
   };
-
   const getComplianceColor = () => {
     if (compliancePercentage >= 95) return "text-green-600";
     if (compliancePercentage >= 85) return "text-yellow-600";
     return "text-red-600";
   };
-
-  return (
-    <div className="space-y-6 mt-4 p-6 border border-border rounded-lg bg-stone-50">
+  return <div className="space-y-6 mt-4 p-6 border border-border rounded-lg bg-stone-50">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Total Service Users */}
         <Card className="p-6">
@@ -213,9 +182,7 @@ export const ServiceUserDocumentsAnalytics = ({
             <div className="text-3xl font-bold text-primary">
               {totalServiceUsers}
             </div>
-            <div className="text-xs text-muted-foreground text-center">
-              From Care Plans & Risk Assessments
-            </div>
+            
           </div>
         </Card>
 
@@ -223,12 +190,9 @@ export const ServiceUserDocumentsAnalytics = ({
         <Card className="p-6">
           <div className="flex flex-col items-center justify-center space-y-4">
             <div className="text-center">
-              <h3 className="text-lg font-semibold mb-2">Incomplete Documents</h3>
+              
             </div>
-            <EditableCell 
-              value={data.incompleteDocuments} 
-              onChange={(value) => handleInputChange('incompleteDocuments', value)} 
-            />
+            <EditableCell value={data.incompleteDocuments} onChange={value => handleInputChange('incompleteDocuments', value)} />
             <div className="text-xs text-muted-foreground text-center">
               Service users with incomplete documents
             </div>
@@ -250,6 +214,5 @@ export const ServiceUserDocumentsAnalytics = ({
           </div>
         </Card>
       </div>
-    </div>
-  );
+    </div>;
 };
