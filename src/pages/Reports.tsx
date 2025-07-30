@@ -574,10 +574,9 @@ export const Reports = () => {
                               {/* Delete Meeting Dialog */}
                               <AlertDialog>
                                 <AlertDialogTrigger asChild>
-                                  <Button variant="outline" size="sm" className="gap-1 text-destructive hover:text-destructive hover:bg-destructive/10">
-                                    <Trash2 className="h-4 w-4" />
-                                    Delete
-                                  </Button>
+                                   <Button variant="default" size="sm" className="bg-red-600 hover:bg-red-700 text-white">
+                                     Delete
+                                   </Button>
                                 </AlertDialogTrigger>
                                 <AlertDialogContent>
                                   <AlertDialogHeader>
