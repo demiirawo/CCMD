@@ -504,7 +504,21 @@ Focus on creating a comprehensive narrative that demonstrates operational excell
       // Parse the report content and create Word document structure
       const doc = new Document({
         sections: [{
-          properties: {},
+          properties: {
+            page: {
+              size: {
+                orientation: "portrait",
+                width: 11906, // A4 width in twentieths of a point (8.27 inches)
+                height: 16838, // A4 height in twentieths of a point (11.69 inches)
+              },
+              margin: {
+                top: 1440, // 1 inch
+                right: 1440, // 1 inch
+                bottom: 1440, // 1 inch
+                left: 1440, // 1 inch
+              },
+            },
+          },
           children: documentChildren
         }]
       });
@@ -824,11 +838,21 @@ Focus on creating a comprehensive narrative that demonstrates operational excell
             <div 
               key={index} 
               data-page-index={index}
-              className="bg-white shadow-lg print:shadow-none page-break min-h-screen"
+              className="bg-white shadow-lg print:shadow-none page-break"
+              style={{
+                width: '210mm',
+                minHeight: '297mm',
+                margin: '0 auto',
+                padding: '25.4mm',
+                fontSize: '12pt',
+                lineHeight: '1.5',
+                fontFamily: 'Arial, sans-serif',
+                boxSizing: 'border-box'
+              }}
             >
               {index === 0 ? (
                 // Cover Page
-                <div className="p-12 min-h-screen flex flex-col justify-between">
+                <div className="h-full flex flex-col justify-between" style={{ padding: '0' }}>
                   {/* Header */}
                   <div className="text-center">
                     {companyInfo?.logo_url && (
@@ -874,7 +898,7 @@ Focus on creating a comprehensive narrative that demonstrates operational excell
                 </div>
               ) : (
                 // Content Pages
-                <div className="p-12 min-h-screen">
+                <div className="h-full" style={{ padding: '0' }}>
                   <div className="prose prose-lg max-w-none">
                     <div className="report-content" style={{ 
                       fontFamily: 'system-ui, -apple-system, sans-serif',
@@ -987,10 +1011,38 @@ Focus on creating a comprehensive narrative that demonstrates operational excell
       {/* Print Styles */}
       <style>{`
         @media print {
-          body { margin: 0 !important; }
-          .page-break { page-break-after: always; }
-          .page-break:last-child { page-break-after: avoid; }
-          .space-y-8 > * + * { margin-top: 0 !important; }
+          * { 
+            margin: 0 !important; 
+            padding: 0 !important;
+          }
+          html, body { 
+            width: 210mm !important;
+            height: 297mm !important;
+            margin: 0 !important;
+            padding: 0 !important;
+          }
+          .page-break { 
+            page-break-after: always;
+            width: 210mm !important;
+            height: 297mm !important;
+            padding: 25.4mm !important;
+            margin: 0 !important;
+            box-sizing: border-box !important;
+          }
+          .page-break:last-child { 
+            page-break-after: avoid; 
+          }
+          .space-y-8 > * + * { 
+            margin-top: 0 !important; 
+          }
+          .bg-gray-100 {
+            background: white !important;
+          }
+        }
+        
+        @page {
+          size: A4;
+          margin: 0;
         }
       `}</style>
     </div>
