@@ -95,6 +95,9 @@ export const ServiceUserDocumentsAnalytics = ({
         const careData = carePlanData.data_content as any;
         const total = (careData.highRisk || 0) + (careData.mediumRisk || 0) + (careData.lowRisk || 0) + (careData.naRisk || 0);
         setTotalServiceUsers(total);
+        console.log('ServiceUserDocuments: Loaded care plan data, total service users:', total);
+      } else {
+        console.log('ServiceUserDocuments: No care plan data found');
       }
     } catch (error) {
       console.error('Error loading care plan data:', error);
