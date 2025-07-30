@@ -25,7 +25,7 @@ const AppContent = () => {
       <Route path="/auth" element={<Auth />} />
       <Route path="/company-selection" element={
         <ProtectedRoute>
-          <CompanySelector />
+          <CompanySelection />
         </ProtectedRoute>
       } />
       <Route path="/" element={
