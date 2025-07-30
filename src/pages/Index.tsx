@@ -3,7 +3,7 @@ import { DashboardHeader } from "@/components/DashboardHeader";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useAutoSave } from "@/hooks/useAutoSave";
-import { Attendee } from "@/components/MeetingAttendeesManager";
+import { Attendee } from "@/components/TeamAttendeesDisplay";
 import { DashboardSection } from "@/components/DashboardSection";
 import { ActionsLog, ActionLogEntry } from "@/components/ActionsLog";
 import { MeetingSummaryPanel } from "@/components/MeetingSummaryPanel";
@@ -611,7 +611,7 @@ const Index = () => {
       attendees
     }));
 
-    // Save attendees to database immediately
+    // Save attendance data to meeting headers
     if (profile?.company_id) {
       try {
         const parseDateString = (dateString: string) => {
@@ -641,21 +641,15 @@ const Index = () => {
             onConflict: 'company_id'
           });
         
-        console.log('Saving attendees to database:', attendees);
-        console.log('Company ID:', profile.company_id);
+        console.log('Saving attendance data:', attendees);
         
         if (error) {
-          console.error('Error saving attendees:', error);
+          console.error('Error saving attendance:', error);
         }
       } catch (error) {
-        console.error('Failed to save attendees to database:', error);
+        console.error('Failed to save attendance:', error);
       }
     }
-
-    toast({
-      title: "Attendees Updated",
-      description: "Meeting attendees have been updated and saved"
-    });
   };
   
   const handleStatusChange = async (sectionId: string, itemId: string, newStatus: StatusType) => {

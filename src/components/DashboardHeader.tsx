@@ -1,6 +1,6 @@
 import { StatusBadge } from "./StatusBadge";
 import { MeetingDateTimePicker } from "./MeetingDateTimePicker";
-import { MeetingAttendeesManager, Attendee } from "./MeetingAttendeesManager";
+import { TeamAttendeesDisplay, Attendee } from "./TeamAttendeesDisplay";
 import { useAuth } from "@/hooks/useAuth";
 import { useState } from "react";
 interface DashboardHeaderProps {
@@ -68,7 +68,7 @@ export const DashboardHeader = ({
         <div className="col-span-2">
           <div className="p-4 rounded-lg border border-gray-100 min-h-24 bg-white">
             <h3 className="text-sm font-medium text-muted-foreground mb-2">Office Team</h3>
-            <MeetingAttendeesManager attendees={attendees} onChange={onAttendeesChange || (() => {})} />
+            <TeamAttendeesDisplay onAttendanceChange={onAttendeesChange} />
           </div>
         </div>
         
