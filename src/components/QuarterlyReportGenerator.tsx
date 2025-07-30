@@ -37,33 +37,42 @@ export const QuarterlyReportGenerator: React.FC<QuarterlyReportGeneratorProps> =
   
   // Check if a report exists for this quarter/year on component mount
   useEffect(() => {
-    const reportKey = `quarterly_report_${quarter}_${year}`;
-    const savedReport = localStorage.getItem(reportKey);
-    const savedAnalytics = localStorage.getItem(`${reportKey}_analytics`);
-    
-    // Simple debugging that should work despite CORS issues
-    if (savedReport) {
-      setGeneratedReport(savedReport);
-      setHasGeneratedReport(true);
-      if (savedAnalytics) {
-        try {
-          const parsedAnalytics = JSON.parse(savedAnalytics);
-          setAnalyticsScreenshots(parsedAnalytics);
-        } catch (error) {
-          // Silent error handling
-        }
+    checkExistingReport();
+  }, [quarter, year, profile?.company_id]);
+
+  const checkExistingReport = async () => {
+    if (!profile?.company_id) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('quarterly_reports')
+        .select('report_content, analytics_data')
+        .eq('company_id', profile.company_id)
+        .eq('quarter', quarter)
+        .eq('year', parseInt(year))
+        .maybeSingle();
+
+      if (error) {
+        console.error('Error checking existing report:', error);
+        setHasGeneratedReport(false);
+        return;
       }
-    }
-    
-    // Force a re-render after checking localStorage
-    setTimeout(() => {
-      const stillExists = localStorage.getItem(reportKey);
-      if (stillExists && !hasGeneratedReport) {
-        setGeneratedReport(stillExists);
+
+      if (data) {
+        setGeneratedReport(data.report_content);
         setHasGeneratedReport(true);
+        if (data.analytics_data && typeof data.analytics_data === 'object') {
+          setAnalyticsScreenshots(data.analytics_data as { [key: string]: any });
+        }
+      } else {
+        setHasGeneratedReport(false);
+        setGeneratedReport('');
       }
-    }, 100);
-  }, [quarter, year]);
+    } catch (error) {
+      console.error('Error checking existing report:', error);
+      setHasGeneratedReport(false);
+    }
+  };
 
   const processAnalyticsForReport = (analyticsData: any) => {
     // Extract key insights and trends from analytics data
@@ -411,20 +420,48 @@ Remember: Write in natural language prose with detailed paragraphs. No markdown 
     }
   };
 
-  const deleteReport = () => {
-    setGeneratedReport("");
-    setHasGeneratedReport(false);
-    setAnalyticsScreenshots({});
-    
-    // Remove from localStorage
-    const reportKey = `quarterly_report_${quarter}_${year}`;
-    localStorage.removeItem(reportKey);
-    localStorage.removeItem(`${reportKey}_analytics`);
-    
-    toast({
-      title: "Report Deleted",
-      description: "The quarterly report has been deleted",
-    });
+  const deleteReport = async () => {
+    if (!profile?.company_id) return;
+
+    try {
+      const { error } = await supabase
+        .from('quarterly_reports')
+        .delete()
+        .eq('company_id', profile.company_id)
+        .eq('quarter', quarter)
+        .eq('year', parseInt(year));
+
+      if (error) {
+        console.error('Error deleting report:', error);
+        toast({
+          title: "Delete Failed",
+          description: "Failed to delete the quarterly report",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      setGeneratedReport("");
+      setHasGeneratedReport(false);
+      setAnalyticsScreenshots({});
+      
+      // Also remove from localStorage for backward compatibility
+      const reportKey = `quarterly_report_${quarter}_${year}`;
+      localStorage.removeItem(reportKey);
+      localStorage.removeItem(`${reportKey}_analytics`);
+      
+      toast({
+        title: "Report Deleted",
+        description: "The quarterly report has been deleted",
+      });
+    } catch (error) {
+      console.error('Error deleting report:', error);
+      toast({
+        title: "Delete Failed",
+        description: "Failed to delete the quarterly report",
+        variant: "destructive",
+      });
+    }
   };
 
   // If report has been generated, show view and delete buttons

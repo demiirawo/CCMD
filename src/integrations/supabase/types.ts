@@ -490,6 +490,39 @@ export type Database = {
           },
         ]
       }
+      quarterly_reports: {
+        Row: {
+          analytics_data: Json | null
+          company_id: string
+          created_at: string
+          id: string
+          quarter: string
+          report_content: string
+          updated_at: string
+          year: number
+        }
+        Insert: {
+          analytics_data?: Json | null
+          company_id: string
+          created_at?: string
+          id?: string
+          quarter: string
+          report_content: string
+          updated_at?: string
+          year: number
+        }
+        Update: {
+          analytics_data?: Json | null
+          company_id?: string
+          created_at?: string
+          id?: string
+          quarter?: string
+          report_content?: string
+          updated_at?: string
+          year?: number
+        }
+        Relationships: []
+      }
       spot_check_analytics: {
         Row: {
           company_id: string

@@ -155,6 +155,39 @@ export const QuarterlyReport = () => {
     }
   };
 
+  const saveReportToSupabase = async (reportContent: string, analyticsData: any) => {
+    if (!profile?.company_id) {
+      throw new Error('No company ID found');
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('quarterly_reports')
+        .upsert({
+          company_id: profile.company_id,
+          quarter,
+          year: parseInt(year),
+          report_content: reportContent,
+          analytics_data: analyticsData || {}
+        }, {
+          onConflict: 'company_id,quarter,year'
+        });
+
+      if (error) {
+        throw error;
+      }
+
+      console.log('✅ Report saved to Supabase successfully');
+      toast({
+        title: "Report Saved",
+        description: "Your quarterly report has been saved to the database.",
+      });
+    } catch (error) {
+      console.error('❌ Error saving report to Supabase:', error);
+      throw error;
+    }
+  };
+
   const generateAIReport = async () => {
     try {
       console.log('🤖 Starting AI report generation...');
@@ -285,13 +318,8 @@ Focus on creating a comprehensive narrative that demonstrates operational excell
         setReportContent(generatedContent);
         splitContentIntoPages(generatedContent);
         
-        // Save the generated report to localStorage for persistence
-        const reportKey = `quarterly_report_${quarter}_${year}`;
-        localStorage.setItem(reportKey, generatedContent);
-        console.log(`💾 Saved report to localStorage with key: ${reportKey}`);
-        
-        // Also save empty analytics data as placeholder
-        localStorage.setItem(`${reportKey}_analytics`, JSON.stringify({}));
+        // Save the generated report to Supabase
+        await saveReportToSupabase(generatedContent, processedAnalytics);
         
         toast({
           title: "Report Generated",
