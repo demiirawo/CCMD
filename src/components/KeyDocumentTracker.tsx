@@ -202,97 +202,107 @@ export const KeyDocumentTracker = ({
             <h4 className="text-sm font-medium text-foreground border-b border-border/20 pb-2">
               {category}
             </h4>
-            {docs.map(doc => <div key={doc.id} className={`grid grid-cols-12 gap-3 p-4 border rounded-lg items-start ${getDocumentColorClass(doc.nextReviewDate)}`}>
-                <div className="col-span-2">
-                  <label className="text-xs text-muted-foreground mb-1 block">Category</label>
-                  <Select value={doc.category} onValueChange={value => handleDocumentChange(documents.indexOf(doc), 'category', value)}>
-                    <SelectTrigger className="text-sm h-9 bg-white">
-                      <SelectValue placeholder="Select category" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-white">
-                      {categories.map(cat => <SelectItem key={cat} value={cat} className="text-sm">
-                          {cat}
-                        </SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                 <div className="col-span-2">
-                   <label className="text-xs text-muted-foreground mb-1 block">Document Name</label>
-                   <Input value={doc.name} onChange={e => handleDocumentChange(documents.indexOf(doc), 'name', e.target.value)} placeholder="Enter document name" className="text-sm h-9" />
-                 </div>
-                
-                 <div className="col-span-2">
-                   <label className="text-xs text-muted-foreground mb-1 block">Document Owner</label>
-                   <Select value={doc.owner} onValueChange={value => handleDocumentChange(documents.indexOf(doc), 'owner', value)}>
-                     <SelectTrigger className="text-sm h-9 bg-white">
-                       <SelectValue placeholder="Select owner" />
-                     </SelectTrigger>
-                     <SelectContent className="bg-white">
-                       {attendees.map(attendee => <SelectItem key={attendee} value={attendee} className="text-sm">
-                           {attendee}
-                         </SelectItem>)}
-                     </SelectContent>
-                   </Select>
-                 </div>
-                
-                <div className="col-span-1">
-                  <label className="text-xs text-muted-foreground mb-1 block">Date</label>
-                  <div className="flex items-center gap-2">
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button variant="outline" className="h-9 w-9 p-0 flex-shrink-0">
-                          <CalendarIcon className="h-4 w-4" />
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                         <Calendar mode="single" selected={doc.lastReviewDate ? new Date(doc.lastReviewDate) : undefined} onSelect={date => handleDocumentChange(documents.indexOf(doc), 'lastReviewDate', date ? format(date, 'yyyy-MM-dd') : '')} initialFocus className="p-3 pointer-events-auto bg-white" />
-                      </PopoverContent>
-                    </Popover>
-                    <span className="text-sm text-foreground w-20">
-                      {doc.lastReviewDate ? new Date(doc.lastReviewDate).toLocaleDateString('en-GB') : ""}
-                    </span>
-                  </div>
-                </div>
-                
-                <div className="col-span-2">
-                  <label className="text-xs text-muted-foreground mb-1 block">Frequency</label>
-                  <div className="flex gap-1">
-                    <Select value={doc.reviewFrequencyNumber} onValueChange={value => handleDocumentChange(documents.indexOf(doc), 'reviewFrequencyNumber', value)}>
-                      <SelectTrigger className="text-sm h-9 w-16">
-                        <SelectValue placeholder="#" />
+            {docs.map(doc => <div key={doc.id} className={`p-4 border rounded-lg space-y-3 ${getDocumentColorClass(doc.nextReviewDate)}`}>
+                {/* First line: Category, Document Name, Document Owner */}
+                <div className="grid grid-cols-12 gap-3 items-start">
+                  <div className="col-span-3">
+                    <label className="text-xs text-muted-foreground mb-1 block">Category</label>
+                    <Select value={doc.category} onValueChange={value => handleDocumentChange(documents.indexOf(doc), 'category', value)}>
+                      <SelectTrigger className="text-sm h-9 bg-white">
+                        <SelectValue placeholder="Select category" />
                       </SelectTrigger>
                       <SelectContent className="bg-white">
-                        {numbers.map(num => <SelectItem key={num} value={num} className="text-sm">
-                            {num}
-                          </SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                    <Select value={doc.reviewFrequencyPeriod} onValueChange={value => handleDocumentChange(documents.indexOf(doc), 'reviewFrequencyPeriod', value)}>
-                      <SelectTrigger className="text-sm h-9 flex-1">
-                        <SelectValue placeholder="Period" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-white">
-                        {periods.map(period => <SelectItem key={period} value={period} className="text-sm">
-                            {period}
+                        {categories.map(cat => <SelectItem key={cat} value={cat} className="text-sm">
+                            {cat}
                           </SelectItem>)}
                       </SelectContent>
                     </Select>
                   </div>
+                  
+                  <div className="col-span-4">
+                    <label className="text-xs text-muted-foreground mb-1 block">Document Name</label>
+                    <Input value={doc.name} onChange={e => handleDocumentChange(documents.indexOf(doc), 'name', e.target.value)} placeholder="Enter document name" className="text-sm h-9" />
+                  </div>
+                  
+                  <div className="col-span-4">
+                    <label className="text-xs text-muted-foreground mb-1 block">Document Owner</label>
+                    <Select value={doc.owner} onValueChange={value => handleDocumentChange(documents.indexOf(doc), 'owner', value)}>
+                      <SelectTrigger className="text-sm h-9 bg-white">
+                        <SelectValue placeholder="Select owner" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-white">
+                        {attendees.map(attendee => <SelectItem key={attendee} value={attendee} className="text-sm">
+                            {attendee}
+                          </SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="col-span-1">
+                    <label className="text-xs text-muted-foreground mb-1 block opacity-0">Remove</label>
+                    <Button variant="outline" size="sm" onClick={() => removeDocument(doc.id)} className="text-xs text-destructive hover:text-destructive w-8 h-9 p-0">
+                      <Minus className="w-3 h-3" />
+                    </Button>
+                  </div>
                 </div>
-                
-                 <div className="col-span-2">
-                   <label className="text-xs text-muted-foreground mb-1 block">Due</label>
-                   <div className="text-sm p-2 bg-muted/50 rounded border text-center h-9 flex items-center justify-center">
-                     {doc.nextReviewDate ? new Date(doc.nextReviewDate).toLocaleDateString('en-GB') : ""}
-                   </div>
-                 </div>
-                
-                <div className="col-span-1">
-                  <label className="text-xs text-muted-foreground mb-1 block opacity-0">Remove</label>
-                  <Button variant="outline" size="sm" onClick={() => removeDocument(doc.id)} className="text-xs text-destructive hover:text-destructive w-8 h-9 p-0">
-                    <Minus className="w-3 h-3" />
-                  </Button>
+
+                {/* Second line: Date, Frequency, Due */}
+                <div className="grid grid-cols-12 gap-3 items-start">
+                  <div className="col-span-3">
+                    <label className="text-xs text-muted-foreground mb-1 block">Date</label>
+                    <div className="flex items-center gap-2">
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button variant="outline" className="h-9 w-9 p-0 flex-shrink-0">
+                            <CalendarIcon className="h-4 w-4" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar mode="single" selected={doc.lastReviewDate ? new Date(doc.lastReviewDate) : undefined} onSelect={date => handleDocumentChange(documents.indexOf(doc), 'lastReviewDate', date ? format(date, 'yyyy-MM-dd') : '')} initialFocus className="p-3 pointer-events-auto bg-white" />
+                        </PopoverContent>
+                      </Popover>
+                      <span className="text-sm text-foreground w-20">
+                        {doc.lastReviewDate ? new Date(doc.lastReviewDate).toLocaleDateString('en-GB') : ""}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <div className="col-span-4">
+                    <label className="text-xs text-muted-foreground mb-1 block">Frequency</label>
+                    <div className="flex gap-1">
+                      <Select value={doc.reviewFrequencyNumber} onValueChange={value => handleDocumentChange(documents.indexOf(doc), 'reviewFrequencyNumber', value)}>
+                        <SelectTrigger className="text-sm h-9 w-16">
+                          <SelectValue placeholder="#" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-white">
+                          {numbers.map(num => <SelectItem key={num} value={num} className="text-sm">
+                              {num}
+                            </SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                      <Select value={doc.reviewFrequencyPeriod} onValueChange={value => handleDocumentChange(documents.indexOf(doc), 'reviewFrequencyPeriod', value)}>
+                        <SelectTrigger className="text-sm h-9 flex-1">
+                          <SelectValue placeholder="Period" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-white">
+                          {periods.map(period => <SelectItem key={period} value={period} className="text-sm">
+                              {period}
+                            </SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  
+                  <div className="col-span-4">
+                    <label className="text-xs text-muted-foreground mb-1 block">Due</label>
+                    <div className="text-sm p-2 bg-muted/50 rounded border text-center h-9 flex items-center justify-center">
+                      {doc.nextReviewDate ? new Date(doc.nextReviewDate).toLocaleDateString('en-GB') : ""}
+                    </div>
+                  </div>
+
+                  <div className="col-span-1">
+                    {/* Empty space to align with remove button above */}
+                  </div>
                 </div>
               </div>)}
           </div>)}
