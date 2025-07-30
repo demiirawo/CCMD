@@ -25,14 +25,9 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requir
     return <Navigate to="/auth" replace />;
   }
 
+  // If user exists but no profile, they might need to select a company
   if (!profile) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <p>Setting up your profile...</p>
-        </div>
-      </div>
-    );
+    return <Navigate to="/company-selection" replace />;
   }
 
   if (requireCompany && !profile.company_id) {

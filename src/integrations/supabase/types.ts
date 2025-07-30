@@ -459,6 +459,7 @@ export type Database = {
           id: string
           permission: Database["public"]["Enums"]["user_permission"]
           role: Database["public"]["Enums"]["user_role"]
+          team_member_id: string | null
           updated_at: string
           user_id: string
           username: string | null
@@ -469,6 +470,7 @@ export type Database = {
           id?: string
           permission?: Database["public"]["Enums"]["user_permission"]
           role?: Database["public"]["Enums"]["user_role"]
+          team_member_id?: string | null
           updated_at?: string
           user_id: string
           username?: string | null
@@ -479,6 +481,7 @@ export type Database = {
           id?: string
           permission?: Database["public"]["Enums"]["user_permission"]
           role?: Database["public"]["Enums"]["user_role"]
+          team_member_id?: string | null
           updated_at?: string
           user_id?: string
           username?: string | null
@@ -489,6 +492,13 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_team_member_id_fkey"
+            columns: ["team_member_id"]
+            isOneToOne: false
+            referencedRelation: "team_members"
             referencedColumns: ["id"]
           },
         ]
@@ -717,6 +727,51 @@ export type Database = {
           },
         ]
       }
+      user_companies: {
+        Row: {
+          company_id: string
+          created_at: string
+          id: string
+          is_active: boolean
+          team_member_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          team_member_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          team_member_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_companies_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_companies_team_member_id_fkey"
+            columns: ["team_member_id"]
+            isOneToOne: false
+            referencedRelation: "team_members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -731,6 +786,10 @@ export type Database = {
       get_user_company_id: {
         Args: Record<PropertyKey, never>
         Returns: string
+      }
+      get_user_permission: {
+        Args: Record<PropertyKey, never>
+        Returns: Database["public"]["Enums"]["user_permission"]
       }
       is_admin: {
         Args: Record<PropertyKey, never>

@@ -82,6 +82,15 @@ export const TeamMembersManager = ({ companyId }: TeamMembersManagerProps) => {
       return;
     }
 
+    if (!newMember.email.trim()) {
+      toast({
+        title: "Email required",
+        description: "Email is required for magic link authentication.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setLoading(true);
     try {
       const { error } = await supabase
@@ -89,7 +98,7 @@ export const TeamMembersManager = ({ companyId }: TeamMembersManagerProps) => {
         .insert({
           company_id: companyId,
           name: newMember.name.trim(),
-          email: newMember.email.trim() || null,
+          email: newMember.email.trim(),
           permission: newMember.permission
         });
 
@@ -194,13 +203,13 @@ export const TeamMembersManager = ({ companyId }: TeamMembersManagerProps) => {
                 />
               </div>
               <div>
-                <Label htmlFor="member-email">Email</Label>
+                <Label htmlFor="member-email">Email *</Label>
                 <Input
                   id="member-email"
                   type="email"
                   value={newMember.email}
                   onChange={(e) => setNewMember(prev => ({ ...prev, email: e.target.value }))}
-                  placeholder="Enter email (optional)"
+                  placeholder="Enter email (required for login)"
                 />
               </div>
               <div>
@@ -231,7 +240,7 @@ export const TeamMembersManager = ({ companyId }: TeamMembersManagerProps) => {
               <div className="flex items-end">
                 <Button 
                   onClick={handleAddMember} 
-                  disabled={loading || !newMember.name.trim()}
+                  disabled={loading || !newMember.name.trim() || !newMember.email.trim()}
                   className="w-full"
                 >
                   <Plus className="h-4 w-4 mr-2" />
@@ -263,9 +272,7 @@ export const TeamMembersManager = ({ companyId }: TeamMembersManagerProps) => {
                 <div key={member.id} className="flex items-center justify-between p-3 border rounded-lg bg-white">
                   <div className="flex-1">
                     <div className="font-medium">{member.name}</div>
-                    {member.email && (
-                      <div className="text-sm text-muted-foreground">{member.email}</div>
-                    )}
+                    <div className="text-sm text-muted-foreground">{member.email}</div>
                   </div>
                   
                   <div className="flex items-center gap-3">
