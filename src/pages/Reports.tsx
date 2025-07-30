@@ -522,7 +522,7 @@ export const Reports = () => {
                                {/* View Dashboard Dialog */}
                                <Dialog>
                                  <DialogTrigger asChild>
-                                    <Button variant="default" size="sm" className="bg-red-600 hover:bg-red-700 text-white">
+                                    <Button variant="default" size="sm" style={{ backgroundColor: '#E21D48', color: 'white' }} className="hover:opacity-90">
                                       View
                                     </Button>
                                  </DialogTrigger>
@@ -534,15 +534,15 @@ export const Reports = () => {
                                           {meeting.title} - Dashboard View
                                         </DialogTitle>
                                         <div className="flex items-center gap-2">
-                                          <Button 
-                                            variant="outline" 
-                                            size="sm" 
-                                            className="gap-1"
-                                            onClick={() => handleExportPDF(meeting.id, meeting.title)}
-                                          >
-                                            <Download className="h-4 w-4" />
-                                            Save PDF
-                                          </Button>
+                                           <Button 
+                                             variant="default" 
+                                             size="sm" 
+                                             style={{ backgroundColor: '#E21D48', color: 'white' }}
+                                             className="hover:opacity-90"
+                                             onClick={() => handleExportPDF(meeting.id, meeting.title)}
+                                           >
+                                             Save PDF
+                                           </Button>
                                           <DialogTrigger asChild>
                                             <Button variant="ghost" size="sm" className="gap-1">
                                               <X className="h-4 w-4" />
@@ -565,7 +565,8 @@ export const Reports = () => {
                                 <Button 
                                   variant="default" 
                                   size="sm" 
-                                  className="bg-red-600 hover:bg-red-700 text-white" 
+                                  style={{ backgroundColor: '#E21D48', color: 'white' }} 
+                                  className="hover:opacity-90"
                                   onClick={() => handleExportPDF(meeting.id, meeting.title)}
                                 >
                                   PDF
@@ -574,7 +575,7 @@ export const Reports = () => {
                               {/* Delete Meeting Dialog */}
                               <AlertDialog>
                                 <AlertDialogTrigger asChild>
-                                   <Button variant="default" size="sm" className="bg-red-600 hover:bg-red-700 text-white">
+                                   <Button variant="default" size="sm" style={{ backgroundColor: '#E21D48', color: 'white' }} className="hover:opacity-90">
                                      Delete
                                    </Button>
                                 </AlertDialogTrigger>
