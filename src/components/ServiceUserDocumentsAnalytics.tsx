@@ -17,17 +17,19 @@ export const ServiceUserDocumentsAnalytics = ({
   const { profile } = useAuth();
   
   const [data, setData] = useState({
-    totalServiceUsers: 0,
-    missingDocuments: 0
+    incompleteDocuments: 0
   });
 
-  const compliancePercentage = data.totalServiceUsers > 0 
-    ? Math.round((data.totalServiceUsers - data.missingDocuments) / data.totalServiceUsers * 100) 
+  const [totalServiceUsers, setTotalServiceUsers] = useState(0);
+
+  const compliancePercentage = totalServiceUsers > 0 
+    ? Math.round((totalServiceUsers - data.incompleteDocuments) / totalServiceUsers * 100) 
     : 100;
 
   useEffect(() => {
     if (profile?.company_id) {
       loadData();
+      loadCarePlanData();
     }
   }, [profile?.company_id, meetingId]);
 
@@ -75,6 +77,27 @@ export const ServiceUserDocumentsAnalytics = ({
           console.error('Error loading backup data:', error);
         }
       }
+    }
+  };
+
+  const loadCarePlanData = async () => {
+    if (!profile?.company_id) return;
+
+    try {
+      const { data: carePlanData, error } = await supabase
+        .from('dashboard_data')
+        .select('data_content')
+        .eq('company_id', profile.company_id)
+        .eq('data_type', 'care_plan_overview')
+        .maybeSingle();
+
+      if (carePlanData?.data_content) {
+        const careData = carePlanData.data_content as any;
+        const total = (careData.highRisk || 0) + (careData.mediumRisk || 0) + (careData.lowRisk || 0) + (careData.naRisk || 0);
+        setTotalServiceUsers(total);
+      }
+    } catch (error) {
+      console.error('Error loading care plan data:', error);
     }
   };
 
@@ -169,25 +192,27 @@ export const ServiceUserDocumentsAnalytics = ({
             <div className="text-center">
               <h3 className="text-lg font-semibold mb-2">Total Service Users</h3>
             </div>
-            <EditableCell 
-              value={data.totalServiceUsers} 
-              onChange={(value) => handleInputChange('totalServiceUsers', value)} 
-            />
+            <div className="text-3xl font-bold text-primary">
+              {totalServiceUsers}
+            </div>
+            <div className="text-xs text-muted-foreground text-center">
+              From Care Plans & Risk Assessments
+            </div>
           </div>
         </Card>
 
-        {/* Missing Documents */}
+        {/* Incomplete Documents */}
         <Card className="p-6">
           <div className="flex flex-col items-center justify-center space-y-4">
             <div className="text-center">
-              <h3 className="text-lg font-semibold mb-2">Missing Documents</h3>
+              <h3 className="text-lg font-semibold mb-2">Incomplete Documents</h3>
             </div>
             <EditableCell 
-              value={data.missingDocuments} 
-              onChange={(value) => handleInputChange('missingDocuments', value)} 
+              value={data.incompleteDocuments} 
+              onChange={(value) => handleInputChange('incompleteDocuments', value)} 
             />
             <div className="text-xs text-muted-foreground text-center">
-              Number with missing documents
+              Service users with incomplete documents
             </div>
           </div>
         </Card>
@@ -202,7 +227,7 @@ export const ServiceUserDocumentsAnalytics = ({
               Documents Compliant
             </div>
             <div className="text-xs text-center text-muted-foreground">
-              {data.totalServiceUsers - data.missingDocuments} compliant / {data.totalServiceUsers} total
+              {totalServiceUsers - data.incompleteDocuments} compliant / {totalServiceUsers} total
             </div>
           </div>
         </Card>
