@@ -84,11 +84,14 @@ export const ServiceUserDocumentsAnalytics = ({
     if (!profile?.company_id) return;
 
     try {
+      // Get the most recent care plan data for this company
       const { data: carePlanData, error } = await supabase
         .from('dashboard_data')
         .select('data_content')
         .eq('company_id', profile.company_id)
         .eq('data_type', 'care_plan_overview')
+        .order('updated_at', { ascending: false })
+        .limit(1)
         .maybeSingle();
 
       if (carePlanData?.data_content) {
