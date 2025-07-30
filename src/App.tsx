@@ -8,6 +8,7 @@ import { useTheme } from "./hooks/useTheme";
 import Index from "./pages/Index";
 import { Reports } from "./pages/Reports";
 import { QuarterlyReport } from "./pages/QuarterlyReport";
+import { ReportBuilder } from "./pages/ReportBuilder";
 import { Settings } from "./pages/Settings";
 import { Auth } from "./pages/Auth";
 import { CompanySelection } from "./pages/CompanySelection";
@@ -45,6 +46,11 @@ const AppContent = () => {
       <Route path="/quarterly-report" element={
         <ProtectedRoute requireCompany>
           <QuarterlyReport />
+        </ProtectedRoute>
+      } />
+      <Route path="/report-builder" element={
+        <ProtectedRoute requireCompany>
+          <ReportBuilder />
         </ProtectedRoute>
       } />
       <Route path="/settings" element={

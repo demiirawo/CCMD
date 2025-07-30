@@ -199,6 +199,11 @@ export const QuarterlyReportGenerator: React.FC<QuarterlyReportGeneratorProps> =
   };
 
   const generateReport = async () => {
+    // Navigate to the report builder page instead of generating directly
+    navigate(`/report-builder?quarter=${quarter}&year=${year}`);
+  };
+
+  const generateReportDirect = async () => {
     try {
       const analyticsData = await collectAnalyticsData();
       
