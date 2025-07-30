@@ -48,8 +48,8 @@ export const KeyDocumentTracker = ({
     return saved !== null ? JSON.parse(saved) : false;
   });
   
-  // Use forceOpen if provided, otherwise use internal state
-  const isOpen = forceOpen !== undefined ? forceOpen : isExpanded;
+  // Use forceOpen only if it's explicitly true or false, but allow individual control when undefined
+  const isOpen = forceOpen === true ? true : forceOpen === false ? false : isExpanded;
 
   const calculateNextReviewDate = (lastReviewDate: string | null, number: string, period: string): Date | null => {
     if (!lastReviewDate) return null;
@@ -181,12 +181,10 @@ export const KeyDocumentTracker = ({
 
   return <Card className="bg-primary/10 rounded-2xl p-6 shadow-lg border border-border/50 -mx-8 px-14">
       <div className="flex items-center justify-between cursor-pointer mb-6" onClick={() => {
-        if (forceOpen === undefined) {
-          const newState = !isExpanded;
-          setIsExpanded(newState);
-          sessionStorage.setItem('key_documents_expanded', JSON.stringify(newState));
-          onPanelStateChange?.();
-        }
+        const newState = !isExpanded;
+        setIsExpanded(newState);
+        sessionStorage.setItem('key_documents_expanded', JSON.stringify(newState));
+        onPanelStateChange?.();
       }}>
         <div className="flex items-center gap-3">
           <div>

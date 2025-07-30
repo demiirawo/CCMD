@@ -54,8 +54,8 @@ export const DashboardSection = ({
     return saved !== null ? JSON.parse(saved) : defaultOpen;
   });
   
-  // Use forceOpen if provided, otherwise use internal state
-  const isExpanded = forceOpen !== undefined ? forceOpen : isOpen;
+  // Use forceOpen only if it's explicitly true or false, but allow individual control when undefined
+  const isExpanded = forceOpen === true ? true : forceOpen === false ? false : isOpen;
   const [monthlyStaffData, setMonthlyStaffData] = useState<Array<{month: string, currentStaff: number, probationStaff?: number}>>([]);
 
   const statusCounts = items.reduce((acc, item) => {
@@ -170,13 +170,11 @@ export const DashboardSection = ({
       <div 
         className="flex items-center justify-between cursor-pointer mb-4"
         onClick={() => {
-          if (forceOpen === undefined) {
-            const newState = !isOpen;
-            setIsOpen(newState);
-            const storageKey = `section_${title.replace(/\s+/g, '_').toLowerCase()}_open`;
-            sessionStorage.setItem(storageKey, JSON.stringify(newState));
-            onPanelStateChange?.();
-          }
+          const newState = !isOpen;
+          setIsOpen(newState);
+          const storageKey = `section_${title.replace(/\s+/g, '_').toLowerCase()}_open`;
+          sessionStorage.setItem(storageKey, JSON.stringify(newState));
+          onPanelStateChange?.();
         }}
       >
         <div className="flex items-center gap-3">

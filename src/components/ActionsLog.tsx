@@ -55,8 +55,8 @@ export const ActionsLog = ({
     return saved !== null ? JSON.parse(saved) : false;
   });
   
-  // Use forceOpen if provided, otherwise use internal state
-  const isOpen = forceOpen !== undefined ? forceOpen : isExpanded;
+  // Use forceOpen only if it's explicitly true or false, but allow individual control when undefined
+  const isOpen = forceOpen === true ? true : forceOpen === false ? false : isExpanded;
   const [editingAction, setEditingAction] = useState<ActionLogEntry | null>(null);
 
   // Group actions by open/closed
@@ -199,12 +199,10 @@ export const ActionsLog = ({
   };
   return <div className="bg-primary/10 rounded-2xl p-6 shadow-lg border border-border/50 -mx-8 px-14">
       <div className="flex items-center justify-between cursor-pointer mb-4" onClick={() => {
-        if (forceOpen === undefined) {
-          const newState = !isExpanded;
-          setIsExpanded(newState);
-          sessionStorage.setItem('actions_log_expanded', JSON.stringify(newState));
-          onPanelStateChange?.();
-        }
+        const newState = !isExpanded;
+        setIsExpanded(newState);
+        sessionStorage.setItem('actions_log_expanded', JSON.stringify(newState));
+        onPanelStateChange?.();
       }}>
         <div className="flex items-center gap-2">
           <h3 className="text-xl font-bold text-foreground flex items-center gap-2">
