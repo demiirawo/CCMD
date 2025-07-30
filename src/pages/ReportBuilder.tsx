@@ -69,11 +69,11 @@ export const ReportBuilder: React.FC = () => {
       <div className="container mx-auto p-6 max-w-4xl">
         <div className="mb-6">
           <Button variant="ghost" onClick={handleBack} className="mb-4">
-            <ArrowLeft className="mr-2 h-4 w-4" />
+            
             Back to Reports
           </Button>
           
-          <h1 className="text-3xl font-bold mb-2">Build Quarterly Report</h1>
+          <h1 className="text-3xl font-bold mb-2 bg-stone-50">Build Quarterly Report</h1>
           
         </div>
 
@@ -85,7 +85,7 @@ export const ReportBuilder: React.FC = () => {
                 Additional Context
               </CardTitle>
             </CardHeader>
-            <CardContent className="bg-card">
+            <CardContent>
               <div className="space-y-4">
                 <Label htmlFor="context">
                   Provide additional information to help the AI generate a more comprehensive report
