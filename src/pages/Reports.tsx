@@ -11,6 +11,7 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import { useTheme } from "@/hooks/useTheme";
 import { MeetingStatusSummary } from "@/components/MeetingStatusSummary";
 import { StatusBadge } from "@/components/StatusBadge";
 import { QuarterlyReportGenerator } from "@/components/QuarterlyReportGenerator";
@@ -56,6 +57,7 @@ interface GroupedMeetings {
 
 export const Reports = () => {
   const { profile } = useAuth();
+  useTheme(); // Apply dynamic theme
   const [meetings, setMeetings] = useState<ParsedMeeting[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedQuarters, setExpandedQuarters] = useState<Record<string, boolean>>({});
