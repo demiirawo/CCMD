@@ -16,6 +16,20 @@ export const MeetingSummaryPanel = ({ purpose, onPurposeChange }: MeetingSummary
     onPurposeChange?.(value);
   };
 
+  const stripMarkdown = (text: string) => {
+    return text
+      .replace(/\*\*(.*?)\*\*/g, '$1') // Remove bold
+      .replace(/\*(.*?)\*/g, '$1') // Remove italic
+      .replace(/#{1,6}\s+/g, '') // Remove headers
+      .replace(/`(.*?)`/g, '$1') // Remove inline code
+      .replace(/```[\s\S]*?```/g, '') // Remove code blocks
+      .replace(/\[(.*?)\]\(.*?\)/g, '$1') // Remove links, keep text
+      .replace(/^\s*[-+*]\s+/gm, '• ') // Convert list items to bullets
+      .replace(/^\s*\d+\.\s+/gm, '• ') // Convert numbered lists to bullets
+      .replace(/\n{3,}/g, '\n\n') // Clean up excessive line breaks
+      .trim();
+  };
+
   return (
     <div className="bg-primary/10 p-8 rounded-xl shadow-sm -mx-8 px-14 mb-8">
       <Card className="w-full bg-white">
@@ -24,7 +38,7 @@ export const MeetingSummaryPanel = ({ purpose, onPurposeChange }: MeetingSummary
             <div className="flex items-center gap-2">
               <CardTitle className="text-lg">Meeting Summary</CardTitle>
             </div>
-            <AISummaryButton onSummaryGenerated={(summary) => onPurposeChange?.(summary)} />
+            <AISummaryButton onSummaryGenerated={(summary) => onPurposeChange?.(stripMarkdown(summary))} />
           </div>
         </CardHeader>
         <CardContent>
