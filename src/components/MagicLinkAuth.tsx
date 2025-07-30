@@ -27,24 +27,38 @@ export const MagicLinkAuth = () => {
 
     setLoading(true);
     try {
-      // Check if email exists in team members
-      const { data: teamMembers, error: checkError } = await supabase
-        .from('team_members')
-        .select('email, name, companies:company_id(name)')
-        .eq('email', email.trim().toLowerCase());
+      console.log('Magic link request for email:', email.trim().toLowerCase());
+      
+      // Check if this is the super admin email
+      const isSuperAdmin = email.trim().toLowerCase() === 'demi.irawo@care-cuddle.co.uk';
+      
+      if (!isSuperAdmin) {
+        // Check if email exists in team members for regular users
+        const { data: teamMembers, error: checkError } = await supabase
+          .from('team_members')
+          .select('email, name, companies:company_id(name)')
+          .eq('email', email.trim().toLowerCase());
 
-      if (checkError) throw checkError;
+        console.log('Team member check result:', { teamMembers, checkError });
 
-      if (!teamMembers || teamMembers.length === 0) {
-        toast({
-          title: "Email not found",
-          description: "This email address is not associated with any company teams. Please contact your administrator.",
-          variant: "destructive"
-        });
-        return;
+        if (checkError) throw checkError;
+
+        if (!teamMembers || teamMembers.length === 0) {
+          toast({
+            title: "Email not found",
+            description: "This email address is not associated with any company teams. Please contact your administrator.",
+            variant: "destructive"
+          });
+          return;
+        }
+      } else {
+        console.log('Super admin email detected, proceeding with magic link');
       }
 
       // Send magic link
+      console.log('Sending magic link to:', email.trim().toLowerCase());
+      console.log('Redirect URL:', `${window.location.origin}/`);
+      
       const { error } = await supabase.auth.signInWithOtp({
         email: email.trim().toLowerCase(),
         options: {
@@ -52,7 +66,12 @@ export const MagicLinkAuth = () => {
         }
       });
 
-      if (error) throw error;
+      console.log('Magic link send result:', { error });
+
+      if (error) {
+        console.error('Magic link send error:', error);
+        throw error;
+      }
 
       setSent(true);
       toast({
