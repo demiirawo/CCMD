@@ -1126,10 +1126,10 @@ Focus on creating a comprehensive narrative that demonstrates ${companyName}'s o
           .page-break { 
             page-break-after: always !important;
             width: 210mm !important;
-            min-height: 247mm !important; /* Reduced height to account for margins */
+            min-height: 267mm !important; /* Adjusted height for 15mm margins */
             height: auto !important;
-            padding: 25mm !important; /* Exact 25mm padding */
-            margin: 25mm !important; /* Add 25mm margin */
+            padding: 15mm !important; /* 15mm padding */
+            margin: 15mm !important; /* 15mm margin */
             box-sizing: border-box !important;
             background: white !important;
             border: none !important;
@@ -1187,7 +1187,7 @@ Focus on creating a comprehensive narrative that demonstrates ${companyName}'s o
         
         @page {
           size: A4 portrait;
-          margin: 25mm; /* 25mm margin on all sides */
+          margin: 15mm; /* 15mm margin on all sides */
         }
         
         /* Ensure proper page structure */
