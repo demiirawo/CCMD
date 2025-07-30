@@ -97,11 +97,21 @@ export const QuarterlyReport = () => {
       let additionalContext = '';
       if (contextParam) {
         try {
-          const contextData = JSON.parse(decodeURIComponent(contextParam));
+          // First try direct parsing without decoding
+          const contextData = JSON.parse(contextParam);
           additionalContext = contextData.additionalContext || '';
-          console.log('📝 Additional context provided:', additionalContext);
-        } catch (error) {
-          console.warn('Failed to parse context data:', error);
+          console.log('📝 Additional context provided (direct):', additionalContext);
+        } catch (directError) {
+          try {
+            // If that fails, try with decoding
+            const contextData = JSON.parse(decodeURIComponent(contextParam));
+            additionalContext = contextData.additionalContext || '';
+            console.log('📝 Additional context provided (decoded):', additionalContext);
+          } catch (error) {
+            console.warn('Failed to parse context data:', error);
+            // Continue without additional context rather than failing
+            additionalContext = '';
+          }
         }
       }
 
