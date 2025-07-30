@@ -953,8 +953,31 @@ Focus on creating a comprehensive narrative that demonstrates ${companyName}'s o
                 </div>
               ) : (
                 // Content Pages
-                <div className="h-full" style={{ padding: '0' }}>
-                  <div className="prose prose-lg max-w-none">
+                <div className="h-full relative" style={{ padding: '0' }}>
+                  {/* Page Header */}
+                  <div className="absolute top-0 left-0 right-0 flex justify-between items-center text-sm text-gray-600 print:block" style={{ 
+                    padding: '15mm 15mm 0 15mm',
+                    height: '20mm'
+                  }}>
+                    <div className="font-medium">
+                      Quarterly Report {quarter} {year}
+                    </div>
+                    <div>
+                      {getCurrentDate()}
+                    </div>
+                  </div>
+                  
+                  {/* Page Footer */}
+                  <div className="absolute bottom-0 left-0 right-0 flex justify-center items-center text-sm text-gray-600 print:block" style={{ 
+                    padding: '0 15mm 15mm 15mm',
+                    height: '20mm'
+                  }}>
+                    <div className="text-center">
+                      Page {index}
+                    </div>
+                  </div>
+                  
+                  <div className="prose prose-lg max-w-none" style={{ paddingTop: '20mm', paddingBottom: '20mm' }}>
                     <div className="report-content" style={{ 
                       fontFamily: 'system-ui, -apple-system, sans-serif',
                        lineHeight: '1.6',
@@ -1182,6 +1205,28 @@ Focus on creating a comprehensive narrative that demonstrates ${companyName}'s o
           /* Background colors */
           .bg-gray-100, .bg-gray-50 {
             background: white !important;
+          }
+          
+          /* Header and footer styling */
+          .absolute {
+            position: relative !important;
+          }
+          
+          /* Page header and footer adjustments for print */
+          .page-break .absolute:first-child {
+            position: relative !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            margin-bottom: 20mm !important;
+          }
+          
+          .page-break .absolute:last-child {
+            position: relative !important;
+            bottom: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            margin-top: 20mm !important;
           }
         }
         
