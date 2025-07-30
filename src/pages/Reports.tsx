@@ -333,69 +333,6 @@ export const Reports = () => {
                                    </DialogHeader>
                                    
                                    <div className="space-y-8 pt-6">
-                                     {/* Meeting Summary */}
-                                     {meeting.purpose && (
-                                       <section>
-                                         <div className="flex items-center gap-2 mb-4">
-                                           <Target className="h-5 w-5 text-primary" />
-                                           <h3 className="text-lg font-semibold">Meeting Summary</h3>
-                                         </div>
-                                         <Card>
-                                           <CardContent className="p-6">
-                                             <p className="text-muted-foreground leading-relaxed">{meeting.purpose}</p>
-                                           </CardContent>
-                                         </Card>
-                                       </section>
-                                     )}
-
-                                     {/* Actions Summary */}
-                                     {(meeting as any).actions_log && (meeting as any).actions_log.length > 0 && (
-                                       <section>
-                                         <div className="flex items-center gap-2 mb-4">
-                                           <Clock className="h-5 w-5 text-primary" />
-                                           <h3 className="text-lg font-semibold">Actions Summary</h3>
-                                           <Badge variant="secondary" className="ml-2">
-                                             {(meeting as any).actions_log.length} actions
-                                           </Badge>
-                                         </div>
-                                         <div className="grid gap-4">
-                                           {(meeting as any).actions_log.map((action: any, index: number) => (
-                                             <Card key={index} className="border-l-4 border-l-primary/20">
-                                               <CardContent className="p-6">
-                                                 <div className="space-y-4">
-                                                   <div className="flex justify-between items-start gap-4">
-                                                     <div className="flex-1">
-                                                       <p className="font-medium text-foreground mb-2">{action.action_text}</p>
-                                                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                                                         <div>
-                                                           <span className="text-muted-foreground font-medium">Assigned to:</span>
-                                                           <p className="text-foreground">{action.mentioned_attendee || 'Unassigned'}</p>
-                                                         </div>
-                                                         <div>
-                                                           <span className="text-muted-foreground font-medium">Due Date:</span>
-                                                           <p className="text-foreground">{action.due_date || 'Not set'}</p>
-                                                         </div>
-                                                         <div>
-                                                           <span className="text-muted-foreground font-medium">Source:</span>
-                                                           <p className="text-foreground">{action.source_id || 'Manual entry'}</p>
-                                                         </div>
-                                                       </div>
-                                                       {action.comment && (
-                                                         <div className="mt-3 p-3 bg-muted/50 rounded-lg">
-                                                           <span className="text-muted-foreground font-medium text-xs">Comment:</span>
-                                                           <p className="text-sm text-muted-foreground mt-1">{action.comment}</p>
-                                                         </div>
-                                                       )}
-                                                     </div>
-                                                     <StatusBadge status={action.status} />
-                                                   </div>
-                                                 </div>
-                                               </CardContent>
-                                             </Card>
-                                           ))}
-                                         </div>
-                                       </section>
-                                     )}
 
                                      {/* Attendees */}
                                      <section>
@@ -426,11 +363,11 @@ export const Reports = () => {
                                        </Card>
                                      </section>
 
-                                     {/* Section Details & Observations */}
+                                     {/* Section Overview */}
                                      <section>
                                        <div className="flex items-center gap-2 mb-4">
                                          <FileText className="h-5 w-5 text-primary" />
-                                         <h3 className="text-lg font-semibold">Section Details & Observations</h3>
+                                         <h3 className="text-lg font-semibold">Section Overview</h3>
                                        </div>
                                        <div className="space-y-6">
                                          {meeting.sections.map((section: any, sectionIndex: number) => {
@@ -448,10 +385,7 @@ export const Reports = () => {
                                                      <h4 className="text-lg font-semibold text-foreground">{section.title}</h4>
                                                      <div className="flex items-center gap-2">
                                                         {Object.entries(statusCounts).map(([status, count]) => (
-                                                          <div key={status} className="flex items-center gap-1">
-                                                            <StatusBadge status={status as any} />
-                                                            <span className="text-xs text-muted-foreground">×{count as number}</span>
-                                                          </div>
+                                                          <StatusBadge key={status} status={status as any} />
                                                         ))}
                                                      </div>
                                                    </div>
@@ -476,18 +410,6 @@ export const Reports = () => {
                                                                <StatusBadge status={item.status} />
                                                              </div>
                                                              
-                                                             {item.observation && (
-                                                               <div className="bg-muted/30 p-3 rounded-lg">
-                                                                 <div className="flex items-start gap-2">
-                                                                   <Eye className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
-                                                                   <div>
-                                                                     <span className="text-xs font-medium text-muted-foreground">Observation:</span>
-                                                                     <p className="text-sm text-foreground mt-1">{item.observation}</p>
-                                                                   </div>
-                                                                 </div>
-                                                               </div>
-                                                             )}
-                                                             
                                                              {item.actions && item.actions.length > 0 && (
                                                                <div className="bg-blue-50/50 p-3 rounded-lg">
                                                                  <div className="flex items-start gap-2">
@@ -497,9 +419,9 @@ export const Reports = () => {
                                                                      <ul className="space-y-1 mt-1">
                                                                        {item.actions.map((action: any, actionIndex: number) => (
                                                                          <li key={actionIndex} className="text-sm text-blue-800">
-                                                                           • {action.action_text} 
-                                                                           {action.due_date && (
-                                                                             <span className="text-blue-600"> (Due: {action.due_date})</span>
+                                                                           • {action.text || action.action_text || action.description || 'Action details'} 
+                                                                           {(action.due_date || action.dueDate) && (
+                                                                             <span className="text-blue-600"> (Due: {action.due_date || action.dueDate})</span>
                                                                            )}
                                                                          </li>
                                                                        ))}
