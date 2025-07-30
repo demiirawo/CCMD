@@ -2,10 +2,11 @@ import React, { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ArrowLeft, Download, FileText, Printer, ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowLeft, Download, FileText, Printer, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useOpenAI } from "@/hooks/useOpenAI";
 import { Document, Packer, Paragraph, TextRun, HeadingLevel, ImageRun } from 'docx';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 
@@ -20,6 +21,7 @@ export const QuarterlyReport = () => {
   const navigate = useNavigate();
   const { profile } = useAuth();
   const { toast } = useToast();
+  const { generateResponse, isLoading: isGenerating } = useOpenAI();
   
   const [companyInfo, setCompanyInfo] = useState<CompanyInfo | null>(null);
   const [reportContent, setReportContent] = useState<string>("");
@@ -31,6 +33,15 @@ export const QuarterlyReport = () => {
   const year = searchParams.get("year") || "";
   const content = searchParams.get("content") || "";
   const analytics = searchParams.get("analytics") || "";
+  const shouldGenerate = searchParams.get("generate") === "true";
+  const contextParam = searchParams.get("context") || "";
+
+  // Generate report with AI if requested
+  useEffect(() => {
+    if (shouldGenerate && !content && !isGenerating) {
+      generateAIReport();
+    }
+  }, [shouldGenerate, content, isGenerating]);
 
   useEffect(() => {
     if (content) {
@@ -62,6 +73,71 @@ export const QuarterlyReport = () => {
     }
     loadCompanyInfo();
   }, [content, analytics]);
+
+  const generateAIReport = async () => {
+    try {
+      console.log('🤖 Starting AI report generation...');
+      
+      // Parse additional context if provided
+      let additionalContext = '';
+      if (contextParam) {
+        try {
+          const contextData = JSON.parse(decodeURIComponent(contextParam));
+          additionalContext = contextData.additionalContext || '';
+          console.log('📝 Additional context provided:', additionalContext);
+        } catch (error) {
+          console.warn('Failed to parse context data:', error);
+        }
+      }
+
+      // Basic AI prompt for generating the report
+      const messages = [
+        {
+          role: 'system' as const,
+          content: `You are an AI assistant specialized in creating comprehensive quarterly reports for care agencies. Generate a detailed, professional quarterly report for ${quarter} ${year}.
+
+The report should include:
+1. Executive Summary
+2. Operational Successes  
+3. Learning Opportunities and Challenges
+4. Workforce and Capacity Analysis
+5. Care Quality and Service Delivery
+6. Health, Safety and Risk Management
+7. Continuous Improvement and Innovation
+8. Strategic Outlook and Recommendations
+
+Format the report in a professional, narrative style suitable for stakeholders and regulatory bodies.`
+        },
+        {
+          role: 'user' as const,
+          content: `Please generate a quarterly report for ${quarter} ${year}. ${additionalContext ? `Additional context: ${additionalContext}` : ''}`
+        }
+      ];
+
+      console.log('🚀 Calling OpenAI API...');
+      const generatedContent = await generateResponse(messages);
+      
+      if (generatedContent) {
+        console.log('✅ Report generated successfully');
+        setReportContent(generatedContent);
+        splitContentIntoPages(generatedContent);
+        
+        toast({
+          title: "Report Generated",
+          description: "Your quarterly report has been successfully generated!",
+        });
+      } else {
+        throw new Error('Failed to generate report content');
+      }
+    } catch (error) {
+      console.error('❌ Error generating report:', error);
+      toast({
+        title: "Generation Failed", 
+        description: "Failed to generate the quarterly report. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
 
   const loadCompanyInfo = async () => {
     if (!profile?.company_id) return;
@@ -515,6 +591,20 @@ export const QuarterlyReport = () => {
 
     return null;
   };
+
+  // Show loading state when generating report
+  if (isGenerating) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <Card className="p-8 text-center">
+          <Loader2 className="mx-auto h-12 w-12 text-primary animate-spin mb-4" />
+          <h2 className="text-xl font-semibold mb-2">Generating Report</h2>
+          <p className="text-gray-600 mb-4">AI is creating your quarterly report for {quarter} {year}...</p>
+          <p className="text-sm text-gray-500">This may take a few moments</p>
+        </Card>
+      </div>
+    );
+  }
 
   if (!reportContent || reportPages.length === 0) {
     return (
