@@ -836,49 +836,69 @@ Focus on creating a comprehensive narrative that demonstrates operational excell
               className="bg-white shadow-lg print:shadow-none page-break min-h-screen"
             >
               {index === 0 ? (
-                // Cover Page
-                <div className="p-12 min-h-screen flex flex-col justify-between">
-                  {/* Header */}
-                  <div className="text-center">
-                    {companyInfo?.logo_url && (
-                      <div className="mb-8">
-                        <img 
-                          src={companyInfo.logo_url} 
-                          alt={`${companyInfo.name} Logo`}
-                          className="mx-auto h-24 w-auto object-contain"
-                        />
-                      </div>
-                    )}
-                    
-                    <h1 className="text-4xl font-bold text-gray-900 mb-2">
-                      {companyInfo?.name || 'Care Agency'}
-                    </h1>
-                    
-                    <div className="w-24 h-1 mx-auto mb-8" style={{ backgroundColor: companyInfo?.theme_color || '#3b82f6' }}></div>
+                // Professional Cover Page
+                <div className="relative w-full min-h-screen overflow-hidden bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700 text-white">
+                  {/* Decorative dots pattern - top left */}
+                  <div className="absolute top-8 left-8 grid grid-cols-8 gap-1 opacity-30">
+                    {Array.from({ length: 64 }).map((_, i) => (
+                      <div key={i} className="w-1 h-1 bg-white rounded-full"></div>
+                    ))}
                   </div>
-
-                  {/* Main Title */}
-                  <div className="text-center flex-1 flex flex-col justify-center">
-                    <h2 className="text-5xl font-bold text-gray-900 mb-6">
-                      Quarterly Report
+                  
+                  {/* Company name - top right */}
+                  <div className="absolute top-8 right-8 text-right">
+                    <h2 className="text-xl font-light tracking-wide">
+                      {companyInfo?.name || "Care Management Company"}
                     </h2>
-                    
-                    <h3 className="text-3xl font-semibold text-gray-700 mb-4">
-                      {quarter} {year}
-                    </h3>
-                    
-                    <p className="text-xl text-gray-600 mb-8">
-                      {getQuarterDates(quarter, year)}
-                    </p>
-                    
-                    <div className="w-32 h-0.5 bg-gray-300 mx-auto"></div>
                   </div>
 
-                  {/* Footer */}
-                  <div className="text-center text-gray-600">
-                    <p className="text-lg">
-                      Report Created: {getCurrentDate()}
-                    </p>
+                  {/* Main content - center */}
+                  <div className="absolute inset-0 flex flex-col justify-center items-center px-16">
+                    <div className="text-center max-w-4xl">
+                      <h1 className="text-7xl font-bold mb-4 tracking-tight">
+                        QUARTERLY
+                      </h1>
+                      <h1 className="text-7xl font-bold mb-8 tracking-tight">
+                        REPORT
+                      </h1>
+                      <p className="text-2xl font-light tracking-wider uppercase text-blue-100 mb-12">
+                        Care Services Performance & Analytics
+                      </p>
+                      <div className="text-xl text-blue-100">
+                        {quarter} {year}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Care industry visual element - bottom left */}
+                  <div className="absolute bottom-16 left-16">
+                    <div className="w-64 h-64 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center">
+                      <div className="text-center">
+                        <div className="text-4xl mb-2">🏥</div>
+                        <div className="text-sm font-light">Quality Care</div>
+                        <div className="text-sm font-light">Excellence</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Author and contact info - bottom right */}
+                  <div className="absolute bottom-16 right-16 text-right">
+                    <p className="text-lg mb-6 text-blue-100">Prepared by</p>
+                    <h3 className="text-2xl font-semibold mb-6">Care Management Team</h3>
+                    <div className="w-16 h-0.5 bg-white mb-6 ml-auto"></div>
+                    <div className="space-y-1 text-blue-100 text-sm">
+                      <p>Quality Assurance Department</p>
+                      <p>Professional Care Services</p>
+                      <p>Excellence in Care Delivery</p>
+                      <p className="mt-3 text-xs">{getCurrentDate()}</p>
+                    </div>
+                  </div>
+
+                  {/* Bottom decorative dots - bottom right */}
+                  <div className="absolute bottom-8 right-8 grid grid-cols-8 gap-1 opacity-30">
+                    {Array.from({ length: 40 }).map((_, i) => (
+                      <div key={i} className="w-1 h-1 bg-white rounded-full"></div>
+                    ))}
                   </div>
                 </div>
               ) : (
