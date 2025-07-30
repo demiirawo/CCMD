@@ -513,7 +513,10 @@ const Index = () => {
   // Load existing subsection data from database on component mount
   useEffect(() => {
     const loadSubsectionData = async () => {
-      if (!profile?.company_id) return;
+      if (!profile?.company_id) {
+        setIsDataLoaded(true); // Set as loaded even if no company_id
+        return;
+      }
 
       try {
         const { data, error } = await supabase
