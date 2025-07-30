@@ -5,6 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 export interface Attendee {
   id: string;
   name: string;
+  email?: string;
   attended?: boolean;
 }
 
@@ -29,7 +30,7 @@ export const TeamAttendeesDisplay = ({ onAttendanceChange, readOnly = false }: T
     try {
       const { data, error } = await supabase
         .from('team_members')
-        .select('id, name')
+        .select('id, name, email')
         .eq('company_id', profile.company_id)
         .order('name', { ascending: true });
 
@@ -38,6 +39,7 @@ export const TeamAttendeesDisplay = ({ onAttendanceChange, readOnly = false }: T
       const teamAttendees: Attendee[] = (data || []).map(member => ({
         id: member.id,
         name: member.name,
+        email: member.email || '',
         attended: undefined // Default to no attendance marked
       }));
 
