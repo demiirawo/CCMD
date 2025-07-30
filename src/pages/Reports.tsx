@@ -522,7 +522,7 @@ export const Reports = () => {
                                {/* View Dashboard Dialog */}
                                <Dialog>
                                  <DialogTrigger asChild>
-                                    <Button variant="default" size="sm" style={{ backgroundColor: '#E21D48', color: 'white' }} className="hover:opacity-90">
+                                    <Button variant="default" size="sm">
                                       View
                                     </Button>
                                  </DialogTrigger>
@@ -537,8 +537,6 @@ export const Reports = () => {
                                            <Button 
                                              variant="default" 
                                              size="sm" 
-                                             style={{ backgroundColor: '#E21D48', color: 'white' }}
-                                             className="hover:opacity-90"
                                              onClick={() => handleExportPDF(meeting.id, meeting.title)}
                                            >
                                              Save PDF
@@ -565,8 +563,6 @@ export const Reports = () => {
                                 <Button 
                                   variant="default" 
                                   size="sm" 
-                                  style={{ backgroundColor: '#E21D48', color: 'white' }} 
-                                  className="hover:opacity-90"
                                   onClick={() => handleExportPDF(meeting.id, meeting.title)}
                                 >
                                   PDF
@@ -575,7 +571,7 @@ export const Reports = () => {
                               {/* Delete Meeting Dialog */}
                               <AlertDialog>
                                 <AlertDialogTrigger asChild>
-                                   <Button variant="default" size="sm" style={{ backgroundColor: '#E21D48', color: 'white' }} className="hover:opacity-90">
+                                   <Button variant="destructive" size="sm">
                                      Delete
                                    </Button>
                                 </AlertDialogTrigger>
