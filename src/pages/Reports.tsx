@@ -191,11 +191,11 @@ export const Reports = () => {
                         </p>
                       </Link>
                       
-                      {!isCurrent && <QuarterlyReportGenerator 
+                      <QuarterlyReportGenerator 
                           quarter={quarter}
                           year={year}
                           meetings={quarterMeetings}
-                        />}
+                        />
                     </div>
 
                     {/* Quarter Meetings */}
