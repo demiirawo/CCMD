@@ -8,6 +8,8 @@ interface Profile {
   company_id: string | null;
   role: 'admin' | 'user';
   username: string | null;
+  permission: 'read' | 'edit' | 'company_admin';
+  team_member_id: string | null;
   created_at: string;
   updated_at: string;
 }

@@ -72,6 +72,26 @@ export const Settings = () => {
   const {
     toast
   } = useToast();
+  
+  // Check if user has permission to access settings
+  const canAccessSettings = profile?.permission === 'company_admin' || profile?.role === 'admin';
+  
+  // If user doesn't have permission, show access denied message
+  if (!canAccessSettings) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <CardTitle className="text-destructive">Access Denied</CardTitle>
+            <CardDescription>
+              You don't have permission to access the settings page. Only company administrators can manage company settings.
+            </CardDescription>
+          </CardHeader>
+        </Card>
+      </div>
+    );
+  }
+  
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(false);
   const [uploadingLogo, setUploadingLogo] = useState(false);

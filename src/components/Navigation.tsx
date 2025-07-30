@@ -12,9 +12,15 @@ export const Navigation = () => {
 
   const navItems = [
     { name: "Dashboard", path: "/" },
-    { name: "Reports", path: "/reports" },
-    { name: "Settings", path: "/settings" }
+    { name: "Reports", path: "/reports" }
   ];
+
+  // Only show settings for company admins and super admins
+  const canAccessSettings = profile?.permission === 'company_admin' || profile?.role === 'admin';
+  
+  if (canAccessSettings) {
+    navItems.push({ name: "Settings", path: "/settings" });
+  }
 
   const currentCompany = companies.find(c => c.id === profile?.company_id);
 
