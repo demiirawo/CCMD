@@ -13,6 +13,7 @@ import { ActionItem } from "@/components/ActionForm";
 import { SubsectionMetadata } from "@/components/SubsectionMetadataDialog";
 import { StatusType } from "@/components/StatusBadge";
 import { Users, Target, BarChart3, FileText, Heart, Shield, Calendar, UserCheck, ClipboardList, HeartHandshake, TrendingUp, Save, Download, ChevronDown, ChevronUp, Share2, Copy } from "lucide-react";
+import { MeetingStatusSummary } from "@/components/MeetingStatusSummary";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
@@ -1697,6 +1698,8 @@ const Index = () => {
         </div>
         
         <div id="dashboard-container" className="space-y-6">
+          <MeetingStatusSummary sections={dashboardData.sections} />
+          
           <DashboardHeader 
             date={headerData.date} 
             title={headerData.title} 
