@@ -936,9 +936,20 @@ Focus on creating a comprehensive narrative that demonstrates operational excell
                             if (line.trim().match(/^\d+\.\s/)) {
                               // Section headers (e.g., "1. Executive Summary")
                               return (
-                                <h2 key={lineIndex} className="text-2xl font-bold text-gray-800 mb-6 mt-8 border-b border-gray-200 pb-2">
-                                  {line.trim()}
-                                </h2>
+                                <div key={lineIndex} className="mb-8">
+                                  <h2 
+                                    className="text-2xl font-bold text-gray-800 pb-3 mb-6 mt-8"
+                                    style={{ 
+                                      borderBottom: '2px solid #e5e7eb',
+                                      fontSize: '18pt',
+                                      fontWeight: 'bold',
+                                      color: '#374151',
+                                      paddingBottom: '12px'
+                                    }}
+                                  >
+                                    {line.trim()}
+                                  </h2>
+                                </div>
                               );
                             }
                             if (line.trim().startsWith('Care Agency Quarterly Report') || line.trim().includes('Quarterly Report')) {
@@ -950,19 +961,29 @@ Focus on creating a comprehensive narrative that demonstrates operational excell
                                 </h1>
                               );
                             }
-                            // Check for standalone section titles (without numbers)
+                            // Check for standalone section titles (without numbers) - expanded list
                             if (line.trim().length > 0 && line.trim().length < 100 && 
                                 (line.trim() === 'Executive Summary' || 
                                  line.trim() === 'Operational Successes' ||
+                                 line.trim() === 'Operational Successes and Achievements' ||
                                  line.trim() === 'Learning Opportunities and Challenges' ||
+                                 line.trim() === 'Learning Opportunities and Strategic Challenges' ||
                                  line.trim() === 'Workforce and Capacity Analysis' ||
+                                 line.trim() === 'Workforce Development and Capacity Analysis' ||
                                  line.trim() === 'Care Quality and Service Delivery' ||
+                                 line.trim() === 'Care Quality and Service Excellence' ||
                                  line.trim() === 'Health, Safety and Risk Management' ||
                                  line.trim() === 'Continuous Improvement and Innovation' ||
                                  line.trim() === 'Strategic Outlook and Recommendations' ||
+                                 line.trim() === 'Strategic Outlook and Future Planning' ||
                                  line.trim().includes('Summary') ||
                                  line.trim().includes('Analysis') ||
-                                 line.trim().includes('Outlook'))) {
+                                 line.trim().includes('Development') ||
+                                 line.trim().includes('Excellence') ||
+                                 line.trim().includes('Management') ||
+                                 line.trim().includes('Innovation') ||
+                                 line.trim().includes('Outlook') ||
+                                 line.trim().includes('Planning'))) {
                               return (
                                 <div key={lineIndex} className="mb-8">
                                   <h2 
