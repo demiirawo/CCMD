@@ -242,40 +242,6 @@ export const ReadOnlyDashboardView = ({ meetingId }: ReadOnlyDashboardViewProps)
           </CardContent>
         </Card>
 
-        {/* Static Actions Log */}
-        {meeting.actions_log && meeting.actions_log.length > 0 && (
-          <Card className="bg-white shadow-lg">
-            <CardHeader>
-              <CardTitle>
-                Actions Log ({meeting.actions_log.length})
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {meeting.actions_log.map((action, index) => (
-                  <div key={index} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
-                    <div className="flex justify-between items-start mb-2">
-                      <div className="flex-1">
-                        <p className="font-medium text-gray-900">{action.action}</p>
-                        <p className="text-sm text-gray-600 mt-1">{action.comment}</p>
-                      </div>
-                      <StatusBadge status={action.status} />
-                    </div>
-                    <div className="flex justify-between items-center text-xs text-gray-500">
-                      <span>Assigned to: {action.mentionedAttendee}</span>
-                      <span>Due: {action.dueDate}</span>
-                    </div>
-                    {action.closed && (
-                      <div className="mt-2 text-xs text-green-600 font-medium">
-                        ✓ Completed
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
 
         {/* Static Dashboard Sections */}
         {meeting.sections.filter(section => section.id !== "meeting-overview").map(section => (
