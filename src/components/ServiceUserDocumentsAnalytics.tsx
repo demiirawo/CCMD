@@ -84,6 +84,8 @@ export const ServiceUserDocumentsAnalytics = ({
     if (!profile?.company_id) return;
 
     try {
+      console.log('ServiceUserDocuments: Loading care plan data for company:', profile.company_id, 'meeting:', meetingId);
+      
       const { data: carePlanData, error } = await supabase
         .from('dashboard_data')
         .select('data_content')
@@ -91,13 +93,24 @@ export const ServiceUserDocumentsAnalytics = ({
         .eq('data_type', 'care_plan_overview')
         .maybeSingle();
 
+      console.log('ServiceUserDocuments: Care plan query result:', { carePlanData, error });
+
       if (carePlanData?.data_content) {
         const careData = carePlanData.data_content as any;
         const total = (careData.highRisk || 0) + (careData.mediumRisk || 0) + (careData.lowRisk || 0) + (careData.naRisk || 0);
         setTotalServiceUsers(total);
         console.log('ServiceUserDocuments: Loaded care plan data, total service users:', total);
       } else {
-        console.log('ServiceUserDocuments: No care plan data found');
+        console.log('ServiceUserDocuments: No care plan data found, checking if there are multiple records...');
+        
+        // Try to get all care plan records for this company to debug
+        const { data: allRecords } = await supabase
+          .from('dashboard_data')
+          .select('*')
+          .eq('company_id', profile.company_id)
+          .eq('data_type', 'care_plan_overview');
+          
+        console.log('ServiceUserDocuments: All care plan records for company:', allRecords);
       }
     } catch (error) {
       console.error('Error loading care plan data:', error);
