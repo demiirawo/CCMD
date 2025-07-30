@@ -170,3 +170,5 @@ export const ReportBuilder: React.FC = () => {
     </>
   );
 };
+
+export default ReportBuilder;
