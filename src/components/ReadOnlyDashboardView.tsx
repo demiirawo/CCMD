@@ -1,19 +1,31 @@
 import { useState, useEffect } from "react";
-import { DashboardHeader } from "@/components/DashboardHeader";
-import { MeetingSummaryPanel } from "@/components/MeetingSummaryPanel";
-import { ActionsLog, ActionLogEntry } from "@/components/ActionsLog";
-import { KeyDocumentTracker, DocumentData } from "@/components/KeyDocumentTracker";
-import { DashboardSection } from "@/components/DashboardSection";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { StatusItemData } from "@/components/StatusItem";
 import { Attendee } from "@/components/MeetingAttendeesManager";
-import { StatusType } from "@/components/StatusBadge";
+import { StatusBadge } from "@/components/StatusBadge";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { Users, HeartHandshake, Shield, TrendingUp } from "lucide-react";
+import { Users, HeartHandshake, Shield, TrendingUp, Calendar, CalendarDays, Clock, Target, FileText, UserCheck } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
 interface ReadOnlyDashboardViewProps {
   meetingId: string;
+}
+
+interface ActionLogEntry {
+  id: string;
+  timestamp: string;
+  itemTitle: string;
+  mentionedAttendee: string;
+  comment: string;
+  action: string;
+  dueDate: string;
+  status: "green" | "amber" | "red";
+  closed: boolean;
+  closedDate?: string;
+  sourceType: "manual" | "document";
+  sourceId?: string;
 }
 
 interface ParsedMeeting {
@@ -36,12 +48,10 @@ interface ParsedMeeting {
 export const ReadOnlyDashboardView = ({ meetingId }: ReadOnlyDashboardViewProps) => {
   const { profile } = useAuth();
   const [meeting, setMeeting] = useState<ParsedMeeting | null>(null);
-  const [keyDocuments, setKeyDocuments] = useState<DocumentData[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadMeetingData();
-    loadKeyDocuments();
   }, [meetingId, profile?.company_id]);
 
   const loadMeetingData = async () => {
@@ -85,52 +95,6 @@ export const ReadOnlyDashboardView = ({ meetingId }: ReadOnlyDashboardViewProps)
     } finally {
       setLoading(false);
     }
-  };
-
-  const loadKeyDocuments = async () => {
-    if (!profile?.company_id) return;
-
-    try {
-      const { data, error } = await supabase
-        .from('key_documents')
-        .select('*')
-        .eq('company_id', profile.company_id)
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error('Error loading key documents:', error);
-        return;
-      }
-
-      if (data && data.length > 0) {
-        const documents = data.map(record => ({
-          id: record.id,
-          name: record.name,
-          owner: '', 
-          category: '', 
-          lastReviewDate: '',
-          reviewFrequency: '',
-          reviewFrequencyNumber: '',
-          reviewFrequencyPeriod: '',
-          nextReviewDate: null as string | null
-        }));
-        setKeyDocuments(documents);
-      }
-    } catch (error) {
-      console.error('Failed to load key documents:', error);
-    }
-  };
-
-  // Dummy handlers for read-only mode
-  const dummyHandler = () => {};
-  const dummyAsyncHandler = async () => {};
-  const dummyActionHandler = async (actionId: string, updates: any) => {};
-
-  const getAttendeesList = () => {
-    if (!meeting) return [];
-    return meeting.attendees
-      .filter(attendee => attendee.name && attendee.name.trim() !== '')
-      .map(attendee => attendee.name);
   };
 
   const calculateStats = () => {
@@ -186,8 +150,10 @@ export const ReadOnlyDashboardView = ({ meetingId }: ReadOnlyDashboardViewProps)
     );
   }
 
+  const stats = calculateStats();
+
   return (
-    <div className="min-h-screen bg-gray-100 p-4 lg:p-8">
+    <div className="bg-gray-100 p-4 lg:p-8" style={{ pointerEvents: 'none', userSelect: 'none' }}>
       <div className="w-[90%] mx-auto space-y-6">
         {/* Read-only banner */}
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
@@ -197,67 +163,182 @@ export const ReadOnlyDashboardView = ({ meetingId }: ReadOnlyDashboardViewProps)
           </div>
         </div>
         
-        <div id="readonly-dashboard-container" className="space-y-6">
-          <DashboardHeader 
-            date={formatHeaderDate(meeting.date)} 
-            title={meeting.title} 
-            attendees={meeting.attendees}
-            purpose={meeting.purpose}
-            stats={calculateStats()}
-            onDataChange={dummyHandler}
-            onAttendeesChange={dummyHandler}
-          />
-          
-          <MeetingSummaryPanel 
-            purpose={meeting.purpose}
-            onPurposeChange={dummyHandler}
-          />
-          
-          <ActionsLog
-            actions={meeting.actions_log || []} 
-            onActionComplete={dummyAsyncHandler} 
-            onActionDelete={dummyAsyncHandler} 
-            onResetActions={dummyAsyncHandler}
-            onActionEdit={dummyActionHandler}
-            attendees={getAttendeesList()}
-            forceOpen={true} // Always expanded for read-only view
-            onPanelStateChange={dummyHandler}
-          />
-          
-          <KeyDocumentTracker 
-            documents={keyDocuments}
-            onDocumentsChange={dummyAsyncHandler}
-            attendees={getAttendeesList()}
-            forceOpen={true} // Always expanded for read-only view
-            onPanelStateChange={dummyHandler}
-          />
-          
-          {meeting.sections.filter(section => section.id !== "meeting-overview").map(section => {
-            const meetingDate = new Date(meeting.date);
-            
-            return (
-              <DashboardSection 
-                key={section.id} 
-                title={section.title} 
-                items={section.items || []} 
-                onItemStatusChange={dummyHandler} 
-                onItemObservationChange={dummyHandler}
-                onItemActionsChange={dummyHandler}
-                onItemDocumentsChange={dummyHandler}
-                onItemMetadataChange={dummyHandler}
-                onActionCreated={dummyAsyncHandler}
-                onSubsectionActionEdit={dummyHandler}
-                onSubsectionActionComplete={dummyAsyncHandler}
-                onSubsectionActionDelete={dummyAsyncHandler}
-                attendees={getAttendeesList()}
-                meetingDate={meetingDate}
-                meetingId={meeting.id}
-                forceOpen={true} // Always expanded for read-only view
-                onPanelStateChange={dummyHandler}
-              />
-            );
-          })}
-        </div>
+        {/* Static Dashboard Header */}
+        <Card className="bg-white shadow-lg">
+          <CardHeader className="pb-4">
+            <div className="flex justify-between items-start">
+              <div className="flex-1">
+                <CardTitle className="text-2xl font-bold text-gray-900 mb-2">
+                  {meeting.title || "Meeting Dashboard"}
+                </CardTitle>
+                <div className="flex items-center gap-6 text-sm text-gray-600">
+                  <div className="flex items-center gap-2">
+                    <CalendarDays className="h-4 w-4" />
+                    {formatHeaderDate(meeting.date)}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Users className="h-4 w-4" />
+                    {meeting.attendees.length} attendees
+                  </div>
+                </div>
+              </div>
+              <div className="flex gap-4">
+                <div className="text-center p-3 bg-green-50 rounded-lg border border-green-200">
+                  <div className="text-2xl font-bold text-green-600">{stats.green}</div>
+                  <div className="text-xs text-green-700">On Track</div>
+                </div>
+                <div className="text-center p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+                  <div className="text-2xl font-bold text-yellow-600">{stats.amber}</div>
+                  <div className="text-xs text-yellow-700">Attention</div>
+                </div>
+                <div className="text-center p-3 bg-red-50 rounded-lg border border-red-200">
+                  <div className="text-2xl font-bold text-red-600">{stats.red}</div>
+                  <div className="text-xs text-red-700">Critical</div>
+                </div>
+              </div>
+            </div>
+          </CardHeader>
+        </Card>
+
+        {/* Static Meeting Summary */}
+        {meeting.purpose && (
+          <Card className="bg-white shadow-lg">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Target className="h-5 w-5 text-blue-600" />
+                Meeting Purpose
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-700">{meeting.purpose}</p>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Static Attendees */}
+        <Card className="bg-white shadow-lg">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Users className="h-5 w-5 text-purple-600" />
+              Attendees ({meeting.attendees.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              {meeting.attendees.map((attendee, index) => (
+                <div key={index} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                  <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+                    <span className="text-sm font-bold text-purple-600">
+                      {attendee.name.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-900">{attendee.name}</p>
+                    {attendee.email && (
+                      <p className="text-xs text-gray-500">{attendee.email}</p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Static Actions Log */}
+        {meeting.actions_log && meeting.actions_log.length > 0 && (
+          <Card className="bg-white shadow-lg">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Clock className="h-5 w-5 text-orange-600" />
+                Actions Log ({meeting.actions_log.length})
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {meeting.actions_log.map((action, index) => (
+                  <div key={index} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                    <div className="flex justify-between items-start mb-2">
+                      <div className="flex-1">
+                        <p className="font-medium text-gray-900">{action.action}</p>
+                        <p className="text-sm text-gray-600 mt-1">{action.comment}</p>
+                      </div>
+                      <StatusBadge status={action.status} />
+                    </div>
+                    <div className="flex justify-between items-center text-xs text-gray-500">
+                      <span>Assigned to: {action.mentionedAttendee}</span>
+                      <span>Due: {action.dueDate}</span>
+                    </div>
+                    {action.closed && (
+                      <div className="mt-2 text-xs text-green-600 font-medium">
+                        ✓ Completed
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Static Dashboard Sections */}
+        {meeting.sections.filter(section => section.id !== "meeting-overview").map(section => (
+          <Card key={section.id} className="bg-white shadow-lg">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                {getSectionIcon(section.id)}
+                {section.title}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {section.items && section.items.length > 0 ? (
+                  section.items.map((item, index) => (
+                    <div key={index} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                      <div className="flex justify-between items-start mb-3">
+                        <h4 className="font-medium text-gray-900">{item.title}</h4>
+                        <StatusBadge status={item.status} />
+                      </div>
+                      
+                      {item.observation && (
+                        <div className="mb-3">
+                          <p className="text-sm text-gray-600 font-medium mb-1">Observation:</p>
+                          <p className="text-sm text-gray-700">{item.observation}</p>
+                        </div>
+                      )}
+
+                      {item.lastReviewed && (
+                        <div className="mb-3">
+                          <p className="text-xs text-gray-500">Last reviewed: {item.lastReviewed}</p>
+                        </div>
+                      )}
+
+                      {item.actions && item.actions.length > 0 && (
+                        <div className="bg-blue-50 p-3 rounded-lg">
+                          <p className="text-sm font-medium text-blue-800 mb-2">Related Actions:</p>
+                          <div className="space-y-2">
+                            {item.actions.map((action, actionIndex) => (
+                              <div key={actionIndex} className="text-sm text-blue-700">
+                                • {action.description || action.name} 
+                                {action.targetDate && (
+                                  <span className="text-blue-600"> (Due: {action.targetDate})</span>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-8 text-gray-500">
+                    <FileText className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                    <p className="text-sm">No items tracked in this section</p>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
     </div>
   );
