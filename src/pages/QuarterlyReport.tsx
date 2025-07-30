@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Document, Packer, Paragraph, TextRun, HeadingLevel, ImageRun } from 'docx';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 
 interface CompanyInfo {
   name: string;
@@ -337,6 +338,184 @@ export const QuarterlyReport = () => {
     window.print();
   };
 
+  // Colors for charts
+  const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
+
+  // Function to render visual analytics charts
+  const renderAnalyticsChart = (analyticsType: string, analyticsData: any) => {
+    if (!analyticsData || !analyticsData.hasData) return null;
+
+    switch (analyticsType) {
+      case 'staffTraining':
+        if (analyticsData.data?.monthly_data) {
+          const chartData = analyticsData.data.monthly_data.map((item: any) => ({
+            month: item.month,
+            'Current Staff': item.currentStaff,
+            'Probation Staff': item.probationStaff,
+            'Onboarding Staff': item.onboardingStaff
+          }));
+
+          return (
+            <div className="h-80 w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="month" />
+                  <YAxis />
+                  <Tooltip />
+                  <Bar dataKey="Current Staff" fill="#3b82f6" />
+                  <Bar dataKey="Probation Staff" fill="#10b981" />
+                  <Bar dataKey="Onboarding Staff" fill="#f59e0b" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          );
+        }
+        break;
+
+      case 'feedback':
+        if (Array.isArray(analyticsData.data)) {
+          const chartData = analyticsData.data.map((item: any) => ({
+            month: item.month,
+            'Complaints': item.complaints,
+            'Resolved': item.resolved,
+            'Compliments': item.compliments,
+            'Suggestions': item.suggestions
+          }));
+
+          return (
+            <div className="h-80 w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="month" />
+                  <YAxis />
+                  <Tooltip />
+                  <Bar dataKey="Complaints" fill="#ef4444" />
+                  <Bar dataKey="Resolved" fill="#10b981" />
+                  <Bar dataKey="Compliments" fill="#3b82f6" />
+                  <Bar dataKey="Suggestions" fill="#f59e0b" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          );
+        }
+        break;
+
+      case 'carePlan':
+        if (analyticsData.data) {
+          const pieData = [
+            { name: 'Low Risk', value: analyticsData.data.lowRisk || 0, color: '#10b981' },
+            { name: 'Medium Risk', value: analyticsData.data.mediumRisk || 0, color: '#f59e0b' },
+            { name: 'High Risk', value: analyticsData.data.highRisk || 0, color: '#ef4444' },
+            { name: 'N/A Risk', value: analyticsData.data.naRisk || 0, color: '#6b7280' },
+          ].filter(item => item.value > 0);
+
+          return (
+            <div className="h-80 w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={pieData}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={({ name, value }) => `${name}: ${value}`}
+                    outerRadius={80}
+                    fill="#8884d8"
+                    dataKey="value"
+                  >
+                    {pieData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          );
+        }
+        break;
+
+      case 'spotCheck':
+        if (analyticsData.data) {
+          const spotCheckData = [
+            { name: 'Completed Spot Checks', value: 100 - (analyticsData.data.overdueSpotChecks || 0), color: '#10b981' },
+            { name: 'Overdue Spot Checks', value: analyticsData.data.overdueSpotChecks || 0, color: '#ef4444' }
+          ].filter(item => item.value > 0);
+
+          return (
+            <div className="h-80 w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={spotCheckData}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={({ name, value }) => `${name}: ${value}%`}
+                    outerRadius={80}
+                    fill="#8884d8"
+                    dataKey="value"
+                  >
+                    {spotCheckData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          );
+        }
+        break;
+
+      case 'supervision':
+        if (analyticsData.data) {
+          const supervisionData = [
+            { name: 'Completed Supervisions', value: 100 - (analyticsData.data.overdueSupervisions || 0), color: '#10b981' },
+            { name: 'Overdue Supervisions', value: analyticsData.data.overdueSupervisions || 0, color: '#ef4444' }
+          ].filter(item => item.value > 0);
+
+          return (
+            <div className="h-80 w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={supervisionData}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={({ name, value }) => `${name}: ${value}%`}
+                    outerRadius={80}
+                    fill="#8884d8"
+                    dataKey="value"
+                  >
+                    {supervisionData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          );
+        }
+        break;
+
+      default:
+        return (
+          <div className="text-sm text-gray-600">
+            <pre className="mt-2 text-xs bg-white p-3 rounded border overflow-auto max-h-40">
+              {JSON.stringify(analyticsData.data, null, 2)}
+            </pre>
+          </div>
+        );
+    }
+
+    return null;
+  };
+
   if (!reportContent || reportPages.length === 0) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -454,20 +633,15 @@ export const QuarterlyReport = () => {
                            const analyticsType = analyticsDataMatch[1];
                            const analyticsData = analyticsImages[analyticsType];
                            
-                           if (analyticsData && analyticsData.hasData) {
-                             return (
-                               <div key={lineIndex} className="my-6 p-4 border border-gray-200 rounded-lg bg-gray-50">
-                                 <h3 className="text-lg font-semibold text-gray-800 mb-3">{analyticsData.title}</h3>
-                                 <div className="text-sm text-gray-600">
-                                   <p>Analytics data available for this section shows:</p>
-                                   <pre className="mt-2 text-xs bg-white p-3 rounded border overflow-auto max-h-40">
-                                     {JSON.stringify(analyticsData.data, null, 2)}
-                                   </pre>
-                                 </div>
-                               </div>
-                             );
-                           }
-                           return null; // Skip if no analytics data available
+                            if (analyticsData && analyticsData.hasData) {
+                              return (
+                                <div key={lineIndex} className="my-6 p-4 border border-gray-200 rounded-lg bg-gray-50">
+                                  <h3 className="text-lg font-semibold text-gray-800 mb-3">{analyticsData.title}</h3>
+                                  {renderAnalyticsChart(analyticsType, analyticsData)}
+                                </div>
+                              );
+                            }
+                            return null; // Skip if no analytics data available
                          }
                          
                          // Handle natural language prose content
