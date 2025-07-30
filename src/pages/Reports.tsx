@@ -451,7 +451,7 @@ export const Reports = () => {
               const isExpanded = isQuarterExpanded(quarterKey);
               
               return (
-                <div key={quarterKey} className="rounded-2xl shadow-lg border border-border/50 bg-red-50 p-6">
+                <div key={quarterKey} className="rounded-2xl shadow-lg border border-border/50 bg-primary/5 p-6">
                   {/* Quarter Header with Collapsible Controls */}
                   <div 
                     className="flex items-center justify-between cursor-pointer mb-4"
@@ -460,12 +460,12 @@ export const Reports = () => {
                     <div className="flex items-center gap-4">
                       <div>
                         <h2 className="text-2xl font-bold text-foreground">
-                          {quarter} {year}
-                          {isCurrent && (
-                            <Badge variant="outline" className="ml-3 bg-blue-50 text-blue-700 border-blue-200">
-                              Current Quarter
-                            </Badge>
-                          )}
+                           {quarter} {year}
+                           {isCurrent && (
+                             <Badge variant="default" className="ml-3">
+                               Current Quarter
+                             </Badge>
+                           )}
                         </h2>
                         <p className="text-sm text-muted-foreground mt-1">
                           {quarterMeetings.length} meeting{quarterMeetings.length !== 1 ? 's' : ''} saved
