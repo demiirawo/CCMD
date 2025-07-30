@@ -21,12 +21,24 @@ import jsPDF from "jspdf";
 
 const Index = () => {
   const { profile } = useAuth();
+  const [isDataLoaded, setIsDataLoaded] = useState(false);
   
   if (!profile?.company_id) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <p>Please select a company to continue.</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show loading state until data is loaded from database
+  if (!isDataLoaded) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <p>Loading dashboard data...</p>
         </div>
       </div>
     );
@@ -511,6 +523,7 @@ const Index = () => {
 
         if (error) {
           console.error('Error loading subsection data:', error);
+          setIsDataLoaded(true); // Mark as loaded even on error to prevent infinite loading
           return;
         }
 
@@ -540,8 +553,11 @@ const Index = () => {
             }))
           }));
         }
+        
+        setIsDataLoaded(true); // Mark data as loaded
       } catch (error) {
         console.error('Failed to load subsection data:', error);
+        setIsDataLoaded(true); // Mark as loaded even on error
       }
     };
 
