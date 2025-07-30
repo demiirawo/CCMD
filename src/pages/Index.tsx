@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { createRoot } from "react-dom/client";
 import { DashboardHeader } from "@/components/DashboardHeader";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -11,6 +12,7 @@ import { StatusItemData } from "@/components/StatusItem";
 import { ActionItem } from "@/components/ActionForm";
 import { SubsectionMetadata } from "@/components/SubsectionMetadataDialog";
 import { StatusType } from "@/components/StatusBadge";
+import { PDFExportView } from "@/components/PDFExportView";
 import { Users, Target, BarChart3, FileText, Heart, Shield, Calendar, UserCheck, ClipboardList, HeartHandshake, TrendingUp, Save, Download, ChevronDown, ChevronUp } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -1432,51 +1434,121 @@ const Index = () => {
   };
 
   const handleExportPDF = async () => {
-    const element = document.getElementById('dashboard-container');
-    if (!element) return;
-
     try {
-      // Temporarily expand all collapsed sections for PDF
-      const expandButtons = element.querySelectorAll('[data-state="closed"]');
-      expandButtons.forEach(button => (button as HTMLElement).click());
-      
-      // Wait for DOM updates
-      await new Promise(resolve => setTimeout(resolve, 100));
+      // Create a temporary container for the PDF export view
+      const tempContainer = document.createElement('div');
+      tempContainer.style.position = 'absolute';
+      tempContainer.style.left = '-9999px';
+      tempContainer.style.top = '0';
+      tempContainer.style.width = '210mm'; // A4 width
+      document.body.appendChild(tempContainer);
 
-      const canvas = await html2canvas(element, {
+      // Parse the meeting date for analytics
+      const parseDateString = (dateString: string) => {
+        try {
+          const parts = dateString.match(/(\d{2})\/(\d{2})\/(\d{4})\s+(\d{2}):(\d{2})/);
+          if (parts) {
+            const [, day, month, year, hour, minute] = parts;
+            return new Date(parseInt(year), parseInt(month) - 1, parseInt(day), parseInt(hour), parseInt(minute));
+          }
+          const directParse = new Date(dateString);
+          if (!isNaN(directParse.getTime())) {
+            return directParse;
+          }
+          return new Date();
+        } catch (error) {
+          return new Date();
+        }
+      };
+
+      const meetingDate = parseDateString(headerData.date);
+
+      // Create the PDF export view with proper stats format
+      const pdfStats = calculateStats();
+
+      // Create and render the PDF export component
+      const root = createRoot(tempContainer);
+      
+      await new Promise<void>((resolve) => {
+        root.render(
+          <PDFExportView
+            headerData={headerData}
+            actionsLog={actionsLog}
+            keyDocuments={keyDocuments}
+            dashboardData={dashboardData}
+            stats={pdfStats}
+            getAttendeesList={getAttendeesList}
+            meetingDate={meetingDate}
+            meetingId={currentMeetingId || tempMeetingId}
+          />
+        );
+        
+        // Wait for render
+        setTimeout(() => {
+          resolve();
+        }, 500);
+      });
+
+      // Get the rendered element
+      const pdfElement = tempContainer.querySelector('#pdf-export-container') as HTMLElement;
+      if (!pdfElement) {
+        throw new Error('PDF export element not found');
+      }
+
+      // Capture the element with html2canvas
+      const canvas = await html2canvas(pdfElement, {
         scale: 2,
         useCORS: true,
         allowTaint: true,
-        height: element.scrollHeight,
-        width: element.scrollWidth
+        backgroundColor: '#f3f4f6', // gray-100 background
+        width: pdfElement.scrollWidth,
+        height: pdfElement.scrollHeight
       });
       
       const imgData = canvas.toDataURL('image/png');
+      
+      // Create PDF with 10mm margins
       const pdf = new jsPDF('p', 'mm', 'a4');
       
-      const imgWidth = 210;
-      const pageHeight = 295;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      // A4 dimensions with 10mm margins
+      const pageWidth = 210; // A4 width in mm
+      const pageHeight = 297; // A4 height in mm
+      const margin = 10; // 10mm margin
+      const contentWidth = pageWidth - (margin * 2); // 190mm
+      const contentHeight = pageHeight - (margin * 2); // 277mm
+      
+      const imgWidth = contentWidth;
+      const imgHeight = (canvas.height * contentWidth) / canvas.width;
+      
       let heightLeft = imgHeight;
-      let position = 0;
+      let yPosition = 0;
 
-      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-      heightLeft -= pageHeight;
+      // Add first page
+      pdf.addImage(imgData, 'PNG', margin, margin, imgWidth, imgHeight);
+      heightLeft -= contentHeight;
 
-      while (heightLeft >= 0) {
-        position = heightLeft - imgHeight;
+      // Add additional pages if needed
+      while (heightLeft > 0) {
+        yPosition = -(imgHeight - heightLeft);
         pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
+        pdf.addImage(imgData, 'PNG', margin, margin + yPosition, imgWidth, imgHeight);
+        heightLeft -= contentHeight;
       }
 
-      pdf.save(`dashboard-${new Date().toISOString().split('T')[0]}.pdf`);
+      // Generate filename with current date
+      const filename = `dashboard-${headerData.title || 'meeting'}-${new Date().toISOString().split('T')[0]}.pdf`;
+      pdf.save(filename);
+      
+      // Clean up
+      root.unmount();
+      document.body.removeChild(tempContainer);
       
       toast({
         title: "PDF Exported",
-        description: "Dashboard has been exported as PDF"
+        description: "Dashboard has been exported as PDF with all sections expanded"
       });
     } catch (error) {
+      console.error('PDF Export Error:', error);
       toast({
         title: "Export Failed",
         description: "Failed to export dashboard as PDF",
