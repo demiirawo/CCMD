@@ -309,46 +309,153 @@ export const Reports = () => {
         description: "Please wait while we generate your PDF..."
       });
 
-      const meetingElement = document.getElementById(`meeting-print-${meetingId}`);
-      if (!meetingElement) return;
-
-      // Create a temporary div with the content for PDF generation
-      const tempDiv = document.createElement('div');
-      tempDiv.style.position = 'absolute';
-      tempDiv.style.left = '-9999px';
-      tempDiv.style.top = '0';
-      tempDiv.style.width = '794px'; // A4 width in pixels at 96 DPI
-      tempDiv.style.backgroundColor = 'white';
-      tempDiv.style.padding = '40px';
-      tempDiv.style.fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-      tempDiv.innerHTML = meetingElement.innerHTML;
+      // Create a temporary container for PDF content
+      const tempContainer = document.createElement('div');
+      tempContainer.style.position = 'absolute';
+      tempContainer.style.left = '-9999px';
+      tempContainer.style.top = '0';
+      tempContainer.style.width = '210mm'; // A4 width
+      tempContainer.style.minHeight = '297mm'; // A4 height
+      tempContainer.style.backgroundColor = 'white';
+      tempContainer.style.padding = '20mm';
+      tempContainer.style.fontFamily = '"Segoe UI", Tahoma, Geneva, Verdana, sans-serif';
+      tempContainer.style.fontSize = '12px';
+      tempContainer.style.lineHeight = '1.4';
+      tempContainer.style.color = '#000';
+      tempContainer.style.boxSizing = 'border-box';
       
-      document.body.appendChild(tempDiv);
+      // Get the meeting data for PDF content
+      const meeting = meetings.find(m => m.id === meetingId);
+      if (!meeting) return;
 
-      const canvas = await html2canvas(tempDiv, {
+      // Create structured PDF content
+      tempContainer.innerHTML = `
+        <div style="margin-bottom: 30px; border-bottom: 2px solid #000; padding-bottom: 15px;">
+          <h1 style="margin: 0 0 10px 0; font-size: 24px; font-weight: bold; color: #000;">${meeting.title}</h1>
+          <p style="margin: 0; font-size: 14px; color: #666;">Meeting Report - ${formatDate(meeting.date)}</p>
+        </div>
+
+        ${meeting.purpose ? `
+        <div style="margin-bottom: 25px; page-break-inside: avoid;">
+          <h2 style="margin: 0 0 10px 0; font-size: 16px; font-weight: 600; color: #000; border-bottom: 1px solid #ccc; padding-bottom: 5px;">Meeting Purpose</h2>
+          <p style="margin: 0; padding: 10px; background: #f8f9fa; border-left: 3px solid #007bff; font-size: 12px;">${meeting.purpose}</p>
+        </div>
+        ` : ''}
+
+        <div style="margin-bottom: 25px; page-break-inside: avoid;">
+          <h2 style="margin: 0 0 10px 0; font-size: 16px; font-weight: 600; color: #000; border-bottom: 1px solid #ccc; padding-bottom: 5px;">Attendees (${meeting.attendees.length})</h2>
+          <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;">
+            ${meeting.attendees.map(attendee => `
+              <div style="padding: 8px; background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 4px; font-size: 11px;">
+                <div style="font-weight: 600; margin-bottom: 2px;">${attendee.name}</div>
+                <div style="color: #666; font-size: 10px;">${attendee.email}</div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+
+        ${meeting.sections && meeting.sections.length > 0 ? meeting.sections.map(section => `
+          <div style="margin-bottom: 25px; page-break-inside: avoid;">
+            <h2 style="margin: 0 0 15px 0; font-size: 16px; font-weight: 600; color: #000; border-bottom: 1px solid #ccc; padding-bottom: 5px;">${section.title}</h2>
+            ${section.items && section.items.length > 0 ? `
+              <div style="space-y: 8px;">
+                ${section.items.map((item, index) => {
+                  const statusColor = item.status === 'green' ? '#28a745' : item.status === 'amber' ? '#ffc107' : '#dc3545';
+                  return `
+                    <div style="margin-bottom: 12px; padding: 12px; border-left: 4px solid ${statusColor}; background: #f8f9fa; border-radius: 4px;">
+                      <div style="font-size: 11px; font-weight: 600; margin-bottom: 4px;">${(item as any).title || `Item ${index + 1}`}</div>
+                      ${(item as any).description ? `<div style="font-size: 10px; color: #666; margin-bottom: 6px;">${(item as any).description}</div>` : ''}
+                      ${(item as any).observations ? `
+                        <div style="margin-top: 8px;">
+                          <div style="font-size: 10px; font-weight: 600; margin-bottom: 4px;">Observations:</div>
+                          <div style="font-size: 10px; color: #555; padding: 6px; background: white; border-radius: 3px;">${(item as any).observations}</div>
+                        </div>
+                      ` : ''}
+                      ${(item as any).actions && (item as any).actions.length > 0 ? `
+                        <div style="margin-top: 8px;">
+                          <div style="font-size: 10px; font-weight: 600; margin-bottom: 4px;">Related Actions:</div>
+                          ${(item as any).actions.map((action: any) => `
+                            <div style="font-size: 10px; padding: 4px 8px; background: white; border: 1px solid #e9ecef; border-radius: 3px; margin-bottom: 3px;">
+                              <strong>${action.action}</strong> - Assigned to: ${action.assignee} | Due: ${action.dueDate || 'Not set'}
+                            </div>
+                          `).join('')}
+                        </div>
+                      ` : ''}
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+            ` : '<p style="color: #666; font-style: italic; font-size: 11px;">No items tracked for this section</p>'}
+          </div>
+        `).join('') : ''}
+
+        ${(meeting as any).actions_log && (meeting as any).actions_log.length > 0 ? `
+        <div style="margin-bottom: 25px; page-break-inside: avoid;">
+          <h2 style="margin: 0 0 15px 0; font-size: 16px; font-weight: 600; color: #000; border-bottom: 1px solid #ccc; padding-bottom: 5px;">Actions Log (${(meeting as any).actions_log.length})</h2>
+          <div>
+            ${(meeting as any).actions_log.map((action: any) => `
+              <div style="margin-bottom: 15px; padding: 12px; border: 1px solid #e9ecef; border-radius: 6px; background: #f8f9fa;">
+                <div style="font-weight: 600; margin-bottom: 6px; font-size: 12px;">${action.action}</div>
+                <div style="font-size: 10px; color: #666; margin-bottom: 6px;">From: ${action.source} | Assigned to: ${action.assignee}</div>
+                ${action.dueDate ? `<div style="font-size: 10px; color: #666; margin-bottom: 6px;">Due: ${action.dueDate}</div>` : ''}
+                ${action.comments ? `<div style="font-size: 10px; color: #555; margin-top: 6px; padding: 6px; background: white; border-radius: 3px;">${action.comments}</div>` : ''}
+              </div>
+            `).join('')}
+          </div>
+        </div>
+        ` : ''}
+
+        <div style="margin-top: 40px; padding-top: 15px; border-top: 1px solid #ccc; text-align: center; font-size: 10px; color: #666;">
+          Generated on ${new Date().toLocaleDateString('en-GB')} at ${new Date().toLocaleTimeString('en-GB')}
+        </div>
+      `;
+      
+      document.body.appendChild(tempContainer);
+
+      // Generate PDF with proper A4 dimensions
+      const canvas = await html2canvas(tempContainer, {
         scale: 2,
         useCORS: true,
         allowTaint: true,
         backgroundColor: '#ffffff',
-        width: 794,
-        height: tempDiv.scrollHeight
+        width: Math.ceil(210 * 3.779527559), // A4 width in pixels at 96 DPI
+        height: tempContainer.scrollHeight
       });
 
-      document.body.removeChild(tempDiv);
+      document.body.removeChild(tempContainer);
 
-      const imgData = canvas.toDataURL('image/png');
+      // Create PDF with A4 dimensions
       const pdf = new jsPDF({
         orientation: 'portrait',
-        unit: 'px',
-        format: [794, canvas.height]
+        unit: 'mm',
+        format: 'a4'
       });
 
-      pdf.addImage(imgData, 'PNG', 0, 0, 794, canvas.height);
+      const imgWidth = 210; // A4 width in mm
+      const pageHeight = 297; // A4 height in mm
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      let heightLeft = imgHeight;
+      let position = 0;
+
+      const imgData = canvas.toDataURL('image/png');
+      
+      // Add first page
+      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+
+      // Add additional pages if content is longer than one page
+      while (heightLeft >= 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+
       pdf.save(`${meetingTitle.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_meeting_report.pdf`);
 
       toast({
         title: "PDF Generated",
-        description: "Your meeting report has been downloaded as PDF"
+        description: "Your meeting report has been downloaded as a properly formatted A4 PDF"
       });
     } catch (error) {
       console.error('Error generating PDF:', error);
