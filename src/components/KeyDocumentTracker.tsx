@@ -317,7 +317,7 @@ export const KeyDocumentTracker = ({
                   <div className="col-span-6">
                     <label className="text-xs text-muted-foreground mb-1 block">Updated</label>
                     <div className="text-sm p-2 bg-muted/30 rounded border text-muted-foreground h-9 flex items-center">
-                      {doc.updatedAt ? `${new Date(doc.updatedAt).toLocaleDateString('en-GB')} ${new Date(doc.updatedAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}` : "Not updated"}
+                      {doc.updatedAt ? new Date(doc.updatedAt).toLocaleDateString('en-GB') : "Not updated"}
                     </div>
                   </div>
                   
