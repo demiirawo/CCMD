@@ -84,14 +84,12 @@ export const ServiceUserDocumentsAnalytics = ({
     if (!profile?.company_id) return;
 
     try {
-      // Get the most recent care plan data for this company
+      // Use the same approach as CarePlanOverview to get care plan data
       const { data: carePlanData, error } = await supabase
         .from('dashboard_data')
         .select('data_content')
         .eq('company_id', profile.company_id)
         .eq('data_type', 'care_plan_overview')
-        .order('updated_at', { ascending: false })
-        .limit(1)
         .maybeSingle();
 
       if (carePlanData?.data_content) {
@@ -100,7 +98,21 @@ export const ServiceUserDocumentsAnalytics = ({
         setTotalServiceUsers(total);
         console.log('ServiceUserDocuments: Loaded care plan data, total service users:', total);
       } else {
-        console.log('ServiceUserDocuments: No care plan data found');
+        // Try to load from localStorage backup (same as CarePlanOverview)
+        const backupKey = `care_plan_overview_backup_${profile.company_id}`;
+        const backupData = localStorage.getItem(backupKey);
+        if (backupData) {
+          try {
+            const backup = JSON.parse(backupData);
+            const total = (backup.highRisk || 0) + (backup.mediumRisk || 0) + (backup.lowRisk || 0) + (backup.naRisk || 0);
+            setTotalServiceUsers(total);
+            console.log('ServiceUserDocuments: Loaded care plan data from backup, total service users:', total);
+          } catch (error) {
+            console.error('Error loading backup data:', error);
+          }
+        } else {
+          console.log('ServiceUserDocuments: No care plan data found');
+        }
       }
     } catch (error) {
       console.error('Error loading care plan data:', error);
