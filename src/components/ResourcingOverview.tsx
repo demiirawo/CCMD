@@ -72,6 +72,7 @@ export const ResourcingOverview = ({
   const saveData = async (newData: typeof data) => {
     if (!profile?.company_id) return;
     try {
+      console.log('ResourcingOverview: Saving data:', newData);
       const {
         error
       } = await supabase.from('dashboard_data').upsert({
@@ -84,14 +85,24 @@ export const ResourcingOverview = ({
         onConflict: 'company_id,meeting_id,data_type'
       });
       if (error) {
-        console.error('Error saving resourcing overview:', error);
+        console.error('ResourcingOverview: Error saving data:', error);
         throw error;
       } else {
+        console.log('ResourcingOverview: Data saved successfully');
         // Save to localStorage as backup
         localStorage.setItem(`resourcing_overview_backup_${profile.company_id}`, JSON.stringify(newData));
+        
+        // Trigger a custom event to notify other components that data has been updated
+        window.dispatchEvent(new CustomEvent('resourcing-data-updated', { 
+          detail: { 
+            companyId: profile.company_id, 
+            meetingId, 
+            data: newData 
+          } 
+        }));
       }
     } catch (error) {
-      console.error('Error saving resourcing overview:', error);
+      console.error('ResourcingOverview: Error saving data:', error);
       // Save to localStorage as fallback
       if (profile?.company_id) {
         localStorage.setItem(`resourcing_overview_backup_${profile.company_id}`, JSON.stringify(newData));

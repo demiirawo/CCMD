@@ -37,10 +37,30 @@ export const StaffDocumentsAnalytics = ({
     }
   }, [profile?.company_id, meetingId]);
 
+  // Listen for resourcing data updates
+  useEffect(() => {
+    const handleResourcingUpdate = (event: CustomEvent) => {
+      if (event.detail.companyId === profile?.company_id && 
+          event.detail.meetingId === meetingId) {
+        console.log('StaffDocumentsAnalytics: Received resourcing data update:', event.detail.data);
+        setStaffData({
+          onboarding: event.detail.data.onboarding || 0,
+          onProbation: event.detail.data.onProbation || 0,
+          active: event.detail.data.active || 0
+        });
+      }
+    };
+
+    window.addEventListener('resourcing-data-updated', handleResourcingUpdate as EventListener);
+    return () => window.removeEventListener('resourcing-data-updated', handleResourcingUpdate as EventListener);
+  }, [profile?.company_id, meetingId]);
+
   const loadStaffData = async () => {
     if (!profile?.company_id) return;
 
     try {
+      console.log('StaffDocumentsAnalytics: Loading staff data for company:', profile.company_id, 'meetingId:', meetingId);
+      
       // Load data for the specific meeting if meetingId is provided, otherwise load company-wide data
       let query = supabase
         .from('dashboard_data')
@@ -57,20 +77,49 @@ export const StaffDocumentsAnalytics = ({
       const { data: savedData, error } = await query.maybeSingle();
 
       if (error && error.code !== 'PGRST116') {
-        console.error('Error loading staff data:', error);
+        console.error('StaffDocumentsAnalytics: Error loading staff data:', error);
         return;
       }
 
+      console.log('StaffDocumentsAnalytics: Raw data received:', savedData);
+
       if (savedData?.data_content) {
         const resourcingData = savedData.data_content as any;
-        setStaffData({
+        console.log('StaffDocumentsAnalytics: Resourcing data:', resourcingData);
+        
+        const newStaffData = {
           onboarding: resourcingData.onboarding || 0,
           onProbation: resourcingData.onProbation || 0,
           active: resourcingData.active || 0
-        });
+        };
+        
+        console.log('StaffDocumentsAnalytics: Setting staff data:', newStaffData);
+        setStaffData(newStaffData);
+      } else {
+        console.log('StaffDocumentsAnalytics: No data found, checking for any resourcing_overview data');
+        
+        // Fallback: check for any resourcing data without meeting_id filter
+        const { data: fallbackData } = await supabase
+          .from('dashboard_data')
+          .select('data_content')
+          .eq('company_id', profile.company_id)
+          .eq('data_type', 'resourcing_overview')
+          .order('updated_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+          
+        if (fallbackData?.data_content) {
+          const resourcingData = fallbackData.data_content as any;
+          console.log('StaffDocumentsAnalytics: Using fallback data:', resourcingData);
+          setStaffData({
+            onboarding: resourcingData.onboarding || 0,
+            onProbation: resourcingData.onProbation || 0,
+            active: resourcingData.active || 0
+          });
+        }
       }
     } catch (error) {
-      console.error('Error loading staff data:', error);
+      console.error('StaffDocumentsAnalytics: Error loading staff data:', error);
     }
   };
 
