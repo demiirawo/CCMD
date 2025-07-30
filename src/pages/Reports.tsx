@@ -6,12 +6,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { CalendarDays, FileText, Users, Eye, Trash2, Clock, Target, ChevronDown, ChevronRight } from "lucide-react";
+import { CalendarDays, FileText, Users, Eye, Trash2, Clock, Target, ChevronDown, ChevronRight, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { MeetingStatusSummary } from "@/components/MeetingStatusSummary";
 import { StatusBadge } from "@/components/StatusBadge";
 import { QuarterlyReportGenerator } from "@/components/QuarterlyReportGenerator";
+import { ReadOnlyDashboardView } from "@/components/ReadOnlyDashboardView";
 
 interface Meeting {
   id: string;
@@ -309,103 +310,36 @@ export const Reports = () => {
                               <p className="text-sm text-muted-foreground w-full">{meeting.purpose}</p>
                             )}
                             <div className="flex items-center gap-2">
-                              {/* View Details Dialog */}
-                              <Dialog>
-                                <DialogTrigger asChild>
-                                  <Button variant="outline" size="sm" className="gap-1">
-                                    <Eye className="h-4 w-4" />
-                                    View
-                                  </Button>
-                                </DialogTrigger>
-                                <DialogContent className="max-w-6xl max-h-[85vh] overflow-y-auto bg-background">
-                                   <DialogHeader className="border-b pb-4">
-                                     <DialogTitle className="text-2xl font-bold">{meeting.title}</DialogTitle>
-                                     <div className="flex items-center gap-6 text-sm text-muted-foreground mt-2">
-                                       <div className="flex items-center gap-2">
-                                         <CalendarDays className="h-4 w-4" />
-                                         {formatDate(meeting.date)}
-                                       </div>
-                                       <div className="flex items-center gap-2">
-                                         <Users className="h-4 w-4" />
-                                         {meeting.attendees.length} attendees
-                                       </div>
+                               {/* View Dashboard Dialog */}
+                               <Dialog>
+                                 <DialogTrigger asChild>
+                                   <Button variant="outline" size="sm" className="gap-1">
+                                     <Eye className="h-4 w-4" />
+                                     View
+                                   </Button>
+                                 </DialogTrigger>
+                                 <DialogContent className="max-w-[95vw] max-h-[95vh] overflow-y-auto bg-background p-0">
+                                   <div className="relative">
+                                     {/* Close button */}
+                                     <div className="sticky top-0 z-10 bg-background border-b p-4 flex justify-between items-center">
+                                       <DialogTitle className="text-xl font-bold">
+                                         {meeting.title} - Dashboard View
+                                       </DialogTitle>
+                                       <DialogTrigger asChild>
+                                         <Button variant="ghost" size="sm" className="gap-1">
+                                           <X className="h-4 w-4" />
+                                           Close
+                                         </Button>
+                                       </DialogTrigger>
                                      </div>
-                                   </DialogHeader>
-                                   
-                                   <div className="space-y-8 pt-6">
-
-                                     {/* Attendees */}
-                                     <section>
-                                       <div className="flex items-center gap-2 mb-4">
-                                         <Users className="h-5 w-5 text-primary" />
-                                         <h3 className="text-lg font-semibold">Attendees</h3>
-                                       </div>
-                                       <Card>
-                                         <CardContent className="p-6">
-                                           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                             {meeting.attendees.map((attendee, index) => (
-                                               <div key={index} className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg">
-                                                 <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-                                                   <span className="text-sm font-bold text-primary">
-                                                     {attendee.name.charAt(0).toUpperCase()}
-                                                   </span>
-                                                 </div>
-                                                 <div>
-                                                   <p className="font-medium text-foreground">{attendee.name}</p>
-                                                   {attendee.email && (
-                                                     <p className="text-xs text-muted-foreground">{attendee.email}</p>
-                                                   )}
-                                                 </div>
-                                               </div>
-                                             ))}
-                                           </div>
-                                         </CardContent>
-                                       </Card>
-                                     </section>
-
-
-                                     {/* Overall Status Summary */}
-                                     <section>
-                                       <div className="flex items-center gap-2 mb-4">
-                                         <Target className="h-5 w-5 text-primary" />
-                                         <h3 className="text-lg font-semibold">Overall Status Summary</h3>
-                                       </div>
-                                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                         <Card className="border-green-200 bg-green-50/50">
-                                           <CardContent className="p-6 text-center">
-                                             <div className="text-3xl font-bold text-green-600 mb-2">
-                                               {meeting.sections.reduce((acc: number, section: any) => 
-                                                 acc + (section.items?.filter((item: any) => item.status === 'green').length || 0), 0
-                                               )}
-                                             </div>
-                                             <div className="text-sm font-medium text-green-700">Items on Track</div>
-                                           </CardContent>
-                                         </Card>
-                                         <Card className="border-yellow-200 bg-yellow-50/50">
-                                           <CardContent className="p-6 text-center">
-                                             <div className="text-3xl font-bold text-yellow-600 mb-2">
-                                               {meeting.sections.reduce((acc: number, section: any) => 
-                                                 acc + (section.items?.filter((item: any) => item.status === 'amber').length || 0), 0
-                                               )}
-                                             </div>
-                                             <div className="text-sm font-medium text-yellow-700">Need Attention</div>
-                                           </CardContent>
-                                         </Card>
-                                         <Card className="border-red-200 bg-red-50/50">
-                                           <CardContent className="p-6 text-center">
-                                             <div className="text-3xl font-bold text-red-600 mb-2">
-                                               {meeting.sections.reduce((acc: number, section: any) => 
-                                                 acc + (section.items?.filter((item: any) => item.status === 'red').length || 0), 0
-                                               )}
-                                             </div>
-                                             <div className="text-sm font-medium text-red-700">Critical Issues</div>
-                                           </CardContent>
-                                         </Card>
-                                       </div>
-                                     </section>
+                                     
+                                     {/* Full Dashboard View */}
+                                     <div className="p-4">
+                                       <ReadOnlyDashboardView meetingId={meeting.id} />
+                                     </div>
                                    </div>
-                                </DialogContent>
-                              </Dialog>
+                                 </DialogContent>
+                               </Dialog>
 
                               {/* Delete Meeting Dialog */}
                               <AlertDialog>
