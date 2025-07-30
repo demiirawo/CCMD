@@ -115,9 +115,9 @@ Format the report in a professional, narrative style suitable for stakeholders a
       ];
 
       console.log('🚀 Calling OpenAI API...');
-      const generatedContent = await generateResponse(messages);
+      const generatedContent = await generateResponse(messages, 'gpt-4.1-2025-04-14');
       
-      if (generatedContent) {
+      if (generatedContent && generatedContent.trim()) {
         console.log('✅ Report generated successfully');
         setReportContent(generatedContent);
         splitContentIntoPages(generatedContent);
@@ -127,13 +127,14 @@ Format the report in a professional, narrative style suitable for stakeholders a
           description: "Your quarterly report has been successfully generated!",
         });
       } else {
-        throw new Error('Failed to generate report content');
+        console.error('❌ No content returned from AI');
+        throw new Error('No content returned from AI service');
       }
     } catch (error) {
       console.error('❌ Error generating report:', error);
       toast({
         title: "Generation Failed", 
-        description: "Failed to generate the quarterly report. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to generate the quarterly report. Please try again.",
         variant: "destructive",
       });
     }
