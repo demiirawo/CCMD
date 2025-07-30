@@ -132,6 +132,10 @@ Format the report in a professional, narrative style suitable for stakeholders a
       console.log('🚀 Calling OpenAI API...');
       const generatedContent = await generateResponse(messages, 'gpt-4.1-2025-04-14');
       
+      console.log('📝 OpenAI API response received');
+      console.log('📏 Content length:', generatedContent?.length || 0);
+      console.log('📄 Content preview:', generatedContent?.substring(0, 100) || 'No content');
+      
       if (generatedContent && generatedContent.trim()) {
         console.log('✅ Report generated successfully');
         setReportContent(generatedContent);
@@ -143,6 +147,7 @@ Format the report in a professional, narrative style suitable for stakeholders a
         });
       } else {
         console.error('❌ No content returned from AI');
+        console.error('❌ generatedContent value:', generatedContent);
         throw new Error('No content returned from AI service');
       }
     } catch (error) {
