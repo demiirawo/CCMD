@@ -524,9 +524,9 @@ export const Reports = () => {
                                {/* View Dashboard Dialog */}
                                <Dialog>
                                  <DialogTrigger asChild>
-                                     <Button variant="outline" size="sm">
-                                       View
-                                     </Button>
+                                      <Button variant="default" size="sm">
+                                        View
+                                      </Button>
                                  </DialogTrigger>
                                  <DialogContent className="max-w-[95vw] max-h-[95vh] overflow-y-auto bg-background p-0">
                                    <div className="relative">
@@ -573,9 +573,9 @@ export const Reports = () => {
                               {/* Delete Meeting Dialog */}
                               <AlertDialog>
                                 <AlertDialogTrigger asChild>
-                                   <Button variant="outline" size="sm" className="text-destructive hover:text-destructive">
-                                     Delete
-                                   </Button>
+                                    <Button variant="destructive" size="sm">
+                                      Delete
+                                    </Button>
                                 </AlertDialogTrigger>
                                 <AlertDialogContent>
                                   <AlertDialogHeader>

@@ -449,11 +449,11 @@ Remember: Write in natural language prose with detailed paragraphs. No markdown 
   if (hasGeneratedReport && generatedReport) {
     return <div className="space-y-2">
         <div className="flex gap-2">
-          <Button variant="outline" className="gap-2" onClick={viewReport}>
+          <Button variant="default" className="gap-2" onClick={viewReport}>
             <FileText className="h-4 w-4" />
             View Report
           </Button>
-          <Button variant="outline" size="icon" onClick={deleteReport}>
+          <Button variant="destructive" size="icon" onClick={deleteReport}>
             <Trash2 className="h-4 w-4" />
           </Button>
         </div>
@@ -466,7 +466,7 @@ Remember: Write in natural language prose with detailed paragraphs. No markdown 
   const reportKey = `quarterly_report_${quarter}_${year}`;
   const savedReport = localStorage.getItem(reportKey);
   return <div className="space-y-2">
-      <Button variant="outline" className="gap-2" onClick={generateReport}>
+      <Button variant="default" className="gap-2" onClick={generateReport}>
         <FileText className="h-4 w-4" />
         Generate AI Report
       </Button>
