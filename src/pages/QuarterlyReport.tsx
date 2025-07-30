@@ -1037,11 +1037,17 @@ Focus on creating a comprehensive narrative that demonstrates operational excell
                 </div>
               )}
                 
-                {/* Large visual gap between pages */}
+                {/* Full-width visual gap between pages */}
                 {index < reportPages.length - 1 && (
-                  <div className="print:hidden" style={{ height: '80px', backgroundColor: '#f8f9fa' }}>
+                  <div className="print:hidden -mx-8" style={{ 
+                    height: '80px', 
+                    backgroundColor: '#ffffff',
+                    width: '100vw',
+                    marginLeft: 'calc(-50vw + 50%)',
+                    marginRight: 'calc(-50vw + 50%)'
+                  }}>
                     <div className="flex items-center justify-center h-full">
-                      <div className="text-xs text-gray-400 bg-white px-3 py-1 rounded border">
+                      <div className="text-xs text-gray-400 bg-gray-100 px-3 py-1 rounded border">
                         Page {index + 1} of {reportPages.length}
                       </div>
                     </div>
