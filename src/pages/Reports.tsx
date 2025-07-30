@@ -431,7 +431,7 @@ export const Reports = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background p-4 lg:p-8">
+    <div className="min-h-screen bg-gray-100 p-4 lg:p-8">
       <div className="max-w-7xl mx-auto space-y-6">
         {Object.keys(groupedMeetings).length === 0 ? (
           <Card>
@@ -449,7 +449,7 @@ export const Reports = () => {
               const isExpanded = isQuarterExpanded(quarterKey);
               
               return (
-                <div key={quarterKey} className="rounded-2xl shadow-lg border border-border/50 bg-card p-6">
+                <div key={quarterKey} className="rounded-2xl shadow-lg border border-border/50 bg-background p-6">
                   {/* Quarter Header with Collapsible Controls */}
                   <div 
                     className="flex items-center justify-between cursor-pointer mb-4"
