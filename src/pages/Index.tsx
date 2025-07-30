@@ -12,7 +12,7 @@ import { StatusItemData } from "@/components/StatusItem";
 import { ActionItem } from "@/components/ActionForm";
 import { SubsectionMetadata } from "@/components/SubsectionMetadataDialog";
 import { StatusType } from "@/components/StatusBadge";
-import { Users, Target, BarChart3, FileText, Heart, Shield, Calendar, UserCheck, ClipboardList, HeartHandshake, TrendingUp, Save, Download, ChevronDown, ChevronUp } from "lucide-react";
+import { Users, Target, BarChart3, FileText, Heart, Shield, Calendar, UserCheck, ClipboardList, HeartHandshake, TrendingUp, Save, Download, ChevronDown, ChevronUp, Share2, Copy } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
@@ -1460,6 +1460,32 @@ const Index = () => {
     }
   };
 
+  const handleSharePublic = async () => {
+    if (!profile?.company_id) {
+      toast({
+        title: "Error",
+        description: "No company selected for sharing",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const publicUrl = `${window.location.origin}/public/${profile.company_id}`;
+    
+    try {
+      await navigator.clipboard.writeText(publicUrl);
+      toast({
+        title: "Link Copied!",
+        description: "Public dashboard link copied to clipboard",
+      });
+    } catch (error) {
+      toast({
+        title: "Share Link",
+        description: `Copy this link: ${publicUrl}`,
+      });
+    }
+  };
+
   const handleExportPDF = async () => {
     try {
       // Force expand all sections first
@@ -1659,6 +1685,14 @@ const Index = () => {
           >
             <Download className="w-4 h-4" />
             Export PDF
+          </Button>
+          <Button 
+            onClick={handleSharePublic}
+            variant="outline"
+            className="gap-2"
+          >
+            <Share2 className="w-4 h-4" />
+            Public View
           </Button>
         </div>
         
