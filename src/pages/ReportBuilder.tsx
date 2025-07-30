@@ -35,6 +35,10 @@ export const ReportBuilder: React.FC = () => {
   };
 
   const handleGenerateReport = () => {
+    console.log('🚀 Generate Report with AI button clicked!');
+    console.log('📝 Additional context:', additionalContext);
+    console.log('📎 Attachments:', attachments.length);
+    
     // Navigate to generation process with additional context
     const contextData = {
       additionalContext,
@@ -45,8 +49,22 @@ export const ReportBuilder: React.FC = () => {
       }))
     };
     
-    const encodedContext = encodeURIComponent(JSON.stringify(contextData));
-    navigate(`/quarterly-report?quarter=${quarter}&year=${year}&generate=true&context=${encodedContext}`);
+    console.log('📊 Context data:', contextData);
+    
+    try {
+      const encodedContext = encodeURIComponent(JSON.stringify(contextData));
+      const targetUrl = `/quarterly-report?quarter=${quarter}&year=${year}&generate=true&context=${encodedContext}`;
+      console.log('🎯 Navigating to:', targetUrl);
+      navigate(targetUrl);
+      console.log('✅ Navigation call completed');
+    } catch (error) {
+      console.error('❌ Navigation error:', error);
+      toast({
+        title: "Navigation Error",
+        description: "Failed to navigate to report generation",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleBack = () => {
