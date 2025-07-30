@@ -65,6 +65,7 @@ interface StatusItemProps {
   onMonthlyStaffDataChange?: (data: Array<{month: string, currentStaff: number, probationStaff?: number}>) => void;
   meetingDate?: Date;
   meetingId?: string;
+  readOnly?: boolean;
 }
 export const StatusItem = ({
   item,
@@ -82,7 +83,8 @@ export const StatusItem = ({
   monthlyStaffData = [],
   onMonthlyStaffDataChange,
   meetingDate,
-  meetingId
+  meetingId,
+  readOnly = false
 }: StatusItemProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
   console.log('StatusItem: Rendering item:', item.title, 'isExpanded:', isExpanded, 'meetingId:', meetingId);
@@ -186,28 +188,40 @@ export const StatusItem = ({
           {isExpanded ? <ChevronDown className="w-4 h-4 text-muted-foreground" /> : <ChevronRight className="w-4 h-4 text-muted-foreground" />}
         </button>
         
-        <button onClick={e => {
-        e.stopPropagation();
-        const statusOrder: StatusType[] = ["green", "amber", "red", "na"];
-        const currentIndex = statusOrder.indexOf(item.status);
-        const nextStatus = statusOrder[(currentIndex + 1) % statusOrder.length];
-        onStatusChange?.(item.id, nextStatus);
-      }} className="flex-shrink-0 hover:scale-110 transition-transform">
-          <StatusBadge status={item.status} />
-        </button>
+        {readOnly ? (
+          <div className="flex-shrink-0">
+            <StatusBadge status={item.status} />
+          </div>
+        ) : (
+          <button onClick={e => {
+            e.stopPropagation();
+            const statusOrder: StatusType[] = ["green", "amber", "red", "na"];
+            const currentIndex = statusOrder.indexOf(item.status);
+            const nextStatus = statusOrder[(currentIndex + 1) % statusOrder.length];
+            onStatusChange?.(item.id, nextStatus);
+          }} className="flex-shrink-0 hover:scale-110 transition-transform">
+            <StatusBadge status={item.status} />
+          </button>
+        )}
         
         <div className="flex-1 min-w-0 mr-3 flex flex-col justify-between h-full">
           <div>
-            <SubsectionMetadataDialog
-              title={item.title}
-              metadata={item.metadata}
-              attendees={attendees}
-              onSave={handleMetadataChange}
-            >
-              <h4 className="font-semibold text-foreground text-sm truncate cursor-pointer hover:text-primary transition-colors">
+            {readOnly ? (
+              <h4 className="font-semibold text-foreground text-sm truncate">
                 {item.title}
               </h4>
-            </SubsectionMetadataDialog>
+            ) : (
+              <SubsectionMetadataDialog
+                title={item.title}
+                metadata={item.metadata}
+                attendees={attendees}
+                onSave={handleMetadataChange}
+              >
+                <h4 className="font-semibold text-foreground text-sm truncate cursor-pointer hover:text-primary transition-colors">
+                  {item.title}
+                </h4>
+              </SubsectionMetadataDialog>
+            )}
             
             {item.metadata?.accountableOwner && (
               <p className="text-xs text-muted-foreground mt-1">
@@ -253,13 +267,15 @@ export const StatusItem = ({
                 {item.metadata.description}
               </p>
             )}
-            <div className="mt-2">
-              <AccountableManager
-                accountable={item.accountable || []}
-                attendees={attendees}
-                onChange={(newAccountable) => onAccountableChange?.(item.id, newAccountable)}
-              />
-            </div>
+            {!readOnly && (
+              <div className="mt-2">
+                <AccountableManager
+                  accountable={item.accountable || []}
+                  attendees={attendees}
+                  onChange={(newAccountable) => onAccountableChange?.(item.id, newAccountable)}
+                />
+              </div>
+            )}
           </div>
         </div>
         
@@ -267,27 +283,54 @@ export const StatusItem = ({
           {/* Observation Section */}
           <div>
             <label className="text-xs font-medium text-muted-foreground mb-1 block">COMMENT</label>
-            {isEditingObservation ? <CommentEditor initialValue={item.observation} onSubmit={handleObservationSubmit} onCancel={() => setIsEditingObservation(false)} placeholder="Enter your observation..." autoSave={true} onAutoSave={(value) => onObservationChange?.(item.id, value)} /> : <button onClick={() => setIsEditingObservation(true)} className="w-full text-left p-3 rounded-lg transition-colors text-sm min-h-[80px] flex items-start border border-border/30 break-words overflow-hidden bg-white hover:border-border/40 focus:outline-none focus:ring-2 focus:ring-border/30">
+            {readOnly ? (
+              <div className="w-full p-3 rounded-lg text-sm min-h-[80px] flex items-start border border-border/30 bg-muted/20">
                 <span className="break-words w-full whitespace-pre-wrap">
-                  {item.observation || "Click to add observation..."}
+                  {item.observation || "No observation"}
                 </span>
-              </button>}
+              </div>
+            ) : (
+              isEditingObservation ? <CommentEditor initialValue={item.observation} onSubmit={handleObservationSubmit} onCancel={() => setIsEditingObservation(false)} placeholder="Enter your observation..." autoSave={true} onAutoSave={(value) => onObservationChange?.(item.id, value)} /> : <button onClick={() => setIsEditingObservation(true)} className="w-full text-left p-3 rounded-lg transition-colors text-sm min-h-[80px] flex items-start border border-border/30 break-words overflow-hidden bg-white hover:border-border/40 focus:outline-none focus:ring-2 focus:ring-border/30">
+                  <span className="break-words w-full whitespace-pre-wrap">
+                    {item.observation || "Click to add observation..."}
+                  </span>
+                </button>
+            )}
           </div>
 
           {/* Actions Section */}
           <div>
             <label className="text-xs font-medium text-muted-foreground mb-1 block">ACTIONS</label>
-            <ActionForm 
-              actions={item.actions} 
-              attendees={attendees} 
-              onActionsChange={handleActionsChange} 
-              onActionCreated={handleActionCreated} 
-              onActionCompleted={handleActionCompleted}
-              onActionEdit={(actionId, updates) => {
-                // Handle action edit at the section level and sync with main Actions Log
-                onSubsectionActionEdit?.(item.id, actionId, updates);
-              }}
-            />
+            {readOnly ? (
+              <div className="space-y-2">
+                {item.actions.length > 0 ? (
+                  item.actions.map((action, index) => (
+                    <div key={index} className="p-3 border border-border/30 rounded-lg bg-muted/20">
+                      <div className="text-sm font-medium">{action.description}</div>
+                      <div className="text-xs text-muted-foreground mt-1">
+                        Assigned to: {action.name} | Due: {action.targetDate}
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="p-3 border border-border/30 rounded-lg bg-muted/20 text-sm text-muted-foreground">
+                    No actions
+                  </div>
+                )}
+              </div>
+            ) : (
+              <ActionForm 
+                actions={item.actions} 
+                attendees={attendees} 
+                onActionsChange={handleActionsChange} 
+                onActionCreated={handleActionCreated} 
+                onActionCompleted={handleActionCompleted}
+                onActionEdit={(actionId, updates) => {
+                  // Handle action edit at the section level and sync with main Actions Log
+                  onSubsectionActionEdit?.(item.id, actionId, updates);
+                }}
+              />
+            )}
           </div>
         </div>
       </div>

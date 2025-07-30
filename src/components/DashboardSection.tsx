@@ -26,6 +26,7 @@ interface DashboardSectionProps {
   meetingDate?: Date;
   meetingId?: string;
   panelStateTracker?: number;
+  readOnly?: boolean;
 }
 
 export const DashboardSection = ({
@@ -48,7 +49,8 @@ export const DashboardSection = ({
   onPanelStateChange,
   meetingDate,
   meetingId,
-  panelStateTracker
+  panelStateTracker,
+  readOnly = false
 }: DashboardSectionProps) => {
   const storageKey = `section_${title.replace(/\s+/g, '_').toLowerCase()}_open`;
   const [isOpen, setIsOpen] = useState(() => {
@@ -202,7 +204,7 @@ export const DashboardSection = ({
         </div>
         
         <div className="flex items-center gap-2">
-          {onAddItem && (
+          {onAddItem && !readOnly && (
             <button
               onClick={(e) => {
                 e.stopPropagation();
@@ -230,27 +232,28 @@ export const DashboardSection = ({
             <StatusItem
               key={item.id}
               item={item}
-              onStatusChange={onItemStatusChange}
-              onObservationChange={onItemObservationChange}
-              onActionsChange={onItemActionsChange}
-              onDocumentsChange={onItemDocumentsChange}
-              onMetadataChange={onItemMetadataChange}
-              onActionCreated={onActionCreated}
-              onSubsectionActionEdit={onSubsectionActionEdit}
-              onSubsectionActionComplete={onSubsectionActionComplete}
-              onSubsectionActionDelete={onSubsectionActionDelete}
+              onStatusChange={readOnly ? undefined : onItemStatusChange}
+              onObservationChange={readOnly ? undefined : onItemObservationChange}
+              onActionsChange={readOnly ? undefined : onItemActionsChange}
+              onDocumentsChange={readOnly ? undefined : onItemDocumentsChange}
+              onMetadataChange={readOnly ? undefined : onItemMetadataChange}
+              onActionCreated={readOnly ? undefined : onActionCreated}
+              onSubsectionActionEdit={readOnly ? undefined : onSubsectionActionEdit}
+              onSubsectionActionComplete={readOnly ? undefined : onSubsectionActionComplete}
+              onSubsectionActionDelete={readOnly ? undefined : onSubsectionActionDelete}
               attendees={attendees}
               monthlyStaffData={monthlyStaffData}
-              onMonthlyStaffDataChange={setMonthlyStaffData}
+              onMonthlyStaffDataChange={readOnly ? undefined : setMonthlyStaffData}
               meetingDate={meetingDate}
               meetingId={meetingId}
+              readOnly={readOnly}
             />
           ))}
           
           {items.length === 0 && (
             <div className="text-center py-8 text-muted-foreground">
               <p>No items in this section yet.</p>
-              {onAddItem && (
+              {onAddItem && !readOnly && (
                 <button
                   onClick={() => onAddItem(title)}
                   className="clay-button mt-2"

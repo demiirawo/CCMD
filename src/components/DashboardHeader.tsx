@@ -15,6 +15,7 @@ interface DashboardHeaderProps {
   };
   onDataChange?: (field: string, value: string) => void;
   onAttendeesChange?: (attendees: Attendee[]) => void;
+  readOnly?: boolean;
 }
 export const DashboardHeader = ({
   date,
@@ -23,7 +24,8 @@ export const DashboardHeader = ({
   purpose,
   stats,
   onDataChange,
-  onAttendeesChange
+  onAttendeesChange,
+  readOnly = false
 }: DashboardHeaderProps) => {
   const {
     profile,

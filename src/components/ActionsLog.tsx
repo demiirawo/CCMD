@@ -39,6 +39,7 @@ interface ActionsLogProps {
   forceOpen?: boolean;
   onPanelStateChange?: () => void;
   panelStateTracker?: number;
+  readOnly?: boolean;
 }
 
 export const ActionsLog = ({
@@ -50,7 +51,8 @@ export const ActionsLog = ({
   attendees = [],
   forceOpen,
   onPanelStateChange,
-  panelStateTracker
+  panelStateTracker,
+  readOnly = false
 }: ActionsLogProps) => {
   const [isExpanded, setIsExpanded] = useState(() => {
     const saved = sessionStorage.getItem('actions_log_expanded');

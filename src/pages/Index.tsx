@@ -21,6 +21,9 @@ import jsPDF from "jspdf";
 
 const Index = () => {
   const { profile } = useAuth();
+  
+  // Check if user has edit permissions
+  const canEdit = profile?.permission === 'edit' || profile?.permission === 'company_admin' || profile?.role === 'admin';
   const [isDataLoaded, setIsDataLoaded] = useState(false);
   const [currentMeetingId, setCurrentMeetingId] = useState<string | null>(null);
   const [tempMeetingId, setTempMeetingId] = useState<string>(() => {
@@ -1666,29 +1669,32 @@ const Index = () => {
             attendees={headerData.attendees}
             purpose={headerData.purpose}
             stats={calculateStats()}
-            onDataChange={handleDataChange}
-            onAttendeesChange={handleAttendeesChange}
+            onDataChange={canEdit ? handleDataChange : undefined}
+            onAttendeesChange={canEdit ? handleAttendeesChange : undefined}
+            readOnly={!canEdit}
           />
           
           <MeetingSummaryPanel 
             purpose={headerData.purpose}
-            onPurposeChange={(value) => handleDataChange("purpose", value)}
+            onPurposeChange={canEdit ? (value) => handleDataChange("purpose", value) : undefined}
+            readOnly={!canEdit}
           />
           
           <ActionsLog
             actions={actionsLog} 
-            onActionComplete={handleActionComplete} 
-            onActionDelete={handleActionDelete} 
-            onResetActions={resetActionsLog}
-            onActionEdit={handleActionEdit}
+            onActionComplete={canEdit ? handleActionComplete : undefined} 
+            onActionDelete={canEdit ? handleActionDelete : undefined} 
+            onResetActions={canEdit ? resetActionsLog : undefined}
+            onActionEdit={canEdit ? handleActionEdit : undefined}
             attendees={getAttendeesList()}
             onPanelStateChange={triggerPanelStateUpdate}
             panelStateTracker={panelStateTracker}
+            readOnly={!canEdit}
           />
           
           <KeyDocumentTracker 
             documents={keyDocuments}
-            onDocumentsChange={async (newDocuments) => {
+            onDocumentsChange={canEdit ? async (newDocuments) => {
               setKeyDocuments(newDocuments);
               
               // Save key documents to database immediately
@@ -1722,10 +1728,11 @@ const Index = () => {
                   console.error('Failed to save key documents to database:', error);
                 }
               }
-            }}
+            } : undefined}
             attendees={getAttendeesList()}
             onPanelStateChange={triggerPanelStateUpdate}
             panelStateTracker={panelStateTracker}
+            readOnly={!canEdit}
           />
           
           {dashboardData.sections.filter(section => section.id !== "meeting-overview").map(section => {
@@ -1754,20 +1761,21 @@ const Index = () => {
                  key={section.id} 
                  title={section.title} 
                  items={section.items} 
-                 onItemStatusChange={(itemId, status) => handleStatusChange(section.id, itemId, status)} 
-                 onItemObservationChange={(itemId, observation) => handleObservationChange(section.id, itemId, observation)}
-                 onItemActionsChange={(itemId, actions) => handleActionsChange(section.id, itemId, actions)}
-                  onItemDocumentsChange={(itemId, documents) => handleDocumentsChange(section.id, itemId, documents)}
-                   onItemMetadataChange={(itemId, metadata) => handleMetadataChange(section.id, itemId, metadata)}
-                   onActionCreated={handleActionCreated}
-                   onSubsectionActionEdit={handleSubsectionActionEdit}
-                   onSubsectionActionComplete={handleSubsectionActionComplete}
-                   onSubsectionActionDelete={handleSubsectionActionDelete}
+                 onItemStatusChange={canEdit ? (itemId, status) => handleStatusChange(section.id, itemId, status) : undefined} 
+                 onItemObservationChange={canEdit ? (itemId, observation) => handleObservationChange(section.id, itemId, observation) : undefined}
+                 onItemActionsChange={canEdit ? (itemId, actions) => handleActionsChange(section.id, itemId, actions) : undefined}
+                  onItemDocumentsChange={canEdit ? (itemId, documents) => handleDocumentsChange(section.id, itemId, documents) : undefined}
+                   onItemMetadataChange={canEdit ? (itemId, metadata) => handleMetadataChange(section.id, itemId, metadata) : undefined}
+                   onActionCreated={canEdit ? handleActionCreated : undefined}
+                   onSubsectionActionEdit={canEdit ? handleSubsectionActionEdit : undefined}
+                   onSubsectionActionComplete={canEdit ? handleSubsectionActionComplete : undefined}
+                   onSubsectionActionDelete={canEdit ? handleSubsectionActionDelete : undefined}
                      attendees={getAttendeesList()}
                      meetingDate={meetingDate}
                      meetingId={currentMeetingId || tempMeetingId}
                      onPanelStateChange={triggerPanelStateUpdate}
                      panelStateTracker={panelStateTracker}
+                     readOnly={!canEdit}
                   />
             );
           })}

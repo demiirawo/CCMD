@@ -6,9 +6,10 @@ import { AISummaryButton } from "./AISummaryButton";
 interface MeetingSummaryPanelProps {
   purpose: string;
   onPurposeChange?: (value: string) => void;
+  readOnly?: boolean;
 }
 
-export const MeetingSummaryPanel = ({ purpose, onPurposeChange }: MeetingSummaryPanelProps) => {
+export const MeetingSummaryPanel = ({ purpose, onPurposeChange, readOnly = false }: MeetingSummaryPanelProps) => {
   const [editingPurpose, setEditingPurpose] = useState(false);
 
   const handlePurposeEdit = (value: string) => {

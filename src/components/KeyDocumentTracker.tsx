@@ -29,6 +29,7 @@ interface KeyDocumentTrackerProps {
   forceOpen?: boolean;
   onPanelStateChange?: () => void;
   panelStateTracker?: number;
+  readOnly?: boolean;
 }
 
 const categories = ["Governance and Compliance", "Care Delivery", "Staffing and HR", "Finance and Payroll", "Health and Safety", "Client Records and Contracts", "Quality Assurance and Audit", "Transportation and Logistics"];
@@ -43,7 +44,8 @@ export const KeyDocumentTracker = ({
   attendees = [],
   forceOpen,
   onPanelStateChange,
-  panelStateTracker
+  panelStateTracker,
+  readOnly = false
 }: KeyDocumentTrackerProps) => {
   const [isExpanded, setIsExpanded] = useState(() => {
     const saved = sessionStorage.getItem('key_documents_expanded');
