@@ -1590,32 +1590,28 @@ const Index = () => {
   };
   
   const handleToggleAll = () => {
-    if (allSectionsExpanded === true) {
-      // Currently expanded, so collapse all and then reset to allow individual control
-      setAllSectionsExpanded(false);
-      setTimeout(() => setAllSectionsExpanded(undefined), 100);
-    } else if (allSectionsExpanded === false) {
-      // Currently collapsed, so expand all
-      setAllSectionsExpanded(true);
-      setTimeout(() => setAllSectionsExpanded(undefined), 100);
-    } else {
-      // undefined state - check current panel states and toggle accordingly
-      if (areAllPanelsClosed()) {
-        setAllSectionsExpanded(true); // Expand all
-        setTimeout(() => setAllSectionsExpanded(undefined), 100);
-      } else {
-        setAllSectionsExpanded(false); // Collapse all
-        setTimeout(() => setAllSectionsExpanded(undefined), 100);
-      }
-    }
+    const shouldExpand = areAllPanelsClosed();
+    
+    // Update Actions Log state
+    sessionStorage.setItem('actions_log_expanded', JSON.stringify(shouldExpand));
+    
+    // Update Key Documents state
+    sessionStorage.setItem('key_documents_expanded', JSON.stringify(shouldExpand));
+    
+    // Update all dashboard section states
+    const sectionKeys = dashboardData.sections.filter(section => section.id !== "meeting-overview").map(section => 
+      `section_${section.title.replace(/\s+/g, '_').toLowerCase()}_open`
+    );
+    sectionKeys.forEach(key => {
+      sessionStorage.setItem(key, JSON.stringify(shouldExpand));
+    });
+    
+    // Force a re-render by updating the panel state
+    triggerPanelStateUpdate();
   };
   
   const getToggleButtonText = () => {
-    if (allSectionsExpanded === true) return 'Collapse All';
-    if (allSectionsExpanded === false) return 'Expand All';
-    // When undefined, check individual states dynamically
-    if (areAllPanelsClosed()) return 'Expand All';
-    return 'Collapse All';
+    return areAllPanelsClosed() ? 'Expand All' : 'Collapse All';
   };
   
   // Early returns for loading states
@@ -1649,7 +1645,7 @@ const Index = () => {
             variant="outline"
             className="gap-2"
           >
-            {allSectionsExpanded === true ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            <ChevronDown className="w-4 h-4" />
             {getToggleButtonText()}
           </Button>
           <Button 
@@ -1692,7 +1688,6 @@ const Index = () => {
             onResetActions={resetActionsLog}
             onActionEdit={handleActionEdit}
             attendees={getAttendeesList()}
-            forceOpen={allSectionsExpanded}
             onPanelStateChange={triggerPanelStateUpdate}
           />
           
@@ -1734,7 +1729,6 @@ const Index = () => {
               }
             }}
             attendees={getAttendeesList()}
-            forceOpen={allSectionsExpanded}
             onPanelStateChange={triggerPanelStateUpdate}
           />
           
@@ -1773,12 +1767,11 @@ const Index = () => {
                    onSubsectionActionEdit={handleSubsectionActionEdit}
                    onSubsectionActionComplete={handleSubsectionActionComplete}
                    onSubsectionActionDelete={handleSubsectionActionDelete}
-                    attendees={getAttendeesList()}
-                    meetingDate={meetingDate}
-                    meetingId={currentMeetingId || tempMeetingId}
-                    forceOpen={allSectionsExpanded}
-                    onPanelStateChange={triggerPanelStateUpdate}
-                 />
+                     attendees={getAttendeesList()}
+                     meetingDate={meetingDate}
+                     meetingId={currentMeetingId || tempMeetingId}
+                     onPanelStateChange={triggerPanelStateUpdate}
+                  />
             );
           })}
         </div>
