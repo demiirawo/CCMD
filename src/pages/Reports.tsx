@@ -522,10 +522,9 @@ export const Reports = () => {
                                {/* View Dashboard Dialog */}
                                <Dialog>
                                  <DialogTrigger asChild>
-                                   <Button variant="outline" size="sm" className="gap-1">
-                                     <Eye className="h-4 w-4" />
-                                     View
-                                   </Button>
+                                    <Button variant="default" size="sm" className="bg-red-600 hover:bg-red-700 text-white">
+                                      View
+                                    </Button>
                                  </DialogTrigger>
                                  <DialogContent className="max-w-[95vw] max-h-[95vh] overflow-y-auto bg-background p-0">
                                    <div className="relative">
