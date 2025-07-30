@@ -175,20 +175,19 @@ export const ServiceUserDocumentsAnalytics = ({
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Total Service Users */}
         <Card className="p-6">
-          <div className="flex flex-col items-center justify-center space-y-4">
+          <div className="flex flex-col items-center justify-center space-y-4 h-full">
             <div className="text-center">
               <h3 className="text-lg font-semibold mb-2">Total Service Users</h3>
             </div>
             <div className="text-3xl font-bold text-primary">
               {totalServiceUsers}
             </div>
-            
           </div>
         </Card>
 
         {/* Incomplete Documents */}
         <Card className="p-6">
-          <div className="flex flex-col items-center justify-center space-y-4">
+          <div className="flex flex-col items-center justify-center space-y-4 h-full">
             <div className="text-center">
               
             </div>
@@ -209,7 +208,7 @@ export const ServiceUserDocumentsAnalytics = ({
 
         {/* Compliance Percentage */}
         <Card className="p-6">
-          <div className="flex flex-col items-center justify-center space-y-4">
+          <div className="flex flex-col items-center justify-center space-y-4 h-full">
             <div className={`text-4xl font-bold ${getComplianceColor()}`}>
               {compliancePercentage}%
             </div>
