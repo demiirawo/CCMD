@@ -959,12 +959,6 @@ Focus on creating a comprehensive narrative that demonstrates ${companyName}'s o
                     padding: '15mm 15mm 0 15mm',
                     height: '20mm'
                   }}>
-                    <div className="font-medium">
-                      Quarterly Report {quarter} {year}
-                    </div>
-                    <div>
-                      {getCurrentDate()}
-                    </div>
                   </div>
                   
                   {/* Page Footer */}
