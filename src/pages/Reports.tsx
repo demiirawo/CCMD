@@ -493,7 +493,7 @@ export const Reports = () => {
                   {isExpanded && (
                     <div className="space-y-3 pt-4 border-t border-border/20">
                       {quarterMeetings.map(meeting => (
-                        <div key={meeting.id} className="rounded-lg p-4 border bg-card/50">
+                        <div key={meeting.id} className="rounded-lg p-4 border bg-white">
                           <div className="space-y-3">
                             <div className="flex items-start justify-between">
                               <div className="flex-1">
