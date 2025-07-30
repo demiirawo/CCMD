@@ -15,6 +15,7 @@ export const MagicLinkAuth = () => {
 
   const handleMagicLink = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('Form submitted! handleMagicLink called');
     
     if (!email.trim()) {
       toast({
