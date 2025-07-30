@@ -24,11 +24,11 @@ All colors MUST be HSL.
     --clay-surface: 0 0% 100%;
 
     /* Status Colors */
-    --status-green: 150 60% 75%;
+    --status-green: 150 70% 35%;
     --status-green-soft: 150 80% 88%;
-    --status-amber: 40 90% 75%;
+    --status-amber: 40 95% 35%;
     --status-amber-soft: 40 100% 88%;
-    --status-red: 0 70% 75%;
+    --status-red: 0 75% 40%;
     --status-red-soft: 0 90% 88%;
     --status-na: 0 0% 60%;
     --status-na-soft: 0 0% 85%;
