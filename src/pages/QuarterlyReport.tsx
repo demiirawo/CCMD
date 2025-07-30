@@ -285,6 +285,14 @@ Focus on creating a comprehensive narrative that demonstrates operational excell
         setReportContent(generatedContent);
         splitContentIntoPages(generatedContent);
         
+        // Save the generated report to localStorage for persistence
+        const reportKey = `quarterly_report_${quarter}_${year}`;
+        localStorage.setItem(reportKey, generatedContent);
+        console.log(`💾 Saved report to localStorage with key: ${reportKey}`);
+        
+        // Also save empty analytics data as placeholder
+        localStorage.setItem(`${reportKey}_analytics`, JSON.stringify({}));
+        
         toast({
           title: "Report Generated",
           description: "Your comprehensive quarterly report has been successfully generated!",
