@@ -199,8 +199,17 @@ export const QuarterlyReportGenerator: React.FC<QuarterlyReportGeneratorProps> =
   };
 
   const generateReport = async () => {
-    // Navigate to the report builder page instead of generating directly
-    navigate(`/report-builder?quarter=${quarter}&year=${year}`);
+    console.log('🚀 Generate Report button clicked!');
+    console.log('📍 Navigating to:', `/report-builder?quarter=${quarter}&year=${year}`);
+    console.log('📊 Quarter:', quarter, 'Year:', year);
+    
+    try {
+      // Navigate to the report builder page instead of generating directly
+      navigate(`/report-builder?quarter=${quarter}&year=${year}`);
+      console.log('✅ Navigation call completed');
+    } catch (error) {
+      console.error('❌ Navigation error:', error);
+    }
   };
 
   const generateReportDirect = async () => {
