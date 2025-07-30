@@ -834,22 +834,23 @@ Focus on creating a comprehensive narrative that demonstrates operational excell
         <div id="quarterly-report-content" className="max-w-4xl mx-auto space-y-8 print:space-y-0">
           
           {/* Display all pages with gaps */}
-          {reportPages.map((pageContent, index) => (
-            <div 
-              key={index} 
-              data-page-index={index}
-              className="bg-white shadow-lg print:shadow-none page-break"
-              style={{
-                width: '210mm',
-                minHeight: '297mm',
-                margin: '0 auto',
-                padding: '25.4mm',
-                fontSize: '12pt',
-                lineHeight: '1.5',
-                fontFamily: 'Arial, sans-serif',
-                boxSizing: 'border-box'
-              }}
-            >
+          <div className="space-y-8">
+            {reportPages.map((pageContent, index) => (
+              <div 
+                key={index} 
+                data-page-index={index}
+                className="bg-white shadow-lg print:shadow-none page-break"
+                style={{
+                  width: '210mm',
+                  minHeight: '297mm',
+                  margin: '0 auto',
+                  padding: '25.4mm',
+                  fontSize: '12pt',
+                  lineHeight: '1.5',
+                  fontFamily: 'Arial, sans-serif',
+                  boxSizing: 'border-box'
+                }}
+              >
               {index === 0 ? (
                 // Cover Page
                 <div className="h-full flex flex-col justify-between" style={{ padding: '0' }}>
@@ -1005,6 +1006,7 @@ Focus on creating a comprehensive narrative that demonstrates operational excell
               )}
             </div>
           ))}
+        </div>
         </div>
       </div>
 
