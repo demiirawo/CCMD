@@ -14,13 +14,27 @@ export const useMeetingEmailNotification = () => {
 
   const sendMeetingEmails = async (meetingData: MeetingEmailData) => {
     try {
+      console.log('🔄 Starting email notification process...');
+      console.log('📧 Meeting data:', {
+        title: meetingData.title,
+        attendeesCount: meetingData.attendees.length,
+        actionsCount: meetingData.actions.length
+      });
+
       // Extract attendee emails
       const attendeeEmails = meetingData.attendees
         .filter(attendee => attendee.email && attendee.email.trim() !== '')
         .map(attendee => attendee.email);
 
+      console.log('📬 Valid attendee emails found:', attendeeEmails);
+
       if (attendeeEmails.length === 0) {
-        console.log('No attendee emails found, skipping email notifications');
+        console.log('⚠️ No attendee emails found, skipping email notifications');
+        toast({
+          title: "No Email Addresses",
+          description: "No valid email addresses found for attendees. Please add email addresses to send notifications.",
+          variant: "destructive"
+        });
         return;
       }
 
@@ -72,8 +86,12 @@ export const useMeetingEmailNotification = () => {
       `;
 
       // Send emails to all attendees
+      console.log('📤 Starting to send emails to:', attendeeEmails.length, 'recipients');
+      
       const emailPromises = attendeeEmails.map(async (email) => {
         try {
+          console.log(`📧 Sending email to: ${email}`);
+          
           const { data, error } = await supabase.functions.invoke('send-email', {
             body: {
               to: email,
@@ -83,8 +101,10 @@ export const useMeetingEmailNotification = () => {
             }
           });
 
+          console.log(`📧 Email response for ${email}:`, { data, error });
+
           if (error) {
-            console.error(`Failed to send email to ${email}:`, error);
+            console.error(`❌ Failed to send email to ${email}:`, error);
             return { email, success: false, error: error.message };
           }
 

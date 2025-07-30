@@ -1455,7 +1455,8 @@ const Index = () => {
 
       // Send email notifications to attendees
       try {
-        console.log('Preparing to send meeting emails...');
+        console.log('🔄 Preparing to send meeting emails...');
+        console.log('📧 Attendees data:', headerData.attendees);
         
         // Generate a meeting summary from the dashboard data
         const sectionSummaries = cleanSections.map(section => {
@@ -1469,6 +1470,8 @@ const Index = () => {
 
         const meetingSummary = `Meeting covered ${cleanSections.length} sections. ${sectionSummaries}. ${actionsLog.length} action items were recorded.`;
 
+        console.log('📋 Generated meeting summary:', meetingSummary);
+
         await sendMeetingEmails({
           title: headerData.title,
           date: meetingDate.toISOString(),
@@ -1477,7 +1480,7 @@ const Index = () => {
           meetingSummary: meetingSummary
         });
       } catch (emailError) {
-        console.error('Error sending meeting emails:', emailError);
+        console.error('❌ Error sending meeting emails:', emailError);
         // Don't fail the entire save operation if emails fail
         toast({
           title: "Meeting Saved",
@@ -1713,7 +1716,7 @@ const Index = () => {
             className={`gap-2 transition-all duration-500 ${saveSuccess ? 'success-glow' : ''}`}
           >
             <Save className="w-4 h-4" />
-            Save
+            Save & Send
           </Button>
           <Button 
             onClick={handleExportPDF}
