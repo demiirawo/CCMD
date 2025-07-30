@@ -304,10 +304,11 @@ export const QuarterlyReportGenerator: React.FC<QuarterlyReportGeneratorProps> =
         availableAnalytics: Object.keys(reportAnalytics)
       };
 
-      const systemPrompt = `You are an expert care agency analyst writing a professional quarterly report. Your task is to generate a comprehensive, detailed quarterly report that reads like a professional business document - NOT a markdown document.
+      const systemPrompt = `You are an expert care agency analyst writing a professional quarterly report in British English. Your task is to generate a comprehensive, detailed quarterly report that reads like a professional business document - NOT a markdown document.
 
 CRITICAL FORMATTING REQUIREMENTS:
-- Write in flowing, natural language prose with complete sentences and paragraphs
+- Write in flowing, natural language prose with complete sentences and paragraphs in British English
+- Use British English spelling (e.g., realise, colour, centre, organisation, etc.)
 - Each section must contain a minimum of 3-4 substantial paragraphs (100-150 words each)
 - Use professional business language suitable for board presentations and regulatory reviews
 - DO NOT use markdown formatting (no #, ##, *, -, etc.)
