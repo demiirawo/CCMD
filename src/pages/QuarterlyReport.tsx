@@ -865,21 +865,20 @@ Focus on creating a comprehensive narrative that demonstrates operational excell
         </div>
       </div>
 
-      {/* Report Content - Continuous Scroll with Page Gaps */}
-      <div className="py-8 print:py-0 bg-gray-100 print:bg-white">
-        <div id="quarterly-report-content" className="max-w-4xl mx-auto space-y-8 print:space-y-0">
+      {/* Report Content - Distinct A4 Pages with Clear Separation */}
+      <div className="py-12 print:py-0 bg-gray-100 print:bg-white">
+        <div id="quarterly-report-content" className="max-w-4xl mx-auto print:max-w-none">
           
-          {/* Display all pages with 1cm gaps */}
-          <div className="space-y-[1cm]">
+          {/* Display all pages as distinct A4 documents */}
+          <div className="space-y-12 print:space-y-0">
             {reportPages.map((pageContent, index) => (
               <div 
                 key={index} 
                 data-page-index={index}
-                className="bg-white shadow-lg print:shadow-none page-break"
+                className="bg-white shadow-2xl print:shadow-none page-break mx-auto border border-gray-200 print:border-none"
                 style={{
                   width: '210mm',
                   minHeight: '297mm',
-                  margin: '0 auto',
                   padding: '25.4mm',
                   fontSize: '12pt',
                   lineHeight: '1.5',
