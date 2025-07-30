@@ -98,7 +98,8 @@ export const Reports = () => {
       const parsedMeetings = (data || []).map(meeting => ({
         ...meeting,
         attendees: JSON.parse(typeof meeting.attendees === 'string' ? meeting.attendees : '[]'),
-        sections: JSON.parse(typeof meeting.sections === 'string' ? meeting.sections : '[]')
+        sections: JSON.parse(typeof meeting.sections === 'string' ? meeting.sections : '[]'),
+        actions_log: JSON.parse(typeof (meeting as any).actions_log === 'string' ? (meeting as any).actions_log : '[]')
       }));
 
       setMeetings(parsedMeetings);
