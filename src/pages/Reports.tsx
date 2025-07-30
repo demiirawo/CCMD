@@ -573,7 +573,7 @@ export const Reports = () => {
                               {/* Delete Meeting Dialog */}
                               <AlertDialog>
                                 <AlertDialogTrigger asChild>
-                                    <Button variant="destructive" size="sm">
+                                    <Button variant="destructive" size="sm" className="hover:bg-destructive">
                                       Delete
                                     </Button>
                                 </AlertDialogTrigger>
