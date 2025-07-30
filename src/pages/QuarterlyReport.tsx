@@ -191,28 +191,37 @@ export const QuarterlyReport = () => {
   const generateAIReport = async () => {
     try {
       console.log('🤖 Starting AI report generation...');
-      console.log('📊 Quarter:', quarter, 'Year:', year);
-      console.log('🎯 shouldGenerate:', shouldGenerate);
-      console.log('📄 content exists:', !!content);
-      console.log('🔄 isGenerating:', isGenerating);
+      
+      // Get company information first
+      let companyName = 'Care Agency';
+      if (profile?.company_id) {
+        try {
+          const { data: companyData } = await supabase
+            .from('companies')
+            .select('name')
+            .eq('id', profile.company_id)
+            .single();
+          if (companyData?.name) {
+            companyName = companyData.name;
+          }
+        } catch (error) {
+          console.warn('Could not fetch company name:', error);
+        }
+      }
       
       // Parse additional context if provided
       let additionalContext = '';
       if (contextParam) {
         try {
-          // First try direct parsing without decoding
           const contextData = JSON.parse(contextParam);
           additionalContext = contextData.additionalContext || '';
-          console.log('📝 Additional context provided (direct):', additionalContext);
+          console.log('📝 Additional context provided:', additionalContext);
         } catch (directError) {
           try {
-            // If that fails, try with decoding
             const contextData = JSON.parse(decodeURIComponent(contextParam));
             additionalContext = contextData.additionalContext || '';
-            console.log('📝 Additional context provided (decoded):', additionalContext);
           } catch (error) {
             console.warn('Failed to parse context data:', error);
-            // Continue without additional context rather than failing
             additionalContext = '';
           }
         }
@@ -221,55 +230,56 @@ export const QuarterlyReport = () => {
       // Process analytics data for narrative inclusion
       const processedAnalytics = await processAnalyticsData();
 
-      // Enhanced AI prompt for comprehensive quarterly report generation
       const messages = [
         {
           role: 'system' as const,
-          content: `You are an expert care agency analyst writing a comprehensive quarterly report for ${quarter} ${year}. Your task is to generate a detailed, professional quarterly report that reads like a professional business document with flowing narrative prose.
+          content: `You are an expert care agency analyst writing a comprehensive quarterly report for ${companyName} for ${quarter} ${year}. Your task is to generate a detailed, professional quarterly report that reads like a professional business document with flowing narrative prose.
 
 CRITICAL FORMATTING REQUIREMENTS:
 - Write in flowing, natural language prose with complete sentences and paragraphs
-- Each section must contain a minimum of 4-6 substantial paragraphs (150-250 words each)
+- Each section must contain a minimum of 4-6 substantial paragraphs (200-300 words each)
 - Use professional business language suitable for board presentations and regulatory reviews
 - DO NOT use markdown formatting (no #, ##, *, -, etc.) - write in plain text
 - DO NOT use bullet points or lists - write in paragraph format only
 - Include specific numbers, percentages, and metrics throughout your analysis
 - Provide detailed interpretations and insights, not just data summaries
 - Write with analytical depth and strategic perspective
+- ALWAYS refer to "${companyName}" by name throughout the report - never use generic terms like "the agency" or "the organization"
 
 CONTENT REQUIREMENTS:
-- Minimum 350 words per section (aim for 400-500 words each)
+- Minimum 400-500 words per section (aim for 600-700 words each for comprehensive coverage)
 - Include specific examples and case studies where possible
 - Demonstrate comparative analysis and trend identification
 - Draw connections between different operational areas
 - Provide strategic insights and forward-looking observations
 - Include references to industry best practices and regulatory compliance
+- ENSURE THE REPORT IS COMPLETE - do not cut off mid-sentence
 
 REPORT STRUCTURE (include all sections with substantial content):
 
 1. Executive Summary
-Write a comprehensive 400-500 word executive summary that captures the quarter's key achievements, challenges, strategic outlook, and operational performance. Include quantitative metrics and qualitative assessments.
+Write a comprehensive 500-600 word executive summary that captures the quarter's key achievements, challenges, strategic outlook, and operational performance for ${companyName}. Include quantitative metrics and qualitative assessments.
 
 2. Operational Successes and Achievements
-Analyze positive outcomes, achievements, and improvements in service delivery. Include detailed discussion of performance metrics, successful initiatives, compliance achievements, and operational excellence examples. Provide specific evidence and measurable outcomes.
+Analyze positive outcomes, achievements, and improvements in service delivery at ${companyName}. Include detailed discussion of performance metrics, successful initiatives, compliance achievements, and operational excellence examples. Provide specific evidence and measurable outcomes.
 
 3. Learning Opportunities and Strategic Challenges
-Examine areas for improvement, incidents, challenges faced, and lessons learned. Provide detailed analysis of root causes, impacts on operations, and strategic responses. Include forward-looking mitigation strategies.
+Examine areas for improvement, incidents, challenges faced, and lessons learned by ${companyName}. Provide detailed analysis of root causes, impacts on operations, and strategic responses. Include forward-looking mitigation strategies.
 
 4. Workforce Development and Capacity Analysis
-Detailed analysis of staffing levels, recruitment effectiveness, retention strategies, training compliance, supervision quality, and capacity planning initiatives. Include staff development outcomes and future workforce planning.
+Detailed analysis of ${companyName}'s staffing levels, recruitment effectiveness, retention strategies, training compliance, supervision quality, and capacity planning initiatives. Include staff development outcomes and future workforce planning.
 
 5. Care Quality and Service Excellence
-Comprehensive review of care planning effectiveness, service quality metrics, care plan compliance, risk management protocols, client outcomes, and satisfaction measures. Include quality assurance findings.
+Comprehensive review of ${companyName}'s care planning effectiveness, service quality metrics, care plan compliance, risk management protocols, client outcomes, and satisfaction measures. Include quality assurance findings.
 
 6. Health, Safety and Risk Management
-Thorough analysis of incident patterns, safety performance, risk mitigation strategies, safeguarding effectiveness, regulatory compliance, and emergency preparedness. Include trend analysis and preventive measures.
+Thorough analysis of ${companyName}'s incident patterns, safety performance, risk mitigation strategies, safeguarding effectiveness, regulatory compliance, and emergency preparedness. Include trend analysis and preventive measures.
 
 7. Continuous Improvement and Innovation
-Detailed discussion of improvement initiatives, quality enhancement programs, feedback integration, technology adoption, and innovation projects. Include measurable impacts and future development plans.
+Detailed discussion of ${companyName}'s improvement initiatives, quality enhancement programs, feedback integration, technology adoption, and innovation projects. Include measurable impacts and future development plans.
 
 8. Strategic Outlook and Future Planning
-Forward-looking analysis with strategic recommendations, priority areas for focus, planned initiatives for the coming quarter, resource allocation, and long-term objectives.
+Forward-looking analysis with strategic recommendations for ${companyName}, priority areas for focus, planned initiatives for the coming quarter, resource allocation, and long-term objectives.
 
 WRITING STYLE:
 - Professional, analytical tone appropriate for senior management and regulatory bodies
@@ -278,30 +288,39 @@ WRITING STYLE:
 - Include quantitative analysis with qualitative interpretation
 - Demonstrate understanding of care sector challenges and best practices
 - Maintain consistency in tense and perspective throughout
+- ALWAYS use "${companyName}" when referring to the organization
+
+COMPLETION REQUIREMENT:
+- COMPLETE ALL SECTIONS FULLY - do not stop mid-sentence or mid-paragraph
+- Each section must be fully written and concluded
+- The report must end with a complete strategic outlook section
+- Ensure the final sentence provides proper closure to the document
 
 DATA INTEGRATION:
 - Reference and analyze the provided analytics data where relevant
 - Transform raw data into meaningful insights and trends
 - Provide context and interpretation for all metrics mentioned
-- Connect operational data to strategic implications`
+- Connect operational data to strategic implications for ${companyName}`
         },
         {
           role: 'user' as const,
-          content: `Generate a comprehensive quarterly report for ${quarter} ${year}. 
+          content: `Generate a comprehensive quarterly report for ${companyName} covering ${quarter} ${year}. 
 
 ${additionalContext ? `IMPORTANT CONTEXT TO INTEGRATE: ${additionalContext}` : ''}
 
 ANALYTICS DATA TO REFERENCE: ${JSON.stringify(processedAnalytics, null, 2)}
 
-Requirements:
+CRITICAL REQUIREMENTS:
 - Write in natural language prose with flowing paragraphs
-- Minimum 350 words per section
-- Include detailed analysis and strategic insights
+- Minimum 500 words per section (aim for 600-700 words)
+- Include detailed analysis and strategic insights for ${companyName}
 - Reference specific metrics and trends from the analytics data
 - Provide forward-looking recommendations
 - Maintain professional care sector terminology throughout
+- ALWAYS refer to the organization as "${companyName}" - never use generic terms
+- COMPLETE ALL SECTIONS FULLY - ensure the report ends properly with a complete conclusion
 
-Focus on creating a comprehensive narrative that demonstrates operational excellence, strategic thinking, and continuous improvement in care delivery.`
+Focus on creating a comprehensive narrative that demonstrates ${companyName}'s operational excellence, strategic thinking, and continuous improvement in care delivery. Ensure every section is substantial and provides meaningful insights into ${companyName}'s performance and future direction.`
         }
       ];
 
@@ -1036,10 +1055,15 @@ Focus on creating a comprehensive narrative that demonstrates operational excell
                                 </div>
                               );
                             }
-                            if (line.trim().length > 50 && (line.trim().endsWith('.') || line.trim().endsWith(':') || line.trim().endsWith('.'))) {
-                              // Regular paragraphs - substantial text ending with period
+                            if (line.trim().length > 50) {
+                              // Regular paragraphs - substantial text
                               return (
-                                <p key={lineIndex} className="mb-5 text-gray-700 leading-relaxed text-justify font-normal">
+                                <p key={lineIndex} className="mb-6 text-gray-700 leading-relaxed text-justify font-normal" style={{ 
+                                  marginBottom: '1.5rem',
+                                  lineHeight: '1.7',
+                                  textAlign: 'justify',
+                                  fontSize: '12pt'
+                                }}>
                                   {line.trim()}
                                 </p>
                               );
@@ -1047,7 +1071,12 @@ Focus on creating a comprehensive narrative that demonstrates operational excell
                             if (line.trim().length > 20 && line.trim().length <= 50) {
                               // Shorter content lines - subheadings or brief statements
                               return (
-                                <p key={lineIndex} className="mb-4 text-gray-800 leading-relaxed font-medium">
+                                <p key={lineIndex} className="mb-4 text-gray-800 leading-relaxed font-medium" style={{ 
+                                  marginBottom: '1rem',
+                                  lineHeight: '1.6',
+                                  fontSize: '11pt',
+                                  fontWeight: '500'
+                                }}>
                                   {line.trim()}
                                 </p>
                               );
@@ -1055,14 +1084,18 @@ Focus on creating a comprehensive narrative that demonstrates operational excell
                             if (line.trim().length > 0) {
                               // Other content - brief lines
                               return (
-                                <p key={lineIndex} className="mb-3 text-gray-700 leading-relaxed">
+                                <p key={lineIndex} className="mb-3 text-gray-700 leading-relaxed" style={{ 
+                                  marginBottom: '0.75rem',
+                                  lineHeight: '1.6',
+                                  fontSize: '12pt'
+                                }}>
                                   {line.trim()}
                                 </p>
                               );
                             }
                             if (line.trim() === '') {
                               // Empty lines for spacing
-                              return <div key={lineIndex} className="mb-2"></div>;
+                              return <div key={lineIndex} style={{ height: '0.5rem' }}></div>;
                             }
                             return null;
                           });
@@ -1080,38 +1113,98 @@ Focus on creating a comprehensive narrative that demonstrates operational excell
       {/* Print Styles */}
       <style>{`
         @media print {
-          * { 
+          body { 
             margin: 0 !important; 
             padding: 0 !important;
+            background: white !important;
+            font-family: 'Times New Roman', serif !important;
+            font-size: 12pt !important;
+            line-height: 1.5 !important;
+            color: black !important;
           }
-          html, body { 
-            width: 210mm !important;
-            height: 297mm !important;
-            margin: 0 !important;
-            padding: 0 !important;
-          }
+          
           .page-break { 
-            page-break-after: always;
+            page-break-after: always !important;
             width: 210mm !important;
-            height: 297mm !important;
+            min-height: 297mm !important;
+            height: auto !important;
             padding: 25.4mm !important;
             margin: 0 !important;
             box-sizing: border-box !important;
+            background: white !important;
+            border: none !important;
+            box-shadow: none !important;
+            display: block !important;
           }
+          
           .page-break:last-child { 
-            page-break-after: avoid; 
+            page-break-after: avoid !important; 
           }
-          .space-y-8 > * + * { 
+          
+          /* Remove all spacing between pages in print */
+          .space-y-12 > * + * { 
             margin-top: 0 !important; 
           }
-          .bg-gray-100 {
+          
+          /* Ensure consistent text styling in print */
+          p {
+            margin-bottom: 12pt !important;
+            text-align: justify !important;
+            line-height: 1.5 !important;
+            font-size: 12pt !important;
+            color: black !important;
+          }
+          
+          h1, h2, h3 {
+            color: black !important;
+            page-break-after: avoid !important;
+            margin-top: 18pt !important;
+            margin-bottom: 12pt !important;
+          }
+          
+          h1 {
+            font-size: 18pt !important;
+            font-weight: bold !important;
+          }
+          
+          h2 {
+            font-size: 16pt !important;
+            font-weight: bold !important;
+            border-bottom: 1pt solid black !important;
+            padding-bottom: 6pt !important;
+          }
+          
+          h3 {
+            font-size: 14pt !important;
+            font-weight: bold !important;
+          }
+          
+          /* Background colors */
+          .bg-gray-100, .bg-gray-50 {
             background: white !important;
           }
         }
         
         @page {
-          size: A4;
+          size: A4 portrait;
           margin: 0;
+        }
+        
+        /* Ensure proper page structure */
+        .report-content {
+          widows: 2;
+          orphans: 2;
+        }
+        
+        .report-content p {
+          page-break-inside: avoid;
+        }
+        
+        .report-content h1, 
+        .report-content h2, 
+        .report-content h3 {
+          page-break-after: avoid;
+          page-break-inside: avoid;
         }
       `}</style>
     </div>
