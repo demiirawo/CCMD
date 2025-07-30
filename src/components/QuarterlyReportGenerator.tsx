@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -7,7 +7,7 @@ import { FileText, Download, Loader2, Trash2 } from "lucide-react";
 import { useOpenAI } from "@/hooks/useOpenAI";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 
 interface QuarterlyReportGeneratorProps {
   quarter: string;
@@ -34,6 +34,21 @@ export const QuarterlyReportGenerator: React.FC<QuarterlyReportGeneratorProps> =
   const { profile } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  
+  // Check if a report exists for this quarter/year on component mount
+  useEffect(() => {
+    const reportKey = `quarterly_report_${quarter}_${year}`;
+    const savedReport = localStorage.getItem(reportKey);
+    const savedAnalytics = localStorage.getItem(`${reportKey}_analytics`);
+    
+    if (savedReport) {
+      setGeneratedReport(savedReport);
+      setHasGeneratedReport(true);
+      if (savedAnalytics) {
+        setAnalyticsScreenshots(JSON.parse(savedAnalytics));
+      }
+    }
+  }, [quarter, year]);
 
   const processAnalyticsForReport = (analyticsData: any) => {
     // Extract key insights and trends from analytics data
@@ -346,6 +361,11 @@ Remember: Write in natural language prose with detailed paragraphs. No markdown 
         setHasGeneratedReport(true);
         setIsOpen(false);
         
+        // Save report to localStorage for persistence
+        const reportKey = `quarterly_report_${quarter}_${year}`;
+        localStorage.setItem(reportKey, response);
+        localStorage.setItem(`${reportKey}_analytics`, JSON.stringify(reportAnalytics));
+        
         // Navigate to the quarterly report page with the content and analytics data
         const encodedContent = encodeURIComponent(response);
         const encodedAnalytics = encodeURIComponent(JSON.stringify(reportAnalytics));
@@ -379,6 +399,13 @@ Remember: Write in natural language prose with detailed paragraphs. No markdown 
   const deleteReport = () => {
     setGeneratedReport("");
     setHasGeneratedReport(false);
+    setAnalyticsScreenshots({});
+    
+    // Remove from localStorage
+    const reportKey = `quarterly_report_${quarter}_${year}`;
+    localStorage.removeItem(reportKey);
+    localStorage.removeItem(`${reportKey}_analytics`);
+    
     toast({
       title: "Report Deleted",
       description: "The quarterly report has been deleted",
