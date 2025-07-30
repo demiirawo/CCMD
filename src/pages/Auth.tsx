@@ -32,19 +32,28 @@ export const Auth = () => {
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (password !== confirmPassword) {
+    if (!email.trim() || !password.trim() || !username.trim()) {
       toast({
         title: 'Error',
-        description: 'Passwords do not match',
+        description: 'Please fill in all fields',
         variant: 'destructive'
       });
       return;
     }
     
-    if (!username.trim()) {
+    if (password.length < 6) {
       toast({
         title: 'Error',
-        description: 'Username is required',
+        description: 'Password must be at least 6 characters long',
+        variant: 'destructive'
+      });
+      return;
+    }
+    
+    if (password !== confirmPassword) {
+      toast({
+        title: 'Error',
+        description: 'Passwords do not match',
         variant: 'destructive'
       });
       return;
@@ -55,9 +64,22 @@ export const Auth = () => {
     const { error } = await signUp(email, password, username, role);
     
     if (error) {
+      // Provide more user-friendly error messages
+      let errorMessage = error.message;
+      
+      if (error.message.includes('User already registered')) {
+        errorMessage = 'An account with this email already exists. Please sign in instead.';
+      } else if (error.message.includes('Invalid email')) {
+        errorMessage = 'Please enter a valid email address.';
+      } else if (error.message.includes('Password should be at least')) {
+        errorMessage = 'Password must be at least 6 characters long.';
+      } else if (error.message.includes('Only a valid email address is allowed')) {
+        errorMessage = 'Please enter a valid email address.';
+      }
+      
       toast({
-        title: 'Error',
-        description: error.message,
+        title: 'Sign Up Failed',
+        description: errorMessage,
         variant: 'destructive'
       });
     } else {
@@ -65,6 +87,11 @@ export const Auth = () => {
         title: 'Success',
         description: 'Account created successfully! Please check your email to confirm your account.',
       });
+      // Clear form on successful signup
+      setEmail('');
+      setPassword('');
+      setConfirmPassword('');
+      setUsername('');
     }
     
     setLoading(false);
@@ -72,18 +99,43 @@ export const Auth = () => {
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!email.trim() || !password.trim()) {
+      toast({
+        title: 'Error',
+        description: 'Please fill in all fields',
+        variant: 'destructive'
+      });
+      return;
+    }
+    
     setLoading(true);
     
     const { error } = await signIn(email, password);
     
     if (error) {
+      // Provide more user-friendly error messages
+      let errorMessage = error.message;
+      
+      if (error.message.includes('Invalid login credentials')) {
+        errorMessage = 'Invalid email or password. Please check your credentials and try again.';
+      } else if (error.message.includes('Email not confirmed')) {
+        errorMessage = 'Please check your email and click the confirmation link before signing in.';
+      } else if (error.message.includes('Too many requests')) {
+        errorMessage = 'Too many login attempts. Please wait a moment and try again.';
+      }
+      
       toast({
-        title: 'Error',
-        description: error.message,
+        title: 'Sign In Failed',
+        description: errorMessage,
         variant: 'destructive'
       });
     } else {
-      navigate('/');
+      toast({
+        title: 'Success',
+        description: 'Successfully signed in! Redirecting...',
+      });
+      // Navigation is handled by the useEffect hook
     }
     
     setLoading(false);
