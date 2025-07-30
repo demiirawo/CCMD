@@ -432,7 +432,7 @@ export const Reports = () => {
 
   return (
     <div className="min-h-screen bg-gray-100 p-4 lg:p-8">
-      <div className="max-w-7xl mx-auto space-y-6">
+      <div className="w-[90%] mx-auto space-y-6">
         {Object.keys(groupedMeetings).length === 0 ? (
           <Card>
             <CardContent className="py-8 text-center">
@@ -522,9 +522,9 @@ export const Reports = () => {
                                {/* View Dashboard Dialog */}
                                <Dialog>
                                  <DialogTrigger asChild>
-                                    <Button variant="default" size="sm">
-                                      View
-                                    </Button>
+                                     <Button variant="outline" size="sm">
+                                       View
+                                     </Button>
                                  </DialogTrigger>
                                  <DialogContent className="max-w-[95vw] max-h-[95vh] overflow-y-auto bg-background p-0">
                                    <div className="relative">
@@ -535,7 +535,7 @@ export const Reports = () => {
                                         </DialogTitle>
                                         <div className="flex items-center gap-2">
                                            <Button 
-                                             variant="default" 
+                                             variant="outline" 
                                              size="sm" 
                                              onClick={() => handleExportPDF(meeting.id, meeting.title)}
                                            >
@@ -571,7 +571,7 @@ export const Reports = () => {
                               {/* Delete Meeting Dialog */}
                               <AlertDialog>
                                 <AlertDialogTrigger asChild>
-                                   <Button variant="destructive" size="sm">
+                                   <Button variant="outline" size="sm" className="text-destructive hover:text-destructive">
                                      Delete
                                    </Button>
                                 </AlertDialogTrigger>
