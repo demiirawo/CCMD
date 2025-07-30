@@ -41,42 +41,28 @@ export const QuarterlyReportGenerator: React.FC<QuarterlyReportGeneratorProps> =
     const savedReport = localStorage.getItem(reportKey);
     const savedAnalytics = localStorage.getItem(`${reportKey}_analytics`);
     
-    console.log(`🔍 Checking localStorage for report: ${reportKey}`);
-    console.log(`📄 Saved report exists:`, !!savedReport);
-    console.log(`📊 Saved analytics exists:`, !!savedAnalytics);
-    console.log(`📄 Saved report length:`, savedReport?.length || 0);
-    
-    // Debug: Show all localStorage keys that contain "quarterly_report"
-    const allKeys = Object.keys(localStorage);
-    const reportKeys = allKeys.filter(key => key.includes('quarterly_report'));
-    console.log(`🗂️ All quarterly report keys in localStorage:`, reportKeys);
-    
-    // Debug: Show current quarter/year values
-    console.log(`📅 Current quarter: "${quarter}", year: "${year}"`);
-    console.log(`🔑 Expected localStorage key: "${reportKey}"`);
-    
+    // Simple debugging that should work despite CORS issues
     if (savedReport) {
-      console.log(`✅ Found existing report for ${quarter} ${year}`);
       setGeneratedReport(savedReport);
       setHasGeneratedReport(true);
       if (savedAnalytics) {
         try {
           const parsedAnalytics = JSON.parse(savedAnalytics);
           setAnalyticsScreenshots(parsedAnalytics);
-          console.log(`📊 Loaded analytics data`);
         } catch (error) {
-          console.error(`❌ Failed to parse saved analytics:`, error);
+          // Silent error handling
         }
       }
-    } else {
-      console.log(`❌ No existing report found for ${quarter} ${year}`);
-      // Check if there's any report data for this quarter with a slightly different key format
-      reportKeys.forEach(key => {
-        if (key.includes(quarter) && key.includes(year)) {
-          console.log(`🔍 Found similar key: ${key}`);
-        }
-      });
     }
+    
+    // Force a re-render after checking localStorage
+    setTimeout(() => {
+      const stillExists = localStorage.getItem(reportKey);
+      if (stillExists && !hasGeneratedReport) {
+        setGeneratedReport(stillExists);
+        setHasGeneratedReport(true);
+      }
+    }, 100);
   }, [quarter, year]);
 
   const processAnalyticsForReport = (analyticsData: any) => {
