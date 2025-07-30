@@ -333,6 +333,21 @@ export const Reports = () => {
                                    </DialogHeader>
                                    
                                    <div className="space-y-8 pt-6">
+                                     {/* Meeting Summary */}
+                                     {meeting.purpose && (
+                                       <section>
+                                         <div className="flex items-center gap-2 mb-4">
+                                           <Target className="h-5 w-5 text-primary" />
+                                           <h3 className="text-lg font-semibold">Meeting Summary</h3>
+                                         </div>
+                                         <Card>
+                                           <CardContent className="p-6">
+                                             <p className="text-muted-foreground leading-relaxed">{meeting.purpose}</p>
+                                           </CardContent>
+                                         </Card>
+                                       </section>
+                                     )}
+
 
                                      {/* Attendees */}
                                      <section>
