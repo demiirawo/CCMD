@@ -363,6 +363,90 @@ export const Reports = () => {
                                        </Card>
                                      </section>
 
+                                     {/* Section Overview */}
+                                     <section>
+                                       <div className="flex items-center gap-2 mb-4">
+                                         <FileText className="h-5 w-5 text-primary" />
+                                         <h3 className="text-lg font-semibold">Section Overview</h3>
+                                       </div>
+                                       <div className="space-y-6">
+                                         {meeting.sections.map((section: any, sectionIndex: number) => {
+                                           const statusCounts = section.items?.reduce((acc: any, item: any) => {
+                                             acc[item.status] = (acc[item.status] || 0) + 1;
+                                             return acc;
+                                           }, {}) || {};
+                                           
+                                           return (
+                                             <Card key={sectionIndex} className="border-l-4 border-l-blue-200">
+                                               <CardContent className="p-6">
+                                                 <div className="space-y-4">
+                                                   {/* Section Header */}
+                                                   <div className="flex justify-between items-start gap-4">
+                                                     <h4 className="text-lg font-semibold text-foreground">{section.title}</h4>
+                                                     <div className="flex items-center gap-2">
+                                                        {Object.entries(statusCounts).map(([status, count]) => (
+                                                          <StatusBadge key={status} status={status as any} />
+                                                        ))}
+                                                     </div>
+                                                   </div>
+                                                   
+                                                   {/* Section Items */}
+                                                   {section.items && section.items.length > 0 ? (
+                                                     <div className="grid gap-4">
+                                                       {section.items.map((item: any, itemIndex: number) => (
+                                                         <div key={itemIndex} className="border border-border/50 rounded-lg p-4 bg-card/50">
+                                                           <div className="space-y-3">
+                                                             <div className="flex justify-between items-start gap-4">
+                                                               <div className="flex-1">
+                                                                 <p className="font-medium text-sm text-foreground">
+                                                                   {item.title || `Item ${itemIndex + 1}`}
+                                                                 </p>
+                                                                 {item.last_reviewed && (
+                                                                   <p className="text-xs text-muted-foreground mt-1">
+                                                                     Last reviewed: {item.last_reviewed}
+                                                                   </p>
+                                                                 )}
+                                                               </div>
+                                                               <StatusBadge status={item.status} />
+                                                             </div>
+                                                             
+                                                             {item.actions && item.actions.length > 0 && (
+                                                               <div className="bg-blue-50/50 p-3 rounded-lg">
+                                                                 <div className="flex items-start gap-2">
+                                                                   <Clock className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                                                                   <div className="flex-1">
+                                                                     <span className="text-xs font-medium text-blue-700">Related Actions:</span>
+                                                                     <ul className="space-y-1 mt-1">
+                                                                       {item.actions.map((action: any, actionIndex: number) => (
+                                                                         <li key={actionIndex} className="text-sm text-blue-800">
+                                                                           • {action.text || action.action_text || action.description || 'Action details'} 
+                                                                           {(action.due_date || action.dueDate) && (
+                                                                             <span className="text-blue-600"> (Due: {action.due_date || action.dueDate})</span>
+                                                                           )}
+                                                                         </li>
+                                                                       ))}
+                                                                     </ul>
+                                                                   </div>
+                                                                 </div>
+                                                               </div>
+                                                             )}
+                                                           </div>
+                                                         </div>
+                                                       ))}
+                                                     </div>
+                                                   ) : (
+                                                     <div className="text-center py-8 text-muted-foreground">
+                                                       <FileText className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                                                       <p className="text-sm">No items tracked in this section</p>
+                                                     </div>
+                                                   )}
+                                                 </div>
+                                               </CardContent>
+                                             </Card>
+                                           );
+                                         })}
+                                       </div>
+                                     </section>
 
                                      {/* Overall Status Summary */}
                                      <section>
