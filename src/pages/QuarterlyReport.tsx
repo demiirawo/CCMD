@@ -33,9 +33,16 @@ export const QuarterlyReport = () => {
 
   useEffect(() => {
     if (content) {
-      const decodedContent = decodeURIComponent(content);
-      setReportContent(decodedContent);
-      splitContentIntoPages(decodedContent);
+      try {
+        const decodedContent = decodeURIComponent(content);
+        setReportContent(decodedContent);
+        splitContentIntoPages(decodedContent);
+      } catch (error) {
+        console.error('Failed to decode content:', error);
+        // Fallback: use content as-is if decoding fails
+        setReportContent(content);
+        splitContentIntoPages(content);
+      }
     }
     if (analytics) {
       try {
@@ -43,6 +50,13 @@ export const QuarterlyReport = () => {
         setAnalyticsImages(decodedAnalytics);
       } catch (error) {
         console.warn('Failed to parse analytics data:', error);
+        // Try to parse without decoding first
+        try {
+          const directAnalytics = JSON.parse(analytics);
+          setAnalyticsImages(directAnalytics);
+        } catch (directError) {
+          console.warn('Failed to parse analytics data directly:', directError);
+        }
       }
     }
     loadCompanyInfo();
