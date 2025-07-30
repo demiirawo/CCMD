@@ -401,51 +401,9 @@ Remember: Write in natural language prose with detailed paragraphs. No markdown 
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        <Button variant="outline" className="gap-2">
-          <FileText className="h-4 w-4" />
-          Generate AI Report
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>Generate Quarterly Report - {quarter} {year}</DialogTitle>
-        </DialogHeader>
-        
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">AI-Powered Quarterly Analysis</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <p className="text-sm text-muted-foreground">
-              This will analyze all management meetings and analytics data from {quarter} {year} 
-              to generate a comprehensive quarterly report covering successes, lessons learned, 
-              capacity planning, staffing, care delivery, safety, and continuous improvement.
-            </p>
-            <p className="text-sm text-muted-foreground">
-              The report will be displayed in a professional print-ready format with options to export to PDF.
-            </p>
-            <Button 
-              onClick={generateReport} 
-              disabled={isLoading}
-              className="w-full"
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Generating Report...
-                </>
-              ) : (
-                <>
-                  <FileText className="mr-2 h-4 w-4" />
-                  Generate Report
-                </>
-              )}
-            </Button>
-          </CardContent>
-        </Card>
-      </DialogContent>
-    </Dialog>
+    <Button variant="outline" className="gap-2" onClick={generateReport}>
+      <FileText className="h-4 w-4" />
+      Generate AI Report
+    </Button>
   );
 };
