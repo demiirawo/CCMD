@@ -17,13 +17,17 @@ export const ServiceUserDocumentsAnalytics = ({
   const { profile } = useAuth();
   
   const [data, setData] = useState({
+    totalServiceUsers: 0,
     incompleteDocuments: 0
   });
 
-  const [totalServiceUsers, setTotalServiceUsers] = useState(0);
+  const [autoTotalServiceUsers, setAutoTotalServiceUsers] = useState(0);
 
-  const compliancePercentage = totalServiceUsers > 0 
-    ? Math.round((totalServiceUsers - data.incompleteDocuments) / totalServiceUsers * 100) 
+  // Use manual input if available, otherwise use auto-calculated from care plans
+  const displayTotalServiceUsers = data.totalServiceUsers > 0 ? data.totalServiceUsers : autoTotalServiceUsers;
+
+  const compliancePercentage = displayTotalServiceUsers > 0 
+    ? Math.round((displayTotalServiceUsers - data.incompleteDocuments) / displayTotalServiceUsers * 100) 
     : 100;
 
   useEffect(() => {
@@ -98,8 +102,8 @@ export const ServiceUserDocumentsAnalytics = ({
       if (carePlanData?.data_content) {
         const careData = carePlanData.data_content as any;
         const total = (careData.highRisk || 0) + (careData.mediumRisk || 0) + (careData.lowRisk || 0) + (careData.naRisk || 0);
-        setTotalServiceUsers(total);
-        console.log('ServiceUserDocuments: Loaded care plan data, total service users:', total);
+        setAutoTotalServiceUsers(total);
+        console.log('ServiceUserDocuments: Loaded care plan data, auto total service users:', total);
       } else {
         console.log('ServiceUserDocuments: No care plan data found, checking if there are multiple records...');
         
@@ -208,11 +212,12 @@ export const ServiceUserDocumentsAnalytics = ({
             <div className="text-center">
               <h3 className="text-lg font-semibold mb-2">Total Service Users</h3>
             </div>
-            <div className="text-3xl font-bold text-primary">
-              {totalServiceUsers}
-            </div>
+            <EditableCell 
+              value={displayTotalServiceUsers} 
+              onChange={(value) => handleInputChange('totalServiceUsers', value)} 
+            />
             <div className="text-xs text-muted-foreground text-center">
-              From Care Plans & Risk Assessments
+              {autoTotalServiceUsers > 0 ? "From Care Plans & Risk Assessments" : "Manual entry (Care Plans not set)"}
             </div>
           </div>
         </Card>
@@ -243,7 +248,7 @@ export const ServiceUserDocumentsAnalytics = ({
               Documents Compliant
             </div>
             <div className="text-xs text-center text-muted-foreground">
-              {totalServiceUsers - data.incompleteDocuments} compliant / {totalServiceUsers} total
+              {displayTotalServiceUsers - data.incompleteDocuments} compliant / {displayTotalServiceUsers} total
             </div>
           </div>
         </Card>
