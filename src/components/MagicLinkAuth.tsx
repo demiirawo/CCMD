@@ -157,7 +157,10 @@ export const MagicLinkAuth = () => {
                 id="email"
                 type="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => {
+                  console.log('Email input changed to:', e.target.value);
+                  setEmail(e.target.value);
+                }}
                 placeholder="Enter your work email"
                 required
                 disabled={loading}
