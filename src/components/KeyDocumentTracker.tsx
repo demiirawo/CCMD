@@ -189,8 +189,12 @@ export const KeyDocumentTracker = ({
         }
       }}>
         <div className="flex items-center gap-3">
-          
-          <h3 className="text-xl font-bold text-foreground">Key Review Dates</h3>
+          <div>
+            <h3 className="text-xl font-bold text-foreground">Key Review Dates</h3>
+            <p className="text-sm text-muted-foreground">
+              Updated: {new Date().toLocaleDateString('en-GB')}
+            </p>
+          </div>
           <div className="ml-4">
             <StatusBadge status={getOverallStatus()} />
           </div>
