@@ -309,108 +309,75 @@ export const Reports = () => {
         description: "Please wait while we generate your PDF..."
       });
 
-      // Create a temporary container for PDF content
+      // Find the preview dialog content
+      const previewElement = document.querySelector(`[data-meeting-preview="${meetingId}"]`);
+      if (!previewElement) {
+        toast({
+          title: "PDF Generation Failed",
+          description: "Please open the preview first, then try exporting to PDF",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Create a temporary container with the exact preview content
       const tempContainer = document.createElement('div');
       tempContainer.style.position = 'absolute';
       tempContainer.style.left = '-9999px';
       tempContainer.style.top = '0';
       tempContainer.style.width = '210mm'; // A4 width
-      tempContainer.style.minHeight = '297mm'; // A4 height
       tempContainer.style.backgroundColor = 'white';
-      tempContainer.style.padding = '20mm';
-      tempContainer.style.fontFamily = '"Segoe UI", Tahoma, Geneva, Verdana, sans-serif';
-      tempContainer.style.fontSize = '12px';
-      tempContainer.style.lineHeight = '1.4';
-      tempContainer.style.color = '#000';
+      tempContainer.style.padding = '15mm';
       tempContainer.style.boxSizing = 'border-box';
       
-      // Get the meeting data for PDF content
-      const meeting = meetings.find(m => m.id === meetingId);
-      if (!meeting) return;
-
-      // Create structured PDF content
-      tempContainer.innerHTML = `
-        <div style="margin-bottom: 30px; border-bottom: 2px solid #000; padding-bottom: 15px;">
-          <h1 style="margin: 0 0 10px 0; font-size: 24px; font-weight: bold; color: #000;">${meeting.title}</h1>
-          <p style="margin: 0; font-size: 14px; color: #666;">Meeting Report - ${formatDate(meeting.date)}</p>
-        </div>
-
-        ${meeting.purpose ? `
-        <div style="margin-bottom: 25px; page-break-inside: avoid;">
-          <h2 style="margin: 0 0 10px 0; font-size: 16px; font-weight: 600; color: #000; border-bottom: 1px solid #ccc; padding-bottom: 5px;">Meeting Purpose</h2>
-          <p style="margin: 0; padding: 10px; background: #f8f9fa; border-left: 3px solid #007bff; font-size: 12px;">${meeting.purpose}</p>
-        </div>
-        ` : ''}
-
-        <div style="margin-bottom: 25px; page-break-inside: avoid;">
-          <h2 style="margin: 0 0 10px 0; font-size: 16px; font-weight: 600; color: #000; border-bottom: 1px solid #ccc; padding-bottom: 5px;">Attendees (${meeting.attendees.length})</h2>
-          <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;">
-            ${meeting.attendees.map(attendee => `
-              <div style="padding: 8px; background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 4px; font-size: 11px;">
-                <div style="font-weight: 600; margin-bottom: 2px;">${attendee.name}</div>
-                <div style="color: #666; font-size: 10px;">${attendee.email}</div>
-              </div>
-            `).join('')}
-          </div>
-        </div>
-
-        ${meeting.sections && meeting.sections.length > 0 ? meeting.sections.map(section => `
-          <div style="margin-bottom: 25px; page-break-inside: avoid;">
-            <h2 style="margin: 0 0 15px 0; font-size: 16px; font-weight: 600; color: #000; border-bottom: 1px solid #ccc; padding-bottom: 5px;">${section.title}</h2>
-            ${section.items && section.items.length > 0 ? `
-              <div style="space-y: 8px;">
-                ${section.items.map((item, index) => {
-                  const statusColor = item.status === 'green' ? '#28a745' : item.status === 'amber' ? '#ffc107' : '#dc3545';
-                  return `
-                    <div style="margin-bottom: 12px; padding: 12px; border-left: 4px solid ${statusColor}; background: #f8f9fa; border-radius: 4px;">
-                      <div style="font-size: 11px; font-weight: 600; margin-bottom: 4px;">${(item as any).title || `Item ${index + 1}`}</div>
-                      ${(item as any).description ? `<div style="font-size: 10px; color: #666; margin-bottom: 6px;">${(item as any).description}</div>` : ''}
-                      ${(item as any).observations ? `
-                        <div style="margin-top: 8px;">
-                          <div style="font-size: 10px; font-weight: 600; margin-bottom: 4px;">Observations:</div>
-                          <div style="font-size: 10px; color: #555; padding: 6px; background: white; border-radius: 3px;">${(item as any).observations}</div>
-                        </div>
-                      ` : ''}
-                      ${(item as any).actions && (item as any).actions.length > 0 ? `
-                        <div style="margin-top: 8px;">
-                          <div style="font-size: 10px; font-weight: 600; margin-bottom: 4px;">Related Actions:</div>
-                          ${(item as any).actions.map((action: any) => `
-                            <div style="font-size: 10px; padding: 4px 8px; background: white; border: 1px solid #e9ecef; border-radius: 3px; margin-bottom: 3px;">
-                              <strong>${action.action}</strong> - Assigned to: ${action.assignee} | Due: ${action.dueDate || 'Not set'}
-                            </div>
-                          `).join('')}
-                        </div>
-                      ` : ''}
-                    </div>
-                  `;
-                }).join('')}
-              </div>
-            ` : '<p style="color: #666; font-style: italic; font-size: 11px;">No items tracked for this section</p>'}
-          </div>
-        `).join('') : ''}
-
-        ${(meeting as any).actions_log && (meeting as any).actions_log.length > 0 ? `
-        <div style="margin-bottom: 25px; page-break-inside: avoid;">
-          <h2 style="margin: 0 0 15px 0; font-size: 16px; font-weight: 600; color: #000; border-bottom: 1px solid #ccc; padding-bottom: 5px;">Actions Log (${(meeting as any).actions_log.length})</h2>
-          <div>
-            ${(meeting as any).actions_log.map((action: any) => `
-              <div style="margin-bottom: 15px; padding: 12px; border: 1px solid #e9ecef; border-radius: 6px; background: #f8f9fa;">
-                <div style="font-weight: 600; margin-bottom: 6px; font-size: 12px;">${action.action}</div>
-                <div style="font-size: 10px; color: #666; margin-bottom: 6px;">From: ${action.source} | Assigned to: ${action.assignee}</div>
-                ${action.dueDate ? `<div style="font-size: 10px; color: #666; margin-bottom: 6px;">Due: ${action.dueDate}</div>` : ''}
-                ${action.comments ? `<div style="font-size: 10px; color: #555; margin-top: 6px; padding: 6px; background: white; border-radius: 3px;">${action.comments}</div>` : ''}
-              </div>
-            `).join('')}
-          </div>
-        </div>
-        ` : ''}
-
-        <div style="margin-top: 40px; padding-top: 15px; border-top: 1px solid #ccc; text-align: center; font-size: 10px; color: #666;">
-          Generated on ${new Date().toLocaleDateString('en-GB')} at ${new Date().toLocaleTimeString('en-GB')}
-        </div>
+      // Clone the preview content exactly
+      tempContainer.innerHTML = previewElement.innerHTML;
+      
+      // Apply PDF-specific styles to make it print-friendly
+      const style = document.createElement('style');
+      style.textContent = `
+        * { 
+          box-sizing: border-box !important; 
+          color: #000 !important;
+        }
+        body { 
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+          background: white !important;
+        }
+        .bg-background { background: white !important; }
+        .bg-card { background: #f8f9fa !important; }
+        .bg-muted { background: #f1f3f4 !important; }
+        .text-foreground { color: #000 !important; }
+        .text-muted-foreground { color: #666 !important; }
+        .border { border-color: #e0e0e0 !important; }
+        .status-green { background-color: #d4edda !important; color: #155724 !important; }
+        .status-amber { background-color: #fff3cd !important; color: #856404 !important; }
+        .status-red { background-color: #f8d7da !important; color: #721c24 !important; }
+        .status-na { background-color: #e2e3e5 !important; color: #41464b !important; }
+        .shadow-lg { box-shadow: none !important; }
+        .rounded-lg { border-radius: 8px !important; }
+        .p-6 { padding: 16px !important; }
+        .p-4 { padding: 12px !important; }
+        .mb-6 { margin-bottom: 16px !important; }
+        .mb-4 { margin-bottom: 12px !important; }
+        .mb-2 { margin-bottom: 8px !important; }
+        .text-xl { font-size: 18px !important; }
+        .text-lg { font-size: 16px !important; }
+        .text-sm { font-size: 12px !important; }
+        .font-semibold { font-weight: 600 !important; }
+        .font-medium { font-weight: 500 !important; }
+        button { display: none !important; }
+        .grid { display: block !important; }
+        .flex { display: block !important; }
+        .space-y-4 > * + * { margin-top: 12px !important; }
+        .space-y-2 > * + * { margin-top: 6px !important; }
       `;
       
+      document.head.appendChild(style);
       document.body.appendChild(tempContainer);
+
+      // Wait a moment for styles to apply
+      await new Promise(resolve => setTimeout(resolve, 100));
 
       // Generate PDF with proper A4 dimensions
       const canvas = await html2canvas(tempContainer, {
@@ -422,6 +389,8 @@ export const Reports = () => {
         height: tempContainer.scrollHeight
       });
 
+      // Clean up
+      document.head.removeChild(style);
       document.body.removeChild(tempContainer);
 
       // Create PDF with A4 dimensions
@@ -455,7 +424,7 @@ export const Reports = () => {
 
       toast({
         title: "PDF Generated",
-        description: "Your meeting report has been downloaded as a properly formatted A4 PDF"
+        description: "Your meeting report has been downloaded exactly as shown in the preview"
       });
     } catch (error) {
       console.error('Error generating PDF:', error);
@@ -601,10 +570,10 @@ export const Reports = () => {
                                        </DialogTrigger>
                                      </div>
                                      
-                                     {/* Full Dashboard View */}
-                                     <div className="p-4">
-                                       <ReadOnlyDashboardView meetingId={meeting.id} />
-                                     </div>
+                                      {/* Full Dashboard View */}
+                                      <div className="p-4" data-meeting-preview={meeting.id}>
+                                        <ReadOnlyDashboardView meetingId={meeting.id} />
+                                      </div>
                                    </div>
                                  </DialogContent>
                                </Dialog>
