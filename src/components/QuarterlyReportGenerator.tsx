@@ -338,7 +338,7 @@ Remember: Write in natural language prose with detailed paragraphs. No markdown 
       const response = await generateResponse([
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt }
-      ], 'gpt-4o');
+      ], 'gpt-4.1-2025-04-14');
 
       if (response) {
         setGeneratedReport(response);

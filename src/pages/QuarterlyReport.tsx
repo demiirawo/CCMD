@@ -38,8 +38,19 @@ export const QuarterlyReport = () => {
 
   // Generate report with AI if requested
   useEffect(() => {
+    console.log('🔍 useEffect triggered - checking generation conditions');
+    console.log('📋 shouldGenerate:', shouldGenerate);
+    console.log('📄 content:', !!content);
+    console.log('🔄 isGenerating:', isGenerating);
+    
     if (shouldGenerate && !content && !isGenerating) {
+      console.log('✅ All conditions met - starting report generation');
       generateAIReport();
+    } else {
+      console.log('❌ Conditions not met for generation');
+      if (!shouldGenerate) console.log('  - shouldGenerate is false');
+      if (content) console.log('  - content already exists');
+      if (isGenerating) console.log('  - already generating');
     }
   }, [shouldGenerate, content, isGenerating]);
 
@@ -77,6 +88,10 @@ export const QuarterlyReport = () => {
   const generateAIReport = async () => {
     try {
       console.log('🤖 Starting AI report generation...');
+      console.log('📊 Quarter:', quarter, 'Year:', year);
+      console.log('🎯 shouldGenerate:', shouldGenerate);
+      console.log('📄 content exists:', !!content);
+      console.log('🔄 isGenerating:', isGenerating);
       
       // Parse additional context if provided
       let additionalContext = '';
@@ -115,7 +130,7 @@ Format the report in a professional, narrative style suitable for stakeholders a
       ];
 
       console.log('🚀 Calling OpenAI API...');
-      const generatedContent = await generateResponse(messages, 'gpt-4o');
+      const generatedContent = await generateResponse(messages, 'gpt-4.1-2025-04-14');
       
       if (generatedContent && generatedContent.trim()) {
         console.log('✅ Report generated successfully');
