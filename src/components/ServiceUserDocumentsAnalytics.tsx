@@ -192,7 +192,15 @@ export const ServiceUserDocumentsAnalytics = ({
             <div className="text-center">
               
             </div>
-            <EditableCell value={data.incompleteDocuments} onChange={value => handleInputChange('incompleteDocuments', value)} />
+            <Input 
+              id="incomplete-documents" 
+              type="number" 
+              value={data.incompleteDocuments === 0 ? '' : data.incompleteDocuments.toString()} 
+              onChange={e => handleInputChange('incompleteDocuments', parseInt(e.target.value) || 0)} 
+              min="0" 
+              max={totalServiceUsers}
+              className="w-24 h-12 text-center text-lg font-semibold [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none bg-stone-50" 
+            />
             <div className="text-xs text-muted-foreground text-center">
               Service users with incomplete documents
             </div>
