@@ -331,23 +331,23 @@ CONTENT REQUIREMENTS:
 - Draw connections between different data points and metrics
 - Offer strategic insights and forward-looking observations
 
-REPORT STRUCTURE (only include sections with relevant data):
+REPORT STRUCTURE (you MUST use these exact headings and include all sections):
 
 ${companyName} Quarterly Report - ${quarter} ${year}
 
 1. Executive Summary
 Write a comprehensive 200-300 word executive summary that captures the quarter's key achievements, challenges, and strategic outlook for ${companyName}.
 
-2. Operational Successes
+2. Successes and Achievements
 Analyze positive outcomes, achievements, and improvements for ${companyName}. Include detailed discussion of performance metrics, successful initiatives, compliance achievements, and operational excellence examples. Include relevant analytics data to support your analysis.
 
 3. Learning Opportunities and Challenges
 Examine areas for improvement, incidents, challenges faced, and lessons learned by ${companyName}. Provide detailed analysis of root causes and impacts on operations. Use analytics data to illustrate trends where appropriate.
 
-4. Workforce and Capacity Analysis
+4. Workforce Development and Capacity
 Detailed analysis of ${companyName}'s staffing levels, recruitment, retention, training compliance, supervision quality, and capacity planning initiatives. Include staff training analytics if available.
 
-5. Care Quality and Service Delivery
+5. Care Quality and Service Excellence
 Comprehensive review of ${companyName}'s care planning effectiveness, service quality metrics, care plan compliance, risk management, and client outcomes.
 
 6. Health, Safety and Risk Management
@@ -356,7 +356,7 @@ Thorough analysis of ${companyName}'s incident patterns, safety performance, ris
 7. Continuous Improvement and Innovation
 Detailed discussion of ${companyName}'s improvement initiatives, quality enhancement programs, feedback integration, and innovation projects. Include feedback analytics if available.
 
-8. Strategic Outlook and Recommendations
+8. Strategic Outlook and Future Planning
 Forward-looking analysis with strategic recommendations for ${companyName}, priority areas for focus, and planned initiatives for the coming quarter.
 
 WRITING STYLE:
