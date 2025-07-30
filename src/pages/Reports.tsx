@@ -449,7 +449,7 @@ export const Reports = () => {
               const isExpanded = isQuarterExpanded(quarterKey);
               
               return (
-                <div key={quarterKey} className="rounded-2xl shadow-lg border border-border/50 bg-background p-6">
+                <div key={quarterKey} className="rounded-2xl shadow-lg border border-border/50 bg-red-50 p-6">
                   {/* Quarter Header with Collapsible Controls */}
                   <div 
                     className="flex items-center justify-between cursor-pointer mb-4"
