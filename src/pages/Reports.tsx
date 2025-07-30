@@ -562,15 +562,14 @@ export const Reports = () => {
 
 
                                {/* Export PDF Button */}
-                               <Button 
-                                 variant="outline" 
-                                 size="sm" 
-                                 className="gap-1" 
-                                 onClick={() => handleExportPDF(meeting.id, meeting.title)}
-                               >
-                                 <Download className="h-4 w-4" />
-                                 PDF
-                               </Button>
+                                <Button 
+                                  variant="default" 
+                                  size="sm" 
+                                  className="bg-red-600 hover:bg-red-700 text-white" 
+                                  onClick={() => handleExportPDF(meeting.id, meeting.title)}
+                                >
+                                  PDF
+                                </Button>
 
                               {/* Delete Meeting Dialog */}
                               <AlertDialog>
