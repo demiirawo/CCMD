@@ -30,6 +30,12 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requir
     return <Navigate to="/company-selection" replace />;
   }
 
+  // Admin users (legacy) can bypass company selection
+  if (profile.role === 'admin') {
+    return <>{children}</>;
+  }
+
+  // For team members, check if they have company access
   if (requireCompany && !profile.company_id) {
     return <Navigate to="/company-selection" replace />;
   }
