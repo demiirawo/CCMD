@@ -626,92 +626,101 @@ export const QuarterlyReport = () => {
                        lineHeight: '1.6',
                        color: '#374151'
                      }}>
-                       {pageContent.split('\n').map((line, lineIndex) => {
-                         // Check for analytics data placeholders
-                         const analyticsDataMatch = line.trim().match(/\[ANALYTICS DATA: (\w+)\]/);
-                         if (analyticsDataMatch) {
-                           const analyticsType = analyticsDataMatch[1];
-                           const analyticsData = analyticsImages[analyticsType];
-                           
-                            if (analyticsData && analyticsData.hasData) {
+                        {(() => {
+                          const processedAnalytics = new Set();
+                          return pageContent.split('\n').map((line, lineIndex) => {
+                            // Check for analytics data placeholders
+                            const analyticsDataMatch = line.trim().match(/\[ANALYTICS DATA: (\w+)\]/);
+                            if (analyticsDataMatch) {
+                              const analyticsType = analyticsDataMatch[1];
+                              
+                              // Only show feedback and spotCheck analytics, and only once each
+                              if ((analyticsType === 'feedback' || analyticsType === 'spotCheck') && !processedAnalytics.has(analyticsType)) {
+                                processedAnalytics.add(analyticsType);
+                                const analyticsData = analyticsImages[analyticsType];
+                                
+                                if (analyticsData && analyticsData.hasData) {
+                                  const displayTitle = analyticsType === 'feedback' ? 'Feedback' : 'Incidents, Accidents & Safeguarding';
+                                  return (
+                                    <div key={lineIndex} className="my-6 p-4 border border-gray-200 rounded-lg bg-gray-50">
+                                      <h3 className="text-lg font-semibold text-gray-800 mb-3">{displayTitle}</h3>
+                                      {renderAnalyticsChart(analyticsType, analyticsData)}
+                                    </div>
+                                  );
+                                }
+                              }
+                              return null; // Skip if not feedback/spotCheck or already processed
+                            }
+                          
+                            // Handle natural language prose content
+                            if (line.trim().match(/^\d+\.\s/)) {
+                              // Section headers (e.g., "1. Executive Summary")
                               return (
-                                <div key={lineIndex} className="my-6 p-4 border border-gray-200 rounded-lg bg-gray-50">
-                                  <h3 className="text-lg font-semibold text-gray-800 mb-3">{analyticsData.title}</h3>
-                                  {renderAnalyticsChart(analyticsType, analyticsData)}
-                                </div>
+                                <h2 key={lineIndex} className="text-2xl font-bold text-gray-800 mb-6 mt-8 border-b border-gray-200 pb-2">
+                                  {line.trim()}
+                                </h2>
                               );
                             }
-                            return null; // Skip if no analytics data available
-                         }
-                         
-                         // Handle natural language prose content
-                         if (line.trim().match(/^\d+\.\s/)) {
-                           // Section headers (e.g., "1. Executive Summary")
-                           return (
-                             <h2 key={lineIndex} className="text-2xl font-bold text-gray-800 mb-6 mt-8 border-b border-gray-200 pb-2">
-                               {line.trim()}
-                             </h2>
-                           );
-                         }
-                         if (line.trim().startsWith('Care Agency Quarterly Report') || line.trim().includes('Quarterly Report')) {
-                           // Main title - replace with actual company name
-                           const titleText = line.trim().replace('Care Agency', companyInfo?.name || 'Care Agency');
-                           return (
-                             <h1 key={lineIndex} className="text-3xl font-bold text-gray-900 mb-8 text-center border-b-2 border-gray-200 pb-4">
-                               {titleText}
-                             </h1>
-                           );
-                         }
-                         // Check for standalone section titles (without numbers)
-                         if (line.trim().length > 0 && line.trim().length < 100 && 
-                             (line.trim() === 'Executive Summary' || 
-                              line.trim() === 'Operational Successes' ||
-                              line.trim() === 'Learning Opportunities and Challenges' ||
-                              line.trim() === 'Workforce and Capacity Analysis' ||
-                              line.trim() === 'Care Quality and Service Delivery' ||
-                              line.trim() === 'Health, Safety and Risk Management' ||
-                              line.trim() === 'Continuous Improvement and Innovation' ||
-                              line.trim() === 'Strategic Outlook and Recommendations' ||
-                              line.trim().includes('Summary') ||
-                              line.trim().includes('Analysis') ||
-                              line.trim().includes('Outlook'))) {
-                           return (
-                             <h2 key={lineIndex} className="text-2xl font-bold text-gray-800 mb-6 mt-8 border-b border-gray-200 pb-2">
-                               {line.trim()}
-                             </h2>
-                           );
-                         }
-                         if (line.trim().length > 50 && (line.trim().endsWith('.') || line.trim().endsWith(':') || line.trim().endsWith('.'))) {
-                           // Regular paragraphs - substantial text ending with period
-                           return (
-                             <p key={lineIndex} className="mb-5 text-gray-700 leading-relaxed text-justify font-normal">
-                               {line.trim()}
-                             </p>
-                           );
-                         }
-                         if (line.trim().length > 20 && line.trim().length <= 50) {
-                           // Shorter content lines - subheadings or brief statements
-                           return (
-                             <p key={lineIndex} className="mb-4 text-gray-800 leading-relaxed font-medium">
-                               {line.trim()}
-                             </p>
-                           );
-                         }
-                         if (line.trim().length > 0) {
-                           // Other content - brief lines
-                           return (
-                             <p key={lineIndex} className="mb-3 text-gray-700 leading-relaxed">
-                               {line.trim()}
-                             </p>
-                           );
-                         }
-                         if (line.trim() === '') {
-                           // Empty lines for spacing
-                           return <div key={lineIndex} className="mb-2"></div>;
-                         }
-                          return null;
-                       })}
-                    </div>
+                            if (line.trim().startsWith('Care Agency Quarterly Report') || line.trim().includes('Quarterly Report')) {
+                              // Main title - replace with actual company name
+                              const titleText = line.trim().replace('Care Agency', companyInfo?.name || 'Care Agency');
+                              return (
+                                <h1 key={lineIndex} className="text-3xl font-bold text-gray-900 mb-8 text-center border-b-2 border-gray-200 pb-4">
+                                  {titleText}
+                                </h1>
+                              );
+                            }
+                            // Check for standalone section titles (without numbers)
+                            if (line.trim().length > 0 && line.trim().length < 100 && 
+                                (line.trim() === 'Executive Summary' || 
+                                 line.trim() === 'Operational Successes' ||
+                                 line.trim() === 'Learning Opportunities and Challenges' ||
+                                 line.trim() === 'Workforce and Capacity Analysis' ||
+                                 line.trim() === 'Care Quality and Service Delivery' ||
+                                 line.trim() === 'Health, Safety and Risk Management' ||
+                                 line.trim() === 'Continuous Improvement and Innovation' ||
+                                 line.trim() === 'Strategic Outlook and Recommendations' ||
+                                 line.trim().includes('Summary') ||
+                                 line.trim().includes('Analysis') ||
+                                 line.trim().includes('Outlook'))) {
+                              return (
+                                <h2 key={lineIndex} className="text-2xl font-bold text-gray-800 mb-6 mt-8 border-b border-gray-200 pb-2">
+                                  {line.trim()}
+                                </h2>
+                              );
+                            }
+                            if (line.trim().length > 50 && (line.trim().endsWith('.') || line.trim().endsWith(':') || line.trim().endsWith('.'))) {
+                              // Regular paragraphs - substantial text ending with period
+                              return (
+                                <p key={lineIndex} className="mb-5 text-gray-700 leading-relaxed text-justify font-normal">
+                                  {line.trim()}
+                                </p>
+                              );
+                            }
+                            if (line.trim().length > 20 && line.trim().length <= 50) {
+                              // Shorter content lines - subheadings or brief statements
+                              return (
+                                <p key={lineIndex} className="mb-4 text-gray-800 leading-relaxed font-medium">
+                                  {line.trim()}
+                                </p>
+                              );
+                            }
+                            if (line.trim().length > 0) {
+                              // Other content - brief lines
+                              return (
+                                <p key={lineIndex} className="mb-3 text-gray-700 leading-relaxed">
+                                  {line.trim()}
+                                </p>
+                              );
+                            }
+                            if (line.trim() === '') {
+                              // Empty lines for spacing
+                              return <div key={lineIndex} className="mb-2"></div>;
+                            }
+                            return null;
+                          });
+                         })()}
+                     </div>
                   </div>
                 </div>
               )}
