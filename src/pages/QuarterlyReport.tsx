@@ -198,9 +198,7 @@ CRITICAL FORMATTING REQUIREMENTS:
 - Write in flowing, natural language prose with complete sentences and paragraphs
 - Each section must contain a minimum of 4-6 substantial paragraphs (150-250 words each)
 - Use professional business language suitable for board presentations and regulatory reviews
-- For section headings ONLY, use this exact format: "SECTION [NUMBER]: [TITLE]" (all caps)
-- Example: "SECTION 1: EXECUTIVE SUMMARY"
-- Do NOT use any other formatting markers (no #, *, -, etc.)
+- DO NOT use markdown formatting (no #, ##, *, -, etc.) - write in plain text
 - DO NOT use bullet points or lists - write in paragraph format only
 - Include specific numbers, percentages, and metrics throughout your analysis
 - Provide detailed interpretations and insights, not just data summaries
@@ -214,30 +212,30 @@ CONTENT REQUIREMENTS:
 - Provide strategic insights and forward-looking observations
 - Include references to industry best practices and regulatory compliance
 
-REPORT STRUCTURE (use exact section headings as shown):
+REPORT STRUCTURE (include all sections with substantial content):
 
-SECTION 1: EXECUTIVE SUMMARY
+1. Executive Summary
 Write a comprehensive 400-500 word executive summary that captures the quarter's key achievements, challenges, strategic outlook, and operational performance. Include quantitative metrics and qualitative assessments.
 
-SECTION 2: OPERATIONAL SUCCESSES AND ACHIEVEMENTS
+2. Operational Successes and Achievements
 Analyze positive outcomes, achievements, and improvements in service delivery. Include detailed discussion of performance metrics, successful initiatives, compliance achievements, and operational excellence examples. Provide specific evidence and measurable outcomes.
 
-SECTION 3: LEARNING OPPORTUNITIES AND STRATEGIC CHALLENGES
+3. Learning Opportunities and Strategic Challenges
 Examine areas for improvement, incidents, challenges faced, and lessons learned. Provide detailed analysis of root causes, impacts on operations, and strategic responses. Include forward-looking mitigation strategies.
 
-SECTION 4: WORKFORCE DEVELOPMENT AND CAPACITY ANALYSIS
+4. Workforce Development and Capacity Analysis
 Detailed analysis of staffing levels, recruitment effectiveness, retention strategies, training compliance, supervision quality, and capacity planning initiatives. Include staff development outcomes and future workforce planning.
 
-SECTION 5: CARE QUALITY AND SERVICE EXCELLENCE
+5. Care Quality and Service Excellence
 Comprehensive review of care planning effectiveness, service quality metrics, care plan compliance, risk management protocols, client outcomes, and satisfaction measures. Include quality assurance findings.
 
-SECTION 6: HEALTH, SAFETY AND RISK MANAGEMENT
+6. Health, Safety and Risk Management
 Thorough analysis of incident patterns, safety performance, risk mitigation strategies, safeguarding effectiveness, regulatory compliance, and emergency preparedness. Include trend analysis and preventive measures.
 
-SECTION 7: CONTINUOUS IMPROVEMENT AND INNOVATION
+7. Continuous Improvement and Innovation
 Detailed discussion of improvement initiatives, quality enhancement programs, feedback integration, technology adoption, and innovation projects. Include measurable impacts and future development plans.
 
-SECTION 8: STRATEGIC OUTLOOK AND FUTURE PLANNING
+8. Strategic Outlook and Future Planning
 Forward-looking analysis with strategic recommendations, priority areas for focus, planned initiatives for the coming quarter, resource allocation, and long-term objectives.
 
 WRITING STYLE:
@@ -333,8 +331,8 @@ Focus on creating a comprehensive narrative that demonstrates operational excell
     // Create cover page (always first)
     pages.push("COVER_PAGE");
     
-    // Split content by major sections using the new SECTION format
-    const sections = content.split(/(?=SECTION \d+:)/);
+    // Split content by major sections (## headers)
+    const sections = content.split(/(?=## \d+\.)/);
     
     sections.forEach((section, index) => {
       if (section.trim()) {
@@ -347,8 +345,8 @@ Focus on creating a comprehensive narrative that demonstrates operational excell
           currentPageContent += line + '\n';
           lineCount++;
           
-          // Start new page after ~30 lines or if we hit another major section
-          if (lineCount >= 30 && line.trim() === '') {
+          // Start new page after ~25 lines or if we hit another major section
+          if (lineCount >= 25 && line.trim() === '') {
             pages.push(currentPageContent.trim());
             currentPageContent = '';
             lineCount = 0;
@@ -549,21 +547,14 @@ Focus on creating a comprehensive narrative that demonstrates operational excell
       if (trimmedLine === '') {
         // Add spacing for empty lines
         paragraphs.push(new Paragraph({ text: '', spacing: { after: 200 } }));
-      } else if (trimmedLine.match(/^SECTION \d+:/)) {
-        // New section headers (e.g., "SECTION 1: EXECUTIVE SUMMARY")
-        paragraphs.push(new Paragraph({
-          children: [new TextRun({ text: trimmedLine, bold: true, size: 28 })],
-          heading: HeadingLevel.HEADING_1,
-          spacing: { before: 400, after: 200 }
-        }));
       } else if (trimmedLine.match(/^\d+\.\s/)) {
-        // Legacy section headers (e.g., "1. Executive Summary")
+        // Section headers (e.g., "1. Executive Summary")
         paragraphs.push(new Paragraph({
           children: [new TextRun({ text: trimmedLine, bold: true, size: 28 })],
           heading: HeadingLevel.HEADING_1,
           spacing: { before: 400, after: 200 }
         }));
-      } else if (trimmedLine.startsWith('Care Agency Quarterly Report') || trimmedLine.includes('Quarterly Report')) {
+      } else if (trimmedLine.startsWith('Care Agency Quarterly Report')) {
         // Main title
         paragraphs.push(new Paragraph({
           children: [new TextRun({ text: trimmedLine, bold: true, size: 32 })],
@@ -836,69 +827,49 @@ Focus on creating a comprehensive narrative that demonstrates operational excell
               className="bg-white shadow-lg print:shadow-none page-break min-h-screen"
             >
               {index === 0 ? (
-                // Professional Cover Page
-                <div className="relative w-full min-h-screen overflow-hidden bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700 text-white">
-                  {/* Decorative dots pattern - top left */}
-                  <div className="absolute top-8 left-8 grid grid-cols-8 gap-1 opacity-30">
-                    {Array.from({ length: 64 }).map((_, i) => (
-                      <div key={i} className="w-1 h-1 bg-white rounded-full"></div>
-                    ))}
+                // Cover Page
+                <div className="p-12 min-h-screen flex flex-col justify-between">
+                  {/* Header */}
+                  <div className="text-center">
+                    {companyInfo?.logo_url && (
+                      <div className="mb-8">
+                        <img 
+                          src={companyInfo.logo_url} 
+                          alt={`${companyInfo.name} Logo`}
+                          className="mx-auto h-24 w-auto object-contain"
+                        />
+                      </div>
+                    )}
+                    
+                    <h1 className="text-4xl font-bold text-gray-900 mb-2">
+                      {companyInfo?.name || 'Care Agency'}
+                    </h1>
+                    
+                    <div className="w-24 h-1 mx-auto mb-8" style={{ backgroundColor: companyInfo?.theme_color || '#3b82f6' }}></div>
                   </div>
-                  
-                  {/* Company name - top right */}
-                  <div className="absolute top-8 right-8 text-right">
-                    <h2 className="text-xl font-light tracking-wide">
-                      {companyInfo?.name || "Care Management Company"}
+
+                  {/* Main Title */}
+                  <div className="text-center flex-1 flex flex-col justify-center">
+                    <h2 className="text-5xl font-bold text-gray-900 mb-6">
+                      Quarterly Report
                     </h2>
+                    
+                    <h3 className="text-3xl font-semibold text-gray-700 mb-4">
+                      {quarter} {year}
+                    </h3>
+                    
+                    <p className="text-xl text-gray-600 mb-8">
+                      {getQuarterDates(quarter, year)}
+                    </p>
+                    
+                    <div className="w-32 h-0.5 bg-gray-300 mx-auto"></div>
                   </div>
 
-                  {/* Main content - center */}
-                  <div className="absolute inset-0 flex flex-col justify-center items-center px-16">
-                    <div className="text-center max-w-4xl">
-                      <h1 className="text-7xl font-bold mb-4 tracking-tight">
-                        QUARTERLY
-                      </h1>
-                      <h1 className="text-7xl font-bold mb-8 tracking-tight">
-                        REPORT
-                      </h1>
-                      <p className="text-2xl font-light tracking-wider uppercase text-blue-100 mb-12">
-                        Care Services Performance & Analytics
-                      </p>
-                      <div className="text-xl text-blue-100">
-                        {quarter} {year}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Care industry visual element - bottom left */}
-                  <div className="absolute bottom-16 left-16">
-                    <div className="w-64 h-64 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center">
-                      <div className="text-center">
-                        <div className="text-4xl mb-2">🏥</div>
-                        <div className="text-sm font-light">Quality Care</div>
-                        <div className="text-sm font-light">Excellence</div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Author and contact info - bottom right */}
-                  <div className="absolute bottom-16 right-16 text-right">
-                    <p className="text-lg mb-6 text-blue-100">Prepared by</p>
-                    <h3 className="text-2xl font-semibold mb-6">Care Management Team</h3>
-                    <div className="w-16 h-0.5 bg-white mb-6 ml-auto"></div>
-                    <div className="space-y-1 text-blue-100 text-sm">
-                      <p>Quality Assurance Department</p>
-                      <p>Professional Care Services</p>
-                      <p>Excellence in Care Delivery</p>
-                      <p className="mt-3 text-xs">{getCurrentDate()}</p>
-                    </div>
-                  </div>
-
-                  {/* Bottom decorative dots - bottom right */}
-                  <div className="absolute bottom-8 right-8 grid grid-cols-8 gap-1 opacity-30">
-                    {Array.from({ length: 40 }).map((_, i) => (
-                      <div key={i} className="w-1 h-1 bg-white rounded-full"></div>
-                    ))}
+                  {/* Footer */}
+                  <div className="text-center text-gray-600">
+                    <p className="text-lg">
+                      Report Created: {getCurrentDate()}
+                    </p>
                   </div>
                 </div>
               ) : (
