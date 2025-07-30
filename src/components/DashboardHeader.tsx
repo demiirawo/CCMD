@@ -1,6 +1,7 @@
 import { StatusBadge } from "./StatusBadge";
 import { MeetingDateTimePicker } from "./MeetingDateTimePicker";
 import { TeamAttendeesDisplay, Attendee } from "./TeamAttendeesDisplay";
+import { MeetingStatusSummary } from "./MeetingStatusSummary";
 import { useAuth } from "@/hooks/useAuth";
 import { useState } from "react";
 interface DashboardHeaderProps {
@@ -13,6 +14,13 @@ interface DashboardHeaderProps {
     amber: number;
     red: number;
   };
+  sections?: Array<{
+    id: string;
+    title: string;
+    items: Array<{
+      status: "green" | "amber" | "red" | "na";
+    }>;
+  }>;
   onDataChange?: (field: string, value: string) => void;
   onAttendeesChange?: (attendees: Attendee[]) => void;
   readOnly?: boolean;
@@ -23,6 +31,7 @@ export const DashboardHeader = ({
   attendees,
   purpose,
   stats,
+  sections,
   onDataChange,
   onAttendeesChange,
   readOnly = false
@@ -70,6 +79,11 @@ export const DashboardHeader = ({
       )}
     </div>;
   return <div className="bg-primary/10 p-8 mb-8 rounded-xl shadow-sm -mx-8 px-14">
+      {/* Status Summary - only show if sections are provided */}
+      {sections && (
+        <MeetingStatusSummary sections={sections} />
+      )}
+      
       {/* Office Team and Meeting Info Section */}
       <div className="grid grid-cols-3 gap-6 mb-6">
         {/* Office Team - Spans 2 columns */}

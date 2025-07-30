@@ -1698,14 +1698,13 @@ const Index = () => {
         </div>
         
         <div id="dashboard-container" className="space-y-6">
-          <MeetingStatusSummary sections={dashboardData.sections} />
-          
           <DashboardHeader 
             date={headerData.date} 
             title={headerData.title} 
             attendees={headerData.attendees}
             purpose={headerData.purpose}
             stats={calculateStats()}
+            sections={dashboardData.sections}
             onDataChange={canEdit ? handleDataChange : undefined}
             onAttendeesChange={canEdit ? handleAttendeesChange : undefined}
             readOnly={!canEdit}
