@@ -10,9 +10,10 @@ export interface Attendee {
 
 interface TeamAttendeesDisplayProps {
   onAttendanceChange?: (attendees: Attendee[]) => void;
+  readOnly?: boolean;
 }
 
-export const TeamAttendeesDisplay = ({ onAttendanceChange }: TeamAttendeesDisplayProps) => {
+export const TeamAttendeesDisplay = ({ onAttendanceChange, readOnly = false }: TeamAttendeesDisplayProps) => {
   const { profile } = useAuth();
   const [attendees, setAttendees] = useState<Attendee[]>([]);
   const [loading, setLoading] = useState(true);

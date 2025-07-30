@@ -57,6 +57,9 @@ interface GroupedMeetings {
 
 export const Reports = () => {
   const { profile } = useAuth();
+  
+  // Check if user has edit permissions
+  const canEdit = profile?.permission === 'edit' || profile?.permission === 'company_admin' || profile?.role === 'admin';
   useTheme(); // Apply dynamic theme
   const [meetings, setMeetings] = useState<ParsedMeeting[]>([]);
   const [loading, setLoading] = useState(true);
@@ -474,13 +477,15 @@ export const Reports = () => {
                     </div>
                     
                     <div className="flex items-center gap-3">
-                      <div onClick={(e) => e.stopPropagation()}>
-                        <QuarterlyReportGenerator 
-                          quarter={quarter}
-                          year={year}
-                          meetings={quarterMeetings}
-                        />
-                      </div>
+                      {canEdit && (
+                        <div onClick={(e) => e.stopPropagation()}>
+                          <QuarterlyReportGenerator 
+                            quarter={quarter}
+                            year={year}
+                            meetings={quarterMeetings}
+                          />
+                        </div>
+                      )}
                       
                       <div className="p-1 rounded-lg hover:bg-accent/50 transition-colors">
                         {isExpanded ? 
@@ -571,30 +576,32 @@ export const Reports = () => {
                                 </Button>
 
                               {/* Delete Meeting Dialog */}
-                              <AlertDialog>
-                                <AlertDialogTrigger asChild>
-                                    <Button variant="destructive" size="sm" className="bg-red-600 hover:bg-red-700 text-white">
-                                      Delete
-                                    </Button>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                  <AlertDialogHeader>
-                                    <AlertDialogTitle>Delete Meeting</AlertDialogTitle>
-                                    <AlertDialogDescription>
-                                      Are you sure you want to delete "{meeting.title}"? This action cannot be undone.
-                                    </AlertDialogDescription>
-                                  </AlertDialogHeader>
-                                  <AlertDialogFooter>
-                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                    <AlertDialogAction 
-                                      onClick={() => deleteMeeting(meeting.id)} 
-                                      className="bg-destructive hover:bg-destructive/90"
-                                    >
-                                      Delete
-                                    </AlertDialogAction>
-                                  </AlertDialogFooter>
-                                </AlertDialogContent>
-                              </AlertDialog>
+                              {canEdit && (
+                                <AlertDialog>
+                                  <AlertDialogTrigger asChild>
+                                      <Button variant="destructive" size="sm" className="bg-red-600 hover:bg-red-700 text-white">
+                                        Delete
+                                      </Button>
+                                  </AlertDialogTrigger>
+                                  <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                      <AlertDialogTitle>Delete Meeting</AlertDialogTitle>
+                                      <AlertDialogDescription>
+                                        Are you sure you want to delete "{meeting.title}"? This action cannot be undone.
+                                      </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                      <AlertDialogAction 
+                                        onClick={() => deleteMeeting(meeting.id)} 
+                                        className="bg-destructive hover:bg-destructive/90"
+                                      >
+                                        Delete
+                                      </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                  </AlertDialogContent>
+                                </AlertDialog>
+                              )}
                             </div>
 
                             {/* Hidden print-friendly content for each meeting */}
