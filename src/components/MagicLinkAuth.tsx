@@ -28,9 +28,13 @@ export const MagicLinkAuth = () => {
     setLoading(true);
     try {
       console.log('Magic link request for email:', email.trim().toLowerCase());
+      console.log('About to check if super admin...');
       
       // Check if this is the super admin email
       const isSuperAdmin = email.trim().toLowerCase() === 'demi.irawo@care-cuddle.co.uk';
+      console.log('Is super admin?', isSuperAdmin);
+      
+      console.log('About to enter team member check branch...');
       
       if (!isSuperAdmin) {
         // Check if email exists in team members for regular users
