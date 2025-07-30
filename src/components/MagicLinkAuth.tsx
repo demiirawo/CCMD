@@ -168,6 +168,7 @@ export const MagicLinkAuth = () => {
               type="submit" 
               className="w-full" 
               disabled={loading || !email.trim()}
+              onClick={() => console.log('Button clicked! Email:', email, 'Loading:', loading, 'Email valid:', !!email.trim())}
             >
               {loading ? (
                 <div className="flex items-center gap-2">
