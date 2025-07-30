@@ -41,12 +41,26 @@ export const QuarterlyReportGenerator: React.FC<QuarterlyReportGeneratorProps> =
     const savedReport = localStorage.getItem(reportKey);
     const savedAnalytics = localStorage.getItem(`${reportKey}_analytics`);
     
+    console.log(`🔍 Checking localStorage for report: ${reportKey}`);
+    console.log(`📄 Saved report exists:`, !!savedReport);
+    console.log(`📊 Saved analytics exists:`, !!savedAnalytics);
+    console.log(`📄 Saved report length:`, savedReport?.length || 0);
+    
     if (savedReport) {
+      console.log(`✅ Found existing report for ${quarter} ${year}`);
       setGeneratedReport(savedReport);
       setHasGeneratedReport(true);
       if (savedAnalytics) {
-        setAnalyticsScreenshots(JSON.parse(savedAnalytics));
+        try {
+          const parsedAnalytics = JSON.parse(savedAnalytics);
+          setAnalyticsScreenshots(parsedAnalytics);
+          console.log(`📊 Loaded analytics data`);
+        } catch (error) {
+          console.error(`❌ Failed to parse saved analytics:`, error);
+        }
       }
+    } else {
+      console.log(`❌ No existing report found for ${quarter} ${year}`);
     }
   }, [quarter, year]);
 
@@ -414,6 +428,7 @@ Remember: Write in natural language prose with detailed paragraphs. No markdown 
 
   // If report has been generated, show view and delete buttons
   if (hasGeneratedReport && generatedReport) {
+    console.log(`🎯 Rendering View/Delete buttons for ${quarter} ${year}`);
     return (
       <div className="flex gap-2">
         <Button variant="outline" className="gap-2" onClick={viewReport}>
@@ -427,6 +442,7 @@ Remember: Write in natural language prose with detailed paragraphs. No markdown 
     );
   }
 
+  console.log(`🎯 Rendering Generate button for ${quarter} ${year} (hasGenerated: ${hasGeneratedReport}, reportExists: ${!!generatedReport})`);
   return (
     <Button variant="outline" className="gap-2" onClick={generateReport}>
       <FileText className="h-4 w-4" />
