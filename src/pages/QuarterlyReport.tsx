@@ -869,8 +869,8 @@ Focus on creating a comprehensive narrative that demonstrates operational excell
       <div className="py-8 print:py-0 bg-gray-100 print:bg-white">
         <div id="quarterly-report-content" className="max-w-4xl mx-auto space-y-8 print:space-y-0">
           
-          {/* Display all pages with gaps */}
-          <div className="space-y-8">
+          {/* Display all pages with 1cm gaps */}
+          <div className="space-y-[1cm]">
             {reportPages.map((pageContent, index) => (
               <div 
                 key={index} 
