@@ -458,9 +458,7 @@ Remember: Write in natural language prose with detailed paragraphs. No markdown 
           </Button>
         </div>
         {/* Temporary debug info */}
-        <div className="text-xs text-green-600 bg-green-50 p-1 rounded">
-          ✅ Report found for {quarter} {year} (Length: {generatedReport.length})
-        </div>
+        
       </div>;
   }
 
