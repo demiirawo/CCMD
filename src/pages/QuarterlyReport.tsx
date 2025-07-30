@@ -1037,17 +1037,13 @@ Focus on creating a comprehensive narrative that demonstrates operational excell
                 </div>
               )}
                 
-                {/* Page separator - only show if not the last page */}
+                {/* Large visual gap between pages */}
                 {index < reportPages.length - 1 && (
-                  <div className="flex items-center justify-center py-16 print:hidden">
-                    <div className="flex items-center space-x-6">
-                      <div className="h-px bg-gray-400 w-32"></div>
-                      <div className="bg-gray-200 px-6 py-3 rounded-full border border-gray-300">
-                        <span className="text-sm font-medium text-gray-600">
-                          Page {index + 1} of {reportPages.length}
-                        </span>
+                  <div className="print:hidden" style={{ height: '80px', backgroundColor: '#f8f9fa' }}>
+                    <div className="flex items-center justify-center h-full">
+                      <div className="text-xs text-gray-400 bg-white px-3 py-1 rounded border">
+                        Page {index + 1} of {reportPages.length}
                       </div>
-                      <div className="h-px bg-gray-400 w-32"></div>
                     </div>
                   </div>
                 )}
