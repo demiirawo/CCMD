@@ -3,7 +3,7 @@ import { StatusType, StatusBadge } from "./StatusBadge";
 
 import { SubsectionMetadata } from "./SubsectionMetadataDialog";
 import { ChevronDown, ChevronRight, Plus, CheckCircle, AlertTriangle, XCircle } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 interface DashboardSectionProps {
   title: string;
@@ -25,6 +25,7 @@ interface DashboardSectionProps {
   onPanelStateChange?: () => void;
   meetingDate?: Date;
   meetingId?: string;
+  panelStateTracker?: number;
 }
 
 export const DashboardSection = ({
@@ -46,16 +47,25 @@ export const DashboardSection = ({
   forceOpen,
   onPanelStateChange,
   meetingDate,
-  meetingId
+  meetingId,
+  panelStateTracker
 }: DashboardSectionProps) => {
+  const storageKey = `section_${title.replace(/\s+/g, '_').toLowerCase()}_open`;
   const [isOpen, setIsOpen] = useState(() => {
-    const storageKey = `section_${title.replace(/\s+/g, '_').toLowerCase()}_open`;
     const saved = sessionStorage.getItem(storageKey);
     return saved !== null ? JSON.parse(saved) : defaultOpen;
   });
   
-  // Use forceOpen only if it's explicitly true or false, but allow individual control when undefined
-  const isExpanded = forceOpen === true ? true : forceOpen === false ? false : isOpen;
+  // Listen for panel state changes to sync with sessionStorage
+  useEffect(() => {
+    const saved = sessionStorage.getItem(storageKey);
+    const savedState = saved !== null ? JSON.parse(saved) : defaultOpen;
+    if (savedState !== isOpen) {
+      setIsOpen(savedState);
+    }
+  }, [panelStateTracker, storageKey, defaultOpen, isOpen]);
+  
+  const isExpanded = isOpen;
   const [monthlyStaffData, setMonthlyStaffData] = useState<Array<{month: string, currentStaff: number, probationStaff?: number}>>([]);
 
   const statusCounts = items.reduce((acc, item) => {

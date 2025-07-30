@@ -1689,6 +1689,7 @@ const Index = () => {
             onActionEdit={handleActionEdit}
             attendees={getAttendeesList()}
             onPanelStateChange={triggerPanelStateUpdate}
+            panelStateTracker={panelStateTracker}
           />
           
           <KeyDocumentTracker 
@@ -1730,6 +1731,7 @@ const Index = () => {
             }}
             attendees={getAttendeesList()}
             onPanelStateChange={triggerPanelStateUpdate}
+            panelStateTracker={panelStateTracker}
           />
           
           {dashboardData.sections.filter(section => section.id !== "meeting-overview").map(section => {
@@ -1771,6 +1773,7 @@ const Index = () => {
                      meetingDate={meetingDate}
                      meetingId={currentMeetingId || tempMeetingId}
                      onPanelStateChange={triggerPanelStateUpdate}
+                     panelStateTracker={panelStateTracker}
                   />
             );
           })}

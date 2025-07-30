@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AlertCircle, Check, Minus, Edit, ChevronDown, ChevronRight } from "lucide-react";
 import { StatusBadge } from "./StatusBadge";
 import { Button } from "./ui/button";
@@ -38,6 +38,7 @@ interface ActionsLogProps {
   attendees?: string[];
   forceOpen?: boolean;
   onPanelStateChange?: () => void;
+  panelStateTracker?: number;
 }
 
 export const ActionsLog = ({
@@ -48,15 +49,24 @@ export const ActionsLog = ({
   onActionEdit,
   attendees = [],
   forceOpen,
-  onPanelStateChange
+  onPanelStateChange,
+  panelStateTracker
 }: ActionsLogProps) => {
   const [isExpanded, setIsExpanded] = useState(() => {
     const saved = sessionStorage.getItem('actions_log_expanded');
     return saved !== null ? JSON.parse(saved) : false;
   });
   
-  // Use forceOpen only if it's explicitly true or false, but allow individual control when undefined
-  const isOpen = forceOpen === true ? true : forceOpen === false ? false : isExpanded;
+  // Listen for panel state changes to sync with sessionStorage
+  useEffect(() => {
+    const saved = sessionStorage.getItem('actions_log_expanded');
+    const savedState = saved !== null ? JSON.parse(saved) : false;
+    if (savedState !== isExpanded) {
+      setIsExpanded(savedState);
+    }
+  }, [panelStateTracker, isExpanded]);
+  
+  const isOpen = isExpanded;
   const [editingAction, setEditingAction] = useState<ActionLogEntry | null>(null);
 
   // Group actions by open/closed

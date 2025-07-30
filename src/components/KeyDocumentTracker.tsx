@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { CalendarIcon, FileText, Plus, Minus, ChevronDown, ChevronRight } from "lucide-react";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
@@ -28,6 +28,7 @@ interface KeyDocumentTrackerProps {
   attendees?: string[];
   forceOpen?: boolean;
   onPanelStateChange?: () => void;
+  panelStateTracker?: number;
 }
 
 const categories = ["Governance and Compliance", "Care Delivery", "Staffing and HR", "Finance and Payroll", "Health and Safety", "Client Records and Contracts", "Quality Assurance and Audit", "Transportation and Logistics"];
@@ -41,15 +42,24 @@ export const KeyDocumentTracker = ({
   onDocumentsChange,
   attendees = [],
   forceOpen,
-  onPanelStateChange
+  onPanelStateChange,
+  panelStateTracker
 }: KeyDocumentTrackerProps) => {
   const [isExpanded, setIsExpanded] = useState(() => {
     const saved = sessionStorage.getItem('key_documents_expanded');
     return saved !== null ? JSON.parse(saved) : false;
   });
   
-  // Use forceOpen only if it's explicitly true or false, but allow individual control when undefined
-  const isOpen = forceOpen === true ? true : forceOpen === false ? false : isExpanded;
+  // Listen for panel state changes to sync with sessionStorage
+  useEffect(() => {
+    const saved = sessionStorage.getItem('key_documents_expanded');
+    const savedState = saved !== null ? JSON.parse(saved) : false;
+    if (savedState !== isExpanded) {
+      setIsExpanded(savedState);
+    }
+  }, [panelStateTracker, isExpanded]);
+  
+  const isOpen = isExpanded;
 
   const calculateNextReviewDate = (lastReviewDate: string | null, number: string, period: string): Date | null => {
     if (!lastReviewDate) return null;
