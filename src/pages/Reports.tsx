@@ -183,7 +183,7 @@ export const Reports = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-100 p-4 lg:p-8">
+      <div className="min-h-screen bg-background p-4 lg:p-8">
         <div className="max-w-7xl mx-auto">
           <div className="text-center py-8">Loading meetings...</div>
         </div>
@@ -192,7 +192,7 @@ export const Reports = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 p-4 lg:p-8">
+    <div className="min-h-screen bg-background p-4 lg:p-8">
       <div className="max-w-7xl mx-auto space-y-6">
         {Object.keys(groupedMeetings).length === 0 ? (
           <Card>
