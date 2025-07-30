@@ -8,7 +8,6 @@ import { useOpenAI } from "@/hooks/useOpenAI";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
-
 interface QuarterlyReportGeneratorProps {
   quarter: string;
   year: string;
@@ -21,7 +20,6 @@ interface QuarterlyReportGeneratorProps {
     purpose?: string;
   }>;
 }
-
 export const QuarterlyReportGenerator: React.FC<QuarterlyReportGeneratorProps> = ({
   quarter,
   year,
@@ -30,39 +28,41 @@ export const QuarterlyReportGenerator: React.FC<QuarterlyReportGeneratorProps> =
   const [generatedReport, setGeneratedReport] = useState<string>("");
   const [hasGeneratedReport, setHasGeneratedReport] = useState<boolean>(false);
   const [isOpen, setIsOpen] = useState(false);
-  const { generateResponse, isLoading } = useOpenAI();
-  const { profile } = useAuth();
+  const {
+    generateResponse,
+    isLoading
+  } = useOpenAI();
+  const {
+    profile
+  } = useAuth();
   const navigate = useNavigate();
-  const { toast } = useToast();
-  
+  const {
+    toast
+  } = useToast();
+
   // Check if a report exists for this quarter/year on component mount
   useEffect(() => {
     checkExistingReport();
   }, [quarter, year, profile?.company_id]);
-
   const checkExistingReport = async () => {
     if (!profile?.company_id) return;
-
     try {
-      const { data, error } = await supabase
-        .from('quarterly_reports')
-        .select('report_content, analytics_data')
-        .eq('company_id', profile.company_id)
-        .eq('quarter', quarter)
-        .eq('year', parseInt(year))
-        .maybeSingle();
-
+      const {
+        data,
+        error
+      } = await supabase.from('quarterly_reports').select('report_content, analytics_data').eq('company_id', profile.company_id).eq('quarter', quarter).eq('year', parseInt(year)).maybeSingle();
       if (error) {
         console.error('Error checking existing report:', error);
         setHasGeneratedReport(false);
         return;
       }
-
       if (data) {
         setGeneratedReport(data.report_content);
         setHasGeneratedReport(true);
         if (data.analytics_data && typeof data.analytics_data === 'object') {
-          setAnalyticsScreenshots(data.analytics_data as { [key: string]: any });
+          setAnalyticsScreenshots(data.analytics_data as {
+            [key: string]: any;
+          });
         }
       } else {
         setHasGeneratedReport(false);
@@ -73,7 +73,6 @@ export const QuarterlyReportGenerator: React.FC<QuarterlyReportGeneratorProps> =
       setHasGeneratedReport(false);
     }
   };
-
   const processAnalyticsForReport = (analyticsData: any) => {
     // Extract key insights and trends from analytics data
     const insights = {
@@ -100,55 +99,34 @@ export const QuarterlyReportGenerator: React.FC<QuarterlyReportGeneratorProps> =
     };
     return insights;
   };
-
   const extractKeyMetrics = (analyticsData: any, meetings: any[]) => {
     // Calculate key performance indicators
-    const totalMeetingItems = meetings.reduce((sum, meeting) => 
-      sum + meeting.sections.reduce((sectionSum: number, section: any) => 
-        sectionSum + (section.items?.length || 0), 0), 0);
-    
-    const completedItems = meetings.reduce((sum, meeting) => 
-      sum + meeting.sections.reduce((sectionSum: number, section: any) => 
-        sectionSum + (section.items?.filter((item: any) => item.status === 'green').length || 0), 0), 0);
-
+    const totalMeetingItems = meetings.reduce((sum, meeting) => sum + meeting.sections.reduce((sectionSum: number, section: any) => sectionSum + (section.items?.length || 0), 0), 0);
+    const completedItems = meetings.reduce((sum, meeting) => sum + meeting.sections.reduce((sectionSum: number, section: any) => sectionSum + (section.items?.filter((item: any) => item.status === 'green').length || 0), 0), 0);
     return {
-      meetingEffectiveness: totalMeetingItems > 0 ? Math.round((completedItems / totalMeetingItems) * 100) : 0,
+      meetingEffectiveness: totalMeetingItems > 0 ? Math.round(completedItems / totalMeetingItems * 100) : 0,
       totalActionItems: totalMeetingItems,
       completedActionItems: completedItems,
       quarterlyMeetingCount: meetings.length,
       averageAttendeesPerMeeting: meetings.length > 0 ? Math.round(meetings.reduce((sum, m) => sum + m.attendees.length, 0) / meetings.length) : 0
     };
   };
-
   const collectAnalyticsData = async () => {
     if (!profile?.company_id) return {};
-
     try {
       // Get all analytics data from dashboard_data table
-      const { data: analyticsData, error } = await supabase
-        .from('dashboard_data')
-        .select('data_type, data_content')
-        .eq('company_id', profile.company_id);
-
+      const {
+        data: analyticsData,
+        error
+      } = await supabase.from('dashboard_data').select('data_type, data_content').eq('company_id', profile.company_id);
       if (error) {
         console.error('Error loading analytics data:', error);
         return {};
       }
 
       // Get specific analytics tables
-      const promises = [
-        supabase.from('spot_check_analytics').select('*').eq('company_id', profile.company_id),
-        supabase.from('supervision_analytics').select('*').eq('company_id', profile.company_id),
-        supabase.from('incidents_analytics').select('*').eq('company_id', profile.company_id),
-        supabase.from('feedback_analytics').select('*').eq('company_id', profile.company_id),
-        supabase.from('care_plan_analytics').select('*').eq('company_id', profile.company_id),
-        supabase.from('staff_training_analytics').select('*').eq('company_id', profile.company_id),
-        supabase.from('staff_documents_analytics').select('*').eq('company_id', profile.company_id),
-        supabase.from('actions_log').select('*').eq('company_id', profile.company_id)
-      ];
-
+      const promises = [supabase.from('spot_check_analytics').select('*').eq('company_id', profile.company_id), supabase.from('supervision_analytics').select('*').eq('company_id', profile.company_id), supabase.from('incidents_analytics').select('*').eq('company_id', profile.company_id), supabase.from('feedback_analytics').select('*').eq('company_id', profile.company_id), supabase.from('care_plan_analytics').select('*').eq('company_id', profile.company_id), supabase.from('staff_training_analytics').select('*').eq('company_id', profile.company_id), supabase.from('staff_documents_analytics').select('*').eq('company_id', profile.company_id), supabase.from('actions_log').select('*').eq('company_id', profile.company_id)];
       const results = await Promise.all(promises);
-      
       const analytics = {
         dashboard_data: analyticsData || [],
         spot_check: results[0].data || [],
@@ -160,59 +138,77 @@ export const QuarterlyReportGenerator: React.FC<QuarterlyReportGeneratorProps> =
         staff_documents: results[6].data || [],
         actions_log: results[7].data || []
       };
-
       return analytics;
     } catch (error) {
       console.error('Error collecting analytics data:', error);
       return {};
     }
   };
-
   const getAnalyticsDataForReport = async () => {
     if (!profile?.company_id) return {};
-    
     try {
       console.log('🔍 Starting analytics data collection for company:', profile.company_id);
-      
+
       // Get the latest meeting to determine which analytics to include
       const latestMeeting = meetings.length > 0 ? meetings[0] : null;
       const meetingId = latestMeeting?.id;
-      
       console.log('📊 Latest meeting ID:', meetingId);
       console.log('📋 Available meetings:', meetings.length);
-      
-      const analyticsData: { [key: string]: any } = {};
-      
+      const analyticsData: {
+        [key: string]: any;
+      } = {};
+
       // First, try to get any analytics data regardless of meeting_id
-      const { data: allAnalytics, error: allError } = await supabase
-        .from('dashboard_data')
-        .select('data_type, data_content, meeting_id')
-        .eq('company_id', profile.company_id);
-      
+      const {
+        data: allAnalytics,
+        error: allError
+      } = await supabase.from('dashboard_data').select('data_type, data_content, meeting_id').eq('company_id', profile.company_id);
       console.log('📈 All analytics data found:', allAnalytics?.length || 0);
       console.log('📈 Analytics data:', allAnalytics);
-      
       if (allError) {
         console.error('❌ Error fetching analytics:', allError);
       }
-      
+
       // Define analytics types to check based on meeting sections
-      const analyticsTypes = [
-        { key: 'staffTraining', title: 'Staff Training Analytics', dataTypes: ['resourcing_analytics', 'staff_training_analytics', 'resourcing_overview'] },
-        { key: 'incidents', title: 'Incident Analytics', dataTypes: ['incidents_analytics'] },
-        { key: 'feedback', title: 'Feedback Analytics', dataTypes: ['feedback_analytics'] },
-        { key: 'spotCheck', title: 'Spot Check Analytics', dataTypes: ['spot_check_analytics'] },
-        { key: 'supervision', title: 'Supervision Analytics', dataTypes: ['supervision_analytics'] },
-        { key: 'staffDocuments', title: 'Staff Documents Analytics', dataTypes: ['staff_documents_analytics'] },
-        { key: 'carePlan', title: 'Care Plan Analytics', dataTypes: ['care_plan_overview', 'care_plan_analytics'] }
-      ];
+      const analyticsTypes = [{
+        key: 'staffTraining',
+        title: 'Staff Training Analytics',
+        dataTypes: ['resourcing_analytics', 'staff_training_analytics', 'resourcing_overview']
+      }, {
+        key: 'incidents',
+        title: 'Incident Analytics',
+        dataTypes: ['incidents_analytics']
+      }, {
+        key: 'feedback',
+        title: 'Feedback Analytics',
+        dataTypes: ['feedback_analytics']
+      }, {
+        key: 'spotCheck',
+        title: 'Spot Check Analytics',
+        dataTypes: ['spot_check_analytics']
+      }, {
+        key: 'supervision',
+        title: 'Supervision Analytics',
+        dataTypes: ['supervision_analytics']
+      }, {
+        key: 'staffDocuments',
+        title: 'Staff Documents Analytics',
+        dataTypes: ['staff_documents_analytics']
+      }, {
+        key: 'carePlan',
+        title: 'Care Plan Analytics',
+        dataTypes: ['care_plan_overview', 'care_plan_analytics']
+      }];
 
       // Get analytics data for each type
-      for (const { key, title, dataTypes } of analyticsTypes) {
+      for (const {
+        key,
+        title,
+        dataTypes
+      } of analyticsTypes) {
         for (const dataType of dataTypes) {
           try {
             const matchingData = allAnalytics?.find(item => item.data_type === dataType);
-            
             if (matchingData?.data_content && Object.keys(matchingData.data_content).length > 0) {
               console.log(`✅ Found ${title} data:`, matchingData.data_content);
               analyticsData[key] = {
@@ -228,7 +224,6 @@ export const QuarterlyReportGenerator: React.FC<QuarterlyReportGeneratorProps> =
           }
         }
       }
-
       console.log('📊 Final analytics data for report:', analyticsData);
       return analyticsData;
     } catch (error) {
@@ -236,12 +231,10 @@ export const QuarterlyReportGenerator: React.FC<QuarterlyReportGeneratorProps> =
       return {};
     }
   };
-
   const generateReport = async () => {
     console.log('🚀 Generate Report button clicked!');
     console.log('📍 Navigating to:', `/report-builder?quarter=${quarter}&year=${year}`);
     console.log('📊 Quarter:', quarter, 'Year:', year);
-    
     try {
       // Navigate to the report builder page instead of generating directly
       navigate(`/report-builder?quarter=${quarter}&year=${year}`);
@@ -250,23 +243,20 @@ export const QuarterlyReportGenerator: React.FC<QuarterlyReportGeneratorProps> =
       console.error('❌ Navigation error:', error);
     }
   };
-
   const generateReportDirect = async () => {
     try {
       const analyticsData = await collectAnalyticsData();
-      
+
       // Get analytics data for report context
       const reportAnalytics = await getAnalyticsDataForReport();
-      
+
       // Get company information for proper naming
       let companyName = 'Care Agency';
       if (profile?.company_id) {
         try {
-          const { data: companyData } = await supabase
-            .from('companies')
-            .select('name')
-            .eq('id', profile.company_id)
-            .single();
+          const {
+            data: companyData
+          } = await supabase.from('companies').select('name').eq('id', profile.company_id).single();
           if (companyData?.name) {
             companyName = companyData.name;
           }
@@ -274,10 +264,10 @@ export const QuarterlyReportGenerator: React.FC<QuarterlyReportGeneratorProps> =
           console.warn('Could not fetch company name:', error);
         }
       }
-      
+
       // Pre-process analytics data to extract key insights and trends
       const processedAnalytics = processAnalyticsForReport(analyticsData);
-      
+
       // Create comprehensive data summary for AI with better structuring
       const dataContext = {
         quarter,
@@ -303,7 +293,6 @@ export const QuarterlyReportGenerator: React.FC<QuarterlyReportGeneratorProps> =
         keyMetrics: extractKeyMetrics(analyticsData, meetings),
         availableAnalytics: Object.keys(reportAnalytics)
       };
-
       const systemPrompt = `You are an expert care agency analyst writing a professional quarterly report in British English. Your task is to generate a comprehensive, detailed quarterly report that reads like a professional business document - NOT a markdown document.
 
 CRITICAL FORMATTING REQUIREMENTS:
@@ -366,7 +355,6 @@ WRITING STYLE:
 - Include quantitative analysis with qualitative interpretation
 - Demonstrate understanding of care sector challenges and best practices
 - Always refer to ${companyName} by name rather than using generic terms`;
-
       const userPrompt = `Generate a detailed quarterly report for ${quarter} ${year}. Analyze the following comprehensive dataset and create substantial, insightful content for each relevant section. Focus on trends, patterns, and strategic implications rather than just listing data points.
 
 Meeting Analysis: ${meetings.length} management meetings were held during this quarter, covering ${dataContext.meetingDetails.map(m => m.sectionSummary.length).reduce((a, b) => a + b, 0)} different operational areas.
@@ -374,31 +362,31 @@ Meeting Analysis: ${meetings.length} management meetings were held during this q
 Data Context: ${JSON.stringify(dataContext, null, 2)}
 
 Remember: Write in natural language prose with detailed paragraphs. No markdown formatting. Each section should provide deep analysis and strategic insights.`;
-
-      const response = await generateResponse([
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt }
-      ], 'gpt-4.1-2025-04-14');
-
+      const response = await generateResponse([{
+        role: 'system',
+        content: systemPrompt
+      }, {
+        role: 'user',
+        content: userPrompt
+      }], 'gpt-4.1-2025-04-14');
       if (response) {
         setGeneratedReport(response);
         setAnalyticsScreenshots(reportAnalytics);
         setHasGeneratedReport(true);
         setIsOpen(false);
-        
+
         // Save report to localStorage for persistence
         const reportKey = `quarterly_report_${quarter}_${year}`;
         localStorage.setItem(reportKey, response);
         localStorage.setItem(`${reportKey}_analytics`, JSON.stringify(reportAnalytics));
-        
+
         // Navigate to the quarterly report page with the content and analytics data
         const encodedContent = encodeURIComponent(response);
         const encodedAnalytics = encodeURIComponent(JSON.stringify(reportAnalytics));
         navigate(`/quarterly-report?quarter=${quarter}&year=${year}&content=${encodedContent}&analytics=${encodedAnalytics}`);
-        
         toast({
           title: "Report Created",
-          description: "Your quarterly report has been created successfully",
+          description: "Your quarterly report has been created successfully"
         });
       }
     } catch (error) {
@@ -406,13 +394,13 @@ Remember: Write in natural language prose with detailed paragraphs. No markdown 
       toast({
         title: "Generation Failed",
         description: "Failed to generate the quarterly report",
-        variant: "destructive",
+        variant: "destructive"
       });
     }
   };
-
-  const [analyticsScreenshots, setAnalyticsScreenshots] = useState<{ [key: string]: any }>({});
-
+  const [analyticsScreenshots, setAnalyticsScreenshots] = useState<{
+    [key: string]: any;
+  }>({});
   const viewReport = () => {
     if (generatedReport) {
       const encodedContent = encodeURIComponent(generatedReport);
@@ -420,55 +408,46 @@ Remember: Write in natural language prose with detailed paragraphs. No markdown 
       navigate(`/quarterly-report?quarter=${quarter}&year=${year}&content=${encodedContent}&analytics=${encodedAnalytics}`);
     }
   };
-
   const deleteReport = async () => {
     if (!profile?.company_id) return;
-
     try {
-      const { error } = await supabase
-        .from('quarterly_reports')
-        .delete()
-        .eq('company_id', profile.company_id)
-        .eq('quarter', quarter)
-        .eq('year', parseInt(year));
-
+      const {
+        error
+      } = await supabase.from('quarterly_reports').delete().eq('company_id', profile.company_id).eq('quarter', quarter).eq('year', parseInt(year));
       if (error) {
         console.error('Error deleting report:', error);
         toast({
           title: "Delete Failed",
           description: "Failed to delete the quarterly report",
-          variant: "destructive",
+          variant: "destructive"
         });
         return;
       }
-
       setGeneratedReport("");
       setHasGeneratedReport(false);
       setAnalyticsScreenshots({});
-      
+
       // Also remove from localStorage for backward compatibility
       const reportKey = `quarterly_report_${quarter}_${year}`;
       localStorage.removeItem(reportKey);
       localStorage.removeItem(`${reportKey}_analytics`);
-      
       toast({
         title: "Report Deleted",
-        description: "The quarterly report has been deleted",
+        description: "The quarterly report has been deleted"
       });
     } catch (error) {
       console.error('Error deleting report:', error);
       toast({
         title: "Delete Failed",
         description: "Failed to delete the quarterly report",
-        variant: "destructive",
+        variant: "destructive"
       });
     }
   };
 
   // If report has been generated, show view and delete buttons
   if (hasGeneratedReport && generatedReport) {
-    return (
-      <div className="space-y-2">
+    return <div className="space-y-2">
         <div className="flex gap-2">
           <Button variant="outline" className="gap-2" onClick={viewReport}>
             <FileText className="h-4 w-4" />
@@ -482,27 +461,18 @@ Remember: Write in natural language prose with detailed paragraphs. No markdown 
         <div className="text-xs text-green-600 bg-green-50 p-1 rounded">
           ✅ Report found for {quarter} {year} (Length: {generatedReport.length})
         </div>
-      </div>
-    );
+      </div>;
   }
 
   // Add debug info for when no report is found
   const reportKey = `quarterly_report_${quarter}_${year}`;
   const savedReport = localStorage.getItem(reportKey);
-  
-  return (
-    <div className="space-y-2">
+  return <div className="space-y-2">
       <Button variant="outline" className="gap-2" onClick={generateReport}>
         <FileText className="h-4 w-4" />
         Generate AI Report
       </Button>
       {/* Temporary debug info */}
-      <div className="text-xs text-gray-500 bg-gray-50 p-1 rounded">
-        🔍 No report found for {quarter} {year}<br/>
-        Key: {reportKey}<br/>
-        HasGenerated: {hasGeneratedReport.toString()}<br/>
-        ReportExists: {!!savedReport ? `Yes (${savedReport.length} chars)` : 'No'}
-      </div>
-    </div>
-  );
+      
+    </div>;
 };
