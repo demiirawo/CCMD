@@ -48,6 +48,7 @@ const Index = () => {
   });
   const [actionsLog, setActionsLog] = useState<ActionLogEntry[]>([]);
   const [allSectionsExpanded, setAllSectionsExpanded] = useState<boolean | undefined>(undefined);
+  const [saveSuccess, setSaveSuccess] = useState(false);
   const [panelStateTracker, setPanelStateTracker] = useState<number>(0); // Force re-render when panels change
 
   // Function to update temporary analytics data with real meeting ID
@@ -1410,6 +1411,9 @@ const Index = () => {
       }
 
       // Success
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 2000); // Reset after 2 seconds
+      
       toast({
         title: "Meeting Saved",
         description: `Meeting saved successfully under ${quarter} ${year}. Check the Reports page to view it.`,
@@ -1565,7 +1569,7 @@ const Index = () => {
             variant="outline"
             className="gap-2"
           >
-            <Save className="w-4 h-4" />
+            <Save className={`w-4 h-4 transition-all duration-300 ${saveSuccess ? 'animate-scale-in text-green-600' : ''}`} />
             Save Meeting
           </Button>
           <Button 
