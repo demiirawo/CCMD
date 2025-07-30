@@ -76,8 +76,26 @@ export const ActionsLog = ({
   const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
   
   const sortByDueDate = (a: ActionLogEntry, b: ActionLogEntry) => {
-    const aDueDate = new Date(a.dueDate || '9999-12-31');
-    const bDueDate = new Date(b.dueDate || '9999-12-31');
+    const parseDueDate = (dueDate: string): Date => {
+      if (!dueDate || dueDate.trim() === '') return new Date('9999-12-31');
+      
+      // Handle DD/MM/YYYY format (e.g., "28/07/2026")
+      if (dueDate.includes('/') && dueDate.split('/').length === 3) {
+        const parts = dueDate.split('/');
+        if (parts.length === 3 && parts[0].length <= 2 && parts[1].length <= 2 && parts[2].length === 4) {
+          // DD/MM/YYYY format - convert to YYYY-MM-DD
+          const [day, month, year] = parts;
+          return new Date(`${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`);
+        }
+      }
+      // Try standard parsing
+      return new Date(dueDate);
+    };
+    
+    const aDueDate = parseDueDate(a.dueDate || '');
+    const bDueDate = parseDueDate(b.dueDate || '');
+    
+    // Sort by date ascending (overdue and soonest first)
     return aDueDate.getTime() - bDueDate.getTime();
   };
   
