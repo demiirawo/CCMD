@@ -14,9 +14,18 @@ export const CompanySelection = () => {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   
-  const { profile, companies, createCompany, selectCompany, signOut, fetchCompanies } = useAuth();
+  const { profile, companies, createCompany, selectCompany, signOut, fetchCompanies, loading: authLoading } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  // Debug logging
+  console.log('CompanySelection Debug:', {
+    profile,
+    companies,
+    companiesLength: companies.length,
+    authLoading,
+    localLoading: loading
+  });
 
   // Debug logging
   console.log('CompanySelection Debug:', {
