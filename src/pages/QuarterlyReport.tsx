@@ -198,7 +198,9 @@ CRITICAL FORMATTING REQUIREMENTS:
 - Write in flowing, natural language prose with complete sentences and paragraphs
 - Each section must contain a minimum of 4-6 substantial paragraphs (150-250 words each)
 - Use professional business language suitable for board presentations and regulatory reviews
-- DO NOT use markdown formatting (no #, ##, *, -, etc.) - write in plain text
+- For section headings ONLY, use this exact format: "SECTION [NUMBER]: [TITLE]" (all caps)
+- Example: "SECTION 1: EXECUTIVE SUMMARY"
+- Do NOT use any other formatting markers (no #, *, -, etc.)
 - DO NOT use bullet points or lists - write in paragraph format only
 - Include specific numbers, percentages, and metrics throughout your analysis
 - Provide detailed interpretations and insights, not just data summaries
@@ -212,30 +214,30 @@ CONTENT REQUIREMENTS:
 - Provide strategic insights and forward-looking observations
 - Include references to industry best practices and regulatory compliance
 
-REPORT STRUCTURE (include all sections with substantial content):
+REPORT STRUCTURE (use exact section headings as shown):
 
-1. Executive Summary
+SECTION 1: EXECUTIVE SUMMARY
 Write a comprehensive 400-500 word executive summary that captures the quarter's key achievements, challenges, strategic outlook, and operational performance. Include quantitative metrics and qualitative assessments.
 
-2. Operational Successes and Achievements
+SECTION 2: OPERATIONAL SUCCESSES AND ACHIEVEMENTS
 Analyze positive outcomes, achievements, and improvements in service delivery. Include detailed discussion of performance metrics, successful initiatives, compliance achievements, and operational excellence examples. Provide specific evidence and measurable outcomes.
 
-3. Learning Opportunities and Strategic Challenges
+SECTION 3: LEARNING OPPORTUNITIES AND STRATEGIC CHALLENGES
 Examine areas for improvement, incidents, challenges faced, and lessons learned. Provide detailed analysis of root causes, impacts on operations, and strategic responses. Include forward-looking mitigation strategies.
 
-4. Workforce Development and Capacity Analysis
+SECTION 4: WORKFORCE DEVELOPMENT AND CAPACITY ANALYSIS
 Detailed analysis of staffing levels, recruitment effectiveness, retention strategies, training compliance, supervision quality, and capacity planning initiatives. Include staff development outcomes and future workforce planning.
 
-5. Care Quality and Service Excellence
+SECTION 5: CARE QUALITY AND SERVICE EXCELLENCE
 Comprehensive review of care planning effectiveness, service quality metrics, care plan compliance, risk management protocols, client outcomes, and satisfaction measures. Include quality assurance findings.
 
-6. Health, Safety and Risk Management
+SECTION 6: HEALTH, SAFETY AND RISK MANAGEMENT
 Thorough analysis of incident patterns, safety performance, risk mitigation strategies, safeguarding effectiveness, regulatory compliance, and emergency preparedness. Include trend analysis and preventive measures.
 
-7. Continuous Improvement and Innovation
+SECTION 7: CONTINUOUS IMPROVEMENT AND INNOVATION
 Detailed discussion of improvement initiatives, quality enhancement programs, feedback integration, technology adoption, and innovation projects. Include measurable impacts and future development plans.
 
-8. Strategic Outlook and Future Planning
+SECTION 8: STRATEGIC OUTLOOK AND FUTURE PLANNING
 Forward-looking analysis with strategic recommendations, priority areas for focus, planned initiatives for the coming quarter, resource allocation, and long-term objectives.
 
 WRITING STYLE:
@@ -331,8 +333,8 @@ Focus on creating a comprehensive narrative that demonstrates operational excell
     // Create cover page (always first)
     pages.push("COVER_PAGE");
     
-    // Split content by major sections (## headers)
-    const sections = content.split(/(?=## \d+\.)/);
+    // Split content by major sections using the new SECTION format
+    const sections = content.split(/(?=SECTION \d+:)/);
     
     sections.forEach((section, index) => {
       if (section.trim()) {
@@ -345,8 +347,8 @@ Focus on creating a comprehensive narrative that demonstrates operational excell
           currentPageContent += line + '\n';
           lineCount++;
           
-          // Start new page after ~25 lines or if we hit another major section
-          if (lineCount >= 25 && line.trim() === '') {
+          // Start new page after ~30 lines or if we hit another major section
+          if (lineCount >= 30 && line.trim() === '') {
             pages.push(currentPageContent.trim());
             currentPageContent = '';
             lineCount = 0;
@@ -547,14 +549,21 @@ Focus on creating a comprehensive narrative that demonstrates operational excell
       if (trimmedLine === '') {
         // Add spacing for empty lines
         paragraphs.push(new Paragraph({ text: '', spacing: { after: 200 } }));
-      } else if (trimmedLine.match(/^\d+\.\s/)) {
-        // Section headers (e.g., "1. Executive Summary")
+      } else if (trimmedLine.match(/^SECTION \d+:/)) {
+        // New section headers (e.g., "SECTION 1: EXECUTIVE SUMMARY")
         paragraphs.push(new Paragraph({
           children: [new TextRun({ text: trimmedLine, bold: true, size: 28 })],
           heading: HeadingLevel.HEADING_1,
           spacing: { before: 400, after: 200 }
         }));
-      } else if (trimmedLine.startsWith('Care Agency Quarterly Report')) {
+      } else if (trimmedLine.match(/^\d+\.\s/)) {
+        // Legacy section headers (e.g., "1. Executive Summary")
+        paragraphs.push(new Paragraph({
+          children: [new TextRun({ text: trimmedLine, bold: true, size: 28 })],
+          heading: HeadingLevel.HEADING_1,
+          spacing: { before: 400, after: 200 }
+        }));
+      } else if (trimmedLine.startsWith('Care Agency Quarterly Report') || trimmedLine.includes('Quarterly Report')) {
         // Main title
         paragraphs.push(new Paragraph({
           children: [new TextRun({ text: trimmedLine, bold: true, size: 32 })],
