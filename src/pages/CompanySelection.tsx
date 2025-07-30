@@ -155,7 +155,10 @@ export const CompanySelection = () => {
                           </div>
                         </div>
                         <Button 
-                          onClick={() => handleSelectCompany(company.id)}
+                          onClick={() => {
+                            console.log('Button clicked for company:', company.id, company.name);
+                            handleSelectCompany(company.id);
+                          }}
                           disabled={loading}
                         >
                           Select
