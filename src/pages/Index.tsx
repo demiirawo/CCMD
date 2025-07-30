@@ -3,6 +3,7 @@ import { DashboardHeader } from "@/components/DashboardHeader";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useAutoSave } from "@/hooks/useAutoSave";
+import { useMeetingEmailNotification } from "@/hooks/useMeetingEmailNotification";
 import { Attendee } from "@/components/TeamAttendeesDisplay";
 import { DashboardSection } from "@/components/DashboardSection";
 import { ActionsLog, ActionLogEntry } from "@/components/ActionsLog";
@@ -22,6 +23,7 @@ import jsPDF from "jspdf";
 
 const Index = () => {
   const { profile } = useAuth();
+  const { sendMeetingEmails } = useMeetingEmailNotification();
   
   // Check if user has edit permissions
   const canEdit = profile?.permission === 'edit' || profile?.permission === 'company_admin' || profile?.role === 'admin';
@@ -1450,6 +1452,39 @@ const Index = () => {
       });
 
       console.log('Meeting saved successfully:', data);
+
+      // Send email notifications to attendees
+      try {
+        console.log('Preparing to send meeting emails...');
+        
+        // Generate a meeting summary from the dashboard data
+        const sectionSummaries = cleanSections.map(section => {
+          const items = section.items;
+          const redCount = items.filter(item => item.status === 'red').length;
+          const amberCount = items.filter(item => item.status === 'amber').length;
+          const greenCount = items.filter(item => item.status === 'green').length;
+          
+          return `${section.title}: ${greenCount} Green, ${amberCount} Amber, ${redCount} Red items`;
+        }).join('. ');
+
+        const meetingSummary = `Meeting covered ${cleanSections.length} sections. ${sectionSummaries}. ${actionsLog.length} action items were recorded.`;
+
+        await sendMeetingEmails({
+          title: headerData.title,
+          date: meetingDate.toISOString(),
+          attendees: headerData.attendees,
+          actions: actionsLog,
+          meetingSummary: meetingSummary
+        });
+      } catch (emailError) {
+        console.error('Error sending meeting emails:', emailError);
+        // Don't fail the entire save operation if emails fail
+        toast({
+          title: "Meeting Saved",
+          description: "Meeting saved successfully, but some email notifications may have failed to send.",
+          variant: "default"
+        });
+      }
 
     } catch (error) {
       console.error('Error saving meeting:', error);
