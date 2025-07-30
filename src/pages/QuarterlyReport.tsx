@@ -964,9 +964,20 @@ Focus on creating a comprehensive narrative that demonstrates operational excell
                                  line.trim().includes('Analysis') ||
                                  line.trim().includes('Outlook'))) {
                               return (
-                                <h2 key={lineIndex} className="text-2xl font-bold text-gray-800 mb-6 mt-8 border-b border-gray-200 pb-2">
-                                  {line.trim()}
-                                </h2>
+                                <div key={lineIndex} className="mb-8">
+                                  <h2 
+                                    className="text-2xl font-bold text-gray-800 pb-3 mb-6"
+                                    style={{ 
+                                      borderBottom: '2px solid #e5e7eb',
+                                      fontSize: '18pt',
+                                      fontWeight: 'bold',
+                                      color: '#374151',
+                                      paddingBottom: '12px'
+                                    }}
+                                  >
+                                    {line.trim()}
+                                  </h2>
+                                </div>
                               );
                             }
                             if (line.trim().length > 50 && (line.trim().endsWith('.') || line.trim().endsWith(':') || line.trim().endsWith('.'))) {
