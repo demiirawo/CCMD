@@ -6,7 +6,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { CalendarDays, FileText, Users, Eye, Trash2, Clock, Target, ChevronDown, ChevronRight, X } from "lucide-react";
+import { CalendarDays, FileText, Users, Eye, Trash2, Clock, Target, ChevronDown, ChevronRight, X, Printer, Download } from "lucide-react";
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { MeetingStatusSummary } from "@/components/MeetingStatusSummary";
@@ -198,6 +200,165 @@ export const Reports = () => {
   const isQuarterExpanded = (quarterKey: string) => {
     return expandedQuarters[quarterKey] ?? true; // Default to expanded
   };
+
+  const handlePrintMeeting = (meetingId: string, meetingTitle: string) => {
+    // Create a new window for printing
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) return;
+
+    // Get the meeting content
+    const meetingElement = document.getElementById(`meeting-print-${meetingId}`);
+    if (!meetingElement) return;
+
+    // Create print-friendly HTML
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>${meetingTitle} - Meeting Report</title>
+          <style>
+            * { box-sizing: border-box; }
+            body { 
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+              margin: 0;
+              padding: 20px;
+              line-height: 1.6;
+              color: #333;
+            }
+            .print-header {
+              border-bottom: 2px solid #e5e7eb;
+              padding-bottom: 20px;
+              margin-bottom: 30px;
+            }
+            .print-title {
+              font-size: 24px;
+              font-weight: bold;
+              margin: 0 0 10px 0;
+            }
+            .print-subtitle {
+              color: #6b7280;
+              margin: 0;
+            }
+            .section {
+              margin-bottom: 30px;
+              break-inside: avoid;
+            }
+            .section-title {
+              font-size: 18px;
+              font-weight: 600;
+              margin-bottom: 15px;
+              color: #374151;
+              border-bottom: 1px solid #e5e7eb;
+              padding-bottom: 5px;
+            }
+            .item {
+              margin-bottom: 10px;
+              padding: 10px;
+              border-left: 3px solid #e5e7eb;
+              background: #f9fafb;
+            }
+            .status-green { border-left-color: #10b981; }
+            .status-amber { border-left-color: #f59e0b; }
+            .status-red { border-left-color: #ef4444; }
+            .attendee {
+              margin-bottom: 8px;
+              padding: 8px;
+              background: #f3f4f6;
+              border-radius: 4px;
+            }
+            .action-log-item {
+              margin-bottom: 12px;
+              padding: 12px;
+              border: 1px solid #e5e7eb;
+              border-radius: 6px;
+            }
+            .action-header {
+              font-weight: 600;
+              margin-bottom: 8px;
+            }
+            .action-meta {
+              font-size: 12px;
+              color: #6b7280;
+              margin-top: 8px;
+            }
+            @media print {
+              .no-print { display: none; }
+              body { margin: 0; padding: 15px; }
+              .section { page-break-inside: avoid; }
+            }
+          </style>
+        </head>
+        <body>
+          ${meetingElement.innerHTML}
+        </body>
+      </html>
+    `);
+
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => {
+      printWindow.print();
+      printWindow.close();
+    }, 250);
+  };
+
+  const handleExportPDF = async (meetingId: string, meetingTitle: string) => {
+    try {
+      toast({
+        title: "Generating PDF",
+        description: "Please wait while we generate your PDF..."
+      });
+
+      const meetingElement = document.getElementById(`meeting-print-${meetingId}`);
+      if (!meetingElement) return;
+
+      // Create a temporary div with the content for PDF generation
+      const tempDiv = document.createElement('div');
+      tempDiv.style.position = 'absolute';
+      tempDiv.style.left = '-9999px';
+      tempDiv.style.top = '0';
+      tempDiv.style.width = '794px'; // A4 width in pixels at 96 DPI
+      tempDiv.style.backgroundColor = 'white';
+      tempDiv.style.padding = '40px';
+      tempDiv.style.fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+      tempDiv.innerHTML = meetingElement.innerHTML;
+      
+      document.body.appendChild(tempDiv);
+
+      const canvas = await html2canvas(tempDiv, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: '#ffffff',
+        width: 794,
+        height: tempDiv.scrollHeight
+      });
+
+      document.body.removeChild(tempDiv);
+
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'px',
+        format: [794, canvas.height]
+      });
+
+      pdf.addImage(imgData, 'PNG', 0, 0, 794, canvas.height);
+      pdf.save(`${meetingTitle.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_meeting_report.pdf`);
+
+      toast({
+        title: "PDF Generated",
+        description: "Your meeting report has been downloaded as PDF"
+      });
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      toast({
+        title: "PDF Generation Failed",
+        description: "There was an error generating the PDF",
+        variant: "destructive"
+      });
+    }
+  };
   
   const groupedMeetings = groupMeetingsByQuarter(meetings);
 
@@ -341,6 +502,28 @@ export const Reports = () => {
                                  </DialogContent>
                                </Dialog>
 
+                               {/* Print Button */}
+                               <Button 
+                                 variant="outline" 
+                                 size="sm" 
+                                 className="gap-1" 
+                                 onClick={() => handlePrintMeeting(meeting.id, meeting.title)}
+                               >
+                                 <Printer className="h-4 w-4" />
+                                 Print
+                               </Button>
+
+                               {/* Export PDF Button */}
+                               <Button 
+                                 variant="outline" 
+                                 size="sm" 
+                                 className="gap-1" 
+                                 onClick={() => handleExportPDF(meeting.id, meeting.title)}
+                               >
+                                 <Download className="h-4 w-4" />
+                                 PDF
+                               </Button>
+
                               {/* Delete Meeting Dialog */}
                               <AlertDialog>
                                 <AlertDialogTrigger asChild>
@@ -367,6 +550,16 @@ export const Reports = () => {
                                   </AlertDialogFooter>
                                 </AlertDialogContent>
                               </AlertDialog>
+                            </div>
+
+                            {/* Hidden print-friendly content for each meeting */}
+                            <div id={`meeting-print-${meeting.id}`} className="hidden">
+                              <div className="print-header">
+                                <h1 className="print-title">{meeting.title}</h1>
+                                <p className="print-subtitle">Meeting Report - {formatDate(meeting.date)}</p>
+                              </div>
+                              
+                              <ReadOnlyDashboardView meetingId={meeting.id} />
                             </div>
                           </div>
                         </div>
