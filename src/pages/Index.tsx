@@ -247,17 +247,24 @@ const Index = () => {
         }
 
         if (data && data.length > 0) {
-          const documents = data.map(record => ({
-            id: record.id,
-            name: record.name,
-            owner: '', // Not stored in current schema
-            category: '', // Not stored in current schema  
-            lastReviewDate: '', // Not stored in current schema
-            reviewFrequency: '', // Not stored in current schema
-            reviewFrequencyNumber: '', // Not stored in current schema
-            reviewFrequencyPeriod: '', // Not stored in current schema
-            nextReviewDate: null as string | null // Not stored in current schema
-          }));
+          const documents = data.map(record => {
+            // Parse the notes field to restore saved data
+            const notesParts = record.notes ? record.notes.split(' | ') : ['', '', '', '', ''];
+            const [owner = '', category = '', lastReviewDate = '', reviewFrequency = '', updatedAt = ''] = notesParts;
+            
+            return {
+              id: record.id,
+              name: record.name,
+              owner,
+              category,
+              lastReviewDate,
+              reviewFrequency,
+              reviewFrequencyNumber: reviewFrequency.split(' ')[0] || '',
+              reviewFrequencyPeriod: reviewFrequency.split(' ')[1] || '',
+              nextReviewDate: record.due_date || null,
+              updatedAt: updatedAt || undefined
+            };
+          });
           setKeyDocuments(documents);
         }
       } catch (error) {
@@ -1705,8 +1712,8 @@ const Index = () => {
                       company_id: profile.company_id,
                       name: doc.name,
                       status: 'missing', // Default status since KeyDocumentTracker doesn't use the status we stored
-                      due_date: '',
-                      notes: ''
+                      due_date: doc.nextReviewDate || '',
+                      notes: `${doc.owner} | ${doc.category} | ${doc.lastReviewDate} | ${doc.reviewFrequencyNumber} ${doc.reviewFrequencyPeriod} | ${doc.updatedAt || ''}`
                     }));
                     
                     const { error } = await supabase
