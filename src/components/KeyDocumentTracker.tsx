@@ -312,19 +312,6 @@ export const KeyDocumentTracker = ({
                   </div>
                 </div>
 
-                {/* Third line: Updated */}
-                <div className="grid grid-cols-12 gap-3 items-start">
-                  <div className="col-span-6">
-                    <label className="text-xs text-muted-foreground mb-1 block">Updated</label>
-                    <div className="text-sm p-2 bg-muted/30 rounded border text-muted-foreground h-9 flex items-center">
-                      {doc.updatedAt ? new Date(doc.updatedAt).toLocaleDateString('en-GB') : "Not updated"}
-                    </div>
-                  </div>
-                  
-                  <div className="col-span-6">
-                    {/* Empty space for future use */}
-                  </div>
-                </div>
               </div>)}
           </div>)}
         
