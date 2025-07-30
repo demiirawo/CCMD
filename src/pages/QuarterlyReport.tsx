@@ -896,13 +896,14 @@ Focus on creating a comprehensive narrative that demonstrates ${companyName}'s o
                 data-page-index={index}
                 className="bg-white shadow-2xl print:shadow-none page-break mx-auto border border-gray-200 print:border-none"
                 style={{
-                  width: '210mm',
-                  minHeight: '297mm',
-                  padding: '25.4mm',
-                  fontSize: '12pt',
+                  width: '794px',  // A4 width at 96 DPI (210mm = 794px)
+                  minHeight: '1123px',  // A4 height at 96 DPI (297mm = 1123px)
+                  padding: '96px',  // 25.4mm = 96px at 96 DPI
+                  fontSize: '16px',  // 12pt = 16px
                   lineHeight: '1.5',
                   fontFamily: 'Arial, sans-serif',
-                  boxSizing: 'border-box'
+                  boxSizing: 'border-box',
+                  pageBreakAfter: 'always'
                 }}
               >
               {index === 0 ? (
