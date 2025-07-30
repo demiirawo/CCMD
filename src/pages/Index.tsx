@@ -1591,17 +1591,21 @@ const Index = () => {
   
   const handleToggleAll = () => {
     if (allSectionsExpanded === true) {
-      // Currently expanded, so collapse all
+      // Currently expanded, so collapse all and then reset to allow individual control
       setAllSectionsExpanded(false);
+      setTimeout(() => setAllSectionsExpanded(undefined), 100);
     } else if (allSectionsExpanded === false) {
       // Currently collapsed, so expand all
       setAllSectionsExpanded(true);
+      setTimeout(() => setAllSectionsExpanded(undefined), 100);
     } else {
       // undefined state - check current panel states and toggle accordingly
       if (areAllPanelsClosed()) {
         setAllSectionsExpanded(true); // Expand all
+        setTimeout(() => setAllSectionsExpanded(undefined), 100);
       } else {
         setAllSectionsExpanded(false); // Collapse all
+        setTimeout(() => setAllSectionsExpanded(undefined), 100);
       }
     }
   };
