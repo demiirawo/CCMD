@@ -528,6 +528,7 @@ const Index = () => {
                 if (savedData) {
                   return {
                     ...item,
+                    status: savedData.status as StatusType || item.status,
                     observation: (savedData.observation as string) || item.observation,
                     actions: savedData.actions ? (typeof savedData.actions === 'string' ? JSON.parse(savedData.actions) : savedData.actions) : item.actions,
                     metadata: savedData.metadata ? (typeof savedData.metadata === 'string' ? JSON.parse(savedData.metadata) : savedData.metadata) : (item.metadata || {}),
