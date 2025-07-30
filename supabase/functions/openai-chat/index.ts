@@ -17,10 +17,19 @@ serve(async (req) => {
   try {
     const { messages, model = 'gpt-4o-mini' } = await req.json();
 
+    console.log('OpenAI function called with model:', model);
+    console.log('Messages count:', messages?.length);
+
     if (!openAIApiKey) {
+      console.error('OPENAI_API_KEY is not configured');
       throw new Error('OPENAI_API_KEY is not configured');
     }
 
+    if (!messages || !Array.isArray(messages) || messages.length === 0) {
+      throw new Error('Messages array is required and must not be empty');
+    }
+
+    console.log('Calling OpenAI API...');
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -31,16 +40,25 @@ serve(async (req) => {
         model,
         messages,
         temperature: 0.7,
+        max_tokens: 4000,
       }),
     });
 
     if (!response.ok) {
-      const error = await response.text();
-      throw new Error(`OpenAI API error: ${error}`);
+      const errorText = await response.text();
+      console.error('OpenAI API error:', response.status, errorText);
+      throw new Error(`OpenAI API error: ${response.status} - ${errorText}`);
     }
 
     const data = await response.json();
-    const generatedText = data.choices[0].message.content;
+    const generatedText = data.choices?.[0]?.message?.content;
+
+    if (!generatedText) {
+      console.error('No content in OpenAI response:', data);
+      throw new Error('No content returned from OpenAI');
+    }
+
+    console.log('OpenAI response successful, content length:', generatedText.length);
 
     return new Response(JSON.stringify({ 
       content: generatedText,
@@ -50,7 +68,9 @@ serve(async (req) => {
     });
   } catch (error) {
     console.error('Error in openai-chat function:', error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    return new Response(JSON.stringify({ 
+      error: error.message || 'Unknown error occurred'
+    }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
