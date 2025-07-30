@@ -71,15 +71,27 @@ export const ActionsLog = ({
   const isOpen = isExpanded;
   const [editingAction, setEditingAction] = useState<ActionLogEntry | null>(null);
 
-  // Group actions by open/closed
+  // Group actions by open/closed and sort by due date (soonest first)
   const now = new Date();
   const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-  const openActions = actions.filter(action => !action.closed);
-  const closedActions = actions.filter(action => {
-    if (!action.closed || !action.closedDate) return false;
-    const closedDate = new Date(action.closedDate);
-    return closedDate >= thirtyDaysAgo;
-  });
+  
+  const sortByDueDate = (a: ActionLogEntry, b: ActionLogEntry) => {
+    const aDueDate = new Date(a.dueDate || '9999-12-31');
+    const bDueDate = new Date(b.dueDate || '9999-12-31');
+    return aDueDate.getTime() - bDueDate.getTime();
+  };
+  
+  const openActions = actions
+    .filter(action => !action.closed)
+    .sort(sortByDueDate);
+    
+  const closedActions = actions
+    .filter(action => {
+      if (!action.closed || !action.closedDate) return false;
+      const closedDate = new Date(action.closedDate);
+      return closedDate >= thirtyDaysAgo;
+    })
+    .sort(sortByDueDate);
 
   // Function to calculate days remaining and get color
   const getDaysRemaining = (dueDate: string): number => {
