@@ -317,91 +317,146 @@ export const Reports = () => {
                                   </Button>
                                 </DialogTrigger>
                                 <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto bg-background">
-                                  <DialogHeader>
-                                    <DialogTitle className="text-xl">{meeting.title}</DialogTitle>
-                                  </DialogHeader>
-                                  
-                                  <div className="space-y-6">
-                                    {/* Meeting Header Info */}
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg">
-                                      <div className="flex items-center gap-2">
-                                        <CalendarDays className="h-5 w-5 text-muted-foreground" />
-                                        <div>
-                                          <p className="text-sm font-medium">Date & Time</p>
-                                          <p className="text-sm text-muted-foreground">{formatDate(meeting.date)}</p>
-                                        </div>
-                                      </div>
-                                      <div className="flex items-center gap-2">
-                                        <Users className="h-5 w-5 text-muted-foreground" />
-                                        <div>
-                                          <p className="text-sm font-medium">Attendees</p>
-                                          <p className="text-sm text-muted-foreground">{meeting.attendees.length} people</p>
-                                        </div>
-                                      </div>
-                                      {meeting.purpose && (
-                                        <div className="col-span-full flex items-start gap-2">
-                                          <Target className="h-5 w-5 text-muted-foreground mt-0.5" />
-                                          <div className="flex-1">
-                                            <p className="text-sm font-medium">Purpose</p>
-                                            <p className="text-sm text-muted-foreground">{meeting.purpose}</p>
-                                          </div>
-                                        </div>
-                                      )}
-                                    </div>
+                                   <DialogHeader>
+                                     <DialogTitle className="text-xl">{meeting.title}</DialogTitle>
+                                   </DialogHeader>
+                                   
+                                   <div className="space-y-6">
+                                     {/* Meeting Header Info */}
+                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg">
+                                       <div className="flex items-center gap-2">
+                                         <CalendarDays className="h-5 w-5 text-muted-foreground" />
+                                         <div>
+                                           <p className="text-sm font-medium">Date & Time</p>
+                                           <p className="text-sm text-muted-foreground">{formatDate(meeting.date)}</p>
+                                         </div>
+                                       </div>
+                                       <div className="flex items-center gap-2">
+                                         <Users className="h-5 w-5 text-muted-foreground" />
+                                         <div>
+                                           <p className="text-sm font-medium">Attendees</p>
+                                           <p className="text-sm text-muted-foreground">{meeting.attendees.length} people</p>
+                                         </div>
+                                       </div>
+                                     </div>
 
-                                    {/* Attendees List */}
-                                    {meeting.attendees.length > 0 && (
-                                      <div>
-                                        <h3 className="text-lg font-semibold mb-3">Attendees</h3>
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                                          {meeting.attendees.map((attendee, index) => (
-                                            <div key={index} className="flex items-center gap-2 p-2 bg-muted/50 rounded">
-                                              <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
-                                                <span className="text-sm font-medium text-primary">
-                                                  {attendee.name.charAt(0).toUpperCase()}
-                                                </span>
-                                              </div>
-                                              <div>
-                                                <p className="text-sm font-medium">{attendee.name}</p>
-                                                {attendee.email && <p className="text-xs text-muted-foreground">{attendee.email}</p>}
-                                              </div>
-                                            </div>
-                                          ))}
-                                        </div>
-                                      </div>
-                                    )}
+                                     {/* Meeting Summary */}
+                                     {meeting.purpose && (
+                                       <div>
+                                         <h3 className="text-lg font-semibold mb-3">Meeting Summary</h3>
+                                         <Card>
+                                           <CardContent className="p-4">
+                                             <p className="text-sm text-muted-foreground">{meeting.purpose}</p>
+                                           </CardContent>
+                                         </Card>
+                                       </div>
+                                     )}
 
-                                    {/* Sections Overview */}
-                                    <div>
-                                      <h3 className="text-lg font-semibold mb-3">Meeting Sections</h3>
-                                      <div className="space-y-3">
-                                        {meeting.sections.map(section => {
-                                          const statusCounts = section.items.reduce((acc, item) => {
-                                            acc[item.status] = (acc[item.status] || 0) + 1;
-                                            return acc;
-                                          }, {} as Record<string, number>);
-                                          
-                                          return (
-                                            <div key={section.id} className="border rounded-lg p-4 bg-card">
-                                              <div className="flex items-center justify-between mb-2">
-                                                <h4 className="font-medium">{section.title}</h4>
-                                                <div className="flex items-center gap-1">
-                                                  {Object.entries(statusCounts).map(([status, count]) => (
-                                                    <div key={status} className="flex items-center gap-1">
-                                                      <StatusBadge status={status as any} />
-                                                    </div>
-                                                  ))}
-                                                </div>
-                                              </div>
-                                              <p className="text-sm text-muted-foreground">
-                                                {section.items.length} item{section.items.length !== 1 ? 's' : ''} reviewed
-                                              </p>
-                                            </div>
-                                          );
-                                        })}
-                                      </div>
-                                    </div>
-                                  </div>
+                                     {/* Actions Summary */}
+                                     {(meeting as any).actions_log && (meeting as any).actions_log.length > 0 && (
+                                       <div>
+                                         <h3 className="text-lg font-semibold mb-3">Actions Summary</h3>
+                                         <div className="space-y-3">
+                                           {(meeting as any).actions_log.map((action: any, index: number) => (
+                                             <Card key={index}>
+                                               <CardContent className="p-4">
+                                                 <div className="flex justify-between items-start gap-4">
+                                                   <div className="flex-1">
+                                                     <p className="font-medium text-sm">{action.action_text}</p>
+                                                     <div className="flex gap-4 mt-2 text-xs text-muted-foreground">
+                                                       <span>Assigned to: {action.mentioned_attendee}</span>
+                                                       <span>Due: {action.due_date}</span>
+                                                       {action.source_id && (
+                                                         <span>From: {action.source_id}</span>
+                                                       )}
+                                                     </div>
+                                                   </div>
+                                                   <StatusBadge status={action.status} />
+                                                 </div>
+                                               </CardContent>
+                                             </Card>
+                                           ))}
+                                         </div>
+                                       </div>
+                                     )}
+
+                                     {/* Attendees List */}
+                                     {meeting.attendees.length > 0 && (
+                                       <div>
+                                         <h3 className="text-lg font-semibold mb-3">Attendees</h3>
+                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                           {meeting.attendees.map((attendee, index) => (
+                                             <div key={index} className="flex items-center gap-2 p-2 bg-muted/50 rounded">
+                                               <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
+                                                 <span className="text-sm font-medium text-primary">
+                                                   {attendee.name.charAt(0).toUpperCase()}
+                                                 </span>
+                                               </div>
+                                               <div>
+                                                 <p className="text-sm font-medium">{attendee.name}</p>
+                                                 {attendee.email && <p className="text-xs text-muted-foreground">{attendee.email}</p>}
+                                               </div>
+                                             </div>
+                                           ))}
+                                         </div>
+                                       </div>
+                                     )}
+
+                                     {/* Enhanced Sections with Observations */}
+                                     <div>
+                                       <h3 className="text-lg font-semibold mb-3">Section Details & Observations</h3>
+                                       <div className="space-y-4">
+                                         {meeting.sections.map((section: any, sectionIndex: number) => (
+                                           <Card key={sectionIndex}>
+                                             <CardContent className="p-4">
+                                               <div className="flex justify-between items-center mb-3">
+                                                 <h4 className="font-medium">{section.title}</h4>
+                                                 <div className="flex items-center gap-1">
+                                                   {section.items && section.items.map((item: any, itemIndex: number) => (
+                                                     <StatusBadge key={itemIndex} status={item.status} />
+                                                   ))}
+                                                 </div>
+                                               </div>
+                                               
+                                               {section.items && section.items.length > 0 && (
+                                                 <div className="space-y-3">
+                                                   {section.items.map((item: any, itemIndex: number) => (
+                                                     <div key={itemIndex} className="border-l-2 border-muted pl-4">
+                                                       <div className="flex justify-between items-start gap-2">
+                                                         <div className="flex-1">
+                                                           <p className="font-medium text-sm">{item.title || `Item ${itemIndex + 1}`}</p>
+                                                           {item.observation && (
+                                                             <p className="text-xs text-muted-foreground mt-1">
+                                                               <strong>Observation:</strong> {item.observation}
+                                                             </p>
+                                                           )}
+                                                           {item.actions && item.actions.length > 0 && (
+                                                             <div className="mt-2">
+                                                               <p className="text-xs font-medium text-muted-foreground">Actions:</p>
+                                                               <ul className="text-xs text-muted-foreground ml-2">
+                                                                 {item.actions.map((action: any, actionIndex: number) => (
+                                                                   <li key={actionIndex}>• {action.action_text} (Due: {action.due_date})</li>
+                                                                 ))}
+                                                               </ul>
+                                                             </div>
+                                                           )}
+                                                         </div>
+                                                         <StatusBadge status={item.status} />
+                                                       </div>
+                                                     </div>
+                                                   ))}
+                                                 </div>
+                                               )}
+
+                                               {(!section.items || section.items.length === 0) && (
+                                                 <p className="text-sm text-muted-foreground">No items tracked in this section</p>
+                                               )}
+                                             </CardContent>
+                                           </Card>
+                                         ))}
+                                       </div>
+                                     </div>
+                                   </div>
                                 </DialogContent>
                               </Dialog>
 
