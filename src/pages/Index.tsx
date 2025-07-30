@@ -22,31 +22,11 @@ import jsPDF from "jspdf";
 const Index = () => {
   const { profile } = useAuth();
   const [isDataLoaded, setIsDataLoaded] = useState(false);
-  
-  if (!profile?.company_id) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <p>Please select a company to continue.</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Show loading state until data is loaded from database
-  if (!isDataLoaded) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <p>Loading dashboard data...</p>
-        </div>
-      </div>
-    );
-  }
-
   const [currentMeetingId, setCurrentMeetingId] = useState<string | null>(null);
   const [tempMeetingId, setTempMeetingId] = useState<string>(() => {
     // Use a company-specific persistent ID for continuous data storage
+    if (!profile?.company_id) return crypto.randomUUID();
+    
     const companyId = profile.company_id;
     const persistentId = localStorage.getItem(`persistentMeetingId_${companyId}`);
     if (persistentId) {
@@ -1627,6 +1607,28 @@ const Index = () => {
     return 'Collapse All';
   };
   
+  // Early returns for loading states
+  if (!profile?.company_id) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <p>Please select a company to continue.</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show loading state until data is loaded from database
+  if (!isDataLoaded) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <p>Loading dashboard data...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-100 p-4 lg:p-8">
       <div className="w-[90%] mx-auto space-y-6">
