@@ -44,36 +44,44 @@ export const MeetingSummaryPanel = ({ purpose, onPurposeChange, readOnly = false
             <div className="flex items-center gap-2">
               <CardTitle className="text-lg">Meeting Summary</CardTitle>
             </div>
-            <AISummaryButton onSummaryGenerated={(summary) => onPurposeChange?.(stripMarkdown(summary))} />
+            {!readOnly && (
+              <AISummaryButton onSummaryGenerated={(summary) => onPurposeChange?.(stripMarkdown(summary))} />
+            )}
           </div>
         </CardHeader>
         <CardContent>
           <div className="min-h-24">
-            {editingPurpose ? (
-              <textarea
-                defaultValue={purpose}
-                className="w-full min-h-24 p-3 text-sm text-foreground bg-white border border-gray-300 rounded resize-none whitespace-pre-wrap"
-                onBlur={(e) => handlePurposeEdit(e.target.value)}
-                onChange={(e) => handlePurposeInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault();
-                    handlePurposeEdit(e.currentTarget.value);
-                  }
-                  if (e.key === "Escape") {
-                    setEditingPurpose(false);
-                  }
-                }}
-                autoFocus
-                placeholder="Click to add meeting summary or use AI Summary to generate automatically..."
-              />
+            {readOnly ? (
+              <div className="w-full min-h-24 p-3 text-sm text-foreground bg-gray-50 border border-gray-200 rounded whitespace-pre-wrap break-words overflow-wrap-anywhere">
+                {purpose || "No meeting summary provided."}
+              </div>
             ) : (
-              <button
-                onClick={() => setEditingPurpose(true)}
-                className="w-full text-left min-h-24 p-3 text-sm text-foreground hover:bg-gray-50 transition-colors rounded border border-transparent hover:border-gray-300 whitespace-pre-wrap break-words overflow-wrap-anywhere"
-              >
-                {purpose || "Click to add meeting summary or use AI Summary to generate automatically..."}
-              </button>
+              editingPurpose ? (
+                <textarea
+                  defaultValue={purpose}
+                  className="w-full min-h-24 p-3 text-sm text-foreground bg-white border border-gray-300 rounded resize-none whitespace-pre-wrap"
+                  onBlur={(e) => handlePurposeEdit(e.target.value)}
+                  onChange={(e) => handlePurposeInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      handlePurposeEdit(e.currentTarget.value);
+                    }
+                    if (e.key === "Escape") {
+                      setEditingPurpose(false);
+                    }
+                  }}
+                  autoFocus
+                  placeholder="Click to add meeting summary or use AI Summary to generate automatically..."
+                />
+              ) : (
+                <button
+                  onClick={() => setEditingPurpose(true)}
+                  className="w-full text-left min-h-24 p-3 text-sm text-foreground hover:bg-gray-50 transition-colors rounded border border-transparent hover:border-gray-300 whitespace-pre-wrap break-words overflow-wrap-anywhere"
+                >
+                  {purpose || "Click to add meeting summary or use AI Summary to generate automatically..."}
+                </button>
+              )
             )}
           </div>
         </CardContent>

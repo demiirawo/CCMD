@@ -78,30 +78,49 @@ export const TeamAttendeesDisplay = ({ onAttendanceChange, readOnly = false }: T
             {attendee.name}
           </div>
           
-          <div className="flex gap-1">
-            <button 
-              onClick={() => toggleAttendance(attendee.id, true)} 
-              className={`px-3 py-1 text-xs font-medium rounded transition-all ${
+          {readOnly ? (
+            <div className="flex gap-1">
+              <span className={`px-3 py-1 text-xs font-medium rounded ${
                 attendee.attended === true 
                   ? 'bg-green-100 text-green-700 border border-green-300' 
-                  : 'bg-gray-100 text-gray-500 border border-gray-200 hover:bg-green-50'
-              }`}
-              title="Mark as present"
-            >
-              Present
-            </button>
-            <button 
-              onClick={() => toggleAttendance(attendee.id, false)} 
-              className={`px-3 py-1 text-xs font-medium rounded transition-all ${
+                  : 'bg-gray-100 text-gray-400'
+              }`}>
+                Present
+              </span>
+              <span className={`px-3 py-1 text-xs font-medium rounded ${
                 attendee.attended === false 
                   ? 'bg-red-100 text-red-700 border border-red-300' 
-                  : 'bg-gray-100 text-gray-500 border border-gray-200 hover:bg-red-50'
-              }`}
-              title="Mark as absent"
-            >
-              Absent
-            </button>
-          </div>
+                  : 'bg-gray-100 text-gray-400'
+              }`}>
+                Absent
+              </span>
+            </div>
+          ) : (
+            <div className="flex gap-1">
+              <button 
+                onClick={() => toggleAttendance(attendee.id, true)} 
+                className={`px-3 py-1 text-xs font-medium rounded transition-all ${
+                  attendee.attended === true 
+                    ? 'bg-green-100 text-green-700 border border-green-300' 
+                    : 'bg-gray-100 text-gray-500 border border-gray-200 hover:bg-green-50'
+                }`}
+                title="Mark as present"
+              >
+                Present
+              </button>
+              <button 
+                onClick={() => toggleAttendance(attendee.id, false)} 
+                className={`px-3 py-1 text-xs font-medium rounded transition-all ${
+                  attendee.attended === false 
+                    ? 'bg-red-100 text-red-700 border border-red-300' 
+                    : 'bg-gray-100 text-gray-500 border border-gray-200 hover:bg-red-50'
+                }`}
+                title="Mark as absent"
+              >
+                Absent
+              </button>
+            </div>
+          )}
         </div>
       ))}
     </div>

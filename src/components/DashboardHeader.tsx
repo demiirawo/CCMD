@@ -51,17 +51,23 @@ export const DashboardHeader = ({
     textClass?: string;
   }) => <div className={`p-4 rounded-lg border border-gray-100 ${containerClass} bg-white`}>
       <h3 className="text-sm font-medium text-muted-foreground mb-2">{label}</h3>
-      {editingField === field ? <textarea defaultValue={value} className={`w-full min-h-12 p-2 text-sm ${textClass} text-foreground bg-white border border-gray-300 rounded resize-none whitespace-pre-wrap`} onBlur={e => handleFieldEdit(field, e.target.value)} onKeyDown={e => {
-      if (e.key === "Enter" && !e.shiftKey) {
-        e.preventDefault();
-        handleFieldEdit(field, e.currentTarget.value);
-      }
-      if (e.key === "Escape") {
-        setEditingField(null);
-      }
-    }} autoFocus /> : <button onClick={() => setEditingField(field)} className={`w-full text-left min-h-12 p-2 text-sm ${textClass} text-foreground hover:bg-white hover:border-gray-400 transition-colors rounded whitespace-pre-wrap break-words overflow-wrap-anywhere`}>
-          {value}
-        </button>}
+      {readOnly ? (
+        <div className={`w-full min-h-12 p-2 text-sm ${textClass} text-foreground bg-gray-50 border border-gray-200 rounded whitespace-pre-wrap break-words overflow-wrap-anywhere`}>
+          {value || `No ${label.toLowerCase()} provided.`}
+        </div>
+      ) : (
+        editingField === field ? <textarea defaultValue={value} className={`w-full min-h-12 p-2 text-sm ${textClass} text-foreground bg-white border border-gray-300 rounded resize-none whitespace-pre-wrap`} onBlur={e => handleFieldEdit(field, e.target.value)} onKeyDown={e => {
+        if (e.key === "Enter" && !e.shiftKey) {
+          e.preventDefault();
+          handleFieldEdit(field, e.currentTarget.value);
+        }
+        if (e.key === "Escape") {
+          setEditingField(null);
+        }
+      }} autoFocus /> : <button onClick={() => setEditingField(field)} className={`w-full text-left min-h-12 p-2 text-sm ${textClass} text-foreground hover:bg-white hover:border-gray-400 transition-colors rounded whitespace-pre-wrap break-words overflow-wrap-anywhere`}>
+            {value}
+          </button>
+      )}
     </div>;
   return <div className="bg-primary/10 p-8 mb-8 rounded-xl shadow-sm -mx-8 px-14">
       {/* Office Team and Meeting Info Section */}
@@ -79,7 +85,13 @@ export const DashboardHeader = ({
           <EditableField field="title" value={title} label="Meeting Title" textClass="" />
           <div className="p-4 rounded-lg border border-gray-100 h-24 bg-white">
             <h3 className="text-sm font-medium text-muted-foreground mb-2">Meeting Date & Time</h3>
-            <MeetingDateTimePicker value={date} onChange={value => onDataChange?.("date", value)} />
+            {readOnly ? (
+              <div className="w-full min-h-12 p-2 text-sm text-foreground bg-gray-50 border border-gray-200 rounded">
+                {date || "No date provided."}
+              </div>
+            ) : (
+              <MeetingDateTimePicker value={date} onChange={value => onDataChange?.("date", value)} />
+            )}
           </div>
         </div>
       </div>
