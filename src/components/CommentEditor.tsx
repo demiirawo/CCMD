@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 
 interface CommentEditorProps {
   initialValue: string;
@@ -6,6 +6,8 @@ interface CommentEditorProps {
   onCancel: () => void;
   placeholder?: string;
   isActionEditor?: boolean;
+  autoSave?: boolean;
+  onAutoSave?: (value: string) => void;
 }
 
 export const CommentEditor = ({ 
@@ -13,10 +15,25 @@ export const CommentEditor = ({
   onSubmit, 
   onCancel, 
   placeholder = "Type your comment...",
-  isActionEditor = false
+  isActionEditor = false,
+  autoSave = false,
+  onAutoSave
 }: CommentEditorProps) => {
   const [value, setValue] = useState(initialValue);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Auto-save functionality with debounce
+  useEffect(() => {
+    if (!autoSave || !onAutoSave) return;
+    
+    const timeoutId = setTimeout(() => {
+      if (value !== initialValue) {
+        onAutoSave(value);
+      }
+    }, 1000); // 1 second debounce
+
+    return () => clearTimeout(timeoutId);
+  }, [value, autoSave, onAutoSave, initialValue]);
 
   const handleSubmit = () => {
     onSubmit(value);

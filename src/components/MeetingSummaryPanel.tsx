@@ -16,6 +16,11 @@ export const MeetingSummaryPanel = ({ purpose, onPurposeChange }: MeetingSummary
     onPurposeChange?.(value);
   };
 
+  // Auto-save as user types
+  const handlePurposeInput = (value: string) => {
+    onPurposeChange?.(value);
+  };
+
   const stripMarkdown = (text: string) => {
     return text
       .replace(/\*\*(.*?)\*\*/g, '$1') // Remove bold
@@ -48,6 +53,7 @@ export const MeetingSummaryPanel = ({ purpose, onPurposeChange }: MeetingSummary
                 defaultValue={purpose}
                 className="w-full min-h-24 p-3 text-sm text-foreground bg-white border border-gray-300 rounded resize-none whitespace-pre-wrap"
                 onBlur={(e) => handlePurposeEdit(e.target.value)}
+                onChange={(e) => handlePurposeInput(e.target.value)}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && !e.shiftKey) {
                     e.preventDefault();

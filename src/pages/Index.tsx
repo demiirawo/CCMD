@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { DashboardHeader } from "@/components/DashboardHeader";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useAutoSave } from "@/hooks/useAutoSave";
 import { Attendee } from "@/components/MeetingAttendeesManager";
 import { DashboardSection } from "@/components/DashboardSection";
 import { ActionsLog, ActionLogEntry } from "@/components/ActionsLog";
@@ -130,6 +131,30 @@ const Index = () => {
     title: "",
     attendees: [] as Attendee[],
     purpose: ""
+  });
+
+  // Auto-save header data with the custom hook
+  useAutoSave({
+    table: 'meeting_headers',
+    data: {
+      meeting_date: (() => {
+        try {
+          const parts = headerData.date.match(/(\d{2})\/(\d{2})\/(\d{4})\s+(\d{2}):(\d{2})/);
+          if (parts) {
+            const [, day, month, year, hour, minute] = parts;
+            return new Date(parseInt(year), parseInt(month) - 1, parseInt(day), parseInt(hour), parseInt(minute)).toISOString();
+          }
+          return new Date(headerData.date).toISOString();
+        } catch (error) {
+          return new Date().toISOString();
+        }
+      })(),
+      title: headerData.title,
+      attendees: headerData.attendees,
+      purpose: headerData.purpose
+    },
+    dependencies: [headerData],
+    onError: (error) => console.error('Auto-save error for meeting headers:', error)
   });
 
   // Load header data from database on component mount
