@@ -232,9 +232,6 @@ export const ReadOnlyDashboardView = ({ meetingId }: ReadOnlyDashboardViewProps)
                   </div>
                   <div>
                     <p className="font-medium text-gray-900">{attendee.name}</p>
-                    {attendee.email && (
-                      <p className="text-xs text-gray-500">{attendee.email}</p>
-                    )}
                   </div>
                 </div>
               ))}

@@ -1,11 +1,10 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Trash2, Check, X, Minus } from "lucide-react";
+import { Plus, Trash2, Minus } from "lucide-react";
 export interface Attendee {
   id: string;
   name: string;
-  email: string;
   attended?: boolean;
 }
 interface MeetingAttendeesManagerProps {
@@ -19,15 +18,14 @@ export const MeetingAttendeesManager = ({
   const addAttendee = () => {
     const newAttendee: Attendee = {
       id: `attendee-${Date.now()}`,
-      name: "",
-      email: ""
+      name: ""
     };
     onChange([...attendees, newAttendee]);
   };
   const removeAttendee = (id: string) => {
     onChange(attendees.filter(attendee => attendee.id !== id));
   };
-  const updateAttendee = (id: string, field: 'name' | 'email' | 'attended', value: string | boolean) => {
+  const updateAttendee = (id: string, field: 'name' | 'attended', value: string | boolean) => {
     onChange(attendees.map(attendee => attendee.id === id ? {
       ...attendee,
       [field]: value
@@ -37,19 +35,39 @@ export const MeetingAttendeesManager = ({
     updateAttendee(id, 'attended', attended);
   };
   return <div className="space-y-3">
-      {attendees.map((attendee, index) => <div key={attendee.id} className="grid grid-cols-[1fr_1fr_auto_auto] gap-2 items-center">
-          <Input placeholder="Name" value={attendee.name} onChange={e => updateAttendee(attendee.id, 'name', e.target.value)} className="text-sm bg-white" />
-          <div className="flex items-center gap-2">
-            <Input placeholder="Email" type="email" value={attendee.email} onChange={e => updateAttendee(attendee.id, 'email', e.target.value)} className="text-sm bg-white" />
-            <div className="flex gap-1">
-              <button onClick={() => toggleAttendance(attendee.id, true)} className={`p-1 hover:scale-110 transition-transform ${attendee.attended === true ? 'opacity-100' : 'opacity-30'}`} title="Present">
-                <Check className="h-4 w-4 text-green-600" />
-              </button>
-              <button onClick={() => toggleAttendance(attendee.id, false)} className={`p-1 hover:scale-110 transition-transform ${attendee.attended === false ? 'opacity-100' : 'opacity-30'}`} title="Absent">
-                <X className="h-4 w-4 text-red-500" />
-              </button>
-            </div>
+      {attendees.map((attendee, index) => <div key={attendee.id} className="grid grid-cols-[1fr_auto_auto] gap-2 items-center">
+          <Input 
+            placeholder="Name" 
+            value={attendee.name} 
+            onChange={e => updateAttendee(attendee.id, 'name', e.target.value)} 
+            className="text-sm bg-white" 
+          />
+          
+          <div className="flex gap-1">
+            <button 
+              onClick={() => toggleAttendance(attendee.id, true)} 
+              className={`px-3 py-1 text-xs font-medium rounded transition-all ${
+                attendee.attended === true 
+                  ? 'bg-green-100 text-green-700 border border-green-300' 
+                  : 'bg-gray-100 text-gray-500 border border-gray-200 hover:bg-green-50'
+              }`}
+              title="Mark as present"
+            >
+              Present
+            </button>
+            <button 
+              onClick={() => toggleAttendance(attendee.id, false)} 
+              className={`px-3 py-1 text-xs font-medium rounded transition-all ${
+                attendee.attended === false 
+                  ? 'bg-red-100 text-red-700 border border-red-300' 
+                  : 'bg-gray-100 text-gray-500 border border-gray-200 hover:bg-red-50'
+              }`}
+              title="Mark as absent"
+            >
+              Absent
+            </button>
           </div>
+          
           {attendees.length > 1 && <Button variant="ghost" size="sm" onClick={() => removeAttendee(attendee.id)} className="h-8 w-8 p-0 text-red-500 hover:text-red-700">
               <Minus className="h-4 w-4" />
             </Button>}
