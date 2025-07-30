@@ -46,6 +46,15 @@ export const QuarterlyReportGenerator: React.FC<QuarterlyReportGeneratorProps> =
     console.log(`📊 Saved analytics exists:`, !!savedAnalytics);
     console.log(`📄 Saved report length:`, savedReport?.length || 0);
     
+    // Debug: Show all localStorage keys that contain "quarterly_report"
+    const allKeys = Object.keys(localStorage);
+    const reportKeys = allKeys.filter(key => key.includes('quarterly_report'));
+    console.log(`🗂️ All quarterly report keys in localStorage:`, reportKeys);
+    
+    // Debug: Show current quarter/year values
+    console.log(`📅 Current quarter: "${quarter}", year: "${year}"`);
+    console.log(`🔑 Expected localStorage key: "${reportKey}"`);
+    
     if (savedReport) {
       console.log(`✅ Found existing report for ${quarter} ${year}`);
       setGeneratedReport(savedReport);
@@ -61,6 +70,12 @@ export const QuarterlyReportGenerator: React.FC<QuarterlyReportGeneratorProps> =
       }
     } else {
       console.log(`❌ No existing report found for ${quarter} ${year}`);
+      // Check if there's any report data for this quarter with a slightly different key format
+      reportKeys.forEach(key => {
+        if (key.includes(quarter) && key.includes(year)) {
+          console.log(`🔍 Found similar key: ${key}`);
+        }
+      });
     }
   }, [quarter, year]);
 
