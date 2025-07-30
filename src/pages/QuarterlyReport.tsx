@@ -40,19 +40,21 @@ export const QuarterlyReport = () => {
   useEffect(() => {
     console.log('🔍 useEffect triggered - checking generation conditions');
     console.log('📋 shouldGenerate:', shouldGenerate);
-    console.log('📄 content:', !!content);
+    console.log('📄 content from URL:', !!content);
+    console.log('📄 reportContent state:', !!reportContent);
     console.log('🔄 isGenerating:', isGenerating);
     
-    if (shouldGenerate && !content && !isGenerating) {
+    if (shouldGenerate && !content && !reportContent && !isGenerating) {
       console.log('✅ All conditions met - starting report generation');
       generateAIReport();
     } else {
       console.log('❌ Conditions not met for generation');
       if (!shouldGenerate) console.log('  - shouldGenerate is false');
-      if (content) console.log('  - content already exists');
+      if (content) console.log('  - content already exists in URL');
+      if (reportContent) console.log('  - reportContent already exists in state');
       if (isGenerating) console.log('  - already generating');
     }
-  }, [shouldGenerate, content, isGenerating]);
+  }, [shouldGenerate, content, reportContent, isGenerating]);
 
   useEffect(() => {
     if (content) {
