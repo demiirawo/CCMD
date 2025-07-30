@@ -32,6 +32,8 @@ const sectionConfig = {
 export const MeetingStatusSummary = ({
   sections
 }: MeetingStatusSummaryProps) => {
+  console.log('MeetingStatusSummary: Received sections:', sections);
+  
   // Calculate overall status counts
   const statusCounts = { green: 0, amber: 0, red: 0 };
   
@@ -44,6 +46,8 @@ export const MeetingStatusSummary = ({
       });
     }
   });
+
+  console.log('MeetingStatusSummary: Status counts:', statusCounts);
 
   return (
     <div className="flex gap-4 p-6 bg-background rounded-lg border border-border shadow-sm">
