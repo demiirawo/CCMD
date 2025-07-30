@@ -429,25 +429,42 @@ Remember: Write in natural language prose with detailed paragraphs. No markdown 
 
   // If report has been generated, show view and delete buttons
   if (hasGeneratedReport && generatedReport) {
-    console.log(`🎯 Rendering View/Delete buttons for ${quarter} ${year}`);
     return (
-      <div className="flex gap-2">
-        <Button variant="outline" className="gap-2" onClick={viewReport}>
-          <FileText className="h-4 w-4" />
-          View Report
-        </Button>
-        <Button variant="outline" size="icon" onClick={deleteReport}>
-          <Trash2 className="h-4 w-4" />
-        </Button>
+      <div className="space-y-2">
+        <div className="flex gap-2">
+          <Button variant="outline" className="gap-2" onClick={viewReport}>
+            <FileText className="h-4 w-4" />
+            View Report
+          </Button>
+          <Button variant="outline" size="icon" onClick={deleteReport}>
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
+        {/* Temporary debug info */}
+        <div className="text-xs text-green-600 bg-green-50 p-1 rounded">
+          ✅ Report found for {quarter} {year} (Length: {generatedReport.length})
+        </div>
       </div>
     );
   }
 
-  console.log(`🎯 Rendering Generate button for ${quarter} ${year} (hasGenerated: ${hasGeneratedReport}, reportExists: ${!!generatedReport})`);
+  // Add debug info for when no report is found
+  const reportKey = `quarterly_report_${quarter}_${year}`;
+  const savedReport = localStorage.getItem(reportKey);
+  
   return (
-    <Button variant="outline" className="gap-2" onClick={generateReport}>
-      <FileText className="h-4 w-4" />
-      Generate AI Report
-    </Button>
+    <div className="space-y-2">
+      <Button variant="outline" className="gap-2" onClick={generateReport}>
+        <FileText className="h-4 w-4" />
+        Generate AI Report
+      </Button>
+      {/* Temporary debug info */}
+      <div className="text-xs text-gray-500 bg-gray-50 p-1 rounded">
+        🔍 No report found for {quarter} {year}<br/>
+        Key: {reportKey}<br/>
+        HasGenerated: {hasGeneratedReport.toString()}<br/>
+        ReportExists: {!!savedReport ? `Yes (${savedReport.length} chars)` : 'No'}
+      </div>
+    </div>
   );
 };
