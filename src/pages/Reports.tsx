@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { CalendarDays, FileText, Users, Eye, Trash2, Clock, Target, ChevronDown, ChevronRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 import { MeetingStatusSummary } from "@/components/MeetingStatusSummary";
 import { StatusBadge } from "@/components/StatusBadge";
 import { QuarterlyReportGenerator } from "@/components/QuarterlyReportGenerator";
@@ -51,24 +52,41 @@ interface GroupedMeetings {
 }
 
 export const Reports = () => {
+  const { profile } = useAuth();
   const [meetings, setMeetings] = useState<ParsedMeeting[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedQuarters, setExpandedQuarters] = useState<Record<string, boolean>>({});
   const { toast } = useToast();
   
   useEffect(() => {
-    fetchMeetings();
+    if (profile?.company_id) {
+      fetchMeetings();
+    }
+  }, [profile?.company_id]);
 
-    // Set up periodic refresh to catch new meetings (every 3 seconds)
-    const interval = setInterval(fetchMeetings, 3000);
-    return () => clearInterval(interval);
-  }, []);
+  useEffect(() => {
+    if (profile?.company_id) {
+      fetchMeetings();
+
+      // Set up periodic refresh to catch new meetings (every 3 seconds)
+      const interval = setInterval(fetchMeetings, 3000);
+      return () => clearInterval(interval);
+    }
+  }, [profile?.company_id]);
 
   const fetchMeetings = async () => {
+    if (!profile?.company_id) {
+      console.log('No company_id found in profile, skipping meetings fetch');
+      setLoading(false);
+      return;
+    }
+
     try {
+      console.log('Fetching meetings for company:', profile.company_id);
       const { data, error } = await supabase
         .from('meetings')
         .select('*')
+        .eq('company_id', profile.company_id)
         .order('date', { ascending: false });
 
       if (error) {
@@ -186,6 +204,16 @@ export const Reports = () => {
       <div className="min-h-screen bg-background p-4 lg:p-8">
         <div className="max-w-7xl mx-auto">
           <div className="text-center py-8">Loading meetings...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!profile?.company_id) {
+    return (
+      <div className="min-h-screen bg-background p-4 lg:p-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center py-8">Please select a company to view reports.</div>
         </div>
       </div>
     );
