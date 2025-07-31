@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
@@ -64,6 +65,7 @@ export const Reports = () => {
   const [meetings, setMeetings] = useState<ParsedMeeting[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedQuarters, setExpandedQuarters] = useState<Record<string, boolean>>({});
+  const [selectedYear, setSelectedYear] = useState<number | null>(null);
   const { toast } = useToast();
   
   useEffect(() => {
@@ -412,8 +414,19 @@ export const Reports = () => {
       });
     }
   };
+
+  // Get unique years from meetings for the filter
+  const getAvailableYears = () => {
+    const years = meetings.map(meeting => meeting.year);
+    return [...new Set(years)].sort((a, b) => b - a); // Sort descending (newest first)
+  };
+
+  // Filter meetings by selected year
+  const filteredMeetings = selectedYear 
+    ? meetings.filter(meeting => meeting.year === selectedYear)
+    : meetings;
   
-  const groupedMeetings = groupMeetingsByQuarter(meetings);
+  const groupedMeetings = groupMeetingsByQuarter(filteredMeetings);
 
   if (loading) {
     return (
@@ -438,6 +451,31 @@ export const Reports = () => {
   return (
     <div className="min-h-screen bg-gray-100 p-4 lg:p-8">
       <div className="w-[90%] mx-auto space-y-6">
+        {/* Year Filter */}
+        <div className="flex items-center gap-4 mb-6">
+          <label className="text-sm font-medium text-foreground">Filter by Year:</label>
+          <Select 
+            value={selectedYear?.toString() || "all"} 
+            onValueChange={(value) => setSelectedYear(value === "all" ? null : parseInt(value))}
+          >
+            <SelectTrigger className="w-48">
+              <SelectValue placeholder="Select year" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Years</SelectItem>
+              {getAvailableYears().map(year => (
+                <SelectItem key={year} value={year.toString()}>
+                  {year}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {selectedYear && (
+            <span className="text-sm text-muted-foreground">
+              Showing {filteredMeetings.length} meeting{filteredMeetings.length !== 1 ? 's' : ''} from {selectedYear}
+            </span>
+          )}
+        </div>
         {Object.keys(groupedMeetings).length === 0 ? (
           <Card>
             <CardContent className="py-8 text-center">
