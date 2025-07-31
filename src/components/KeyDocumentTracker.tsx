@@ -191,19 +191,9 @@ export const KeyDocumentTracker = ({
     groupedDocuments.push(["Uncategorized", uncategorizedDocs]);
   }
 
-  // Function to get background class based on overall status
+  // Function to get background class - always use theme color for Key Review Dates
   const getBackgroundClass = () => {
-    const status = getOverallStatus();
-    switch (status) {
-      case 'green':
-        return 'bg-green-50 border border-green-200';
-      case 'amber':
-        return 'bg-amber-50 border border-amber-200';
-      case 'red':
-        return 'bg-red-50 border border-red-200';
-      default:
-        return 'bg-white border border-gray-200';
-    }
+    return 'bg-primary/10 border border-primary/20';
   };
 
   return <Card className={`rounded-2xl p-6 shadow-lg -mx-8 px-14 ${getBackgroundClass()}`}>

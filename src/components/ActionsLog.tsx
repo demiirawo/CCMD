@@ -171,18 +171,9 @@ export const ActionsLog = ({
 
   const overallStatus = getOverallActionStatus();
   
-  // Get background class based on overall status
+  // Get background class - always use theme color for Actions
   const getBackgroundClass = () => {
-    switch (overallStatus) {
-      case 'red':
-        return 'bg-red-50/80 border border-red-200';
-      case 'amber':
-        return 'bg-amber-50/80 border border-amber-200';
-      case 'green':
-        return 'bg-green-50/80 border border-green-200';
-      default:
-        return 'bg-primary/10 border border-gray-200';
-    }
+    return 'bg-primary/10 border border-primary/20';
   };
   const getActionRowClass = (action: ActionLogEntry): string => {
     if (action.closed) return '';
