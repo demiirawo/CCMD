@@ -9,26 +9,31 @@ import { useToast } from "@/hooks/use-toast";
 import { useOpenAI } from "@/hooks/useOpenAI";
 import { Document, Packer, Paragraph, TextRun, HeadingLevel, ImageRun } from 'docx';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, ComposedChart, Line } from 'recharts';
-
 interface CompanyInfo {
   name: string;
   logo_url: string | null;
   theme_color: string;
 }
-
 export const QuarterlyReport = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { profile } = useAuth();
-  const { toast } = useToast();
-  const { generateResponse, isLoading: isGenerating } = useOpenAI();
-  
+  const {
+    profile
+  } = useAuth();
+  const {
+    toast
+  } = useToast();
+  const {
+    generateResponse,
+    isLoading: isGenerating
+  } = useOpenAI();
   const [companyInfo, setCompanyInfo] = useState<CompanyInfo | null>(null);
   const [reportContent, setReportContent] = useState<string>("");
   const [reportPages, setReportPages] = useState<string[]>([]);
   const [isExporting, setIsExporting] = useState(false);
-  const [analyticsImages, setAnalyticsImages] = useState<{ [key: string]: any }>({});
-  
+  const [analyticsImages, setAnalyticsImages] = useState<{
+    [key: string]: any;
+  }>({});
   const quarter = searchParams.get("quarter") || "";
   const year = searchParams.get("year") || "";
   const content = searchParams.get("content") || "";
@@ -43,7 +48,6 @@ export const QuarterlyReport = () => {
     console.log('📄 content from URL:', !!content);
     console.log('📄 reportContent state:', !!reportContent);
     console.log('🔄 isGenerating:', isGenerating);
-    
     if (shouldGenerate && !content && !reportContent && !isGenerating) {
       console.log('✅ All conditions met - starting report generation');
       generateAIReport();
@@ -55,7 +59,6 @@ export const QuarterlyReport = () => {
       if (isGenerating) console.log('  - already generating');
     }
   }, [shouldGenerate, content, reportContent, isGenerating]);
-
   useEffect(() => {
     if (content) {
       try {
@@ -86,17 +89,14 @@ export const QuarterlyReport = () => {
     }
     loadCompanyInfo();
   }, [content, analytics]);
-
   const processAnalyticsData = async () => {
     if (!profile?.company_id) return {};
-
     try {
       // Get analytics data from dashboard_data table
-      const { data: analyticsData, error } = await supabase
-        .from('dashboard_data')
-        .select('data_type, data_content')
-        .eq('company_id', profile.company_id);
-
+      const {
+        data: analyticsData,
+        error
+      } = await supabase.from('dashboard_data').select('data_type, data_content').eq('company_id', profile.company_id);
       if (error) {
         console.error('Error loading analytics data:', error);
         return {};
@@ -131,76 +131,67 @@ export const QuarterlyReport = () => {
         analyticsData.forEach(item => {
           const dataType = item.data_type;
           const content = item.data_content;
-
           if (dataType === 'staff_training_analytics' && content && typeof content === 'object') {
-            const analyticsContent = content as { [key: string]: any };
-            processedAnalytics.staffingTrends.keyMetrics.push(
-              `Training compliance rates achieved ${analyticsContent.compliance_rate || 'high'} levels`
-            );
+            const analyticsContent = content as {
+              [key: string]: any;
+            };
+            processedAnalytics.staffingTrends.keyMetrics.push(`Training compliance rates achieved ${analyticsContent.compliance_rate || 'high'} levels`);
           }
-          
           if (dataType === 'incidents_analytics' && content && typeof content === 'object') {
-            const analyticsContent = content as { [key: string]: any };
-            processedAnalytics.incidentAnalysis.trends.push(
-              `Incident reporting shows ${analyticsContent.trend || 'positive'} trajectory`
-            );
+            const analyticsContent = content as {
+              [key: string]: any;
+            };
+            processedAnalytics.incidentAnalysis.trends.push(`Incident reporting shows ${analyticsContent.trend || 'positive'} trajectory`);
           }
         });
       }
-
       return processedAnalytics;
     } catch (error) {
       console.error('Error processing analytics data:', error);
       return {};
     }
   };
-
   const saveReportToSupabase = async (reportContent: string, analyticsData: any) => {
     if (!profile?.company_id) {
       throw new Error('No company ID found');
     }
-
     try {
-      const { data, error } = await supabase
-        .from('quarterly_reports')
-        .upsert({
-          company_id: profile.company_id,
-          quarter,
-          year: parseInt(year),
-          report_content: reportContent,
-          analytics_data: analyticsData || {}
-        }, {
-          onConflict: 'company_id,quarter,year'
-        });
-
+      const {
+        data,
+        error
+      } = await supabase.from('quarterly_reports').upsert({
+        company_id: profile.company_id,
+        quarter,
+        year: parseInt(year),
+        report_content: reportContent,
+        analytics_data: analyticsData || {}
+      }, {
+        onConflict: 'company_id,quarter,year'
+      });
       if (error) {
         throw error;
       }
-
       console.log('✅ Report saved to Supabase successfully');
       toast({
         title: "Report Saved",
-        description: "Your quarterly report has been saved to the database.",
+        description: "Your quarterly report has been saved to the database."
       });
     } catch (error) {
       console.error('❌ Error saving report to Supabase:', error);
       throw error;
     }
   };
-
   const generateAIReport = async () => {
     try {
       console.log('🤖 Starting AI report generation...');
-      
+
       // Get company information first
       let companyName = 'Care Agency';
       if (profile?.company_id) {
         try {
-          const { data: companyData } = await supabase
-            .from('companies')
-            .select('name')
-            .eq('id', profile.company_id)
-            .single();
+          const {
+            data: companyData
+          } = await supabase.from('companies').select('name').eq('id', profile.company_id).single();
           if (companyData?.name) {
             companyName = companyData.name;
           }
@@ -208,7 +199,7 @@ export const QuarterlyReport = () => {
           console.warn('Could not fetch company name:', error);
         }
       }
-      
+
       // Parse additional context if provided
       let additionalContext = '';
       if (contextParam) {
@@ -229,11 +220,9 @@ export const QuarterlyReport = () => {
 
       // Process analytics data for narrative inclusion
       const processedAnalytics = await processAnalyticsData();
-
-      const messages = [
-        {
-          role: 'system' as const,
-          content: `You are an expert care agency analyst writing a comprehensive quarterly report for ${companyName} for ${quarter} ${year}. Your task is to generate a detailed, professional quarterly report that reads like a professional business document with flowing narrative prose.
+      const messages = [{
+        role: 'system' as const,
+        content: `You are an expert care agency analyst writing a comprehensive quarterly report for ${companyName} for ${quarter} ${year}. Your task is to generate a detailed, professional quarterly report that reads like a professional business document with flowing narrative prose.
 
 CRITICAL FORMATTING REQUIREMENTS:
 - Write in flowing, natural language prose with complete sentences and paragraphs
@@ -301,10 +290,9 @@ DATA INTEGRATION:
 - Transform raw data into meaningful insights and trends
 - Provide context and interpretation for all metrics mentioned
 - Connect operational data to strategic implications for ${companyName}`
-        },
-        {
-          role: 'user' as const,
-          content: `Generate a comprehensive quarterly report for ${companyName} covering ${quarter} ${year}. 
+      }, {
+        role: 'user' as const,
+        content: `Generate a comprehensive quarterly report for ${companyName} covering ${quarter} ${year}. 
 
 ${additionalContext ? `IMPORTANT CONTEXT TO INTEGRATE: ${additionalContext}` : ''}
 
@@ -321,28 +309,23 @@ CRITICAL REQUIREMENTS:
 - COMPLETE ALL SECTIONS FULLY - ensure the report ends properly with a complete conclusion
 
 Focus on creating a comprehensive narrative that demonstrates ${companyName}'s operational excellence, strategic thinking, and continuous improvement in care delivery. Ensure every section is substantial and provides meaningful insights into ${companyName}'s performance and future direction.`
-        }
-      ];
-
+      }];
       console.log('🚀 Calling OpenAI API with enhanced model...');
       // Switch to more powerful model for long-form content generation
       const generatedContent = await generateResponse(messages, 'gpt-4.1-2025-04-14');
-      
       console.log('📝 OpenAI API response received');
       console.log('📏 Content length:', generatedContent?.length || 0);
       console.log('📄 Content preview:', generatedContent?.substring(0, 100) || 'No content');
-      
       if (generatedContent && generatedContent.trim()) {
         console.log('✅ Report generated successfully');
         setReportContent(generatedContent);
         splitContentIntoPages(generatedContent);
-        
+
         // Save the generated report to Supabase
         await saveReportToSupabase(generatedContent, processedAnalytics);
-        
         toast({
           title: "Report Generated",
-          description: "Your comprehensive quarterly report has been successfully generated!",
+          description: "Your comprehensive quarterly report has been successfully generated!"
         });
       } else {
         console.error('❌ No content returned from AI');
@@ -352,54 +335,46 @@ Focus on creating a comprehensive narrative that demonstrates ${companyName}'s o
     } catch (error) {
       console.error('❌ Error generating report:', error);
       toast({
-        title: "Generation Failed", 
+        title: "Generation Failed",
         description: error instanceof Error ? error.message : "Failed to generate the quarterly report. Please try again.",
-        variant: "destructive",
+        variant: "destructive"
       });
     }
   };
-
   const loadCompanyInfo = async () => {
     if (!profile?.company_id) return;
-
     try {
-      const { data, error } = await supabase
-        .from('companies')
-        .select('name, logo_url, theme_color')
-        .eq('id', profile.company_id)
-        .single();
-
+      const {
+        data,
+        error
+      } = await supabase.from('companies').select('name, logo_url, theme_color').eq('id', profile.company_id).single();
       if (error) {
         console.error('Error loading company info:', error);
         return;
       }
-
       setCompanyInfo(data);
     } catch (error) {
       console.error('Error loading company info:', error);
     }
   };
-
   const splitContentIntoPages = (content: string) => {
     const pages: string[] = [];
-    
+
     // Create cover page (always first)
     pages.push("COVER_PAGE");
-    
+
     // Split content by major sections (## headers)
     const sections = content.split(/(?=## \d+\.)/);
-    
     sections.forEach((section, index) => {
       if (section.trim()) {
         // If section is very long, split it further
         const lines = section.split('\n');
         let currentPageContent = '';
         let lineCount = 0;
-        
         for (const line of lines) {
           currentPageContent += line + '\n';
           lineCount++;
-          
+
           // Start new page after ~25 lines or if we hit another major section
           if (lineCount >= 25 && line.trim() === '') {
             pages.push(currentPageContent.trim());
@@ -407,17 +382,15 @@ Focus on creating a comprehensive narrative that demonstrates ${companyName}'s o
             lineCount = 0;
           }
         }
-        
+
         // Add remaining content
         if (currentPageContent.trim()) {
           pages.push(currentPageContent.trim());
         }
       }
     });
-    
     setReportPages(pages);
   };
-
   const getCurrentDate = () => {
     return new Date().toLocaleDateString('en-GB', {
       day: 'numeric',
@@ -425,7 +398,6 @@ Focus on creating a comprehensive narrative that demonstrates ${companyName}'s o
       year: 'numeric'
     });
   };
-
   const getQuarterDates = (quarter: string, year: string) => {
     const yearNum = parseInt(year);
     switch (quarter) {
@@ -441,42 +413,37 @@ Focus on creating a comprehensive narrative that demonstrates ${companyName}'s o
         return `${quarter} ${year}`;
     }
   };
-
   const exportToWord = async () => {
     if (!reportContent) {
       toast({
         title: "No Content",
         description: "No report content to export",
-        variant: "destructive",
+        variant: "destructive"
       });
       return;
     }
-
     setIsExporting(true);
     try {
       // Fetch logo if available and get its dimensions
       let logoImage = null;
       let logoWidth = 150;
       let logoHeight = 75;
-      
       if (companyInfo?.logo_url) {
         try {
           const response = await fetch(companyInfo.logo_url);
           const arrayBuffer = await response.arrayBuffer();
           logoImage = arrayBuffer;
-          
+
           // Create a temporary image to get natural dimensions
           const blob = new Blob([arrayBuffer]);
           const imageUrl = URL.createObjectURL(blob);
           const img = new Image();
-          
           await new Promise((resolve, reject) => {
             img.onload = () => {
               // Calculate dimensions while maintaining aspect ratio
               const maxWidth = 200;
               const maxHeight = 100;
               const aspectRatio = img.naturalWidth / img.naturalHeight;
-              
               if (aspectRatio > maxWidth / maxHeight) {
                 // Logo is wider - constrain by width
                 logoWidth = maxWidth;
@@ -486,7 +453,6 @@ Focus on creating a comprehensive narrative that demonstrates ${companyName}'s o
                 logoHeight = maxHeight;
                 logoWidth = maxHeight * aspectRatio;
               }
-              
               URL.revokeObjectURL(imageUrl);
               resolve(null);
             };
@@ -503,55 +469,57 @@ Focus on creating a comprehensive narrative that demonstrates ${companyName}'s o
 
       // Add logo if available
       if (logoImage) {
-        documentChildren.push(
-          new Paragraph({
-            children: [
-              new ImageRun({
-                data: logoImage,
-                type: 'png',
-                transformation: {
-                  width: Math.round(logoWidth),
-                  height: Math.round(logoHeight),
-                },
-              }),
-            ],
-            alignment: 'center',
-            spacing: { after: 400 }
-          })
-        );
+        documentChildren.push(new Paragraph({
+          children: [new ImageRun({
+            data: logoImage,
+            type: 'png',
+            transformation: {
+              width: Math.round(logoWidth),
+              height: Math.round(logoHeight)
+            }
+          })],
+          alignment: 'center',
+          spacing: {
+            after: 400
+          }
+        }));
       }
 
       // Add cover page content
-      documentChildren.push(
-        new Paragraph({
-          text: companyInfo?.name || 'Care Agency',
-          heading: HeadingLevel.TITLE,
-          alignment: 'center',
-          spacing: { after: 400 }
-        }),
-        new Paragraph({
-          text: 'Quarterly Report',
-          heading: HeadingLevel.HEADING_1,
-          alignment: 'center',
-          spacing: { after: 200 }
-        }),
-        new Paragraph({
-          text: `${quarter} ${year}`,
-          heading: HeadingLevel.HEADING_2,
-          alignment: 'center',
-          spacing: { after: 200 }
-        }),
-        new Paragraph({
-          text: getQuarterDates(quarter, year),
-          alignment: 'center',
-          spacing: { after: 400 }
-        }),
-        new Paragraph({
-          text: `Report Created: ${getCurrentDate()}`,
-          alignment: 'center',
-          spacing: { after: 800 }
-        })
-      );
+      documentChildren.push(new Paragraph({
+        text: companyInfo?.name || 'Care Agency',
+        heading: HeadingLevel.TITLE,
+        alignment: 'center',
+        spacing: {
+          after: 400
+        }
+      }), new Paragraph({
+        text: 'Quarterly Report',
+        heading: HeadingLevel.HEADING_1,
+        alignment: 'center',
+        spacing: {
+          after: 200
+        }
+      }), new Paragraph({
+        text: `${quarter} ${year}`,
+        heading: HeadingLevel.HEADING_2,
+        alignment: 'center',
+        spacing: {
+          after: 200
+        }
+      }), new Paragraph({
+        text: getQuarterDates(quarter, year),
+        alignment: 'center',
+        spacing: {
+          after: 400
+        }
+      }), new Paragraph({
+        text: `Report Created: ${getCurrentDate()}`,
+        alignment: 'center',
+        spacing: {
+          after: 800
+        }
+      }));
 
       // Add content
       documentChildren.push(...parseContentForWord(reportContent));
@@ -563,16 +531,20 @@ Focus on creating a comprehensive narrative that demonstrates ${companyName}'s o
             page: {
               size: {
                 orientation: "portrait",
-                width: 11906, // A4 width in twentieths of a point (8.27 inches)
-                height: 16838, // A4 height in twentieths of a point (11.69 inches)
+                width: 11906,
+                // A4 width in twentieths of a point (8.27 inches)
+                height: 16838 // A4 height in twentieths of a point (11.69 inches)
               },
               margin: {
-                top: 1440, // 1 inch
-                right: 1440, // 1 inch
-                bottom: 1440, // 1 inch
-                left: 1440, // 1 inch
-              },
-            },
+                top: 1440,
+                // 1 inch
+                right: 1440,
+                // 1 inch
+                bottom: 1440,
+                // 1 inch
+                left: 1440 // 1 inch
+              }
+            }
           },
           children: documentChildren
         }]
@@ -581,7 +553,6 @@ Focus on creating a comprehensive narrative that demonstrates ${companyName}'s o
       // Generate and download the document
       const blob = await Packer.toBlob(doc);
       const url = URL.createObjectURL(blob);
-      
       const link = document.createElement('a');
       link.href = url;
       link.download = `quarterly-report-${quarter}-${year}.docx`;
@@ -589,61 +560,78 @@ Focus on creating a comprehensive narrative that demonstrates ${companyName}'s o
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
-
       toast({
         title: "Export Successful",
-        description: "Report has been exported to Word document",
+        description: "Report has been exported to Word document"
       });
     } catch (error) {
       console.error('Error exporting Word document:', error);
       toast({
         title: "Export Failed",
         description: "Failed to export report to Word document",
-        variant: "destructive",
+        variant: "destructive"
       });
     } finally {
       setIsExporting(false);
     }
   };
-
   const parseContentForWord = (content: string): Paragraph[] => {
     const paragraphs: Paragraph[] = [];
     const lines = content.split('\n');
-
     for (const line of lines) {
       const trimmedLine = line.trim();
-      
       if (trimmedLine === '') {
         // Add spacing for empty lines
-        paragraphs.push(new Paragraph({ text: '', spacing: { after: 200 } }));
+        paragraphs.push(new Paragraph({
+          text: '',
+          spacing: {
+            after: 200
+          }
+        }));
       } else if (trimmedLine.match(/^\d+\.\s/)) {
         // Section headers (e.g., "1. Executive Summary")
         paragraphs.push(new Paragraph({
-          children: [new TextRun({ text: trimmedLine, bold: true, size: 28 })],
+          children: [new TextRun({
+            text: trimmedLine,
+            bold: true,
+            size: 28
+          })],
           heading: HeadingLevel.HEADING_1,
-          spacing: { before: 400, after: 200 }
+          spacing: {
+            before: 400,
+            after: 200
+          }
         }));
       } else if (trimmedLine.startsWith('Care Agency Quarterly Report')) {
         // Main title
         paragraphs.push(new Paragraph({
-          children: [new TextRun({ text: trimmedLine, bold: true, size: 32 })],
+          children: [new TextRun({
+            text: trimmedLine,
+            bold: true,
+            size: 32
+          })],
           heading: HeadingLevel.TITLE,
           alignment: 'center',
-          spacing: { after: 400 }
+          spacing: {
+            after: 400
+          }
         }));
       } else if (trimmedLine.length > 0) {
         // Regular paragraphs
         paragraphs.push(new Paragraph({
-          children: [new TextRun({ text: trimmedLine, size: 22 })],
-          spacing: { after: 120 },
+          children: [new TextRun({
+            text: trimmedLine,
+            size: 22
+          })],
+          spacing: {
+            after: 120
+          },
           alignment: 'both'
         }));
       }
     }
-
     return paragraphs;
   };
-
   const printReport = () => {
     window.print();
   };
@@ -654,7 +642,6 @@ Focus on creating a comprehensive narrative that demonstrates ${companyName}'s o
   // Function to render visual analytics charts
   const renderAnalyticsChart = (analyticsType: string, analyticsData: any) => {
     if (!analyticsData || !analyticsData.hasData) return null;
-
     switch (analyticsType) {
       case 'staffTraining':
         if (analyticsData.data?.monthly_data) {
@@ -664,9 +651,7 @@ Focus on creating a comprehensive narrative that demonstrates ${companyName}'s o
             'Probation Staff': item.probationStaff,
             'Onboarding Staff': item.onboardingStaff
           }));
-
-          return (
-            <div className="h-80 w-full">
+          return <div className="h-80 w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={chartData}>
                   <CartesianGrid strokeDasharray="3 3" />
@@ -678,11 +663,9 @@ Focus on creating a comprehensive narrative that demonstrates ${companyName}'s o
                   <Bar dataKey="Onboarding Staff" fill="#f59e0b" />
                 </BarChart>
               </ResponsiveContainer>
-            </div>
-          );
+            </div>;
         }
         break;
-
       case 'feedback':
         if (Array.isArray(analyticsData.data)) {
           const chartData = analyticsData.data.map((item: any) => ({
@@ -692,11 +675,14 @@ Focus on creating a comprehensive narrative that demonstrates ${companyName}'s o
             suggestions: item.suggestions || 0,
             resolved: item.resolved || 0
           }));
-
-          return (
-            <div className="h-80 w-full">
+          return <div className="h-80 w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <ComposedChart data={chartData} margin={{ top: 5, right: 5, bottom: 25, left: 5 }}>
+                <ComposedChart data={chartData} margin={{
+                top: 5,
+                right: 5,
+                bottom: 25,
+                left: 5
+              }}>
                   <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
                   <XAxis dataKey="month" axisLine={false} tickLine={false} className="text-xs" />
                   <YAxis axisLine={false} tickLine={false} className="text-xs" />
@@ -704,14 +690,15 @@ Focus on creating a comprehensive narrative that demonstrates ${companyName}'s o
                   <Bar dataKey="compliments" fill="#22c55e" name="Compliments" stackId="feedback" />
                   <Bar dataKey="complaints" fill="#ef4444" name="Complaints" stackId="feedback" />
                   <Bar dataKey="suggestions" fill="#3b82f6" name="Suggestions" stackId="feedback" />
-                  <Line type="monotone" dataKey="resolved" stroke="#f59e0b" strokeWidth={2} dot={{ r: 3, fill: "#f59e0b" }} name="Resolved" />
+                  <Line type="monotone" dataKey="resolved" stroke="#f59e0b" strokeWidth={2} dot={{
+                  r: 3,
+                  fill: "#f59e0b"
+                }} name="Resolved" />
                 </ComposedChart>
               </ResponsiveContainer>
-            </div>
-          );
+            </div>;
         }
         break;
-
       case 'incidents':
         if (Array.isArray(analyticsData.data)) {
           const chartData = analyticsData.data.map((item: any) => ({
@@ -721,11 +708,14 @@ Focus on creating a comprehensive narrative that demonstrates ${companyName}'s o
             safeguarding: item.safeguarding || 0,
             resolved: item.resolved || 0
           }));
-
-          return (
-            <div className="h-80 w-full">
+          return <div className="h-80 w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <ComposedChart data={chartData} margin={{ top: 5, right: 5, bottom: 25, left: 5 }}>
+                <ComposedChart data={chartData} margin={{
+                top: 5,
+                right: 5,
+                bottom: 25,
+                left: 5
+              }}>
                   <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
                   <XAxis dataKey="month" axisLine={false} tickLine={false} className="text-xs" />
                   <YAxis axisLine={false} tickLine={false} className="text-xs" />
@@ -733,145 +723,124 @@ Focus on creating a comprehensive narrative that demonstrates ${companyName}'s o
                   <Bar dataKey="incidents" fill="#ef4444" name="Incidents" stackId="incidents" />
                   <Bar dataKey="accidents" fill="#f59e0b" name="Accidents" stackId="incidents" />
                   <Bar dataKey="safeguarding" fill="#3b82f6" name="Safeguarding" stackId="incidents" />
-                  <Line type="monotone" dataKey="resolved" stroke="#22c55e" strokeWidth={2} dot={{ r: 3, fill: "#22c55e" }} name="Resolved" />
+                  <Line type="monotone" dataKey="resolved" stroke="#22c55e" strokeWidth={2} dot={{
+                  r: 3,
+                  fill: "#22c55e"
+                }} name="Resolved" />
                 </ComposedChart>
               </ResponsiveContainer>
-            </div>
-          );
+            </div>;
         }
         break;
-
       case 'carePlan':
         if (analyticsData.data) {
-          const pieData = [
-            { name: 'Low Risk', value: analyticsData.data.lowRisk || 0, color: '#10b981' },
-            { name: 'Medium Risk', value: analyticsData.data.mediumRisk || 0, color: '#f59e0b' },
-            { name: 'High Risk', value: analyticsData.data.highRisk || 0, color: '#ef4444' },
-            { name: 'N/A Risk', value: analyticsData.data.naRisk || 0, color: '#6b7280' },
-          ].filter(item => item.value > 0);
-
-          return (
-            <div className="h-80 w-full">
+          const pieData = [{
+            name: 'Low Risk',
+            value: analyticsData.data.lowRisk || 0,
+            color: '#10b981'
+          }, {
+            name: 'Medium Risk',
+            value: analyticsData.data.mediumRisk || 0,
+            color: '#f59e0b'
+          }, {
+            name: 'High Risk',
+            value: analyticsData.data.highRisk || 0,
+            color: '#ef4444'
+          }, {
+            name: 'N/A Risk',
+            value: analyticsData.data.naRisk || 0,
+            color: '#6b7280'
+          }].filter(item => item.value > 0);
+          return <div className="h-80 w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
-                  <Pie
-                    data={pieData}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={({ name, value }) => `${name}: ${value}`}
-                    outerRadius={80}
-                    fill="#8884d8"
-                    dataKey="value"
-                  >
-                    {pieData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
+                  <Pie data={pieData} cx="50%" cy="50%" labelLine={false} label={({
+                  name,
+                  value
+                }) => `${name}: ${value}`} outerRadius={80} fill="#8884d8" dataKey="value">
+                    {pieData.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.color} />)}
                   </Pie>
                   <Tooltip />
                 </PieChart>
               </ResponsiveContainer>
-            </div>
-          );
+            </div>;
         }
         break;
-
       case 'spotCheck':
         if (analyticsData.data) {
-          const spotCheckData = [
-            { name: 'Completed Spot Checks', value: 100 - (analyticsData.data.overdueSpotChecks || 0), color: '#10b981' },
-            { name: 'Overdue Spot Checks', value: analyticsData.data.overdueSpotChecks || 0, color: '#ef4444' }
-          ].filter(item => item.value > 0);
-
-          return (
-            <div className="h-80 w-full">
+          const spotCheckData = [{
+            name: 'Completed Spot Checks',
+            value: 100 - (analyticsData.data.overdueSpotChecks || 0),
+            color: '#10b981'
+          }, {
+            name: 'Overdue Spot Checks',
+            value: analyticsData.data.overdueSpotChecks || 0,
+            color: '#ef4444'
+          }].filter(item => item.value > 0);
+          return <div className="h-80 w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
-                  <Pie
-                    data={spotCheckData}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={({ name, value }) => `${name}: ${value}%`}
-                    outerRadius={80}
-                    fill="#8884d8"
-                    dataKey="value"
-                  >
-                    {spotCheckData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
+                  <Pie data={spotCheckData} cx="50%" cy="50%" labelLine={false} label={({
+                  name,
+                  value
+                }) => `${name}: ${value}%`} outerRadius={80} fill="#8884d8" dataKey="value">
+                    {spotCheckData.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.color} />)}
                   </Pie>
                   <Tooltip />
                 </PieChart>
               </ResponsiveContainer>
-            </div>
-          );
+            </div>;
         }
         break;
-
       case 'supervision':
         if (analyticsData.data) {
-          const supervisionData = [
-            { name: 'Completed Supervisions', value: 100 - (analyticsData.data.overdueSupervisions || 0), color: '#10b981' },
-            { name: 'Overdue Supervisions', value: analyticsData.data.overdueSupervisions || 0, color: '#ef4444' }
-          ].filter(item => item.value > 0);
-
-          return (
-            <div className="h-80 w-full">
+          const supervisionData = [{
+            name: 'Completed Supervisions',
+            value: 100 - (analyticsData.data.overdueSupervisions || 0),
+            color: '#10b981'
+          }, {
+            name: 'Overdue Supervisions',
+            value: analyticsData.data.overdueSupervisions || 0,
+            color: '#ef4444'
+          }].filter(item => item.value > 0);
+          return <div className="h-80 w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
-                  <Pie
-                    data={supervisionData}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={({ name, value }) => `${name}: ${value}%`}
-                    outerRadius={80}
-                    fill="#8884d8"
-                    dataKey="value"
-                  >
-                    {supervisionData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
+                  <Pie data={supervisionData} cx="50%" cy="50%" labelLine={false} label={({
+                  name,
+                  value
+                }) => `${name}: ${value}%`} outerRadius={80} fill="#8884d8" dataKey="value">
+                    {supervisionData.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.color} />)}
                   </Pie>
                   <Tooltip />
                 </PieChart>
               </ResponsiveContainer>
-            </div>
-          );
+            </div>;
         }
         break;
-
       default:
-        return (
-          <div className="text-sm text-gray-600">
+        return <div className="text-sm text-gray-600">
             <pre className="mt-2 text-xs bg-white p-3 rounded border overflow-auto max-h-40">
               {JSON.stringify(analyticsData.data, null, 2)}
             </pre>
-          </div>
-        );
+          </div>;
     }
-
     return null;
   };
 
   // Show loading state when generating report
   if (isGenerating) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+    return <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <Card className="p-8 text-center">
           <Loader2 className="mx-auto h-12 w-12 text-primary animate-spin mb-4" />
           <h2 className="text-xl font-semibold mb-2">Generating Report</h2>
-          <p className="text-gray-600 mb-4">AI is creating your quarterly report for {quarter} {year}...</p>
+          
           <p className="text-sm text-gray-500">This may take a few moments</p>
         </Card>
-      </div>
-    );
+      </div>;
   }
-
   if (!reportContent || reportPages.length === 0) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+    return <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <Card className="p-8 text-center">
           <FileText className="mx-auto h-12 w-12 text-gray-400 mb-4" />
           <h2 className="text-xl font-semibold mb-2">No Report Found</h2>
@@ -881,12 +850,9 @@ Focus on creating a comprehensive narrative that demonstrates ${companyName}'s o
             Back to Reports
           </Button>
         </Card>
-      </div>
-    );
+      </div>;
   }
-
-  return (
-    <div className="min-h-screen bg-gray-50">
+  return <div className="min-h-screen bg-gray-50">
       {/* Action Bar - Not printed */}
       <div className="bg-white border-b border-gray-200 px-6 py-4 print:hidden">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
@@ -900,12 +866,7 @@ Focus on creating a comprehensive narrative that demonstrates ${companyName}'s o
               <Printer className="h-4 w-4" />
               Print
             </Button>
-            <Button 
-              onClick={exportToWord} 
-              disabled={isExporting}
-              variant="outline"
-              className="gap-2"
-            >
+            <Button onClick={exportToWord} disabled={isExporting} variant="outline" className="gap-2">
               <FileText className="h-4 w-4" />
               {isExporting ? 'Exporting...' : 'Export Word'}
             </Button>
@@ -919,42 +880,38 @@ Focus on creating a comprehensive narrative that demonstrates ${companyName}'s o
           
           {/* Display all pages as distinct A4 documents */}
           <div className="space-y-12 print:space-y-0">
-            {reportPages.map((pageContent, index) => (
-              <div 
-                key={index} 
-                data-page-index={index}
-                className="bg-white shadow-2xl print:shadow-none page-break mx-auto border border-gray-200 print:border-none"
-                style={{
-                  width: '794px',  // A4 width at 96 DPI (210mm = 794px)
-                  minHeight: '1123px',  // A4 height at 96 DPI (297mm = 1123px)
-                  padding: '96px',  // 25.4mm = 96px at 96 DPI
-                  fontSize: '16px',  // 12pt = 16px
-                  lineHeight: '1.5',
-                  fontFamily: 'Arial, sans-serif',
-                  boxSizing: 'border-box',
-                  pageBreakAfter: 'always'
-                }}
-              >
-              {index === 0 ? (
-                // Cover Page
-                <div className="h-full flex flex-col justify-between" style={{ padding: '0' }}>
+            {reportPages.map((pageContent, index) => <div key={index} data-page-index={index} className="bg-white shadow-2xl print:shadow-none page-break mx-auto border border-gray-200 print:border-none" style={{
+            width: '794px',
+            // A4 width at 96 DPI (210mm = 794px)
+            minHeight: '1123px',
+            // A4 height at 96 DPI (297mm = 1123px)
+            padding: '96px',
+            // 25.4mm = 96px at 96 DPI
+            fontSize: '16px',
+            // 12pt = 16px
+            lineHeight: '1.5',
+            fontFamily: 'Arial, sans-serif',
+            boxSizing: 'border-box',
+            pageBreakAfter: 'always'
+          }}>
+              {index === 0 ?
+            // Cover Page
+            <div className="h-full flex flex-col justify-between" style={{
+              padding: '0'
+            }}>
                   {/* Header */}
                   <div className="text-center">
-                    {companyInfo?.logo_url && (
-                      <div className="mb-8">
-                        <img 
-                          src={companyInfo.logo_url} 
-                          alt={`${companyInfo.name} Logo`}
-                          className="mx-auto h-24 w-auto object-contain"
-                        />
-                      </div>
-                    )}
+                    {companyInfo?.logo_url && <div className="mb-8">
+                        <img src={companyInfo.logo_url} alt={`${companyInfo.name} Logo`} className="mx-auto h-24 w-auto object-contain" />
+                      </div>}
                     
                     <h1 className="text-4xl font-bold text-gray-900 mb-2">
                       {companyInfo?.name || 'Care Agency'}
                     </h1>
                     
-                    <div className="w-24 h-1 mx-auto mb-8" style={{ backgroundColor: companyInfo?.theme_color || '#3b82f6' }}></div>
+                    <div className="w-24 h-1 mx-auto mb-8" style={{
+                  backgroundColor: companyInfo?.theme_color || '#3b82f6'
+                }}></div>
                   </div>
 
                   {/* Main Title */}
@@ -980,179 +937,141 @@ Focus on creating a comprehensive narrative that demonstrates ${companyName}'s o
                       Report Created: {getCurrentDate()}
                     </p>
                   </div>
-                </div>
-              ) : (
-                // Content Pages
-                <div className="h-full relative" style={{ padding: '0' }}>
+                </div> :
+            // Content Pages
+            <div className="h-full relative" style={{
+              padding: '0'
+            }}>
                   {/* Page Header */}
-                  <div className="absolute top-0 left-0 right-0 flex justify-between items-center text-sm text-gray-600 print:block" style={{ 
-                    padding: '15mm 15mm 0 15mm',
-                    height: '20mm'
-                  }}>
+                  <div className="absolute top-0 left-0 right-0 flex justify-between items-center text-sm text-gray-600 print:block" style={{
+                padding: '15mm 15mm 0 15mm',
+                height: '20mm'
+              }}>
                   </div>
                   
                   {/* Page Footer */}
-                  <div className="absolute bottom-0 left-0 right-0 flex justify-center items-center text-sm text-gray-600 print:block" style={{ 
-                    padding: '0 15mm 15mm 15mm',
-                    height: '20mm'
-                  }}>
+                  <div className="absolute bottom-0 left-0 right-0 flex justify-center items-center text-sm text-gray-600 print:block" style={{
+                padding: '0 15mm 15mm 15mm',
+                height: '20mm'
+              }}>
                     <div className="text-center">
                       Page {index}
                     </div>
                   </div>
                   
-                  <div className="prose prose-lg max-w-none" style={{ paddingTop: '20mm', paddingBottom: '20mm' }}>
-                    <div className="report-content" style={{ 
-                      fontFamily: 'system-ui, -apple-system, sans-serif',
-                       lineHeight: '1.6',
-                       color: '#374151'
-                     }}>
+                  <div className="prose prose-lg max-w-none" style={{
+                paddingTop: '20mm',
+                paddingBottom: '20mm'
+              }}>
+                    <div className="report-content" style={{
+                  fontFamily: 'system-ui, -apple-system, sans-serif',
+                  lineHeight: '1.6',
+                  color: '#374151'
+                }}>
                         {(() => {
-                          const processedAnalytics = new Set();
-                          return pageContent.split('\n').map((line, lineIndex) => {
-                            // Check for analytics data placeholders
-                            const analyticsDataMatch = line.trim().match(/\[ANALYTICS DATA: (\w+)\]/);
-                            if (analyticsDataMatch) {
-                              const analyticsType = analyticsDataMatch[1];
-                              
-                              // Only show feedback and spotCheck analytics, and only once each
-                              if ((analyticsType === 'feedback' || analyticsType === 'incidents' || analyticsType === 'spotCheck') && !processedAnalytics.has(analyticsType)) {
-                                processedAnalytics.add(analyticsType);
-                                const analyticsData = analyticsImages[analyticsType];
-                                
-                                if (analyticsData && analyticsData.hasData) {
-                                  const displayTitle = analyticsType === 'feedback' ? 'Feedback' : analyticsType === 'incidents' ? 'Incidents, Accidents & Safeguarding' : 'Spot Check Analytics';
-                                  return (
-                                    <div key={lineIndex} className="my-6 p-4 border border-gray-200 rounded-lg bg-gray-50">
+                    const processedAnalytics = new Set();
+                    return pageContent.split('\n').map((line, lineIndex) => {
+                      // Check for analytics data placeholders
+                      const analyticsDataMatch = line.trim().match(/\[ANALYTICS DATA: (\w+)\]/);
+                      if (analyticsDataMatch) {
+                        const analyticsType = analyticsDataMatch[1];
+
+                        // Only show feedback and spotCheck analytics, and only once each
+                        if ((analyticsType === 'feedback' || analyticsType === 'incidents' || analyticsType === 'spotCheck') && !processedAnalytics.has(analyticsType)) {
+                          processedAnalytics.add(analyticsType);
+                          const analyticsData = analyticsImages[analyticsType];
+                          if (analyticsData && analyticsData.hasData) {
+                            const displayTitle = analyticsType === 'feedback' ? 'Feedback' : analyticsType === 'incidents' ? 'Incidents, Accidents & Safeguarding' : 'Spot Check Analytics';
+                            return <div key={lineIndex} className="my-6 p-4 border border-gray-200 rounded-lg bg-gray-50">
                                       <h3 className="text-lg font-semibold text-gray-800 mb-3">{displayTitle}</h3>
                                       {renderAnalyticsChart(analyticsType, analyticsData)}
-                                    </div>
-                                  );
-                                }
-                              }
-                              return null; // Skip if not feedback/spotCheck or already processed
-                            }
-                          
-                            // Handle natural language prose content
-                            if (line.trim().match(/^\d+\.\s/)) {
-                              // Section headers (e.g., "1. Executive Summary")
-                              return (
-                                <div key={lineIndex} className="mb-8">
-                                  <h2 
-                                    className="text-2xl font-bold text-gray-800 pb-3 mb-6 mt-8"
-                                    style={{ 
-                                      borderBottom: '2px solid #e5e7eb',
-                                      fontSize: '18pt',
-                                      fontWeight: 'bold',
-                                      color: '#374151',
-                                      paddingBottom: '12px'
-                                    }}
-                                  >
+                                    </div>;
+                          }
+                        }
+                        return null; // Skip if not feedback/spotCheck or already processed
+                      }
+
+                      // Handle natural language prose content
+                      if (line.trim().match(/^\d+\.\s/)) {
+                        // Section headers (e.g., "1. Executive Summary")
+                        return <div key={lineIndex} className="mb-8">
+                                  <h2 className="text-2xl font-bold text-gray-800 pb-3 mb-6 mt-8" style={{
+                            borderBottom: '2px solid #e5e7eb',
+                            fontSize: '18pt',
+                            fontWeight: 'bold',
+                            color: '#374151',
+                            paddingBottom: '12px'
+                          }}>
                                     {line.trim()}
                                   </h2>
-                                </div>
-                              );
-                            }
-                            if (line.trim().startsWith('Care Agency Quarterly Report') || line.trim().includes('Quarterly Report')) {
-                              // Main title - replace with actual company name
-                              const titleText = line.trim().replace('Care Agency', companyInfo?.name || 'Care Agency');
-                              return (
-                                <h1 key={lineIndex} className="text-3xl font-bold text-gray-900 mb-8 text-center border-b-2 border-gray-200 pb-4">
+                                </div>;
+                      }
+                      if (line.trim().startsWith('Care Agency Quarterly Report') || line.trim().includes('Quarterly Report')) {
+                        // Main title - replace with actual company name
+                        const titleText = line.trim().replace('Care Agency', companyInfo?.name || 'Care Agency');
+                        return <h1 key={lineIndex} className="text-3xl font-bold text-gray-900 mb-8 text-center border-b-2 border-gray-200 pb-4">
                                   {titleText}
-                                </h1>
-                              );
-                            }
-                            // Check for standalone section titles (without numbers) - expanded list
-                            if (line.trim().length > 0 && line.trim().length < 100 && 
-                                (line.trim() === 'Executive Summary' || 
-                                 line.trim() === 'Operational Successes' ||
-                                 line.trim() === 'Operational Successes and Achievements' ||
-                                 line.trim() === 'Learning Opportunities and Challenges' ||
-                                 line.trim() === 'Learning Opportunities and Strategic Challenges' ||
-                                 line.trim() === 'Workforce and Capacity Analysis' ||
-                                 line.trim() === 'Workforce Development and Capacity Analysis' ||
-                                 line.trim() === 'Care Quality and Service Delivery' ||
-                                 line.trim() === 'Care Quality and Service Excellence' ||
-                                 line.trim() === 'Health, Safety and Risk Management' ||
-                                 line.trim() === 'Continuous Improvement and Innovation' ||
-                                 line.trim() === 'Strategic Outlook and Recommendations' ||
-                                 line.trim() === 'Strategic Outlook and Future Planning' ||
-                                 line.trim().includes('Summary') ||
-                                 line.trim().includes('Analysis') ||
-                                 line.trim().includes('Development') ||
-                                 line.trim().includes('Excellence') ||
-                                 line.trim().includes('Management') ||
-                                 line.trim().includes('Innovation') ||
-                                 line.trim().includes('Outlook') ||
-                                 line.trim().includes('Planning'))) {
-                              return (
-                                <div key={lineIndex} className="mb-8">
-                                  <h2 
-                                    className="text-2xl font-bold text-gray-800 pb-3 mb-6"
-                                    style={{ 
-                                      borderBottom: '2px solid #e5e7eb',
-                                      fontSize: '18pt',
-                                      fontWeight: 'bold',
-                                      color: '#374151',
-                                      paddingBottom: '12px'
-                                    }}
-                                  >
+                                </h1>;
+                      }
+                      // Check for standalone section titles (without numbers) - expanded list
+                      if (line.trim().length > 0 && line.trim().length < 100 && (line.trim() === 'Executive Summary' || line.trim() === 'Operational Successes' || line.trim() === 'Operational Successes and Achievements' || line.trim() === 'Learning Opportunities and Challenges' || line.trim() === 'Learning Opportunities and Strategic Challenges' || line.trim() === 'Workforce and Capacity Analysis' || line.trim() === 'Workforce Development and Capacity Analysis' || line.trim() === 'Care Quality and Service Delivery' || line.trim() === 'Care Quality and Service Excellence' || line.trim() === 'Health, Safety and Risk Management' || line.trim() === 'Continuous Improvement and Innovation' || line.trim() === 'Strategic Outlook and Recommendations' || line.trim() === 'Strategic Outlook and Future Planning' || line.trim().includes('Summary') || line.trim().includes('Analysis') || line.trim().includes('Development') || line.trim().includes('Excellence') || line.trim().includes('Management') || line.trim().includes('Innovation') || line.trim().includes('Outlook') || line.trim().includes('Planning'))) {
+                        return <div key={lineIndex} className="mb-8">
+                                  <h2 className="text-2xl font-bold text-gray-800 pb-3 mb-6" style={{
+                            borderBottom: '2px solid #e5e7eb',
+                            fontSize: '18pt',
+                            fontWeight: 'bold',
+                            color: '#374151',
+                            paddingBottom: '12px'
+                          }}>
                                     {line.trim()}
                                   </h2>
-                                </div>
-                              );
-                            }
-                            if (line.trim().length > 50) {
-                              // Regular paragraphs - substantial text
-                              return (
-                                <p key={lineIndex} className="mb-6 text-gray-700 leading-relaxed text-justify font-normal" style={{ 
-                                  marginBottom: '1.5rem',
-                                  lineHeight: '1.7',
-                                  textAlign: 'justify',
-                                  fontSize: '12pt'
-                                }}>
+                                </div>;
+                      }
+                      if (line.trim().length > 50) {
+                        // Regular paragraphs - substantial text
+                        return <p key={lineIndex} className="mb-6 text-gray-700 leading-relaxed text-justify font-normal" style={{
+                          marginBottom: '1.5rem',
+                          lineHeight: '1.7',
+                          textAlign: 'justify',
+                          fontSize: '12pt'
+                        }}>
                                   {line.trim()}
-                                </p>
-                              );
-                            }
-                            if (line.trim().length > 20 && line.trim().length <= 50) {
-                              // Shorter content lines - subheadings or brief statements
-                              return (
-                                <p key={lineIndex} className="mb-4 text-gray-800 leading-relaxed font-medium" style={{ 
-                                  marginBottom: '1rem',
-                                  lineHeight: '1.6',
-                                  fontSize: '11pt',
-                                  fontWeight: '500'
-                                }}>
+                                </p>;
+                      }
+                      if (line.trim().length > 20 && line.trim().length <= 50) {
+                        // Shorter content lines - subheadings or brief statements
+                        return <p key={lineIndex} className="mb-4 text-gray-800 leading-relaxed font-medium" style={{
+                          marginBottom: '1rem',
+                          lineHeight: '1.6',
+                          fontSize: '11pt',
+                          fontWeight: '500'
+                        }}>
                                   {line.trim()}
-                                </p>
-                              );
-                            }
-                            if (line.trim().length > 0) {
-                              // Other content - brief lines
-                              return (
-                                <p key={lineIndex} className="mb-3 text-gray-700 leading-relaxed" style={{ 
-                                  marginBottom: '0.75rem',
-                                  lineHeight: '1.6',
-                                  fontSize: '12pt'
-                                }}>
+                                </p>;
+                      }
+                      if (line.trim().length > 0) {
+                        // Other content - brief lines
+                        return <p key={lineIndex} className="mb-3 text-gray-700 leading-relaxed" style={{
+                          marginBottom: '0.75rem',
+                          lineHeight: '1.6',
+                          fontSize: '12pt'
+                        }}>
                                   {line.trim()}
-                                </p>
-                              );
-                            }
-                            if (line.trim() === '') {
-                              // Empty lines for spacing
-                              return <div key={lineIndex} style={{ height: '0.5rem' }}></div>;
-                            }
-                            return null;
-                          });
-                         })()}
+                                </p>;
+                      }
+                      if (line.trim() === '') {
+                        // Empty lines for spacing
+                        return <div key={lineIndex} style={{
+                          height: '0.5rem'
+                        }}></div>;
+                      }
+                      return null;
+                    });
+                  })()}
                      </div>
                   </div>
-                </div>
-              )}
-            </div>
-          ))}
+                </div>}
+            </div>)}
         </div>
         </div>
       </div>
@@ -1276,6 +1195,5 @@ Focus on creating a comprehensive narrative that demonstrates ${companyName}'s o
           page-break-inside: avoid;
         }
       `}</style>
-    </div>
-  );
+    </div>;
 };
