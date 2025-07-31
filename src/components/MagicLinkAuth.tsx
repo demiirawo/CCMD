@@ -173,7 +173,7 @@ export const MagicLinkAuth = () => {
             <img 
               src="/lovable-uploads/84bbf08a-ae99-4dc3-983c-58edd0b6546f.png" 
               alt="CCMD Logo" 
-              className="h-16 w-auto mx-auto"
+              className="h-24 w-auto mx-auto"
             />
           </div>
           <CardTitle>Sign In to Your Company</CardTitle>
