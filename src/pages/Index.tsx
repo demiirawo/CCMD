@@ -1903,7 +1903,7 @@ const Index = () => {
             // Conditionally modify section title (text only, no visual changes)
             let sectionTitle = section.title;
             if (useSupportedTerminology && section.title === "Care Planning & Delivery") {
-              sectionTitle = "Supported Planning & Delivery";
+              sectionTitle = "Support Planning & Delivery";
             }
             
             // Conditionally modify item titles (text only, no visual changes)
