@@ -227,8 +227,7 @@ export const TeamMembersManager = ({
 
         {/* Team members list */}
         <div className="space-y-2">
-          <h4 className="font-medium flex items-center gap-2">
-            <UserCheck className="h-4 w-4" />
+          <h4 className="font-medium">
             Team Members ({teamMembers.length})
           </h4>
           
