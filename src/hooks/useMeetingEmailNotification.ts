@@ -44,35 +44,59 @@ export const useMeetingEmailNotification = () => {
       // Debug action items structure
       console.log('🔍 Action items raw data:', JSON.stringify(meetingData.actions, null, 2));
       
-      // Format action items
+      // Format action items with better field checking
       const actionItemsHtml = meetingData.actions.length > 0 
         ? `
           <h3 style="color: #374151; margin-bottom: 16px;">Action Items:</h3>
           <ul style="margin: 0; padding-left: 20px;">
             ${meetingData.actions.map((action, index) => {
               console.log(`🔍 Processing action ${index}:`, {
+                raw: action,
                 keys: Object.keys(action),
                 action_text: action.action_text,
                 actionText: action.actionText,
                 description: action.description,
                 text: action.text,
+                title: action.title,
                 mentioned_attendee: action.mentioned_attendee,
                 assignee: action.assignee,
                 assigned_to: action.assigned_to,
+                owner: action.owner,
                 due_date: action.due_date,
                 dueDate: action.dueDate,
-                targetDate: action.targetDate
+                targetDate: action.targetDate,
+                target_date: action.target_date
               });
               
-              const actionText = action.action_text || action.actionText || action.description || action.text || 'No action description';
-              const assignee = action.mentioned_attendee || action.assignee || action.assigned_to || '';
-              const dueDate = action.due_date || action.dueDate || action.targetDate || '';
+              // Get action description - check multiple possible field names
+              const actionText = action.action_text || 
+                                action.actionText || 
+                                action.description || 
+                                action.text || 
+                                action.title || 
+                                'No action description';
+              
+              // Get assignee - check multiple possible field names  
+              const assignee = action.mentioned_attendee || 
+                              action.assignee || 
+                              action.assigned_to || 
+                              action.owner || 
+                              '';
+              
+              // Get due date - check multiple possible field names
+              const dueDate = action.due_date || 
+                             action.dueDate || 
+                             action.targetDate || 
+                             action.target_date || 
+                             '';
               
               return `
-                <li style="margin-bottom: 8px; color: #6B7280;">
-                  <strong>${actionText}</strong>
-                  ${assignee ? ` - Assigned to: ${assignee}` : ''}
-                  ${dueDate ? ` - Due: ${dueDate}` : ''}
+                <li style="margin-bottom: 12px; color: #6B7280; line-height: 1.5;">
+                  <div style="margin-bottom: 4px;">
+                    <strong style="color: #374151;">${actionText}</strong>
+                  </div>
+                  ${assignee ? `<div style="font-size: 14px; color: #6B7280;">👤 Assigned to: ${assignee}</div>` : ''}
+                  ${dueDate ? `<div style="font-size: 14px; color: #6B7280;">📅 Due: ${dueDate}</div>` : ''}
                 </li>
               `;
             }).join('')}
@@ -118,7 +142,7 @@ export const useMeetingEmailNotification = () => {
           const { data, error } = await supabase.functions.invoke('send-email', {
             body: {
               to: email,
-              subject: `Meeting Summary: ${meetingData.title}`,
+              subject: `${meetingData.title} - ${new Date(meetingData.date).toLocaleDateString('en-GB')}`,
               html: emailHtml,
               from: 'Care Cuddle <meetings@care-cuddle.xyz>'
             }
