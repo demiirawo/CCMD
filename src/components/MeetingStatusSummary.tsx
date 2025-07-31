@@ -48,25 +48,5 @@ export const MeetingStatusSummary = ({
     }
   });
   console.log('MeetingStatusSummary: Status counts:', statusCounts);
-  
-  return (
-    <div className="flex items-center justify-center gap-8 py-4">
-      <div className="flex items-center gap-2">
-        <StatusBadge status="green" />
-        <span className="text-sm font-medium">On Track</span>
-      </div>
-      <div className="flex items-center gap-2">
-        <StatusBadge status="amber" />
-        <span className="text-sm font-medium">At Risk</span>
-      </div>
-      <div className="flex items-center gap-2">
-        <StatusBadge status="red" />
-        <span className="text-sm font-medium">Critical</span>
-      </div>
-      <div className="flex items-center gap-2">
-        <StatusBadge status="na" />
-        <span className="text-sm font-medium">Not Applicable</span>
-      </div>
-    </div>
-  );
+  return;
 };
