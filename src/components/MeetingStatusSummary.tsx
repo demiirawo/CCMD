@@ -48,5 +48,21 @@ export const MeetingStatusSummary = ({
     }
   });
   console.log('MeetingStatusSummary: Status counts:', statusCounts);
-  return;
+  
+  return (
+    <div className="flex items-center gap-4 mb-4">
+      <div className="flex items-center gap-2">
+        <StatusBadge status="green" />
+        <span className="text-sm">{statusCounts.green}</span>
+      </div>
+      <div className="flex items-center gap-2">
+        <StatusBadge status="amber" />
+        <span className="text-sm">{statusCounts.amber}</span>
+      </div>
+      <div className="flex items-center gap-2">
+        <StatusBadge status="red" />
+        <span className="text-sm">{statusCounts.red}</span>
+      </div>
+    </div>
+  );
 };

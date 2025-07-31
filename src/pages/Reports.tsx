@@ -501,26 +501,20 @@ export const Reports = () => {
                     <div className="space-y-3 pt-4 border-t border-border/20">
                       {quarterMeetings.map(meeting => (
                         <div key={meeting.id} className="rounded-lg p-4 border bg-white">
-                          <div className="space-y-3">
-                            <div className="flex items-start justify-between">
-                              <div className="flex-1">
-                                <h4 className="font-medium text-foreground mb-1">
-                                  {meeting.title}
-                                </h4>
-                                <div className="flex items-center gap-4 text-sm text-muted-foreground mb-2">
-                                  <div className="flex items-center gap-1">
-                                    <CalendarDays className="h-4 w-4" />
-                                    {formatDate(meeting.date)}
-                                  </div>
-                                  <div className="flex items-center gap-1">
-                                    <Users className="h-4 w-4" />
-                                    {meeting.attendees.length} attendee{meeting.attendees.length !== 1 ? 's' : ''}
-                                  </div>
-                                </div>
+                          <div className="flex items-center justify-between w-full">
+                            <div className="flex items-center gap-6 flex-1">
+                              <h4 className="font-medium text-foreground">
+                                {meeting.title}
+                              </h4>
+                              <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                                <CalendarDays className="h-4 w-4" />
+                                {formatDate(meeting.date)}
                               </div>
-                              <div className="ml-4 flex items-center gap-2">
-                                <MeetingStatusSummary sections={meeting.sections} />
+                              <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                                <Users className="h-4 w-4" />
+                                {meeting.attendees.length} attendee{meeting.attendees.length !== 1 ? 's' : ''}
                               </div>
+                              <MeetingStatusSummary sections={meeting.sections} />
                             </div>
                             <div className="flex items-center gap-2">
                                {/* View Dashboard Dialog */}
@@ -600,8 +594,9 @@ export const Reports = () => {
                                 </AlertDialog>
                               )}
                             </div>
+                          </div>
 
-                            {/* Hidden print-friendly content for each meeting */}
+                             {/* Hidden print-friendly content for each meeting */}
                             <div id={`meeting-print-${meeting.id}`} className="hidden">
                               <div className="print-header">
                                 <h1 className="print-title">{meeting.title}</h1>
@@ -610,7 +605,6 @@ export const Reports = () => {
                               
                               <ReadOnlyDashboardView meetingId={meeting.id} />
                             </div>
-                          </div>
                         </div>
                       ))}
                     </div>
