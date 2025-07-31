@@ -47,7 +47,7 @@ export const DashboardSection = ({
   onSubsectionActionComplete,
   onSubsectionActionDelete,
   attendees = [],
-  defaultOpen = true,
+  defaultOpen = false,
   forceOpen,
   onPanelStateChange,
   meetingDate,
