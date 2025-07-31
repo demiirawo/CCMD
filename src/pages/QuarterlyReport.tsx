@@ -34,6 +34,7 @@ export const QuarterlyReport = () => {
   const [analyticsImages, setAnalyticsImages] = useState<{
     [key: string]: any;
   }>({});
+  const [hasGenerationFailed, setHasGenerationFailed] = useState(false);
   const quarter = searchParams.get("quarter") || "";
   const year = searchParams.get("year") || "";
   const content = searchParams.get("content") || "";
@@ -48,7 +49,7 @@ export const QuarterlyReport = () => {
     console.log('📄 content from URL:', !!content);
     console.log('📄 reportContent state:', !!reportContent);
     console.log('🔄 isGenerating:', isGenerating);
-    if (shouldGenerate && !content && !reportContent && !isGenerating) {
+    if (shouldGenerate && !content && !reportContent && !isGenerating && !hasGenerationFailed) {
       console.log('✅ All conditions met - starting report generation');
       generateAIReport();
     } else {
@@ -58,7 +59,7 @@ export const QuarterlyReport = () => {
       if (reportContent) console.log('  - reportContent already exists in state');
       if (isGenerating) console.log('  - already generating');
     }
-  }, [shouldGenerate, content, reportContent, isGenerating]);
+  }, [shouldGenerate, content, reportContent, isGenerating, hasGenerationFailed]);
   useEffect(() => {
     if (content) {
       try {
@@ -334,8 +335,9 @@ Focus on creating a comprehensive narrative that demonstrates ${companyName}'s o
       }
     } catch (error) {
       console.error('❌ Error generating report:', error);
+      setHasGenerationFailed(true); // Prevent infinite retry loop
       toast({
-        title: "Generation Failed",
+        title: "Generation Failed", 
         description: error instanceof Error ? error.message : "Failed to generate the quarterly report. Please try again.",
         variant: "destructive"
       });
