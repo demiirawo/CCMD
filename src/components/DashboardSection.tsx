@@ -217,7 +217,7 @@ export const DashboardSection = ({
               </p>
             )}
           </div>
-          <div className="ml-16">
+          <div className="ml-4">
             {getStatusIcon(getOverallStatus())}
           </div>
         </div>
