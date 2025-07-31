@@ -154,7 +154,7 @@ export const useMeetingEmailNotification = () => {
               to: email,
               subject: `${meetingData.title} - ${new Date(meetingData.date).toLocaleDateString('en-GB')}`,
               html: emailHtml,
-              from: 'Care Cuddle <meetings@ccmd.co.uk>'
+              from: 'CCMD <meetings@ccmd.co.uk>'
             }
           });
 
