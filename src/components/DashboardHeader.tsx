@@ -78,7 +78,7 @@ export const DashboardHeader = ({
           </button>
       )}
     </div>;
-  return <div className="bg-primary/10 p-8 mb-8 rounded-xl shadow-sm -mx-8 px-14">
+  return <div className="bg-primary/10 p-8 mb-8 rounded-xl shadow-sm -mx-8 px-14 border border-primary/20">
       {/* Status Summary - only show if sections are provided */}
       {sections && (
         <MeetingStatusSummary sections={sections} />
