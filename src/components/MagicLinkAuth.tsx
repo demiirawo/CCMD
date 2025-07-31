@@ -179,7 +179,7 @@ export const MagicLinkAuth = () => {
           <form onSubmit={handleMagicLink} className="space-y-4">
             <div className="space-y-2">
               
-              <Input id="email" type="email" placeholder="Enter your email" value={email} onChange={e => setEmail(e.target.value)} required />
+              <Input id="email" type="email" placeholder="Enter your email" value={email} onChange={e => setEmail(e.target.value)} required className="focus-visible:ring-stone-50" />
             </div>
             <Button type="submit" disabled={loading} className="w-full text-base bg-neutral-400 hover:bg-neutral-300 text-black">
               {loading ? "Sending..." : "Send Magic Link"}
