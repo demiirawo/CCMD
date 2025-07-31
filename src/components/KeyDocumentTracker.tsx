@@ -197,7 +197,7 @@ export const KeyDocumentTracker = ({
   };
 
   return <Card className={`rounded-2xl p-6 shadow-lg -mx-8 px-14 outline-none ${getBackgroundClass()}`}>
-      <div className="flex items-center justify-between cursor-pointer mb-6" onClick={() => {
+      <div className="flex items-center justify-between cursor-pointer mb-6 outline-none" onClick={() => {
         const newState = !isExpanded;
         setIsExpanded(newState);
         sessionStorage.setItem('key_documents_expanded', JSON.stringify(newState));
