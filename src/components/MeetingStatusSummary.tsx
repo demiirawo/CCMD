@@ -32,37 +32,21 @@ const sectionConfig = {
 export const MeetingStatusSummary = ({
   sections
 }: MeetingStatusSummaryProps) => {
-  return <div className="flex gap-6 mb-4 justify-center">
-      <div className="flex flex-col items-center gap-2">
-        <StatusBadge status="green" />
-        <div className="text-xs text-center font-medium text-foreground">
-          
-          <div>On Track</div>
-        </div>
-      </div>
-      
-      <div className="flex flex-col items-center gap-2">
-        <StatusBadge status="amber" />
-        <div className="text-xs text-center font-medium text-foreground">
-          
-          <div>At Risk</div>
-        </div>
-      </div>
-      
-      <div className="flex flex-col items-center gap-2">
-        <StatusBadge status="red" />
-        <div className="text-xs text-center font-medium text-foreground">
-          
-          <div>Critical</div>
-        </div>
-      </div>
-      
-      <div className="flex flex-col items-center gap-2">
-        <StatusBadge status="na" />
-        <div className="text-xs text-center font-medium text-foreground">
-          
-          <div>Not Applicable</div>
-        </div>
-      </div>
-    </div>;
+  console.log('MeetingStatusSummary: Received sections:', sections);
+
+  // Calculate overall status counts
+  const statusCounts = {
+    green: 0,
+    amber: 0,
+    red: 0
+  };
+  sections.forEach(section => {
+    if (section.id !== "meeting-overview") {
+      section.items.forEach(item => {
+        if (item.status === "green") statusCounts.green++;else if (item.status === "amber") statusCounts.amber++;else if (item.status === "red") statusCounts.red++;
+      });
+    }
+  });
+  console.log('MeetingStatusSummary: Status counts:', statusCounts);
+  return;
 };
