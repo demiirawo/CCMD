@@ -14,6 +14,53 @@ export type Database = {
   }
   public: {
     Tables: {
+      actions: {
+        Row: {
+          assignee: string
+          company_id: string
+          created_at: string
+          due_date: string
+          id: string
+          meeting_date: string | null
+          meeting_title: string | null
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          assignee: string
+          company_id: string
+          created_at?: string
+          due_date: string
+          id?: string
+          meeting_date?: string | null
+          meeting_title?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          assignee?: string
+          company_id?: string
+          created_at?: string
+          due_date?: string
+          id?: string
+          meeting_date?: string | null
+          meeting_title?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "actions_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       actions_log: {
         Row: {
           action_id: string
