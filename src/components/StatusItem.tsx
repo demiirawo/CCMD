@@ -187,15 +187,15 @@ export const StatusItem = ({
     // Panel color is determined by the R/A/G status only
     switch (status) {
       case 'green':
-        return 'bg-green-50 border-2 border-green-800';
+        return 'bg-green-50 border border-green-800';
       case 'amber':
-        return 'bg-amber-50 border-2 border-amber-800';
+        return 'bg-amber-50 border border-amber-800';
       case 'red':
-        return 'bg-red-50 border-2 border-red-800';
+        return 'bg-red-50 border border-red-800';
       case 'na':
-        return 'bg-gray-50 border-2 border-gray-800';
+        return 'bg-gray-50 border border-gray-800';
       default:
-        return 'bg-white border-2 border-gray-800';
+        return 'bg-white border border-gray-800';
     }
   };
 

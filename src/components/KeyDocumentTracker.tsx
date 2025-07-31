@@ -115,15 +115,15 @@ export const KeyDocumentTracker = ({
   };
 
   const getDocumentColorClass = (nextReviewDate: string | null) => {
-    if (!nextReviewDate) return "bg-white";
+    if (!nextReviewDate) return "bg-gray-800 text-white border-gray-700";
     const daysRemaining = getDaysRemaining(new Date(nextReviewDate));
-    if (daysRemaining === null) return "bg-white";
+    if (daysRemaining === null) return "bg-gray-800 text-white border-gray-700";
     if (daysRemaining < 0) {
-      return "bg-red-50 border-red-200";
+      return "bg-red-800 text-white border-red-700";
     } else if (daysRemaining <= 5) {
-      return "bg-amber-50 border-amber-200";
+      return "bg-amber-800 text-white border-amber-700";
     } else {
-      return "bg-green-50 border-green-200";
+      return "bg-green-800 text-white border-green-700";
     }
   };
 
@@ -191,7 +191,22 @@ export const KeyDocumentTracker = ({
     groupedDocuments.push(["Uncategorized", uncategorizedDocs]);
   }
 
-  return <Card className="bg-primary/10 rounded-2xl p-6 shadow-lg border border-border/50 -mx-8 px-14">
+  // Function to get background class based on overall status
+  const getBackgroundClass = () => {
+    const status = getOverallStatus();
+    switch (status) {
+      case 'green':
+        return 'bg-green-50 border border-green-800';
+      case 'amber':
+        return 'bg-amber-50 border border-amber-800';
+      case 'red':
+        return 'bg-red-50 border border-red-800';
+      default:
+        return 'bg-white border border-gray-800';
+    }
+  };
+
+  return <Card className={`rounded-2xl p-6 shadow-lg -mx-8 px-14 ${getBackgroundClass()}`}>
       <div className="flex items-center justify-between cursor-pointer mb-6" onClick={() => {
         const newState = !isExpanded;
         setIsExpanded(newState);
@@ -223,9 +238,9 @@ export const KeyDocumentTracker = ({
                 {/* First line: Category, Document Name, Document Owner */}
                 <div className="grid grid-cols-12 gap-3 items-start">
                   <div className="col-span-3">
-                    <label className="text-xs text-muted-foreground mb-1 block">Category</label>
+                    <label className="text-xs text-white/80 mb-1 block">Category</label>
                     <Select value={doc.category} onValueChange={value => handleDocumentChange(documents.indexOf(doc), 'category', value)}>
-                      <SelectTrigger className="text-sm h-9 bg-white">
+                      <SelectTrigger className="text-sm h-9 bg-white text-black">
                         <SelectValue placeholder="Select category" />
                       </SelectTrigger>
                       <SelectContent className="bg-white">
@@ -237,14 +252,14 @@ export const KeyDocumentTracker = ({
                   </div>
                   
                   <div className="col-span-4">
-                    <label className="text-xs text-muted-foreground mb-1 block">Document Name</label>
-                    <Input value={doc.name} onChange={e => handleDocumentChange(documents.indexOf(doc), 'name', e.target.value)} placeholder="Enter document name" className="text-sm h-9" />
+                    <label className="text-xs text-white/80 mb-1 block">Document Name</label>
+                    <Input value={doc.name} onChange={e => handleDocumentChange(documents.indexOf(doc), 'name', e.target.value)} placeholder="Enter document name" className="text-sm h-9 bg-white text-black" />
                   </div>
                   
                   <div className="col-span-4">
-                    <label className="text-xs text-muted-foreground mb-1 block">Document Owner</label>
+                    <label className="text-xs text-white/80 mb-1 block">Document Owner</label>
                     <Select value={doc.owner} onValueChange={value => handleDocumentChange(documents.indexOf(doc), 'owner', value)}>
-                      <SelectTrigger className="text-sm h-9 bg-white">
+                      <SelectTrigger className="text-sm h-9 bg-white text-black">
                         <SelectValue placeholder="Select owner" />
                       </SelectTrigger>
                       <SelectContent className="bg-white">
@@ -256,8 +271,8 @@ export const KeyDocumentTracker = ({
                   </div>
 
                   <div className="col-span-1">
-                    <label className="text-xs text-muted-foreground mb-1 block opacity-0">Remove</label>
-                    <Button variant="outline" size="sm" onClick={() => removeDocument(doc.id)} className="text-xs text-destructive hover:text-destructive w-8 h-9 p-0">
+                    <label className="text-xs text-white/80 mb-1 block opacity-0">Remove</label>
+                    <Button variant="outline" size="sm" onClick={() => removeDocument(doc.id)} className="text-xs text-white hover:text-white w-8 h-9 p-0 bg-white/20 border-white/30 hover:bg-white/30">
                       <Minus className="w-3 h-3" />
                     </Button>
                   </div>
@@ -266,11 +281,11 @@ export const KeyDocumentTracker = ({
                 {/* Second line: Date, Frequency, Due */}
                 <div className="grid grid-cols-12 gap-3 items-start">
                   <div className="col-span-3">
-                    <label className="text-xs text-muted-foreground mb-1 block">Date</label>
+                    <label className="text-xs text-white/80 mb-1 block">Date</label>
                     <div className="flex items-center gap-2">
                       <Popover>
                         <PopoverTrigger asChild>
-                          <Button variant="outline" className="h-9 w-9 p-0 flex-shrink-0">
+                          <Button variant="outline" className="h-9 w-9 p-0 flex-shrink-0 bg-white text-black">
                             <CalendarIcon className="h-4 w-4" />
                           </Button>
                         </PopoverTrigger>
@@ -278,17 +293,17 @@ export const KeyDocumentTracker = ({
                           <Calendar mode="single" selected={doc.lastReviewDate ? new Date(doc.lastReviewDate) : undefined} onSelect={date => handleDocumentChange(documents.indexOf(doc), 'lastReviewDate', date ? format(date, 'yyyy-MM-dd') : '')} initialFocus className="p-3 pointer-events-auto bg-white" />
                         </PopoverContent>
                       </Popover>
-                      <span className="text-sm text-foreground w-20">
+                      <span className="text-sm text-white w-20">
                         {doc.lastReviewDate ? new Date(doc.lastReviewDate).toLocaleDateString('en-GB') : ""}
                       </span>
                     </div>
                   </div>
                   
                   <div className="col-span-4">
-                    <label className="text-xs text-muted-foreground mb-1 block">Frequency</label>
+                    <label className="text-xs text-white/80 mb-1 block">Frequency</label>
                     <div className="flex gap-1">
                       <Select value={doc.reviewFrequencyNumber} onValueChange={value => handleDocumentChange(documents.indexOf(doc), 'reviewFrequencyNumber', value)}>
-                        <SelectTrigger className="text-sm h-9 w-16">
+                        <SelectTrigger className="text-sm h-9 w-16 bg-white text-black">
                           <SelectValue placeholder="#" />
                         </SelectTrigger>
                         <SelectContent className="bg-white">
@@ -298,7 +313,7 @@ export const KeyDocumentTracker = ({
                         </SelectContent>
                       </Select>
                       <Select value={doc.reviewFrequencyPeriod} onValueChange={value => handleDocumentChange(documents.indexOf(doc), 'reviewFrequencyPeriod', value)}>
-                        <SelectTrigger className="text-sm h-9 flex-1">
+                        <SelectTrigger className="text-sm h-9 flex-1 bg-white text-black">
                           <SelectValue placeholder="Period" />
                         </SelectTrigger>
                         <SelectContent className="bg-white">
@@ -311,8 +326,8 @@ export const KeyDocumentTracker = ({
                   </div>
                   
                   <div className="col-span-4">
-                    <label className="text-xs text-muted-foreground mb-1 block">Due</label>
-                    <div className="text-sm p-2 bg-muted/50 rounded border text-center h-9 flex items-center justify-center">
+                    <label className="text-xs text-white/80 mb-1 block">Due</label>
+                    <div className="text-sm p-2 bg-white/20 rounded border border-white/30 text-center h-9 flex items-center justify-center text-white">
                       {doc.nextReviewDate ? new Date(doc.nextReviewDate).toLocaleDateString('en-GB') : ""}
                     </div>
                   </div>
