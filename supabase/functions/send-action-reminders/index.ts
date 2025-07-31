@@ -102,18 +102,38 @@ const handler = async (req: Request): Promise<Response> => {
         continue;
       }
 
-      // Generate email HTML for this company's actions
-      const emailHtml = generateActionReminderEmail(companyActions);
+      // Group actions by assignee and match to team members
+      const actionsByAssignee: Record<string, { member: TeamMember; actions: Action[] }> = {};
+      
+      for (const action of companyActions) {
+        // Find team member whose name matches the assignee (case-insensitive)
+        const matchedMember = teamMembers.find(member => 
+          member.name.toLowerCase().includes(action.assignee.toLowerCase()) ||
+          action.assignee.toLowerCase().includes(member.name.toLowerCase())
+        );
 
-      // Send email to each team member
-      for (const member of teamMembers) {
+        if (matchedMember) {
+          const key = matchedMember.email;
+          if (!actionsByAssignee[key]) {
+            actionsByAssignee[key] = { member: matchedMember, actions: [] };
+          }
+          actionsByAssignee[key].actions.push(action);
+        } else {
+          console.log(`No team member found for assignee: ${action.assignee} in company ${companyId}`);
+        }
+      }
+
+      // Send personalized emails to each team member with their actions
+      for (const { member, actions: memberActions } of Object.values(actionsByAssignee)) {
         try {
-          console.log(`Sending reminder email to ${member.email}`);
+          console.log(`Sending reminder email to ${member.email} for ${memberActions.length} actions`);
+
+          const emailHtml = generatePersonalizedActionReminderEmail(memberActions, member.name);
 
           const emailResponse = await resend.emails.send({
             from: "CCMD <noreply@ccmd.co.uk>",
             to: [member.email],
-            subject: "⚠️ Action Reminder - Tasks Due Tomorrow",
+            subject: "⚠️ Action Reminder - Your Tasks Due Tomorrow",
             html: emailHtml,
           });
 
@@ -148,7 +168,7 @@ const handler = async (req: Request): Promise<Response> => {
   }
 };
 
-function generateActionReminderEmail(actions: Action[]): string {
+function generatePersonalizedActionReminderEmail(actions: Action[], memberName: string): string {
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
   const tomorrowFormatted = tomorrow.toLocaleDateString('en-GB', {
@@ -167,9 +187,6 @@ function generateActionReminderEmail(actions: Action[]): string {
       <div style="background-color: #FEF2F2; border-left: 4px solid #DC2626; padding: 16px; margin-bottom: 16px; border-radius: 0 8px 8px 0;">
         <div style="margin-bottom: 8px;">
           <strong style="color: #1F2937; font-size: 16px;">${action.title}</strong>
-        </div>
-        <div style="margin-bottom: 4px;">
-          <span style="font-size: 14px; color: #6B7280;">👤 Assigned to: ${action.assignee}</span>
         </div>
         <div style="margin-bottom: 4px;">
           <span style="font-size: 14px; color: #DC2626; font-weight: bold;">📅 Due: Tomorrow (${tomorrowFormatted})</span>
@@ -192,12 +209,12 @@ function generateActionReminderEmail(actions: Action[]): string {
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #ffffff;">
         <div style="border-bottom: 2px solid #DC2626; padding-bottom: 20px; margin-bottom: 30px;">
             <h1 style="color: #1F2937; margin: 0; font-size: 24px;">⚠️ Action Reminder</h1>
-            <p style="color: #6B7280; margin: 5px 0 0 0; font-size: 16px;">You have actions due tomorrow</p>
+            <p style="color: #6B7280; margin: 5px 0 0 0; font-size: 16px;">Hi ${memberName}, you have ${actions.length} action${actions.length > 1 ? 's' : ''} due tomorrow</p>
             <p style="color: #9CA3AF; margin: 5px 0 0 0; font-size: 14px;">CCMD Management System</p>
         </div>
         
         <div style="margin-bottom: 30px;">
-            <h2 style="color: #374151; margin-bottom: 16px; font-size: 18px;">Actions Due Tomorrow</h2>
+            <h2 style="color: #374151; margin-bottom: 16px; font-size: 18px;">Your Actions Due Tomorrow</h2>
             ${actionItems}
         </div>
 
