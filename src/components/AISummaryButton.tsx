@@ -17,6 +17,32 @@ export const AISummaryButton = ({ onSummaryGenerated }: AISummaryButtonProps) =>
     console.log('Starting data collection...');
     let allData = "";
     
+    // Get meeting date from the header to filter recent updates
+    const getCurrentMeetingDate = () => {
+      // Try to get the meeting date from localStorage or URL params
+      const meetingId = new URLSearchParams(window.location.search).get('meeting') || 
+                       localStorage.getItem('currentMeetingId');
+      
+      // Look for date in the dashboard header
+      const dateElements = document.querySelectorAll('[class*="meeting-date"], [class*="date"]');
+      for (const element of dateElements) {
+        const dateText = element.textContent?.trim();
+        if (dateText) {
+          const parsedDate = new Date(dateText);
+          if (!isNaN(parsedDate.getTime())) {
+            return parsedDate;
+          }
+        }
+      }
+      
+      // Fallback to today if no meeting date found
+      return new Date();
+    };
+
+    const meetingDate = getCurrentMeetingDate();
+    const meetingDateStr = meetingDate.toISOString().split('T')[0]; // YYYY-MM-DD format
+    console.log('Meeting date for filtering:', meetingDateStr);
+    
     // Get meeting title from the editable field
     const titleButton = document.querySelector('button[class*="text-left"]');
     if (titleButton) {
@@ -48,12 +74,13 @@ export const AISummaryButton = ({ onSummaryGenerated }: AISummaryButtonProps) =>
       allData += `Attendees: ${attendees.join(', ')}\n`;
     }
 
-    // Get all dashboard sections and their items
+    // Get all dashboard sections and their items (filter by meeting date)
     const sections = document.querySelectorAll('[data-section-id], [class*="DashboardSection"]');
     sections.forEach((section) => {
       const sectionTitle = section.querySelector('h2, h3, [class*="title"]');
       if (sectionTitle?.textContent) {
-        allData += `\n=== ${sectionTitle.textContent} ===\n`;
+        let sectionHasRecentUpdates = false;
+        let sectionData = `\n=== ${sectionTitle.textContent} ===\n`;
         
         // Get all items in this section
         const items = section.querySelectorAll('[class*="StatusItem"], [data-item-id]');
@@ -61,37 +88,80 @@ export const AISummaryButton = ({ onSummaryGenerated }: AISummaryButtonProps) =>
           const itemTitle = item.querySelector('h4, h5, [class*="title"]');
           const observation = item.querySelector('textarea, [class*="observation"]');
           const statusBadge = item.querySelector('[class*="badge"]');
+          const lastReviewed = item.querySelector('[class*="last-reviewed"], [class*="lastReviewed"]');
           
-          if (itemTitle?.textContent) {
-            allData += `- ${itemTitle.textContent}`;
+          // Check if this item was updated during or after the meeting
+          let isRecentlyUpdated = false;
+          
+          // Check last reviewed date
+          if (lastReviewed?.textContent) {
+            const lastReviewedText = lastReviewed.textContent.trim();
+            const reviewDate = new Date(lastReviewedText);
+            if (!isNaN(reviewDate.getTime()) && reviewDate >= meetingDate) {
+              isRecentlyUpdated = true;
+            }
+          }
+          
+          // Check if observation has content (indicating recent update)
+          const obsText = observation?.textContent || (observation as HTMLTextAreaElement)?.value;
+          if (obsText?.trim() && obsText.trim().length > 0) {
+            isRecentlyUpdated = true;
+          }
+          
+          // Only include items that were recently updated
+          if (isRecentlyUpdated && itemTitle?.textContent) {
+            sectionHasRecentUpdates = true;
+            sectionData += `- ${itemTitle.textContent}`;
             if (statusBadge?.textContent) {
-              allData += ` (Status: ${statusBadge.textContent})`;
+              sectionData += ` (Status: ${statusBadge.textContent})`;
             }
-            if (observation?.textContent || (observation as HTMLTextAreaElement)?.value) {
-              const obsText = observation?.textContent || (observation as HTMLTextAreaElement)?.value;
-              if (obsText?.trim()) {
-                allData += `\n  Observation: ${obsText.trim()}`;
-              }
+            if (obsText?.trim()) {
+              sectionData += `\n  Observation: ${obsText.trim()}`;
             }
-            allData += '\n';
+            sectionData += '\n';
           }
         });
+        
+        // Only add section if it has recent updates
+        if (sectionHasRecentUpdates) {
+          allData += sectionData;
+        }
       }
     });
 
-    // Get actions from the actions log
+    // Get actions from the actions log (filter by creation date)
     const actionsElements = document.querySelectorAll('[class*="ActionsLog"] [class*="action"], [data-action-id]');
     if (actionsElements.length > 0) {
-      allData += '\n=== Actions Log ===\n';
+      let recentActions: string[] = [];
+      
       actionsElements.forEach((action) => {
         const actionText = action.textContent?.trim();
-        if (actionText) {
-          allData += `- ${actionText}\n`;
+        const actionDate = action.querySelector('[class*="date"], [class*="created"]');
+        
+        // Check if action was created during or after the meeting
+        let isRecentAction = true; // Default to true if no date found
+        if (actionDate?.textContent) {
+          const createdDate = new Date(actionDate.textContent.trim());
+          if (!isNaN(createdDate.getTime()) && createdDate < meetingDate) {
+            isRecentAction = false;
+          }
+        }
+        
+        if (actionText && isRecentAction) {
+          recentActions.push(actionText);
         }
       });
+      
+      if (recentActions.length > 0) {
+        allData += '\n=== New Actions from This Meeting ===\n';
+        recentActions.forEach((action) => {
+          allData += `- ${action}\n`;
+        });
+      }
     }
 
     console.log('Data collection completed. Total data length:', allData.length);
+    console.log('Filtered data for meeting date:', meetingDateStr);
     return allData;
   };
 
