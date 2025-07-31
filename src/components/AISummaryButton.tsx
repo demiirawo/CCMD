@@ -120,7 +120,7 @@ export const AISummaryButton = ({ onSummaryGenerated }: AISummaryButtonProps) =>
       const messages = [
         {
           role: "system" as const,
-          content: "You are an AI assistant that creates concise meeting summaries. Generate a professional summary of the meeting data provided, highlighting key discussion points, status updates, and action items. Keep it to 300 words or less. Focus on the most important information and outcomes."
+          content: "You are an AI assistant that creates narrative meeting summaries. Write a flowing, professional summary that reads like a coherent story of the meeting. Avoid bullet points and lists - instead use smooth transitions and connecting words to create a natural narrative flow. Highlight key discussion points, status updates, and outcomes in paragraph form. Keep it to 300 words or less and make it engaging to read."
         },
         {
           role: "user" as const,
