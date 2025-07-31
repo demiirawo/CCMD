@@ -831,7 +831,7 @@ Focus on creating a comprehensive narrative that demonstrates ${companyName}'s o
   // Show loading state when generating report
   if (isGenerating) {
     return <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Card className="p-8 text-center">
+        <Card className="p-12 text-center">
           <Loader2 className="mx-auto h-12 w-12 text-primary animate-spin mb-4" />
           <h2 className="text-xl font-semibold mb-2">Generating Report</h2>
           
