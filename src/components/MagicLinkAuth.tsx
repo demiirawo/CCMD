@@ -170,7 +170,11 @@ export const MagicLinkAuth = () => {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="mx-auto mb-4">
-            <Mail className="h-16 w-16 text-primary" />
+            <img 
+              src="/lovable-uploads/84bbf08a-ae99-4dc3-983c-58edd0b6546f.png" 
+              alt="CCMD Logo" 
+              className="h-16 w-auto mx-auto"
+            />
           </div>
           <CardTitle>Sign In to Your Company</CardTitle>
           <CardDescription>
