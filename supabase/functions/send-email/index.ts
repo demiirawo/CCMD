@@ -23,7 +23,7 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { to, subject, html, from = "Care Cuddle <onboarding@resend.dev>" }: EmailRequest = await req.json();
+    const { to, subject, html, from = "Care Cuddle <noreply@ccmd.co.uk>" }: EmailRequest = await req.json();
 
     console.log("Sending email to:", to);
 
