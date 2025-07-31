@@ -62,7 +62,7 @@ const THEME_COLORS = [{
   name: "Brown",
   value: "#92400e"
 }];
-const SERVICES = ["Domiciliary (Home) Care", "Supported Living", "Residential Care Homes", "Nursing Homes", "Children's Residential Services", "Fostering and Adoption Services", "Semi-Independent (16+) Living", "Mental Health Support Services", "Day Services and Community Support", "Live-in Care", "Specialist Clinical Services", "Outreach and Floating Support", "Palliative and End-of-Life Care", "Substance Misuse Support", "Reablement Services", "Short Breaks and Respite Care", "Advocacy and Independent Living Support", "Community Nursing", "Housing-Related Support", "Early Help and Family Support Services"];
+const SERVICES = ["Domiciliary (Home) Care", "Supported Housing", "Nursing Homes", "Mental Health Support Services", "Day Services and Community Support", "Live-in Care", "Specialist Clinical Services", "Outreach and Floating Support", "Palliative and End-of-Life Care", "Substance Misuse Support", "Reablement Services", "Short Breaks and Respite Care", "Advocacy and Independent Living Support", "Community Nursing", "Early Help and Family Support Services"];
 export const Settings = () => {
   const {
     profile,
