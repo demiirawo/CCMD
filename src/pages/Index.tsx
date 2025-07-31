@@ -542,7 +542,7 @@ const Index = () => {
                     ...item,
                     status: savedData.status as StatusType || item.status,
                     observation: (savedData.observation as string) || item.observation,
-                    trendsThemes: (savedData.trends_themes as string) || item.trendsThemes || "",
+                    trendsThemes: ((savedData as any).trends_themes as string) || item.trendsThemes || "",
                     actions: savedData.actions ? (typeof savedData.actions === 'string' ? JSON.parse(savedData.actions) : savedData.actions) : item.actions,
                     metadata: savedData.metadata ? (typeof savedData.metadata === 'string' ? JSON.parse(savedData.metadata) : savedData.metadata) : (item.metadata || {}),
                     lastReviewed: savedData.updated_at ? new Date(savedData.updated_at).toLocaleDateString('en-GB') : item.lastReviewed

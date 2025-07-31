@@ -278,14 +278,9 @@ export const Settings = () => {
           </CardHeader>
           <CardContent className="space-y-4 bg-stone-50">
             <div className="grid grid-cols-2 gap-3">
-              {THEME_COLORS.map(color => <div key={color.value} className={`p-3 rounded-lg border-2 cursor-pointer transition-all hover:scale-105 ${selectedTheme === color.value ? "border-primary shadow-md" : "border-border hover:border-muted-foreground"}`} onClick={() => setSelectedTheme(color.value)}>
-                  <div className="w-full h-12 rounded-md mb-2" style={{
+              {THEME_COLORS.map(color => <div key={color.value} className={`h-16 rounded-lg cursor-pointer transition-all hover:scale-105 ${selectedTheme === color.value ? "ring-4 ring-primary ring-offset-2" : "hover:ring-2 hover:ring-muted-foreground"}`} style={{
                 backgroundColor: color.value
-              }} />
-                  <div className="text-center">
-                    
-                  </div>
-                </div>)}
+              }} onClick={() => setSelectedTheme(color.value)} />)}
             </div>
           </CardContent>
         </Card>
