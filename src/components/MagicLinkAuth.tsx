@@ -195,10 +195,9 @@ export const MagicLinkAuth = () => {
               {loading ? <div className="flex items-center gap-2">
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>
                   Sending...
-                </div> : <div className="flex items-center gap-2">
-                  <Send className="h-4 w-4" />
-                  Send Magic Link
-                </div>}
+                 </div> : <div className="flex items-center gap-2">
+                   Send Magic Link
+                 </div>}
             </Button>
           </form>
           
