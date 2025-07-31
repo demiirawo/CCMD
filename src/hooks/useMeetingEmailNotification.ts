@@ -41,18 +41,41 @@ export const useMeetingEmailNotification = () => {
       // Generate meeting summary content
       const meetingSummaryText = meetingData.meetingSummary || 'No summary provided';
       
+      // Debug action items structure
+      console.log('🔍 Action items raw data:', JSON.stringify(meetingData.actions, null, 2));
+      
       // Format action items
       const actionItemsHtml = meetingData.actions.length > 0 
         ? `
           <h3 style="color: #374151; margin-bottom: 16px;">Action Items:</h3>
           <ul style="margin: 0; padding-left: 20px;">
-            ${meetingData.actions.map(action => `
-              <li style="margin-bottom: 8px; color: #6B7280;">
-                <strong>${action.action_text || action.actionText || 'No action description'}</strong>
-                ${action.mentioned_attendee || action.assignee ? ` - Assigned to: ${action.mentioned_attendee || action.assignee}` : ''}
-                ${action.due_date || action.dueDate || action.targetDate ? ` - Due: ${action.due_date || action.dueDate || action.targetDate}` : ''}
-              </li>
-            `).join('')}
+            ${meetingData.actions.map((action, index) => {
+              console.log(`🔍 Processing action ${index}:`, {
+                keys: Object.keys(action),
+                action_text: action.action_text,
+                actionText: action.actionText,
+                description: action.description,
+                text: action.text,
+                mentioned_attendee: action.mentioned_attendee,
+                assignee: action.assignee,
+                assigned_to: action.assigned_to,
+                due_date: action.due_date,
+                dueDate: action.dueDate,
+                targetDate: action.targetDate
+              });
+              
+              const actionText = action.action_text || action.actionText || action.description || action.text || 'No action description';
+              const assignee = action.mentioned_attendee || action.assignee || action.assigned_to || '';
+              const dueDate = action.due_date || action.dueDate || action.targetDate || '';
+              
+              return `
+                <li style="margin-bottom: 8px; color: #6B7280;">
+                  <strong>${actionText}</strong>
+                  ${assignee ? ` - Assigned to: ${assignee}` : ''}
+                  ${dueDate ? ` - Due: ${dueDate}` : ''}
+                </li>
+              `;
+            }).join('')}
           </ul>
         `
         : '<p style="color: #6B7280;">No action items recorded.</p>';
@@ -97,7 +120,7 @@ export const useMeetingEmailNotification = () => {
               to: email,
               subject: `Meeting Summary: ${meetingData.title}`,
               html: emailHtml,
-              from: 'Care Cuddle <meetings@resend.dev>'
+              from: 'Care Cuddle <meetings@care-cuddle.co.uk>'
             }
           });
 
