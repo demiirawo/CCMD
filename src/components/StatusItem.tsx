@@ -185,19 +185,25 @@ export const StatusItem = ({
 
   const getStatusBackgroundClass = (status: StatusType) => {
     // Check if any actions are overdue
-    const hasOverdueActions = item.actions.some(action => {
+    const hasOverdueActions = item.actions?.some(action => {
       try {
         const [day, month, year] = action.targetDate.split('/');
         const dueDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         dueDate.setHours(0, 0, 0, 0);
-        const daysRemaining = Math.floor((dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+        const timeDiff = dueDate.getTime() - today.getTime();
+        const daysRemaining = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
+        
+        console.log(`Action "${action.description}" due ${action.targetDate}, days remaining: ${daysRemaining}`);
         return daysRemaining < 0;
-      } catch {
+      } catch (error) {
+        console.error('Error parsing date for action:', action, error);
         return false;
       }
-    });
+    }) || false;
+
+    console.log(`Panel "${item.title}" has overdue actions: ${hasOverdueActions}`);
 
     // If there are overdue actions, always show red regardless of status
     if (hasOverdueActions) {
