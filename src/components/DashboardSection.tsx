@@ -175,10 +175,17 @@ export const DashboardSection = ({
   };
 
   const getSectionBackgroundClass = (status: string) => {
-    const baseClass = ["Staff", "Care Planning & Delivery", "Safety", "Continuous Improvement"].includes(title) 
+    const isHighLevelPanel = ["Staff", "Care Planning & Delivery", "Safety", "Continuous Improvement"].includes(title);
+    const baseClass = isHighLevelPanel 
       ? "-mx-8 px-14 py-6" 
       : "p-6";
     
+    // High level panels use theme color background
+    if (isHighLevelPanel) {
+      return `bg-primary/10 border border-primary/20 ${baseClass}`;
+    }
+    
+    // Other sections use status-based colors
     switch (status) {
       case 'green':
         return `bg-green-50/80 border border-green-200 ${baseClass}`;
