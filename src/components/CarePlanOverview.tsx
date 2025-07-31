@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useRobustCarePlans } from "@/hooks/useRobustCarePlans";
 interface CarePlanOverviewProps {
   meetingDate?: Date;
   meetingId?: string;
@@ -12,129 +12,29 @@ export const CarePlanOverview = ({
   meetingDate,
   meetingId
 }: CarePlanOverviewProps) => {
+  const { profile } = useAuth();
+  
+  // Use robust care plans hook
   const {
-    profile
-  } = useAuth();
-  const [data, setData] = useState({
-    highRisk: 0,
-    mediumRisk: 0,
-    lowRisk: 0,
-    naRisk: 0,
-    overdue: 0
+    data,
+    updateData,
+    isLoading
+  } = useRobustCarePlans({
+    companyId: profile?.company_id || '',
+    meetingId
   });
 
-  // Store display values separately from data values
-  const [displayValues, setDisplayValues] = useState<Record<string, string>>({});
   const totalServiceUsers = data.highRisk + data.mediumRisk + data.lowRisk + data.naRisk;
   const compliancePercentage = totalServiceUsers > 0 ? Math.round((totalServiceUsers - data.overdue) / totalServiceUsers * 100) : 100;
-  useEffect(() => {
-    if (profile?.company_id) {
-      loadData();
-    }
-  }, [profile?.company_id, meetingId]);
-  const loadData = async () => {
-    if (!profile?.company_id) return;
-    try {
-      const {
-        data: savedData,
-        error
-      } = await supabase.from('dashboard_data').select('data_content').eq('company_id', profile.company_id).eq('data_type', 'care_plan_overview').maybeSingle();
-      if (error && error.code !== 'PGRST116') {
-        console.error('Error loading care plan overview:', error);
-        return;
-      }
-      if (savedData?.data_content) {
-        const loadedData = savedData.data_content as typeof data;
-        setData(loadedData);
-        // Initialize display values with loaded data (show numbers, but allow empty fields)
-        setDisplayValues({
-          highRisk: loadedData.highRisk === 0 ? '' : loadedData.highRisk.toString(),
-          mediumRisk: loadedData.mediumRisk === 0 ? '' : loadedData.mediumRisk.toString(),
-          lowRisk: loadedData.lowRisk === 0 ? '' : loadedData.lowRisk.toString(),
-          naRisk: loadedData.naRisk === 0 ? '' : loadedData.naRisk.toString(),
-          overdue: loadedData.overdue === 0 ? '' : loadedData.overdue.toString(),
-        });
-      } else {
-        // Try to load from localStorage backup
-        const backupKey = `care_plan_overview_backup_${profile.company_id}`;
-        const backupData = localStorage.getItem(backupKey);
-        if (backupData) {
-          try {
-            const backup = JSON.parse(backupData);
-            setData(backup);
-            // Initialize display values with backup data
-            setDisplayValues({
-              highRisk: backup.highRisk === 0 ? '' : backup.highRisk.toString(),
-              mediumRisk: backup.mediumRisk === 0 ? '' : backup.mediumRisk.toString(),
-              lowRisk: backup.lowRisk === 0 ? '' : backup.lowRisk.toString(),
-              naRisk: backup.naRisk === 0 ? '' : backup.naRisk.toString(),
-              overdue: backup.overdue === 0 ? '' : backup.overdue.toString(),
-            });
-          } catch (error) {
-            console.error('Error loading backup data:', error);
-          }
-        }
-      }
-    } catch (error) {
-      console.error('Error loading care plan overview:', error);
-      // Try to load from localStorage backup
-      const backupKey = `care_plan_overview_backup_${profile.company_id}`;
-      const backupData = localStorage.getItem(backupKey);
-      if (backupData) {
-        try {
-          const backup = JSON.parse(backupData);
-          setData(backup);
-        } catch (error) {
-          console.error('Error loading backup data:', error);
-        }
-      }
-    }
-  };
-  const saveData = async (newData: typeof data) => {
-    if (!profile?.company_id) return;
-    try {
-      const {
-        error
-      } = await supabase.from('dashboard_data').upsert({
-        company_id: profile.company_id,
-        meeting_id: meetingId,
-        data_type: 'care_plan_overview',
-        data_content: newData,
-        updated_at: new Date().toISOString()
-      }, {
-        onConflict: 'company_id,meeting_id,data_type'
-      });
-      if (error) {
-        console.error('Error saving care plan overview:', error);
-        throw error;
-      } else {
-        // Save to localStorage as backup
-        localStorage.setItem(`care_plan_overview_backup_${profile.company_id}`, JSON.stringify(newData));
-      }
-    } catch (error) {
-      console.error('Error saving care plan overview:', error);
-      // Save to localStorage as fallback
-      if (profile?.company_id) {
-        localStorage.setItem(`care_plan_overview_backup_${profile.company_id}`, JSON.stringify(newData));
-      }
-    }
-  };
+
   const handleInputChange = (field: keyof typeof data, value: string) => {
-    // Update display value immediately
-    setDisplayValues(prev => ({ ...prev, [field]: value }));
-    
     // Convert to number for data storage (empty string becomes 0)
     const numValue = value === '' ? 0 : parseInt(value) || 0;
-    const newData = {
-      ...data,
-      [field]: numValue
-    };
-    setData(newData);
-    saveData(newData);
+    updateData({ [field]: numValue });
   };
 
   const getDisplayValue = (field: keyof typeof data) => {
-    return displayValues[field] ?? (data[field] === 0 ? '' : data[field].toString());
+    return data[field] === 0 ? '' : data[field].toString();
   };
   const getComplianceColor = () => {
     if (compliancePercentage === 100) return "text-blue-600"; // Outstanding: 100%
@@ -142,6 +42,12 @@ export const CarePlanOverview = ({
     if (compliancePercentage >= 90) return "text-amber-600"; // Needs improvement: 90-97%
     return "text-red-600"; // Inadequate: Below 90%
   };
+
+  if (isLoading) {
+    return <div className="space-y-6 mt-4 p-6 border border-border rounded-lg bg-stone-50">
+      <div className="animate-pulse">Loading care plan data...</div>
+    </div>;
+  }
   return <div className="space-y-6 mt-4 p-6 border border-border rounded-lg bg-stone-50">
       
       

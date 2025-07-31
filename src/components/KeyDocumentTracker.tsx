@@ -8,6 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { format, addDays, addWeeks, addMonths, addYears, differenceInDays } from "date-fns";
 import { Card } from "./ui/card";
 import { StatusBadge, StatusType } from "./StatusBadge";
+import { useRobustKeyDocuments } from "@/hooks/useRobustKeyDocuments";
+import { useAuth } from "@/hooks/useAuth";
 
 export interface DocumentData {
   id: string;
@@ -30,6 +32,7 @@ interface KeyDocumentTrackerProps {
   onPanelStateChange?: () => void;
   panelStateTracker?: number;
   readOnly?: boolean;
+  meetingId?: string;
 }
 
 const categories = ["Governance and Compliance", "Care Delivery", "Staffing and HR", "Finance and Payroll", "Health and Safety", "Client Records and Contracts", "Quality Assurance and Audit", "Transportation and Logistics"];
@@ -45,8 +48,23 @@ export const KeyDocumentTracker = ({
   forceOpen,
   onPanelStateChange,
   panelStateTracker,
-  readOnly = false
+  readOnly = false,
+  meetingId
 }: KeyDocumentTrackerProps) => {
+  const { profile } = useAuth();
+  
+  // Use robust key documents hook
+  const {
+    data: robustDocuments,
+    updateData: updateRobustDocuments,
+    isLoading: isDocumentsLoading
+  } = useRobustKeyDocuments({
+    companyId: profile?.company_id || '',
+    meetingId
+  });
+  
+  // Use robust documents if available, fallback to props
+  const activeDocuments = robustDocuments.length > 0 ? robustDocuments : documents;
   const [isExpanded, setIsExpanded] = useState(() => {
     const saved = sessionStorage.getItem('key_documents_expanded');
     return saved !== null ? JSON.parse(saved) : false;
@@ -129,8 +147,8 @@ export const KeyDocumentTracker = ({
 
   // Calculate overall status for the section
   const getOverallStatus = (): StatusType => {
-    if (documents.length === 0) return "green";
-    const statuses = documents.filter(doc => doc.name && doc.lastReviewDate) // Only consider documents with name and date
+    if (activeDocuments.length === 0) return "green";
+    const statuses = activeDocuments.filter(doc => doc.name && doc.lastReviewDate) // Only consider documents with name and date
     .map(doc => getDocumentStatus(doc.nextReviewDate));
     if (statuses.some(status => status === "red")) return "red";
     if (statuses.some(status => status === "amber")) return "amber";
@@ -138,7 +156,7 @@ export const KeyDocumentTracker = ({
   };
 
   const handleDocumentChange = (index: number, field: keyof DocumentData, value: any) => {
-    const updatedDocuments = [...documents];
+    const updatedDocuments = [...activeDocuments];
     if (updatedDocuments[index]) {
       const oldDoc = updatedDocuments[index];
       updatedDocuments[index] = {
@@ -153,7 +171,13 @@ export const KeyDocumentTracker = ({
         const nextReview = calculateNextReviewDate(doc.lastReviewDate, doc.reviewFrequencyNumber, doc.reviewFrequencyPeriod);
         updatedDocuments[index].nextReviewDate = nextReview ? format(nextReview, 'yyyy-MM-dd') : null;
       }
-      onDocumentsChange?.(updatedDocuments);
+      
+      // Update through robust hook if available, otherwise through props
+      if (robustDocuments.length > 0) {
+        updateRobustDocuments(updatedDocuments);
+      } else {
+        onDocumentsChange?.(updatedDocuments);
+      }
     }
   };
 
@@ -170,25 +194,43 @@ export const KeyDocumentTracker = ({
       nextReviewDate: null,
       updatedAt: new Date().toISOString()
     };
-    const updatedDocuments = [...documents, newDocument];
-    onDocumentsChange?.(updatedDocuments);
+    const updatedDocuments = [...activeDocuments, newDocument];
+    
+    // Update through robust hook if available, otherwise through props
+    if (robustDocuments.length > 0) {
+      updateRobustDocuments(updatedDocuments);
+    } else {
+      onDocumentsChange?.(updatedDocuments);
+    }
   };
 
   const removeDocument = (docId: string) => {
-    const updatedDocuments = documents.filter(doc => doc.id !== docId);
-    onDocumentsChange?.(updatedDocuments);
+    const updatedDocuments = activeDocuments.filter(doc => doc.id !== docId);
+    
+    // Update through robust hook if available, otherwise through props
+    if (robustDocuments.length > 0) {
+      updateRobustDocuments(updatedDocuments);
+    } else {
+      onDocumentsChange?.(updatedDocuments);
+    }
   };
 
   // Group documents by category
   const groupedDocuments = categories.map(category => {
-    const categoryDocs = documents.filter(doc => doc.category === category);
+    const categoryDocs = activeDocuments.filter(doc => doc.category === category);
     return [category, categoryDocs] as [string, DocumentData[]];
   }).filter(([, docs]) => docs.length > 0);
 
   // Add uncategorized documents
-  const uncategorizedDocs = documents.filter(doc => !doc.category || !categories.includes(doc.category));
+  const uncategorizedDocs = activeDocuments.filter(doc => !doc.category || !categories.includes(doc.category));
   if (uncategorizedDocs.length > 0) {
     groupedDocuments.push(["Uncategorized", uncategorizedDocs]);
+  }
+
+  if (isDocumentsLoading) {
+    return <Card className="bg-primary/10 rounded-2xl p-6 shadow-lg border border-border/50 -mx-8 px-14">
+      <div className="animate-pulse">Loading key documents...</div>
+    </Card>;
   }
 
   return <Card className="bg-primary/10 rounded-2xl p-6 shadow-lg border border-border/50 -mx-8 px-14">
@@ -224,7 +266,7 @@ export const KeyDocumentTracker = ({
                 <div className="grid grid-cols-12 gap-3 items-start">
                   <div className="col-span-3">
                     <label className="text-xs text-muted-foreground mb-1 block">Category</label>
-                    <Select value={doc.category} onValueChange={value => handleDocumentChange(documents.indexOf(doc), 'category', value)}>
+                    <Select value={doc.category} onValueChange={value => handleDocumentChange(activeDocuments.indexOf(doc), 'category', value)}>
                       <SelectTrigger className="text-sm h-9 bg-white">
                         <SelectValue placeholder="Select category" />
                       </SelectTrigger>
@@ -238,12 +280,12 @@ export const KeyDocumentTracker = ({
                   
                   <div className="col-span-4">
                     <label className="text-xs text-muted-foreground mb-1 block">Document Name</label>
-                    <Input value={doc.name} onChange={e => handleDocumentChange(documents.indexOf(doc), 'name', e.target.value)} placeholder="Enter document name" className="text-sm h-9" />
+                    <Input value={doc.name} onChange={e => handleDocumentChange(activeDocuments.indexOf(doc), 'name', e.target.value)} placeholder="Enter document name" className="text-sm h-9" />
                   </div>
                   
                   <div className="col-span-4">
                     <label className="text-xs text-muted-foreground mb-1 block">Document Owner</label>
-                    <Select value={doc.owner} onValueChange={value => handleDocumentChange(documents.indexOf(doc), 'owner', value)}>
+                    <Select value={doc.owner} onValueChange={value => handleDocumentChange(activeDocuments.indexOf(doc), 'owner', value)}>
                       <SelectTrigger className="text-sm h-9 bg-white">
                         <SelectValue placeholder="Select owner" />
                       </SelectTrigger>
@@ -275,7 +317,7 @@ export const KeyDocumentTracker = ({
                           </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar mode="single" selected={doc.lastReviewDate ? new Date(doc.lastReviewDate) : undefined} onSelect={date => handleDocumentChange(documents.indexOf(doc), 'lastReviewDate', date ? format(date, 'yyyy-MM-dd') : '')} initialFocus className="p-3 pointer-events-auto bg-white" />
+                          <Calendar mode="single" selected={doc.lastReviewDate ? new Date(doc.lastReviewDate) : undefined} onSelect={date => handleDocumentChange(activeDocuments.indexOf(doc), 'lastReviewDate', date ? format(date, 'yyyy-MM-dd') : '')} initialFocus className="p-3 pointer-events-auto bg-white" />
                         </PopoverContent>
                       </Popover>
                       <span className="text-sm text-foreground w-20">
@@ -287,7 +329,7 @@ export const KeyDocumentTracker = ({
                   <div className="col-span-4">
                     <label className="text-xs text-muted-foreground mb-1 block">Frequency</label>
                     <div className="flex gap-1">
-                      <Select value={doc.reviewFrequencyNumber} onValueChange={value => handleDocumentChange(documents.indexOf(doc), 'reviewFrequencyNumber', value)}>
+                      <Select value={doc.reviewFrequencyNumber} onValueChange={value => handleDocumentChange(activeDocuments.indexOf(doc), 'reviewFrequencyNumber', value)}>
                         <SelectTrigger className="text-sm h-9 w-16">
                           <SelectValue placeholder="#" />
                         </SelectTrigger>
@@ -297,7 +339,7 @@ export const KeyDocumentTracker = ({
                             </SelectItem>)}
                         </SelectContent>
                       </Select>
-                      <Select value={doc.reviewFrequencyPeriod} onValueChange={value => handleDocumentChange(documents.indexOf(doc), 'reviewFrequencyPeriod', value)}>
+                      <Select value={doc.reviewFrequencyPeriod} onValueChange={value => handleDocumentChange(activeDocuments.indexOf(doc), 'reviewFrequencyPeriod', value)}>
                         <SelectTrigger className="text-sm h-9 flex-1">
                           <SelectValue placeholder="Period" />
                         </SelectTrigger>
@@ -325,7 +367,7 @@ export const KeyDocumentTracker = ({
               </div>)}
           </div>)}
         
-        {documents.length === 0 && <div className="text-center py-8 text-muted-foreground">
+        {activeDocuments.length === 0 && <div className="text-center py-8 text-muted-foreground">
             
             <p className="mb-4">No reviews tracked yet.</p>
           </div>}
