@@ -184,47 +184,7 @@ export const StatusItem = ({
   };
 
   const getStatusBackgroundClass = (status: StatusType) => {
-    // Check if any actions are overdue
-    const hasOverdueActions = item.actions?.some(action => {
-      try {
-        let dueDate: Date;
-        
-        // Handle both DD/MM/YYYY and YYYY-MM-DD formats
-        if (action.targetDate.includes('/')) {
-          // DD/MM/YYYY format
-          const [day, month, year] = action.targetDate.split('/');
-          dueDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-        } else if (action.targetDate.includes('-')) {
-          // YYYY-MM-DD format
-          dueDate = new Date(action.targetDate);
-        } else {
-          console.error('Unrecognized date format:', action.targetDate);
-          return false;
-        }
-        
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        dueDate.setHours(0, 0, 0, 0);
-        
-        const timeDiff = dueDate.getTime() - today.getTime();
-        const daysRemaining = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
-        
-        console.log(`Action "${action.description}" due ${action.targetDate}, days remaining: ${daysRemaining}`);
-        return daysRemaining < 0;
-      } catch (error) {
-        console.error('Error parsing date for action:', action, error);
-        return false;
-      }
-    }) || false;
-
-    console.log(`Panel "${item.title}" has overdue actions: ${hasOverdueActions}`);
-
-    // If there are overdue actions, always show red regardless of status
-    if (hasOverdueActions) {
-      return 'bg-red-50 border-2 border-red-800';
-    }
-
-    // Otherwise use the normal status-based colors
+    // Panel color is determined by the R/A/G status only
     switch (status) {
       case 'green':
         return 'bg-green-50 border-2 border-green-800';
