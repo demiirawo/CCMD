@@ -220,7 +220,7 @@ export const KeyDocumentTracker = ({
               Updated: {new Date().toLocaleDateString('en-GB')}
             </p>
           </div>
-          <div className="ml-4">
+          <div className="ml-16">
             <StatusBadge status={getOverallStatus()} />
           </div>
         </div>
