@@ -317,7 +317,15 @@ export const KeyDocumentTracker = ({
                   
                   <div className="col-span-4">
                     <label className="text-xs text-gray-700 mb-1 block">Due</label>
-                    <div className="text-sm p-2 bg-white/20 rounded border border-white/30 text-center h-9 flex items-center justify-center text-gray-700">
+                    <div className={`text-sm p-2 rounded border text-center h-9 flex items-center justify-center ${
+                      doc.nextReviewDate 
+                        ? getDocumentStatus(doc.nextReviewDate) === 'red' 
+                          ? 'status-red' 
+                          : getDocumentStatus(doc.nextReviewDate) === 'amber' 
+                          ? 'status-amber' 
+                          : 'status-green'
+                        : 'bg-white/20 border-white/30 text-gray-700'
+                    }`}>
                       {doc.nextReviewDate ? new Date(doc.nextReviewDate).toLocaleDateString('en-GB') : ""}
                     </div>
                   </div>
