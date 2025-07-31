@@ -171,21 +171,11 @@ All colors MUST be HSL.
     background: hsl(var(--status-green));
     color: hsl(0 0% 100%);
     border: 1px solid hsl(var(--status-green));
-    box-shadow: 
-      4px 4px 8px hsl(150 50% 20%), 
-      -4px -4px 8px hsl(150 100% 60%),
-      inset 1px 1px 3px hsl(150 100% 60% / 0.2),
-      inset -1px -1px 3px hsl(150 50% 20% / 0.2);
+    box-shadow: none;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .status-green:hover {
-    box-shadow: 
-      4px 4px 8px hsl(150 50% 20%), 
-      -4px -4px 8px hsl(150 100% 60%),
-      inset 1px 1px 3px hsl(150 100% 60% / 0.2),
-      inset -1px -1px 3px hsl(150 50% 20% / 0.2),
-      0 0 12px hsl(var(--status-green) / 0.6);
     transform: scale(1.05);
   }
 
@@ -193,21 +183,11 @@ All colors MUST be HSL.
     background: hsl(var(--status-amber));
     color: hsl(0 0% 100%);
     border: 1px solid hsl(var(--status-amber));
-    box-shadow: 
-      4px 4px 8px hsl(40 50% 20%), 
-      -4px -4px 8px hsl(40 100% 60%),
-      inset 1px 1px 3px hsl(40 100% 60% / 0.2),
-      inset -1px -1px 3px hsl(40 50% 20% / 0.2);
+    box-shadow: none;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .status-amber:hover {
-    box-shadow: 
-      4px 4px 8px hsl(40 50% 20%), 
-      -4px -4px 8px hsl(40 100% 60%),
-      inset 1px 1px 3px hsl(40 100% 60% / 0.2),
-      inset -1px -1px 3px hsl(40 50% 20% / 0.2),
-      0 0 12px hsl(var(--status-amber) / 0.6);
     transform: scale(1.05);
   }
 
@@ -215,43 +195,24 @@ All colors MUST be HSL.
     background: hsl(var(--status-red));
     color: hsl(0 0% 100%);
     border: 1px solid hsl(var(--status-red));
-    box-shadow: 
-      4px 4px 8px hsl(0 50% 20%), 
-      -4px -4px 8px hsl(0 100% 60%),
-      inset 1px 1px 3px hsl(0 100% 60% / 0.2),
-      inset -1px -1px 3px hsl(0 50% 20% / 0.2);
+    box-shadow: none;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .status-red:hover {
-    box-shadow: 
-      4px 4px 8px hsl(0 50% 20%), 
-      -4px -4px 8px hsl(0 100% 60%),
-      inset 1px 1px 3px hsl(0 100% 60% / 0.2),
-      inset -1px -1px 3px hsl(0 50% 20% / 0.2),
-      0 0 12px hsl(var(--status-red) / 0.6);
     transform: scale(1.05);
+    
   }
 
   .status-na {
     background: hsl(var(--status-na));
     color: hsl(0 0% 100%);
     border: 1px solid hsl(var(--status-na));
-    box-shadow: 
-      4px 4px 8px hsl(0 0% 40%), 
-      -4px -4px 8px hsl(0 0% 80%),
-      inset 1px 1px 3px hsl(0 0% 80% / 0.2),
-      inset -1px -1px 3px hsl(0 0% 40% / 0.2);
+    box-shadow: none;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .status-na:hover {
-    box-shadow: 
-      4px 4px 8px hsl(0 0% 40%), 
-      -4px -4px 8px hsl(0 0% 80%),
-      inset 1px 1px 3px hsl(0 0% 80% / 0.2),
-      inset -1px -1px 3px hsl(0 0% 40% / 0.2),
-      0 0 12px hsl(var(--status-na) / 0.5);
     transform: scale(1.05);
   }
 
@@ -260,17 +221,11 @@ All colors MUST be HSL.
   }
 
   .success-glow {
-    box-shadow: 
-      4px 4px 8px hsl(150 50% 20%), 
-      -4px -4px 8px hsl(150 100% 60%),
-      inset 1px 1px 3px hsl(150 100% 60% / 0.2),
-      inset -1px -1px 3px hsl(150 50% 20% / 0.2),
-      0 0 20px hsl(142 76% 36% / 0.8),
-      0 0 40px hsl(142 76% 36% / 0.5) !important;
     background: hsl(142 76% 36%) !important;
     color: hsl(0 0% 100%) !important;
     border-color: hsl(142 76% 36%) !important;
     animation: pulse 0.8s ease-in-out;
+    box-shadow: none !important;
   }
 }
 

@@ -59,13 +59,14 @@ export const StatusBadge = ({
   return (
     <span
       className={cn(
-        "inline-flex items-center justify-center rounded-lg text-sm font-bold min-w-12 h-12 px-2 transition-all duration-300",
+        "inline-flex items-center justify-center rounded-lg text-lg font-bold min-w-16 h-16 px-3 transition-all duration-300 shadow-none",
         config.className,
-        isChanging && "animate-scale-in shadow-lg",
+        isChanging && "animate-scale-in",
         showSuccessGlow && "success-glow animate-pulse",
         className
       )}
       title={config.title}
+      style={{ boxShadow: 'none' }}
     >
       {config.label}
     </span>
