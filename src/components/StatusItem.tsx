@@ -342,6 +342,7 @@ export const StatusItem = ({
               <ActionForm 
                 actions={item.actions} 
                 attendees={attendees} 
+                sectionStatus={item.status}
                 onActionsChange={handleActionsChange} 
                 onActionCreated={handleActionCreated} 
                 onActionCompleted={handleActionCompleted}

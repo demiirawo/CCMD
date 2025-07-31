@@ -18,6 +18,7 @@ export interface ActionItem {
 interface ActionFormProps {
   actions: ActionItem[];
   attendees: string[];
+  sectionStatus?: string; // Add section status for RAG coloring
   onActionsChange: (actions: ActionItem[]) => void;
   onActionCreated?: (name: string, description: string, targetDate: string, actionId: string) => void;
   onActionCompleted?: (actionId: string) => void;
@@ -26,6 +27,7 @@ interface ActionFormProps {
 export const ActionForm = ({
   actions,
   attendees,
+  sectionStatus,
   onActionsChange,
   onActionCreated,
   onActionCompleted,
@@ -179,6 +181,22 @@ export const ActionForm = ({
     });
   };
 
+  // Get RAG background colors to match the section
+  const getRAGBackgroundClass = () => {
+    switch (sectionStatus) {
+      case 'green':
+        return 'bg-green-50/80';
+      case 'amber':
+        return 'bg-amber-50/80';
+      case 'red':
+        return 'bg-red-50/80';
+      case 'na':
+        return 'bg-gray-50/80';
+      default:
+        return 'bg-white';
+    }
+  };
+
   const handleActionEdit = (actionId: string, updates: { comment?: string; dueDate?: string; owner?: string }) => {
     const updatedActions = actions.map(action => {
       if (action.id !== actionId) return action;
@@ -309,13 +327,13 @@ export const ActionForm = ({
       <div className="border border-border rounded-lg p-4 space-y-3">
         <div className="flex gap-3 items-start">
           {/* Name Dropdown */}
-          <div className="w-48 bg-white">
+          <div className="w-48">
             <label className="text-xs text-muted-foreground mb-1 block px-2 py-1 rounded uppercase">ASSIGNED TO</label>
             <Select value={newAction.name} onValueChange={value => setNewAction(prev => ({
             ...prev,
             name: value
           }))}>
-              <SelectTrigger className="h-9 bg-white">
+              <SelectTrigger className={`h-9 ${getRAGBackgroundClass()}`}>
                 <SelectValue placeholder="Select person..." />
               </SelectTrigger>
               <SelectContent className="bg-white">
@@ -339,7 +357,7 @@ export const ActionForm = ({
             const target = e.target as HTMLTextAreaElement;
             target.style.height = 'auto';
             target.style.height = target.scrollHeight + 'px';
-          }} className="min-h-[36px] w-full px-3 py-2 text-sm border border-input rounded-md resize-none overflow-hidden bg-white" />
+          }} className={`min-h-[36px] w-full px-3 py-2 text-sm border border-input rounded-md resize-none overflow-hidden ${getRAGBackgroundClass()}`} />
           </div>
 
           {/* Target Date - Just calendar emoji */}
