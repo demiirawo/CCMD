@@ -37,7 +37,7 @@ export const MeetingSummaryPanel = ({ purpose, onPurposeChange, readOnly = false
   };
 
   return (
-    <div className="rounded-xl p-8 mb-3 shadow-md hover:scale-[1.01] transition-transform duration-300 min-h-[140px] relative w-full bg-gray-50 border border-gray-200 outline-none">
+    <div className="bg-primary/10 p-8 rounded-xl shadow-sm -mx-8 px-14 mb-8 border border-primary/20 outline-none">
       <Card className="w-full bg-white">
         <CardHeader className="pb-4">
           <div className="flex items-center justify-between">
