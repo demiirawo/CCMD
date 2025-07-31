@@ -281,7 +281,7 @@ export const StaffDocumentsAnalytics = ({
         
         {/* On Probation Row */}
         <div className="text-sm">On Probation:</div>
-        <div className="text-lg text-primary text-center">{staffData.onProbation}</div>
+        <div className="text-lg text-black text-center">{staffData.onProbation}</div>
         <div className="flex justify-center">
           <EditableCell 
             value={complianceData.onProbationCompliant} 
