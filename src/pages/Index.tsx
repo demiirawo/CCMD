@@ -13,7 +13,7 @@ import { StatusItemData } from "@/components/StatusItem";
 import { ActionItem } from "@/components/ActionForm";
 import { SubsectionMetadata } from "@/components/SubsectionMetadataDialog";
 import { StatusType } from "@/components/StatusBadge";
-import { Users, Target, BarChart3, FileText, Heart, Shield, Calendar, UserCheck, ClipboardList, HeartHandshake, TrendingUp, Save, Download, ChevronDown, ChevronUp, Copy } from "lucide-react";
+import { Users, Target, BarChart3, FileText, Heart, Shield, Calendar, UserCheck, ClipboardList, HeartHandshake, TrendingUp, Save, Download, ChevronDown, ChevronUp, Copy, Home } from "lucide-react";
 import { MeetingStatusSummary } from "@/components/MeetingStatusSummary";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -496,6 +496,29 @@ const Index = () => {
       }, {
         id: "audits",
         title: "Audits",
+        status: "green" as StatusType,
+        lastReviewed: "",
+        observation: "",
+        actions: [],
+        details: "",
+        metadata: {}
+      }]
+    }, {
+      id: "supported-housing",
+      title: "Supported Housing",
+      icon: <Home className="w-6 h-6 text-orange-600" />,
+      items: [{
+        id: "tenancy-benefits",
+        title: "Tenancy & Benefits",
+        status: "green" as StatusType,
+        lastReviewed: "",
+        observation: "",
+        actions: [],
+        details: "",
+        metadata: {}
+      }, {
+        id: "property-safety-maintenance",
+        title: "Property Safety & Maintenance",
         status: "green" as StatusType,
         lastReviewed: "",
         observation: "",
