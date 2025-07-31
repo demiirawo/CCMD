@@ -202,7 +202,6 @@ export const MagicLinkAuth = () => {
             className="w-full bg-stone-50"
             onClick={() => setShowAdminLogin(!showAdminLogin)}
           >
-            <Lock className="mr-2 h-4 w-4" />
             Admin Login
           </Button>
           
