@@ -326,7 +326,18 @@ export const KeyDocumentTracker = ({
                           : 'status-green'
                         : 'bg-white/20 border-white/30 text-gray-700'
                     }`}>
-                      {doc.nextReviewDate ? new Date(doc.nextReviewDate).toLocaleDateString('en-GB') : ""}
+                      {doc.nextReviewDate ? (
+                        <>
+                          {new Date(doc.nextReviewDate).toLocaleDateString('en-GB')}
+                          {(() => {
+                            const daysRemaining = getDaysRemaining(new Date(doc.nextReviewDate));
+                            if (daysRemaining !== null) {
+                              return ` • ${Math.abs(daysRemaining)} day(s) ${daysRemaining < 0 ? 'overdue' : 'remaining'}`;
+                            }
+                            return '';
+                          })()}
+                        </>
+                      ) : ""}
                     </div>
                   </div>
 
