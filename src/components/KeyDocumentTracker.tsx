@@ -193,7 +193,7 @@ export const KeyDocumentTracker = ({
 
   // Function to get background class - always use theme color for Key Review Dates
   const getBackgroundClass = () => {
-    return 'bg-primary/10 border border-primary/20';
+    return 'bg-primary/10';
   };
 
   return <div className={`rounded-2xl p-6 shadow-lg -mx-8 px-14 outline-none ${getBackgroundClass()}`}>
