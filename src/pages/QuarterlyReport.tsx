@@ -8,7 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useOpenAI } from "@/hooks/useOpenAI";
 import { Document, Packer, Paragraph, TextRun, HeadingLevel, ImageRun } from 'docx';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, ComposedChart, Line } from 'recharts';
 
 interface CompanyInfo {
   name: string;
@@ -687,25 +687,54 @@ Focus on creating a comprehensive narrative that demonstrates ${companyName}'s o
         if (Array.isArray(analyticsData.data)) {
           const chartData = analyticsData.data.map((item: any) => ({
             month: item.month,
-            'Complaints': item.complaints,
-            'Resolved': item.resolved,
-            'Compliments': item.compliments,
-            'Suggestions': item.suggestions
+            compliments: item.compliments || 0,
+            complaints: item.complaints || 0,
+            suggestions: item.suggestions || 0,
+            resolved: item.resolved || 0
           }));
 
           return (
             <div className="h-80 w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="month" />
-                  <YAxis />
+                <ComposedChart data={chartData} margin={{ top: 5, right: 5, bottom: 25, left: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
+                  <XAxis dataKey="month" axisLine={false} tickLine={false} className="text-xs" />
+                  <YAxis axisLine={false} tickLine={false} className="text-xs" />
                   <Tooltip />
-                  <Bar dataKey="Complaints" fill="#ef4444" />
-                  <Bar dataKey="Resolved" fill="#10b981" />
-                  <Bar dataKey="Compliments" fill="#3b82f6" />
-                  <Bar dataKey="Suggestions" fill="#f59e0b" />
-                </BarChart>
+                  <Bar dataKey="compliments" fill="#22c55e" name="Compliments" stackId="feedback" />
+                  <Bar dataKey="complaints" fill="#ef4444" name="Complaints" stackId="feedback" />
+                  <Bar dataKey="suggestions" fill="#3b82f6" name="Suggestions" stackId="feedback" />
+                  <Line type="monotone" dataKey="resolved" stroke="#f59e0b" strokeWidth={2} dot={{ r: 3, fill: "#f59e0b" }} name="Resolved" />
+                </ComposedChart>
+              </ResponsiveContainer>
+            </div>
+          );
+        }
+        break;
+
+      case 'incidents':
+        if (Array.isArray(analyticsData.data)) {
+          const chartData = analyticsData.data.map((item: any) => ({
+            month: item.month,
+            incidents: item.incidents || 0,
+            accidents: item.accidents || 0,
+            safeguarding: item.safeguarding || 0,
+            resolved: item.resolved || 0
+          }));
+
+          return (
+            <div className="h-80 w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <ComposedChart data={chartData} margin={{ top: 5, right: 5, bottom: 25, left: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
+                  <XAxis dataKey="month" axisLine={false} tickLine={false} className="text-xs" />
+                  <YAxis axisLine={false} tickLine={false} className="text-xs" />
+                  <Tooltip />
+                  <Bar dataKey="incidents" fill="#ef4444" name="Incidents" stackId="incidents" />
+                  <Bar dataKey="accidents" fill="#f59e0b" name="Accidents" stackId="incidents" />
+                  <Bar dataKey="safeguarding" fill="#3b82f6" name="Safeguarding" stackId="incidents" />
+                  <Line type="monotone" dataKey="resolved" stroke="#22c55e" strokeWidth={2} dot={{ r: 3, fill: "#22c55e" }} name="Resolved" />
+                </ComposedChart>
               </ResponsiveContainer>
             </div>
           );
@@ -987,12 +1016,12 @@ Focus on creating a comprehensive narrative that demonstrates ${companyName}'s o
                               const analyticsType = analyticsDataMatch[1];
                               
                               // Only show feedback and spotCheck analytics, and only once each
-                              if ((analyticsType === 'feedback' || analyticsType === 'spotCheck') && !processedAnalytics.has(analyticsType)) {
+                              if ((analyticsType === 'feedback' || analyticsType === 'incidents' || analyticsType === 'spotCheck') && !processedAnalytics.has(analyticsType)) {
                                 processedAnalytics.add(analyticsType);
                                 const analyticsData = analyticsImages[analyticsType];
                                 
                                 if (analyticsData && analyticsData.hasData) {
-                                  const displayTitle = analyticsType === 'feedback' ? 'Feedback' : 'Incidents, Accidents & Safeguarding';
+                                  const displayTitle = analyticsType === 'feedback' ? 'Feedback' : analyticsType === 'incidents' ? 'Incidents, Accidents & Safeguarding' : 'Spot Check Analytics';
                                   return (
                                     <div key={lineIndex} className="my-6 p-4 border border-gray-200 rounded-lg bg-gray-50">
                                       <h3 className="text-lg font-semibold text-gray-800 mb-3">{displayTitle}</h3>
