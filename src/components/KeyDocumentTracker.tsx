@@ -196,13 +196,13 @@ export const KeyDocumentTracker = ({
     const status = getOverallStatus();
     switch (status) {
       case 'green':
-        return 'bg-green-50 border border-green-800';
+        return 'bg-green-50';
       case 'amber':
-        return 'bg-amber-50 border border-amber-800';
+        return 'bg-amber-50';
       case 'red':
-        return 'bg-red-50 border border-red-800';
+        return 'bg-red-50';
       default:
-        return 'bg-white border border-gray-800';
+        return 'bg-white';
     }
   };
 
