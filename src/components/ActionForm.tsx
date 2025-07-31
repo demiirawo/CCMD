@@ -333,7 +333,7 @@ export const ActionForm = ({
             ...prev,
             name: value
           }))}>
-              <SelectTrigger className={`h-9 ${getRAGBackgroundClass()}`}>
+              <SelectTrigger className="h-9 bg-white">
                 <SelectValue placeholder="Select person..." />
               </SelectTrigger>
               <SelectContent className="bg-white">
