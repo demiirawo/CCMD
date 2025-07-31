@@ -120,7 +120,7 @@ export const useMeetingEmailNotification = () => {
               to: email,
               subject: `Meeting Summary: ${meetingData.title}`,
               html: emailHtml,
-              from: 'Care Cuddle <meetings@care-cuddle.co.uk>'
+              from: 'Care Cuddle <meetings@care-cuddle.xyz>'
             }
           });
 
