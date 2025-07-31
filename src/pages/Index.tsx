@@ -22,7 +22,7 @@ import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 
 const Index = () => {
-  const { profile } = useAuth();
+  const { profile, companies } = useAuth();
   const { sendMeetingEmails } = useMeetingEmailNotification();
   
   // Check if user has edit permissions
@@ -1852,7 +1852,18 @@ const Index = () => {
             readOnly={!canEdit}
           />
           
-          {dashboardData.sections.filter(section => section.id !== "meeting-overview").map(section => {
+          {dashboardData.sections.filter(section => {
+            // Always show non-meeting-overview sections except for conditional ones
+            if (section.id === "meeting-overview") return false;
+            
+            // Hide Supported Housing section unless it's enabled in company services
+            if (section.id === "supported-housing") {
+              const currentCompany = companies.find(c => c.id === profile?.company_id);
+              return currentCompany?.services?.includes("Supported Housing") || false;
+            }
+            
+            return true;
+          }).map(section => {
             // Parse the meeting date for analytics
             const parseDateString = (dateString: string) => {
               try {
