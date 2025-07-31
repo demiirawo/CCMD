@@ -182,7 +182,26 @@ export const StatusItem = ({
   const handleMetadataChange = (metadata: SubsectionMetadata) => {
     onMetadataChange?.(item.id, metadata);
   };
-  return <div className="relative w-full bg-white rounded-xl p-8 mb-3 shadow-md border border-border/30 hover:scale-[1.01] transition-transform duration-300 min-h-[140px]">
+
+  const getStatusBackgroundClass = (status: StatusType) => {
+    switch (status) {
+      case 'green':
+        return 'bg-green-50 border-green-200';
+      case 'amber':
+        return 'bg-amber-50 border-amber-200';
+      case 'red':
+        return 'bg-red-50 border-red-200';
+      case 'na':
+        return 'bg-gray-50 border-gray-200';
+      default:
+        return 'bg-white border-border/30';
+    }
+  };
+
+  return <div className={cn(
+    "relative w-full rounded-xl p-8 mb-3 shadow-md hover:scale-[1.01] transition-transform duration-300 min-h-[140px]",
+    getStatusBackgroundClass(item.status)
+  )}>
       <div className="flex items-start gap-4 w-full">
         <button onClick={() => setIsExpanded(!isExpanded)} className={`flex-shrink-0 p-1 rounded-lg hover:bg-accent/50 transition-colors bg-transparent ${item.title.toLowerCase().includes('risk register') || item.title.toLowerCase().includes('infection control') || item.title.toLowerCase().includes('audits') || item.title.toLowerCase().includes('call monitoring') || item.title.toLowerCase().includes('staff meetings') || item.title.toLowerCase().includes('transportation') || item.title.toLowerCase().includes('information governance') || item.title.toLowerCase().includes('medication management') || item.title.toLowerCase().includes('care notes') ? 'opacity-0 invisible pointer-events-none' : ''}`}>
           {isExpanded ? <ChevronDown className="w-4 h-4 text-muted-foreground" /> : <ChevronRight className="w-4 h-4 text-muted-foreground" />}

@@ -4,6 +4,7 @@ import { StatusType, StatusBadge } from "./StatusBadge";
 import { SubsectionMetadata } from "./SubsectionMetadataDialog";
 import { ChevronDown, ChevronRight, Plus, CheckCircle, AlertTriangle, XCircle } from "lucide-react";
 import { useState, useEffect } from "react";
+import { cn } from "@/lib/utils";
 
 interface DashboardSectionProps {
   title: string;
@@ -173,12 +174,30 @@ export const DashboardSection = ({
     return <StatusBadge status={status as StatusType} />;
   };
 
+  const getSectionBackgroundClass = (status: string) => {
+    const baseClass = ["Staff", "Care Planning & Delivery", "Safety", "Continuous Improvement"].includes(title) 
+      ? "-mx-8 px-14 py-6" 
+      : "p-6";
+    
+    switch (status) {
+      case 'green':
+        return `bg-green-50/80 border-green-200 ${baseClass}`;
+      case 'amber':
+        return `bg-amber-50/80 border-amber-200 ${baseClass}`;
+      case 'red':
+        return `bg-red-50/80 border-red-200 ${baseClass}`;
+      case 'na':
+        return `bg-gray-50/80 border-gray-200 ${baseClass}`;
+      default:
+        return `bg-white border-border/50 ${baseClass}`;
+    }
+  };
+
   return (
-    <div className={`rounded-2xl shadow-lg border border-border/50 ${
-      ["Staff", "Care Planning & Delivery", "Safety", "Continuous Improvement"].includes(title) 
-        ? "bg-primary/10 -mx-8 px-14 py-6" 
-        : "bg-white p-6"
-    }`}>
+    <div className={cn(
+      "rounded-2xl shadow-lg",
+      getSectionBackgroundClass(getOverallStatus())
+    )}>
       <div 
         className="flex items-center justify-between cursor-pointer mb-4"
         onClick={() => {

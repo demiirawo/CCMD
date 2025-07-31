@@ -35,7 +35,7 @@ export const StatusBadge = ({
   return (
     <span
       className={cn(
-        "inline-flex items-center justify-center rounded-full text-xs font-medium min-w-6 h-6 px-1",
+        "inline-flex items-center justify-center rounded-lg text-sm font-bold min-w-12 h-12 px-2",
         config.className,
         className
       )}
