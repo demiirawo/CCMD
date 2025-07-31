@@ -237,7 +237,7 @@ export const StatusItem = ({
                 attendees={attendees}
                 onSave={handleMetadataChange}
               >
-                <h4 className="font-semibold text-foreground text-sm truncate cursor-pointer hover:text-primary transition-colors">
+                <h4 className="font-semibold text-foreground text-base cursor-pointer hover:text-primary transition-colors line-clamp-2">
                   {item.title}
                 </h4>
               </SubsectionMetadataDialog>
