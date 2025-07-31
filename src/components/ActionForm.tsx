@@ -310,7 +310,7 @@ export const ActionForm = ({
         <div className="flex gap-3 items-start">
           {/* Name Dropdown */}
           <div className="w-48 bg-white">
-            <label className="text-xs text-muted-foreground mb-1 block px-2 py-1 rounded uppercase">ASSIGNED TO</label>
+            <label className="text-xs text-muted-foreground mb-1 block bg-transparent uppercase">ASSIGNED TO</label>
             <Select value={newAction.name} onValueChange={value => setNewAction(prev => ({
             ...prev,
             name: value
