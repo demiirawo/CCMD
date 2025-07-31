@@ -44,7 +44,7 @@ export const useMeetingEmailNotification = () => {
       // Debug action items structure
       console.log('🔍 Action items raw data:', JSON.stringify(meetingData.actions, null, 2));
       
-      // Format action items with better field checking
+      // Format action items with correct field names from ActionLogEntry interface
       const actionItemsHtml = meetingData.actions.length > 0 
         ? `
           <h3 style="color: #374151; margin-bottom: 16px;">Action Items:</h3>
@@ -53,6 +53,11 @@ export const useMeetingEmailNotification = () => {
               console.log(`🔍 Processing action ${index}:`, {
                 raw: action,
                 keys: Object.keys(action),
+                // ActionLogEntry fields
+                action: action.action,
+                mentionedAttendee: action.mentionedAttendee,
+                dueDate: action.dueDate,
+                // Alternative possible fields
                 action_text: action.action_text,
                 actionText: action.actionText,
                 description: action.description,
@@ -63,29 +68,28 @@ export const useMeetingEmailNotification = () => {
                 assigned_to: action.assigned_to,
                 owner: action.owner,
                 due_date: action.due_date,
-                dueDate: action.dueDate,
                 targetDate: action.targetDate,
                 target_date: action.target_date
               });
               
-              // Get action description - check multiple possible field names
-              const actionText = action.action_text || 
+              // Use correct ActionLogEntry field names first, then fallbacks
+              const actionText = action.action || 
+                                action.action_text || 
                                 action.actionText || 
                                 action.description || 
                                 action.text || 
                                 action.title || 
                                 'No action description';
               
-              // Get assignee - check multiple possible field names  
-              const assignee = action.mentioned_attendee || 
+              const assignee = action.mentionedAttendee || 
+                              action.mentioned_attendee || 
                               action.assignee || 
                               action.assigned_to || 
                               action.owner || 
                               '';
               
-              // Get due date - check multiple possible field names
-              const dueDate = action.due_date || 
-                             action.dueDate || 
+              const dueDate = action.dueDate || 
+                             action.due_date || 
                              action.targetDate || 
                              action.target_date || 
                              '';
