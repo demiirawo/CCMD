@@ -48,5 +48,25 @@ export const MeetingStatusSummary = ({
     }
   });
   console.log('MeetingStatusSummary: Status counts:', statusCounts);
-  return;
+  
+  return (
+    <div className="flex items-center gap-8 justify-center p-4 bg-card rounded-lg border">
+      <div className="text-center">
+        <StatusBadge status="green" />
+        <p className="text-xs text-muted-foreground mt-1">On Track</p>
+      </div>
+      <div className="text-center">
+        <StatusBadge status="amber" />
+        <p className="text-xs text-muted-foreground mt-1">At Risk</p>
+      </div>
+      <div className="text-center">
+        <StatusBadge status="red" />
+        <p className="text-xs text-muted-foreground mt-1">Critical</p>
+      </div>
+      <div className="text-center">
+        <StatusBadge status="na" />
+        <p className="text-xs text-muted-foreground mt-1">Not Applicable</p>
+      </div>
+    </div>
+  );
 };
