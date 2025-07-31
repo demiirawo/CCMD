@@ -184,6 +184,27 @@ export const StatusItem = ({
   };
 
   const getStatusBackgroundClass = (status: StatusType) => {
+    // Check if any actions are overdue
+    const hasOverdueActions = item.actions.some(action => {
+      try {
+        const [day, month, year] = action.targetDate.split('/');
+        const dueDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        dueDate.setHours(0, 0, 0, 0);
+        const daysRemaining = Math.floor((dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+        return daysRemaining < 0;
+      } catch {
+        return false;
+      }
+    });
+
+    // If there are overdue actions, always show red regardless of status
+    if (hasOverdueActions) {
+      return 'bg-red-50 border-2 border-red-800';
+    }
+
+    // Otherwise use the normal status-based colors
     switch (status) {
       case 'green':
         return 'bg-green-50 border-2 border-green-800';
