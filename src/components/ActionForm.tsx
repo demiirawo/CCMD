@@ -328,7 +328,7 @@ export const ActionForm = ({
         <div className="flex gap-3 items-start">
           {/* Name Dropdown */}
           <div className="w-48">
-            <label className="text-xs font-medium text-muted-foreground mb-1 block">ASSIGNED TO</label>
+            <label className="text-xs font-medium text-muted-foreground mb-1 block uppercase">ASSIGNED TO</label>
             <Select value={newAction.name} onValueChange={value => setNewAction(prev => ({
             ...prev,
             name: value
@@ -346,7 +346,7 @@ export const ActionForm = ({
 
           {/* Action Description - Wider to utilize space */}
           <div className="flex-1">
-            <label className="text-xs font-medium text-muted-foreground mb-1 block">ACTION DESCRIPTION</label>
+            <label className="text-xs font-medium text-muted-foreground mb-1 block uppercase">ACTION DESCRIPTION</label>
             <textarea placeholder="Enter action description..." value={newAction.description} onChange={e => setNewAction(prev => ({
             ...prev,
             description: e.target.value
@@ -362,7 +362,7 @@ export const ActionForm = ({
 
           {/* Target Date - Just calendar emoji */}
           <div>
-            <label className="text-xs font-medium text-muted-foreground mb-1 block">DATE</label>
+            <label className="text-xs font-medium text-muted-foreground mb-1 block uppercase">DATE</label>
             <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
               <PopoverTrigger asChild>
                 <Button variant="outline" className={`h-9 w-9 p-0 bg-white ${newAction.targetDate ? 'bg-green-50 border-green-300' : ''}`} title={newAction.targetDate || "Select date"}>
