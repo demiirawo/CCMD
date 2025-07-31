@@ -522,9 +522,6 @@ export const Reports = () => {
                                 <MeetingStatusSummary sections={meeting.sections} />
                               </div>
                             </div>
-                            {meeting.purpose && (
-                              <p className="text-sm text-muted-foreground w-full">{meeting.purpose}</p>
-                            )}
                             <div className="flex items-center gap-2">
                                {/* View Dashboard Dialog */}
                                <Dialog>
