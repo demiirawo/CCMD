@@ -389,13 +389,13 @@ Examine areas for improvement, incidents, challenges faced, and lessons learned 
 Detailed analysis of ${companyName}'s staffing levels, recruitment, retention, training compliance, supervision quality, and capacity planning initiatives. Include comparative analysis of workforce metrics between ${quarter} ${year} and ${prevQuarter} ${prevYear}.
 
 5. Care Quality and Service Excellence
-Comprehensive review of ${companyName}'s care planning effectiveness, service quality metrics, care plan compliance, risk management, and client outcomes. Analyze improvements or declines in care quality since the previous quarter.
+Comprehensive review of ${companyName}'s care planning effectiveness, service quality metrics, care plan compliance, risk management, and client outcomes. Analyze improvements or declines in care quality since the previous quarter. Include [ANALYTICS DATA: feedback] to display the 12-month feedback analytics chart showing compliments, complaints, suggestions, and resolution trends.
 
 6. Health, Safety and Risk Management
-Thorough analysis of ${companyName}'s incident patterns, safety performance, risk mitigation strategies, safeguarding effectiveness, and regulatory compliance. Compare safety metrics and incident trends with ${prevQuarter} ${prevYear}.
+Thorough analysis of ${companyName}'s incident patterns, safety performance, risk mitigation strategies, safeguarding effectiveness, and regulatory compliance. Compare safety metrics and incident trends with ${prevQuarter} ${prevYear}. Include [ANALYTICS DATA: incidents] to display the 12-month incidents analytics chart showing incidents, accidents, safeguarding concerns, and resolution rates.
 
 7. Continuous Improvement and Innovation
-Detailed discussion of ${companyName}'s improvement initiatives, quality enhancement programs, feedback integration, and innovation projects. Analyze progress on improvement initiatives since the previous quarter.
+Detailed discussion of ${companyName}'s improvement initiatives, quality enhancement programs, feedback integration, and innovation projects. Analyze progress on improvement initiatives since the previous quarter. Reference feedback analytics data to demonstrate how customer insights are driving improvements.
 
 8. Strategic Outlook and Future Planning
 Forward-looking analysis with strategic recommendations for ${companyName}, priority areas for focus, planned initiatives for the coming quarter, and lessons learned from quarter-to-quarter performance trends.
