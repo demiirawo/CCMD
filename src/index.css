@@ -238,4 +238,18 @@ All colors MUST be HSL.
     @apply bg-background text-foreground;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   }
+
+  /* Remove focus outlines from panel containers */
+  .bg-primary\/10,
+  [class*="bg-primary/10"] {
+    outline: none !important;
+  }
+  
+  .bg-primary\/10:focus,
+  [class*="bg-primary/10"]:focus,
+  .bg-primary\/10 > *:focus,
+  [class*="bg-primary/10"] > *:focus {
+    outline: none !important;
+    box-shadow: none !important;
+  }
 }
