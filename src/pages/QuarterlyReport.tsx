@@ -1015,17 +1015,44 @@ Focus on creating a comprehensive narrative that demonstrates ${companyName}'s o
                       }
                       // Check for standalone section titles (without numbers) - expanded list
                       if (line.trim().length > 0 && line.trim().length < 100 && (line.trim() === 'Executive Summary' || line.trim() === 'Operational Successes' || line.trim() === 'Operational Successes and Achievements' || line.trim() === 'Learning Opportunities and Challenges' || line.trim() === 'Learning Opportunities and Strategic Challenges' || line.trim() === 'Workforce and Capacity Analysis' || line.trim() === 'Workforce Development and Capacity Analysis' || line.trim() === 'Care Quality and Service Delivery' || line.trim() === 'Care Quality and Service Excellence' || line.trim() === 'Health, Safety and Risk Management' || line.trim() === 'Continuous Improvement and Innovation' || line.trim() === 'Strategic Outlook and Recommendations' || line.trim() === 'Strategic Outlook and Future Planning' || line.trim().includes('Summary') || line.trim().includes('Analysis') || line.trim().includes('Development') || line.trim().includes('Excellence') || line.trim().includes('Management') || line.trim().includes('Innovation') || line.trim().includes('Outlook') || line.trim().includes('Planning'))) {
-                        return <div key={lineIndex} className="mb-8">
-                                  <h2 className="text-2xl font-bold text-gray-800 pb-3 mb-6" style={{
-                            borderBottom: '2px solid #e5e7eb',
-                            fontSize: '18pt',
-                            fontWeight: 'bold',
-                            color: '#374151',
-                            paddingBottom: '12px'
-                          }}>
-                                    {line.trim()}
-                                  </h2>
-                                </div>;
+                        const sectionTitle = line.trim();
+                        const elements = [
+                          <div key={lineIndex} className="mb-8">
+                            <h2 className="text-2xl font-bold text-gray-800 pb-3 mb-6" style={{
+                              borderBottom: '2px solid #e5e7eb',
+                              fontSize: '18pt',
+                              fontWeight: 'bold',
+                              color: '#374151',
+                              paddingBottom: '12px'
+                            }}>
+                              {sectionTitle}
+                            </h2>
+                          </div>
+                        ];
+                        
+                        // Add feedback graph for Care Quality and Service Excellence section
+                        if ((sectionTitle === 'Care Quality and Service Excellence' || sectionTitle === 'Care Quality and Service Delivery') && 
+                            analyticsImages.feedback && analyticsImages.feedback.hasData) {
+                          elements.push(
+                            <div key={`${lineIndex}-feedback`} className="my-6 p-4 border border-gray-200 rounded-lg bg-gray-50">
+                              <h3 className="text-lg font-semibold text-gray-800 mb-3">Client Feedback Analytics</h3>
+                              {renderAnalyticsChart('feedback', analyticsImages.feedback)}
+                            </div>
+                          );
+                        }
+                        
+                        // Add incident graph for Health, Safety and Risk Management section
+                        if (sectionTitle === 'Health, Safety and Risk Management' && 
+                            analyticsImages.incidents && analyticsImages.incidents.hasData) {
+                          elements.push(
+                            <div key={`${lineIndex}-incidents`} className="my-6 p-4 border border-gray-200 rounded-lg bg-gray-50">
+                              <h3 className="text-lg font-semibold text-gray-800 mb-3">Incidents, Accidents & Safeguarding Analytics</h3>
+                              {renderAnalyticsChart('incidents', analyticsImages.incidents)}
+                            </div>
+                          );
+                        }
+                        
+                        return elements;
                       }
                       if (line.trim().length > 50) {
                         // Regular paragraphs - substantial text
