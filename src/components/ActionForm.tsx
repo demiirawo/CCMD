@@ -324,7 +324,7 @@ export const ActionForm = ({
       />
 
       {/* Add New Action Form */}
-      <div className="border border-border rounded-lg p-4 space-y-3">
+      <div className="rounded-lg p-4 space-y-3">
         <div className="flex gap-3 items-start">
           {/* Name Dropdown */}
           <div className="w-48">
