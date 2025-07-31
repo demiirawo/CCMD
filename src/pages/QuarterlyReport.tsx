@@ -76,17 +76,21 @@ export const QuarterlyReport = () => {
     if (analytics) {
       try {
         const decodedAnalytics = JSON.parse(decodeURIComponent(analytics));
+        console.log('📊 Setting analytics images from URL:', decodedAnalytics);
         setAnalyticsImages(decodedAnalytics);
       } catch (error) {
         console.warn('Failed to parse analytics data:', error);
         // Try to parse without decoding first
         try {
           const directAnalytics = JSON.parse(analytics);
+          console.log('📊 Setting analytics images (direct):', directAnalytics);
           setAnalyticsImages(directAnalytics);
         } catch (directError) {
           console.warn('Failed to parse analytics data directly:', directError);
         }
       }
+    } else {
+      console.log('📊 No analytics parameter found in URL');
     }
     loadCompanyInfo();
   }, [content, analytics]);
@@ -322,8 +326,13 @@ Focus on creating a comprehensive narrative that demonstrates ${companyName}'s o
         setReportContent(generatedContent);
         splitContentIntoPages(generatedContent);
 
+        // Process and set analytics images for chart rendering
+        const analyticsForDisplay = await processAnalyticsData();
+        setAnalyticsImages(analyticsForDisplay);
+        console.log('📊 Analytics images set for display:', analyticsForDisplay);
+
         // Save the generated report to Supabase
-        await saveReportToSupabase(generatedContent, processedAnalytics);
+        await saveReportToSupabase(generatedContent, analyticsForDisplay);
         toast({
           title: "Report Generated",
           description: "Your comprehensive quarterly report has been successfully generated!"
@@ -1035,23 +1044,31 @@ Focus on creating a comprehensive narrative that demonstrates ${companyName}'s o
                         // Add feedback graph for Care Quality and Service Excellence section
                         if ((sectionTitle === 'Care Quality and Service Excellence' || sectionTitle === 'Care Quality and Service Delivery') && 
                             analyticsImages.feedback && analyticsImages.feedback.hasData) {
+                          console.log('📊 Adding feedback chart for section:', sectionTitle);
+                          console.log('📊 Feedback data:', analyticsImages.feedback);
                           elements.push(
                             <div key={`${lineIndex}-feedback`} className="my-6 p-4 border border-gray-200 rounded-lg bg-gray-50">
                               <h3 className="text-lg font-semibold text-gray-800 mb-3">Client Feedback Analytics</h3>
                               {renderAnalyticsChart('feedback', analyticsImages.feedback)}
                             </div>
                           );
+                        } else {
+                          console.log('📊 Feedback chart not added - section:', sectionTitle, 'hasData:', analyticsImages.feedback?.hasData);
                         }
                         
                         // Add incident graph for Health, Safety and Risk Management section
                         if (sectionTitle === 'Health, Safety and Risk Management' && 
                             analyticsImages.incidents && analyticsImages.incidents.hasData) {
+                          console.log('📊 Adding incidents chart for section:', sectionTitle);
+                          console.log('📊 Incidents data:', analyticsImages.incidents);
                           elements.push(
                             <div key={`${lineIndex}-incidents`} className="my-6 p-4 border border-gray-200 rounded-lg bg-gray-50">
                               <h3 className="text-lg font-semibold text-gray-800 mb-3">Incidents, Accidents & Safeguarding Analytics</h3>
                               {renderAnalyticsChart('incidents', analyticsImages.incidents)}
                             </div>
                           );
+                        } else {
+                          console.log('📊 Incidents chart not added - section:', sectionTitle, 'hasData:', analyticsImages.incidents?.hasData);
                         }
                         
                         return elements;
