@@ -167,6 +167,90 @@ export const MagicLinkAuth = () => {
       </div>;
   }
   return <div className="min-h-screen flex items-center justify-center bg-stone-50">
-      
+      <Card className="w-full max-w-md">
+        <CardHeader className="text-center">
+          <div className="mx-auto mb-4">
+            <Mail className="h-24 w-24 text-primary" />
+          </div>
+          <CardTitle>Welcome Back</CardTitle>
+          <CardDescription>
+            Sign in to your account using your email address
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <form onSubmit={handleMagicLink} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="Enter your email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading ? "Sending..." : "Send Magic Link"}
+            </Button>
+          </form>
+          
+          <Separator />
+          
+          <Button
+            variant="outline"
+            className="w-full bg-stone-50"
+            onClick={() => setShowAdminLogin(!showAdminLogin)}
+          >
+            <Lock className="mr-2 h-4 w-4" />
+            Admin Login
+          </Button>
+          
+          {showAdminLogin && (
+            <form onSubmit={handleAdminLogin} className="space-y-4 mt-4">
+              <div className="space-y-2">
+                <Label htmlFor="admin-email">Admin Email</Label>
+                <Input
+                  id="admin-email"
+                  type="email"
+                  placeholder="Enter admin email"
+                  value={adminEmail}
+                  onChange={(e) => setAdminEmail(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="admin-password">Password</Label>
+                <div className="relative">
+                  <Input
+                    id="admin-password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Enter password"
+                    value={adminPassword}
+                    onChange={(e) => setAdminPassword(e.target.value)}
+                    required
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                  </Button>
+                </div>
+              </div>
+              <Button type="submit" className="w-full" disabled={adminLoading}>
+                {adminLoading ? "Signing in..." : "Sign In"}
+              </Button>
+            </form>
+          )}
+        </CardContent>
+      </Card>
     </div>;
 };
