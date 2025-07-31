@@ -114,11 +114,11 @@ export const ActionForm = ({
   const getActionColorClass = (targetDate: string) => {
     const daysRemaining = getDaysRemaining(targetDate);
     if (daysRemaining < 0) {
-      return "bg-red-50 border-red-200 text-red-900";
+      return "bg-red-800 border-red-700 text-red-100";
     } else if (daysRemaining <= 5) {
-      return "bg-amber-50 border-amber-200 text-amber-900";
+      return "bg-amber-800 border-amber-700 text-amber-100";
     } else {
-      return "bg-green-50 border-green-200 text-green-900";
+      return "bg-green-800 border-green-700 text-green-100";
     }
   };
   const formatDaysRemaining = (targetDate: string) => {
@@ -130,6 +130,29 @@ export const ActionForm = ({
     } else {
       return `${daysRemaining} day(s) remaining`;
     }
+  };
+
+  // Sort actions by due date (soonest first)
+  const sortActionsByDate = (actionsToSort: ActionItem[]) => {
+    return [...actionsToSort].sort((a, b) => {
+      const getDays = (targetDate: string) => {
+        try {
+          const [day, month, year] = targetDate.split('/');
+          const dueDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          dueDate.setHours(0, 0, 0, 0);
+          return differenceInDays(dueDate, today);
+        } catch {
+          return 0;
+        }
+      };
+      
+      const daysA = getDays(a.targetDate);
+      const daysB = getDays(b.targetDate);
+      
+      return daysA - daysB; // Soonest (lowest number of days) first
+    });
   };
 
   const handleActionEdit = (actionId: string, updates: { comment?: string; dueDate?: string; owner?: string }) => {
@@ -182,7 +205,7 @@ export const ActionForm = ({
   return <div className="space-y-4">
       {/* Existing Actions */}
       {actions.length > 0 && <div className="space-y-2">
-          {actions.map(action => (
+          {sortActionsByDate(actions).map(action => (
             <div key={action.id} className={`flex items-start gap-2 p-3 rounded-lg border ${getActionColorClass(action.targetDate)}`}>
               <div className="flex-1 min-w-0">
                 <div className="font-medium break-words">
@@ -195,7 +218,7 @@ export const ActionForm = ({
                 {action.auditTrail && action.auditTrail.length > 0 && (
                   <div className="text-xs mt-2 space-y-1">
                      {action.auditTrail.map((entry, entryIndex) => (
-                       <div key={`${action.id}-audit-${entryIndex}`} className="text-blue-600 bg-blue-50 p-1 rounded border-l-2 border-blue-200">
+                       <div key={`${action.id}-audit-${entryIndex}`} className="text-blue-200 bg-blue-900/50 p-1 rounded border-l-2 border-blue-400">
                          <span className="font-medium">{entry.timestamp}:</span> {entry.change}
                        </div>
                      ))}
