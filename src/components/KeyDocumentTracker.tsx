@@ -115,15 +115,15 @@ export const KeyDocumentTracker = ({
   };
 
   const getDocumentColorClass = (nextReviewDate: string | null) => {
-    if (!nextReviewDate) return "bg-gray-100 text-gray-700 border-gray-300";
+    if (!nextReviewDate) return "bg-gray-800 text-white border-gray-700";
     const daysRemaining = getDaysRemaining(new Date(nextReviewDate));
-    if (daysRemaining === null) return "bg-gray-100 text-gray-700 border-gray-300";
+    if (daysRemaining === null) return "bg-gray-800 text-white border-gray-700";
     if (daysRemaining < 0) {
-      return "bg-red-100 text-red-800 border-red-300";
+      return "bg-red-800 text-white border-red-700";
     } else if (daysRemaining <= 5) {
-      return "bg-amber-100 text-amber-800 border-amber-300";
+      return "bg-amber-800 text-white border-amber-700";
     } else {
-      return "bg-green-100 text-green-800 border-green-300";
+      return "bg-green-800 text-white border-green-700";
     }
   };
 
@@ -238,9 +238,9 @@ export const KeyDocumentTracker = ({
                 {/* First line: Category, Document Name, Document Owner */}
                 <div className="grid grid-cols-12 gap-3 items-start">
                   <div className="col-span-3">
-                     <label className="text-xs text-gray-600 mb-1 block">Category</label>
-                     <Select value={doc.category} onValueChange={value => handleDocumentChange(documents.indexOf(doc), 'category', value)}>
-                       <SelectTrigger className="text-sm h-9 bg-white text-black">
+                    <label className="text-xs text-white/80 mb-1 block">Category</label>
+                    <Select value={doc.category} onValueChange={value => handleDocumentChange(documents.indexOf(doc), 'category', value)}>
+                      <SelectTrigger className="text-sm h-9 bg-white text-black">
                         <SelectValue placeholder="Select category" />
                       </SelectTrigger>
                       <SelectContent className="bg-white">
@@ -252,12 +252,12 @@ export const KeyDocumentTracker = ({
                   </div>
                   
                   <div className="col-span-4">
-                     <label className="text-xs text-gray-600 mb-1 block">Document Name</label>
-                     <Input value={doc.name} onChange={e => handleDocumentChange(documents.indexOf(doc), 'name', e.target.value)} placeholder="Enter document name" className="text-sm h-9 bg-white text-black" />
+                    <label className="text-xs text-white/80 mb-1 block">Document Name</label>
+                    <Input value={doc.name} onChange={e => handleDocumentChange(documents.indexOf(doc), 'name', e.target.value)} placeholder="Enter document name" className="text-sm h-9 bg-white text-black" />
                   </div>
                   
                   <div className="col-span-4">
-                    <label className="text-xs text-gray-600 mb-1 block">Document Owner</label>
+                    <label className="text-xs text-white/80 mb-1 block">Document Owner</label>
                     <Select value={doc.owner} onValueChange={value => handleDocumentChange(documents.indexOf(doc), 'owner', value)}>
                       <SelectTrigger className="text-sm h-9 bg-white text-black">
                         <SelectValue placeholder="Select owner" />
@@ -271,8 +271,8 @@ export const KeyDocumentTracker = ({
                   </div>
 
                   <div className="col-span-1">
-                     <label className="text-xs text-gray-600 mb-1 block opacity-0">Remove</label>
-                     <Button variant="outline" size="sm" onClick={() => removeDocument(doc.id)} className="text-xs text-gray-600 hover:text-gray-800 w-8 h-9 p-0 bg-gray-200 border-gray-300 hover:bg-gray-300">
+                    <label className="text-xs text-white/80 mb-1 block opacity-0">Remove</label>
+                    <Button variant="outline" size="sm" onClick={() => removeDocument(doc.id)} className="text-xs text-white hover:text-white w-8 h-9 p-0 bg-white/20 border-white/30 hover:bg-white/30">
                       <Minus className="w-3 h-3" />
                     </Button>
                   </div>
@@ -281,7 +281,7 @@ export const KeyDocumentTracker = ({
                 {/* Second line: Date, Frequency, Due */}
                 <div className="grid grid-cols-12 gap-3 items-start">
                   <div className="col-span-3">
-                    <label className="text-xs text-gray-600 mb-1 block">Date</label>
+                    <label className="text-xs text-white/80 mb-1 block">Date</label>
                     <div className="flex items-center gap-2">
                       <Popover>
                         <PopoverTrigger asChild>
@@ -293,14 +293,14 @@ export const KeyDocumentTracker = ({
                           <Calendar mode="single" selected={doc.lastReviewDate ? new Date(doc.lastReviewDate) : undefined} onSelect={date => handleDocumentChange(documents.indexOf(doc), 'lastReviewDate', date ? format(date, 'yyyy-MM-dd') : '')} initialFocus className="p-3 pointer-events-auto bg-white" />
                         </PopoverContent>
                       </Popover>
-                       <span className="text-sm text-gray-700 w-20">
-                         {doc.lastReviewDate ? new Date(doc.lastReviewDate).toLocaleDateString('en-GB') : ""}
-                       </span>
+                      <span className="text-sm text-white w-20">
+                        {doc.lastReviewDate ? new Date(doc.lastReviewDate).toLocaleDateString('en-GB') : ""}
+                      </span>
                     </div>
                   </div>
                   
                   <div className="col-span-4">
-                    <label className="text-xs text-gray-600 mb-1 block">Frequency</label>
+                    <label className="text-xs text-white/80 mb-1 block">Frequency</label>
                     <div className="flex gap-1">
                       <Select value={doc.reviewFrequencyNumber} onValueChange={value => handleDocumentChange(documents.indexOf(doc), 'reviewFrequencyNumber', value)}>
                         <SelectTrigger className="text-sm h-9 w-16 bg-white text-black">
@@ -326,8 +326,8 @@ export const KeyDocumentTracker = ({
                   </div>
                   
                   <div className="col-span-4">
-                     <label className="text-xs text-gray-600 mb-1 block">Due</label>
-                     <div className="text-sm p-2 bg-gray-200 rounded border border-gray-300 text-center h-9 flex items-center justify-center text-gray-700">
+                    <label className="text-xs text-white/80 mb-1 block">Due</label>
+                    <div className="text-sm p-2 bg-white/20 rounded border border-white/30 text-center h-9 flex items-center justify-center text-white">
                       {doc.nextReviewDate ? new Date(doc.nextReviewDate).toLocaleDateString('en-GB') : ""}
                     </div>
                   </div>
