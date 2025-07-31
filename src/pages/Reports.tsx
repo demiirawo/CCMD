@@ -514,7 +514,7 @@ export const Reports = () => {
                                 <Users className="h-4 w-4" />
                                 {meeting.attendees.length} attendee{meeting.attendees.length !== 1 ? 's' : ''}
                               </div>
-                              <MeetingStatusSummary sections={meeting.sections} />
+                              
                             </div>
                             <div className="flex items-center gap-2">
                                {/* View Dashboard Dialog */}
