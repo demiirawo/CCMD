@@ -196,17 +196,17 @@ export const KeyDocumentTracker = ({
     const status = getOverallStatus();
     switch (status) {
       case 'green':
-        return 'bg-green-50';
+        return 'bg-green-50 border border-green-200';
       case 'amber':
-        return 'bg-amber-50';
+        return 'bg-amber-50 border border-amber-200';
       case 'red':
-        return 'bg-red-50';
+        return 'bg-red-50 border border-red-200';
       default:
-        return 'bg-white';
+        return 'bg-white border border-gray-200';
     }
   };
 
-  return <Card className={`rounded-2xl p-6 shadow-lg -mx-8 px-14 border border-gray-200 ${getBackgroundClass()}`}>
+  return <Card className={`rounded-2xl p-6 shadow-lg -mx-8 px-14 ${getBackgroundClass()}`}>
       <div className="flex items-center justify-between cursor-pointer mb-6" onClick={() => {
         const newState = !isExpanded;
         setIsExpanded(newState);
