@@ -181,74 +181,37 @@ export const MagicLinkAuth = () => {
           <form onSubmit={handleMagicLink} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="Enter your email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
+              <Input id="email" type="email" placeholder="Enter your email" value={email} onChange={e => setEmail(e.target.value)} required />
             </div>
-            <Button type="submit" className="w-full" disabled={loading}>
+            <Button type="submit" disabled={loading} className="w-full text-base bg-neutral-400 hover:bg-neutral-300 text-black">
               {loading ? "Sending..." : "Send Magic Link"}
             </Button>
           </form>
           
           <Separator />
           
-          <Button
-            variant="outline"
-            className="w-full bg-stone-50"
-            onClick={() => setShowAdminLogin(!showAdminLogin)}
-          >
+          <Button variant="outline" onClick={() => setShowAdminLogin(!showAdminLogin)} className="w-full text-base bg-stone-400 hover:bg-stone-300">
             Admin Login
           </Button>
           
-          {showAdminLogin && (
-            <form onSubmit={handleAdminLogin} className="space-y-4 mt-4">
+          {showAdminLogin && <form onSubmit={handleAdminLogin} className="space-y-4 mt-4">
               <div className="space-y-2">
                 <Label htmlFor="admin-email">Admin Email</Label>
-                <Input
-                  id="admin-email"
-                  type="email"
-                  placeholder="Enter admin email"
-                  value={adminEmail}
-                  onChange={(e) => setAdminEmail(e.target.value)}
-                  required
-                />
+                <Input id="admin-email" type="email" placeholder="Enter admin email" value={adminEmail} onChange={e => setAdminEmail(e.target.value)} required />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="admin-password">Password</Label>
                 <div className="relative">
-                  <Input
-                    id="admin-password"
-                    type={showPassword ? "text" : "password"}
-                    placeholder="Enter password"
-                    value={adminPassword}
-                    onChange={(e) => setAdminPassword(e.target.value)}
-                    required
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    {showPassword ? (
-                      <EyeOff className="h-4 w-4" />
-                    ) : (
-                      <Eye className="h-4 w-4" />
-                    )}
+                  <Input id="admin-password" type={showPassword ? "text" : "password"} placeholder="Enter password" value={adminPassword} onChange={e => setAdminPassword(e.target.value)} required />
+                  <Button type="button" variant="ghost" size="sm" className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent" onClick={() => setShowPassword(!showPassword)}>
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </Button>
                 </div>
               </div>
               <Button type="submit" className="w-full" disabled={adminLoading}>
                 {adminLoading ? "Signing in..." : "Sign In"}
               </Button>
-            </form>
-          )}
+            </form>}
         </CardContent>
       </Card>
     </div>;
