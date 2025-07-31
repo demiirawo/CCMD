@@ -196,7 +196,7 @@ export const KeyDocumentTracker = ({
     return 'bg-primary/10 border border-primary/20';
   };
 
-  return <Card className={`rounded-2xl p-6 shadow-lg -mx-8 px-14 outline-none ${getBackgroundClass()}`}>
+  return <div className={`rounded-2xl p-6 shadow-lg -mx-8 px-14 outline-none ${getBackgroundClass()}`}>
       <div className="flex items-center justify-between cursor-pointer mb-6 outline-none" onClick={() => {
         const newState = !isExpanded;
         setIsExpanded(newState);
@@ -340,5 +340,5 @@ export const KeyDocumentTracker = ({
           Add Document
         </Button>
       </div>}
-    </Card>;
+    </div>;
 };
