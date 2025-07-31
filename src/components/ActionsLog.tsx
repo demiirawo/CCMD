@@ -188,11 +188,11 @@ export const ActionsLog = ({
     if (action.closed) return '';
     const daysRemaining = getDaysRemaining(action.dueDate);
     if (daysRemaining < 0) {
-      return 'bg-red-50 border-l-4 border-l-red-500'; // Overdue
+      return 'bg-red-800 text-white border-l-4 border-l-red-500'; // Overdue
     } else if (daysRemaining <= 5) {
-      return 'bg-amber-50 border-l-4 border-l-amber-500'; // Due within 5 days
+      return 'bg-amber-800 text-white border-l-4 border-l-amber-500'; // Due within 5 days
     } else {
-      return 'bg-green-50 border-l-4 border-l-green-500'; // More than 5 days
+      return 'bg-green-800 text-white border-l-4 border-l-green-500'; // More than 5 days
     }
   };
   const renderActionsTable = (actionsList: ActionLogEntry[], title: string) => {
