@@ -78,7 +78,7 @@ export const DashboardHeader = ({
           </button>
       )}
     </div>;
-  return <div className="bg-primary/10 p-8 mb-8 rounded-xl shadow-sm -mx-8 px-14 border border-primary/20 outline-none">
+  return <div className="rounded-xl p-8 mb-3 shadow-md hover:scale-[1.01] transition-transform duration-300 min-h-[140px] relative w-full bg-gray-50 border border-gray-200 outline-none">
       {/* Office Team and Meeting Info Section */}
       <div className="grid grid-cols-3 gap-6 mb-6">
         {/* Office Team - Spans 2 columns */}
