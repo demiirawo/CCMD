@@ -8,14 +8,22 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { Plus, Building2 } from 'lucide-react';
-
 export const CompanySelection = () => {
   const [newCompanyName, setNewCompanyName] = useState('');
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  
-  const { profile, companies, createCompany, selectCompany, signOut, fetchCompanies, loading: authLoading } = useAuth();
-  const { toast } = useToast();
+  const {
+    profile,
+    companies,
+    createCompany,
+    selectCompany,
+    signOut,
+    fetchCompanies,
+    loading: authLoading
+  } = useAuth();
+  const {
+    toast
+  } = useToast();
   const navigate = useNavigate();
 
   // Debug logging
@@ -33,12 +41,10 @@ export const CompanySelection = () => {
     companies,
     companiesLength: companies.length
   });
-
   const handleRefreshCompanies = async () => {
     console.log('Manually refreshing companies...');
     await fetchCompanies();
   };
-
   const clearAllCompanyData = (companyId: string) => {
     // Clear all localStorage data related to meetings and forms for new companies
     const keysToRemove: string[] = [];
@@ -49,11 +55,10 @@ export const CompanySelection = () => {
       }
     }
     keysToRemove.forEach(key => localStorage.removeItem(key));
-    
+
     // Also clear any persistent meeting IDs for this company
     localStorage.removeItem(`persistentMeetingId_${companyId}`);
   };
-
   const handleCreateCompany = async () => {
     if (!newCompanyName.trim()) {
       toast({
@@ -63,11 +68,11 @@ export const CompanySelection = () => {
       });
       return;
     }
-    
     setLoading(true);
-    
-    const { data, error } = await createCompany(newCompanyName);
-    
+    const {
+      data,
+      error
+    } = await createCompany(newCompanyName);
     if (error) {
       toast({
         title: 'Error',
@@ -77,28 +82,26 @@ export const CompanySelection = () => {
     } else if (data) {
       // Clear all localStorage data for the new company to ensure blank inputs
       clearAllCompanyData(data.id);
-      
       toast({
         title: 'Success',
-        description: 'Company created successfully!',
+        description: 'Company created successfully!'
       });
       setNewCompanyName('');
       setCreateDialogOpen(false);
       // Automatically select the new company
       await handleSelectCompany(data.id);
     }
-    
     setLoading(false);
   };
-
   const handleSelectCompany = async (companyId: string) => {
     console.log('Selecting company:', companyId);
     setLoading(true);
-    
-    const { error } = await selectCompany(companyId);
-    
-    console.log('Select company result:', { error });
-    
+    const {
+      error
+    } = await selectCompany(companyId);
+    console.log('Select company result:', {
+      error
+    });
     if (error) {
       console.error('Error selecting company:', error);
       toast({
@@ -111,30 +114,24 @@ export const CompanySelection = () => {
       console.log('Company selected successfully, navigating to /');
       toast({
         title: 'Success',
-        description: 'Company selected successfully!',
+        description: 'Company selected successfully!'
       });
       navigate('/');
       setLoading(false);
     }
   };
-
   const handleSignOut = async () => {
     await signOut();
     navigate('/auth');
   };
-
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-background px-4">
+  return <div className="min-h-screen flex items-center justify-center px-4 bg-stone-50">
       <Card className="w-full max-w-2xl">
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
               <CardTitle>Welcome, {profile?.username || 'User'}!</CardTitle>
               <CardDescription>
-                {profile?.role === 'admin' 
-                  ? 'Select a company to manage or create a new one'
-                  : 'Select your company to continue'
-                }
+                {profile?.role === 'admin' ? 'Select a company to manage or create a new one' : 'Select your company to continue'}
               </CardDescription>
             </div>
             <Button variant="outline" onClick={handleSignOut}>
@@ -146,12 +143,10 @@ export const CompanySelection = () => {
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
-          {companies.length > 0 ? (
-            <div className="space-y-4">
+          {companies.length > 0 ? <div className="space-y-4">
               <h3 className="text-lg font-semibold">Available Companies</h3>
               <div className="grid gap-4">
-                {companies.map((company) => (
-                  <Card key={company.id} className="cursor-pointer hover:bg-accent transition-colors">
+                {companies.map(company => <Card key={company.id} className="cursor-pointer hover:bg-accent transition-colors">
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
@@ -163,36 +158,25 @@ export const CompanySelection = () => {
                             </p>
                           </div>
                         </div>
-                        <Button 
-                          onClick={() => {
-                            console.log('Button clicked for company:', company.id, company.name);
-                            handleSelectCompany(company.id);
-                          }}
-                          disabled={loading}
-                        >
+                        <Button onClick={() => {
+                    console.log('Button clicked for company:', company.id, company.name);
+                    handleSelectCompany(company.id);
+                  }} disabled={loading}>
                           Select
                         </Button>
                       </div>
                     </CardContent>
-                  </Card>
-                ))}
+                  </Card>)}
               </div>
-            </div>
-          ) : (
-            <div className="text-center py-8">
+            </div> : <div className="text-center py-8">
               <Building2 className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-lg font-semibold mb-2">No Companies Found</h3>
               <p className="text-muted-foreground mb-4">
-                {profile?.role === 'admin' 
-                  ? 'Create your first company to get started'
-                  : 'Contact your administrator to be assigned to a company'
-                }
+                {profile?.role === 'admin' ? 'Create your first company to get started' : 'Contact your administrator to be assigned to a company'}
               </p>
-            </div>
-          )}
+            </div>}
           
-          {profile?.role === 'admin' && (
-            <div className="border-t pt-6">
+          {profile?.role === 'admin' && <div className="border-t pt-6">
               <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
                 <DialogTrigger asChild>
                   <Button className="w-full">
@@ -210,12 +194,7 @@ export const CompanySelection = () => {
                   <div className="space-y-4 py-4">
                     <div className="space-y-2">
                       <Label htmlFor="company-name">Company Name</Label>
-                      <Input
-                        id="company-name"
-                        placeholder="Enter company name"
-                        value={newCompanyName}
-                        onChange={(e) => setNewCompanyName(e.target.value)}
-                      />
+                      <Input id="company-name" placeholder="Enter company name" value={newCompanyName} onChange={e => setNewCompanyName(e.target.value)} />
                     </div>
                   </div>
                   <DialogFooter>
@@ -228,10 +207,8 @@ export const CompanySelection = () => {
                   </DialogFooter>
                 </DialogContent>
               </Dialog>
-            </div>
-          )}
+            </div>}
         </CardContent>
       </Card>
-    </div>
-  );
+    </div>;
 };
