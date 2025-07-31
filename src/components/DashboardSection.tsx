@@ -208,7 +208,7 @@ export const DashboardSection = ({
           onPanelStateChange?.();
         }}
       >
-        <div className="flex items-center gap-3">
+        <div className="flex items-center justify-between w-full">
           <div>
             <h3 className="text-xl font-bold text-foreground">{title}</h3>
             {getLastUpdated() && (
@@ -217,7 +217,7 @@ export const DashboardSection = ({
               </p>
             )}
           </div>
-          <div className="ml-4">
+          <div className="flex items-center">
             {getStatusIcon(getOverallStatus())}
           </div>
         </div>
