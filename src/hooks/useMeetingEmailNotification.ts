@@ -38,8 +38,12 @@ export const useMeetingEmailNotification = () => {
         return;
       }
 
-      // Generate meeting summary content
-      const meetingSummaryText = meetingData.meetingSummary || 'No summary provided';
+      // Generate meeting summary content - only include if there's meaningful content
+      const meetingSummaryText = meetingData.meetingSummary?.trim();
+      const shouldIncludeSummary = meetingSummaryText && 
+        meetingSummaryText !== '' && 
+        meetingSummaryText !== 'No summary provided' &&
+        meetingSummaryText.length > 0;
       
       // Debug action items structure
       console.log('🔍 Action items raw data:', JSON.stringify(meetingData.actions, null, 2));
@@ -117,12 +121,14 @@ export const useMeetingEmailNotification = () => {
             <p style="color: #9CA3AF; margin: 5px 0 0 0; font-size: 14px;">${new Date(meetingData.date).toLocaleDateString('en-GB')} at ${new Date(meetingData.date).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}</p>
           </div>
           
+          ${shouldIncludeSummary ? `
           <div style="margin-bottom: 30px;">
             <h3 style="color: #374151; margin-bottom: 16px;">Meeting Summary:</h3>
             <div style="background-color: #F9FAFB; padding: 16px; border-radius: 8px; border-left: 4px solid #3B82F6;">
               <p style="color: #6B7280; margin: 0; line-height: 1.6;">${meetingSummaryText}</p>
             </div>
           </div>
+          ` : ''}
 
           <div style="margin-bottom: 30px;">
             ${actionItemsHtml}
