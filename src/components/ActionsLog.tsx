@@ -173,7 +173,7 @@ export const ActionsLog = ({
   
   // Get background class - always use theme color for Actions
   const getBackgroundClass = () => {
-    return 'bg-primary/10 border border-primary/20';
+    return 'bg-primary/10';
   };
   const getActionRowClass = (action: ActionLogEntry): string => {
     if (action.closed) return '';
