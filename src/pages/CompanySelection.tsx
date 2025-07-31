@@ -161,7 +161,7 @@ export const CompanySelection = () => {
                         <Button onClick={() => {
                     console.log('Button clicked for company:', company.id, company.name);
                     handleSelectCompany(company.id);
-                  }} disabled={loading}>
+                  }} disabled={loading} className="bg-stone-400 hover:bg-stone-300 text-black">
                           Select
                         </Button>
                       </div>
@@ -179,7 +179,7 @@ export const CompanySelection = () => {
           {profile?.role === 'admin' && <div className="border-t pt-6">
               <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button className="w-full">
+                  <Button className="w-full bg-zinc-400 hover:bg-zinc-300 text-black">
                     <Plus className="h-4 w-4 mr-2" />
                     Create New Company
                   </Button>
