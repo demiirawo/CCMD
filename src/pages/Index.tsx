@@ -1884,11 +1884,35 @@ const Index = () => {
             
             const meetingDate = parseDateString(headerData.date);
             
+            // Determine if we should use "Supported" terminology
+            const currentCompany = companies.find(c => c.id === profile?.company_id);
+            const hasSupportedHousing = currentCompany?.services?.includes("Supported Housing") || false;
+            const hasHomeCare = currentCompany?.services?.includes("Domiciliary (Home) Care") || false;
+            const useSupportedTerminology = hasSupportedHousing && !hasHomeCare;
+            
+            // Conditionally modify section title
+            let sectionTitle = section.title;
+            if (useSupportedTerminology) {
+              if (section.title === "Care Planning & Delivery") {
+                sectionTitle = "Supported Planning & Delivery";
+              }
+            }
+            
+            // Conditionally modify item titles for this section
+            const modifiedItems = useSupportedTerminology 
+              ? section.items.map(item => ({
+                  ...item,
+                  title: item.title === "Care Plans & Risk Assessments" 
+                    ? "Support Plans & Risk Assessments" 
+                    : item.title
+                }))
+              : section.items;
+            
             return (
                <DashboardSection 
                  key={section.id} 
-                 title={section.title} 
-                 items={section.items} 
+                 title={sectionTitle} 
+                 items={modifiedItems}
                  onItemStatusChange={canEdit ? (itemId, status) => handleStatusChange(section.id, itemId, status) : undefined} 
                  onItemObservationChange={canEdit ? (itemId, observation) => handleObservationChange(section.id, itemId, observation) : undefined}
                  onItemTrendsThemesChange={canEdit ? (itemId, trendsThemes) => handleTrendsThemesChange(section.id, itemId, trendsThemes) : undefined}
