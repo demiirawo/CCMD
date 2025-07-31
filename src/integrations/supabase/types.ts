@@ -77,6 +77,42 @@ export type Database = {
         }
         Relationships: []
       }
+      analytics_backups: {
+        Row: {
+          analytics_type: string
+          company_id: string
+          created_at: string
+          data_snapshot: Json
+          id: string
+          meeting_id: string | null
+          source: string
+          timestamp: string
+          updated_at: string
+        }
+        Insert: {
+          analytics_type: string
+          company_id: string
+          created_at?: string
+          data_snapshot?: Json
+          id?: string
+          meeting_id?: string | null
+          source?: string
+          timestamp?: string
+          updated_at?: string
+        }
+        Update: {
+          analytics_type?: string
+          company_id?: string
+          created_at?: string
+          data_snapshot?: Json
+          id?: string
+          meeting_id?: string | null
+          source?: string
+          timestamp?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       care_notes_analytics: {
         Row: {
           company_id: string
