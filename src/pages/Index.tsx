@@ -2,10 +2,7 @@ import { useState, useEffect } from "react";
 import { DashboardHeader } from "@/components/DashboardHeader";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { useRobustMeetingHeaders } from "@/hooks/useRobustMeetingHeaders";
-import { useRobustKeyDocuments } from "@/hooks/useRobustKeyDocuments";
-import { useRobustCarePlans } from "@/hooks/useRobustCarePlans";
-import { useRobustActionsLog } from "@/hooks/useRobustActionsLog";
+import { useAutoSave } from "@/hooks/useAutoSave";
 import { useMeetingEmailNotification } from "@/hooks/useMeetingEmailNotification";
 import { Attendee } from "@/components/TeamAttendeesDisplay";
 import { DashboardSection } from "@/components/DashboardSection";
@@ -134,36 +131,28 @@ const Index = () => {
     purpose: ""
   });
 
-  // Use robust meeting headers hook
-  const {
-    data: robustHeaderData,
-    updateData: updateHeaderData,
-    isLoading: isHeaderLoading
-  } = useRobustMeetingHeaders({
-    companyId: profile?.company_id || '',
-    meetingId: currentMeetingId || tempMeetingId
-  });
-
-  // Use robust key documents hook
-  const {
-    data: robustKeyDocuments,
-    updateData: updateKeyDocuments,
-    isLoading: isKeyDocumentsLoading
-  } = useRobustKeyDocuments({
-    companyId: profile?.company_id || '',
-    meetingId: currentMeetingId || tempMeetingId
-  });
-
-  // Use robust actions log hook
-  const {
-    data: robustActionsLog,
-    updateData: updateActionsLogData,
-    addAction,
-    updateAction,
-    isLoading: isActionsLoading
-  } = useRobustActionsLog({
-    companyId: profile?.company_id || '',
-    meetingId: currentMeetingId || tempMeetingId
+  // Auto-save header data with the custom hook
+  useAutoSave({
+    table: 'meeting_headers',
+    data: {
+      meeting_date: (() => {
+        try {
+          const parts = headerData.date.match(/(\d{2})\/(\d{2})\/(\d{4})\s+(\d{2}):(\d{2})/);
+          if (parts) {
+            const [, day, month, year, hour, minute] = parts;
+            return new Date(parseInt(year), parseInt(month) - 1, parseInt(day), parseInt(hour), parseInt(minute)).toISOString();
+          }
+          return new Date(headerData.date).toISOString();
+        } catch (error) {
+          return new Date().toISOString();
+        }
+      })(),
+      title: headerData.title,
+      attendees: headerData.attendees,
+      purpose: headerData.purpose
+    },
+    dependencies: [headerData],
+    onError: (error) => console.error('Auto-save error for meeting headers:', error)
   });
 
   // Load header data from database on component mount
