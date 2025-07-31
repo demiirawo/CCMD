@@ -101,8 +101,20 @@ export const ActionForm = ({
   };
   const getDaysRemaining = (targetDate: string) => {
     try {
-      const [day, month, year] = targetDate.split('/');
-      const dueDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+      let dueDate: Date;
+      
+      // Handle both DD/MM/YYYY and YYYY-MM-DD formats
+      if (targetDate.includes('/')) {
+        // DD/MM/YYYY format
+        const [day, month, year] = targetDate.split('/');
+        dueDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+      } else if (targetDate.includes('-')) {
+        // YYYY-MM-DD format
+        dueDate = new Date(targetDate);
+      } else {
+        return 0;
+      }
+      
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       dueDate.setHours(0, 0, 0, 0);
@@ -137,8 +149,20 @@ export const ActionForm = ({
     return [...actionsToSort].sort((a, b) => {
       const getDays = (targetDate: string) => {
         try {
-          const [day, month, year] = targetDate.split('/');
-          const dueDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+          let dueDate: Date;
+          
+          // Handle both DD/MM/YYYY and YYYY-MM-DD formats
+          if (targetDate.includes('/')) {
+            // DD/MM/YYYY format
+            const [day, month, year] = targetDate.split('/');
+            dueDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+          } else if (targetDate.includes('-')) {
+            // YYYY-MM-DD format
+            dueDate = new Date(targetDate);
+          } else {
+            return 0;
+          }
+          
           const today = new Date();
           today.setHours(0, 0, 0, 0);
           dueDate.setHours(0, 0, 0, 0);

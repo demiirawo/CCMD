@@ -187,11 +187,25 @@ export const StatusItem = ({
     // Check if any actions are overdue
     const hasOverdueActions = item.actions?.some(action => {
       try {
-        const [day, month, year] = action.targetDate.split('/');
-        const dueDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+        let dueDate: Date;
+        
+        // Handle both DD/MM/YYYY and YYYY-MM-DD formats
+        if (action.targetDate.includes('/')) {
+          // DD/MM/YYYY format
+          const [day, month, year] = action.targetDate.split('/');
+          dueDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+        } else if (action.targetDate.includes('-')) {
+          // YYYY-MM-DD format
+          dueDate = new Date(action.targetDate);
+        } else {
+          console.error('Unrecognized date format:', action.targetDate);
+          return false;
+        }
+        
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         dueDate.setHours(0, 0, 0, 0);
+        
         const timeDiff = dueDate.getTime() - today.getTime();
         const daysRemaining = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
         
