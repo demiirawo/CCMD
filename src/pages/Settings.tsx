@@ -280,7 +280,11 @@ export const Settings = () => {
             <div className="grid grid-cols-2 gap-3">
               {THEME_COLORS.map(color => <div key={color.value} className={`h-16 rounded-lg cursor-pointer transition-all hover:scale-105 ${selectedTheme === color.value ? "ring-4 ring-primary ring-offset-2" : "hover:ring-2 hover:ring-muted-foreground"}`} style={{
                 backgroundColor: color.value
-              }} onClick={() => setSelectedTheme(color.value)} />)}
+              }} onClick={() => {
+                setSelectedTheme(color.value);
+                // Apply theme color immediately for preview
+                document.documentElement.style.setProperty('--primary', hexToHsl(color.value));
+              }} />)}
             </div>
           </CardContent>
         </Card>
