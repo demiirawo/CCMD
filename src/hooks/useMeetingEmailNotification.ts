@@ -130,7 +130,7 @@ export const useMeetingEmailNotification = () => {
 
           <div style="border-top: 1px solid #E5E7EB; padding-top: 20px;">
             <p style="color: #9CA3AF; font-size: 12px; text-align: center; margin: 0;">
-              This email was automatically generated from the meeting management system.
+              This email was automatically generated from CCMD
             </p>
           </div>
         </div>
