@@ -111,6 +111,46 @@ export const ActionsLog = ({
     })
     .sort(sortByDueDate);
 
+  // Calculate overall status for background color
+  const getOverallActionStatus = (): 'green' | 'amber' | 'red' => {
+    const activeActions = actions.filter(action => !action.closed);
+    
+    // Check if any actions are overdue (red)
+    const hasOverdue = activeActions.some(action => {
+      const daysRemaining = getDaysRemaining(action.dueDate);
+      return daysRemaining < 0;
+    });
+    
+    if (hasOverdue) return 'red';
+    
+    // Check if any actions are due soon (amber)
+    const hasDueSoon = activeActions.some(action => {
+      const daysRemaining = getDaysRemaining(action.dueDate);
+      return daysRemaining >= 0 && daysRemaining <= 5;
+    });
+    
+    if (hasDueSoon) return 'amber';
+    
+    // Default to green if no overdue or due soon actions
+    return 'green';
+  };
+
+  const overallStatus = getOverallActionStatus();
+  
+  // Get background class based on overall status
+  const getBackgroundClass = () => {
+    switch (overallStatus) {
+      case 'red':
+        return 'bg-red-100 border-red-200';
+      case 'amber':
+        return 'bg-amber-100 border-amber-200';
+      case 'green':
+        return 'bg-green-100 border-green-200';
+      default:
+        return 'bg-primary/10 border-border/50';
+    }
+  };
+
   // Function to calculate days remaining and get color
   const getDaysRemaining = (dueDate: string): number => {
     if (!dueDate || dueDate.trim() === '') return 0;
@@ -239,7 +279,7 @@ export const ActionsLog = ({
         </div>
       </div>;
   };
-  return <div className="bg-primary/10 rounded-2xl p-6 shadow-lg border border-border/50 -mx-8 px-14">
+  return <div className={`rounded-2xl p-6 shadow-lg -mx-8 px-14 ${getBackgroundClass()}`}>
       <div className="flex items-center justify-between cursor-pointer mb-4" onClick={() => {
         const newState = !isExpanded;
         setIsExpanded(newState);
