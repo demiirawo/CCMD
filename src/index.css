@@ -239,7 +239,7 @@ All colors MUST be HSL.
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   }
 
-  /* Remove ALL focus outlines globally */
+  /* Remove ALL focus outlines and rings globally */
   *:focus,
   *:focus-visible,
   button:focus,
@@ -248,14 +248,31 @@ All colors MUST be HSL.
     outline: none !important;
     box-shadow: none !important;
     border: none !important;
+    --tw-ring-shadow: none !important;
+    --tw-ring-offset-shadow: none !important;
   }
   
-  /* Specifically target panel containers */
+  /* Remove all ring styles */
+  .focus\:ring-2:focus,
+  .focus-visible\:ring-2:focus-visible,
+  .ring-offset-background,
+  .ring-ring,
+  .focus\:ring-ring:focus,
+  .focus-visible\:ring-ring:focus-visible {
+    --tw-ring-shadow: none !important;
+    --tw-ring-offset-shadow: none !important;
+    box-shadow: none !important;
+  }
+  
+  /* Specifically target panel containers and clickable elements */
   .bg-primary\/10,
   [class*="bg-primary/10"],
   .rounded-2xl,
-  .rounded-xl {
+  .rounded-xl,
+  .cursor-pointer {
     outline: none !important;
+    --tw-ring-shadow: none !important;
+    --tw-ring-offset-shadow: none !important;
   }
   
   .bg-primary\/10:focus,
@@ -265,5 +282,7 @@ All colors MUST be HSL.
   .cursor-pointer:focus {
     outline: none !important;
     box-shadow: none !important;
+    --tw-ring-shadow: none !important;
+    --tw-ring-offset-shadow: none !important;
   }
 }
