@@ -182,21 +182,21 @@ export const DashboardSection = ({
     
     // High level panels use theme color background
     if (isHighLevelPanel) {
-      return `bg-primary/10 border border-primary/20 ${baseClass}`;
+      return `bg-primary/10 ${baseClass}`;
     }
     
     // Other sections use status-based colors
     switch (status) {
       case 'green':
-        return `bg-green-50/80 border border-green-200 ${baseClass}`;
+        return `bg-green-50/80 ${baseClass}`;
       case 'amber':
-        return `bg-amber-50/80 border border-amber-200 ${baseClass}`;
+        return `bg-amber-50/80 ${baseClass}`;
       case 'red':
-        return `bg-red-50/80 border border-red-200 ${baseClass}`;
+        return `bg-red-50/80 ${baseClass}`;
       case 'na':
-        return `bg-gray-50/80 border border-gray-200 ${baseClass}`;
+        return `bg-gray-50/80 ${baseClass}`;
       default:
-        return `bg-white border border-gray-200 ${baseClass}`;
+        return `bg-white ${baseClass}`;
     }
   };
 
