@@ -175,13 +175,13 @@ export const ActionsLog = ({
   const getBackgroundClass = () => {
     switch (overallStatus) {
       case 'red':
-        return 'bg-red-50/80 border-red-200';
+        return 'bg-red-50/80 border border-red-200';
       case 'amber':
-        return 'bg-amber-50/80 border-amber-200';
+        return 'bg-amber-50/80 border border-amber-200';
       case 'green':
-        return 'bg-green-50/80 border-green-200';
+        return 'bg-green-50/80 border border-green-200';
       default:
-        return 'bg-primary/10 border-border/50';
+        return 'bg-primary/10 border border-gray-200';
     }
   };
   const getActionRowClass = (action: ActionLogEntry): string => {
