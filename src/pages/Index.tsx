@@ -1468,7 +1468,10 @@ const Index = () => {
           return `${section.title}: ${greenCount} Green, ${amberCount} Amber, ${redCount} Red items`;
         }).join('. ');
 
-        const meetingSummary = `Meeting covered ${cleanSections.length} sections. ${sectionSummaries}. ${actionsLog.length} action items were recorded.`;
+        // Use the meeting purpose as the main summary, with section summary as backup
+        const meetingSummary = headerData.purpose && headerData.purpose.trim() !== '' 
+          ? headerData.purpose 
+          : `Meeting covered ${cleanSections.length} sections. ${sectionSummaries}. ${actionsLog.length} action items were recorded.`;
 
         console.log('📋 Generated meeting summary:', meetingSummary);
 

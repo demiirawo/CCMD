@@ -48,9 +48,9 @@ export const useMeetingEmailNotification = () => {
           <ul style="margin: 0; padding-left: 20px;">
             ${meetingData.actions.map(action => `
               <li style="margin-bottom: 8px; color: #6B7280;">
-                <strong>${action.action_text}</strong>
-                ${action.mentioned_attendee ? ` - Assigned to: ${action.mentioned_attendee}` : ''}
-                ${action.due_date ? ` - Due: ${action.due_date}` : ''}
+                <strong>${action.action_text || action.actionText || 'No action description'}</strong>
+                ${action.mentioned_attendee || action.assignee ? ` - Assigned to: ${action.mentioned_attendee || action.assignee}` : ''}
+                ${action.due_date || action.dueDate || action.targetDate ? ` - Due: ${action.due_date || action.dueDate || action.targetDate}` : ''}
               </li>
             `).join('')}
           </ul>
