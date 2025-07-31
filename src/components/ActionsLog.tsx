@@ -218,15 +218,15 @@ export const ActionsLog = ({
             </thead>
             <tbody>
               {actionsList.map((action, index) => <tr key={action.id} className={`border-b border-border/20 hover:bg-gray-50/50 ${action.closed ? 'opacity-75' : ''} ${getActionRowClass(action)}`}>
-                  <td className="py-3 px-3 text-sm text-foreground">
+                  <td className={`py-3 px-3 text-sm ${action.closed ? 'text-foreground' : !action.closed && (getDaysRemaining(action.dueDate) < 0 || getDaysRemaining(action.dueDate) <= 5 || getDaysRemaining(action.dueDate) > 5) ? 'text-white' : 'text-foreground'}`}>
                     {index + 1}
                   </td>
-                  <td className="py-3 px-3 text-sm text-foreground">
+                  <td className={`py-3 px-3 text-sm ${action.closed ? 'text-foreground' : !action.closed && (getDaysRemaining(action.dueDate) < 0 || getDaysRemaining(action.dueDate) <= 5 || getDaysRemaining(action.dueDate) > 5) ? 'text-white' : 'text-foreground'}`}>
                     <div className="min-w-0 max-w-md">
                       <div className={`font-medium break-words whitespace-pre-wrap ${action.closed ? 'text-muted-foreground' : ''}`}>
                         {action.action}
                       </div>
-                      <div className="text-xs text-muted-foreground mt-1 break-words">
+                      <div className={`text-xs mt-1 break-words ${action.closed ? 'text-muted-foreground' : !action.closed && (getDaysRemaining(action.dueDate) < 0 || getDaysRemaining(action.dueDate) <= 5 || getDaysRemaining(action.dueDate) > 5) ? 'text-white/80' : 'text-muted-foreground'}`}>
                         From: {action.itemTitle}
                       </div>
                       {/* Show full audit trail */}
@@ -237,10 +237,10 @@ export const ActionsLog = ({
                         </div>}
                     </div>
                   </td>
-                  <td className="py-3 px-3 text-sm text-foreground">
+                  <td className={`py-3 px-3 text-sm ${action.closed ? 'text-foreground' : !action.closed && (getDaysRemaining(action.dueDate) < 0 || getDaysRemaining(action.dueDate) <= 5 || getDaysRemaining(action.dueDate) > 5) ? 'text-white' : 'text-foreground'}`}>
                     {action.mentionedAttendee}
                   </td>
-                  <td className="py-3 px-3 text-sm text-foreground">
+                  <td className={`py-3 px-3 text-sm ${action.closed ? 'text-foreground' : !action.closed && (getDaysRemaining(action.dueDate) < 0 || getDaysRemaining(action.dueDate) <= 5 || getDaysRemaining(action.dueDate) > 5) ? 'text-white' : 'text-foreground'}`}>
                     <div className="flex items-center gap-2">
                       <span>{action.dueDate}</span>
                       {!action.closed && <span className={`text-xs px-2 py-1 rounded-full ${getDaysRemaining(action.dueDate) < 0 ? 'bg-red-100 text-red-700' : getDaysRemaining(action.dueDate) <= 5 ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'}`}>
@@ -259,13 +259,13 @@ export const ActionsLog = ({
                   </td>
                   <td className="py-3 px-3">
                     <div className="flex gap-1">
-                      {!action.closed && onActionEdit && action.sourceType !== "document" && <Button variant="ghost" size="sm" onClick={() => setEditingAction(action)} className="h-8 w-8 p-0 text-blue-500 hover:bg-blue-100" title="Edit action">
+                      {!action.closed && onActionEdit && action.sourceType !== "document" && <Button variant="ghost" size="sm" onClick={() => setEditingAction(action)} className={`h-8 w-8 p-0 ${!action.closed && (getDaysRemaining(action.dueDate) < 0 || getDaysRemaining(action.dueDate) <= 5 || getDaysRemaining(action.dueDate) > 5) ? 'text-white hover:bg-white/20' : 'text-blue-500 hover:bg-blue-100'}`} title="Edit action">
                           <Edit className="h-4 w-4" />
                         </Button>}
-                      <Button variant="ghost" size="sm" onClick={() => onActionComplete?.(action.id)} disabled={action.closed} className={`h-8 w-8 p-0 ${action.closed ? 'opacity-50' : 'hover:bg-green-100'}`} title="Mark as completed">
-                        <Check className={`h-4 w-4 ${action.closed ? 'text-green-600' : 'text-muted-foreground'}`} />
+                      <Button variant="ghost" size="sm" onClick={() => onActionComplete?.(action.id)} disabled={action.closed} className={`h-8 w-8 p-0 ${action.closed ? 'opacity-50' : !action.closed && (getDaysRemaining(action.dueDate) < 0 || getDaysRemaining(action.dueDate) <= 5 || getDaysRemaining(action.dueDate) > 5) ? 'hover:bg-white/20' : 'hover:bg-green-100'}`} title="Mark as completed">
+                        <Check className={`h-4 w-4 ${action.closed ? 'text-green-600' : !action.closed && (getDaysRemaining(action.dueDate) < 0 || getDaysRemaining(action.dueDate) <= 5 || getDaysRemaining(action.dueDate) > 5) ? 'text-white' : 'text-muted-foreground'}`} />
                       </Button>
-                      {!action.closed && <Button variant="ghost" size="sm" onClick={() => onActionDelete?.(action.id)} className="h-8 w-8 p-0 text-red-500 hover:bg-red-100" title="Delete action">
+                      {!action.closed && <Button variant="ghost" size="sm" onClick={() => onActionDelete?.(action.id)} className={`h-8 w-8 p-0 ${!action.closed && (getDaysRemaining(action.dueDate) < 0 || getDaysRemaining(action.dueDate) <= 5 || getDaysRemaining(action.dueDate) > 5) ? 'text-white hover:bg-white/20' : 'text-red-500 hover:bg-red-100'}`} title="Delete action">
                           <Minus className="h-4 w-4" />
                         </Button>}
                     </div>
