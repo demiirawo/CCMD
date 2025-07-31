@@ -126,7 +126,7 @@ const Index = () => {
       return now.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }) + ' ' + 
              now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });
     })(),
-    title: "",
+    title: "Management Meeting",
     attendees: [] as Attendee[],
     purpose: ""
   });
