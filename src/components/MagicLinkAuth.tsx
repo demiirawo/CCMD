@@ -172,15 +172,13 @@ export const MagicLinkAuth = () => {
           <div className="mx-auto mb-4">
             <img src="/lovable-uploads/eefb4933-6c9b-4dce-99ea-5a226304b377.png" alt="CCMD Logo" className="h-24 w-auto" />
           </div>
-          <CardTitle>Welcome Back</CardTitle>
-          <CardDescription>
-            Sign in to your account using your email address
-          </CardDescription>
+          
+          
         </CardHeader>
         <CardContent className="space-y-4">
           <form onSubmit={handleMagicLink} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              
               <Input id="email" type="email" placeholder="Enter your email" value={email} onChange={e => setEmail(e.target.value)} required />
             </div>
             <Button type="submit" disabled={loading} className="w-full text-base bg-neutral-400 hover:bg-neutral-300 text-black">
