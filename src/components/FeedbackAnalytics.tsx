@@ -8,6 +8,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useTheme } from "@/hooks/useTheme";
+import { useRobustAnalytics } from "@/hooks/useRobustAnalytics";
 const generateInitialData = (meetingDate?: Date) => {
   const months = [];
   const currentDate = meetingDate || new Date();
@@ -53,135 +54,26 @@ export const FeedbackAnalytics = ({
   meetingDate,
   meetingId
 }: FeedbackAnalyticsProps) => {
-  const {
-    profile
-  } = useAuth();
+  const { profile } = useAuth();
   useTheme();
+  
+  const { data, updateData, isLoading } = useRobustAnalytics({
+    companyId: profile?.company_id || '',
+    meetingId: meetingId || '',
+    analyticsType: 'feedback',
+    tableName: 'feedback_analytics'
+  });
+
   const [monthlyData, setMonthlyData] = useState(generateInitialData(meetingDate));
-  // Show all 12 months in view
-  const visibleData = monthlyData;
   useEffect(() => {
-    if (profile?.company_id) {
-      loadData();
-    }
-  }, [profile?.company_id, meetingId]);
-  useEffect(() => {
-    // Always reload from database when meeting date changes to preserve all data
-    if (profile?.company_id) {
-      loadData();
+    if (data.monthlyData && Array.isArray(data.monthlyData)) {
+      setMonthlyData(data.monthlyData);
     } else {
       setMonthlyData(generateInitialData(meetingDate));
     }
-  }, [meetingDate, profile?.company_id, meetingId]);
-  const loadData = async () => {
-    if (!profile?.company_id) return;
-    console.log('FeedbackAnalytics: Loading data for company_id:', profile.company_id, 'meetingId:', meetingId);
-    try {
-      // Load data for the specific meeting if meetingId is provided, otherwise load company-wide data
-      let query = supabase
-        .from('feedback_analytics')
-        .select('monthly_data')
-        .eq('company_id', profile.company_id);
-      
-      if (meetingId) {
-        query = query.eq('meeting_id', meetingId);
-      } else {
-        query = query.is('meeting_id', null);
-      }
-      
-      const { data, error } = await query.maybeSingle();
-      
-      if (error && error.code !== 'PGRST116') {
-        console.error('Error loading feedback analytics:', error);
-        return;
-      }
-      if (data?.monthly_data) {
-        console.log('FeedbackAnalytics: Found existing data:', data.monthly_data);
-        const loadedData = data.monthly_data as any[];
-        const currentStructure = generateInitialData(meetingDate);
-        const mergedData = currentStructure.map(current => {
-          const existing = loadedData.find(item => item.month === current.month);
-          return existing || current;
-        });
-        console.log('FeedbackAnalytics: Setting merged data:', mergedData);
-        setMonthlyData(mergedData);
-      } else {
-        console.log('FeedbackAnalytics: No existing data found, trying localStorage backup');
-        // Try to load from localStorage backup
-        const backupKey = meetingId ? `feedback_backup_${profile.company_id}_${meetingId}` : `feedback_backup_${profile.company_id}`;
-        const backupData = localStorage.getItem(backupKey);
-        if (backupData) {
-          try {
-            const backupEntries = JSON.parse(backupData) as any[];
-            const currentStructure = generateInitialData(meetingDate);
-            const mergedData = currentStructure.map(current => {
-              const existing = backupEntries.find(item => item.month === current.month);
-              return existing || current;
-            });
-            setMonthlyData(mergedData);
-            console.log('FeedbackAnalytics: Loaded from localStorage backup');
-          } catch (error) {
-            console.error('Error loading backup data:', error);
-            setMonthlyData(generateInitialData(meetingDate));
-          }
-        } else {
-          setMonthlyData(generateInitialData(meetingDate));
-        }
-      }
-    } catch (error) {
-      console.error('Error loading feedback analytics:', error);
-      // Try to load from localStorage backup
-      const backupKey = meetingId ? `feedback_backup_${profile.company_id}_${meetingId}` : `feedback_backup_${profile.company_id}`;
-      const backupData = localStorage.getItem(backupKey);
-      if (backupData) {
-        try {
-          const backupEntries = JSON.parse(backupData) as any[];
-          const currentStructure = generateInitialData(meetingDate);
-          const mergedData = currentStructure.map(current => {
-            const existing = backupEntries.find(item => item.month === current.month);
-            return existing || current;
-          });
-          setMonthlyData(mergedData);
-        } catch (error) {
-          console.error('Error loading backup data:', error);
-          setMonthlyData(generateInitialData(meetingDate));
-        }
-      } else {
-        setMonthlyData(generateInitialData(meetingDate));
-      }
-    }
-  };
+  }, [data, meetingDate]);
   const saveData = async (newData: any[]) => {
-    if (!profile?.company_id) return;
-    console.log('FeedbackAnalytics: Saving data for company_id:', profile.company_id, 'meetingId:', meetingId, 'Data:', newData);
-    try {
-      const {
-        error
-      } = await supabase.from('feedback_analytics').upsert({
-        company_id: profile.company_id,
-        meeting_id: meetingId || null,
-        monthly_data: newData,
-        updated_at: new Date().toISOString()
-      }, {
-        onConflict: meetingId ? 'company_id,meeting_id' : 'company_id'
-      });
-      if (error) {
-        console.error('Error saving feedback analytics:', error);
-        throw error;
-      } else {
-        console.log('FeedbackAnalytics: Data saved successfully');
-        // Save to localStorage as backup
-        const backupKey = meetingId ? `feedback_backup_${profile.company_id}_${meetingId}` : `feedback_backup_${profile.company_id}`;
-        localStorage.setItem(backupKey, JSON.stringify(newData));
-      }
-    } catch (error) {
-      console.error('Error saving feedback analytics:', error);
-      // Save to localStorage as fallback
-      if (profile?.company_id) {
-        const backupKey = meetingId ? `feedback_backup_${profile.company_id}_${meetingId}` : `feedback_backup_${profile.company_id}`;
-        localStorage.setItem(backupKey, JSON.stringify(newData));
-      }
-    }
+    updateData({ monthlyData: newData });
   };
   const handleCellEdit = (monthIndex: number, field: 'compliments' | 'complaints' | 'suggestions' | 'resolved', value: number) => {
     const newData = [...monthlyData];
@@ -220,6 +112,14 @@ export const FeedbackAnalytics = ({
         {value}
       </span>;
   };
+  if (isLoading) {
+    return <div className="space-y-6 mt-4 p-6 border border-border rounded-lg bg-stone-50">
+      <div className="text-center">Loading...</div>
+    </div>;
+  }
+
+  const visibleData = monthlyData;
+
   return <div data-analytics="feedback" className="space-y-6 mt-4 p-6 border border-border rounded-lg bg-stone-50">
       <div className="flex items-center justify-between">
         <h4 className="text-lg font-semibold text-foreground">Feedback Analytics</h4>
