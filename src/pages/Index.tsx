@@ -296,6 +296,7 @@ const Index = () => {
         status: "green" as StatusType,
         lastReviewed: "",
         observation: "",
+        trendsThemes: "",
         actions: [],
         details: "",
         metadata: {}
@@ -305,6 +306,7 @@ const Index = () => {
         status: "green" as StatusType,
         lastReviewed: "",
         observation: "",
+        trendsThemes: "",
         actions: [],
         details: "",
         metadata: {}
@@ -314,6 +316,7 @@ const Index = () => {
         status: "green" as StatusType,
         lastReviewed: "",
         observation: "",
+        trendsThemes: "",
         actions: [],
         details: "",
         metadata: {}
@@ -539,6 +542,7 @@ const Index = () => {
                     ...item,
                     status: savedData.status as StatusType || item.status,
                     observation: (savedData.observation as string) || item.observation,
+                    trendsThemes: (savedData.trends_themes as string) || item.trendsThemes || "",
                     actions: savedData.actions ? (typeof savedData.actions === 'string' ? JSON.parse(savedData.actions) : savedData.actions) : item.actions,
                     metadata: savedData.metadata ? (typeof savedData.metadata === 'string' ? JSON.parse(savedData.metadata) : savedData.metadata) : (item.metadata || {}),
                     lastReviewed: savedData.updated_at ? new Date(savedData.updated_at).toLocaleDateString('en-GB') : item.lastReviewed
@@ -753,6 +757,52 @@ const Index = () => {
     toast({
       title: "Observation Updated",
       description: "Item observation has been saved"
+    });
+  };
+
+  const handleTrendsThemesChange = async (sectionId: string, itemId: string, newTrendsThemes: string) => {
+    // Update local state
+    setDashboardData(prev => ({
+      ...prev,
+      sections: prev.sections.map(section => 
+        section.id === sectionId ? {
+          ...section,
+          items: section.items.map(item => 
+            item.id === itemId ? {
+              ...item,
+              trendsThemes: newTrendsThemes,
+              lastReviewed: new Date().toLocaleDateString('en-GB')
+            } : item
+          )
+        } : section
+      )
+    }));
+
+    // Save to database immediately for persistence
+    if (profile?.company_id) {
+      try {
+        const { error } = await supabase
+          .from('subsection_data')
+          .upsert({
+            company_id: profile.company_id,
+            section_id: sectionId,
+            item_id: itemId,
+            trends_themes: newTrendsThemes
+          }, {
+            onConflict: 'company_id,section_id,item_id'
+          });
+        
+        if (error) {
+          console.error('Error saving trends & themes:', error);
+        }
+      } catch (error) {
+        console.error('Failed to save trends & themes to database:', error);
+      }
+    }
+
+    toast({
+      title: "Trends & Themes Updated", 
+      description: "Item trends & themes have been saved"
     });
   };
 
@@ -1840,6 +1890,7 @@ const Index = () => {
                  items={section.items} 
                  onItemStatusChange={canEdit ? (itemId, status) => handleStatusChange(section.id, itemId, status) : undefined} 
                  onItemObservationChange={canEdit ? (itemId, observation) => handleObservationChange(section.id, itemId, observation) : undefined}
+                 onItemTrendsThemesChange={canEdit ? (itemId, trendsThemes) => handleTrendsThemesChange(section.id, itemId, trendsThemes) : undefined}
                  onItemActionsChange={canEdit ? (itemId, actions) => handleActionsChange(section.id, itemId, actions) : undefined}
                   onItemDocumentsChange={canEdit ? (itemId, documents) => handleDocumentsChange(section.id, itemId, documents) : undefined}
                    onItemMetadataChange={canEdit ? (itemId, metadata) => handleMetadataChange(section.id, itemId, metadata) : undefined}

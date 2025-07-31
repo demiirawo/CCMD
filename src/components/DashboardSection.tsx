@@ -12,6 +12,7 @@ interface DashboardSectionProps {
   items: StatusItemData[];
   onItemStatusChange?: (id: string, status: StatusType) => void;
   onItemObservationChange?: (id: string, observation: string) => void;
+  onItemTrendsThemesChange?: (id: string, trendsThemes: string) => void;
   onItemActionsChange?: (id: string, actions: import("./ActionForm").ActionItem[]) => void;
   onItemDocumentsChange?: (id: string, documents: import("./StatusItem").DocumentData[]) => void;
   onItemMetadataChange?: (id: string, metadata: SubsectionMetadata) => void;
@@ -36,6 +37,7 @@ export const DashboardSection = ({
   items,
   onItemStatusChange,
   onItemObservationChange,
+  onItemTrendsThemesChange,
   onItemActionsChange,
   onItemDocumentsChange,
   onItemMetadataChange,
@@ -260,6 +262,7 @@ export const DashboardSection = ({
               item={item}
               onStatusChange={readOnly ? undefined : onItemStatusChange}
               onObservationChange={readOnly ? undefined : onItemObservationChange}
+              onTrendsThemesChange={readOnly ? undefined : onItemTrendsThemesChange}
               onActionsChange={readOnly ? undefined : onItemActionsChange}
               onDocumentsChange={readOnly ? undefined : onItemDocumentsChange}
               onMetadataChange={readOnly ? undefined : onItemMetadataChange}

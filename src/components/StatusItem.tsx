@@ -42,6 +42,7 @@ export interface StatusItemData {
   status: StatusType;
   lastReviewed: string;
   observation: string;
+  trendsThemes?: string;
   actions: ActionItem[];
   accountable?: string[];
   details?: string;
@@ -52,6 +53,7 @@ interface StatusItemProps {
   item: StatusItemData;
   onStatusChange?: (id: string, status: StatusType) => void;
   onObservationChange?: (id: string, observation: string) => void;
+  onTrendsThemesChange?: (id: string, trendsThemes: string) => void;
   onActionsChange?: (id: string, actions: ActionItem[]) => void;
   onAccountableChange?: (id: string, accountable: string[]) => void;
   onActionCreated?: (itemTitle: string, mentionedAttendee: string, comment: string, action: string, dueDate: string, subsectionActionId?: string) => void;
@@ -71,6 +73,7 @@ export const StatusItem = ({
   item,
   onStatusChange,
   onObservationChange,
+  onTrendsThemesChange,
   onActionsChange,
   onAccountableChange,
   onActionCreated,
@@ -89,10 +92,16 @@ export const StatusItem = ({
   const [isExpanded, setIsExpanded] = useState(false);
   console.log('StatusItem: Rendering item:', item.title, 'isExpanded:', isExpanded, 'meetingId:', meetingId);
   const [isEditingObservation, setIsEditingObservation] = useState(false);
+  const [isEditingTrendsThemes, setIsEditingTrendsThemes] = useState(false);
   
   const handleObservationSubmit = (observation: string) => {
     onObservationChange?.(item.id, observation);
     setIsEditingObservation(false);
+  };
+
+  const handleTrendsThemesSubmit = (trendsThemes: string) => {
+    onTrendsThemesChange?.(item.id, trendsThemes);
+    setIsEditingTrendsThemes(false);
   };
   const handleActionsChange = (actions: ActionItem[]) => {
     // Check if any actions were removed (deleted) by comparing with previous state
@@ -302,7 +311,7 @@ export const StatusItem = ({
         <div className="flex-[5] min-w-0 space-y-3">
           {/* Observation Section */}
           <div>
-            <label className="text-xs font-medium text-muted-foreground mb-1 block">COMMENT</label>
+            <label className="text-xs font-medium text-muted-foreground mb-1 block">CURRENT SITUATION</label>
             {readOnly ? (
               <div className="w-full p-3 rounded-lg text-sm min-h-[80px] flex items-start border border-border/30 bg-muted/20">
                 <span className="break-words w-full whitespace-pre-wrap">
@@ -310,9 +319,27 @@ export const StatusItem = ({
                 </span>
               </div>
             ) : (
-              isEditingObservation ? <CommentEditor initialValue={item.observation} onSubmit={handleObservationSubmit} onCancel={() => setIsEditingObservation(false)} placeholder="Enter your observation..." autoSave={true} onAutoSave={(value) => onObservationChange?.(item.id, value)} /> : <button onClick={() => setIsEditingObservation(true)} className="w-full text-left p-3 rounded-lg transition-colors text-sm min-h-[80px] flex items-start border border-border/30 break-words overflow-hidden bg-white hover:border-border/40 focus:outline-none focus:ring-2 focus:ring-border/30">
+              isEditingObservation ? <CommentEditor initialValue={item.observation} onSubmit={handleObservationSubmit} onCancel={() => setIsEditingObservation(false)} placeholder="Enter your current situation..." autoSave={true} onAutoSave={(value) => onObservationChange?.(item.id, value)} /> : <button onClick={() => setIsEditingObservation(true)} className="w-full text-left p-3 rounded-lg transition-colors text-sm min-h-[80px] flex items-start border border-border/30 break-words overflow-hidden bg-white hover:border-border/40 focus:outline-none focus:ring-2 focus:ring-border/30">
                   <span className="break-words w-full whitespace-pre-wrap">
-                    {item.observation || "Click to add observation..."}
+                    {item.observation || "Click to add current situation..."}
+                  </span>
+                </button>
+            )}
+          </div>
+
+          {/* Trends & Themes Section */}
+          <div>
+            <label className="text-xs font-medium text-muted-foreground mb-1 block">TREND & THEMES</label>
+            {readOnly ? (
+              <div className="w-full p-3 rounded-lg text-sm min-h-[80px] flex items-start border border-border/30 bg-muted/20">
+                <span className="break-words w-full whitespace-pre-wrap">
+                  {item.trendsThemes || "No trends & themes"}
+                </span>
+              </div>
+            ) : (
+              isEditingTrendsThemes ? <CommentEditor initialValue={item.trendsThemes || ''} onSubmit={handleTrendsThemesSubmit} onCancel={() => setIsEditingTrendsThemes(false)} placeholder="Enter trends & themes..." autoSave={true} onAutoSave={(value) => onTrendsThemesChange?.(item.id, value)} /> : <button onClick={() => setIsEditingTrendsThemes(true)} className="w-full text-left p-3 rounded-lg transition-colors text-sm min-h-[80px] flex items-start border border-border/30 break-words overflow-hidden bg-white hover:border-border/40 focus:outline-none focus:ring-2 focus:ring-border/30">
+                  <span className="break-words w-full whitespace-pre-wrap">
+                    {item.trendsThemes || "Click to add trends & themes..."}
                   </span>
                 </button>
             )}
