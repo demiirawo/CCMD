@@ -40,7 +40,7 @@ export const TeamAttendeesDisplay = ({ onAttendanceChange, readOnly = false }: T
         id: member.id,
         name: member.name,
         email: member.email || '',
-        attended: undefined // Default to no attendance marked
+        attended: true // Default to present for office team attendance
       }));
 
       setAttendees(teamAttendees);
