@@ -130,9 +130,7 @@ export const CompanySelection = () => {
           <div className="flex items-center justify-between">
             <div>
               <CardTitle>Welcome, {profile?.username || 'User'}!</CardTitle>
-              <CardDescription>
-                {profile?.role === 'admin' ? 'Select a company to manage or create a new one' : 'Select your company to continue'}
-              </CardDescription>
+              
             </div>
             <Button variant="outline" onClick={handleSignOut}>
               Sign Out
