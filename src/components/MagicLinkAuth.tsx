@@ -205,7 +205,7 @@ export const MagicLinkAuth = () => {
           <div className="mt-4">
             <Separator className="my-4" />
             
-            {!showAdminLogin ? <Button variant="outline" className="w-full gap-2" onClick={() => setShowAdminLogin(true)}>
+            {!showAdminLogin ? <Button variant="outline" className="w-full gap-2 bg-stone-50" onClick={() => setShowAdminLogin(true)}>
                 <Lock className="h-4 w-4" />
                 Admin Login
               </Button> : <div className="space-y-4">
