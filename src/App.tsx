@@ -7,7 +7,7 @@ import { ProtectedRoute } from "./components/ProtectedRoute";
 import { CompanySelector } from "@/components/CompanySelector";
 import { useTheme } from "./hooks/useTheme";
 import Index from "./pages/Index";
-import { PublicDashboard } from "./pages/PublicDashboard";
+
 import { Reports } from "./pages/Reports";
 import { QuarterlyReport } from "./pages/QuarterlyReport";
 import ReportBuilder from "./pages/ReportBuilder";
@@ -24,7 +24,7 @@ const AppContent = () => {
   return (
     <Routes>
       <Route path="/auth" element={<Auth />} />
-      <Route path="/public/:companyId" element={<PublicDashboard />} />
+      
       <Route path="/company-selection" element={
         <ProtectedRoute>
           <CompanySelection />
