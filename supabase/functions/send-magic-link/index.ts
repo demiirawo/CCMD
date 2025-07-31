@@ -6,7 +6,7 @@ import { renderAsync } from "npm:@react-email/components@0.0.22";
 import { MagicLinkEmail } from "./_templates/magic-link.tsx";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
-const hookSecret = Deno.env.get("SEND_EMAIL_HOOK_SECRET") || "your-webhook-secret";
+const hookSecret = Deno.env.get("SEND_EMAIL_HOOK_SECRET");
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -30,7 +30,13 @@ const handler = async (req: Request): Promise<Response> => {
     console.log("Received webhook payload for magic link email");
 
     // Verify webhook signature
-    const wh = new Webhook(hookSecret);
+    if (!hookSecret) {
+      throw new Error("SEND_EMAIL_HOOK_SECRET is not configured");
+    }
+    
+    // Convert string secret to base64 if needed
+    const base64Secret = btoa(hookSecret);
+    const wh = new Webhook(base64Secret);
     const {
       user,
       email_data: { token, token_hash, redirect_to, email_action_type, site_url },
