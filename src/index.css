@@ -239,16 +239,30 @@ All colors MUST be HSL.
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   }
 
-  /* Remove focus outlines from panel containers */
+  /* Remove ALL focus outlines globally */
+  *:focus,
+  *:focus-visible,
+  button:focus,
+  div:focus,
+  .cursor-pointer:focus {
+    outline: none !important;
+    box-shadow: none !important;
+    border: none !important;
+  }
+  
+  /* Specifically target panel containers */
   .bg-primary\/10,
-  [class*="bg-primary/10"] {
+  [class*="bg-primary/10"],
+  .rounded-2xl,
+  .rounded-xl {
     outline: none !important;
   }
   
   .bg-primary\/10:focus,
   [class*="bg-primary/10"]:focus,
-  .bg-primary\/10 > *:focus,
-  [class*="bg-primary/10"] > *:focus {
+  .rounded-2xl:focus,
+  .rounded-xl:focus,
+  .cursor-pointer:focus {
     outline: none !important;
     box-shadow: none !important;
   }
