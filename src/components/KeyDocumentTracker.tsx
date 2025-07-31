@@ -214,7 +214,7 @@ export const KeyDocumentTracker = ({
             <StatusBadge status={getOverallStatus()} />
           </div>
         </div>
-        <div className="p-1 rounded-lg hover:bg-accent/50 transition-colors">
+        <div className="p-1 rounded-lg hover:bg-accent/50 transition-colors outline-none">
           {isOpen ? <ChevronDown className="w-5 h-5 text-muted-foreground" /> : <ChevronRight className="w-5 h-5 text-muted-foreground" />}
         </div>
       </div>
