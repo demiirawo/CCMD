@@ -208,7 +208,7 @@ export const ActionsLog = ({
               </tr>
             </thead>
             <tbody>
-              {actionsList.map((action, index) => <tr key={action.id} className={`border-b border-border/20 hover:bg-gray-50/50 ${action.closed ? 'opacity-75' : ''} ${getActionRowClass(action)}`}>
+              {actionsList.map((action, index) => <tr key={action.id} className={`border-b border-border/20 ${action.closed ? 'opacity-75' : ''} ${getActionRowClass(action)}`}>
                   <td className={`py-3 px-3 text-sm ${action.closed ? 'text-foreground' : !action.closed && (getDaysRemaining(action.dueDate) < 0 || getDaysRemaining(action.dueDate) <= 5 || getDaysRemaining(action.dueDate) > 5) ? 'text-white' : 'text-foreground'}`}>
                     {index + 1}
                   </td>
