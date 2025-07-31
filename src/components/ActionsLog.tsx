@@ -270,8 +270,8 @@ export const ActionsLog = ({
         </div>
       </div>;
   };
-  return <div className={`rounded-2xl p-6 shadow-lg -mx-8 px-14 ${getBackgroundClass()}`}>
-      <div className="flex items-center justify-between cursor-pointer mb-4" onClick={() => {
+  return <div className={`rounded-2xl p-6 shadow-lg -mx-8 px-14 outline-none ${getBackgroundClass()}`}>
+      <div className="flex items-center justify-between cursor-pointer mb-4 outline-none" onClick={() => {
         const newState = !isExpanded;
         setIsExpanded(newState);
         sessionStorage.setItem('actions_log_expanded', JSON.stringify(newState));
@@ -286,7 +286,7 @@ export const ActionsLog = ({
             {openActions.length} open, {closedActions.length} closed (30 days)
           </span>
         </div>
-        <div className="p-1 rounded-lg hover:bg-accent/50 transition-colors">
+        <div className="p-1 rounded-lg hover:bg-accent/50 transition-colors outline-none">
           {isOpen ? <ChevronDown className="w-5 h-5 text-muted-foreground" /> : <ChevronRight className="w-5 h-5 text-muted-foreground" />}
         </div>
       </div>
