@@ -77,7 +77,7 @@ export const Navigation = () => {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuLabel>
+                <DropdownMenuLabel className="bg-white">
                   {profile?.username || 'User'}
                   <p className="text-xs text-muted-foreground font-normal">
                     {profile?.role === 'admin' ? 'Administrator' : 'User'}
