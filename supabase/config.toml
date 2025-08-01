@@ -45,8 +45,8 @@ image_transformation = { enabled = true }
 [auth]
 enabled = true
 port = 54329
-site_url = "http://127.0.0.1:3000"
-additional_redirect_urls = ["https://gwywpkhxpbokmbhwsnod.supabase.co"]
+site_url = "https://CCMD.co.uk"
+additional_redirect_urls = ["https://gwywpkhxpbokmbhwsnod.supabase.co", "https://CCMD.co.uk"]
 jwt_expiry = 3600
 refresh_token_rotation_enabled = true
 refresh_token_reuse_interval = 10
@@ -76,5 +76,5 @@ verify_jwt = false
 
 [auth.external.send-magic-link]
 enabled = true
-uri = "http://127.0.0.1:54330/functions/v1/send-magic-link"
+uri = "https://gwywpkhxpbokmbhwsnod.supabase.co/functions/v1/send-magic-link"
 secret = "env(SEND_EMAIL_HOOK_SECRET)"
