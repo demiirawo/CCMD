@@ -7,10 +7,8 @@ import {
   Link,
   Preview,
   Text,
-  Section,
-  Hr,
-} from "npm:@react-email/components@0.0.22";
-import * as React from "npm:react@18.3.1";
+} from 'npm:@react-email/components@0.0.22';
+import * as React from 'npm:react@18.3.1';
 
 interface MagicLinkEmailProps {
   supabase_url: string;
@@ -26,145 +24,126 @@ export const MagicLinkEmail = ({
   email_action_type,
   redirect_to,
   token_hash,
-}: MagicLinkEmailProps) => {
-  const isSignup = email_action_type === "signup";
-  const magicLinkUrl = `${supabase_url}/auth/v1/verify?token=${token_hash}&type=${email_action_type}&redirect_to=${redirect_to}`;
-
-  return (
-    <Html>
-      <Head />
-      <Preview>{isSignup ? "Welcome to CCMD - Confirm your account" : "Sign in to CCMD"}</Preview>
-      <Body style={main}>
-        <Container style={container}>
-          <Section style={logoSection}>
-            <Text style={logoText}>CCMD</Text>
-          </Section>
-          
-          <Heading style={h1}>
-            {isSignup ? "Welcome to CCMD" : "Sign in to your account"}
-          </Heading>
-          
-          <Text style={text}>
-            {isSignup 
-              ? "Thank you for signing up! Click the button below to confirm your account and get started."
-              : "Click the button below to sign in to your CCMD account."
-            }
-          </Text>
-
-          <Section style={buttonSection}>
-            <Link href={magicLinkUrl} style={button}>
-              {isSignup ? "Confirm Account" : "Sign In"}
-            </Link>
-          </Section>
-
-          <Text style={text}>
-            Or copy and paste this link into your browser:
-          </Text>
-          <Text style={linkText}>{magicLinkUrl}</Text>
-
-          <Hr style={hr} />
-
-          <Text style={footerText}>
-            If you didn't request this email, you can safely ignore it.
-          </Text>
-          
-          <Text style={footer}>
-            This email was sent by CCMD. If you have any questions, please contact our support team.
-          </Text>
-        </Container>
-      </Body>
-    </Html>
-  );
-};
+}: MagicLinkEmailProps) => (
+  <Html>
+    <Head />
+    <Preview>Sign in to CCMD with this magic link</Preview>
+    <Body style={main}>
+      <Container style={container}>
+        <Heading style={h1}>
+          {email_action_type === "signup" ? "Welcome to CCMD" : "Sign in to CCMD"}
+        </Heading>
+        <Text style={text}>
+          {email_action_type === "signup" 
+            ? "Thank you for signing up! Click the link below to confirm your account and get started."
+            : "Click the link below to sign in to your CCMD account."
+          }
+        </Text>
+        <Link
+          href={`${supabase_url}/auth/v1/verify?token=${token_hash}&type=${email_action_type}&redirect_to=${redirect_to}`}
+          target="_blank"
+          style={{
+            ...link,
+            display: 'block',
+            marginBottom: '16px',
+            backgroundColor: '#0070f3',
+            color: 'white',
+            padding: '12px 24px',
+            borderRadius: '5px',
+            textDecoration: 'none',
+            textAlign: 'center' as const,
+          }}
+        >
+          {email_action_type === "signup" ? "Confirm Account" : "Sign In"}
+        </Link>
+        <Text style={{ ...text, marginBottom: '14px' }}>
+          Or, copy and paste this temporary login code:
+        </Text>
+        <code style={code}>{token}</code>
+        <Text
+          style={{
+            ...text,
+            color: '#ababab',
+            marginTop: '14px',
+            marginBottom: '16px',
+          }}
+        >
+          If you didn't request this, you can safely ignore this email.
+        </Text>
+        <Text style={footer}>
+          <Link
+            href="https://CCMD.co.uk"
+            target="_blank"
+            style={{ ...link, color: '#898989' }}
+          >
+            CCMD
+          </Link>
+          <br />
+          Care & Cuddle Management Dashboard
+        </Text>
+      </Container>
+    </Body>
+  </Html>
+);
 
 export default MagicLinkEmail;
 
-// Styles
 const main = {
-  backgroundColor: "#f6f9fc",
-  fontFamily: "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif",
+  backgroundColor: '#ffffff',
 };
 
 const container = {
-  backgroundColor: "#ffffff",
-  margin: "0 auto",
-  padding: "20px 0 48px",
-  marginBottom: "64px",
-};
-
-const logoSection = {
-  padding: "32px 32px 0",
-};
-
-const logoText = {
-  color: "#1f2937",
-  fontSize: "24px",
-  fontWeight: "bold",
-  textAlign: "center" as const,
-  margin: "0 0 32px",
+  paddingLeft: '12px',
+  paddingRight: '12px',
+  margin: '0 auto',
+  maxWidth: '600px',
 };
 
 const h1 = {
-  color: "#1f2937",
-  fontSize: "24px",
-  fontWeight: "bold",
-  textAlign: "center" as const,
-  margin: "0 0 16px",
-  padding: "0 32px",
+  color: '#333',
+  fontFamily:
+    "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif",
+  fontSize: '24px',
+  fontWeight: 'bold',
+  margin: '40px 0',
+  padding: '0',
+};
+
+const link = {
+  color: '#0070f3',
+  fontFamily:
+    "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif",
+  fontSize: '14px',
+  textDecoration: 'underline',
 };
 
 const text = {
-  color: "#374151",
-  fontSize: "16px",
-  lineHeight: "26px",
-  textAlign: "center" as const,
-  padding: "0 32px",
-  margin: "0 0 16px",
-};
-
-const buttonSection = {
-  textAlign: "center" as const,
-  margin: "32px 0",
-};
-
-const button = {
-  backgroundColor: "#1f2937",
-  borderRadius: "8px",
-  color: "#ffffff",
-  fontSize: "16px",
-  fontWeight: "bold",
-  textDecoration: "none",
-  textAlign: "center" as const,
-  display: "inline-block",
-  padding: "16px 32px",
-};
-
-const linkText = {
-  color: "#6b7280",
-  fontSize: "14px",
-  textAlign: "center" as const,
-  padding: "0 32px",
-  wordBreak: "break-all" as const,
-  margin: "0 0 32px",
-};
-
-const hr = {
-  borderColor: "#e5e7eb",
-  margin: "32px 0",
-};
-
-const footerText = {
-  color: "#6b7280",
-  fontSize: "14px",
-  textAlign: "center" as const,
-  padding: "0 32px",
-  margin: "0 0 16px",
+  color: '#333',
+  fontFamily:
+    "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif",
+  fontSize: '14px',
+  margin: '24px 0',
+  lineHeight: '1.5',
 };
 
 const footer = {
-  color: "#9ca3af",
-  fontSize: "12px",
-  textAlign: "center" as const,
-  padding: "0 32px",
-  margin: "0",
+  color: '#898989',
+  fontFamily:
+    "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif",
+  fontSize: '12px',
+  lineHeight: '22px',
+  marginTop: '12px',
+  marginBottom: '24px',
+};
+
+const code = {
+  display: 'inline-block',
+  padding: '16px 4.5%',
+  width: '90.5%',
+  backgroundColor: '#f4f4f4',
+  borderRadius: '5px',
+  border: '1px solid #eee',
+  color: '#333',
+  fontFamily: 'monospace',
+  fontSize: '14px',
 };
