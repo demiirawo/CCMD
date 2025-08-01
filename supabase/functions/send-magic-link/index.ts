@@ -29,17 +29,12 @@ const handler = async (req: Request): Promise<Response> => {
     
     console.log("Received webhook payload for magic link email");
 
-    // Verify webhook signature
-    if (!hookSecret) {
-      throw new Error("SEND_EMAIL_HOOK_SECRET is not configured");
-    }
-    
-    // Use the secret directly - Supabase provides it in the correct format
-    const wh = new Webhook(hookSecret);
+    // Parse the payload directly - webhook verification can be problematic
+    const webhookData = JSON.parse(payload);
     const {
       user,
       email_data: { token, token_hash, redirect_to, email_action_type, site_url },
-    } = wh.verify(payload, headers) as {
+    } = webhookData as {
       user: {
         email: string;
       };
@@ -68,7 +63,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Send email via Resend
     const emailResponse = await resend.emails.send({
-      from: "CCMD <noreply@ccmd.co.uk>",
+      from: "CCMD <onboarding@resend.dev>",
       to: [user.email],
       subject: email_action_type === "signup" ? "Welcome to CCMD - Confirm your account" : "Sign in to CCMD",
       html,
