@@ -24,13 +24,21 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const payload = await req.text();
-    const headers = Object.fromEntries(req.headers);
-    
     console.log("Received webhook payload for magic link email");
+    
+    // Check if required environment variables are set
+    if (!Deno.env.get("RESEND_API_KEY")) {
+      console.error("RESEND_API_KEY is not configured");
+      throw new Error("RESEND_API_KEY is not configured");
+    }
+    
+    const payload = await req.text();
+    console.log("Payload received:", payload.substring(0, 200) + "...");
 
     // Parse the payload directly - webhook verification can be problematic
     const webhookData = JSON.parse(payload);
+    console.log("Parsed webhook data:", JSON.stringify(webhookData, null, 2));
+    
     const {
       user,
       email_data: { token, token_hash, redirect_to, email_action_type, site_url },
@@ -61,6 +69,7 @@ const handler = async (req: Request): Promise<Response> => {
       })
     );
 
+    console.log("About to send email via Resend...");
     // Send email via Resend
     const emailResponse = await resend.emails.send({
       from: "CCMD <onboarding@resend.dev>",
@@ -68,6 +77,8 @@ const handler = async (req: Request): Promise<Response> => {
       subject: email_action_type === "signup" ? "Welcome to CCMD - Confirm your account" : "Sign in to CCMD",
       html,
     });
+    
+    console.log("Resend response:", emailResponse);
 
     if (emailResponse.error) {
       console.error("Error sending email:", emailResponse.error);
