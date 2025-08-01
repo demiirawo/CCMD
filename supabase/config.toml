@@ -70,3 +70,11 @@ verify_jwt = true
 
 [functions.send-action-reminders]
 verify_jwt = false
+
+[functions.send-magic-link]
+verify_jwt = false
+
+[auth.external.send-magic-link]
+enabled = true
+uri = "http://127.0.0.1:54330/functions/v1/send-magic-link"
+secret = "env(SEND_EMAIL_HOOK_SECRET)"
