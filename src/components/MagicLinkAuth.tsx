@@ -98,11 +98,11 @@ export const MagicLinkAuth = () => {
     }
   };
   if (sent) {
-    return <div className="min-h-screen flex items-center justify-center bg-background">
+    return <div className="min-h-screen flex items-center justify-center bg-stone-50">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
             <div className="mx-auto mb-4">
-              <CheckCircle className="h-16 w-16 text-green-500" />
+              
             </div>
             <CardTitle>Check Your Email</CardTitle>
             <CardDescription>
