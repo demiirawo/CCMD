@@ -70,6 +70,3 @@ verify_jwt = true
 
 [functions.send-action-reminders]
 verify_jwt = false
-
-[functions.send-magic-link]
-verify_jwt = false
