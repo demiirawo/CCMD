@@ -34,9 +34,8 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error("SEND_EMAIL_HOOK_SECRET is not configured");
     }
     
-    // Convert string secret to base64 if needed
-    const base64Secret = btoa(hookSecret);
-    const wh = new Webhook(base64Secret);
+    // Use the secret directly - Supabase provides it in the correct format
+    const wh = new Webhook(hookSecret);
     const {
       user,
       email_data: { token, token_hash, redirect_to, email_action_type, site_url },
