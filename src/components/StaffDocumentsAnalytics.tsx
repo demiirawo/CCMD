@@ -301,7 +301,7 @@ export const StaffDocumentsAnalytics = ({
     }
 
     return (
-      <span className="cursor-pointer hover:bg-accent/50 p-1 rounded text-foreground" onClick={handleStartEdit}>
+      <span className="cursor-pointer hover:bg-accent/50 p-1 rounded text-black" onClick={handleStartEdit}>
         {value}
       </span>
     );
