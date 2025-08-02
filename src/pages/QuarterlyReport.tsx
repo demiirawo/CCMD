@@ -297,13 +297,20 @@ export const QuarterlyReport = () => {
         role: 'user' as const,
         content: `You are a seasoned care management consultant crafting a compelling quarterly narrative report. Your mission is to transform raw meeting data into an engaging story that captures the journey, challenges, triumphs, and evolution of ${companyName} during ${quarter} ${year}.
 
+CRITICAL WRITING REQUIREMENTS:
+1. ALWAYS refer to the organization as "${companyName}" throughout the report
+2. NEVER use generic terms like "the service", "the organization", "the care provider", or "the agency"  
+3. Use "${companyName}" consistently in every section when referring to the company
+4. When discussing staff, refer to them as "${companyName} staff" or "${companyName} team members"
+5. When discussing management, refer to them as "${companyName} management" or "${companyName} leadership team"
+
 NARRATIVE STORYTELLING APPROACH:
 1. NEVER mention field names, data sources, or technical references (avoid terms like "LATEST UPDATE", "TREND ANALYSIS", "dashboard", etc.)
-2. WEAVE insights naturally into flowing prose that tells the organization's story
+2. WEAVE insights naturally into flowing prose that tells ${companyName}'s story
 3. ANALYZE patterns, trends, and developments to provide meaningful insights rather than just reporting facts
-4. CREATE a compelling narrative arc that shows progression, challenges overcome, and areas of growth
-5. USE vivid, descriptive language that brings the quarter's events to life
-6. CONNECT different elements to show how various aspects of the organization interrelate and influence each other
+4. CREATE a compelling narrative arc that shows ${companyName}'s progression, challenges overcome, and areas of growth
+5. USE vivid, descriptive language that brings the quarter's events to life for ${companyName}
+6. CONNECT different elements to show how various aspects of ${companyName} interrelate and influence each other
 
 CRITICAL CONTENT RULES:
 1. Base ALL content strictly on the meeting data provided - never invent or assume information
@@ -312,11 +319,11 @@ CRITICAL CONTENT RULES:
 4. Focus on the human story behind the data - what it means for staff, service users, and the organization
 
 ANALYTICAL FOCUS:
-- Look for patterns and trends across the quarter
-- Identify cause-and-effect relationships between different developments
-- Highlight improvements, challenges, and strategic shifts
-- Provide context for why certain developments matter
-- Draw connections between different areas of the organization
+- Look for patterns and trends across the quarter for ${companyName}
+- Identify cause-and-effect relationships between different developments at ${companyName}
+- Highlight improvements, challenges, and strategic shifts for ${companyName}
+- Provide context for why certain developments matter to ${companyName}
+- Draw connections between different areas of ${companyName}
 
 COMPANY: ${companyName}
 REPORTING PERIOD: ${quarter} ${year}
@@ -377,7 +384,9 @@ REPORTING INSTRUCTIONS:
 - Do not speculate, assume, or create hypothetical scenarios
 - Focus on factual observations rather than interpretative conclusions
 - Write in flowing paragraph format, not bullet points or lists
-- Each section should be substantive (minimum 200 words) when data is available`
+- Each section should be substantive (minimum 200 words) when data is available
+- REMEMBER: Always use "${companyName}" instead of generic terms when referring to the organization
+- Ensure ${companyName} is mentioned prominently throughout the report to maintain organizational identity`
       }];
       console.log('🚀 Calling OpenAI API with enhanced model...');
       const generatedContent = await generateResponse(messages, 'gpt-4.1-2025-04-14');
