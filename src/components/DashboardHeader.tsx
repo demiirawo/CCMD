@@ -59,7 +59,7 @@ export const DashboardHeader = ({
     label: string;
     containerClass?: string;
     textClass?: string;
-  }) => <div className={`p-4 rounded-lg border border-gray-100 ${containerClass} bg-white`}>
+  }) => <div className={`p-4 pt-8 rounded-lg border border-gray-100 ${containerClass} bg-white`}>
       <h3 className="text-sm font-medium text-muted-foreground mb-2">{label}</h3>
       {readOnly ? (
         <div className={`w-full min-h-12 p-2 text-sm ${textClass} text-foreground bg-gray-50 border border-gray-200 rounded whitespace-pre-wrap break-words overflow-wrap-anywhere`}>
