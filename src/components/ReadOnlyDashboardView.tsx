@@ -46,7 +46,7 @@ interface ParsedMeeting {
 }
 
 export const ReadOnlyDashboardView = ({ meetingId }: ReadOnlyDashboardViewProps) => {
-  const { profile } = useAuth();
+  const { profile, companies } = useAuth();
   const [meeting, setMeeting] = useState<ParsedMeeting | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -151,10 +151,25 @@ export const ReadOnlyDashboardView = ({ meetingId }: ReadOnlyDashboardViewProps)
   }
 
   const stats = calculateStats();
+  const currentCompany = companies.find(c => c.id === profile?.company_id);
 
   return (
     <div className="bg-gray-100 p-4 lg:p-8" style={{ pointerEvents: 'none', userSelect: 'none' }}>
       <div className="w-[90%] mx-auto space-y-6">
+        {/* Company Header */}
+        {currentCompany && (
+          <div className="text-center py-6">
+            {currentCompany.logo_url && (
+              <img 
+                src={currentCompany.logo_url} 
+                alt={`${currentCompany.name} logo`}
+                className="h-16 w-auto mx-auto mb-4"
+              />
+            )}
+            <h1 className="text-2xl font-bold text-foreground">{currentCompany.name}</h1>
+          </div>
+        )}
+        
         {/* Read-only banner */}
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
           <div className="flex items-center gap-2 text-blue-800">
