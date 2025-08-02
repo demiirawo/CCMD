@@ -90,6 +90,8 @@ export const FeedbackAnalytics = ({
       
       const { data, error } = await query.maybeSingle();
       
+      console.log('FeedbackAnalytics: Query result:', { data, error, companyId: profile.company_id, meetingId });
+
       if (error && error.code !== 'PGRST116') {
         console.error('Error loading feedback analytics:', error);
         return;
