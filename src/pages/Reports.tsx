@@ -518,11 +518,13 @@ export const Reports = () => {
         </div>
       </div>;
   }
-  return <div className="min-h-screen bg-gray-100 p-4 lg:p-8 pt-24">
+  return <div className="min-h-screen bg-gray-100 p-4 lg:p-8 pt-32">
       <div className="w-[90%] mx-auto space-y-6">
         {/* Add Meeting Button */}
         {canEdit && (
-          <AddMeetingDialog onMeetingAdded={fetchMeetings} />
+          <div className="pt-4">
+            <AddMeetingDialog onMeetingAdded={fetchMeetings} />
+          </div>
         )}
 
         {/* Year Filter */}
