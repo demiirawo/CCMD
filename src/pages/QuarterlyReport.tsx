@@ -249,6 +249,7 @@ CRITICAL RULES - VIOLATION OF THESE RULES IS UNACCEPTABLE:
 5. Use ONLY the exact heading structure provided below
 6. Use "${careOrSupport}" terminology instead of "Care" where specified
 7. Include exactly one 12-month incident graph and one 12-month feedback graph reference in appropriate sections
+8. PAY SPECIAL ATTENTION to "LATEST UPDATE" and "TREND ANALYSIS" fields in the meeting data - these contain critical information for each dashboard item
 
 COMPANY: ${companyName}
 REPORTING PERIOD: ${quarter} ${year}
@@ -256,6 +257,8 @@ REPORTING PERIOD: ${quarter} ${year}
 DATA PROVIDED:
 ${additionalContext ? `Additional Context: ${additionalContext}` : ''}
 Analytics Data: ${JSON.stringify(processedAnalytics, null, 2)}
+
+IMPORTANT: The meeting data contains "latestUpdate" and "trendAnalysis" fields for each dashboard item. These correspond to the "LATEST UPDATE" and "TREND ANALYSIS" fields from the dashboard and contain essential operational information that must be included in the report.
 
 REQUIRED HEADING STRUCTURE (use exactly as shown):
 

@@ -319,8 +319,24 @@ export const QuarterlyReportGenerator: React.FC<QuarterlyReportGeneratorProps> =
             completedItems: s.items?.filter((item: any) => item.status === 'green').length || 0,
             inProgressItems: s.items?.filter((item: any) => item.status === 'amber').length || 0,
             overdueItems: s.items?.filter((item: any) => item.status === 'red').length || 0,
-            achievements: s.items?.filter((item: any) => item.status === 'green').map((item: any) => item.content || item.title) || [],
-            challenges: s.items?.filter((item: any) => item.status === 'red' || item.status === 'amber').map((item: any) => item.content || item.title) || []
+            itemDetails: s.items?.map((item: any) => ({
+              title: item.title || item.content,
+              status: item.status,
+              latestUpdate: item.observation || 'No update provided',
+              trendAnalysis: item.trendsThemes || 'No trend analysis available',
+              actions: item.actions || [],
+              metadata: item.metadata || {}
+            })) || [],
+            achievements: s.items?.filter((item: any) => item.status === 'green').map((item: any) => ({
+              title: item.title || item.content,
+              latestUpdate: item.observation,
+              trendAnalysis: item.trendsThemes
+            })) || [],
+            challenges: s.items?.filter((item: any) => item.status === 'red' || item.status === 'amber').map((item: any) => ({
+              title: item.title || item.content,
+              latestUpdate: item.observation,
+              trendAnalysis: item.trendsThemes
+            })) || []
           }))
         })),
         analyticsInsights: processedAnalytics,
@@ -449,6 +465,8 @@ Data Context: ${JSON.stringify(dataContext, null, 2)}
 CRITICAL INSTRUCTIONS:
 - Base ALL content exclusively on the data provided above
 - Do not create examples, scenarios, or metrics not present in the data
+- Pay special attention to the "latestUpdate" and "trendAnalysis" fields for each item - these contain crucial LATEST UPDATE and TREND ANALYSIS information
+- Include specific insights from the latest updates and trend analysis in relevant sections
 - If data is insufficient for a section, write exactly "No information available for this area during ${quarter} ${year}" for that section
 - Focus only on trends, patterns, and insights that are directly evidenced in the provided data
 - Write in natural language prose with detailed paragraphs but remain strictly factual
