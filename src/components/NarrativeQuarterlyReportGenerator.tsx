@@ -290,7 +290,7 @@ Write approximately 1500-2500 words using only plain text formatting that regula
               Generating Narrative Report...
             </> : <>
               <FileText className="mr-2 h-4 w-4" />
-              Generate Narrative Report
+              Generate Report
             </>}
         </Button>
       </CardContent>
