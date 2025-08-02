@@ -334,7 +334,7 @@ export const ReadOnlyDashboardView = ({ meetingId }: ReadOnlyDashboardViewProps)
                               <label className="text-xs font-medium text-muted-foreground mb-1 block">LATEST UPDATE</label>
                               <div className="w-full p-3 rounded-lg text-sm min-h-[80px] flex items-start border border-border/30 bg-muted/20">
                                 <span className="break-words w-full whitespace-pre-wrap text-foreground">
-                                  {item.observation || "No current situation recorded"}
+                                  {item.observation || "No update provided"}
                                 </span>
                               </div>
                             </div>
