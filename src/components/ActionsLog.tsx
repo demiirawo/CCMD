@@ -356,25 +356,19 @@ export const ActionsLog = ({
                         "h-8 w-8 p-0",
                         action.closed ? "opacity-50" :
                         isDynamicPanelColourEnabled ? "hover:bg-white/20" :
-                         getDaysRemaining(action.dueDate) < 0 ? "hover:bg-red-50" :
-                         getDaysRemaining(action.dueDate) <= 5 ? "hover:bg-amber-50" : 
-                         "hover:bg-green-50"
+                         "hover:bg-gray-50"
                       )} title="Mark as completed">
                         <Check className={cn(
                           "h-4 w-4",
                           action.closed ? "text-green-600" :
                           isDynamicPanelColourEnabled ? "text-white" :
-                           getDaysRemaining(action.dueDate) < 0 ? "text-red-700" :
-                           getDaysRemaining(action.dueDate) <= 5 ? "text-amber-700" : 
-                           "text-green-700"
+                           "text-black"
                         )} />
                       </Button>
                       {!action.closed && <Button variant="ghost" size="sm" onClick={() => onActionDelete?.(action.id)} className={cn(
                         "h-8 w-8 p-0",
                         isDynamicPanelColourEnabled ? "text-white hover:bg-white/20" :
-                         getDaysRemaining(action.dueDate) < 0 ? "text-red-700 hover:bg-red-50" :
-                         getDaysRemaining(action.dueDate) <= 5 ? "text-amber-700 hover:bg-amber-50" : 
-                         "text-green-700 hover:bg-green-50"
+                         "text-black hover:bg-gray-50"
                       )} title="Delete action">
                           <Minus className="h-4 w-4" />
                         </Button>}
