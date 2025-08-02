@@ -1,17 +1,20 @@
 import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { MagicLinkAuth } from "@/components/MagicLinkAuth";
 
 export const Auth = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     if (user && !loading) {
-      navigate('/');
+      // Redirect to return URL if provided, otherwise to home
+      const returnUrl = location.state?.returnUrl || '/';
+      navigate(returnUrl);
     }
-  }, [user, loading, navigate]);
+  }, [user, loading, navigate, location]);
 
   if (loading) {
     return (

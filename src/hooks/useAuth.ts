@@ -17,6 +17,7 @@ interface Profile {
 interface Company {
   id: string;
   name: string;
+  slug?: string;
   theme_color?: string;
   services?: string[];
   logo_url?: string;
@@ -36,6 +37,7 @@ interface AuthContextType {
   createCompany: (name: string) => Promise<{ data: Company | null; error: any }>;
   selectCompany: (companyId: string) => Promise<{ error: any }>;
   deleteCompany: (companyId: string) => Promise<{ error: any }>;
+  getCompanyUrl: (company: Company) => string;
   fetchUserProfile: () => Promise<void>;
   fetchCompanies: () => Promise<void>;
 }
@@ -347,6 +349,10 @@ export const useAuthProvider = (): AuthContextType => {
     return { error };
   };
 
+  const getCompanyUrl = (company: Company) => {
+    return `${window.location.origin}/company/${company.slug}`;
+  };
+
   return {
     user,
     session,
@@ -359,6 +365,7 @@ export const useAuthProvider = (): AuthContextType => {
     createCompany,
     selectCompany,
     deleteCompany,
+    getCompanyUrl,
     fetchUserProfile,
     fetchCompanies
   };

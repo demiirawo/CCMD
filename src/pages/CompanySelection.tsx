@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Building2, Trash2 } from 'lucide-react';
+import { Plus, Building2, Trash2, Copy, ExternalLink } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 export const CompanySelection = () => {
   const [newCompanyName, setNewCompanyName] = useState('');
@@ -19,6 +19,7 @@ export const CompanySelection = () => {
     createCompany,
     selectCompany,
     deleteCompany,
+    getCompanyUrl,
     signOut,
     fetchCompanies,
     loading: authLoading
@@ -140,6 +141,23 @@ export const CompanySelection = () => {
     setLoading(false);
   };
 
+  const handleCopyUrl = async (company: any) => {
+    const url = getCompanyUrl(company);
+    try {
+      await navigator.clipboard.writeText(url);
+      toast({
+        title: 'URL Copied',
+        description: 'Company URL copied to clipboard!'
+      });
+    } catch (err) {
+      toast({
+        title: 'Copy Failed',
+        description: 'Failed to copy URL to clipboard',
+        variant: 'destructive'
+      });
+    }
+  };
+
   const handleSignOut = async () => {
     await signOut();
     navigate('/auth');
@@ -174,6 +192,11 @@ export const CompanySelection = () => {
                             <p className="text-sm text-muted-foreground">
                               Created {new Date(company.created_at).toLocaleDateString()}
                             </p>
+                            {company.slug && (
+                              <p className="text-xs text-muted-foreground mt-1 font-mono">
+                                /company/{company.slug}
+                              </p>
+                            )}
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
@@ -183,6 +206,17 @@ export const CompanySelection = () => {
                       }} disabled={loading} className="bg-stone-400 hover:bg-stone-300 text-black">
                             Select
                           </Button>
+                          {company.slug && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleCopyUrl(company)}
+                              className="text-muted-foreground hover:text-foreground"
+                              disabled={loading}
+                            >
+                              <Copy className="h-4 w-4" />
+                            </Button>
+                          )}
                           {profile?.role === 'admin' && (
                             <AlertDialog>
                               <AlertDialogTrigger asChild>
