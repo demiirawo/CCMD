@@ -347,7 +347,7 @@ export const StaffTrainingAnalytics = ({
         </div>
         
         {/* On Probation Row */}
-        <div className="text-sm">On Probation:</div>
+        <div className="text-sm text-black">On Probation:</div>
         <div className="text-lg text-black text-center">{staffData.onProbation}</div>
         <div className="flex justify-center">
           <EditableCell 
