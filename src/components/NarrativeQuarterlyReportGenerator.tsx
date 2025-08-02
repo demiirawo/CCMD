@@ -140,6 +140,8 @@ REPORT REQUIREMENTS:
 
 REQUIRED REPORT STRUCTURE:
 
+Executive Summary
+
 Staff
 - Resourcing
 - Staff Documents  
@@ -148,8 +150,8 @@ Staff
 - Staff Supervisions
 - Staff Meetings
 
-Care Planning & Delivery Section
-- Care Plans & Risk Assessments
+Care Planning & Delivery (Changes to "Support Planning & Delivery" for companies with only Supported Housing services)
+- Care Plans & Risk Assessments (becomes "Support Plans & Risk Assessments" for supported housing)
 - Service User Documents
 - Medication Management
 - Care Notes
@@ -165,6 +167,16 @@ Safety
 Continuous Improvement
 - Feedback
 - Audits
+
+Supported Housing Section (Only displayed for companies that have "Supported Housing" in their services)
+- Tenancy & Benefits
+- Property Safety & Maintenance
+
+Successes and Achievements (Summary of all the successes and achievements highlighted above)
+
+Learning Opportunities and Challenges (Summary of all the opportunities and challenges highlighted above)
+
+Next Steps (Suggestions based on building upon the successes and putting action plans in place to address the learning lessons and challenges)
 
 CRITICAL WRITING INSTRUCTIONS:
 
