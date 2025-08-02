@@ -258,7 +258,10 @@ DATA PROVIDED:
 ${additionalContext ? `Additional Context: ${additionalContext}` : ''}
 Analytics Data: ${JSON.stringify(processedAnalytics, null, 2)}
 
-IMPORTANT: The meeting data contains "latestUpdate" and "trendAnalysis" fields for each dashboard item. These correspond to the "LATEST UPDATE" and "TREND ANALYSIS" fields from the dashboard and contain essential operational information that must be included in the report.
+IMPORTANT: The meeting data contains ONLY two dashboard fields to consider:
+- "latestUpdate" (corresponds to "LATEST UPDATE" from dashboard)  
+- "trendAnalysis" (corresponds to "TREND ANALYSIS" from dashboard)
+Use only these two field types to create the narrative. Ignore all other dashboard fields, status indicators, or metrics.
 
 REQUIRED HEADING STRUCTURE (use exactly as shown):
 

@@ -316,33 +316,10 @@ export const QuarterlyReportGenerator: React.FC<QuarterlyReportGeneratorProps> =
           sectionSummary: m.sections.map(s => ({
             title: s.title,
             totalItems: s.items?.length || 0,
-            completedItems: s.items?.filter((item: any) => item.status === 'green').length || 0,
-            inProgressItems: s.items?.filter((item: any) => item.status === 'amber').length || 0,
-            overdueItems: s.items?.filter((item: any) => item.status === 'red').length || 0,
-            ragStatusSummary: {
-              green: s.items?.filter((item: any) => item.status === 'green').length || 0,
-              amber: s.items?.filter((item: any) => item.status === 'amber').length || 0,
-              red: s.items?.filter((item: any) => item.status === 'red').length || 0
-            },
             itemDetails: s.items?.map((item: any) => ({
               title: item.title || item.content,
-              ragStatus: item.status, // Red/Amber/Green status
               latestUpdate: item.observation || 'No update provided',
-              trendAnalysis: item.trendsThemes || 'No trend analysis available',
-              actions: item.actions || [],
-              metadata: item.metadata || {}
-            })) || [],
-            achievements: s.items?.filter((item: any) => item.status === 'green').map((item: any) => ({
-              title: item.title || item.content,
-              ragStatus: 'green',
-              latestUpdate: item.observation,
-              trendAnalysis: item.trendsThemes
-            })) || [],
-            challenges: s.items?.filter((item: any) => item.status === 'red' || item.status === 'amber').map((item: any) => ({
-              title: item.title || item.content,
-              ragStatus: item.status,
-              latestUpdate: item.observation,
-              trendAnalysis: item.trendsThemes
+              trendAnalysis: item.trendsThemes || 'No trend analysis available'
             })) || []
           }))
         })),
@@ -391,17 +368,11 @@ CRITICAL FACTUAL REQUIREMENTS:
 - If specific data is not available for a section, simply state "Information not available on this area" and move to the next section
 - Only reference metrics, trends, and observations that are directly supported by the provided data
 
-RAG STATUS INTEGRATION:
-- Pay special attention to Red/Amber/Green (RAG) status indicators for each dashboard item
-- Use RAG status to understand performance levels and progress
-- Green items represent successful outcomes and achievements
-- Amber items indicate areas requiring attention or in progress
-- Red items highlight urgent concerns or overdue matters
-- Create narrative around the RAG status distribution and what it tells about organisational performance
-
 DASHBOARD DATA INTEGRATION:
-- Focus heavily on "latestUpdate" and "trendAnalysis" fields - these contain the most current operational insights
-- Use "ragStatus" to understand the performance level of each area
+- Focus exclusively on "latestUpdate" and "trendAnalysis" fields - these are the ONLY dashboard fields to consider
+- latestUpdate corresponds to "LATEST UPDATE" from the dashboard
+- trendAnalysis corresponds to "TREND ANALYSIS" from the dashboard
+- Do not reference any other dashboard fields, metrics, or status indicators
 - Only reference feedback and incident graphs when specifically mentioned in the data
 - Do not reference other analytics data unless explicitly provided
 
@@ -464,11 +435,12 @@ Data Context: ${JSON.stringify(dataContext, null, 2)}
 CRITICAL INSTRUCTIONS:
 - Base ALL content exclusively on the meeting data provided above
 - Write in an engaging narrative style that tells the story of ${quarter} ${year}
-- Pay special attention to the "latestUpdate", "trendAnalysis", and "ragStatus" fields for each item
-- Use RAG status (Red/Amber/Green) to understand performance levels and create narrative around progress
-- Include insights from latest updates and trend analysis to build the organisational story
+- Focus ONLY on the "latestUpdate" and "trendAnalysis" fields for each item
+- These are the ONLY two dashboard fields to consider - ignore all other dashboard data
+- latestUpdate = "LATEST UPDATE" from dashboard
+- trendAnalysis = "TREND ANALYSIS" from dashboard
+- Build the organisational narrative using only these two field types
 - Only reference feedback graphs and incident graphs if specifically mentioned in the data
-- Do not use other analytics data unless explicitly provided
 - If data is insufficient for a section, write "Information not available for this area during ${quarter} ${year}"
 - Focus only on trends, patterns, and insights that are directly evidenced in the provided data
 - Write in natural language prose with detailed paragraphs but remain strictly factual
