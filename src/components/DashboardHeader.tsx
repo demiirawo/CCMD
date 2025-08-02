@@ -82,8 +82,8 @@ export const DashboardHeader = ({
   return <div className="bg-primary/10 pt-14 pb-8 px-14 mb-8 rounded-xl shadow-sm -mx-8 outline-none">
       {/* Meeting Info Section */}
       <div className="grid grid-cols-2 gap-4 mb-10 items-start">
-        <EditableField field="title" value={title} label="Meeting Title" textClass="" />
-        <div className="p-4 pt-8 rounded-lg border border-gray-100 h-24 bg-white">
+        <EditableField field="title" value={title} label="Meeting Title" textClass="" containerClass="h-32" />
+        <div className="p-4 pt-8 rounded-lg border border-gray-100 h-32 bg-white">
           <h3 className="text-sm font-medium text-muted-foreground mb-2">Meeting Date & Time</h3>
           {readOnly ? (
             <div className="w-full min-h-12 p-2 text-sm text-foreground bg-gray-50 border border-gray-200 rounded">
