@@ -80,17 +80,30 @@ export const NarrativeQuarterlyReportGenerator: React.FC<NarrativeQuarterlyRepor
   };
 
   const extractMeetingNarratives = (meetings: any[]): MeetingNarrative[] => {
+    console.log('🔍 Extracting narratives from meetings:', meetings.length);
+    
     return meetings.map(meeting => {
-      const sectionUpdates = meeting.sections?.map((section: any) => ({
-        sectionName: section.title || section.name || 'Unknown Section',
-        subsectionUpdates: section.subsections?.map((subsection: any) => ({
-          name: subsection.title || subsection.name || 'Unknown Subsection',
-          status: subsection.status || 'unknown',
-          latestUpdate: subsection.latestUpdate || subsection.latest_update || '',
-          trendAnalysis: subsection.trendAnalysis || subsection.trend_analysis || '',
-          actions: subsection.actions || []
-        })) || []
-      })) || [];
+      console.log('📋 Processing meeting:', meeting.title, meeting.date);
+      
+      const sectionUpdates = meeting.sections?.map((section: any) => {
+        console.log(`📝 Section: ${section.title}, Items: ${section.items?.length || 0}`);
+        
+        return {
+          sectionName: section.title || section.name || 'Unknown Section',
+          subsectionUpdates: section.items?.map((item: any) => {
+            if (item.observation) {
+              console.log(`✏️ Found observation in ${item.title}: "${item.observation}"`);
+            }
+            return {
+              name: item.title || item.name || 'Unknown Item',
+              status: item.status || 'unknown',
+              latestUpdate: item.observation || item.latest_update || '',
+              lastReviewed: item.lastReviewed || '',
+              actions: item.actions || []
+            };
+          }) || []
+        };
+      }) || [];
 
       return {
         date: meeting.date,
