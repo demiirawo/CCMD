@@ -176,10 +176,7 @@ export const TeamMembersManager = ({
       <CardContent className="space-y-4">
         {/* Add new team member */}
         {canManageTeam && <div className="p-4 border rounded-lg bg-white space-y-3">
-            <h4 className="font-medium flex items-center gap-2">
-              <Plus className="h-4 w-4" />
-              Add Team Member
-            </h4>
+            
             <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
               <div>
                 <Label htmlFor="member-name">Name *</Label>
