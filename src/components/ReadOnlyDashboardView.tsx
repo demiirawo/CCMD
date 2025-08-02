@@ -333,7 +333,7 @@ export const ReadOnlyDashboardView = ({ meetingId }: ReadOnlyDashboardViewProps)
                             <div>
                               <label className="text-xs font-medium text-muted-foreground mb-1 block">CURRENT SITUATION</label>
                               <div className="w-full p-3 rounded-lg text-sm min-h-[80px] flex items-start border border-border/30 bg-muted/20">
-                                <span className="break-words w-full whitespace-pre-wrap">
+                                <span className="break-words w-full whitespace-pre-wrap text-foreground">
                                   {item.observation || "No current situation recorded"}
                                 </span>
                               </div>
@@ -344,7 +344,7 @@ export const ReadOnlyDashboardView = ({ meetingId }: ReadOnlyDashboardViewProps)
                               <div>
                                 <label className="text-xs font-medium text-muted-foreground mb-1 block">TREND & THEMES</label>
                                 <div className="w-full p-3 rounded-lg text-sm min-h-[80px] flex items-start border border-border/30 bg-muted/20">
-                                  <span className="break-words w-full whitespace-pre-wrap">
+                                  <span className="break-words w-full whitespace-pre-wrap text-foreground">
                                     {item.trendsThemes}
                                   </span>
                                 </div>
@@ -358,7 +358,7 @@ export const ReadOnlyDashboardView = ({ meetingId }: ReadOnlyDashboardViewProps)
                                 {item.actions && item.actions.length > 0 ? (
                                   item.actions.map((action, actionIndex) => (
                                     <div key={actionIndex} className="p-3 border border-border/30 rounded-lg bg-muted/20">
-                                      <div className="text-sm font-medium">{action.description}</div>
+                                      <div className="text-sm font-medium text-foreground">{action.description}</div>
                                       <div className="text-xs text-muted-foreground mt-1">
                                         Assigned to: {action.name} | Due: {action.targetDate}
                                       </div>
