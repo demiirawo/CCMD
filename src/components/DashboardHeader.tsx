@@ -106,7 +106,7 @@ export const DashboardHeader = ({
         {/* Meeting Summary - 50% width */}
         <div className="p-4 rounded-lg border border-gray-100 min-h-24 bg-white">
           <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-medium text-muted-foreground mb-2">Meeting Summary</h3>
+            <h3 className="text-sm font-medium text-muted-foreground">Meeting Summary</h3>
             {!readOnly && <AISummaryButton onSummaryGenerated={(summary) => onDataChange?.("purpose", summary)} />}
           </div>
           {readOnly ? (
