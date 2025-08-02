@@ -76,7 +76,7 @@ export const Navigation = () => {
                   {profile?.username || 'User'}
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
+              <DropdownMenuContent align="end" className="bg-white z-50 border shadow-lg">
                 <DropdownMenuLabel className="bg-white">
                   {profile?.username || 'User'}
                   <p className="text-xs text-muted-foreground font-normal">
