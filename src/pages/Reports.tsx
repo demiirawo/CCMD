@@ -198,190 +198,290 @@ export const Reports = () => {
         description: "Please wait while we generate your PDF..."
       });
 
-      // First check if there's an open preview dialog we can use
+      // Find existing preview element or use the currently open one
       let previewElement = document.querySelector(`[data-meeting-preview="${meetingId}"]`);
+      let tempModal: HTMLElement | null = null;
+      
       if (!previewElement) {
-        // If no preview is open, we need to temporarily open one
-        toast({
-          title: "Opening Preview",
-          description: "Opening preview to generate PDF..."
-        });
-
-        // Create a temporary modal container
-        const tempModal = document.createElement('div');
+        // Create a temporary full-size container that matches the original dashboard view exactly
+        tempModal = document.createElement('div');
         tempModal.style.position = 'fixed';
         tempModal.style.top = '0';
         tempModal.style.left = '0';
         tempModal.style.width = '100vw';
         tempModal.style.height = '100vh';
         tempModal.style.zIndex = '9999';
-        tempModal.style.background = 'rgba(0,0,0,0.5)';
-        tempModal.style.display = 'flex';
-        tempModal.style.alignItems = 'center';
-        tempModal.style.justifyContent = 'center';
-        const dialogContent = document.createElement('div');
-        dialogContent.style.width = '95vw';
-        dialogContent.style.height = '95vh';
-        dialogContent.style.background = 'white';
-        dialogContent.style.borderRadius = '8px';
-        dialogContent.style.overflow = 'hidden';
-        dialogContent.setAttribute('data-meeting-preview', meetingId);
-        tempModal.appendChild(dialogContent);
+        tempModal.style.background = 'white';
+        tempModal.style.overflow = 'hidden';
+        tempModal.setAttribute('data-meeting-preview', meetingId);
+        
         document.body.appendChild(tempModal);
 
         // Import and render the ReadOnlyDashboardView
         const React = (await import('react')).default;
         const ReactDOM = (await import('react-dom/client')).default;
-        const {
-          ReadOnlyDashboardView
-        } = await import('@/components/ReadOnlyDashboardView');
-        const root = ReactDOM.createRoot(dialogContent);
-        root.render(React.createElement(ReadOnlyDashboardView, {
-          meetingId
-        }));
+        const { ReadOnlyDashboardView } = await import('@/components/ReadOnlyDashboardView');
+        
+        const root = ReactDOM.createRoot(tempModal);
+        root.render(React.createElement(ReadOnlyDashboardView, { meetingId }));
 
         // Wait for the component to fully render
         await new Promise(resolve => setTimeout(resolve, 3000));
-        previewElement = dialogContent;
+        previewElement = tempModal;
       }
 
-      // Create a temporary container for PDF generation
+      // Get the actual rendered content
+      const dashboardContent = previewElement.querySelector('.bg-gray-100') || previewElement;
+      
+      if (!dashboardContent) {
+        throw new Error('Dashboard content not found');
+      }
+
+      // Create a temporary container that preserves the original dimensions and layout
       const tempContainer = document.createElement('div');
       tempContainer.style.position = 'absolute';
       tempContainer.style.left = '-9999px';
       tempContainer.style.top = '0';
-      tempContainer.style.width = '210mm'; // A4 width
+      tempContainer.style.width = '1200px'; // Use a standard desktop width
       tempContainer.style.backgroundColor = 'white';
-      tempContainer.style.padding = '10mm';
-      tempContainer.style.boxSizing = 'border-box';
+      tempContainer.style.fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+      tempContainer.style.fontSize = '14px';
+      tempContainer.style.lineHeight = '1.5';
+      tempContainer.innerHTML = dashboardContent.innerHTML;
 
-      // Clone the preview content
-      tempContainer.innerHTML = previewElement.innerHTML;
-
-      // Apply PDF-specific styles that preserve the design
+      // Apply comprehensive PDF-optimized styles
       const style = document.createElement('style');
       style.textContent = `
         #${tempContainer.id} {
           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
           background: white !important;
           color: #000 !important;
+          font-size: 14px !important;
+          line-height: 1.5 !important;
         }
         #${tempContainer.id} * { 
-          box-sizing: border-box !important; 
+          box-sizing: border-box !important;
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
         }
-        #${tempContainer.id} .bg-background { background: white !important; }
-        #${tempContainer.id} .bg-card { background: #f8f9fa !important; border: 1px solid #e9ecef !important; }
-        #${tempContainer.id} .bg-muted { background: #f1f3f4 !important; }
-        #${tempContainer.id} .bg-primary { background: #3b82f6 !important; color: white !important; }
-        #${tempContainer.id} .bg-green-50 { background: #f0f9ff !important; }
-        #${tempContainer.id} .bg-yellow-50 { background: #fffbeb !important; }
-        #${tempContainer.id} .bg-red-50 { background: #fef2f2 !important; }
-        #${tempContainer.id} .text-foreground { color: #000 !important; }
-        #${tempContainer.id} .text-muted-foreground { color: #6b7280 !important; }
-        #${tempContainer.id} .text-primary { color: #3b82f6 !important; }
-        #${tempContainer.id} .text-green-600 { color: #059669 !important; }
-        #${tempContainer.id} .text-yellow-600 { color: #d97706 !important; }
-        #${tempContainer.id} .text-red-600 { color: #dc2626 !important; }
-        #${tempContainer.id} .border { border-color: #e5e7eb !important; }
-        #${tempContainer.id} .border-green-200 { border-color: #bbf7d0 !important; }
-        #${tempContainer.id} .border-yellow-200 { border-color: #fef3c7 !important; }
-        #${tempContainer.id} .border-red-200 { border-color: #fecaca !important; }
-        #${tempContainer.id} .rounded-lg { border-radius: 8px !important; }
-        #${tempContainer.id} .rounded-md { border-radius: 6px !important; }
-        #${tempContainer.id} .rounded-full { border-radius: 9999px !important; }
-        #${tempContainer.id} .shadow-sm { box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05) !important; }
-        #${tempContainer.id} .p-6 { padding: 24px !important; }
-        #${tempContainer.id} .p-4 { padding: 16px !important; }
-        #${tempContainer.id} .p-3 { padding: 12px !important; }
-        #${tempContainer.id} .p-2 { padding: 8px !important; }
-        #${tempContainer.id} .px-3 { padding-left: 12px !important; padding-right: 12px !important; }
-        #${tempContainer.id} .py-1 { padding-top: 4px !important; padding-bottom: 4px !important; }
-        #${tempContainer.id} .mb-6 { margin-bottom: 24px !important; }
-        #${tempContainer.id} .mb-4 { margin-bottom: 16px !important; }
-        #${tempContainer.id} .mb-3 { margin-bottom: 12px !important; }
-        #${tempContainer.id} .mb-2 { margin-bottom: 8px !important; }
-        #${tempContainer.id} .text-2xl { font-size: 24px !important; line-height: 32px !important; }
-        #${tempContainer.id} .text-xl { font-size: 20px !important; line-height: 28px !important; }
-        #${tempContainer.id} .text-lg { font-size: 18px !important; line-height: 28px !important; }
-        #${tempContainer.id} .text-base { font-size: 16px !important; line-height: 24px !important; }
-        #${tempContainer.id} .text-sm { font-size: 14px !important; line-height: 20px !important; }
-        #${tempContainer.id} .text-xs { font-size: 12px !important; line-height: 16px !important; }
-        #${tempContainer.id} .font-bold { font-weight: 700 !important; }
-        #${tempContainer.id} .font-semibold { font-weight: 600 !important; }
-        #${tempContainer.id} .font-medium { font-weight: 500 !important; }
-        #${tempContainer.id} button { display: none !important; }
-        #${tempContainer.id} .grid { display: block !important; }
-        #${tempContainer.id} .grid-cols-3 > * { display: inline-block !important; width: 32% !important; margin-right: 2% !important; vertical-align: top !important; }
+        
+        /* Layout preservation */
+        #${tempContainer.id} .w-\\[90\\%\\] { width: 90% !important; }
+        #${tempContainer.id} .mx-auto { margin-left: auto !important; margin-right: auto !important; }
+        #${tempContainer.id} .space-y-6 > * + * { margin-top: 24px !important; }
+        #${tempContainer.id} .grid { display: grid !important; }
+        #${tempContainer.id} .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+        #${tempContainer.id} .gap-4 { gap: 16px !important; }
+        #${tempContainer.id} .gap-6 { gap: 24px !important; }
         #${tempContainer.id} .flex { display: flex !important; }
-        #${tempContainer.id} .flex-wrap { flex-wrap: wrap !important; }
         #${tempContainer.id} .items-center { align-items: center !important; }
         #${tempContainer.id} .justify-between { justify-content: space-between !important; }
-        #${tempContainer.id} .gap-2 { gap: 8px !important; }
-        #${tempContainer.id} .gap-3 { gap: 12px !important; }
-        #${tempContainer.id} .gap-4 { gap: 16px !important; }
-        #${tempContainer.id} .space-y-4 > * + * { margin-top: 16px !important; }
-        #${tempContainer.id} .space-y-3 > * + * { margin-top: 12px !important; }
-        #${tempContainer.id} .space-y-2 > * + * { margin-top: 8px !important; }
+        #${tempContainer.id} .rounded-xl { border-radius: 12px !important; }
+        #${tempContainer.id} .rounded-lg { border-radius: 8px !important; }
+        #${tempContainer.id} .rounded-2xl { border-radius: 16px !important; }
+        #${tempContainer.id} .shadow-sm { box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05) !important; }
+        #${tempContainer.id} .shadow-lg { box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1) !important; }
+        
+        /* Colors and backgrounds */
+        #${tempContainer.id} .bg-gray-100 { background-color: #f3f4f6 !important; }
+        #${tempContainer.id} .bg-white { background-color: white !important; }
+        #${tempContainer.id} .bg-blue-50 { background-color: #eff6ff !important; }
+        #${tempContainer.id} .bg-green-50 { background-color: #f0fdf4 !important; }
+        #${tempContainer.id} .bg-yellow-50 { background-color: #fefce8 !important; }
+        #${tempContainer.id} .bg-red-50 { background-color: #fef2f2 !important; }
+        #${tempContainer.id} .bg-amber-50 { background-color: #fffbeb !important; }
+        #${tempContainer.id} .bg-gray-50 { background-color: #f9fafb !important; }
+        #${tempContainer.id} .bg-primary\\/10 { background-color: rgba(59, 130, 246, 0.1) !important; }
+        #${tempContainer.id} .bg-status-green { background-color: #059669 !important; }
+        #${tempContainer.id} .bg-status-amber { background-color: #d97706 !important; }
+        #${tempContainer.id} .bg-status-red { background-color: #dc2626 !important; }
+        #${tempContainer.id} .bg-muted\\/20 { background-color: rgba(148, 163, 184, 0.2) !important; }
+        
+        /* Text colors */
+        #${tempContainer.id} .text-foreground { color: #000 !important; }
+        #${tempContainer.id} .text-muted-foreground { color: #6b7280 !important; }
+        #${tempContainer.id} .text-white { color: white !important; }
+        #${tempContainer.id} .text-white\\/80 { color: rgba(255, 255, 255, 0.8) !important; }
+        #${tempContainer.id} .text-blue-800 { color: #1e40af !important; }
+        #${tempContainer.id} .text-green-600 { color: #059669 !important; }
+        #${tempContainer.id} .text-green-700 { color: #047857 !important; }
+        #${tempContainer.id} .text-yellow-600 { color: #d97706 !important; }
+        #${tempContainer.id} .text-yellow-700 { color: #b45309 !important; }
+        #${tempContainer.id} .text-red-600 { color: #dc2626 !important; }
+        #${tempContainer.id} .text-red-700 { color: #b91c1c !important; }
+        #${tempContainer.id} .text-primary { color: #3b82f6 !important; }
+        
+        /* Borders */
+        #${tempContainer.id} .border { border: 1px solid #e5e7eb !important; }
+        #${tempContainer.id} .border-gray-100 { border-color: #f3f4f6 !important; }
+        #${tempContainer.id} .border-gray-200 { border-color: #e5e7eb !important; }
+        #${tempContainer.id} .border-blue-200 { border-color: #bfdbfe !important; }
+        #${tempContainer.id} .border-green-200 { border-color: #bbf7d0 !important; }
+        #${tempContainer.id} .border-green-300 { border-color: #86efac !important; }
+        #${tempContainer.id} .border-yellow-200 { border-color: #fef3c7 !important; }
+        #${tempContainer.id} .border-red-200 { border-color: #fecaca !important; }
+        #${tempContainer.id} .border-amber-200 { border-color: #fde68a !important; }
+        #${tempContainer.id} .border-border\\/30 { border-color: rgba(229, 231, 235, 0.3) !important; }
+        #${tempContainer.id} .border-border\\/20 { border-color: rgba(229, 231, 235, 0.2) !important; }
+        #${tempContainer.id} .border-t { border-top: 1px solid #e5e7eb !important; }
+        #${tempContainer.id} .border-b { border-bottom: 1px solid #e5e7eb !important; }
+        
+        /* Spacing */
+        #${tempContainer.id} .p-4 { padding: 16px !important; }
+        #${tempContainer.id} .p-6 { padding: 24px !important; }
+        #${tempContainer.id} .p-8 { padding: 32px !important; }
+        #${tempContainer.id} .pt-8 { padding-top: 32px !important; }
+        #${tempContainer.id} .pt-14 { padding-top: 56px !important; }
+        #${tempContainer.id} .pb-8 { padding-bottom: 32px !important; }
+        #${tempContainer.id} .px-14 { padding-left: 56px !important; padding-right: 56px !important; }
+        #${tempContainer.id} .px-3 { padding-left: 12px !important; padding-right: 12px !important; }
+        #${tempContainer.id} .py-1 { padding-top: 4px !important; padding-bottom: 4px !important; }
+        #${tempContainer.id} .py-2 { padding-top: 8px !important; padding-bottom: 8px !important; }
+        #${tempContainer.id} .py-3 { padding-top: 12px !important; padding-bottom: 12px !important; }
+        #${tempContainer.id} .py-8 { padding-top: 32px !important; padding-bottom: 32px !important; }
+        #${tempContainer.id} .mb-2 { margin-bottom: 8px !important; }
+        #${tempContainer.id} .mb-3 { margin-bottom: 12px !important; }
+        #${tempContainer.id} .mb-4 { margin-bottom: 16px !important; }
+        #${tempContainer.id} .mb-6 { margin-bottom: 24px !important; }
+        #${tempContainer.id} .mb-8 { margin-bottom: 32px !important; }
+        #${tempContainer.id} .mb-10 { margin-bottom: 40px !important; }
+        #${tempContainer.id} .mt-1 { margin-top: 4px !important; }
+        #${tempContainer.id} .mt-2 { margin-top: 8px !important; }
+        #${tempContainer.id} .mt-4 { margin-top: 16px !important; }
+        #${tempContainer.id} .-mx-8 { margin-left: -32px !important; margin-right: -32px !important; }
+        
+        /* Typography */
+        #${tempContainer.id} .text-xs { font-size: 12px !important; line-height: 16px !important; }
+        #${tempContainer.id} .text-sm { font-size: 14px !important; line-height: 20px !important; }
+        #${tempContainer.id} .text-base { font-size: 16px !important; line-height: 24px !important; }
+        #${tempContainer.id} .text-lg { font-size: 18px !important; line-height: 28px !important; }
+        #${tempContainer.id} .text-xl { font-size: 20px !important; line-height: 28px !important; }
+        #${tempContainer.id} .text-2xl { font-size: 24px !important; line-height: 32px !important; }
+        #${tempContainer.id} .font-medium { font-weight: 500 !important; }
+        #${tempContainer.id} .font-semibold { font-weight: 600 !important; }
+        #${tempContainer.id} .font-bold { font-weight: 700 !important; }
+        #${tempContainer.id} .whitespace-pre-wrap { white-space: pre-wrap !important; }
+        #${tempContainer.id} .break-words { word-wrap: break-word !important; }
+        #${tempContainer.id} .overflow-wrap-anywhere { overflow-wrap: anywhere !important; }
+        #${tempContainer.id} .truncate { overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; }
+        
+        /* Layout specifics */
+        #${tempContainer.id} .min-h-\\[80px\\] { min-height: 80px !important; }
+        #${tempContainer.id} .min-h-\\[140px\\] { min-height: 140px !important; }
+        #${tempContainer.id} .min-h-12 { min-height: 48px !important; }
+        #${tempContainer.id} .min-h-24 { min-height: 96px !important; }
+        #${tempContainer.id} .h-32 { height: 128px !important; }
+        #${tempContainer.id} .w-2 { width: 8px !important; }
+        #${tempContainer.id} .h-2 { height: 8px !important; }
+        #${tempContainer.id} .w-3 { width: 12px !important; }
+        #${tempContainer.id} .h-3 { height: 12px !important; }
+        #${tempContainer.id} .w-4 { width: 16px !important; }
+        #${tempContainer.id} .h-4 { height: 16px !important; }
+        #${tempContainer.id} .w-6 { width: 24px !important; }
+        #${tempContainer.id} .h-6 { height: 24px !important; }
         #${tempContainer.id} .w-8 { width: 32px !important; }
         #${tempContainer.id} .h-8 { height: 32px !important; }
+        
+        /* Flexbox and positioning */
+        #${tempContainer.id} .flex-1 { flex: 1 1 0% !important; }
+        #${tempContainer.id} .flex-\\[5\\] { flex: 5 5 0% !important; }
+        #${tempContainer.id} .flex-shrink-0 { flex-shrink: 0 !important; }
+        #${tempContainer.id} .items-start { align-items: flex-start !important; }
+        #${tempContainer.id} .justify-center { justify-content: center !important; }
+        #${tempContainer.id} .text-center { text-align: center !important; }
+        #${tempContainer.id} .relative { position: relative !important; }
+        #${tempContainer.id} .sticky { position: sticky !important; }
+        #${tempContainer.id} .top-0 { top: 0 !important; }
+        #${tempContainer.id} .z-10 { z-index: 10 !important; }
+        
+        /* Hide interactive elements */
+        #${tempContainer.id} button,
+        #${tempContainer.id} [role="button"],
+        #${tempContainer.id} .cursor-pointer { display: none !important; }
+        
+        /* Ensure status badges show correctly */
+        #${tempContainer.id} .inline-flex { display: inline-flex !important; }
+        #${tempContainer.id} .items-center { align-items: center !important; }
+        
+        /* Space utilities */
+        #${tempContainer.id} .space-y-2 > * + * { margin-top: 8px !important; }
+        #${tempContainer.id} .space-y-3 > * + * { margin-top: 12px !important; }
+        #${tempContainer.id} .space-y-4 > * + * { margin-top: 16px !important; }
+        #${tempContainer.id} .space-y-6 > * + * { margin-top: 24px !important; }
       `;
+      
       tempContainer.id = `pdf-export-${Date.now()}`;
       document.head.appendChild(style);
       document.body.appendChild(tempContainer);
 
-      // Wait a moment for styles to apply
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Wait for styles and layout to settle
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
-      // Generate PDF with proper A4 dimensions
+      // Generate canvas with high quality settings
       const canvas = await html2canvas(tempContainer, {
-        scale: 2,
+        scale: 2, // High resolution
         useCORS: true,
         allowTaint: true,
         backgroundColor: '#ffffff',
-        width: Math.ceil(210 * 3.779527559),
-        // A4 width in pixels at 96 DPI
-        height: tempContainer.scrollHeight
+        width: 1200, // Match container width
+        height: tempContainer.scrollHeight,
+        logging: false,
+        removeContainer: false
       });
 
       // Clean up temporary elements
       document.head.removeChild(style);
       document.body.removeChild(tempContainer);
-
-      // Clean up temporary modal if we created one
-      const tempModal = document.querySelector('[style*="position: fixed"][style*="z-index: 9999"]');
-      if (tempModal && !document.querySelector('[data-meeting-preview]').closest('.dialog')) {
-        tempModal.remove();
+      if (tempModal) {
+        document.body.removeChild(tempModal);
       }
 
-      // Create PDF with A4 dimensions
+      // Create PDF with optimized settings
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
         format: 'a4'
       });
-      const imgWidth = 210; // A4 width in mm
-      const pageHeight = 297; // A4 height in mm
-      const imgHeight = canvas.height * imgWidth / canvas.width;
-      let heightLeft = imgHeight;
+
+      const pdfWidth = 210; // A4 width in mm
+      const pdfHeight = 297; // A4 height in mm
+      const canvasAspectRatio = canvas.height / canvas.width;
+      const imgWidth = pdfWidth;
+      const imgHeight = pdfWidth * canvasAspectRatio;
+
       let position = 0;
-      const imgData = canvas.toDataURL('image/png');
+      const imgData = canvas.toDataURL('image/png', 1.0); // Maximum quality
 
-      // Add first page
-      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-      heightLeft -= pageHeight;
-
-      // Add additional pages if content is longer than one page
-      while (heightLeft >= 0) {
-        position = heightLeft - imgHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
+      // Add content across multiple pages if needed
+      if (imgHeight <= pdfHeight) {
+        // Content fits on one page
+        pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+      } else {
+        // Content spans multiple pages
+        let heightLeft = imgHeight;
+        
+        while (heightLeft > 0) {
+          if (position > 0) {
+            pdf.addPage();
+          }
+          
+          const pageTop = -position;
+          pdf.addImage(imgData, 'PNG', 0, pageTop, imgWidth, imgHeight);
+          
+          heightLeft -= pdfHeight;
+          position += pdfHeight;
+        }
       }
-      pdf.save(`${meetingTitle.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_meeting_report.pdf`);
+
+      // Save the PDF
+      const fileName = `${meetingTitle.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_dashboard_report.pdf`;
+      pdf.save(fileName);
+
       toast({
-        title: "PDF Generated",
-        description: "Your meeting report has been downloaded successfully"
+        title: "PDF Generated Successfully",
+        description: "Your dashboard report has been downloaded with full formatting preserved."
       });
+
     } catch (error) {
       console.error('Error generating PDF:', error);
       toast({
