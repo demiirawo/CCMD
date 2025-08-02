@@ -507,15 +507,27 @@ REPORTING INSTRUCTIONS:
       const chartElement = document.querySelector(chartSelector) as HTMLElement;
       if (!chartElement) {
         console.warn(`Chart element not found: ${chartSelector}`);
+        // Try alternative selectors
+        const allCharts = document.querySelectorAll('[data-chart-type]');
+        console.log('Available chart elements:', Array.from(allCharts).map(el => el.getAttribute('data-chart-type')));
         return null;
       }
+
+      console.log(`Found chart element for ${chartSelector}:`, chartElement.getBoundingClientRect());
+
+      // Wait a bit for chart to fully render
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
       const html2canvas = (await import('html2canvas')).default;
       const canvas = await html2canvas(chartElement, {
         backgroundColor: '#ffffff',
         scale: 2,
         width: chartElement.offsetWidth,
-        height: chartElement.offsetHeight
+        height: chartElement.offsetHeight,
+        useCORS: true,
+        allowTaint: true,
+        logging: false,
+        removeContainer: true
       });
 
       return new Promise((resolve) => {
@@ -527,7 +539,7 @@ REPORTING INSTRUCTIONS:
           } else {
             resolve(null);
           }
-        }, 'image/png');
+        }, 'image/png', 1.0);
       });
     } catch (error) {
       console.error('Error capturing chart:', error);
@@ -643,9 +655,15 @@ REPORTING INSTRUCTIONS:
         }
       }));
 
-      // Capture chart images
+      // Capture chart images - target the entire chart cards
+      console.log('Capturing feedback chart...');
       const feedbackChartImage = await captureChartAsImage('[data-chart-type="feedback"]');
+      console.log('Capturing incidents chart...');
       const incidentsChartImage = await captureChartAsImage('[data-chart-type="incidents"]');
+      console.log('Charts captured:', { 
+        feedbackChart: feedbackChartImage ? 'success' : 'failed',
+        incidentsChart: incidentsChartImage ? 'success' : 'failed'
+      });
 
       // Add content with chart images
       documentChildren.push(...(await parseContentForWordWithCharts(reportContent, feedbackChartImage, incidentsChartImage)));
