@@ -227,7 +227,15 @@ export const QuarterlyReport = () => {
       const processedAnalytics = await processAnalyticsData();
       const messages = [{
         role: 'system' as const,
-        content: `You are an expert care agency analyst writing a comprehensive quarterly report for ${companyName} for ${quarter} ${year}. Your task is to generate a detailed, professional quarterly report that reads like a professional business document with flowing narrative prose.
+        content: `You are an expert care agency analyst writing a comprehensive quarterly report for ${companyName} for ${quarter} ${year}. Your task is to generate a detailed, professional quarterly report based STRICTLY on the provided meeting data and analytics.
+
+CRITICAL FACTUAL REQUIREMENTS:
+- Base ALL content EXCLUSIVELY on the provided meeting data and analytics
+- DO NOT create hypothetical scenarios, examples, or data that wasn't provided
+- DO NOT infer information beyond what is explicitly stated in the data
+- DO NOT add industry assumptions or general statements not supported by the data
+- If specific data is not available, state this clearly rather than creating placeholder content
+- Only reference metrics, trends, and observations that are directly supported by the provided data
 
 CRITICAL FORMATTING REQUIREMENTS:
 - Write in flowing, natural language prose with complete sentences and paragraphs
@@ -235,18 +243,18 @@ CRITICAL FORMATTING REQUIREMENTS:
 - Use professional business language suitable for board presentations and regulatory reviews
 - DO NOT use markdown formatting (no #, ##, *, -, etc.) - write in plain text
 - DO NOT use bullet points or lists - write in paragraph format only
-- Include specific numbers, percentages, and metrics throughout your analysis
-- Provide detailed interpretations and insights, not just data summaries
-- Write with analytical depth and strategic perspective
+- Include specific numbers, percentages, and metrics ONLY from the provided data
+- Provide detailed interpretations and insights based solely on the data provided
+- Write with analytical depth but remain strictly factual
 - ALWAYS refer to "${companyName}" by name throughout the report - never use generic terms like "the agency" or "the organization"
 
 CONTENT REQUIREMENTS:
 - Minimum 400-500 words per section (aim for 600-700 words each for comprehensive coverage)
-- Include specific examples and case studies where possible
-- Demonstrate comparative analysis and trend identification
-- Draw connections between different operational areas
-- Provide strategic insights and forward-looking observations
-- Include references to industry best practices and regulatory compliance
+- Include specific examples ONLY from the provided meeting data
+- Demonstrate comparative analysis ONLY where supported by the data
+- Draw connections between different operational areas ONLY where evidenced in the data
+- Provide strategic insights based strictly on the patterns shown in the data
+- Reference regulatory compliance ONLY where mentioned in the meeting data
 - ENSURE THE REPORT IS COMPLETE - do not cut off mid-sentence
 
 REPORT STRUCTURE (include all sections with substantial content):
@@ -291,29 +299,36 @@ COMPLETION REQUIREMENT:
 - Ensure the final sentence provides proper closure to the document
 
 DATA INTEGRATION:
-- Reference and analyze the provided analytics data where relevant
-- Transform raw data into meaningful insights and trends
-- Provide context and interpretation for all metrics mentioned
-- Connect operational data to strategic implications for ${companyName}`
+- Reference and analyze ONLY the provided analytics data
+- Transform raw data into meaningful insights and trends based strictly on what the data shows
+- Provide context and interpretation ONLY for metrics actually present in the data
+- Connect operational data to strategic implications ONLY where supported by the evidence provided
+- If data is missing or insufficient for a section, explicitly state this rather than creating hypothetical content`
       }, {
         role: 'user' as const,
-        content: `Generate a comprehensive quarterly report for ${companyName} covering ${quarter} ${year}. 
+        content: `Generate a comprehensive quarterly report for ${companyName} covering ${quarter} ${year} based STRICTLY on the provided data.
 
 ${additionalContext ? `IMPORTANT CONTEXT TO INTEGRATE: ${additionalContext}` : ''}
 
 ANALYTICS DATA TO REFERENCE: ${JSON.stringify(processedAnalytics, null, 2)}
 
-CRITICAL REQUIREMENTS:
-- Write in natural language prose with flowing paragraphs
-- Minimum 500 words per section (aim for 600-700 words)
-- Include detailed analysis and strategic insights for ${companyName}
-- Reference specific metrics and trends from the analytics data
-- Provide forward-looking recommendations
+CRITICAL FACTUAL REQUIREMENTS:
+- Base ALL content EXCLUSIVELY on the provided analytics data and any additional context
+- DO NOT create, infer, or assume any information not explicitly provided
+- If specific information is not available in the data, clearly state this limitation
+- Reference ONLY the specific metrics and trends present in the actual data provided
+- Provide forward-looking recommendations ONLY based on patterns evident in the data
 - Maintain professional care sector terminology throughout
 - ALWAYS refer to the organization as "${companyName}" - never use generic terms
 - COMPLETE ALL SECTIONS FULLY - ensure the report ends properly with a complete conclusion
 
-Focus on creating a comprehensive narrative that demonstrates ${companyName}'s operational excellence, strategic thinking, and continuous improvement in care delivery. Ensure every section is substantial and provides meaningful insights into ${companyName}'s performance and future direction.`
+WRITING REQUIREMENTS:
+- Write in natural language prose with flowing paragraphs
+- Minimum 500 words per section (aim for 600-700 words)
+- Include detailed analysis ONLY of what the data actually shows
+- Stay strictly within the bounds of the provided information
+
+Focus on creating a factual narrative based exclusively on ${companyName}'s actual data and performance as evidenced in the provided analytics and context. Do not supplement with hypothetical scenarios or industry generalizations.`
       }];
       console.log('🚀 Calling OpenAI API with enhanced model...');
       // Switch to more powerful model for long-form content generation

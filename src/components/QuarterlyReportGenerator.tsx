@@ -328,7 +328,15 @@ export const QuarterlyReportGenerator: React.FC<QuarterlyReportGeneratorProps> =
         availableAnalytics: Object.keys(reportAnalytics)
       };
       const { quarter: prevQuarter, year: prevYear } = getPreviousQuarter(quarter, year);
-      const systemPrompt = `You are an expert care agency analyst writing a professional quarterly report in British English. Your task is to generate a comprehensive, detailed quarterly report that reads like a professional business document - NOT a markdown document.
+      const systemPrompt = `You are an expert care agency analyst writing a professional quarterly report in British English. Your task is to generate a comprehensive, detailed quarterly report based STRICTLY on the provided meeting data and analytics.
+
+CRITICAL FACTUAL REQUIREMENTS:
+- Base ALL content EXCLUSIVELY on the provided meeting data and analytics
+- DO NOT create hypothetical scenarios, examples, or data that wasn't provided
+- DO NOT infer information beyond what is explicitly stated in the data
+- DO NOT add industry assumptions or general statements not supported by the data
+- If specific data is not available, state this clearly rather than creating placeholder content
+- Only reference metrics, trends, and observations that are directly supported by the provided data
 
 CRITICAL FORMATTING REQUIREMENTS:
 - Write in flowing, natural language prose with complete sentences and paragraphs in British English
@@ -337,8 +345,8 @@ CRITICAL FORMATTING REQUIREMENTS:
 - Use professional business language suitable for board presentations and regulatory reviews
 - DO NOT use markdown formatting (no #, ##, *, -, etc.)
 - DO NOT use bullet points or lists - write in paragraph format only
-- Include specific numbers, percentages, and metrics throughout your analysis
-- Provide detailed interpretations and insights, not just data summaries
+- Include specific numbers, percentages, and metrics ONLY from the provided data
+- Provide detailed interpretations and insights based solely on the data provided
 - Use the actual company name "${companyName}" throughout the report instead of generic terms like "the agency"
 
 CONFIDENTIALITY AND ANONYMITY REQUIREMENTS:
@@ -365,12 +373,12 @@ You have access to analytics data for the following areas where available: ${Obj
 - When previous quarter data is available, include comparative analysis between current and previous periods
 
 CONTENT REQUIREMENTS:
-- Each section should demonstrate deep analysis of trends, patterns, and implications
-- Include comprehensive quarter-to-quarter comparative analysis where data permits
-- Provide specific examples and case studies from the meeting data (without naming individuals)
-- Draw connections between different data points and metrics
-- Offer strategic insights and forward-looking observations
-- Highlight areas of improvement and decline since the previous quarter
+- Each section should demonstrate deep analysis ONLY of trends, patterns, and implications present in the data
+- Include comprehensive quarter-to-quarter comparative analysis ONLY where data permits and supports such analysis
+- Provide specific examples and case studies ONLY from the actual meeting data (without naming individuals)
+- Draw connections between different data points and metrics ONLY where evidenced in the data
+- Offer strategic insights and forward-looking observations ONLY based on patterns shown in the data
+- Highlight areas of improvement and decline ONLY where supported by comparative data
 
 REPORT STRUCTURE (you MUST use these exact headings and include all sections):
 
@@ -408,13 +416,19 @@ WRITING STYLE:
 - Demonstrate understanding of care sector challenges and best practices
 - Always refer to ${companyName} by name rather than using generic terms
 - Focus on organisational outcomes rather than individual performance`;
-      const userPrompt = `Generate a detailed quarterly report for ${quarter} ${year}. Analyze the following comprehensive dataset and create substantial, insightful content for each relevant section. Focus on trends, patterns, and strategic implications rather than just listing data points.
+      const userPrompt = `Generate a detailed quarterly report for ${quarter} ${year} based STRICTLY on the following data. Do not add any information beyond what is provided.
 
 Meeting Analysis: ${meetings.length} management meetings were held during this quarter, covering ${dataContext.meetingDetails.map(m => m.sectionSummary.length).reduce((a, b) => a + b, 0)} different operational areas.
 
 Data Context: ${JSON.stringify(dataContext, null, 2)}
 
-Remember: Write in natural language prose with detailed paragraphs. No markdown formatting. Each section should provide deep analysis and strategic insights.`;
+CRITICAL INSTRUCTIONS:
+- Base ALL content exclusively on the data provided above
+- Do not create examples, scenarios, or metrics not present in the data
+- If data is insufficient for a section, clearly state this limitation
+- Focus only on trends, patterns, and insights that are directly evidenced in the provided data
+- Write in natural language prose with detailed paragraphs but remain strictly factual
+- No markdown formatting allowed`;
       const response = await generateResponse([{
         role: 'system',
         content: systemPrompt
