@@ -265,7 +265,7 @@ export const ActionsLog = ({
             <tbody>
               {actionsList.map((action, index) => <tr key={action.id} className={cn(
                 `border-b border-border/20`,
-                action.closed ? 'opacity-75 bg-stone-50' : '',
+                action.closed ? 'bg-stone-50' : '',
                 getActionRowClass(action)
               )}>
                   <td className={cn(
