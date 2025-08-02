@@ -220,9 +220,15 @@ export const ActionsLog = ({
   const renderActionsTable = (actionsList: ActionLogEntry[], title: string) => {
     if (actionsList.length === 0) return null;
     return <div className="mb-6">
-        <h4 className="text-lg font-semibold text-foreground mb-3 flex items-center gap-2">
+        <h4 className={cn(
+          "text-lg font-semibold mb-3 flex items-center gap-2",
+          isDynamicPanelColourEnabled ? "text-white" : "text-foreground"
+        )}>
           {title}
-          <span className="text-sm text-muted-foreground font-normal">
+          <span className={cn(
+            "text-sm font-normal",
+            isDynamicPanelColourEnabled ? "text-white/80" : "text-muted-foreground"
+          )}>
             ({actionsList.length})
           </span>
         </h4>
@@ -230,25 +236,61 @@ export const ActionsLog = ({
           <table className="w-full">
             <thead>
               <tr className="border-b border-border/30">
-                <th className="text-left py-2 px-3 text-sm font-semibold text-foreground">ID</th>
-                <th className="text-left py-2 px-3 text-sm font-semibold text-foreground">Description</th>
-                <th className="text-left py-2 px-3 text-sm font-semibold text-foreground">Owner</th>
-                <th className="text-left py-2 px-3 text-sm font-semibold text-foreground">Due Date</th>
-                <th className="text-left py-2 px-3 text-sm font-semibold text-foreground">Actions</th>
-                {title.includes("Closed") && <th className="text-left py-2 px-3 text-sm font-semibold text-foreground">Closed</th>}
+                <th className={cn(
+                  "text-left py-2 px-3 text-sm font-semibold",
+                  isDynamicPanelColourEnabled ? "text-white" : "text-foreground"
+                )}>ID</th>
+                <th className={cn(
+                  "text-left py-2 px-3 text-sm font-semibold",
+                  isDynamicPanelColourEnabled ? "text-white" : "text-foreground"
+                )}>Description</th>
+                <th className={cn(
+                  "text-left py-2 px-3 text-sm font-semibold",
+                  isDynamicPanelColourEnabled ? "text-white" : "text-foreground"
+                )}>Owner</th>
+                <th className={cn(
+                  "text-left py-2 px-3 text-sm font-semibold",
+                  isDynamicPanelColourEnabled ? "text-white" : "text-foreground"
+                )}>Due Date</th>
+                <th className={cn(
+                  "text-left py-2 px-3 text-sm font-semibold",
+                  isDynamicPanelColourEnabled ? "text-white" : "text-foreground"
+                )}>Actions</th>
+                {title.includes("Closed") && <th className={cn(
+                  "text-left py-2 px-3 text-sm font-semibold",
+                  isDynamicPanelColourEnabled ? "text-white" : "text-foreground"
+                )}>Closed</th>}
               </tr>
             </thead>
             <tbody>
               {actionsList.map((action, index) => <tr key={action.id} className={`border-b border-border/20 ${action.closed ? 'opacity-75' : ''} ${getActionRowClass(action)}`}>
-                  <td className={`py-3 px-3 text-sm ${action.closed ? 'text-foreground' : !action.closed && (getDaysRemaining(action.dueDate) < 0 || getDaysRemaining(action.dueDate) <= 5 || getDaysRemaining(action.dueDate) > 5) ? 'text-white' : 'text-foreground'}`}>
+                  <td className={cn(
+                    "py-3 px-3 text-sm",
+                    isDynamicPanelColourEnabled && !action.closed ? "text-white" : 
+                    action.closed ? "text-foreground" : 
+                    !action.closed && (getDaysRemaining(action.dueDate) < 0 || getDaysRemaining(action.dueDate) <= 5 || getDaysRemaining(action.dueDate) > 5) ? "text-white" : "text-foreground"
+                  )}>
                     {index + 1}
                   </td>
-                  <td className={`py-3 px-3 text-sm ${action.closed ? 'text-foreground' : !action.closed && (getDaysRemaining(action.dueDate) < 0 || getDaysRemaining(action.dueDate) <= 5 || getDaysRemaining(action.dueDate) > 5) ? 'text-white' : 'text-foreground'}`}>
+                  <td className={cn(
+                    "py-3 px-3 text-sm",
+                    isDynamicPanelColourEnabled && !action.closed ? "text-white" :
+                    action.closed ? "text-foreground" : 
+                    !action.closed && (getDaysRemaining(action.dueDate) < 0 || getDaysRemaining(action.dueDate) <= 5 || getDaysRemaining(action.dueDate) > 5) ? "text-white" : "text-foreground"
+                  )}>
                     <div className="min-w-0 max-w-md">
-                      <div className={`font-medium break-words whitespace-pre-wrap ${action.closed ? 'text-muted-foreground' : ''}`}>
+                      <div className={cn(
+                        "font-medium break-words whitespace-pre-wrap",
+                        action.closed && "text-muted-foreground"
+                      )}>
                         {action.action}
                       </div>
-                      <div className={`text-xs mt-1 break-words ${action.closed ? 'text-muted-foreground' : !action.closed && (getDaysRemaining(action.dueDate) < 0 || getDaysRemaining(action.dueDate) <= 5 || getDaysRemaining(action.dueDate) > 5) ? 'text-white/80' : 'text-muted-foreground'}`}>
+                      <div className={cn(
+                        "text-xs mt-1 break-words",
+                        isDynamicPanelColourEnabled && !action.closed ? "text-white/80" :
+                        action.closed ? "text-muted-foreground" : 
+                        !action.closed && (getDaysRemaining(action.dueDate) < 0 || getDaysRemaining(action.dueDate) <= 5 || getDaysRemaining(action.dueDate) > 5) ? "text-white/80" : "text-muted-foreground"
+                      )}>
                         From: {action.itemTitle}
                       </div>
                       {/* Show full audit trail */}
@@ -259,10 +301,20 @@ export const ActionsLog = ({
                         </div>}
                     </div>
                   </td>
-                  <td className={`py-3 px-3 text-sm ${action.closed ? 'text-foreground' : !action.closed && (getDaysRemaining(action.dueDate) < 0 || getDaysRemaining(action.dueDate) <= 5 || getDaysRemaining(action.dueDate) > 5) ? 'text-white' : 'text-foreground'}`}>
+                  <td className={cn(
+                    "py-3 px-3 text-sm",
+                    isDynamicPanelColourEnabled && !action.closed ? "text-white" :
+                    action.closed ? "text-foreground" : 
+                    !action.closed && (getDaysRemaining(action.dueDate) < 0 || getDaysRemaining(action.dueDate) <= 5 || getDaysRemaining(action.dueDate) > 5) ? "text-white" : "text-foreground"
+                  )}>
                     {action.mentionedAttendee}
                   </td>
-                  <td className={`py-3 px-3 text-sm ${action.closed ? 'text-foreground' : !action.closed && (getDaysRemaining(action.dueDate) < 0 || getDaysRemaining(action.dueDate) <= 5 || getDaysRemaining(action.dueDate) > 5) ? 'text-white' : 'text-foreground'}`}>
+                  <td className={cn(
+                    "py-3 px-3 text-sm",
+                    isDynamicPanelColourEnabled && !action.closed ? "text-white" :
+                    action.closed ? "text-foreground" : 
+                    !action.closed && (getDaysRemaining(action.dueDate) < 0 || getDaysRemaining(action.dueDate) <= 5 || getDaysRemaining(action.dueDate) > 5) ? "text-white" : "text-foreground"
+                  )}>
                     <div className="flex items-center gap-2">
                       <span>{action.dueDate}</span>
                       {!action.closed && <span className={`text-xs px-2 py-1 rounded-full ${getDaysRemaining(action.dueDate) < 0 ? 'bg-red-100 text-red-700' : getDaysRemaining(action.dueDate) <= 5 ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'}`}>
@@ -281,18 +333,39 @@ export const ActionsLog = ({
                   </td>
                   <td className="py-3 px-3">
                     <div className="flex gap-1">
-                      {!action.closed && onActionEdit && action.sourceType !== "document" && <Button variant="ghost" size="sm" onClick={() => setEditingAction(action)} className={`h-8 w-8 p-0 ${!action.closed && (getDaysRemaining(action.dueDate) < 0 || getDaysRemaining(action.dueDate) <= 5 || getDaysRemaining(action.dueDate) > 5) ? 'text-white hover:bg-white/20' : 'text-blue-500 hover:bg-blue-100'}`} title="Edit action">
+                      {!action.closed && onActionEdit && action.sourceType !== "document" && <Button variant="ghost" size="sm" onClick={() => setEditingAction(action)} className={cn(
+                        "h-8 w-8 p-0",
+                        isDynamicPanelColourEnabled && !action.closed ? "text-white hover:bg-white/20" :
+                        !action.closed && (getDaysRemaining(action.dueDate) < 0 || getDaysRemaining(action.dueDate) <= 5 || getDaysRemaining(action.dueDate) > 5) ? "text-white hover:bg-white/20" : "text-blue-500 hover:bg-blue-100"
+                      )} title="Edit action">
                           <Edit className="h-4 w-4" />
                         </Button>}
-                      <Button variant="ghost" size="sm" onClick={() => onActionComplete?.(action.id)} disabled={action.closed} className={`h-8 w-8 p-0 ${action.closed ? 'opacity-50' : !action.closed && (getDaysRemaining(action.dueDate) < 0 || getDaysRemaining(action.dueDate) <= 5 || getDaysRemaining(action.dueDate) > 5) ? 'hover:bg-white/20' : 'hover:bg-green-100'}`} title="Mark as completed">
-                        <Check className={`h-4 w-4 ${action.closed ? 'text-green-600' : !action.closed && (getDaysRemaining(action.dueDate) < 0 || getDaysRemaining(action.dueDate) <= 5 || getDaysRemaining(action.dueDate) > 5) ? 'text-white' : 'text-muted-foreground'}`} />
+                      <Button variant="ghost" size="sm" onClick={() => onActionComplete?.(action.id)} disabled={action.closed} className={cn(
+                        "h-8 w-8 p-0",
+                        action.closed ? "opacity-50" :
+                        isDynamicPanelColourEnabled && !action.closed ? "hover:bg-white/20" :
+                        !action.closed && (getDaysRemaining(action.dueDate) < 0 || getDaysRemaining(action.dueDate) <= 5 || getDaysRemaining(action.dueDate) > 5) ? "hover:bg-white/20" : "hover:bg-green-100"
+                      )} title="Mark as completed">
+                        <Check className={cn(
+                          "h-4 w-4",
+                          action.closed ? "text-green-600" :
+                          isDynamicPanelColourEnabled && !action.closed ? "text-white" :
+                          !action.closed && (getDaysRemaining(action.dueDate) < 0 || getDaysRemaining(action.dueDate) <= 5 || getDaysRemaining(action.dueDate) > 5) ? "text-white" : "text-muted-foreground"
+                        )} />
                       </Button>
-                      {!action.closed && <Button variant="ghost" size="sm" onClick={() => onActionDelete?.(action.id)} className={`h-8 w-8 p-0 ${!action.closed && (getDaysRemaining(action.dueDate) < 0 || getDaysRemaining(action.dueDate) <= 5 || getDaysRemaining(action.dueDate) > 5) ? 'text-white hover:bg-white/20' : 'text-red-500 hover:bg-red-100'}`} title="Delete action">
+                      {!action.closed && <Button variant="ghost" size="sm" onClick={() => onActionDelete?.(action.id)} className={cn(
+                        "h-8 w-8 p-0",
+                        isDynamicPanelColourEnabled && !action.closed ? "text-white hover:bg-white/20" :
+                        !action.closed && (getDaysRemaining(action.dueDate) < 0 || getDaysRemaining(action.dueDate) <= 5 || getDaysRemaining(action.dueDate) > 5) ? "text-white hover:bg-white/20" : "text-red-500 hover:bg-red-100"
+                      )} title="Delete action">
                           <Minus className="h-4 w-4" />
                         </Button>}
                     </div>
                   </td>
-                  {title.includes("Closed") && <td className="py-3 px-3 text-sm text-muted-foreground">
+                  {title.includes("Closed") && <td className={cn(
+                    "py-3 px-3 text-sm",
+                    isDynamicPanelColourEnabled ? "text-white/80" : "text-muted-foreground"
+                  )}>
                       {action.closedDate ? new Date(action.closedDate).toLocaleDateString('en-GB') : '-'}
                     </td>}
                 </tr>)}
@@ -338,14 +411,20 @@ export const ActionsLog = ({
       </div>
 
       {isOpen && <div>
-          {actions.length === 0 ? <div className="text-center py-8 text-muted-foreground">
+          {actions.length === 0 ? <div className={cn(
+            "text-center py-8",
+            isDynamicPanelColourEnabled ? "text-white/80" : "text-muted-foreground"
+          )}>
               <p>No actions logged yet.</p>
             </div> : <>
               {myActions.length > 0 && renderActionsTable(myActions, "My Actions")}
               {officeTeamActions.length > 0 && renderActionsTable(officeTeamActions, "Office Team Actions")}
               {renderActionsTable(closedActions, "Closed Actions (Last 30 Days)")}
               
-              {openActions.length === 0 && closedActions.length === 0 && <div className="text-center py-8 text-muted-foreground">
+              {openActions.length === 0 && closedActions.length === 0 && <div className={cn(
+                "text-center py-8",
+                isDynamicPanelColourEnabled ? "text-white/80" : "text-muted-foreground"
+              )}>
                   <p>No recent actions to display.</p>
                 </div>}
             </>}
