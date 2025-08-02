@@ -220,12 +220,21 @@ export const FeedbackAnalytics = ({
     }
   };
   const handleCellEdit = (monthIndex: number, field: 'compliments' | 'complaints' | 'suggestions' | 'resolved', value: number) => {
+    console.log('🖱️ FeedbackAnalytics: Cell edit triggered', {
+      monthIndex,
+      field,
+      value,
+      timestamp: new Date().toISOString()
+    });
+    
     const newData = [...monthlyData];
     newData[monthIndex] = {
       ...newData[monthIndex],
       [field]: value
     };
     setMonthlyData(newData);
+    
+    console.log('📊 FeedbackAnalytics: About to save data:', newData[monthIndex]);
     saveData(newData);
   };
   const EditableCell = ({
