@@ -128,11 +128,11 @@ export const ActionForm = ({
   const getActionColorClass = (targetDate: string) => {
     const daysRemaining = getDaysRemaining(targetDate);
     if (daysRemaining < 0) {
-      return "bg-red-800 border-red-700 text-white";
+      return "bg-red-100 border-red-300 text-red-900";
     } else if (daysRemaining <= 5) {
-      return "bg-amber-800 border-amber-700 text-white";
+      return "bg-amber-100 border-amber-300 text-amber-900";
     } else {
-      return "bg-green-800 border-green-700 text-white";
+      return "bg-green-100 border-green-300 text-green-900";
     }
   };
   const formatDaysRemaining = (targetDate: string) => {
@@ -268,35 +268,35 @@ export const ActionForm = ({
                 )}
               </div>
               <div className="flex gap-1">
-                {onActionEdit && (
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={() => setEditingAction(action)}
-                    className="h-8 w-8 p-0 text-white hover:bg-white/20 font-bold" 
-                    title="Edit action"
-                  >
-                    <Edit className="h-4 w-4 font-bold stroke-2" />
-                  </Button>
-                )}
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={() => onActionCompleted?.(action.id)} 
-                  className="h-8 w-8 p-0 text-white hover:bg-white/20 font-bold" 
-                  title="Mark as completed"
-                >
-                  <Check className="h-4 w-4 font-bold stroke-2" />
-                </Button>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={() => removeAction(action.id)} 
-                  className="h-8 w-8 p-0 text-white hover:bg-white/20 font-bold" 
-                  title="Delete action"
-                >
-                  <Minus className="h-4 w-4 font-bold stroke-2" />
-                </Button>
+                 {onActionEdit && (
+                   <Button 
+                     variant="ghost" 
+                     size="sm" 
+                     onClick={() => setEditingAction(action)}
+                     className="h-8 w-8 p-0 text-gray-700 hover:bg-black/10 font-bold" 
+                     title="Edit action"
+                   >
+                     <Edit className="h-4 w-4 font-bold stroke-2" />
+                   </Button>
+                 )}
+                 <Button 
+                   variant="ghost" 
+                   size="sm" 
+                   onClick={() => onActionCompleted?.(action.id)} 
+                   className="h-8 w-8 p-0 text-gray-700 hover:bg-black/10 font-bold" 
+                   title="Mark as completed"
+                 >
+                   <Check className="h-4 w-4 font-bold stroke-2" />
+                 </Button>
+                 <Button 
+                   variant="ghost" 
+                   size="sm" 
+                   onClick={() => removeAction(action.id)} 
+                   className="h-8 w-8 p-0 text-gray-700 hover:bg-black/10 font-bold" 
+                   title="Delete action"
+                 >
+                   <Minus className="h-4 w-4 font-bold stroke-2" />
+                 </Button>
               </div>
             </div>
           ))}
