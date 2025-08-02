@@ -52,24 +52,40 @@ export const useMeetingEmailNotification = () => {
       // Debug action items structure
       console.log('🔍 Action items raw data:', JSON.stringify(meetingData.actions, null, 2));
       
-      // Separate actions by type - for each attendee's email, customize the "My Actions" section
+      // Function to get actions for current user - check if assignee matches their email or name
       const getCurrentUserActions = (attendeeEmail: string) => {
+        const currentAttendee = meetingData.attendees.find(att => att.email === attendeeEmail);
+        const currentAttendeeName = currentAttendee?.name || '';
+        
         return meetingData.actions.filter(action => {
           const assignee = action.mentionedAttendee || action.mentioned_attendee || action.assignee || action.assigned_to || action.owner || '';
-          // Check if this action is assigned to the current email recipient
+          console.log(`🔍 Checking action for ${attendeeEmail}:`, { assignee, currentAttendeeName });
+          
+          // Check if assignee matches email, name, or contains "my"/"me"
           return assignee.toLowerCase().includes(attendeeEmail.toLowerCase()) || 
+                 (currentAttendeeName && assignee.toLowerCase().includes(currentAttendeeName.toLowerCase())) ||
                  assignee.toLowerCase().includes('my') || 
                  assignee.toLowerCase().includes('me');
         });
       };
       
-      const officeTeamActions = meetingData.actions.filter(action => {
-        const assignee = action.mentionedAttendee || action.mentioned_attendee || action.assignee || action.assigned_to || action.owner || '';
-        // Include actions assigned to office team or any other team member (not the current user)
-        return !assignee.toLowerCase().includes('my') && 
-               !assignee.toLowerCase().includes('me') && 
-               assignee.trim() !== ''; // Exclude actions with no assignee
-      });
+      // Function to get all other actions (Office Team actions)
+      const getOfficeTeamActions = (attendeeEmail: string) => {
+        const currentAttendee = meetingData.attendees.find(att => att.email === attendeeEmail);
+        const currentAttendeeName = currentAttendee?.name || '';
+        
+        return meetingData.actions.filter(action => {
+          const assignee = action.mentionedAttendee || action.mentioned_attendee || action.assignee || action.assigned_to || action.owner || '';
+          
+          // Exclude actions assigned to current user, include all others with assignees
+          const isMyAction = assignee.toLowerCase().includes(attendeeEmail.toLowerCase()) || 
+                           (currentAttendeeName && assignee.toLowerCase().includes(currentAttendeeName.toLowerCase())) ||
+                           assignee.toLowerCase().includes('my') || 
+                           assignee.toLowerCase().includes('me');
+          
+          return !isMyAction && assignee.trim() !== '';
+        });
+      };
 
       // Format action items with categories
       const formatActionSection = (actions: any[], title: string) => {
@@ -140,16 +156,20 @@ export const useMeetingEmailNotification = () => {
       // Function to generate personalized action items HTML for each attendee
       const generateActionItemsHtml = (attendeeEmail: string) => {
         const myActions = getCurrentUserActions(attendeeEmail);
-        const otherActions = officeTeamActions.filter(action => {
-          const assignee = action.mentionedAttendee || action.mentioned_attendee || action.assignee || action.assigned_to || action.owner || '';
-          return !assignee.toLowerCase().includes(attendeeEmail.toLowerCase());
+        const officeTeamActions = getOfficeTeamActions(attendeeEmail);
+
+        console.log(`📧 Actions for ${attendeeEmail}:`, {
+          myActions: myActions.length,
+          officeTeamActions: officeTeamActions.length,
+          myActionsList: myActions.map(a => ({ text: a.action || a.actionText, assignee: a.mentionedAttendee || a.assignee })),
+          officeActionsList: officeTeamActions.map(a => ({ text: a.action || a.actionText, assignee: a.mentionedAttendee || a.assignee }))
         });
 
         return meetingData.actions.length > 0 
           ? `
             <h3 style="color: #374151; margin-bottom: 16px;">Action Items (${meetingData.actions.length} total):</h3>
             ${formatActionSection(myActions, 'My Actions')}
-            ${formatActionSection(otherActions, 'Office Team')}
+            ${formatActionSection(officeTeamActions, 'Office Team')}
           `
           : '<h3 style="color: #374151; margin-bottom: 16px;">Action Items:</h3><p style="color: #6B7280;">No action items recorded.</p>';
       };

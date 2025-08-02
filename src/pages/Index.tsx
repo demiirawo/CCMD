@@ -1448,9 +1448,9 @@ const Index = () => {
           return `${section.title}: ${greenCount} Green, ${amberCount} Amber, ${redCount} Red items`;
         }).join('. ');
 
-        // Use the meeting purpose as the main summary, with section summary as backup
-        const meetingSummary = headerData.purpose && headerData.purpose.trim() !== '' ? headerData.purpose : `Meeting covered ${cleanSections.length} sections. ${sectionSummaries}. ${actionsLog.length} action items were recorded.`;
-        console.log('📋 Generated meeting summary:', meetingSummary);
+        // Only use the meeting purpose if it exists and is not empty, otherwise send empty summary
+        const meetingSummary = (headerData.purpose && headerData.purpose.trim() !== '') ? headerData.purpose : '';
+        console.log('📋 Using meeting summary:', meetingSummary || 'No summary provided');
         await sendMeetingEmails({
           title: headerData.title,
           date: meetingDate.toISOString(),
