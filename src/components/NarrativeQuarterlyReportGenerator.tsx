@@ -262,7 +262,7 @@ Write approximately 1500-2500 words using only plain text formatting that regula
     }
   };
   if (hasGeneratedReport) {
-    return <Card className="border-gray-200 bg-transparent">
+    return <Card className="bg-transparent border-0">
         
         <CardContent className="bg-transparent">
           
