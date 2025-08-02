@@ -522,7 +522,7 @@ export const Reports = () => {
       <div className="w-[90%] mx-auto space-y-6">
 
         {/* Year Filter */}
-        <div className="flex items-center gap-4 mb-6">
+        <div className="flex items-center justify-center gap-4 mb-6 bg-white p-4 rounded-lg shadow-sm">
           <label className="text-sm font-medium text-foreground">Filter by Year:</label>
           <Select value={selectedYear?.toString() || "all"} onValueChange={value => setSelectedYear(value === "all" ? null : parseInt(value))}>
             <SelectTrigger className="w-48">
@@ -539,71 +539,6 @@ export const Reports = () => {
               Showing {filteredMeetings.length} meeting{filteredMeetings.length !== 1 ? 's' : ''} from {selectedYear}
             </span>}
         </div>
-
-        {/* Pagination Controls */}
-        {totalMeetings > 0 && (
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white p-4 rounded-lg shadow-sm">
-            <div className="text-sm text-muted-foreground">
-              Showing {startIndex + 1} to {Math.min(endIndex, totalMeetings)} of {totalMeetings} meetings
-            </div>
-            
-            {totalPages > 1 && (
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handlePageChange(currentPage - 1)}
-                  disabled={currentPage === 1}
-                  className="flex items-center gap-1"
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                  Previous
-                </Button>
-                
-                <div className="flex items-center gap-1">
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => {
-                    // Show first page, last page, current page and pages around current
-                    const showPage = 
-                      pageNum === 1 || 
-                      pageNum === totalPages ||
-                      (pageNum >= currentPage - 1 && pageNum <= currentPage + 1);
-                    
-                    if (!showPage) {
-                      // Show ellipsis for gaps
-                      if (pageNum === currentPage - 2 || pageNum === currentPage + 2) {
-                        return <span key={pageNum} className="px-2 text-muted-foreground">...</span>;
-                      }
-                      return null;
-                    }
-                    
-                    return (
-                      <Button
-                        key={pageNum}
-                        variant={currentPage === pageNum ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => handlePageChange(pageNum)}
-                        className="w-8 h-8 p-0"
-                      >
-                        {pageNum}
-                      </Button>
-                    );
-                  })}
-                </div>
-                
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handlePageChange(currentPage + 1)}
-                  disabled={currentPage === totalPages}
-                  className="flex items-center gap-1"
-                >
-                  Next
-                  <ChevronRightIcon className="h-4 w-4" />
-                </Button>
-              </div>
-            )}
-          </div>
-        )}
 
         {Object.keys(groupedMeetings).length === 0 ? <Card>
             <CardContent className="py-8 text-center">
