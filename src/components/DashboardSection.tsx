@@ -279,10 +279,16 @@ export const DashboardSection = ({
           )}
           
           <div className="p-1 rounded-lg hover:bg-accent/50 transition-colors">
-            {isExpanded ? 
-              <ChevronDown className="w-5 h-5 text-muted-foreground" /> : 
-              <ChevronRight className="w-5 h-5 text-muted-foreground" />
-            }
+            {(() => {
+              const isHighLevelPanel = ["Staff", "Care Planning & Delivery", "Support Planning & Delivery", "Safety", "Continuous Improvement", "Key Review Dates", "Actions", "Supported Housing"].includes(title);
+              const iconClass = cn(
+                "w-5 h-5",
+                isHighLevelPanel && isDynamicPanelColourEnabled ? "text-white/80" : "text-muted-foreground"
+              );
+              return isExpanded ? 
+                <ChevronDown className={iconClass} /> : 
+                <ChevronRight className={iconClass} />;
+            })()}
           </div>
         </div>
       </div>
