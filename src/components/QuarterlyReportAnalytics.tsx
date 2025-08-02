@@ -1,6 +1,9 @@
-import React from 'react';
-import { FeedbackAnalytics } from './FeedbackAnalytics';
-import { IncidentsAnalytics } from './IncidentsAnalytics';
+import React, { useState, useEffect } from 'react';
+import { Card } from "@/components/ui/card";
+import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from "recharts";
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 interface QuarterlyReportAnalyticsProps {
   type: 'feedback' | 'incidents';
@@ -8,12 +11,84 @@ interface QuarterlyReportAnalyticsProps {
   year: string;
 }
 
+const generateInitialData = (type: 'feedback' | 'incidents', meetingDate?: Date) => {
+  const months = [];
+  const currentDate = meetingDate || new Date();
+  for (let i = 11; i >= 0; i--) {
+    const date = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1);
+    const monthName = date.toLocaleDateString('en-US', {
+      month: 'short',
+      year: '2-digit'
+    });
+    
+    if (type === 'feedback') {
+      months.push({
+        month: monthName,
+        compliments: 0,
+        complaints: 0,
+        suggestions: 0,
+        resolved: 0
+      });
+    } else {
+      months.push({
+        month: monthName,
+        incidents: 0,
+        accidents: 0,
+        safeguarding: 0,
+        resolved: 0
+      });
+    }
+  }
+  return months;
+};
+
+const feedbackChartConfig = {
+  compliments: {
+    label: "Compliments",
+    color: "#22c55e",
+  },
+  complaints: {
+    label: "Complaints", 
+    color: "#ef4444",
+  },
+  suggestions: {
+    label: "Suggestions",
+    color: "#3b82f6",
+  },
+  resolved: {
+    label: "Resolved",
+    color: "#f59e0b",
+  },
+};
+
+const incidentsChartConfig = {
+  incidents: {
+    label: "Incidents",
+    color: "#ef4444",
+  },
+  accidents: {
+    label: "Accidents",
+    color: "#f59e0b", 
+  },
+  safeguarding: {
+    label: "Safeguarding",
+    color: "#3b82f6",
+  },
+  resolved: {
+    label: "Resolved",
+    color: "#22c55e",
+  },
+};
+
 export const QuarterlyReportAnalytics: React.FC<QuarterlyReportAnalyticsProps> = ({
   type,
   quarter,
   year
 }) => {
-  // Calculate a representative date for the quarter for the analytics components
+  const { profile } = useAuth();
+  const [monthlyData, setMonthlyData] = useState<any[]>([]);
+
+  // Calculate a representative date for the quarter
   const getQuarterDate = (quarter: string, year: string) => {
     const quarterMap: { [key: string]: string } = {
       'Q1': `${year}-03-31`,
@@ -24,23 +99,154 @@ export const QuarterlyReportAnalytics: React.FC<QuarterlyReportAnalyticsProps> =
     return quarterMap[quarter] || `${year}-12-31`;
   };
 
-  const quarterDate = getQuarterDate(quarter, year);
+  const quarterDate = new Date(getQuarterDate(quarter, year));
 
-  if (type === 'feedback') {
-    return (
-      <div className="w-full">
-        <FeedbackAnalytics meetingDate={new Date(quarterDate)} />
+  useEffect(() => {
+    loadData();
+  }, [profile?.company_id, type]);
+
+  const loadData = async () => {
+    if (!profile?.company_id) return;
+    
+    try {
+      const dataType = type === 'feedback' ? 'feedback_analytics' : 'incidents_analytics';
+      
+      const { data: allData, error } = await supabase
+        .from('dashboard_data')
+        .select('data_content, updated_at')
+        .eq('company_id', profile.company_id)
+        .eq('data_type', dataType);
+
+      if (error) {
+        console.error(`Error loading ${type} analytics:`, error);
+        setMonthlyData(generateInitialData(type, quarterDate));
+        return;
+      }
+
+      if (allData && allData.length > 0) {
+        // Consolidate data from multiple records
+        const initialData = generateInitialData(type, quarterDate);
+        const consolidatedData = [...initialData];
+
+        allData.forEach(record => {
+          if (record.data_content && typeof record.data_content === 'object') {
+            const analyticsData = record.data_content as any;
+            if (analyticsData.monthlyData && Array.isArray(analyticsData.monthlyData)) {
+              analyticsData.monthlyData.forEach((monthData: any, index: number) => {
+                if (index < consolidatedData.length) {
+                  Object.keys(monthData).forEach(key => {
+                    if (key !== 'month' && typeof monthData[key] === 'number' && monthData[key] > 0) {
+                      consolidatedData[index][key] = monthData[key];
+                    }
+                  });
+                }
+              });
+            }
+          }
+        });
+
+        setMonthlyData(consolidatedData);
+      } else {
+        setMonthlyData(generateInitialData(type, quarterDate));
+      }
+    } catch (error) {
+      console.error(`Error in ${type} analytics loadData:`, error);
+      setMonthlyData(generateInitialData(type, quarterDate));
+    }
+  };
+
+  const chartConfig = type === 'feedback' ? feedbackChartConfig : incidentsChartConfig;
+  const chartTitle = type === 'feedback' ? 'Feedback Analytics' : 'Incidents, Accidents & Safeguarding Analytics';
+
+  return (
+    <Card className="p-4 bg-white">
+      <div className="flex items-center justify-between mb-4">
+        <h4 className="text-lg font-semibold text-foreground">{chartTitle}</h4>
+        <span className="text-sm text-muted-foreground px-2">
+          {monthlyData[0]?.month} - {monthlyData[monthlyData.length - 1]?.month}
+        </span>
       </div>
-    );
-  }
-
-  if (type === 'incidents') {
-    return (
-      <div className="w-full">
-        <IncidentsAnalytics meetingDate={new Date(quarterDate)} />
+      
+      <ChartContainer config={chartConfig} className="h-64 w-full">
+        <ResponsiveContainer width="100%" height="100%">
+          <ComposedChart data={monthlyData} margin={{
+            top: 5,
+            right: 5,
+            bottom: 25,
+            left: 5
+          }}>
+            <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
+            <XAxis dataKey="month" axisLine={false} tickLine={false} className="text-xs" />
+            <YAxis axisLine={false} tickLine={false} className="text-xs" />
+            <ChartTooltip content={<ChartTooltipContent />} />
+            
+            {type === 'feedback' ? (
+              <>
+                <Bar dataKey="compliments" fill="#22c55e" name="Compliments" stackId="feedback" />
+                <Bar dataKey="complaints" fill="#ef4444" name="Complaints" stackId="feedback" />
+                <Bar dataKey="suggestions" fill="#3b82f6" name="Suggestions" stackId="feedback" />
+                <Line type="monotone" dataKey="resolved" stroke="#f59e0b" strokeWidth={2} dot={{
+                  r: 3,
+                  fill: "#f59e0b"
+                }} name="Resolved" />
+              </>
+            ) : (
+              <>
+                <Bar dataKey="incidents" fill="#ef4444" name="Incidents" stackId="incidents" />
+                <Bar dataKey="accidents" fill="#f59e0b" name="Accidents" stackId="incidents" />
+                <Bar dataKey="safeguarding" fill="#3b82f6" name="Safeguarding" stackId="incidents" />
+                <Line type="monotone" dataKey="resolved" stroke="#22c55e" strokeWidth={2} dot={{
+                  r: 3,
+                  fill: "#22c55e"
+                }} name="Resolved" />
+              </>
+            )}
+          </ComposedChart>
+        </ResponsiveContainer>
+      </ChartContainer>
+      
+      {/* Legend */}
+      <div className="flex flex-wrap justify-center gap-4 mt-4 pt-4 border-t border-border">
+        {type === 'feedback' ? (
+          <>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 bg-green-500 rounded"></div>
+              <span className="text-xs text-muted-foreground">Compliments</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 bg-red-500 rounded"></div>
+              <span className="text-xs text-muted-foreground">Complaints</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 bg-blue-500 rounded"></div>
+              <span className="text-xs text-muted-foreground">Suggestions</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-3 border-b-2 border-amber-500"></div>
+              <span className="text-xs text-muted-foreground">Resolved</span>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 bg-red-500 rounded"></div>
+              <span className="text-xs text-muted-foreground">Incidents</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 bg-amber-500 rounded"></div>
+              <span className="text-xs text-muted-foreground">Accidents</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 bg-blue-500 rounded"></div>
+              <span className="text-xs text-muted-foreground">Safeguarding</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-3 border-b-2 border-green-500"></div>
+              <span className="text-xs text-muted-foreground">Resolved</span>
+            </div>
+          </>
+        )}
       </div>
-    );
-  }
-
-  return null;
+    </Card>
+  );
 };
