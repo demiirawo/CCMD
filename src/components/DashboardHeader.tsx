@@ -2,6 +2,7 @@ import { StatusBadge } from "./StatusBadge";
 import { MeetingDateTimePicker } from "./MeetingDateTimePicker";
 import { TeamAttendeesDisplay, Attendee } from "./TeamAttendeesDisplay";
 import { MeetingStatusSummary } from "./MeetingStatusSummary";
+import { AISummaryButton } from "./AISummaryButton";
 import { useAuth } from "@/hooks/useAuth";
 import { useState } from "react";
 interface DashboardHeaderProps {
@@ -103,7 +104,43 @@ export const DashboardHeader = ({
         </div>
         
         {/* Meeting Summary - 50% width */}
-        <EditableField field="purpose" value={purpose} label="Meeting Summary" containerClass="min-h-24" />
+        <div className="p-4 rounded-lg border border-gray-100 min-h-24 bg-white">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-sm font-bold text-muted-foreground">Meeting Summary</h3>
+            {!readOnly && <AISummaryButton onSummaryGenerated={(summary) => onDataChange?.("purpose", summary)} />}
+          </div>
+          {readOnly ? (
+            <div className="w-full min-h-12 p-2 text-sm text-foreground bg-gray-50 border border-gray-200 rounded whitespace-pre-wrap break-words overflow-wrap-anywhere">
+              {purpose || "No meeting summary provided."}
+            </div>
+          ) : (
+            editingField === "purpose" ? (
+              <textarea 
+                defaultValue={purpose} 
+                className="w-full min-h-12 p-2 text-sm text-foreground bg-white border border-gray-300 rounded resize-none whitespace-pre-wrap" 
+                onBlur={e => handleFieldEdit("purpose", e.target.value)} 
+                onKeyDown={e => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    handleFieldEdit("purpose", e.currentTarget.value);
+                  }
+                  if (e.key === "Escape") {
+                    setEditingField(null);
+                  }
+                }} 
+                autoFocus 
+                placeholder="Click to add meeting summary or use AI Summary to generate automatically..."
+              />
+            ) : (
+              <button 
+                onClick={() => setEditingField("purpose")} 
+                className="w-full text-left min-h-12 p-2 text-sm text-foreground hover:bg-white hover:border-gray-400 transition-colors rounded whitespace-pre-wrap break-words overflow-wrap-anywhere"
+              >
+                {purpose || "Click to add meeting summary or use AI Summary to generate automatically..."}
+              </button>
+            )
+          )}
+        </div>
       </div>
     </div>;
 };
