@@ -126,7 +126,9 @@ export const CompanySelection = () => {
   };
   const handleDeleteCompany = async (companyId: string) => {
     setLoading(true);
-    const { error } = await deleteCompany(companyId);
+    const {
+      error
+    } = await deleteCompany(companyId);
     if (error) {
       toast({
         title: 'Error',
@@ -141,7 +143,6 @@ export const CompanySelection = () => {
     }
     setLoading(false);
   };
-
   const handleSignOut = async () => {
     await signOut();
     navigate('/auth');
@@ -150,9 +151,7 @@ export const CompanySelection = () => {
   // Filter companies based on search
   const filteredCompanies = useMemo(() => {
     if (!searchValue.trim()) return [];
-    return companies.filter(company =>
-      company.name.toLowerCase().includes(searchValue.toLowerCase())
-    );
+    return companies.filter(company => company.name.toLowerCase().includes(searchValue.toLowerCase()));
   }, [companies, searchValue]);
   return <div className="min-h-screen flex items-center justify-center px-4 bg-stone-50">
       <Card className="w-full max-w-2xl">
@@ -176,24 +175,16 @@ export const CompanySelection = () => {
               <h3 className="text-lg font-semibold">Search Companies</h3>
               <div className="relative">
                 <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search company name..."
-                  value={searchValue}
-                  onChange={(e) => setSearchValue(e.target.value)}
-                  className="pl-9"
-                />
+                <Input placeholder="Search company name..." value={searchValue} onChange={e => setSearchValue(e.target.value)} className="pl-9" />
               </div>
             </div>
 
-            {searchValue.trim() && (
-              <div className="space-y-2">
+            {searchValue.trim() && <div className="space-y-2">
                 <p className="text-sm text-muted-foreground">
                   {filteredCompanies.length} result{filteredCompanies.length !== 1 ? 's' : ''} found
                 </p>
-                {filteredCompanies.length > 0 ? (
-                  <div className="grid gap-2 max-h-60 overflow-y-auto">
-                    {filteredCompanies.map(company => (
-                      <Card key={company.id} className="hover:bg-accent transition-colors">
+                {filteredCompanies.length > 0 ? <div className="grid gap-2 max-h-60 overflow-y-auto">
+                    {filteredCompanies.map(company => <Card key={company.id} className="hover:bg-accent transition-colors">
                         <CardContent className="p-4">
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
@@ -206,22 +197,12 @@ export const CompanySelection = () => {
                               </div>
                             </div>
                             <div className="flex items-center gap-2">
-                              <Button 
-                                onClick={() => handleSelectCompany(company.id)} 
-                                disabled={loading} 
-                                className="bg-stone-400 hover:bg-stone-300 text-black"
-                              >
+                              <Button onClick={() => handleSelectCompany(company.id)} disabled={loading} className="bg-stone-400 hover:bg-stone-300 text-black">
                                 Select
                               </Button>
-                              {profile?.role === 'admin' && (
-                                <AlertDialog>
+                              {profile?.role === 'admin' && <AlertDialog>
                                   <AlertDialogTrigger asChild>
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      className="text-destructive hover:text-destructive-foreground hover:bg-destructive"
-                                      disabled={loading}
-                                    >
+                                    <Button variant="outline" size="sm" className="text-destructive hover:text-destructive-foreground hover:bg-destructive" disabled={loading}>
                                       <Trash2 className="h-4 w-4" />
                                     </Button>
                                   </AlertDialogTrigger>
@@ -234,50 +215,31 @@ export const CompanySelection = () => {
                                     </AlertDialogHeader>
                                     <AlertDialogFooter>
                                       <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                      <AlertDialogAction
-                                        onClick={() => handleDeleteCompany(company.id)}
-                                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                                      >
+                                      <AlertDialogAction onClick={() => handleDeleteCompany(company.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
                                         Delete Company
                                       </AlertDialogAction>
                                     </AlertDialogFooter>
                                   </AlertDialogContent>
-                                </AlertDialog>
-                              )}
+                                </AlertDialog>}
                             </div>
                           </div>
                         </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8">
+                      </Card>)}
+                  </div> : <div className="text-center py-8">
                     <Building2 className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
                     <p className="text-sm text-muted-foreground">No companies found matching "{searchValue}"</p>
-                  </div>
-                )}
-              </div>
-            )}
+                  </div>}
+              </div>}
 
-            {!searchValue.trim() && companies.length === 0 && (
-              <div className="text-center py-8">
+            {!searchValue.trim() && companies.length === 0 && <div className="text-center py-8">
                 <Building2 className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                 <h3 className="text-lg font-semibold mb-2">No Companies Found</h3>
                 <p className="text-muted-foreground mb-4">
                   {profile?.role === 'admin' ? 'Create your first company to get started' : 'Contact your administrator to be assigned to a company'}
                 </p>
-              </div>
-            )}
+              </div>}
 
-            {!searchValue.trim() && companies.length > 0 && (
-              <div className="text-center py-8">
-                <Search className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-semibold mb-2">Search for a Company</h3>
-                <p className="text-muted-foreground">
-                  Type the company name in the search box above to find and select your company
-                </p>
-              </div>
-            )}
+            {!searchValue.trim() && companies.length > 0}
           </div>
           
           {profile?.role === 'admin' && <div className="border-t pt-6">
