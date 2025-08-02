@@ -281,7 +281,8 @@ export const ActionsLog = ({
                     <div className="min-w-0 max-w-md">
                       <div className={cn(
                         "font-medium break-words whitespace-pre-wrap",
-                        action.closed && "text-muted-foreground"
+                        isDynamicPanelColourEnabled && !action.closed ? "text-white" :
+                        action.closed ? "text-muted-foreground" : "text-foreground"
                       )}>
                         {action.action}
                       </div>
