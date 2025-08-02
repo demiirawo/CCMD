@@ -58,12 +58,9 @@ export const AddMeetingDialog = ({
       console.error('Upload error:', uploadError);
       throw new Error('Failed to upload document');
     }
-    const {
-      data: {
-        publicUrl
-      }
-    } = supabase.storage.from('meeting-documents').getPublicUrl(filePath);
-    return publicUrl;
+    
+    // Return the file path instead of public URL since the bucket is private
+    return filePath;
   };
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -94,19 +91,19 @@ export const AddMeetingDialog = ({
       }
 
       // Upload document if provided
-      let documentUrl = null;
+      let documentPath = null;
       if (selectedFile && meeting) {
-        documentUrl = await uploadDocument(meeting.id);
+        documentPath = await uploadDocument(meeting.id);
 
-        // Update meeting with document URL
-        if (documentUrl) {
+        // Update meeting with document path
+        if (documentPath) {
           const {
             error: updateError
           } = await supabase.from('meetings').update({
-            document_url: documentUrl
+            document_url: documentPath
           }).eq('id', meeting.id);
           if (updateError) {
-            console.error('Error updating meeting with document URL:', updateError);
+            console.error('Error updating meeting with document path:', updateError);
           }
         }
       }

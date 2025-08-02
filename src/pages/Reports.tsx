@@ -671,38 +671,28 @@ export const Reports = () => {
                                 <div className="flex items-center gap-1 text-sm text-primary">
                                   <FileText className="h-4 w-4" />
                                   <a 
-                                    href={meeting.document_url} 
-                                    target="_blank" 
-                                    rel="noopener noreferrer"
-                                    className="hover:underline flex items-center gap-1"
+                                    href="#" 
+                                    className="hover:underline flex items-center gap-1 cursor-pointer"
                                     onClick={(e) => {
+                                      e.preventDefault();
                                       e.stopPropagation();
-                                      // For Supabase storage, we need to get a signed URL
-                                      if (meeting.document_url?.includes('supabase')) {
-                                        e.preventDefault();
-                                        // Extract the file path from the URL
-                                        const urlParts = meeting.document_url.split('/');
-                                        const fileName = urlParts[urlParts.length - 1];
-                                        const companyId = urlParts[urlParts.length - 2];
-                                        const filePath = `${companyId}/${fileName}`;
-                                        
-                                        // Get signed URL and open
-                                        supabase.storage
-                                          .from('meeting-documents')
-                                          .createSignedUrl(filePath, 3600) // 1 hour expiry
-                                          .then(({ data, error }) => {
-                                            if (error) {
-                                              console.error('Error creating signed URL:', error);
-                                              toast({
-                                                title: "Error",
-                                                description: "Could not access document",
-                                                variant: "destructive"
-                                              });
-                                            } else if (data?.signedUrl) {
-                                              window.open(data.signedUrl, '_blank');
-                                            }
-                                          });
-                                      }
+                                      
+                                      // Create signed URL for private storage
+                                      supabase.storage
+                                        .from('meeting-documents')
+                                        .createSignedUrl(meeting.document_url, 3600) // 1 hour expiry
+                                        .then(({ data, error }) => {
+                                          if (error) {
+                                            console.error('Error creating signed URL:', error);
+                                            toast({
+                                              title: "Error",
+                                              description: "Could not access document",
+                                              variant: "destructive"
+                                            });
+                                          } else if (data?.signedUrl) {
+                                            window.open(data.signedUrl, '_blank');
+                                          }
+                                        });
                                     }}
                                   >
                                     View Document
