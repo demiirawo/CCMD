@@ -258,7 +258,10 @@ export const KeyDocumentTracker = ({
       
       {isOpen && <div className="space-y-6">
         {groupedDocuments.map(([category, docs]) => <div key={category} className="space-y-3">
-            <h4 className="text-sm font-medium text-foreground border-b border-border/20 pb-2">
+            <h4 className={cn(
+              "text-sm font-medium border-b border-border/20 pb-2",
+              isDynamicPanelColourEnabled ? "text-white" : "text-foreground"
+            )}>
               {category}
             </h4>
             {docs.map(doc => <div key={doc.id} className={`p-4 border rounded-lg space-y-3 ${getDocumentColorClass(doc.nextReviewDate)}`}>
