@@ -107,7 +107,7 @@ export const ResourcingOverview = ({
           required_staffing_level: newData.requiredStaffingLevel,
           updated_at: new Date().toISOString()
         }, {
-          onConflict: 'company_id,meeting_id'
+          onConflict: meetingId ? 'company_id,meeting_id' : 'company_id'
         });
 
       if (error) {

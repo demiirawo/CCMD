@@ -132,7 +132,7 @@ export const ServiceUserDocumentsAnalytics = ({
           total_service_users: totalServiceUsers,
           updated_at: new Date().toISOString()
         }, {
-          onConflict: 'company_id,meeting_id'
+          onConflict: meetingId ? 'company_id,meeting_id' : 'company_id'
         });
 
       if (error) {
