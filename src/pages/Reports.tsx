@@ -15,7 +15,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useTheme } from "@/hooks/useTheme";
 import { MeetingStatusSummary } from "@/components/MeetingStatusSummary";
 import { StatusBadge } from "@/components/StatusBadge";
-import { QuarterlyReportGenerator } from "@/components/QuarterlyReportGenerator";
+import { NarrativeQuarterlyReportGenerator } from "@/components/NarrativeQuarterlyReportGenerator";
 import { ReadOnlyDashboardView } from "@/components/ReadOnlyDashboardView";
 import { AddMeetingDialog } from "@/components/AddMeetingDialog";
 interface Meeting {
@@ -46,6 +46,7 @@ interface ParsedMeeting {
       status: "green" | "amber" | "red";
     }>;
   }>;
+  actions_log: any[]; // Add actions_log field
   purpose: string;
   quarter: string;
   year: number;
@@ -572,7 +573,7 @@ export const Reports = () => {
                     <div className="flex items-center gap-3">
                       {canEdit && <div onClick={e => e.stopPropagation()} className="flex items-center gap-2">
                           <AddMeetingDialog onMeetingAdded={fetchMeetings} />
-                          <QuarterlyReportGenerator quarter={quarter} year={year} meetings={quarterMeetings} />
+                          <NarrativeQuarterlyReportGenerator quarter={quarter} year={year} meetings={quarterMeetings} />
                         </div>}
                       
                       <div className="p-1 rounded-lg hover:bg-accent/50 transition-colors">
