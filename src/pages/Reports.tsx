@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { CalendarDays, FileText, Users, Eye, Trash2, Clock, Target, ChevronDown, ChevronRight, X, Download, ExternalLink } from "lucide-react";
+import { CalendarDays, FileText, Users, Eye, Trash2, Clock, Target, ChevronDown, ChevronRight, X, Download, ExternalLink, ChevronLeft, ChevronRight as ChevronRightIcon } from "lucide-react";
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { useToast } from "@/hooks/use-toast";
@@ -67,6 +67,8 @@ export const Reports = () => {
   const [loading, setLoading] = useState(true);
   const [expandedQuarters, setExpandedQuarters] = useState<Record<string, boolean>>({});
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10); // Show 10 meetings per page
   const {
     toast
   } = useToast();
@@ -483,7 +485,25 @@ export const Reports = () => {
 
   // Filter meetings by selected year
   const filteredMeetings = selectedYear ? meetings.filter(meeting => meeting.year === selectedYear) : meetings;
-  const groupedMeetings = groupMeetingsByQuarter(filteredMeetings);
+  
+  // Pagination logic
+  const totalMeetings = filteredMeetings.length;
+  const totalPages = Math.ceil(totalMeetings / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedMeetings = filteredMeetings.slice(startIndex, endIndex);
+  
+  const groupedMeetings = groupMeetingsByQuarter(paginatedMeetings);
+
+  // Reset current page when year filter changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedYear]);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
   if (loading) {
     return <div className="min-h-screen bg-background p-4 lg:p-8">
         <div className="max-w-7xl mx-auto">
@@ -523,10 +543,79 @@ export const Reports = () => {
               Showing {filteredMeetings.length} meeting{filteredMeetings.length !== 1 ? 's' : ''} from {selectedYear}
             </span>}
         </div>
+
+        {/* Pagination Controls */}
+        {totalMeetings > 0 && (
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white p-4 rounded-lg shadow-sm">
+            <div className="text-sm text-muted-foreground">
+              Showing {startIndex + 1} to {Math.min(endIndex, totalMeetings)} of {totalMeetings} meetings
+            </div>
+            
+            {totalPages > 1 && (
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className="flex items-center gap-1"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  Previous
+                </Button>
+                
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => {
+                    // Show first page, last page, current page and pages around current
+                    const showPage = 
+                      pageNum === 1 || 
+                      pageNum === totalPages ||
+                      (pageNum >= currentPage - 1 && pageNum <= currentPage + 1);
+                    
+                    if (!showPage) {
+                      // Show ellipsis for gaps
+                      if (pageNum === currentPage - 2 || pageNum === currentPage + 2) {
+                        return <span key={pageNum} className="px-2 text-muted-foreground">...</span>;
+                      }
+                      return null;
+                    }
+                    
+                    return (
+                      <Button
+                        key={pageNum}
+                        variant={currentPage === pageNum ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => handlePageChange(pageNum)}
+                        className="w-8 h-8 p-0"
+                      >
+                        {pageNum}
+                      </Button>
+                    );
+                  })}
+                </div>
+                
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className="flex items-center gap-1"
+                >
+                  Next
+                  <ChevronRightIcon className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
+          </div>
+        )}
+
         {Object.keys(groupedMeetings).length === 0 ? <Card>
             <CardContent className="py-8 text-center">
               <FileText className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No meetings saved yet</h3>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No meetings found</h3>
+              <p className="text-muted-foreground">
+                {selectedYear ? `No meetings found for ${selectedYear}` : "No meetings saved yet"}
+              </p>
             </CardContent>
           </Card> : <div className="space-y-6">
             {Object.entries(groupedMeetings).sort(([a], [b]) => b.localeCompare(a)).map(([quarterKey, quarterMeetings]) => {
