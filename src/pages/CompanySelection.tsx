@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Building2, Trash2, Search } from 'lucide-react';
+import { Plus, Building2, Trash2, Search, Copy } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 export const CompanySelection = () => {
   const [newCompanyName, setNewCompanyName] = useState('');
@@ -143,6 +143,23 @@ export const CompanySelection = () => {
     }
     setLoading(false);
   };
+  const handleCopyCompanyLink = async (company: any) => {
+    const companyUrl = `${window.location.origin}/company/${company.slug || company.id}`;
+    try {
+      await navigator.clipboard.writeText(companyUrl);
+      toast({
+        title: 'Success',
+        description: 'Company dashboard link copied to clipboard!'
+      });
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to copy link to clipboard',
+        variant: 'destructive'
+      });
+    }
+  };
+
   const handleSignOut = async () => {
     await signOut();
     navigate('/auth');
@@ -197,6 +214,15 @@ export const CompanySelection = () => {
                               </div>
                             </div>
                             <div className="flex items-center gap-2">
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                onClick={() => handleCopyCompanyLink(company)} 
+                                disabled={loading}
+                                className="hover:bg-accent"
+                              >
+                                <Copy className="h-4 w-4" />
+                              </Button>
                               <Button onClick={() => handleSelectCompany(company.id)} disabled={loading} className="bg-stone-400 hover:bg-stone-300 text-black">
                                 Select
                               </Button>
