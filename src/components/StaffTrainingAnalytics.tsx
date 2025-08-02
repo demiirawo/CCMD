@@ -334,7 +334,7 @@ export const StaffTrainingAnalytics = ({
         <div className="text-sm font-medium text-gray-600 text-center">Compliance %</div>
         
         {/* Onboarding Row */}
-        <div className="text-sm">Onboarding:</div>
+        <div className="text-sm text-black">Onboarding:</div>
         <div className="text-lg text-black text-center">{staffData.onboarding}</div>
         <div className="flex justify-center">
           <EditableCell 
