@@ -154,35 +154,49 @@ export const FeedbackAnalytics = ({
 
   const saveData = async (newData: any[]) => {
     if (!profile?.company_id) return;
-    console.log('FeedbackAnalytics: Saving data for company_id:', profile.company_id, 'meetingId:', meetingId, 'Data:', newData);
+    
+    console.log('🔄 FeedbackAnalytics: Starting save operation', {
+      companyId: profile.company_id,
+      meetingId,
+      dataLength: newData.length,
+      timestamp: new Date().toISOString(),
+      sampleData: newData.slice(0, 2)
+    });
     
     try {
-      const { error } = await supabase
+      const dataToSave = {
+        company_id: profile.company_id,
+        meeting_id: meetingId || null,
+        monthly_data: newData,
+        updated_at: new Date().toISOString()
+      };
+
+      console.log('💾 FeedbackAnalytics: Attempting Supabase upsert with payload:', dataToSave);
+
+      const { data: savedData, error } = await supabase
         .from('feedback_analytics')
-        .upsert({
-          company_id: profile.company_id,
-          meeting_id: meetingId || null,
-          monthly_data: newData,
-          updated_at: new Date().toISOString()
-        }, {
+        .upsert(dataToSave, {
           onConflict: meetingId ? 'company_id,meeting_id' : 'company_id'
-        });
+        })
+        .select();
 
       if (error) {
-        console.error('Error saving feedback analytics:', error);
+        console.error('❌ FeedbackAnalytics: Supabase save failed:', error);
         throw error;
       } else {
-        console.log('FeedbackAnalytics: Data saved successfully');
+        console.log('✅ FeedbackAnalytics: Successfully saved to Supabase:', savedData);
         // Save to localStorage as backup
         const backupKey = meetingId ? `feedback_backup_${profile.company_id}_${meetingId}` : `feedback_backup_${profile.company_id}`;
         localStorage.setItem(backupKey, JSON.stringify(newData));
+        console.log('💾 FeedbackAnalytics: Also saved backup to localStorage:', backupKey);
       }
     } catch (error) {
-      console.error('Error saving feedback analytics:', error);
+      console.error('❌ FeedbackAnalytics: Exception in saveData:', error);
       // Save to localStorage as fallback
       if (profile?.company_id) {
         const backupKey = meetingId ? `feedback_backup_${profile.company_id}_${meetingId}` : `feedback_backup_${profile.company_id}`;
         localStorage.setItem(backupKey, JSON.stringify(newData));
+        console.log('💾 FeedbackAnalytics: Exception fallback to localStorage:', backupKey);
       }
     }
   };
