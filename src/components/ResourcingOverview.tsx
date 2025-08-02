@@ -36,23 +36,35 @@ export const ResourcingOverview = ({
     if (!profile?.company_id) return;
     
     try {
-      const { data: savedData, error } = await supabase
-        .from('dashboard_data')
-        .select('data_content')
-        .eq('company_id', profile.company_id)
-        .eq('data_type', 'resourcing_overview')
-        .maybeSingle();
+      // Load data for the specific meeting if meetingId is provided, otherwise load company-wide data
+      let query = supabase
+        .from('resourcing_overview')
+        .select('*')
+        .eq('company_id', profile.company_id);
+      
+      if (meetingId) {
+        query = query.eq('meeting_id', meetingId);
+      } else {
+        query = query.is('meeting_id', null);
+      }
+      
+      const { data: savedData, error } = await query.maybeSingle();
 
       if (error && error.code !== 'PGRST116') {
         console.error('Error loading resourcing overview:', error);
         return;
       }
 
-      if (savedData?.data_content) {
-        setData(savedData.data_content as typeof data);
+      if (savedData) {
+        setData({
+          onboarding: savedData.onboarding || 0,
+          onProbation: savedData.on_probation || 0,
+          active: savedData.active || 0,
+          requiredStaffingLevel: savedData.required_staffing_level || 0
+        });
       } else {
         // Try to load from localStorage backup
-        const backupKey = `resourcing_overview_backup_${profile.company_id}`;
+        const backupKey = meetingId ? `resourcing_overview_backup_${profile.company_id}_${meetingId}` : `resourcing_overview_backup_${profile.company_id}`;
         const backupData = localStorage.getItem(backupKey);
         if (backupData) {
           try {
@@ -66,7 +78,7 @@ export const ResourcingOverview = ({
     } catch (error) {
       console.error('Error loading resourcing overview:', error);
       // Try to load from localStorage backup
-      const backupKey = `resourcing_overview_backup_${profile.company_id}`;
+      const backupKey = meetingId ? `resourcing_overview_backup_${profile.company_id}_${meetingId}` : `resourcing_overview_backup_${profile.company_id}`;
       const backupData = localStorage.getItem(backupKey);
       if (backupData) {
         try {
@@ -85,15 +97,17 @@ export const ResourcingOverview = ({
     try {
       console.log('ResourcingOverview: Saving data:', newData);
       const { error } = await supabase
-        .from('dashboard_data')
+        .from('resourcing_overview')
         .upsert({
           company_id: profile.company_id,
-          meeting_id: meetingId,
-          data_type: 'resourcing_overview',
-          data_content: newData,
+          meeting_id: meetingId || null,
+          onboarding: newData.onboarding,
+          on_probation: newData.onProbation,
+          active: newData.active,
+          required_staffing_level: newData.requiredStaffingLevel,
           updated_at: new Date().toISOString()
         }, {
-          onConflict: 'company_id,meeting_id,data_type'
+          onConflict: 'company_id,meeting_id'
         });
 
       if (error) {
@@ -102,7 +116,8 @@ export const ResourcingOverview = ({
       } else {
         console.log('ResourcingOverview: Data saved successfully');
         // Save to localStorage as backup
-        localStorage.setItem(`resourcing_overview_backup_${profile.company_id}`, JSON.stringify(newData));
+        const backupKey = meetingId ? `resourcing_overview_backup_${profile.company_id}_${meetingId}` : `resourcing_overview_backup_${profile.company_id}`;
+        localStorage.setItem(backupKey, JSON.stringify(newData));
         
         // Trigger a custom event to notify other components that data has been updated
         window.dispatchEvent(new CustomEvent('resourcing-data-updated', { 
@@ -117,7 +132,8 @@ export const ResourcingOverview = ({
       console.error('ResourcingOverview: Error saving data:', error);
       // Save to localStorage as fallback
       if (profile?.company_id) {
-        localStorage.setItem(`resourcing_overview_backup_${profile.company_id}`, JSON.stringify(newData));
+        const backupKey = meetingId ? `resourcing_overview_backup_${profile.company_id}_${meetingId}` : `resourcing_overview_backup_${profile.company_id}`;
+        localStorage.setItem(backupKey, JSON.stringify(newData));
       }
     }
   };

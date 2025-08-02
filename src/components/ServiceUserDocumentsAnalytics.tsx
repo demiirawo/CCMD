@@ -29,25 +29,41 @@ export const ServiceUserDocumentsAnalytics = ({
   }, [profile?.company_id, meetingId]);
   const loadData = async () => {
     if (!profile?.company_id) return;
+    
     try {
-      const {
-        data: savedData,
-        error
-      } = await supabase.from('dashboard_data').select('data_content').eq('company_id', profile.company_id).eq('data_type', 'service_user_documents').maybeSingle();
+      // Load data for the specific meeting if meetingId is provided, otherwise load company-wide data
+      let query = supabase
+        .from('service_user_document_analytics')
+        .select('*')
+        .eq('company_id', profile.company_id);
+      
+      if (meetingId) {
+        query = query.eq('meeting_id', meetingId);
+      } else {
+        query = query.is('meeting_id', null);
+      }
+      
+      const { data: savedData, error } = await query.maybeSingle();
+
       if (error && error.code !== 'PGRST116') {
         console.error('Error loading service user documents:', error);
         return;
       }
-      if (savedData?.data_content) {
-        setData(savedData.data_content as typeof data);
+
+      if (savedData) {
+        setData({
+          incompleteDocuments: savedData.incomplete_documents || 0
+        });
+        setTotalServiceUsers(savedData.total_service_users || 0);
       } else {
         // Try to load from localStorage backup
-        const backupKey = `service_user_documents_backup_${profile.company_id}`;
+        const backupKey = meetingId ? `service_user_documents_backup_${profile.company_id}_${meetingId}` : `service_user_documents_backup_${profile.company_id}`;
         const backupData = localStorage.getItem(backupKey);
         if (backupData) {
           try {
             const backup = JSON.parse(backupData);
-            setData(backup);
+            setData(backup.data || { incompleteDocuments: 0 });
+            setTotalServiceUsers(backup.totalServiceUsers || 0);
           } catch (error) {
             console.error('Error loading backup data:', error);
           }
@@ -56,12 +72,13 @@ export const ServiceUserDocumentsAnalytics = ({
     } catch (error) {
       console.error('Error loading service user documents:', error);
       // Try to load from localStorage backup
-      const backupKey = `service_user_documents_backup_${profile.company_id}`;
+      const backupKey = meetingId ? `service_user_documents_backup_${profile.company_id}_${meetingId}` : `service_user_documents_backup_${profile.company_id}`;
       const backupData = localStorage.getItem(backupKey);
       if (backupData) {
         try {
           const backup = JSON.parse(backupData);
-          setData(backup);
+          setData(backup.data || { incompleteDocuments: 0 });
+          setTotalServiceUsers(backup.totalServiceUsers || 0);
         } catch (error) {
           console.error('Error loading backup data:', error);
         }
@@ -104,30 +121,34 @@ export const ServiceUserDocumentsAnalytics = ({
   };
   const saveData = async (newData: typeof data) => {
     if (!profile?.company_id) return;
+    
     try {
-      const {
-        error
-      } = await supabase.from('dashboard_data').upsert({
-        company_id: profile.company_id,
-        meeting_id: meetingId,
-        data_type: 'service_user_documents',
-        data_content: newData,
-        updated_at: new Date().toISOString()
-      }, {
-        onConflict: 'company_id,meeting_id,data_type'
-      });
+      const { error } = await supabase
+        .from('service_user_document_analytics')
+        .upsert({
+          company_id: profile.company_id,
+          meeting_id: meetingId || null,
+          incomplete_documents: newData.incompleteDocuments,
+          total_service_users: totalServiceUsers,
+          updated_at: new Date().toISOString()
+        }, {
+          onConflict: 'company_id,meeting_id'
+        });
+
       if (error) {
         console.error('Error saving service user documents:', error);
         throw error;
       } else {
         // Save to localStorage as backup
-        localStorage.setItem(`service_user_documents_backup_${profile.company_id}`, JSON.stringify(newData));
+        const backupKey = meetingId ? `service_user_documents_backup_${profile.company_id}_${meetingId}` : `service_user_documents_backup_${profile.company_id}`;
+        localStorage.setItem(backupKey, JSON.stringify({ data: newData, totalServiceUsers }));
       }
     } catch (error) {
       console.error('Error saving service user documents:', error);
       // Save to localStorage as fallback
       if (profile?.company_id) {
-        localStorage.setItem(`service_user_documents_backup_${profile.company_id}`, JSON.stringify(newData));
+        const backupKey = meetingId ? `service_user_documents_backup_${profile.company_id}_${meetingId}` : `service_user_documents_backup_${profile.company_id}`;
+        localStorage.setItem(backupKey, JSON.stringify({ data: newData, totalServiceUsers }));
       }
     }
   };

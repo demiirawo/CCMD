@@ -719,6 +719,72 @@ export type Database = {
           },
         ]
       }
+      resourcing_overview: {
+        Row: {
+          active: number
+          company_id: string
+          created_at: string
+          id: string
+          meeting_id: string | null
+          on_probation: number
+          onboarding: number
+          required_staffing_level: number
+          updated_at: string
+        }
+        Insert: {
+          active?: number
+          company_id: string
+          created_at?: string
+          id?: string
+          meeting_id?: string | null
+          on_probation?: number
+          onboarding?: number
+          required_staffing_level?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: number
+          company_id?: string
+          created_at?: string
+          id?: string
+          meeting_id?: string | null
+          on_probation?: number
+          onboarding?: number
+          required_staffing_level?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      service_user_document_analytics: {
+        Row: {
+          company_id: string
+          created_at: string
+          id: string
+          incomplete_documents: number
+          meeting_id: string | null
+          total_service_users: number
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          id?: string
+          incomplete_documents?: number
+          meeting_id?: string | null
+          total_service_users?: number
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          id?: string
+          incomplete_documents?: number
+          meeting_id?: string | null
+          total_service_users?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       spot_check_analytics: {
         Row: {
           company_id: string
