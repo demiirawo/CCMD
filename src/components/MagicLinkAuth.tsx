@@ -135,6 +135,9 @@ export const MagicLinkAuth = () => {
           
         </CardHeader>
         <CardContent className="space-y-4">
+          <div className="text-center mb-4">
+            <h2 className="text-2xl font-semibold text-foreground">Welcome Back!</h2>
+          </div>
           <form onSubmit={handleMagicLink} className="space-y-4">
             <div className="space-y-2">
               
