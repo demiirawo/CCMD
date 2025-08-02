@@ -502,6 +502,39 @@ REPORTING INSTRUCTIONS:
         return `${quarter} ${year}`;
     }
   };
+  const captureChartAsImage = async (chartSelector: string): Promise<ArrayBuffer | null> => {
+    try {
+      const chartElement = document.querySelector(chartSelector) as HTMLElement;
+      if (!chartElement) {
+        console.warn(`Chart element not found: ${chartSelector}`);
+        return null;
+      }
+
+      const html2canvas = (await import('html2canvas')).default;
+      const canvas = await html2canvas(chartElement, {
+        backgroundColor: '#ffffff',
+        scale: 2,
+        width: chartElement.offsetWidth,
+        height: chartElement.offsetHeight
+      });
+
+      return new Promise((resolve) => {
+        canvas.toBlob((blob) => {
+          if (blob) {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result as ArrayBuffer);
+            reader.readAsArrayBuffer(blob);
+          } else {
+            resolve(null);
+          }
+        }, 'image/png');
+      });
+    } catch (error) {
+      console.error('Error capturing chart:', error);
+      return null;
+    }
+  };
+
   const exportToWord = async () => {
     if (!reportContent) {
       toast({
@@ -610,8 +643,12 @@ REPORTING INSTRUCTIONS:
         }
       }));
 
-      // Add content
-      documentChildren.push(...parseContentForWord(reportContent));
+      // Capture chart images
+      const feedbackChartImage = await captureChartAsImage('[data-chart-type="feedback"]');
+      const incidentsChartImage = await captureChartAsImage('[data-chart-type="incidents"]');
+
+      // Add content with chart images
+      documentChildren.push(...(await parseContentForWordWithCharts(reportContent, feedbackChartImage, incidentsChartImage)));
 
       // Parse the report content and create Word document structure
       const doc = new Document({
@@ -664,7 +701,7 @@ REPORTING INSTRUCTIONS:
       setIsExporting(false);
     }
   };
-  const parseContentForWord = (content: string): Paragraph[] => {
+  const parseContentForWordWithCharts = async (content: string, feedbackChartImage: ArrayBuffer | null, incidentsChartImage: ArrayBuffer | null): Promise<Paragraph[]> => {
     const paragraphs: Paragraph[] = [];
     const lines = content.split('\n');
     
@@ -710,25 +747,31 @@ REPORTING INSTRUCTIONS:
           }
         }));
         
-        // Add chart placeholders for specific sections
-        if (text === 'Feedback') {
+        // Add actual chart images for specific sections
+        if (text === 'Feedback' && feedbackChartImage) {
           paragraphs.push(new Paragraph({
-            children: [new TextRun({
-              text: '[12-Month Feedback Analytics Chart]',
-              italics: true,
-              size: 20
+            children: [new ImageRun({
+              data: feedbackChartImage,
+              type: 'png',
+              transformation: {
+                width: 500,
+                height: 300
+              }
             })],
             spacing: {
               after: 200
             },
             alignment: 'center'
           }));
-        } else if (text === 'Incidents, Accidents and Safeguarding') {
+        } else if (text === 'Incidents, Accidents and Safeguarding' && incidentsChartImage) {
           paragraphs.push(new Paragraph({
-            children: [new TextRun({
-              text: '[12-Month Incidents, Accidents & Safeguarding Analytics Chart]',
-              italics: true,
-              size: 20
+            children: [new ImageRun({
+              data: incidentsChartImage,
+              type: 'png',
+              transformation: {
+                width: 500,
+                height: 300
+              }
             })],
             spacing: {
               after: 200

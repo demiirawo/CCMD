@@ -157,7 +157,7 @@ export const QuarterlyReportAnalytics: React.FC<QuarterlyReportAnalyticsProps> =
   const chartTitle = type === 'feedback' ? 'Feedback Analytics' : 'Incidents, Accidents & Safeguarding Analytics';
   console.log(`📊 Rendering ${type} chart with data:`, monthlyData);
   console.log(`📊 Chart config:`, chartConfig);
-  return <Card className="p-4 bg-white">
+  return <Card className="p-4 bg-white" data-chart-type={type}>
       <div className="flex items-center justify-between mb-4">
         
         <span className="text-sm text-muted-foreground px-2">
