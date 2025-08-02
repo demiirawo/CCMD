@@ -1752,7 +1752,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gray-100 p-4 lg:p-8 pt-36">
       <div className="w-[90%] mx-auto space-y-6">
-        <div className="flex justify-end gap-4 mb-6">
+        <div className="flex justify-end gap-4 mb-6 mt-8">
           <Button 
             onClick={handleToggleAll}
             variant="outline"
