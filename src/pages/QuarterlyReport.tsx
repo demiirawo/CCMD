@@ -504,7 +504,7 @@ REPORTING INSTRUCTIONS:
   };
   const captureChartAsImage = async (chartType: 'feedback' | 'incidents'): Promise<ArrayBuffer | null> => {
     try {
-      console.log(`🎯 Starting full chart capture for ${chartType} chart`);
+      console.log(`🎯 Starting full container capture for ${chartType} chart`);
       
       const chartElement = document.querySelector(`[data-chart-type="${chartType}"]`) as HTMLElement;
       
@@ -513,49 +513,110 @@ REPORTING INSTRUCTIONS:
         return null;
       }
 
-      console.log(`✅ Found chart container for ${chartType}:`, {
-        width: chartElement.offsetWidth,
-        height: chartElement.offsetHeight
-      });
-
       // Wait for chart to be fully rendered
       await new Promise(resolve => setTimeout(resolve, 2000));
 
-      // Use html2canvas to capture the entire chart container (including legend)
-      const html2canvas = (await import('html2canvas')).default;
-      
-      const canvas = await html2canvas(chartElement, {
-        backgroundColor: '#ffffff',
-        scale: 2, // Higher scale for better quality
-        useCORS: true,
-        allowTaint: true,
-        logging: false,
-        foreignObjectRendering: true,
-        width: chartElement.offsetWidth,
-        height: chartElement.offsetHeight
-      });
+      // Create a canvas to draw the full chart container
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        console.error(`❌ Could not get canvas context for ${chartType}`);
+        return null;
+      }
 
-      console.log(`✅ Full chart captured for ${chartType}:`, {
-        width: canvas.width,
-        height: canvas.height
-      });
+      // Set canvas size to match the container
+      const containerWidth = chartElement.offsetWidth;
+      const containerHeight = chartElement.offsetHeight;
+      canvas.width = containerWidth;
+      canvas.height = containerHeight;
 
-      return new Promise((resolve) => {
-        canvas.toBlob((blob) => {
-          if (blob) {
-            console.log(`✅ Blob created for ${chartType}, size: ${blob.size} bytes`);
-            const reader = new FileReader();
-            reader.onload = () => {
-              console.log(`✅ ArrayBuffer ready for ${chartType}`);
-              resolve(reader.result as ArrayBuffer);
-            };
-            reader.readAsArrayBuffer(blob);
-          } else {
-            console.error(`❌ Failed to create blob for ${chartType}`);
+      // Fill white background
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      console.log(`📐 Canvas created for ${chartType}:`, { width: canvas.width, height: canvas.height });
+
+      // Find and draw the SVG chart
+      const svgElement = chartElement.querySelector('svg');
+      if (svgElement) {
+        const svgData = new XMLSerializer().serializeToString(svgElement);
+        const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+        const svgUrl = URL.createObjectURL(svgBlob);
+
+        return new Promise((resolve) => {
+          const img = new Image();
+          img.onload = () => {
+            // Draw the SVG chart (positioned where it appears in the container)
+            const chartContainer = chartElement.querySelector('[data-chart-container]') || chartElement.querySelector('.h-64');
+            const chartRect = chartContainer?.getBoundingClientRect();
+            const containerRect = chartElement.getBoundingClientRect();
+            
+            const offsetY = chartRect ? (chartRect.top - containerRect.top) : 20;
+            
+            ctx.drawImage(img, 0, offsetY);
+            
+            // Add legend text manually (since it's HTML)
+            const legendContainer = chartElement.querySelector('.border-t');
+            if (legendContainer) {
+              const legendItems = legendContainer.querySelectorAll('.flex.items-center.gap-2');
+              let legendX = 50;
+              const legendY = offsetY + 280; // Position below chart
+              
+              ctx.font = '12px Arial';
+              ctx.fillStyle = '#666666';
+              
+              legendItems.forEach((item, index) => {
+                const colorDiv = item.querySelector('.w-4.h-4');
+                const textSpan = item.querySelector('span');
+                
+                if (colorDiv && textSpan) {
+                  // Draw color indicator
+                  const bgColor = getComputedStyle(colorDiv).backgroundColor;
+                  ctx.fillStyle = bgColor || '#000000';
+                  ctx.fillRect(legendX, legendY - 8, 12, 12);
+                  
+                  // Draw text
+                  ctx.fillStyle = '#666666';
+                  ctx.fillText(textSpan.textContent || '', legendX + 18, legendY);
+                  
+                  legendX += 120; // Space between legend items
+                }
+              });
+            }
+            
+            URL.revokeObjectURL(svgUrl);
+            
+            console.log(`✅ Full chart with legend captured for ${chartType}`);
+
+            // Convert to ArrayBuffer
+            canvas.toBlob((blob) => {
+              if (blob) {
+                console.log(`✅ Blob created for ${chartType}, size: ${blob.size} bytes`);
+                const reader = new FileReader();
+                reader.onload = () => {
+                  console.log(`✅ ArrayBuffer ready for ${chartType}`);
+                  resolve(reader.result as ArrayBuffer);
+                };
+                reader.readAsArrayBuffer(blob);
+              } else {
+                console.error(`❌ Failed to create blob for ${chartType}`);
+                resolve(null);
+              }
+            }, 'image/png', 1.0);
+          };
+
+          img.onerror = (error) => {
+            console.error(`❌ Failed to load SVG image for ${chartType}:`, error);
+            URL.revokeObjectURL(svgUrl);
             resolve(null);
-          }
-        }, 'image/png', 1.0);
-      });
+          };
+
+          img.src = svgUrl;
+        });
+      } else {
+        console.error(`❌ No SVG found in ${chartType} chart`);
+        return null;
+      }
 
     } catch (error) {
       console.error(`💥 Error capturing ${chartType} chart:`, error);
