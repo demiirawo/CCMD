@@ -128,29 +128,53 @@ export const ResourcingOverview = ({
     });
     
     try {
-      console.log('ResourcingOverview: Saving data:', newData);
-      const { error } = await supabase
-        .from('resourcing_overview')
-        .upsert({
-          company_id: profile.company_id,
-          meeting_id: meetingId || null,
-          onboarding: newData.onboarding,
-          on_probation: newData.onProbation,
-          active: newData.active,
-          required_staffing_level: newData.requiredStaffingLevel,
-          updated_at: new Date().toISOString()
-        }, {
-          onConflict: meetingId ? 'company_id,meeting_id' : 'company_id'
-        });
+      const dataToSave = {
+        company_id: profile.company_id,
+        meeting_id: meetingId || null,
+        onboarding: newData.onboarding,
+        on_probation: newData.onProbation,
+        active: newData.active,
+        required_staffing_level: newData.requiredStaffingLevel,
+        updated_at: new Date().toISOString()
+      };
 
-      if (error) {
-        console.error('ResourcingOverview: Error saving data:', error);
-        throw error;
+      console.log('💾 ResourcingOverview: Attempting database save with payload:', dataToSave);
+
+      // First try to update existing record
+      const { data: existingData } = await supabase
+        .from('resourcing_overview')
+        .select('id')
+        .eq('company_id', profile.company_id)
+        .eq('meeting_id', meetingId || null)
+        .maybeSingle();
+
+      let result;
+      if (existingData) {
+        // Update existing record
+        console.log('📝 ResourcingOverview: Updating existing record:', existingData.id);
+        result = await supabase
+          .from('resourcing_overview')
+          .update(dataToSave)
+          .eq('id', existingData.id)
+          .select();
       } else {
-        console.log('ResourcingOverview: Data saved successfully');
+        // Insert new record
+        console.log('➕ ResourcingOverview: Inserting new record');
+        result = await supabase
+          .from('resourcing_overview')
+          .insert(dataToSave)
+          .select();
+      }
+
+      if (result.error) {
+        console.error('❌ ResourcingOverview: Database save failed:', result.error);
+        throw result.error;
+      } else {
+        console.log('✅ ResourcingOverview: Successfully saved to database:', result.data);
         // Save to localStorage as backup
         const backupKey = meetingId ? `resourcing_overview_backup_${profile.company_id}_${meetingId}` : `resourcing_overview_backup_${profile.company_id}`;
         localStorage.setItem(backupKey, JSON.stringify(newData));
+        console.log('💾 ResourcingOverview: Also saved backup to localStorage:', backupKey);
         
         // Trigger a custom event to notify other components that data has been updated
         window.dispatchEvent(new CustomEvent('resourcing-data-updated', { 
@@ -162,11 +186,12 @@ export const ResourcingOverview = ({
         }));
       }
     } catch (error) {
-      console.error('ResourcingOverview: Error saving data:', error);
+      console.error('❌ ResourcingOverview: Exception in saveData:', error);
       // Save to localStorage as fallback
       if (profile?.company_id) {
         const backupKey = meetingId ? `resourcing_overview_backup_${profile.company_id}_${meetingId}` : `resourcing_overview_backup_${profile.company_id}`;
         localStorage.setItem(backupKey, JSON.stringify(newData));
+        console.log('💾 ResourcingOverview: Exception fallback to localStorage:', backupKey);
       }
     }
   };
