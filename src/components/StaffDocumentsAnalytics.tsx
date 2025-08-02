@@ -210,27 +210,61 @@ export const StaffDocumentsAnalytics = ({
   const saveComplianceData = async (newData: typeof complianceData) => {
     if (!profile?.company_id) return;
 
+    console.log('🔄 StaffDocumentsAnalytics: Starting save operation', {
+      companyId: profile.company_id,
+      data: newData,
+      timestamp: new Date().toISOString()
+    });
+
     try {
-      const { error } = await supabase.from('staff_documents_analytics').upsert({
+      const dataToSave = {
         company_id: profile.company_id,
         documents_data: newData,
         updated_at: new Date().toISOString()
-      }, {
-        onConflict: 'company_id'
-      });
+      };
 
-      if (error) {
-        console.error('Error saving compliance data:', error);
-        throw error;
+      console.log('💾 StaffDocumentsAnalytics: Attempting database save with payload:', dataToSave);
+
+      // First try to update existing record
+      const { data: existingData } = await supabase
+        .from('staff_documents_analytics')
+        .select('id')
+        .eq('company_id', profile.company_id)
+        .maybeSingle();
+
+      let result;
+      if (existingData) {
+        // Update existing record
+        console.log('📝 StaffDocumentsAnalytics: Updating existing record:', existingData.id);
+        result = await supabase
+          .from('staff_documents_analytics')
+          .update(dataToSave)
+          .eq('id', existingData.id)
+          .select();
       } else {
+        // Insert new record
+        console.log('➕ StaffDocumentsAnalytics: Inserting new record');
+        result = await supabase
+          .from('staff_documents_analytics')
+          .insert(dataToSave)
+          .select();
+      }
+
+      if (result.error) {
+        console.error('❌ StaffDocumentsAnalytics: Database save failed:', result.error);
+        throw result.error;
+      } else {
+        console.log('✅ StaffDocumentsAnalytics: Successfully saved to database:', result.data);
         // Save to localStorage as backup
         localStorage.setItem(`staff_documents_backup_${profile.company_id}`, JSON.stringify(newData));
+        console.log('💾 StaffDocumentsAnalytics: Also saved backup to localStorage');
       }
     } catch (error) {
-      console.error('Error saving compliance data:', error);
+      console.error('❌ StaffDocumentsAnalytics: Exception in saveData:', error);
       // Save to localStorage as fallback
       if (profile?.company_id) {
         localStorage.setItem(`staff_documents_backup_${profile.company_id}`, JSON.stringify(newData));
+        console.log('💾 StaffDocumentsAnalytics: Exception fallback to localStorage');
       }
     }
   };
