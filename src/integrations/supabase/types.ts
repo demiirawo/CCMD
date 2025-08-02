@@ -263,6 +263,7 @@ export type Database = {
           logo_url: string | null
           name: string
           services: string[] | null
+          slug: string | null
           theme_color: string | null
           updated_at: string
         }
@@ -272,6 +273,7 @@ export type Database = {
           logo_url?: string | null
           name: string
           services?: string[] | null
+          slug?: string | null
           theme_color?: string | null
           updated_at?: string
         }
@@ -281,6 +283,7 @@ export type Database = {
           logo_url?: string | null
           name?: string
           services?: string[] | null
+          slug?: string | null
           theme_color?: string | null
           updated_at?: string
         }
@@ -1006,6 +1009,10 @@ export type Database = {
           required_permission: Database["public"]["Enums"]["user_permission"]
         }
         Returns: boolean
+      }
+      generate_slug: {
+        Args: { input_text: string }
+        Returns: string
       }
       get_user_company_id: {
         Args: Record<PropertyKey, never>
