@@ -122,15 +122,7 @@ export type Database = {
           timestamp?: string
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "actions_log_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       analytics_backups: {
         Row: {
@@ -166,15 +158,7 @@ export type Database = {
           timestamp?: string
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "analytics_backups_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       care_notes_analytics: {
         Row: {
@@ -202,13 +186,6 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "care_notes_analytics_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: true
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "care_notes_analytics_meeting_id_fkey"
             columns: ["meeting_id"]
@@ -246,15 +223,7 @@ export type Database = {
           monthly_data?: Json
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "care_plan_analytics_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       companies: {
         Row: {
@@ -314,15 +283,7 @@ export type Database = {
           meeting_id?: string | null
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "dashboard_data_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       feedback_analytics: {
         Row: {
@@ -349,15 +310,7 @@ export type Database = {
           monthly_data?: Json
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "feedback_analytics_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       incidents_analytics: {
         Row: {
@@ -385,13 +338,6 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "incidents_analytics_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: true
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "incidents_analytics_meeting_id_fkey"
             columns: ["meeting_id"]
@@ -435,15 +381,7 @@ export type Database = {
           status?: string
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "key_documents_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       medication_analytics: {
         Row: {
@@ -467,15 +405,7 @@ export type Database = {
           monthly_data?: Json
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "medication_analytics_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: true
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       meeting_headers: {
         Row: {
@@ -508,15 +438,7 @@ export type Database = {
           title?: string
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "meeting_headers_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: true
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       meeting_sessions: {
         Row: {
@@ -558,15 +480,7 @@ export type Database = {
           title?: string | null
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "meeting_sessions_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       meetings: {
         Row: {
@@ -703,15 +617,7 @@ export type Database = {
           updated_at?: string
           year?: number
         }
-        Relationships: [
-          {
-            foreignKeyName: "quarterly_reports_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       spot_check_analytics: {
         Row: {
@@ -741,15 +647,7 @@ export type Database = {
           monthly_data?: Json
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "spot_check_analytics_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       staff_documents_analytics: {
         Row: {
@@ -773,15 +671,7 @@ export type Database = {
           id?: string
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "staff_documents_analytics_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: true
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       staff_training_analytics: {
         Row: {
@@ -805,15 +695,7 @@ export type Database = {
           training_data?: Json
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "staff_training_analytics_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: true
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       subsection_data: {
         Row: {
@@ -858,15 +740,7 @@ export type Database = {
           status?: string | null
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "subsection_data_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       supervision_analytics: {
         Row: {
@@ -896,15 +770,7 @@ export type Database = {
           monthly_data?: Json
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "supervision_analytics_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       team_members: {
         Row: {
@@ -937,13 +803,6 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "fk_team_members_company"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "team_members_company_id_fkey"
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
