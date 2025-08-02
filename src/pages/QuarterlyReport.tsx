@@ -1171,14 +1171,7 @@ REPORTING INSTRUCTIONS:
                       }
                       if (line.trim().length > 20 && line.trim().length <= 50) {
                         // Shorter content lines - subheadings or brief statements
-                        return <p key={lineIndex} className="mb-4 text-gray-800 leading-relaxed font-medium" style={{
-                          marginBottom: '1rem',
-                          lineHeight: '1.6',
-                          fontSize: '11pt',
-                          fontWeight: '500'
-                        }}>
-                                  {line.trim()}
-                                </p>;
+                        return;
                       }
                       if (line.trim().length > 0) {
                         // Other content - brief lines
@@ -1186,7 +1179,7 @@ REPORTING INSTRUCTIONS:
                           marginBottom: '0.75rem',
                           lineHeight: '1.6',
                           fontSize: '12pt'
-                        }} className="mb-3 text-gray-700 leading-relaxed text-4xl text-center">
+                        }} className="mb-3 text-gray-700 leading-relaxed text-4xl text-center font-extrabold">
                                   {line.trim()}
                                 </p>;
                       }
