@@ -278,7 +278,16 @@ export const useAuthProvider = (): AuthContextType => {
     try {
       // Clear session storage when logging out
       sessionStorage.clear();
-      localStorage.clear();
+      
+      // Clear only auth-related localStorage items, preserve analytics backups
+      const keysToRemove = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && !key.includes('_backup_') && !key.includes('_analytics')) {
+          keysToRemove.push(key);
+        }
+      }
+      keysToRemove.forEach(key => localStorage.removeItem(key));
       
       const { error } = await supabase.auth.signOut();
       
