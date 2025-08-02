@@ -161,12 +161,10 @@ export const CompanySelection = () => {
               <CardTitle>Welcome, {profile?.username || 'User'}!</CardTitle>
               
             </div>
-            <Button variant="outline" onClick={handleSignOut}>
+            <Button variant="outline" onClick={handleSignOut} className="bg-stone-50">
               Sign Out
             </Button>
-            <Button variant="outline" onClick={handleRefreshCompanies}>
-              Refresh
-            </Button>
+            
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -175,7 +173,7 @@ export const CompanySelection = () => {
               <h3 className="text-lg font-semibold">Search Companies</h3>
               <div className="relative">
                 <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input placeholder="Search company name..." value={searchValue} onChange={e => setSearchValue(e.target.value)} className="pl-9" />
+                <Input placeholder="Search company name..." value={searchValue} onChange={e => setSearchValue(e.target.value)} className="pl-9 bg-stone-50" />
               </div>
             </div>
 
