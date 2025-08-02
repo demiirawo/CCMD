@@ -17,7 +17,6 @@ import { MeetingStatusSummary } from "@/components/MeetingStatusSummary";
 import { StatusBadge } from "@/components/StatusBadge";
 import { QuarterlyReportGenerator } from "@/components/QuarterlyReportGenerator";
 import { ReadOnlyDashboardView } from "@/components/ReadOnlyDashboardView";
-
 interface Meeting {
   id: string;
   date: string;
@@ -29,7 +28,6 @@ interface Meeting {
   year: number;
   created_at: string;
 }
-
 interface ParsedMeeting {
   id: string;
   date: string;
@@ -51,14 +49,14 @@ interface ParsedMeeting {
   year: number;
   created_at: string;
 }
-
 interface GroupedMeetings {
   [key: string]: ParsedMeeting[];
 }
-
 export const Reports = () => {
-  const { profile } = useAuth();
-  
+  const {
+    profile
+  } = useAuth();
+
   // Check if user has edit permissions
   const canEdit = profile?.permission === 'edit' || profile?.permission === 'company_admin' || profile?.role === 'admin';
   useTheme(); // Apply dynamic theme
@@ -66,14 +64,14 @@ export const Reports = () => {
   const [loading, setLoading] = useState(true);
   const [expandedQuarters, setExpandedQuarters] = useState<Record<string, boolean>>({});
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
-  const { toast } = useToast();
-  
+  const {
+    toast
+  } = useToast();
   useEffect(() => {
     if (profile?.company_id) {
       fetchMeetings();
     }
   }, [profile?.company_id]);
-
   useEffect(() => {
     if (profile?.company_id) {
       fetchMeetings();
@@ -83,22 +81,20 @@ export const Reports = () => {
       return () => clearInterval(interval);
     }
   }, [profile?.company_id]);
-
   const fetchMeetings = async () => {
     if (!profile?.company_id) {
       console.log('No company_id found in profile, skipping meetings fetch');
       setLoading(false);
       return;
     }
-
     try {
       console.log('Fetching meetings for company:', profile.company_id);
-      const { data, error } = await supabase
-        .from('meetings')
-        .select('*')
-        .eq('company_id', profile.company_id)
-        .order('date', { ascending: false });
-
+      const {
+        data,
+        error
+      } = await supabase.from('meetings').select('*').eq('company_id', profile.company_id).order('date', {
+        ascending: false
+      });
       if (error) {
         console.error('Error fetching meetings:', error);
         return;
@@ -111,7 +107,6 @@ export const Reports = () => {
         sections: JSON.parse(typeof meeting.sections === 'string' ? meeting.sections : '[]'),
         actions_log: JSON.parse(typeof (meeting as any).actions_log === 'string' ? (meeting as any).actions_log : '[]')
       }));
-
       setMeetings(parsedMeetings);
       console.log('Fetched meetings:', parsedMeetings);
     } catch (error) {
@@ -120,14 +115,11 @@ export const Reports = () => {
       setLoading(false);
     }
   };
-
   const deleteMeeting = async (meetingId: string) => {
     try {
-      const { error } = await supabase
-        .from('meetings')
-        .delete()
-        .eq('id', meetingId);
-
+      const {
+        error
+      } = await supabase.from('meetings').delete().eq('id', meetingId);
       if (error) {
         console.error('Error deleting meeting:', error);
         toast({
@@ -153,7 +145,6 @@ export const Reports = () => {
       });
     }
   };
-
   const getQuarter = (date: string) => {
     const month = new Date(date).getMonth() + 1;
     if (month <= 3) return 'Q1';
@@ -161,16 +152,13 @@ export const Reports = () => {
     if (month <= 9) return 'Q3';
     return 'Q4';
   };
-
   const getCurrentQuarter = () => {
     const now = new Date();
     return getQuarter(now.toISOString());
   };
-
   const getCurrentYear = () => {
     return new Date().getFullYear();
   };
-
   const groupMeetingsByQuarter = (meetings: ParsedMeeting[]): GroupedMeetings => {
     const grouped: GroupedMeetings = {};
     meetings.forEach(meeting => {
@@ -182,7 +170,6 @@ export const Reports = () => {
     });
     return grouped;
   };
-
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-GB', {
       day: '2-digit',
@@ -192,23 +179,18 @@ export const Reports = () => {
       minute: '2-digit'
     });
   };
-
   const isCurrentQuarter = (quarter: string, year: number) => {
     return quarter === getCurrentQuarter() && year === getCurrentYear();
   };
-  
   const toggleQuarterExpansion = (quarterKey: string) => {
     setExpandedQuarters(prev => ({
       ...prev,
       [quarterKey]: !prev[quarterKey]
     }));
   };
-  
   const isQuarterExpanded = (quarterKey: string) => {
     return expandedQuarters[quarterKey] ?? true; // Default to expanded
   };
-
-
   const handleExportPDF = async (meetingId: string, meetingTitle: string) => {
     try {
       toast({
@@ -218,14 +200,13 @@ export const Reports = () => {
 
       // First check if there's an open preview dialog we can use
       let previewElement = document.querySelector(`[data-meeting-preview="${meetingId}"]`);
-      
       if (!previewElement) {
         // If no preview is open, we need to temporarily open one
         toast({
           title: "Opening Preview",
           description: "Opening preview to generate PDF..."
         });
-        
+
         // Create a temporary modal container
         const tempModal = document.createElement('div');
         tempModal.style.position = 'fixed';
@@ -238,7 +219,6 @@ export const Reports = () => {
         tempModal.style.display = 'flex';
         tempModal.style.alignItems = 'center';
         tempModal.style.justifyContent = 'center';
-        
         const dialogContent = document.createElement('div');
         dialogContent.style.width = '95vw';
         dialogContent.style.height = '95vh';
@@ -246,21 +226,22 @@ export const Reports = () => {
         dialogContent.style.borderRadius = '8px';
         dialogContent.style.overflow = 'hidden';
         dialogContent.setAttribute('data-meeting-preview', meetingId);
-        
         tempModal.appendChild(dialogContent);
         document.body.appendChild(tempModal);
-        
+
         // Import and render the ReadOnlyDashboardView
         const React = (await import('react')).default;
         const ReactDOM = (await import('react-dom/client')).default;
-        const { ReadOnlyDashboardView } = await import('@/components/ReadOnlyDashboardView');
-        
+        const {
+          ReadOnlyDashboardView
+        } = await import('@/components/ReadOnlyDashboardView');
         const root = ReactDOM.createRoot(dialogContent);
-        root.render(React.createElement(ReadOnlyDashboardView, { meetingId }));
-        
+        root.render(React.createElement(ReadOnlyDashboardView, {
+          meetingId
+        }));
+
         // Wait for the component to fully render
         await new Promise(resolve => setTimeout(resolve, 3000));
-        
         previewElement = dialogContent;
       }
 
@@ -273,10 +254,10 @@ export const Reports = () => {
       tempContainer.style.backgroundColor = 'white';
       tempContainer.style.padding = '10mm';
       tempContainer.style.boxSizing = 'border-box';
-      
+
       // Clone the preview content
       tempContainer.innerHTML = previewElement.innerHTML;
-      
+
       // Apply PDF-specific styles that preserve the design
       const style = document.createElement('style');
       style.textContent = `
@@ -344,7 +325,6 @@ export const Reports = () => {
         #${tempContainer.id} .w-8 { width: 32px !important; }
         #${tempContainer.id} .h-8 { height: 32px !important; }
       `;
-      
       tempContainer.id = `pdf-export-${Date.now()}`;
       document.head.appendChild(style);
       document.body.appendChild(tempContainer);
@@ -358,14 +338,15 @@ export const Reports = () => {
         useCORS: true,
         allowTaint: true,
         backgroundColor: '#ffffff',
-        width: Math.ceil(210 * 3.779527559), // A4 width in pixels at 96 DPI
+        width: Math.ceil(210 * 3.779527559),
+        // A4 width in pixels at 96 DPI
         height: tempContainer.scrollHeight
       });
 
       // Clean up temporary elements
       document.head.removeChild(style);
       document.body.removeChild(tempContainer);
-      
+
       // Clean up temporary modal if we created one
       const tempModal = document.querySelector('[style*="position: fixed"][style*="z-index: 9999"]');
       if (tempModal && !document.querySelector('[data-meeting-preview]').closest('.dialog')) {
@@ -378,15 +359,13 @@ export const Reports = () => {
         unit: 'mm',
         format: 'a4'
       });
-
       const imgWidth = 210; // A4 width in mm
       const pageHeight = 297; // A4 height in mm
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      const imgHeight = canvas.height * imgWidth / canvas.width;
       let heightLeft = imgHeight;
       let position = 0;
-
       const imgData = canvas.toDataURL('image/png');
-      
+
       // Add first page
       pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
       heightLeft -= pageHeight;
@@ -398,9 +377,7 @@ export const Reports = () => {
         pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
         heightLeft -= pageHeight;
       }
-
       pdf.save(`${meetingTitle.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_meeting_report.pdf`);
-
       toast({
         title: "PDF Generated",
         description: "Your meeting report has been downloaded successfully"
@@ -422,91 +399,63 @@ export const Reports = () => {
   };
 
   // Filter meetings by selected year
-  const filteredMeetings = selectedYear 
-    ? meetings.filter(meeting => meeting.year === selectedYear)
-    : meetings;
-  
+  const filteredMeetings = selectedYear ? meetings.filter(meeting => meeting.year === selectedYear) : meetings;
   const groupedMeetings = groupMeetingsByQuarter(filteredMeetings);
-
   if (loading) {
-    return (
-      <div className="min-h-screen bg-background p-4 lg:p-8">
+    return <div className="min-h-screen bg-background p-4 lg:p-8">
         <div className="max-w-7xl mx-auto">
           <div className="text-center py-8">Loading meetings...</div>
         </div>
-      </div>
-    );
+      </div>;
   }
-
   if (!profile?.company_id) {
-    return (
-      <div className="min-h-screen bg-background p-4 lg:p-8">
+    return <div className="min-h-screen bg-background p-4 lg:p-8">
         <div className="max-w-7xl mx-auto">
           <div className="text-center py-8">Please select a company to view reports.</div>
         </div>
-      </div>
-    );
+      </div>;
   }
-
-  return (
-    <div className="min-h-screen bg-gray-100 p-4 lg:p-8 pt-24">
+  return <div className="min-h-screen bg-gray-100 p-4 lg:p-8 pt-24">
       <div className="w-[90%] mx-auto space-y-6">
         {/* Year Filter */}
         <div className="flex items-center gap-4 mb-6">
           <label className="text-sm font-medium text-foreground">Filter by Year:</label>
-          <Select 
-            value={selectedYear?.toString() || "all"} 
-            onValueChange={(value) => setSelectedYear(value === "all" ? null : parseInt(value))}
-          >
+          <Select value={selectedYear?.toString() || "all"} onValueChange={value => setSelectedYear(value === "all" ? null : parseInt(value))}>
             <SelectTrigger className="w-48">
               <SelectValue placeholder="Select year" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Years</SelectItem>
-              {getAvailableYears().map(year => (
-                <SelectItem key={year} value={year.toString()}>
+              {getAvailableYears().map(year => <SelectItem key={year} value={year.toString()}>
                   {year}
-                </SelectItem>
-              ))}
+                </SelectItem>)}
             </SelectContent>
           </Select>
-          {selectedYear && (
-            <span className="text-sm text-muted-foreground">
+          {selectedYear && <span className="text-sm text-muted-foreground">
               Showing {filteredMeetings.length} meeting{filteredMeetings.length !== 1 ? 's' : ''} from {selectedYear}
-            </span>
-          )}
+            </span>}
         </div>
-        {Object.keys(groupedMeetings).length === 0 ? (
-          <Card>
+        {Object.keys(groupedMeetings).length === 0 ? <Card>
             <CardContent className="py-8 text-center">
               <FileText className="mx-auto h-12 w-12 text-gray-400 mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">No meetings saved yet</h3>
             </CardContent>
-          </Card>
-        ) : (
-          <div className="space-y-6">
+          </Card> : <div className="space-y-6">
             {Object.entries(groupedMeetings).sort(([a], [b]) => b.localeCompare(a)).map(([quarterKey, quarterMeetings]) => {
-              const [year, quarter] = quarterKey.split('-');
-              const yearNum = parseInt(year);
-              const isCurrent = isCurrentQuarter(quarter, yearNum);
-              const isExpanded = isQuarterExpanded(quarterKey);
-              
-              return (
-                <div key={quarterKey} className="rounded-2xl shadow-lg border border-border/50 bg-primary/5 p-6">
+          const [year, quarter] = quarterKey.split('-');
+          const yearNum = parseInt(year);
+          const isCurrent = isCurrentQuarter(quarter, yearNum);
+          const isExpanded = isQuarterExpanded(quarterKey);
+          return <div key={quarterKey} className="shadow-lg border border-border/50 bg-primary/5 p-6 rounded-2xl mx-0 px-[55px]">
                   {/* Quarter Header with Collapsible Controls */}
-                  <div 
-                    className="flex items-center justify-between cursor-pointer mb-4"
-                    onClick={() => toggleQuarterExpansion(quarterKey)}
-                  >
+                  <div className="flex items-center justify-between cursor-pointer mb-4" onClick={() => toggleQuarterExpansion(quarterKey)}>
                     <div className="flex items-center gap-4">
                       <div>
                         <h2 className="text-2xl font-bold text-foreground">
                            {quarter} {year}
-                           {isCurrent && (
-                             <Badge variant="default" className="ml-3">
+                           {isCurrent && <Badge variant="default" className="ml-3">
                                Current Quarter
-                             </Badge>
-                           )}
+                             </Badge>}
                         </h2>
                         <p className="text-sm text-muted-foreground mt-1">
                           {quarterMeetings.length} meeting{quarterMeetings.length !== 1 ? 's' : ''} saved
@@ -515,30 +464,19 @@ export const Reports = () => {
                     </div>
                     
                     <div className="flex items-center gap-3">
-                      {canEdit && (
-                        <div onClick={(e) => e.stopPropagation()}>
-                          <QuarterlyReportGenerator 
-                            quarter={quarter}
-                            year={year}
-                            meetings={quarterMeetings}
-                          />
-                        </div>
-                      )}
+                      {canEdit && <div onClick={e => e.stopPropagation()}>
+                          <QuarterlyReportGenerator quarter={quarter} year={year} meetings={quarterMeetings} />
+                        </div>}
                       
                       <div className="p-1 rounded-lg hover:bg-accent/50 transition-colors">
-                        {isExpanded ? 
-                          <ChevronDown className="w-5 h-5 text-muted-foreground" /> : 
-                          <ChevronRight className="w-5 h-5 text-muted-foreground" />
-                        }
+                        {isExpanded ? <ChevronDown className="w-5 h-5 text-muted-foreground" /> : <ChevronRight className="w-5 h-5 text-muted-foreground" />}
                       </div>
                     </div>
                   </div>
 
                   {/* Collapsible Quarter Content */}
-                  {isExpanded && (
-                    <div className="space-y-3 pt-4 border-t border-border/20">
-                      {quarterMeetings.map(meeting => (
-                        <div key={meeting.id} className="rounded-lg p-4 border bg-white">
+                  {isExpanded && <div className="space-y-3 pt-4 border-t border-border/20">
+                      {quarterMeetings.map(meeting => <div key={meeting.id} className="rounded-lg p-4 border bg-white">
                           <div className="flex items-center justify-between w-full">
                             <div className="flex items-center gap-6 flex-1">
                               <h4 className="font-medium text-foreground">
@@ -570,11 +508,7 @@ export const Reports = () => {
                                           {meeting.title} - Dashboard View
                                         </DialogTitle>
                                         <div className="flex items-center gap-2">
-                                           <Button 
-                                             variant="outline" 
-                                             size="sm" 
-                                             onClick={() => handleExportPDF(meeting.id, meeting.title)}
-                                           >
+                                           <Button variant="outline" size="sm" onClick={() => handleExportPDF(meeting.id, meeting.title)}>
                                              Save PDF
                                            </Button>
                                           <DialogTrigger asChild>
@@ -596,17 +530,12 @@ export const Reports = () => {
 
 
                                {/* Export PDF Button */}
-                                <Button 
-                                  variant="default" 
-                                  size="sm" 
-                                  onClick={() => handleExportPDF(meeting.id, meeting.title)}
-                                >
+                                <Button variant="default" size="sm" onClick={() => handleExportPDF(meeting.id, meeting.title)}>
                                   PDF
                                 </Button>
 
                               {/* Delete Meeting Dialog */}
-                              {canEdit && (
-                                <AlertDialog>
+                              {canEdit && <AlertDialog>
                                   <AlertDialogTrigger asChild>
                                       <Button variant="destructive" size="sm" className="bg-red-600 hover:bg-red-700 text-white">
                                         Delete
@@ -621,16 +550,12 @@ export const Reports = () => {
                                     </AlertDialogHeader>
                                     <AlertDialogFooter>
                                       <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                      <AlertDialogAction 
-                                        onClick={() => deleteMeeting(meeting.id)} 
-                                        className="bg-destructive hover:bg-destructive/90"
-                                      >
+                                      <AlertDialogAction onClick={() => deleteMeeting(meeting.id)} className="bg-destructive hover:bg-destructive/90">
                                         Delete
                                       </AlertDialogAction>
                                     </AlertDialogFooter>
                                   </AlertDialogContent>
-                                </AlertDialog>
-                              )}
+                                </AlertDialog>}
                             </div>
                           </div>
 
@@ -643,16 +568,11 @@ export const Reports = () => {
                               
                               <ReadOnlyDashboardView meetingId={meeting.id} />
                             </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        )}
+                        </div>)}
+                    </div>}
+                </div>;
+        })}
+          </div>}
       </div>
-    </div>
-  );
+    </div>;
 };
