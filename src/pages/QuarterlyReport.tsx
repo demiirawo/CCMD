@@ -43,6 +43,62 @@ export const QuarterlyReport = () => {
   const shouldGenerate = searchParams.get("generate") === "true";
   const contextParam = searchParams.get("context") || "";
 
+  // Load existing report from database if no content in URL
+  useEffect(() => {
+    if (!content && !shouldGenerate && quarter && year && profile?.company_id) {
+      loadExistingReport();
+    }
+  }, [quarter, year, profile?.company_id, content, shouldGenerate]);
+
+  const loadExistingReport = async () => {
+    if (!profile?.company_id || !quarter || !year) return;
+
+    try {
+      console.log('🔍 Loading existing report from database...');
+      const { data, error } = await supabase
+        .from('quarterly_reports')
+        .select('report_content, analytics_data')
+        .eq('company_id', profile.company_id)
+        .eq('quarter', quarter)
+        .eq('year', parseInt(year))
+        .maybeSingle();
+
+      if (error) {
+        console.error('Error loading existing report:', error);
+        toast({
+          title: "Error Loading Report",
+          description: "Failed to load the saved report from database.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      if (data && data.report_content) {
+        console.log('✅ Found existing report in database');
+        setReportContent(data.report_content);
+        splitContentIntoPages(data.report_content);
+        
+        if (data.analytics_data && typeof data.analytics_data === 'object') {
+          setAnalyticsImages(data.analytics_data as { [key: string]: any });
+        }
+      } else {
+        console.log('❌ No existing report found in database');
+        toast({
+          title: "No Report Found",
+          description: "No saved report was found for this quarter and year.",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error('Error loading existing report:', error);
+      toast({
+        title: "Loading Error",
+        description: "An unexpected error occurred while loading the report.",
+        variant: "destructive"
+      });
+    }
+  };
+
   // Generate report with AI if requested
   useEffect(() => {
     console.log('🔍 useEffect triggered - checking generation conditions');
