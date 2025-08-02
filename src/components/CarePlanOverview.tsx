@@ -32,17 +32,25 @@ export const CarePlanOverview = ({
       loadData();
     }
   }, [profile?.company_id, meetingId]);
+
+  useEffect(() => {
+    // Always reload from database when meeting date changes to preserve all data
+    if (profile?.company_id) {
+      loadData();
+    }
+  }, [meetingDate, profile?.company_id, meetingId]);
   const loadData = async () => {
     if (!profile?.company_id) return;
     
     console.log('🔍 CarePlanOverview: Loading data for company_id:', profile.company_id, 'meetingId:', meetingId);
+    console.log('🔍 CarePlanOverview: Props received - meetingDate:', meetingDate, 'meetingId:', meetingId);
     
     try {
       // Strategy: Load ALL care plan data for this company and consolidate the most recent data
       // This ensures we don't lose data due to meeting ID inconsistencies
       const { data: allData, error } = await supabase
         .from('care_plan_overview')
-        .select('*')
+        .select('id, meeting_id, high_risk, medium_risk, low_risk, na_risk, updated_at')
         .eq('company_id', profile.company_id)
         .order('updated_at', { ascending: false });
 
@@ -53,40 +61,33 @@ export const CarePlanOverview = ({
         return;
       }
 
+      let consolidatedData = {
+        highRisk: 0,
+        mediumRisk: 0,
+        lowRisk: 0,
+        naRisk: 0,
+        overdue: 0
+      };
+      
       if (allData && allData.length > 0) {
         console.log('🔍 CarePlanOverview: Consolidating data from', allData.length, 'records');
         
-        // Use the most recent non-zero values, prioritizing data from the current meeting if available
-        let consolidatedData = {
-          highRisk: 0,
-          mediumRisk: 0,
-          lowRisk: 0,
-          naRisk: 0,
-          overdue: 0
-        };
+        // Consolidate data from all records, prioritizing non-zero values and most recent updates
+        const dataFields = ['high_risk', 'medium_risk', 'low_risk', 'na_risk'];
         
-        // Process all records to find the best values
-        allData.forEach((record, index) => {
-          console.log(`🔍 CarePlanOverview: Processing record ${index + 1}:`, record);
+        // Process all records, starting with newest
+        allData.forEach((record, recordIndex) => {
+          console.log(`🔍 CarePlanOverview: Processing record ${recordIndex + 1}:`, record);
           
-          // If this is the first record or if we find non-zero values, use them
-          if (index === 0 || 
-              (record.high_risk > 0 && consolidatedData.highRisk === 0) ||
-              (record.medium_risk > 0 && consolidatedData.mediumRisk === 0) ||
-              (record.low_risk > 0 && consolidatedData.lowRisk === 0) ||
-              (record.na_risk > 0 && consolidatedData.naRisk === 0)) {
-            
-            consolidatedData = {
-              highRisk: record.high_risk || consolidatedData.highRisk,
-              mediumRisk: record.medium_risk || consolidatedData.mediumRisk,
-              lowRisk: record.low_risk || consolidatedData.lowRisk,
-              naRisk: record.na_risk || consolidatedData.naRisk,
-              overdue: 0 // Note: overdue is not stored in new table structure
-            };
-          }
+          // Merge data, keeping non-zero values
+          dataFields.forEach(field => {
+            const camelCaseField = field.replace(/_([a-z])/g, (g) => g[1].toUpperCase()) as keyof typeof consolidatedData;
+            if (record[field] > 0 || consolidatedData[camelCaseField] === 0) {
+              consolidatedData[camelCaseField] = record[field];
+            }
+          });
         });
         
-        console.log('🔍 CarePlanOverview: Consolidated data:', consolidatedData);
         setData(consolidatedData);
         
         // Initialize display values with consolidated data (show numbers, but allow empty fields)
@@ -106,19 +107,23 @@ export const CarePlanOverview = ({
         if (backupData) {
           try {
             const backup = JSON.parse(backupData);
-            setData(backup);
+            const mergedData = { ...consolidatedData, ...backup };
+            setData(mergedData);
             // Initialize display values with backup data
             setDisplayValues({
-              highRisk: backup.highRisk === 0 ? '' : backup.highRisk.toString(),
-              mediumRisk: backup.mediumRisk === 0 ? '' : backup.mediumRisk.toString(),
-              lowRisk: backup.lowRisk === 0 ? '' : backup.lowRisk.toString(),
-              naRisk: backup.naRisk === 0 ? '' : backup.naRisk.toString(),
-              overdue: backup.overdue === 0 ? '' : backup.overdue.toString(),
+              highRisk: mergedData.highRisk === 0 ? '' : mergedData.highRisk.toString(),
+              mediumRisk: mergedData.mediumRisk === 0 ? '' : mergedData.mediumRisk.toString(),
+              lowRisk: mergedData.lowRisk === 0 ? '' : mergedData.lowRisk.toString(),
+              naRisk: mergedData.naRisk === 0 ? '' : mergedData.naRisk.toString(),
+              overdue: mergedData.overdue === 0 ? '' : mergedData.overdue.toString(),
             });
             console.log('✅ CarePlanOverview: Loaded from localStorage backup');
           } catch (error) {
             console.error('Error loading backup data:', error);
+            setData(consolidatedData);
           }
+        } else {
+          setData(consolidatedData);
         }
       }
     } catch (error) {
@@ -129,7 +134,15 @@ export const CarePlanOverview = ({
       if (backupData) {
         try {
           const backup = JSON.parse(backupData);
-          setData(backup);
+          const mergedData = { highRisk: 0, mediumRisk: 0, lowRisk: 0, naRisk: 0, overdue: 0, ...backup };
+          setData(mergedData);
+          setDisplayValues({
+            highRisk: mergedData.highRisk === 0 ? '' : mergedData.highRisk.toString(),
+            mediumRisk: mergedData.mediumRisk === 0 ? '' : mergedData.mediumRisk.toString(),
+            lowRisk: mergedData.lowRisk === 0 ? '' : mergedData.lowRisk.toString(),
+            naRisk: mergedData.naRisk === 0 ? '' : mergedData.naRisk.toString(),
+            overdue: mergedData.overdue === 0 ? '' : mergedData.overdue.toString(),
+          });
         } catch (error) {
           console.error('Error loading backup data:', error);
         }
@@ -147,34 +160,61 @@ export const CarePlanOverview = ({
     });
     
     try {
-      const { error } = await supabase
-        .from('care_plan_overview')
-        .upsert({
-          company_id: profile.company_id,
-          meeting_id: meetingId || null,
-          high_risk: newData.highRisk,
-          medium_risk: newData.mediumRisk,
-          low_risk: newData.lowRisk,
-          na_risk: newData.naRisk,
-          updated_at: new Date().toISOString()
-        }, {
-          onConflict: meetingId ? 'company_id,meeting_id' : 'company_id'
-        });
+      const dataToSave = {
+        company_id: profile.company_id,
+        meeting_id: meetingId || null,
+        high_risk: newData.highRisk,
+        medium_risk: newData.mediumRisk,
+        low_risk: newData.lowRisk,
+        na_risk: newData.naRisk,
+        updated_at: new Date().toISOString()
+      };
 
-      if (error) {
-        console.error('Error saving care plan overview:', error);
-        throw error;
+      console.log('💾 CarePlanOverview: Attempting database save with payload:', dataToSave);
+
+      // First try to update existing record
+      const { data: existingData } = await supabase
+        .from('care_plan_overview')
+        .select('id')
+        .eq('company_id', profile.company_id)
+        .eq('meeting_id', meetingId || null)
+        .maybeSingle();
+
+      let result;
+      if (existingData) {
+        // Update existing record
+        console.log('📝 CarePlanOverview: Updating existing record:', existingData.id);
+        result = await supabase
+          .from('care_plan_overview')
+          .update(dataToSave)
+          .eq('id', existingData.id)
+          .select();
       } else {
+        // Insert new record
+        console.log('➕ CarePlanOverview: Inserting new record');
+        result = await supabase
+          .from('care_plan_overview')
+          .insert(dataToSave)
+          .select();
+      }
+
+      if (result.error) {
+        console.error('❌ CarePlanOverview: Database save failed:', result.error);
+        throw result.error;
+      } else {
+        console.log('✅ CarePlanOverview: Successfully saved to database:', result.data);
         // Save to localStorage as backup
         const backupKey = meetingId ? `care_plan_overview_backup_${profile.company_id}_${meetingId}` : `care_plan_overview_backup_${profile.company_id}`;
         localStorage.setItem(backupKey, JSON.stringify(newData));
+        console.log('💾 CarePlanOverview: Also saved backup to localStorage:', backupKey);
       }
     } catch (error) {
-      console.error('Error saving care plan overview:', error);
+      console.error('❌ CarePlanOverview: Exception in saveData:', error);
       // Save to localStorage as fallback
       if (profile?.company_id) {
         const backupKey = meetingId ? `care_plan_overview_backup_${profile.company_id}_${meetingId}` : `care_plan_overview_backup_${profile.company_id}`;
         localStorage.setItem(backupKey, JSON.stringify(newData));
+        console.log('💾 CarePlanOverview: Exception fallback to localStorage:', backupKey);
       }
     }
   };
