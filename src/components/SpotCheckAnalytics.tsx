@@ -195,29 +195,65 @@ export const SpotCheckAnalytics = ({
   const saveSpotCheckData = async (newData: typeof spotCheckData) => {
     if (!profile?.company_id) return;
 
-    try {
-      const { error } = await supabase.from('dashboard_data').upsert({
-        company_id: profile.company_id,
-        meeting_id: meetingId,
-        data_type: 'spot_check_analytics',
-        data_content: newData,
-        updated_at: new Date().toISOString()
-      }, {
-        onConflict: 'company_id,meeting_id,data_type'
-      });
+    console.log('🔄 SpotCheckAnalytics: Starting save operation', {
+      companyId: profile.company_id,
+      meetingId,
+      data: newData,
+      timestamp: new Date().toISOString()
+    });
 
-      if (error) {
-        console.error('Error saving spot check data:', error);
-        throw error;
+    try {
+      const dataToSave = {
+        company_id: profile.company_id,
+        meeting_id: meetingId || null,
+        monthly_data: newData,
+        metrics: newData,
+        updated_at: new Date().toISOString()
+      };
+
+      console.log('💾 SpotCheckAnalytics: Attempting database save with payload:', dataToSave);
+
+      // First try to update existing record
+      const { data: existingData } = await supabase
+        .from('spot_check_analytics')
+        .select('id')
+        .eq('company_id', profile.company_id)
+        .eq('meeting_id', meetingId || null)
+        .maybeSingle();
+
+      let result;
+      if (existingData) {
+        // Update existing record
+        console.log('📝 SpotCheckAnalytics: Updating existing record:', existingData.id);
+        result = await supabase
+          .from('spot_check_analytics')
+          .update(dataToSave)
+          .eq('id', existingData.id)
+          .select();
       } else {
+        // Insert new record
+        console.log('➕ SpotCheckAnalytics: Inserting new record');
+        result = await supabase
+          .from('spot_check_analytics')
+          .insert(dataToSave)
+          .select();
+      }
+
+      if (result.error) {
+        console.error('❌ SpotCheckAnalytics: Database save failed:', result.error);
+        throw result.error;
+      } else {
+        console.log('✅ SpotCheckAnalytics: Successfully saved to database:', result.data);
         // Save backup to localStorage
         localStorage.setItem(`spot_check_backup_${profile.company_id}`, JSON.stringify(newData));
+        console.log('💾 SpotCheckAnalytics: Also saved backup to localStorage');
       }
     } catch (error) {
-      console.error('Error saving spot check data:', error);
+      console.error('❌ SpotCheckAnalytics: Exception in saveData:', error);
       // Fallback to localStorage
       if (profile?.company_id) {
         localStorage.setItem(`spot_check_backup_${profile.company_id}`, JSON.stringify(newData));
+        console.log('💾 SpotCheckAnalytics: Exception fallback to localStorage');
       }
     }
   };
