@@ -210,29 +210,61 @@ export const StaffTrainingAnalytics = ({
   const saveComplianceData = async (newData: typeof complianceData) => {
     if (!profile?.company_id) return;
 
-    try {
-      const { error } = await supabase
-        .from('staff_training_analytics')
-        .upsert({
-          company_id: profile.company_id,
-          training_data: newData,
-          updated_at: new Date().toISOString()
-        }, {
-          onConflict: 'company_id'
-        });
+    console.log('🔄 StaffTrainingAnalytics: Starting save operation', {
+      companyId: profile.company_id,
+      data: newData,
+      timestamp: new Date().toISOString()
+    });
 
-      if (error) {
-        console.error('Error saving training compliance data:', error);
-        throw error;
+    try {
+      const dataToSave = {
+        company_id: profile.company_id,
+        training_data: newData,
+        updated_at: new Date().toISOString()
+      };
+
+      console.log('💾 StaffTrainingAnalytics: Attempting database save with payload:', dataToSave);
+
+      // First try to update existing record
+      const { data: existingData } = await supabase
+        .from('staff_training_analytics')
+        .select('id')
+        .eq('company_id', profile.company_id)
+        .maybeSingle();
+
+      let result;
+      if (existingData) {
+        // Update existing record
+        console.log('📝 StaffTrainingAnalytics: Updating existing record:', existingData.id);
+        result = await supabase
+          .from('staff_training_analytics')
+          .update(dataToSave)
+          .eq('id', existingData.id)
+          .select();
       } else {
+        // Insert new record
+        console.log('➕ StaffTrainingAnalytics: Inserting new record');
+        result = await supabase
+          .from('staff_training_analytics')
+          .insert(dataToSave)
+          .select();
+      }
+
+      if (result.error) {
+        console.error('❌ StaffTrainingAnalytics: Database save failed:', result.error);
+        throw result.error;
+      } else {
+        console.log('✅ StaffTrainingAnalytics: Successfully saved to database:', result.data);
         // Save backup to localStorage
         localStorage.setItem(`staff_training_backup_${profile.company_id}`, JSON.stringify(newData));
+        console.log('💾 StaffTrainingAnalytics: Also saved backup to localStorage');
       }
     } catch (error) {
-      console.error('Error saving training compliance data:', error);
+      console.error('❌ StaffTrainingAnalytics: Exception in saveData:', error);
       // Fallback to localStorage
       if (profile?.company_id) {
         localStorage.setItem(`staff_training_backup_${profile.company_id}`, JSON.stringify(newData));
+        console.log('💾 StaffTrainingAnalytics: Exception fallback to localStorage');
       }
     }
   };
