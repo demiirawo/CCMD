@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { CalendarDays, FileText, Users, Eye, Trash2, Clock, Target, ChevronDown, ChevronRight, X, Download } from "lucide-react";
+import { CalendarDays, FileText, Users, Eye, Trash2, Clock, Target, ChevronDown, ChevronRight, X, Download, ExternalLink } from "lucide-react";
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { useToast } from "@/hooks/use-toast";
@@ -17,6 +17,7 @@ import { MeetingStatusSummary } from "@/components/MeetingStatusSummary";
 import { StatusBadge } from "@/components/StatusBadge";
 import { QuarterlyReportGenerator } from "@/components/QuarterlyReportGenerator";
 import { ReadOnlyDashboardView } from "@/components/ReadOnlyDashboardView";
+import { AddMeetingDialog } from "@/components/AddMeetingDialog";
 interface Meeting {
   id: string;
   date: string;
@@ -27,6 +28,7 @@ interface Meeting {
   quarter: string;
   year: number;
   created_at: string;
+  document_url?: string; // Add document_url field
 }
 interface ParsedMeeting {
   id: string;
@@ -48,6 +50,7 @@ interface ParsedMeeting {
   quarter: string;
   year: number;
   created_at: string;
+  document_url?: string; // Add document_url field
 }
 interface GroupedMeetings {
   [key: string]: ParsedMeeting[];
@@ -497,6 +500,11 @@ export const Reports = () => {
   }
   return <div className="min-h-screen bg-gray-100 p-4 lg:p-8 pt-24">
       <div className="w-[90%] mx-auto space-y-6">
+        {/* Add Meeting Button */}
+        {canEdit && (
+          <AddMeetingDialog onMeetingAdded={fetchMeetings} />
+        )}
+
         {/* Year Filter */}
         <div className="flex items-center gap-4 mb-6">
           <label className="text-sm font-medium text-foreground">Filter by Year:</label>
@@ -570,6 +578,20 @@ export const Reports = () => {
                                 <Users className="h-4 w-4" />
                                 {meeting.attendees.length} attendee{meeting.attendees.length !== 1 ? 's' : ''}
                               </div>
+                              {meeting.document_url && (
+                                <div className="flex items-center gap-1 text-sm text-primary">
+                                  <FileText className="h-4 w-4" />
+                                  <a 
+                                    href={meeting.document_url} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    className="hover:underline flex items-center gap-1"
+                                  >
+                                    View Document
+                                    <ExternalLink className="h-3 w-3" />
+                                  </a>
+                                </div>
+                              )}
                               
                             </div>
                             <div className="flex items-center gap-2">

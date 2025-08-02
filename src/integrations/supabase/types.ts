@@ -610,6 +610,7 @@ export type Database = {
           company_id: string | null
           created_at: string
           date: string
+          document_url: string | null
           id: string
           purpose: string | null
           quarter: string
@@ -624,6 +625,7 @@ export type Database = {
           company_id?: string | null
           created_at?: string
           date: string
+          document_url?: string | null
           id?: string
           purpose?: string | null
           quarter: string
@@ -638,6 +640,7 @@ export type Database = {
           company_id?: string | null
           created_at?: string
           date?: string
+          document_url?: string | null
           id?: string
           purpose?: string | null
           quarter?: string
