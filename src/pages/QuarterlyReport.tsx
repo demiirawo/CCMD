@@ -313,7 +313,6 @@ REPORTING INSTRUCTIONS:
 - Each section should be substantive (minimum 200 words) when data is available`
       }];
       console.log('🚀 Calling OpenAI API with enhanced model...');
-      // Switch to more powerful model for long-form content generation
       const generatedContent = await generateResponse(messages, 'gpt-4.1-2025-04-14');
       console.log('📝 OpenAI API response received');
       console.log('📏 Content length:', generatedContent?.length || 0);

@@ -319,9 +319,14 @@ export const QuarterlyReportGenerator: React.FC<QuarterlyReportGeneratorProps> =
             completedItems: s.items?.filter((item: any) => item.status === 'green').length || 0,
             inProgressItems: s.items?.filter((item: any) => item.status === 'amber').length || 0,
             overdueItems: s.items?.filter((item: any) => item.status === 'red').length || 0,
+            ragStatusSummary: {
+              green: s.items?.filter((item: any) => item.status === 'green').length || 0,
+              amber: s.items?.filter((item: any) => item.status === 'amber').length || 0,
+              red: s.items?.filter((item: any) => item.status === 'red').length || 0
+            },
             itemDetails: s.items?.map((item: any) => ({
               title: item.title || item.content,
-              status: item.status,
+              ragStatus: item.status, // Red/Amber/Green status
               latestUpdate: item.observation || 'No update provided',
               trendAnalysis: item.trendsThemes || 'No trend analysis available',
               actions: item.actions || [],
@@ -329,11 +334,13 @@ export const QuarterlyReportGenerator: React.FC<QuarterlyReportGeneratorProps> =
             })) || [],
             achievements: s.items?.filter((item: any) => item.status === 'green').map((item: any) => ({
               title: item.title || item.content,
+              ragStatus: 'green',
               latestUpdate: item.observation,
               trendAnalysis: item.trendsThemes
             })) || [],
             challenges: s.items?.filter((item: any) => item.status === 'red' || item.status === 'amber').map((item: any) => ({
               title: item.title || item.content,
+              ragStatus: item.status,
               latestUpdate: item.observation,
               trendAnalysis: item.trendsThemes
             })) || []
@@ -344,95 +351,7 @@ export const QuarterlyReportGenerator: React.FC<QuarterlyReportGeneratorProps> =
         availableAnalytics: Object.keys(reportAnalytics)
       };
       const { quarter: prevQuarter, year: prevYear } = getPreviousQuarter(quarter, year);
-      const systemPrompt = `You are an expert care agency analyst writing a professional quarterly report in British English. Your task is to generate a comprehensive, detailed quarterly report based STRICTLY on the provided meeting data and analytics.
-
-CRITICAL FACTUAL REQUIREMENTS:
-- Base ALL content EXCLUSIVELY on the provided meeting data and analytics
-- DO NOT create hypothetical scenarios, examples, or data that wasn't provided
-- DO NOT infer information beyond what is explicitly stated in the data
-- DO NOT add industry assumptions or general statements not supported by the data
-- If specific data is not available for a section, simply state "Information not available on this area" and move to the next section
-- Only reference metrics, trends, and observations that are directly supported by the provided data
-- REFUSE to write content when insufficient data is available rather than creating placeholder content
-
-CRITICAL FORMATTING REQUIREMENTS:
-- Write in flowing, natural language prose with complete sentences and paragraphs in British English
-- Use British English spelling (e.g., realise, colour, centre, organisation, etc.)
-- Each section must contain a minimum of 3-4 substantial paragraphs (100-150 words each)
-- Use professional business language suitable for board presentations and regulatory reviews
-- DO NOT use markdown formatting (no #, ##, *, -, etc.)
-- DO NOT use bullet points or lists - write in paragraph format only
-- Include specific numbers, percentages, and metrics ONLY from the provided data
-- Provide detailed interpretations and insights based solely on the data provided
-- Use the actual company name "${companyName}" throughout the report instead of generic terms like "the agency"
-
-CONFIDENTIALITY AND ANONYMITY REQUIREMENTS:
-- NEVER mention individual staff names, service user names, or personal identifiers
-- Refer to staff collectively as "team members", "care staff", "management team", or similar
-- Use organisational-level language (e.g., "the workforce", "staffing levels", "team performance")
-- When discussing incidents or feedback, refer to them in aggregate terms without personal details
-- Focus on trends, patterns, and collective outcomes rather than individual cases
-
-COMPARATIVE ANALYSIS REQUIREMENTS:
-- Include quarter-to-quarter comparison analysis where previous data is available (comparing ${quarter} ${year} with ${prevQuarter} ${prevYear})
-- Identify trends, improvements, and areas of decline between quarters
-- Calculate percentage changes and growth rates where applicable
-- Highlight significant changes in performance metrics
-- Discuss whether changes represent improvements or areas needing attention
-- Use comparative language such as "increased by", "decreased from", "improved compared to", "declined since"
-
-ANALYTICS DATA INTEGRATION:
-You have access to analytics data for the following areas where available: ${Object.keys(reportAnalytics).join(', ')}
-- Include contextual references to analytics data in relevant sections
-- Use the format: [ANALYTICS DATA: {type}] where {type} is one of the available analytics (e.g., [ANALYTICS DATA: staffTraining])
-- Only include analytics references where they add meaningful context to the narrative
-- Provide data-driven insights based on the available analytics
-- When previous quarter data is available, include comparative analysis between current and previous periods
-
-CONTENT REQUIREMENTS:
-- Each section should demonstrate deep analysis ONLY of trends, patterns, and implications present in the data
-- Include comprehensive quarter-to-quarter comparative analysis ONLY where data permits and supports such analysis
-- Provide specific examples and case studies ONLY from the actual meeting data (without naming individuals)
-- Draw connections between different data points and metrics ONLY where evidenced in the data
-- Offer strategic insights and forward-looking observations ONLY based on patterns shown in the data
-- Highlight areas of improvement and decline ONLY where supported by comparative data
-
-REPORT STRUCTURE (you MUST use these exact headings and include all sections):
-
-${companyName} Quarterly Report - ${quarter} ${year}
-
-1. Executive Summary
-Write a comprehensive 200-300 word objective summary that captures the quarter's key findings, challenges, operational performance, and documented outcomes for ${companyName}. Compare factually with ${prevQuarter} ${prevYear} where data is available.
-
-2. Operational Performance and Outcomes
-Analyze operational results, performance metrics, and service delivery outcomes for ${companyName}. Report objectively on what occurred based on meeting data. Compare performance with ${prevQuarter} ${prevYear} where data is available.
-
-3. Challenges and Areas for Improvement
-Examine areas requiring attention, incidents, challenges, and issues identified by ${companyName}. Provide factual analysis of problems and documented responses. Compare challenge areas with the previous quarter.
-
-4. Workforce Management and Capacity
-Factual analysis of ${companyName}'s staffing levels, recruitment activities, retention data, training compliance, and supervision records. Include objective comparison of workforce metrics between ${quarter} ${year} and ${prevQuarter} ${prevYear}.
-
-5. Care Quality and Service Delivery
-Objective review of ${companyName}'s care planning status, service quality data, care plan compliance, risk management, and documented outcomes. Analyze objectively any changes in care quality since the previous quarter. Include [ANALYTICS DATA: feedback] to display the 12-month feedback analytics chart showing compliments, complaints, suggestions, and resolution trends.
-
-6. Health, Safety and Risk Management
-Factual analysis of ${companyName}'s incident records, safety performance, risk management activities, safeguarding records, and regulatory compliance. Compare safety metrics and incident data with ${prevQuarter} ${prevYear}. Include [ANALYTICS DATA: incidents] to display the 12-month incidents analytics chart showing incidents, accidents, safeguarding concerns, and resolution rates.
-
-7. Quality Assurance and Feedback
-Factual review of ${companyName}'s quality assurance activities, feedback received, audit findings, and improvement initiatives. Analyze objectively any progress on quality initiatives since the previous quarter.
-
-8. Summary and Next Steps
-Factual summary with documented plans for ${companyName}, recorded priorities, planned actions for the coming quarter, and documented lessons from quarter-to-quarter performance data.
-
-WRITING STYLE:
-- Objective, factual tone appropriate for professional documentation and regulatory reporting
-- Use industry-standard terminology and neutral professional language
-- Present facts without bias towards positive or negative outcomes
-- Report what actually happened based on the documented evidence
-- Avoid subjective language, assumptions, or evaluative statements not supported by data
-- Always refer to ${companyName} by name rather than using generic terms
-- Focus on organisational outcomes and documented evidence rather than subjective assessments`;
+      
       // Get company information for proper terminology
       let companyInfo = null;
       let careOrSupport = 'Care';
@@ -455,7 +374,87 @@ WRITING STYLE:
       }
 
       const hasSupportedHousing = companyInfo?.services?.includes('Supported Housing');
+      
+      const systemPrompt = `You are an experienced care management consultant writing a narrative quarterly report in British English. Your task is to create a compelling, story-driven report that tells the journey of ${companyName} during ${quarter} ${year}.
 
+NARRATIVE STYLE REQUIREMENTS:
+- Write in a flowing, engaging narrative style that tells the story of the quarter
+- Use vivid, descriptive language while maintaining professionalism
+- Create smooth transitions between topics and sections
+- Build a coherent narrative arc showing progress, challenges, and outcomes
+- Use storytelling techniques to make the report engaging and memorable
+- Write as if you're telling the story to stakeholders who care about the organisation's journey
+
+CRITICAL FACTUAL REQUIREMENTS:
+- Base ALL content EXCLUSIVELY on the provided meeting data
+- DO NOT create hypothetical scenarios, examples, or data that wasn't provided
+- If specific data is not available for a section, simply state "Information not available on this area" and move to the next section
+- Only reference metrics, trends, and observations that are directly supported by the provided data
+
+RAG STATUS INTEGRATION:
+- Pay special attention to Red/Amber/Green (RAG) status indicators for each dashboard item
+- Use RAG status to understand performance levels and progress
+- Green items represent successful outcomes and achievements
+- Amber items indicate areas requiring attention or in progress
+- Red items highlight urgent concerns or overdue matters
+- Create narrative around the RAG status distribution and what it tells about organisational performance
+
+DASHBOARD DATA INTEGRATION:
+- Focus heavily on "latestUpdate" and "trendAnalysis" fields - these contain the most current operational insights
+- Use "ragStatus" to understand the performance level of each area
+- Only reference feedback and incident graphs when specifically mentioned in the data
+- Do not reference other analytics data unless explicitly provided
+
+FORMATTING REQUIREMENTS:
+- Write in flowing, natural language prose with complete sentences and paragraphs in British English
+- Use British English spelling (e.g., realise, colour, centre, organisation, etc.)
+- Each section should be substantial and engaging (minimum 200-300 words when data is available)
+- Use professional but engaging language suitable for board presentations
+- DO NOT use markdown formatting (no #, ##, *, -, etc.)
+- Write in paragraph format only, not bullet points or lists
+- Create smooth narrative flow between sections
+
+REQUIRED HEADING STRUCTURE (use exactly as shown):
+
+# Executive Summary
+
+# Successes and Achievements
+
+# Learning Opportunities and Strategic Challenges
+
+# Staff
+## Resourcing
+## Staff Documents
+## Training
+## Spot Checks
+## Staff Supervisions
+## Staff Meetings
+
+# ${careOrSupport} Planning & Delivery
+## ${careOrSupport} Plans & Risk Assessments
+## Service User Documents
+## Medication Management
+## ${careOrSupport} Notes
+## Call Monitoring
+## Transportation
+
+# Safety
+## Incidents & Accidents
+(Include reference to 12-month incident analytics graph here when data available)
+## Risk Register
+## Infection Control
+## Information Governance
+
+# Continuous Improvement
+## Feedback
+(Include reference to 12-month feedback analytics graph here when data available)
+## Audits
+
+${hasSupportedHousing ? `# Supported Housing
+## Tenancy & Benefits
+## Property Safety & Maintenance
+
+` : ''}# Next Steps and Future Planning`;
       const userPrompt = `Generate a detailed quarterly report for ${quarter} ${year} based STRICTLY on the following data. Do not add any information beyond what is provided.
 
 Meeting Analysis: ${meetings.length} management meetings were held during this quarter.
@@ -463,11 +462,14 @@ Meeting Analysis: ${meetings.length} management meetings were held during this q
 Data Context: ${JSON.stringify(dataContext, null, 2)}
 
 CRITICAL INSTRUCTIONS:
-- Base ALL content exclusively on the data provided above
-- Do not create examples, scenarios, or metrics not present in the data
-- Pay special attention to the "latestUpdate" and "trendAnalysis" fields for each item - these contain crucial LATEST UPDATE and TREND ANALYSIS information
-- Include specific insights from the latest updates and trend analysis in relevant sections
-- If data is insufficient for a section, write exactly "No information available for this area during ${quarter} ${year}" for that section
+- Base ALL content exclusively on the meeting data provided above
+- Write in an engaging narrative style that tells the story of ${quarter} ${year}
+- Pay special attention to the "latestUpdate", "trendAnalysis", and "ragStatus" fields for each item
+- Use RAG status (Red/Amber/Green) to understand performance levels and create narrative around progress
+- Include insights from latest updates and trend analysis to build the organisational story
+- Only reference feedback graphs and incident graphs if specifically mentioned in the data
+- Do not use other analytics data unless explicitly provided
+- If data is insufficient for a section, write "Information not available for this area during ${quarter} ${year}"
 - Focus only on trends, patterns, and insights that are directly evidenced in the provided data
 - Write in natural language prose with detailed paragraphs but remain strictly factual
 - Use the exact heading structure specified in the system prompt
