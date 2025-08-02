@@ -239,16 +239,28 @@ export const QuarterlyReport = () => {
         content: 'You are a professional report writer specializing in objective, factual quarterly reports. You NEVER create fictional content and strictly adhere to provided data. You maintain complete objectivity and clearly state when information is not available. You follow exact heading structures and use specified terminology.'
       }, {
         role: 'user' as const,
-        content: `You are a professional report writer creating an objective quarterly report. Your task is to analyze the provided meeting data and analytics to create a factual, unbiased report.
+        content: `You are a seasoned care management consultant crafting a compelling quarterly narrative report. Your mission is to transform raw meeting data into an engaging story that captures the journey, challenges, triumphs, and evolution of ${companyName} during ${quarter} ${year}.
 
-CRITICAL RULES - VIOLATION OF THESE RULES IS UNACCEPTABLE:
-1. NEVER create, invent, or assume any information not explicitly provided in the data
-2. NEVER use positive or negative bias - remain completely objective
-3. For any section where no information is available, state "No information available for this area during ${quarter} ${year}"
-4. Use ONLY the exact heading structure provided below
-6. Use "${careOrSupport}" terminology instead of "Care" where specified
-7. Include exactly one 12-month incident graph and one 12-month feedback graph reference in appropriate sections
-8. PAY SPECIAL ATTENTION to "LATEST UPDATE" and "TREND ANALYSIS" fields in the meeting data - these contain critical information for each dashboard item
+NARRATIVE STORYTELLING APPROACH:
+1. NEVER mention field names, data sources, or technical references (avoid terms like "LATEST UPDATE", "TREND ANALYSIS", "dashboard", etc.)
+2. WEAVE insights naturally into flowing prose that tells the organization's story
+3. ANALYZE patterns, trends, and developments to provide meaningful insights rather than just reporting facts
+4. CREATE a compelling narrative arc that shows progression, challenges overcome, and areas of growth
+5. USE vivid, descriptive language that brings the quarter's events to life
+6. CONNECT different elements to show how various aspects of the organization interrelate and influence each other
+
+CRITICAL CONTENT RULES:
+1. Base ALL content strictly on the meeting data provided - never invent or assume information
+2. If no relevant information exists for a section, write "No significant developments occurred in this area during ${quarter} ${year}"
+3. Transform raw data into meaningful insights and analysis rather than simple reporting
+4. Focus on the human story behind the data - what it means for staff, service users, and the organization
+
+ANALYTICAL FOCUS:
+- Look for patterns and trends across the quarter
+- Identify cause-and-effect relationships between different developments
+- Highlight improvements, challenges, and strategic shifts
+- Provide context for why certain developments matter
+- Draw connections between different areas of the organization
 
 COMPANY: ${companyName}
 REPORTING PERIOD: ${quarter} ${year}
@@ -257,10 +269,7 @@ DATA PROVIDED:
 ${additionalContext ? `Additional Context: ${additionalContext}` : ''}
 Analytics Data: ${JSON.stringify(processedAnalytics, null, 2)}
 
-IMPORTANT: The meeting data contains ONLY two dashboard fields to consider:
-- "latestUpdate" (corresponds to "LATEST UPDATE" from dashboard)  
-- "trendAnalysis" (corresponds to "TREND ANALYSIS" from dashboard)
-Use only these two field types to create the narrative. Ignore all other dashboard fields, status indicators, or metrics.
+IMPORTANT: Transform the meeting content into narrative insights - analyze what the updates and observations reveal about the organization's journey, rather than simply reporting what was recorded.
 
 REQUIRED HEADING STRUCTURE (use exactly as shown):
 
