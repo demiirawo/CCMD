@@ -204,7 +204,7 @@ export const IncidentsAnalytics = ({
         if (e.key === 'Escape') setEditing(false);
       }} className="w-16 h-8 text-sm bg-stone-50 text-black" autoFocus />;
     }
-    return <span className="cursor-pointer hover:bg-accent/50 p-1 rounded" onClick={handleStartEdit}>
+    return <span className="cursor-pointer hover:bg-accent/50 p-1 rounded text-black" onClick={handleStartEdit}>
         {value}
       </span>;
   };
