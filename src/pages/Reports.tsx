@@ -660,8 +660,8 @@ export const Reports = () => {
                                 <CalendarDays className="h-4 w-4" />
                                 {formatDate(meeting.date)}
                               </div>
-                              {/* Only show attendees for meetings with purpose (not custom meetings) */}
-                              {meeting.purpose && (
+                              {/* Hide attendees for custom meetings (purpose is null) */}
+                              {meeting.purpose !== null && (
                                 <div className="flex items-center gap-1 text-sm text-muted-foreground">
                                   <Users className="h-4 w-4" />
                                   {meeting.attendees.length} attendee{meeting.attendees.length !== 1 ? 's' : ''}
@@ -713,8 +713,8 @@ export const Reports = () => {
                               
                             </div>
                              <div className="flex items-center gap-2">
-                                {/* View Dashboard Dialog - Only show for meetings with purpose (not custom meetings) */}
-                                {meeting.purpose && (
+                                {/* Hide View button for custom meetings (purpose is null) */}
+                                {meeting.purpose !== null && (
                                   <Dialog>
                                     <DialogTrigger asChild>
                                          <Button variant="default" size="sm">
