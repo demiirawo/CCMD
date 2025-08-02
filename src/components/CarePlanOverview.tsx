@@ -34,17 +34,35 @@ export const CarePlanOverview = ({
   }, [profile?.company_id, meetingId]);
   const loadData = async () => {
     if (!profile?.company_id) return;
+    
     try {
-      const {
-        data: savedData,
-        error
-      } = await supabase.from('dashboard_data').select('data_content').eq('company_id', profile.company_id).eq('data_type', 'care_plan_overview').maybeSingle();
+      // Load data for the specific meeting if meetingId is provided, otherwise load company-wide data
+      let query = supabase
+        .from('care_plan_overview')
+        .select('*')
+        .eq('company_id', profile.company_id);
+      
+      if (meetingId) {
+        query = query.eq('meeting_id', meetingId);
+      } else {
+        query = query.is('meeting_id', null);
+      }
+      
+      const { data: savedData, error } = await query.maybeSingle();
+
       if (error && error.code !== 'PGRST116') {
         console.error('Error loading care plan overview:', error);
         return;
       }
-      if (savedData?.data_content) {
-        const loadedData = savedData.data_content as typeof data;
+
+      if (savedData) {
+        const loadedData = {
+          highRisk: savedData.high_risk || 0,
+          mediumRisk: savedData.medium_risk || 0,
+          lowRisk: savedData.low_risk || 0,
+          naRisk: savedData.na_risk || 0,
+          overdue: 0 // Note: overdue is not stored in new table structure
+        };
         setData(loadedData);
         // Initialize display values with loaded data (show numbers, but allow empty fields)
         setDisplayValues({
@@ -56,7 +74,7 @@ export const CarePlanOverview = ({
         });
       } else {
         // Try to load from localStorage backup
-        const backupKey = `care_plan_overview_backup_${profile.company_id}`;
+        const backupKey = meetingId ? `care_plan_overview_backup_${profile.company_id}_${meetingId}` : `care_plan_overview_backup_${profile.company_id}`;
         const backupData = localStorage.getItem(backupKey);
         if (backupData) {
           try {
@@ -78,7 +96,7 @@ export const CarePlanOverview = ({
     } catch (error) {
       console.error('Error loading care plan overview:', error);
       // Try to load from localStorage backup
-      const backupKey = `care_plan_overview_backup_${profile.company_id}`;
+      const backupKey = meetingId ? `care_plan_overview_backup_${profile.company_id}_${meetingId}` : `care_plan_overview_backup_${profile.company_id}`;
       const backupData = localStorage.getItem(backupKey);
       if (backupData) {
         try {
@@ -92,30 +110,36 @@ export const CarePlanOverview = ({
   };
   const saveData = async (newData: typeof data) => {
     if (!profile?.company_id) return;
+    
     try {
-      const {
-        error
-      } = await supabase.from('dashboard_data').upsert({
-        company_id: profile.company_id,
-        meeting_id: meetingId,
-        data_type: 'care_plan_overview',
-        data_content: newData,
-        updated_at: new Date().toISOString()
-      }, {
-        onConflict: 'company_id,meeting_id,data_type'
-      });
+      const { error } = await supabase
+        .from('care_plan_overview')
+        .upsert({
+          company_id: profile.company_id,
+          meeting_id: meetingId || null,
+          high_risk: newData.highRisk,
+          medium_risk: newData.mediumRisk,
+          low_risk: newData.lowRisk,
+          na_risk: newData.naRisk,
+          updated_at: new Date().toISOString()
+        }, {
+          onConflict: meetingId ? 'company_id,meeting_id' : 'company_id'
+        });
+
       if (error) {
         console.error('Error saving care plan overview:', error);
         throw error;
       } else {
         // Save to localStorage as backup
-        localStorage.setItem(`care_plan_overview_backup_${profile.company_id}`, JSON.stringify(newData));
+        const backupKey = meetingId ? `care_plan_overview_backup_${profile.company_id}_${meetingId}` : `care_plan_overview_backup_${profile.company_id}`;
+        localStorage.setItem(backupKey, JSON.stringify(newData));
       }
     } catch (error) {
       console.error('Error saving care plan overview:', error);
       // Save to localStorage as fallback
       if (profile?.company_id) {
-        localStorage.setItem(`care_plan_overview_backup_${profile.company_id}`, JSON.stringify(newData));
+        const backupKey = meetingId ? `care_plan_overview_backup_${profile.company_id}_${meetingId}` : `care_plan_overview_backup_${profile.company_id}`;
+        localStorage.setItem(backupKey, JSON.stringify(newData));
       }
     }
   };

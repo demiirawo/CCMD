@@ -256,6 +256,42 @@ export type Database = {
           },
         ]
       }
+      care_plan_overview: {
+        Row: {
+          company_id: string
+          created_at: string
+          high_risk: number
+          id: string
+          low_risk: number
+          medium_risk: number
+          meeting_id: string | null
+          na_risk: number
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          high_risk?: number
+          id?: string
+          low_risk?: number
+          medium_risk?: number
+          meeting_id?: string | null
+          na_risk?: number
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          high_risk?: number
+          id?: string
+          low_risk?: number
+          medium_risk?: number
+          meeting_id?: string | null
+          na_risk?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       companies: {
         Row: {
           created_at: string
