@@ -156,6 +156,14 @@ export const ReadOnlyDashboardView = ({ meetingId }: ReadOnlyDashboardViewProps)
   return (
     <div className="bg-gray-100 p-4 lg:p-8" style={{ pointerEvents: 'none', userSelect: 'none' }}>
       <div className="w-[90%] mx-auto space-y-6">
+        {/* Read-only banner */}
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+          <div className="flex items-center gap-2 text-blue-800">
+            <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
+            <span className="text-sm font-medium">Read-Only View - This is a saved meeting report</span>
+          </div>
+        </div>
+        
         {/* Company Header */}
         {currentCompany && (
           <div className="text-center py-6">
@@ -169,14 +177,6 @@ export const ReadOnlyDashboardView = ({ meetingId }: ReadOnlyDashboardViewProps)
             <h1 className="text-2xl font-bold text-foreground">{currentCompany.name}</h1>
           </div>
         )}
-        
-        {/* Read-only banner */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-          <div className="flex items-center gap-2 text-blue-800">
-            <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
-            <span className="text-sm font-medium">Read-Only View - This is a saved meeting report</span>
-          </div>
-        </div>
         
         {/* Dashboard Header - Matching current design */}
         <div className="bg-primary/10 pt-14 pb-8 px-14 mb-8 rounded-xl shadow-sm -mx-8">
