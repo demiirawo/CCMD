@@ -175,7 +175,7 @@ export const TeamMembersManager = ({
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Add new team member */}
-        {canManageTeam && <div className="p-4 border rounded-lg bg-white space-y-3">
+        {canManageTeam && <div className="p-4 border border-gray-200 rounded-lg bg-white space-y-3">
             
             <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
               <div>
