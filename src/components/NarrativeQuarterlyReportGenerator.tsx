@@ -110,11 +110,29 @@ export const NarrativeQuarterlyReportGenerator: React.FC<NarrativeQuarterlyRepor
     try {
       const narratives = extractMeetingNarratives(meetings);
 
+      // Get company information first
+      let companyName = 'Care Agency';
+      if (profile?.company_id) {
+        try {
+          const { data: companyData } = await supabase
+            .from('companies')
+            .select('name')
+            .eq('id', profile.company_id)
+            .single();
+          
+          if (companyData?.name) {
+            companyName = companyData.name;
+          }
+        } catch (error) {
+          console.warn('Could not fetch company name:', error);
+        }
+      }
+
       // Sort meetings chronologically
       narratives.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
       const prompt = `You are an expert in care service compliance reporting for UK regulatory bodies including CQC, Ofsted, and local authorities. 
 
-Create a compelling quarterly narrative report for ${quarter} ${year} that tells the story of how this care service performed during this period.
+Create a compelling quarterly narrative report for ${quarter} ${year} that tells the story of how ${companyName} performed during this period.
 
 MEETING DATA TO ANALYZE:
 ${JSON.stringify(narratives, null, 2)}
@@ -173,19 +191,22 @@ CRITICAL WRITING INSTRUCTIONS:
 2. Write in plain text without any markdown formatting
 3. Major headings must be BOLD with gray underline and CENTER ALIGNED
 4. Minor headings (subheadings) must be BOLD and CENTER ALIGNED
-5. Tell a compelling narrative about the service's overall journey through the quarter
-6. Focus on progression showing how challenges evolved and what actions were taken
-7. Frame everything through the lens of quality, safety, and person-centered care
-8. Base all content strictly on the meeting data provided - never invent information
-9. Use professional language appropriate for regulatory and senior stakeholder audiences
-10. Show relationships between different areas and demonstrate continuous improvement
-11. Transform status indicators into meaningful insights about service quality
-12. DO NOT make specific references to individual names - focus on how the service overall performed
-13. DO NOT use "red", "amber", or "green" status language - instead use professional terms like "critical", "risk", "positive", "excellent", "concerning", "satisfactory"
-14. DO NOT mention anything related to Supported Housing unless explicitly present in the meeting data
-15. If information is not available for a section, simply omit that section
+5. CONSISTENTLY reference ${companyName} by name throughout the report to create ownership and specificity
+6. Tell a compelling narrative about ${companyName}'s overall journey through the quarter
+7. Focus on progression showing how ${companyName}'s challenges evolved and what actions were taken
+8. Frame everything through the lens of ${companyName}'s commitment to quality, safety, and person-centered care
+9. Base all content strictly on the meeting data provided - never invent information
+10. Use professional language appropriate for regulatory and senior stakeholder audiences who want to understand ${companyName}'s performance
+11. Show relationships between different areas and demonstrate ${companyName}'s continuous improvement efforts
+12. Transform status indicators into meaningful insights about ${companyName}'s service quality
+13. DO NOT make specific references to individual names - focus on how ${companyName} as an organization performed
+14. DO NOT use "red", "amber", or "green" status language - instead use professional terms like "critical", "risk", "positive", "excellent", "concerning", "satisfactory"
+15. DO NOT mention anything related to Supported Housing unless explicitly present in the meeting data
+16. If information is not available for a section, simply omit that section
+17. Frame achievements and challenges as belonging specifically to ${companyName} and its dedicated team
+18. Regularly use phrases like "${companyName} has demonstrated", "${companyName}'s approach to", "${companyName} continues to", etc.
 
-Write approximately 1500-2500 words using only plain text formatting that regulatory bodies would find comprehensive and reassuring about the service's commitment to quality and continuous improvement.`;
+Write approximately 1500-2500 words using only plain text formatting that regulatory bodies would find comprehensive and reassuring about ${companyName}'s commitment to quality and continuous improvement.`;
       const reportContent = await generateResponse([{
         role: 'system',
         content: 'You are an expert care service compliance report writer.'
