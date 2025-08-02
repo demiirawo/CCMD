@@ -335,8 +335,9 @@ CRITICAL FACTUAL REQUIREMENTS:
 - DO NOT create hypothetical scenarios, examples, or data that wasn't provided
 - DO NOT infer information beyond what is explicitly stated in the data
 - DO NOT add industry assumptions or general statements not supported by the data
-- If specific data is not available, state this clearly rather than creating placeholder content
+- If specific data is not available for a section, simply state "Information not available on this area" and move to the next section
 - Only reference metrics, trends, and observations that are directly supported by the provided data
+- REFUSE to write content when insufficient data is available rather than creating placeholder content
 
 CRITICAL FORMATTING REQUIREMENTS:
 - Write in flowing, natural language prose with complete sentences and paragraphs in British English
@@ -425,7 +426,7 @@ Data Context: ${JSON.stringify(dataContext, null, 2)}
 CRITICAL INSTRUCTIONS:
 - Base ALL content exclusively on the data provided above
 - Do not create examples, scenarios, or metrics not present in the data
-- If data is insufficient for a section, clearly state this limitation
+- If data is insufficient for a section, write exactly "Information not available on this area" for that section
 - Focus only on trends, patterns, and insights that are directly evidenced in the provided data
 - Write in natural language prose with detailed paragraphs but remain strictly factual
 - No markdown formatting allowed`;

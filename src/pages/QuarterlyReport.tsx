@@ -234,8 +234,9 @@ CRITICAL FACTUAL REQUIREMENTS:
 - DO NOT create hypothetical scenarios, examples, or data that wasn't provided
 - DO NOT infer information beyond what is explicitly stated in the data
 - DO NOT add industry assumptions or general statements not supported by the data
-- If specific data is not available, state this clearly rather than creating placeholder content
+- If specific data is not available for a section, simply state "Information not available on this area" and move to the next section
 - Only reference metrics, trends, and observations that are directly supported by the provided data
+- REFUSE to write content when insufficient data is available rather than creating placeholder content
 
 CRITICAL FORMATTING REQUIREMENTS:
 - Write in flowing, natural language prose with complete sentences and paragraphs
@@ -303,7 +304,7 @@ DATA INTEGRATION:
 - Transform raw data into meaningful insights and trends based strictly on what the data shows
 - Provide context and interpretation ONLY for metrics actually present in the data
 - Connect operational data to strategic implications ONLY where supported by the evidence provided
-- If data is missing or insufficient for a section, explicitly state this rather than creating hypothetical content`
+- If data is missing or insufficient for a section, write exactly "Information not available on this area" and proceed to the next section`
       }, {
         role: 'user' as const,
         content: `Generate a comprehensive quarterly report for ${companyName} covering ${quarter} ${year} based STRICTLY on the provided data.
@@ -315,7 +316,7 @@ ANALYTICS DATA TO REFERENCE: ${JSON.stringify(processedAnalytics, null, 2)}
 CRITICAL FACTUAL REQUIREMENTS:
 - Base ALL content EXCLUSIVELY on the provided analytics data and any additional context
 - DO NOT create, infer, or assume any information not explicitly provided
-- If specific information is not available in the data, clearly state this limitation
+- If specific information is not available in the data, write exactly "Information not available on this area" for that section
 - Reference ONLY the specific metrics and trends present in the actual data provided
 - Provide forward-looking recommendations ONLY based on patterns evident in the data
 - Maintain professional care sector terminology throughout
