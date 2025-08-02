@@ -363,7 +363,7 @@ export const StaffDocumentsAnalytics = ({
         </div>
         
         {/* Passed Probation Row */}
-        <div className="text-sm">Passed Probation:</div>
+        <div className="text-sm text-foreground">Passed Probation:</div>
         <div className="text-lg text-black text-center">{staffData.active}</div>
         <div className="flex justify-center">
           <EditableCell 
