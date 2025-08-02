@@ -264,7 +264,7 @@ Write approximately 1500-2500 words using only plain text formatting that regula
   if (hasGeneratedReport) {
     return <Card className="border-gray-200 bg-transparent">
         
-        <CardContent>
+        <CardContent className="bg-transparent">
           
           <div className="flex gap-2">
             <Button onClick={viewReport} className="flex items-center gap-2">
