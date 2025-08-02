@@ -1066,6 +1066,37 @@ REPORTING INSTRUCTIONS:
                       }
 
                       // Handle natural language prose content
+                      
+                      // Handle markdown-style major headings (# heading)
+                      if (line.trim().startsWith('# ') && line.trim().length > 2) {
+                        const headingText = line.trim().replace(/^# /, '');
+                        return <div key={lineIndex} className="mb-8">
+                                  <h1 className="text-2xl font-bold text-gray-800 pb-3 mb-6 mt-8 text-center" style={{
+                            borderBottom: '2px solid #9ca3af',
+                            fontSize: '18pt',
+                            fontWeight: 'bold',
+                            color: '#374151',
+                            paddingBottom: '12px'
+                          }}>
+                                    {headingText}
+                                  </h1>
+                                </div>;
+                      }
+                      
+                      // Handle markdown-style minor headings (## heading)
+                      if (line.trim().startsWith('## ') && line.trim().length > 3) {
+                        const headingText = line.trim().replace(/^## /, '');
+                        return <div key={lineIndex} className="mb-6">
+                                  <h2 className="text-xl font-semibold text-gray-800 mb-4 mt-6 text-center" style={{
+                            fontSize: '14pt',
+                            fontWeight: 'bold',
+                            color: '#374151'
+                          }}>
+                                    {headingText}
+                                  </h2>
+                                </div>;
+                      }
+                      
                       if (line.trim().match(/^\d+\.\s/)) {
                         // Section headers (e.g., "1. Executive Summary")
                         return <div key={lineIndex} className="mb-8">
