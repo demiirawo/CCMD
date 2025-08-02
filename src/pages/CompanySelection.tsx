@@ -161,8 +161,26 @@ export const CompanySelection = () => {
   };
 
   const handleSignOut = async () => {
-    await signOut();
-    navigate('/auth');
+    try {
+      const { error } = await signOut();
+      if (error) {
+        toast({
+          title: 'Error',
+          description: 'Failed to sign out. Please try again.',
+          variant: 'destructive'
+        });
+        console.error('Sign out error:', error);
+        return;
+      }
+      navigate('/auth');
+    } catch (error) {
+      console.error('Sign out error:', error);
+      toast({
+        title: 'Error', 
+        description: 'Failed to sign out. Please try again.',
+        variant: 'destructive'
+      });
+    }
   };
 
   // Filter companies based on search

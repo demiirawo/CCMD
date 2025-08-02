@@ -32,7 +32,7 @@ interface AuthContextType {
   loading: boolean;
   signUp: (email: string, password: string, username: string, role?: 'admin' | 'user') => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
-  signOut: () => Promise<void>;
+  signOut: () => Promise<{ error: any }>;
   createCompany: (name: string) => Promise<{ data: Company | null; error: any }>;
   selectCompany: (companyId: string) => Promise<{ error: any }>;
   deleteCompany: (companyId: string) => Promise<{ error: any }>;
@@ -275,9 +275,29 @@ export const useAuthProvider = (): AuthContextType => {
   };
 
   const signOut = async () => {
-    // Clear session storage when logging out
-    sessionStorage.clear();
-    await supabase.auth.signOut();
+    try {
+      // Clear session storage when logging out
+      sessionStorage.clear();
+      localStorage.clear();
+      
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) {
+        console.error('Sign out error:', error);
+        return { error };
+      }
+      
+      // Explicitly reset state after successful sign out
+      setUser(null);
+      setSession(null);
+      setProfile(null);
+      setCompanies([]);
+      
+      return { error: null };
+    } catch (error) {
+      console.error('Sign out catch error:', error);
+      return { error };
+    }
   };
 
   const createCompany = async (name: string) => {
