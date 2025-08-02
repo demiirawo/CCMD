@@ -217,7 +217,7 @@ export const FeedbackAnalytics = ({
       return <Input value={editValue} onChange={e => setEditValue(e.target.value)} onBlur={handleSave} onKeyDown={e => {
         if (e.key === 'Enter') handleSave();
         if (e.key === 'Escape') setEditing(false);
-      }} className="w-16 h-8 text-sm bg-stone-50 text-black" autoFocus />;
+      }} className="w-16 h-8 text-sm bg-stone-50 !text-black" autoFocus />;
     }
     return <span className="cursor-pointer hover:bg-accent/50 p-1 rounded" onClick={handleStartEdit}>
         {value}
