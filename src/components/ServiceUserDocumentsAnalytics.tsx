@@ -30,32 +30,55 @@ export const ServiceUserDocumentsAnalytics = ({
   const loadData = async () => {
     if (!profile?.company_id) return;
     
+    console.log('🔍 ServiceUserDocumentsAnalytics: Loading data for company_id:', profile.company_id, 'meetingId:', meetingId);
+    
     try {
-      // Load data for the specific meeting if meetingId is provided, otherwise load company-wide data
-      let query = supabase
+      // Strategy: Load ALL service user document data for this company and consolidate the most recent data
+      // This ensures we don't lose data due to meeting ID inconsistencies
+      const { data: allData, error } = await supabase
         .from('service_user_document_analytics')
         .select('*')
-        .eq('company_id', profile.company_id);
-      
-      if (meetingId) {
-        query = query.eq('meeting_id', meetingId);
-      } else {
-        query = query.is('meeting_id', null);
-      }
-      
-      const { data: savedData, error } = await query.maybeSingle();
+        .eq('company_id', profile.company_id)
+        .order('updated_at', { ascending: false });
 
+      console.log('🔍 ServiceUserDocumentsAnalytics: Found all company data:', allData?.length || 0, 'records');
+      
       if (error && error.code !== 'PGRST116') {
         console.error('Error loading service user documents:', error);
         return;
       }
 
-      if (savedData) {
-        setData({
-          incompleteDocuments: savedData.incomplete_documents || 0
+      if (allData && allData.length > 0) {
+        console.log('🔍 ServiceUserDocumentsAnalytics: Consolidating data from', allData.length, 'records');
+        
+        // Use the most recent non-zero values, prioritizing data from the current meeting if available
+        let consolidatedData = {
+          incompleteDocuments: 0
+        };
+        let consolidatedTotal = 0;
+        
+        // Process all records to find the best values
+        allData.forEach((record, index) => {
+          console.log(`🔍 ServiceUserDocumentsAnalytics: Processing record ${index + 1}:`, record);
+          
+          // If this is the first record or if we find non-zero values, use them
+          if (index === 0 || 
+              (record.incomplete_documents > 0 && consolidatedData.incompleteDocuments === 0) ||
+              (record.total_service_users > 0 && consolidatedTotal === 0)) {
+            
+            consolidatedData = {
+              incompleteDocuments: record.incomplete_documents || consolidatedData.incompleteDocuments
+            };
+            consolidatedTotal = record.total_service_users || consolidatedTotal;
+          }
         });
-        setTotalServiceUsers(savedData.total_service_users || 0);
+        
+        console.log('🔍 ServiceUserDocumentsAnalytics: Consolidated data:', consolidatedData);
+        setData(consolidatedData);
+        setTotalServiceUsers(consolidatedTotal);
+        console.log('✅ ServiceUserDocumentsAnalytics: Set consolidated data to state');
       } else {
+        console.log('🔍 ServiceUserDocumentsAnalytics: No database data found, trying localStorage backup');
         // Try to load from localStorage backup
         const backupKey = meetingId ? `service_user_documents_backup_${profile.company_id}_${meetingId}` : `service_user_documents_backup_${profile.company_id}`;
         const backupData = localStorage.getItem(backupKey);
@@ -64,6 +87,7 @@ export const ServiceUserDocumentsAnalytics = ({
             const backup = JSON.parse(backupData);
             setData(backup.data || { incompleteDocuments: 0 });
             setTotalServiceUsers(backup.totalServiceUsers || 0);
+            console.log('✅ ServiceUserDocumentsAnalytics: Loaded from localStorage backup');
           } catch (error) {
             console.error('Error loading backup data:', error);
           }
@@ -121,6 +145,14 @@ export const ServiceUserDocumentsAnalytics = ({
   };
   const saveData = async (newData: typeof data) => {
     if (!profile?.company_id) return;
+    
+    console.log('🔄 ServiceUserDocumentsAnalytics: Starting save operation', {
+      companyId: profile.company_id,
+      meetingId,
+      data: newData,
+      totalServiceUsers,
+      timestamp: new Date().toISOString()
+    });
     
     try {
       const { error } = await supabase

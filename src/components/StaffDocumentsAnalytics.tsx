@@ -127,22 +127,55 @@ export const StaffDocumentsAnalytics = ({
   const loadComplianceData = async () => {
     if (!profile?.company_id) return;
 
+    console.log('🔍 StaffDocumentsAnalytics: Loading compliance data for company_id:', profile.company_id);
+    
     try {
-      const { data, error } = await supabase.from('staff_documents_analytics').select('*').eq('company_id', profile.company_id).maybeSingle();
+      // Strategy: Load ALL staff documents analytics for this company and consolidate the most recent data
+      const { data: allData, error } = await supabase
+        .from('staff_documents_analytics')
+        .select('*')
+        .eq('company_id', profile.company_id)
+        .order('updated_at', { ascending: false });
 
+      console.log('🔍 StaffDocumentsAnalytics: Found all company compliance data:', allData?.length || 0, 'records');
+      
       if (error && error.code !== 'PGRST116') {
         console.error('Error loading compliance data:', error);
         return;
       }
 
-      if (data) {
-        const savedData = data.documents_data as any || {};
-        setComplianceData({
-          onboardingCompliant: savedData.onboardingCompliant || 0,
-          onProbationCompliant: savedData.onProbationCompliant || 0,
-          activeCompliant: savedData.activeCompliant || 0
+      if (allData && allData.length > 0) {
+        console.log('🔍 StaffDocumentsAnalytics: Consolidating compliance data from', allData.length, 'records');
+        
+        // Use the most recent non-zero values
+        let consolidatedData = {
+          onboardingCompliant: 0,
+          onProbationCompliant: 0,
+          activeCompliant: 0
+        };
+        
+        allData.forEach((record, index) => {
+          const savedData = record.documents_data as any || {};
+          console.log(`🔍 StaffDocumentsAnalytics: Processing compliance record ${index + 1}:`, savedData);
+          
+          if (index === 0 || 
+              (savedData.onboardingCompliant > 0 && consolidatedData.onboardingCompliant === 0) ||
+              (savedData.onProbationCompliant > 0 && consolidatedData.onProbationCompliant === 0) ||
+              (savedData.activeCompliant > 0 && consolidatedData.activeCompliant === 0)) {
+            
+            consolidatedData = {
+              onboardingCompliant: savedData.onboardingCompliant || consolidatedData.onboardingCompliant,
+              onProbationCompliant: savedData.onProbationCompliant || consolidatedData.onProbationCompliant,
+              activeCompliant: savedData.activeCompliant || consolidatedData.activeCompliant
+            };
+          }
         });
+        
+        console.log('🔍 StaffDocumentsAnalytics: Consolidated compliance data:', consolidatedData);
+        setComplianceData(consolidatedData);
+        console.log('✅ StaffDocumentsAnalytics: Set consolidated compliance data to state');
       } else {
+        console.log('🔍 StaffDocumentsAnalytics: No database compliance data found, trying localStorage backup');
         // Try to load from localStorage backup
         const backupKey = `staff_documents_backup_${profile.company_id}`;
         const backupData = localStorage.getItem(backupKey);
@@ -150,11 +183,13 @@ export const StaffDocumentsAnalytics = ({
           try {
             const backupComplianceData = JSON.parse(backupData);
             setComplianceData(backupComplianceData);
+            console.log('✅ StaffDocumentsAnalytics: Loaded compliance data from localStorage backup');
           } catch (error) {
             console.error('Error loading backup data:', error);
           }
         }
       }
+
     } catch (error) {
       console.error('Error loading compliance data:', error);
       // Try to load from localStorage backup
@@ -164,6 +199,7 @@ export const StaffDocumentsAnalytics = ({
         try {
           const backupComplianceData = JSON.parse(backupData);
           setComplianceData(backupComplianceData);
+          console.log('✅ StaffDocumentsAnalytics: Loaded compliance data from localStorage backup (fallback)');
         } catch (error) {
           console.error('Error loading backup data:', error);
         }

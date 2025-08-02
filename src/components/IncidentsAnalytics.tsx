@@ -74,35 +74,63 @@ export const IncidentsAnalytics = ({
   const loadData = async () => {
     if (!profile?.company_id) return;
     
+    console.log('🔍 IncidentsAnalytics: Loading data for company_id:', profile.company_id, 'meetingId:', meetingId);
+    console.log('🔍 IncidentsAnalytics: Props received - meetingDate:', meetingDate, 'meetingId:', meetingId);
+    
     try {
-      // Load data for the specific meeting if meetingId is provided, otherwise load company-wide data
-      let query = supabase
+      // Strategy: Load ALL incidents analytics for this company and consolidate the most recent data
+      // This ensures we don't lose data due to meeting ID inconsistencies
+      const { data: allData, error } = await supabase
         .from('incidents_analytics')
-        .select('monthly_data')
-        .eq('company_id', profile.company_id);
-      
-      if (meetingId) {
-        query = query.eq('meeting_id', meetingId);
-      } else {
-        query = query.is('meeting_id', null);
-      }
-      
-      const { data, error } = await query.maybeSingle();
+        .select('id, meeting_id, monthly_data, updated_at')
+        .eq('company_id', profile.company_id)
+        .order('updated_at', { ascending: false });
+
+      console.log('🔍 IncidentsAnalytics: Found all company data:', allData?.length || 0, 'records');
       
       if (error && error.code !== 'PGRST116') {
         console.error('Error loading incidents analytics:', error);
         return;
       }
 
-      if (data?.monthly_data) {
-        const loadedData = data.monthly_data as any[];
-        const currentStructure = generateInitialData(meetingDate);
-        const mergedData = currentStructure.map(current => {
-          const existing = loadedData.find(item => item.month === current.month);
-          return existing || current;
+      let consolidatedData = generateInitialData(meetingDate);
+      
+      if (allData && allData.length > 0) {
+        console.log('🔍 IncidentsAnalytics: Consolidating data from', allData.length, 'records');
+        
+        // Consolidate data from all records, prioritizing non-zero values and most recent updates
+        const dataByMonth: Record<string, any> = {};
+        
+        // Process all records, starting with newest
+        allData.forEach((record, recordIndex) => {
+          const recordData = record.monthly_data as any[];
+          if (recordData && Array.isArray(recordData)) {
+            recordData.forEach(monthData => {
+              if (!dataByMonth[monthData.month]) {
+                dataByMonth[monthData.month] = { ...monthData };
+              } else {
+                // Merge data, keeping non-zero values
+                ['incidents', 'accidents', 'safeguarding', 'resolved'].forEach(field => {
+                  if (monthData[field] > 0 || dataByMonth[monthData.month][field] === 0) {
+                    dataByMonth[monthData.month][field] = monthData[field];
+                  }
+                });
+              }
+            });
+          }
         });
-        setMonthlyData(mergedData);
+        
+        // Apply consolidated data to the structure
+        consolidatedData = consolidatedData.map(current => {
+          const consolidated = dataByMonth[current.month];
+          return consolidated || current;
+        });
+        
+        console.log('🔍 IncidentsAnalytics: Consolidated data:', consolidatedData);
+        setMonthlyData(consolidatedData);
+        console.log('✅ IncidentsAnalytics: Set consolidated data to state');
       } else {
+        console.log('🔍 IncidentsAnalytics: No database data found, trying localStorage backup');
         // Try to load from localStorage backup
         const backupKey = meetingId ? `incidents_backup_${profile.company_id}_${meetingId}` : `incidents_backup_${profile.company_id}`;
         const backupData = localStorage.getItem(backupKey);
@@ -115,9 +143,12 @@ export const IncidentsAnalytics = ({
               return existing || current;
             });
             setMonthlyData(mergedData);
+            console.log('✅ IncidentsAnalytics: Loaded from localStorage backup');
           } catch (error) {
             console.error('Error loading backup data:', error);
           }
+        } else {
+          setMonthlyData(generateInitialData(meetingDate));
         }
       }
     } catch (error) {
@@ -143,6 +174,14 @@ export const IncidentsAnalytics = ({
 
   const saveData = async (newData: any[]) => {
     if (!profile?.company_id) return;
+    
+    console.log('🔄 IncidentsAnalytics: Starting save operation', {
+      companyId: profile.company_id,
+      meetingId,
+      dataLength: newData.length,
+      timestamp: new Date().toISOString(),
+      sampleData: newData.slice(0, 2)
+    });
     
     try {
       const { error } = await supabase

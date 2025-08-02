@@ -35,34 +35,59 @@ export const ResourcingOverview = ({
   const loadData = async () => {
     if (!profile?.company_id) return;
     
+    console.log('🔍 ResourcingOverview: Loading data for company_id:', profile.company_id, 'meetingId:', meetingId);
+    
     try {
-      // Load data for the specific meeting if meetingId is provided, otherwise load company-wide data
-      let query = supabase
+      // Strategy: Load ALL resourcing data for this company and consolidate the most recent data
+      // This ensures we don't lose data due to meeting ID inconsistencies
+      const { data: allData, error } = await supabase
         .from('resourcing_overview')
         .select('*')
-        .eq('company_id', profile.company_id);
-      
-      if (meetingId) {
-        query = query.eq('meeting_id', meetingId);
-      } else {
-        query = query.is('meeting_id', null);
-      }
-      
-      const { data: savedData, error } = await query.maybeSingle();
+        .eq('company_id', profile.company_id)
+        .order('updated_at', { ascending: false });
 
+      console.log('🔍 ResourcingOverview: Found all company data:', allData?.length || 0, 'records');
+      
       if (error && error.code !== 'PGRST116') {
         console.error('Error loading resourcing overview:', error);
         return;
       }
 
-      if (savedData) {
-        setData({
-          onboarding: savedData.onboarding || 0,
-          onProbation: savedData.on_probation || 0,
-          active: savedData.active || 0,
-          requiredStaffingLevel: savedData.required_staffing_level || 0
+      if (allData && allData.length > 0) {
+        console.log('🔍 ResourcingOverview: Consolidating data from', allData.length, 'records');
+        
+        // Use the most recent non-zero values, prioritizing data from the current meeting if available
+        let consolidatedData = {
+          onboarding: 0,
+          onProbation: 0,
+          active: 0,
+          requiredStaffingLevel: 0
+        };
+        
+        // Process all records to find the best values
+        allData.forEach((record, index) => {
+          console.log(`🔍 ResourcingOverview: Processing record ${index + 1}:`, record);
+          
+          // If this is the first record or if we find non-zero values, use them
+          if (index === 0 || 
+              (record.onboarding > 0 && consolidatedData.onboarding === 0) ||
+              (record.on_probation > 0 && consolidatedData.onProbation === 0) ||
+              (record.active > 0 && consolidatedData.active === 0) ||
+              (record.required_staffing_level > 0 && consolidatedData.requiredStaffingLevel === 0)) {
+            
+            consolidatedData = {
+              onboarding: record.onboarding || consolidatedData.onboarding,
+              onProbation: record.on_probation || consolidatedData.onProbation,
+              active: record.active || consolidatedData.active,
+              requiredStaffingLevel: record.required_staffing_level || consolidatedData.requiredStaffingLevel
+            };
+          }
         });
+        
+        console.log('🔍 ResourcingOverview: Consolidated data:', consolidatedData);
+        setData(consolidatedData);
       } else {
+        console.log('🔍 ResourcingOverview: No database data found, trying localStorage backup');
         // Try to load from localStorage backup
         const backupKey = meetingId ? `resourcing_overview_backup_${profile.company_id}_${meetingId}` : `resourcing_overview_backup_${profile.company_id}`;
         const backupData = localStorage.getItem(backupKey);
@@ -70,6 +95,7 @@ export const ResourcingOverview = ({
           try {
             const backup = JSON.parse(backupData);
             setData(backup);
+            console.log('✅ ResourcingOverview: Loaded from localStorage backup');
           } catch (error) {
             console.error('Error loading backup data:', error);
           }
@@ -93,6 +119,13 @@ export const ResourcingOverview = ({
 
   const saveData = async (newData: typeof data) => {
     if (!profile?.company_id) return;
+    
+    console.log('🔄 ResourcingOverview: Starting save operation', {
+      companyId: profile.company_id,
+      meetingId,
+      data: newData,
+      timestamp: new Date().toISOString()
+    });
     
     try {
       console.log('ResourcingOverview: Saving data:', newData);

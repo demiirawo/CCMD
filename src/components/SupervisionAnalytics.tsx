@@ -72,17 +72,49 @@ export const SupervisionAnalytics = ({
   const loadSupervisionData = async () => {
     if (!profile?.company_id) return;
 
+    console.log('🔍 SupervisionAnalytics: Loading supervision data for company_id:', profile.company_id);
+    
     try {
-      const { data, error } = await supabase.from('dashboard_data').select('data_content').eq('company_id', profile.company_id).eq('data_type', 'supervision_analytics').maybeSingle();
+      // Strategy: Load ALL supervision analytics for this company and consolidate the most recent data
+      const { data: allData, error } = await supabase
+        .from('supervision_analytics')
+        .select('*')
+        .eq('company_id', profile.company_id)
+        .order('updated_at', { ascending: false });
 
+      console.log('🔍 SupervisionAnalytics: Found all company supervision data:', allData?.length || 0, 'records');
+      
       if (error && error.code !== 'PGRST116') {
         console.error('Error loading supervision data:', error);
         return;
       }
 
-      if (data?.data_content) {
-        setSupervisionData(data.data_content as typeof supervisionData);
+      if (allData && allData.length > 0) {
+        console.log('🔍 SupervisionAnalytics: Consolidating supervision data from', allData.length, 'records');
+        
+        // Use the most recent non-zero values
+        let consolidatedData = {
+          overdueSupervisions: 0
+        };
+        
+        allData.forEach((record, index) => {
+          const savedData = record.monthly_data as any || {};
+          console.log(`🔍 SupervisionAnalytics: Processing supervision record ${index + 1}:`, savedData);
+          
+          if (index === 0 || 
+              (savedData.overdueSupervisions > 0 && consolidatedData.overdueSupervisions === 0)) {
+            
+            consolidatedData = {
+              overdueSupervisions: savedData.overdueSupervisions || consolidatedData.overdueSupervisions
+            };
+          }
+        });
+        
+        console.log('🔍 SupervisionAnalytics: Consolidated supervision data:', consolidatedData);
+        setSupervisionData(consolidatedData);
+        console.log('✅ SupervisionAnalytics: Set consolidated supervision data to state');
       } else {
+        console.log('🔍 SupervisionAnalytics: No database supervision data found, trying localStorage backup');
         // Try localStorage backup
         const backupKey = `supervision_backup_${profile.company_id}`;
         const backupData = localStorage.getItem(backupKey);
@@ -90,6 +122,7 @@ export const SupervisionAnalytics = ({
           try {
             const backup = JSON.parse(backupData);
             setSupervisionData(backup);
+            console.log('✅ SupervisionAnalytics: Loaded supervision data from localStorage backup');
           } catch (error) {
             console.error('Error loading backup data:', error);
           }
@@ -104,6 +137,7 @@ export const SupervisionAnalytics = ({
         try {
           const backup = JSON.parse(backupData);
           setSupervisionData(backup);
+          console.log('✅ SupervisionAnalytics: Loaded supervision data from localStorage backup (fallback)');
         } catch (error) {
           console.error('Error loading backup data:', error);
         }
