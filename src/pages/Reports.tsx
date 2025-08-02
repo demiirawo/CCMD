@@ -245,14 +245,14 @@ export const Reports = () => {
         previewElement = dialogContent;
       }
 
-      // Create a temporary container for PDF generation
+      // Create a temporary container for PDF generation with original dashboard width
       const tempContainer = document.createElement('div');
       tempContainer.style.position = 'absolute';
       tempContainer.style.left = '-9999px';
       tempContainer.style.top = '0';
-      tempContainer.style.width = '210mm'; // A4 width
+      tempContainer.style.width = '1200px'; // Use dashboard width instead of A4 width
       tempContainer.style.backgroundColor = 'white';
-      tempContainer.style.padding = '10mm';
+      tempContainer.style.padding = '20px';
       tempContainer.style.boxSizing = 'border-box';
 
       // Clone the preview content
@@ -332,14 +332,13 @@ export const Reports = () => {
       // Wait a moment for styles to apply
       await new Promise(resolve => setTimeout(resolve, 500));
 
-      // Generate PDF with proper A4 dimensions
+      // Generate high-quality canvas with dashboard proportions
       const canvas = await html2canvas(tempContainer, {
-        scale: 2,
+        scale: 1.5,
         useCORS: true,
         allowTaint: true,
         backgroundColor: '#ffffff',
-        width: Math.ceil(210 * 3.779527559),
-        // A4 width in pixels at 96 DPI
+        width: 1200, // Match dashboard width
         height: tempContainer.scrollHeight
       });
 
@@ -353,14 +352,14 @@ export const Reports = () => {
         tempModal.remove();
       }
 
-      // Create PDF with A4 dimensions
+      // Create PDF in landscape to fit dashboard layout better
       const pdf = new jsPDF({
-        orientation: 'portrait',
+        orientation: 'landscape',
         unit: 'mm',
         format: 'a4'
       });
-      const imgWidth = 210; // A4 width in mm
-      const pageHeight = 297; // A4 height in mm
+      const imgWidth = 297; // A4 landscape width in mm
+      const pageHeight = 210; // A4 landscape height in mm  
       const imgHeight = canvas.height * imgWidth / canvas.width;
       let heightLeft = imgHeight;
       let position = 0;
