@@ -387,7 +387,7 @@ export const KeyDocumentTracker = ({
         
         {documents.length === 0 && <div className="text-center py-8 text-muted-foreground">
             
-            <p className="mb-4">No reviews tracked yet.</p>
+            <p className="mb-4 text-white">No reviews tracked yet.</p>
           </div>}
         
         <Button variant="default" onClick={addDocument} className="w-full text-sm">
