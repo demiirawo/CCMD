@@ -40,6 +40,7 @@ interface ActionsLogProps {
   onPanelStateChange?: () => void;
   panelStateTracker?: number;
   readOnly?: boolean;
+  currentUsername?: string;
 }
 
 export const ActionsLog = ({
@@ -52,7 +53,8 @@ export const ActionsLog = ({
   forceOpen,
   onPanelStateChange,
   panelStateTracker,
-  readOnly = false
+  readOnly = false,
+  currentUsername
 }: ActionsLogProps) => {
   const [isExpanded, setIsExpanded] = useState(() => {
     const saved = sessionStorage.getItem('actions_log_expanded');
@@ -99,9 +101,20 @@ export const ActionsLog = ({
     return aDueDate.getTime() - bDueDate.getTime();
   };
   
-  const openActions = actions
+  // Group open actions by current user vs team
+  const allOpenActions = actions
     .filter(action => !action.closed)
     .sort(sortByDueDate);
+    
+  const myActions = allOpenActions.filter(action => 
+    currentUsername && action.mentionedAttendee === currentUsername
+  );
+  
+  const officeTeamActions = allOpenActions.filter(action => 
+    !currentUsername || action.mentionedAttendee !== currentUsername
+  );
+  
+  const openActions = allOpenActions; // Keep for compatibility with existing summary
     
   const closedActions = actions
     .filter(action => {
@@ -295,7 +308,8 @@ export const ActionsLog = ({
           {actions.length === 0 ? <div className="text-center py-8 text-muted-foreground">
               <p>No actions logged yet.</p>
             </div> : <>
-              {renderActionsTable(openActions, "Open Actions")}
+              {myActions.length > 0 && renderActionsTable(myActions, "My Actions")}
+              {officeTeamActions.length > 0 && renderActionsTable(officeTeamActions, "Office Team Actions")}
               {renderActionsTable(closedActions, "Closed Actions (Last 30 Days)")}
               
               {openActions.length === 0 && closedActions.length === 0 && <div className="text-center py-8 text-muted-foreground">

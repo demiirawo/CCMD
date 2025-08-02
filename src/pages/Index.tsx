@@ -1807,6 +1807,7 @@ const Index = () => {
             onPanelStateChange={triggerPanelStateUpdate}
             panelStateTracker={panelStateTracker}
             readOnly={!canEdit}
+            currentUsername={profile?.username}
           />
           
           <KeyDocumentTracker 
