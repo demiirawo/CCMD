@@ -245,12 +245,12 @@ export const DashboardSection = ({
                 <>
                   <h3 className={cn(
                     "text-xl font-bold",
-                    isHighLevelPanel && isDynamicPanelColourEnabled ? "text-foreground" : "text-foreground"
+                    isHighLevelPanel && isDynamicPanelColourEnabled ? "text-white" : "text-foreground"
                   )}>{title}</h3>
                   {getLastUpdated() && (
                     <p className={cn(
                       "text-sm mt-1",
-                      isHighLevelPanel && isDynamicPanelColourEnabled ? "text-muted-foreground" : "text-muted-foreground"
+                      isHighLevelPanel && isDynamicPanelColourEnabled ? "text-white/80" : "text-muted-foreground"
                     )}>
                       Updated: {getLastUpdated()}
                     </p>
@@ -283,7 +283,7 @@ export const DashboardSection = ({
               const isHighLevelPanel = ["Staff", "Care Planning & Delivery", "Support Planning & Delivery", "Safety", "Continuous Improvement", "Key Review Dates", "Actions", "Supported Housing"].includes(title);
               const iconClass = cn(
                 "w-5 h-5",
-                isHighLevelPanel && isDynamicPanelColourEnabled ? "text-muted-foreground" : "text-muted-foreground"
+                isHighLevelPanel && isDynamicPanelColourEnabled ? "text-white/80" : "text-muted-foreground"
               );
               return isExpanded ? 
                 <ChevronDown className={iconClass} /> : 

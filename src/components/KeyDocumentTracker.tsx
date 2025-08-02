@@ -228,11 +228,11 @@ export const KeyDocumentTracker = ({
           <div>
             <h3 className={cn(
               "text-xl font-bold",
-              isDynamicPanelColourEnabled ? "text-foreground" : "text-foreground"
+              isDynamicPanelColourEnabled ? "text-white" : "text-foreground"
             )}>Key Review Dates</h3>
             <p className={cn(
               "text-sm",
-              isDynamicPanelColourEnabled ? "text-muted-foreground" : "text-muted-foreground"
+              isDynamicPanelColourEnabled ? "text-white/80" : "text-muted-foreground"
             )}>
               Updated: {new Date().toLocaleDateString('en-GB')}
             </p>

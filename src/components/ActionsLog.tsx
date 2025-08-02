@@ -222,12 +222,12 @@ export const ActionsLog = ({
     return <div className="mb-6">
         <h4 className={cn(
           "text-lg font-semibold mb-3 flex items-center gap-2",
-          isDynamicPanelColourEnabled ? "text-foreground" : "text-foreground"
+          isDynamicPanelColourEnabled ? "text-white" : "text-foreground"
         )}>
           {title}
           <span className={cn(
             "text-sm font-normal",
-            isDynamicPanelColourEnabled ? "text-muted-foreground" : "text-muted-foreground"
+            isDynamicPanelColourEnabled ? "text-white/80" : "text-muted-foreground"
           )}>
             ({actionsList.length})
           </span>
@@ -238,27 +238,27 @@ export const ActionsLog = ({
               <tr className="border-b border-border/30">
                 <th className={cn(
                   "text-left py-2 px-3 text-sm font-semibold",
-                  isDynamicPanelColourEnabled ? "text-foreground" : "text-foreground"
+                  isDynamicPanelColourEnabled ? "text-white" : "text-foreground"
                 )}>ID</th>
                 <th className={cn(
                   "text-left py-2 px-3 text-sm font-semibold",
-                  isDynamicPanelColourEnabled ? "text-foreground" : "text-foreground"
+                  isDynamicPanelColourEnabled ? "text-white" : "text-foreground"
                 )}>Description</th>
                 <th className={cn(
                   "text-left py-2 px-3 text-sm font-semibold",
-                  isDynamicPanelColourEnabled ? "text-foreground" : "text-foreground"
+                  isDynamicPanelColourEnabled ? "text-white" : "text-foreground"
                 )}>Owner</th>
                 <th className={cn(
                   "text-left py-2 px-3 text-sm font-semibold",
-                  isDynamicPanelColourEnabled ? "text-foreground" : "text-foreground"
+                  isDynamicPanelColourEnabled ? "text-white" : "text-foreground"
                 )}>Due Date</th>
                 <th className={cn(
                   "text-left py-2 px-3 text-sm font-semibold",
-                  isDynamicPanelColourEnabled ? "text-foreground" : "text-foreground"
+                  isDynamicPanelColourEnabled ? "text-white" : "text-foreground"
                 )}>Actions</th>
                 {title.includes("Closed") && <th className={cn(
                   "text-left py-2 px-3 text-sm font-semibold",
-                  isDynamicPanelColourEnabled ? "text-foreground" : "text-foreground"
+                  isDynamicPanelColourEnabled ? "text-white" : "text-foreground"
                 )}>Closed</th>}
               </tr>
             </thead>
@@ -386,13 +386,13 @@ export const ActionsLog = ({
           <div>
             <h3 className={cn(
               "text-xl font-bold",
-              isDynamicPanelColourEnabled ? "text-foreground" : "text-foreground"
+              isDynamicPanelColourEnabled ? "text-white" : "text-foreground"
             )}>
               Actions
             </h3>
             <p className={cn(
               "text-sm",
-              isDynamicPanelColourEnabled ? "text-muted-foreground" : "text-muted-foreground"
+              isDynamicPanelColourEnabled ? "text-white/80" : "text-muted-foreground"
             )}>
               {(() => {
                 const overdueActions = openActions.filter(action => getDaysRemaining(action.dueDate) < 0);
@@ -406,12 +406,12 @@ export const ActionsLog = ({
           {isOpen ? (
             <ChevronDown className={cn(
               "w-5 h-5",
-              isDynamicPanelColourEnabled ? "text-muted-foreground" : "text-muted-foreground"
+              isDynamicPanelColourEnabled ? "text-white/80" : "text-muted-foreground"
             )} />
           ) : (
             <ChevronRight className={cn(
               "w-5 h-5",
-              isDynamicPanelColourEnabled ? "text-muted-foreground" : "text-muted-foreground"
+              isDynamicPanelColourEnabled ? "text-white/80" : "text-muted-foreground"
             )} />
           )}
         </div>
@@ -420,7 +420,7 @@ export const ActionsLog = ({
       {isOpen && <div>
           {actions.length === 0 ? <div className={cn(
             "text-center py-8",
-            isDynamicPanelColourEnabled ? "text-muted-foreground" : "text-muted-foreground"
+            isDynamicPanelColourEnabled ? "text-white/80" : "text-muted-foreground"
           )}>
               <p>No actions logged yet.</p>
             </div> : <>
@@ -430,7 +430,7 @@ export const ActionsLog = ({
               
               {openActions.length === 0 && closedActions.length === 0 && <div className={cn(
                 "text-center py-8",
-                isDynamicPanelColourEnabled ? "text-muted-foreground" : "text-muted-foreground"
+                isDynamicPanelColourEnabled ? "text-white/80" : "text-muted-foreground"
               )}>
                   <p>No recent actions to display.</p>
                 </div>}
