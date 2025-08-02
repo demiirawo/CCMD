@@ -42,8 +42,8 @@ export const SupervisionAnalytics = ({
     if (!profile?.company_id) return;
 
     try {
-      // Load data for the specific meeting if meetingId is provided, otherwise load company-wide data
-      let query = supabase.from('dashboard_data').select('data_content').eq('company_id', profile.company_id).eq('data_type', 'resourcing_overview');
+      // Load data from the resourcing_overview table
+      let query = supabase.from('resourcing_overview').select('*').eq('company_id', profile.company_id);
       if (meetingId) {
         query = query.eq('meeting_id', meetingId);
       } else {
@@ -57,11 +57,10 @@ export const SupervisionAnalytics = ({
         return;
       }
 
-      if (savedData?.data_content) {
-        const resourcingData = savedData.data_content as any;
+      if (savedData) {
         setStaffData({
-          onProbation: resourcingData.onProbation || 0,
-          active: resourcingData.active || 0
+          onProbation: savedData.on_probation || 0,
+          active: savedData.active || 0
         });
       }
     } catch (error) {
