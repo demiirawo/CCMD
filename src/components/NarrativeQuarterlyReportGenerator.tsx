@@ -127,7 +127,7 @@ REPORT REQUIREMENTS:
 4. FORMAT: Plain text only - NO MARKDOWN formatting, asterisks, or special characters
 5. FORMATTING: Major headings should be BOLD with gray underline and CENTER ALIGNED. Minor headings should be BOLD and CENTER ALIGNED.
 
-REQUIRED REPORT STRUCTURE:
+REQUIRED REPORT STRUCTURE (in this exact order):
 
 Executive Summary
 
@@ -161,11 +161,11 @@ Supported Housing Section (Only displayed for companies that have "Supported Hou
 - Tenancy & Benefits
 - Property Safety & Maintenance
 
-Successes and Achievements (Summary of all the successes and achievements highlighted above)
+Successes and Achievements
 
-Learning Opportunities and Challenges (Summary of all the opportunities and challenges highlighted above)
+Learning Opportunities and Challenges
 
-Next Steps (Suggestions based on building upon the successes and putting action plans in place to address the learning lessons and challenges)
+Next Steps
 
 CRITICAL WRITING INSTRUCTIONS:
 

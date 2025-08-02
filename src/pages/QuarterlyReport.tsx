@@ -296,6 +296,17 @@ CRITICAL WRITING REQUIREMENTS:
 4. When discussing staff, refer to them as "${companyName} staff" or "${companyName} team members"
 5. When discussing management, refer to them as "${companyName} management" or "${companyName} leadership team"
 
+REQUIRED SECTION STRUCTURE (in this exact order):
+1. Executive Summary
+2. Staff
+3. ${careOrSupport} Planning & Delivery
+4. Safety
+5. Continuous Improvement
+${hasSupportedHousing ? '6. Supported Housing Section' : ''}
+${hasSupportedHousing ? '7. Successes and Achievements' : '6. Successes and Achievements'}
+${hasSupportedHousing ? '8. Learning Opportunities and Challenges' : '7. Learning Opportunities and Challenges'}
+${hasSupportedHousing ? '9. Next Steps' : '8. Next Steps'}
+
 NARRATIVE STORYTELLING APPROACH:
 1. NEVER mention field names, data sources, or technical references (avoid terms like "LATEST UPDATE", "TREND ANALYSIS", "dashboard", etc.)
 2. WEAVE insights naturally into flowing prose that tells ${companyName}'s story
@@ -1118,8 +1129,8 @@ REPORTING INSTRUCTIONS:
                                   {titleText}
                                 </h1>;
                       }
-                      // Check for standalone section titles (without numbers) - expanded list
-                      if (line.trim().length > 0 && line.trim().length < 100 && (line.trim() === 'Executive Summary' || line.trim() === 'Operational Successes' || line.trim() === 'Operational Successes and Achievements' || line.trim() === 'Learning Opportunities and Challenges' || line.trim() === 'Learning Opportunities and Strategic Challenges' || line.trim() === 'Workforce and Capacity Analysis' || line.trim() === 'Workforce Development and Capacity Analysis' || line.trim() === 'Care Quality and Service Delivery' || line.trim() === 'Care Quality and Service Excellence' || line.trim() === 'Health, Safety and Risk Management' || line.trim() === 'Continuous Improvement and Innovation' || line.trim() === 'Strategic Outlook and Recommendations' || line.trim() === 'Strategic Outlook and Future Planning' || line.trim().includes('Summary') || line.trim().includes('Analysis') || line.trim().includes('Development') || line.trim().includes('Excellence') || line.trim().includes('Management') || line.trim().includes('Innovation') || line.trim().includes('Outlook') || line.trim().includes('Planning'))) {
+                      // Check for standardized section titles
+                      if (line.trim().length > 0 && line.trim().length < 100 && (line.trim() === 'Executive Summary' || line.trim() === 'Staff' || line.trim() === 'Care Planning & Delivery' || line.trim() === 'Support Planning & Delivery' || line.trim() === 'Safety' || line.trim() === 'Continuous Improvement' || line.trim() === 'Supported Housing Section' || line.trim() === 'Successes and Achievements' || line.trim() === 'Learning Opportunities and Challenges' || line.trim() === 'Next Steps')) {
                         const sectionTitle = line.trim();
                         const elements = [<div key={lineIndex} className="mb-8">
                             <h2 className="text-2xl font-bold text-gray-800 pb-3 mb-6" style={{
