@@ -14,15 +14,16 @@ export const MagicLinkAuth = () => {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
   const handleMagicLink = async (e: React.FormEvent) => {
     e.preventDefault();
     console.log('Form submitted! handleMagicLink called');
+    
+    // Clear any previous error messages
+    setErrorMessage("");
+    
     if (!email.trim()) {
-      toast({
-        title: "Email required",
-        description: "Please enter your email address.",
-        variant: "destructive"
-      });
+      setErrorMessage("Please enter your email address.");
       return;
     }
     setLoading(true);
@@ -56,11 +57,7 @@ export const MagicLinkAuth = () => {
         }
         if (!teamMembers || teamMembers.length === 0) {
           console.log('No team members found for email:', email.trim().toLowerCase());
-          toast({
-            title: "Email Address Not Recognized",
-            description: "This email address is not registered with any company. Please check your email address or contact your administrator for access.",
-            variant: "destructive"
-          });
+          setErrorMessage("This email address is not registered with any company. Please check your email address or contact your administrator for access.");
           return;
         }
         console.log('Team member found, proceeding with magic link');
@@ -142,11 +139,28 @@ export const MagicLinkAuth = () => {
         <CardContent className="space-y-4">
           <div className="text-center mb-4">
             <h2 className="text-2xl font-semibold text-foreground">Welcome Back!</h2>
+            {errorMessage && (
+              <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-md">
+                <p className="text-sm text-red-600">{errorMessage}</p>
+              </div>
+            )}
           </div>
           <form onSubmit={handleMagicLink} className="space-y-4">
             <div className="space-y-2">
               
-              <Input id="email" type="email" placeholder="Enter your email" value={email} onChange={e => setEmail(e.target.value)} required className="focus-visible:ring-stone-50 bg-neutral-100" />
+              <Input 
+                id="email" 
+                type="email" 
+                placeholder="Enter your email" 
+                value={email} 
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  // Clear error message when user starts typing
+                  if (errorMessage) setErrorMessage("");
+                }} 
+                required 
+                className="focus-visible:ring-stone-50 bg-neutral-100" 
+              />
             </div>
             <Button type="submit" disabled={loading} className="w-full text-base bg-neutral-400 hover:bg-neutral-300 text-black">
               {loading ? "Sending..." : "Send Magic Link"}
