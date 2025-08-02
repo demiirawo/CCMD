@@ -251,7 +251,7 @@ NARRATIVE STORYTELLING APPROACH:
 
 CRITICAL CONTENT RULES:
 1. Base ALL content strictly on the meeting data provided - never invent or assume information
-2. If no relevant information exists for a section, write "No significant developments occurred in this area during ${quarter} ${year}"
+2. If no relevant information exists for a section, simply omit that section from the report
 3. Transform raw data into meaningful insights and analysis rather than simple reporting
 4. Focus on the human story behind the data - what it means for staff, service users, and the organization
 
