@@ -163,82 +163,72 @@ export const ReadOnlyDashboardView = ({ meetingId }: ReadOnlyDashboardViewProps)
           </div>
         </div>
         
-        {/* Static Dashboard Header */}
-        <Card className="bg-white shadow-lg">
-          <CardHeader className="pb-4">
-            <div className="flex justify-between items-start">
-              <div className="flex-1">
-                <CardTitle className="text-2xl font-bold text-gray-900 mb-2">
-                  {meeting.title || "Meeting Dashboard"}
-                </CardTitle>
-                <div className="flex items-center gap-6 text-sm text-gray-600">
-                  <div className="flex items-center gap-2">
-                    <CalendarDays className="h-4 w-4" />
-                    {formatHeaderDate(meeting.date)}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Users className="h-4 w-4" />
-                    {meeting.attendees.length} attendees
-                  </div>
-                </div>
-              </div>
-              <div className="flex gap-4">
-                <div className="text-center p-3 bg-green-50 rounded-lg border border-green-200">
-                  <div className="text-2xl font-bold text-green-600">{stats.green}</div>
-                  <div className="text-xs text-green-700">On Track</div>
-                </div>
-                <div className="text-center p-3 bg-yellow-50 rounded-lg border border-yellow-200">
-                  <div className="text-2xl font-bold text-yellow-600">{stats.amber}</div>
-                  <div className="text-xs text-yellow-700">Attention</div>
-                </div>
-                <div className="text-center p-3 bg-red-50 rounded-lg border border-red-200">
-                  <div className="text-2xl font-bold text-red-600">{stats.red}</div>
-                  <div className="text-xs text-red-700">Critical</div>
-                </div>
+        {/* Static Dashboard Header - Updated to match current design */}
+        <div className="bg-primary/10 pt-14 pb-8 px-14 mb-8 rounded-xl shadow-sm -mx-8">
+          {/* Meeting Info Section */}
+          <div className="grid grid-cols-2 gap-4 mb-10 items-start">
+            <div className="p-4 pt-8 rounded-lg border border-gray-100 h-32 bg-white">
+              <h3 className="text-sm font-medium text-muted-foreground mb-2">Meeting Title</h3>
+              <div className="w-full min-h-12 p-2 text-sm font-semibold text-foreground bg-gray-50 border border-gray-200 rounded whitespace-pre-wrap break-words overflow-wrap-anywhere">
+                {meeting.title || "No meeting title provided."}
               </div>
             </div>
-          </CardHeader>
-        </Card>
-
-        {/* Static Meeting Summary */}
-        {meeting.purpose && (
-          <Card className="bg-white shadow-lg">
-            <CardHeader>
-              <CardTitle>
-                Meeting Purpose
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-700">{meeting.purpose}</p>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Static Attendees */}
-        <Card className="bg-white shadow-lg">
-          <CardHeader>
-            <CardTitle>
-              Attendees ({meeting.attendees.length})
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-              {meeting.attendees.map((attendee, index) => (
-                <div key={index} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                  <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-                    <span className="text-sm font-bold text-purple-600">
-                      {attendee.name.charAt(0).toUpperCase()}
-                    </span>
-                  </div>
-                  <div>
-                    <p className="font-medium text-gray-900">{attendee.name}</p>
-                  </div>
-                </div>
-              ))}
+            <div className="p-4 pt-8 rounded-lg border border-gray-100 h-32 bg-white">
+              <h3 className="text-sm font-medium text-muted-foreground mb-2">Meeting Date & Time</h3>
+              <div className="w-full min-h-12 p-2 text-sm text-foreground bg-gray-50 border border-gray-200 rounded">
+                {formatHeaderDate(meeting.date) || "No date provided."}
+              </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
 
+          {/* Office Team and Meeting Summary Section */}
+          <div className="grid grid-cols-2 gap-6 mb-6 items-start">
+            {/* Meeting Attendees - 50% width */}
+            <div className="p-4 rounded-lg border border-gray-100 min-h-24 bg-white">
+              <h3 className="text-sm font-medium text-muted-foreground mb-2 py-[8px]">Meeting Attendees</h3>
+              <div className="space-y-3">
+                {meeting.attendees.map((attendee, index) => (
+                  <div key={index} className="grid grid-cols-[1fr_auto] gap-2 items-center">
+                    <div className="text-sm font-medium bg-white px-3 py-2 rounded border border-gray-200">
+                      {attendee.name}
+                    </div>
+                    <div className="flex gap-1">
+                      <span className="px-3 py-1 text-xs font-medium rounded bg-green-100 text-green-700 border border-green-300">
+                        Present
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+            {/* Meeting Summary - 50% width */}
+            <div className="p-4 rounded-lg border border-gray-100 min-h-24 bg-white">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-sm font-medium text-muted-foreground mx-0 px-0 py-[3px] my-0">Meeting Summary</h3>
+              </div>
+              <div className="w-full min-h-12 p-2 text-sm text-foreground bg-gray-50 border border-gray-200 rounded whitespace-pre-wrap break-words overflow-wrap-anywhere">
+                {meeting.purpose || "No meeting summary provided."}
+              </div>
+            </div>
+          </div>
+
+          {/* Stats Cards */}
+          <div className="flex gap-4 justify-center">
+            <div className="text-center p-3 bg-green-50 rounded-lg border border-green-200">
+              <div className="text-2xl font-bold text-green-600">{stats.green}</div>
+              <div className="text-xs text-green-700">On Track</div>
+            </div>
+            <div className="text-center p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+              <div className="text-2xl font-bold text-yellow-600">{stats.amber}</div>
+              <div className="text-xs text-yellow-700">Attention</div>
+            </div>
+            <div className="text-center p-3 bg-red-50 rounded-lg border border-red-200">
+              <div className="text-2xl font-bold text-red-600">{stats.red}</div>
+              <div className="text-xs text-red-700">Critical</div>
+            </div>
+          </div>
+        </div>
 
         {/* Static Dashboard Sections */}
         {meeting.sections.filter(section => section.id !== "meeting-overview").map(section => (
