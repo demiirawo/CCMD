@@ -520,7 +520,7 @@ export const Reports = () => {
       <div className="w-[90%] mx-auto space-y-6">
 
         {/* Year Filter */}
-        <div className="flex items-center justify-center gap-4 mb-6 bg-white p-4 rounded-lg shadow-sm py-[15px] my-[35px]">
+        <div className="flex items-center justify-center gap-4 mb-6 bg-white p-4 rounded-lg shadow-sm py-[15px] mt-16">
           <label className="text-sm font-medium text-foreground">Filter by Year:</label>
           <Select value={selectedYear?.toString() || "all"} onValueChange={value => setSelectedYear(value === "all" ? null : parseInt(value))}>
             <SelectTrigger className="w-48">
