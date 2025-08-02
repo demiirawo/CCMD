@@ -357,7 +357,7 @@ export const ActionForm = ({
             const target = e.target as HTMLTextAreaElement;
             target.style.height = 'auto';
             target.style.height = target.scrollHeight + 'px';
-          }} className="min-h-[36px] w-full px-3 py-2 text-sm border border-input rounded-md resize-none overflow-hidden bg-white" />
+          }} className="min-h-[36px] w-full px-3 py-2 text-sm border border-input rounded-md resize-none overflow-hidden bg-white text-black" />
           </div>
 
           {/* Target Date - Just calendar emoji */}
