@@ -35,6 +35,7 @@ interface AuthContextType {
   signOut: () => Promise<void>;
   createCompany: (name: string) => Promise<{ data: Company | null; error: any }>;
   selectCompany: (companyId: string) => Promise<{ error: any }>;
+  deleteCompany: (companyId: string) => Promise<{ error: any }>;
   fetchUserProfile: () => Promise<void>;
   fetchCompanies: () => Promise<void>;
 }
@@ -325,6 +326,27 @@ export const useAuthProvider = (): AuthContextType => {
     return { error };
   };
 
+  const deleteCompany = async (companyId: string) => {
+    if (!profile || profile.role !== 'admin') {
+      return { error: { message: 'Only admins can delete companies' } };
+    }
+    
+    const { error } = await supabase
+      .from('companies')
+      .delete()
+      .eq('id', companyId);
+    
+    if (!error) {
+      setCompanies(companies.filter(c => c.id !== companyId));
+      // If the deleted company was the user's selected company, clear it
+      if (profile.company_id === companyId) {
+        setProfile({ ...profile, company_id: null });
+      }
+    }
+    
+    return { error };
+  };
+
   return {
     user,
     session,
@@ -336,6 +358,7 @@ export const useAuthProvider = (): AuthContextType => {
     signOut,
     createCompany,
     selectCompany,
+    deleteCompany,
     fetchUserProfile,
     fetchCompanies
   };

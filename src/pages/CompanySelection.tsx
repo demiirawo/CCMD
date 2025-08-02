@@ -7,7 +7,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Building2 } from 'lucide-react';
+import { Plus, Building2, Trash2 } from 'lucide-react';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 export const CompanySelection = () => {
   const [newCompanyName, setNewCompanyName] = useState('');
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
@@ -17,6 +18,7 @@ export const CompanySelection = () => {
     companies,
     createCompany,
     selectCompany,
+    deleteCompany,
     signOut,
     fetchCompanies,
     loading: authLoading
@@ -120,6 +122,24 @@ export const CompanySelection = () => {
       setLoading(false);
     }
   };
+  const handleDeleteCompany = async (companyId: string) => {
+    setLoading(true);
+    const { error } = await deleteCompany(companyId);
+    if (error) {
+      toast({
+        title: 'Error',
+        description: error.message,
+        variant: 'destructive'
+      });
+    } else {
+      toast({
+        title: 'Success',
+        description: 'Company deleted successfully!'
+      });
+    }
+    setLoading(false);
+  };
+
   const handleSignOut = async () => {
     await signOut();
     navigate('/auth');
@@ -144,7 +164,7 @@ export const CompanySelection = () => {
           {companies.length > 0 ? <div className="space-y-4">
               <h3 className="text-lg font-semibold">Available Companies</h3>
               <div className="grid gap-4">
-                {companies.map(company => <Card key={company.id} className="cursor-pointer hover:bg-accent transition-colors">
+                {companies.map(company => <Card key={company.id} className="hover:bg-accent transition-colors">
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
@@ -156,12 +176,45 @@ export const CompanySelection = () => {
                             </p>
                           </div>
                         </div>
-                        <Button onClick={() => {
-                    console.log('Button clicked for company:', company.id, company.name);
-                    handleSelectCompany(company.id);
-                  }} disabled={loading} className="bg-stone-400 hover:bg-stone-300 text-black">
-                          Select
-                        </Button>
+                        <div className="flex items-center gap-2">
+                          <Button onClick={() => {
+                        console.log('Button clicked for company:', company.id, company.name);
+                        handleSelectCompany(company.id);
+                      }} disabled={loading} className="bg-stone-400 hover:bg-stone-300 text-black">
+                            Select
+                          </Button>
+                          {profile?.role === 'admin' && (
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="text-destructive hover:text-destructive-foreground hover:bg-destructive"
+                                  disabled={loading}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Delete Company</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Are you sure you want to delete "{company.name}"? This action cannot be undone and will permanently delete all company data including meetings, actions, and analytics.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={() => handleDeleteCompany(company.id)}
+                                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                  >
+                                    Delete Company
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          )}
+                        </div>
                       </div>
                     </CardContent>
                   </Card>)}
