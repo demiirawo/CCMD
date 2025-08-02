@@ -136,10 +136,7 @@ REPORT REQUIREMENTS:
 2. STYLE: Professional, narrative-driven, regulatory compliance focused
 3. STRUCTURE: Follow the exact structure below with these headings and subheadings
 4. FORMAT: Plain text only - NO MARKDOWN formatting, asterisks, or special characters
-5. FORMATTING: 
-   - Major headings should be written in ALL CAPS, center-aligned with extra spacing above and below
-   - Minor headings (subheadings) should be center-aligned with proper capitalization
-   - Use text formatting like underscores or equal signs to create visual separation if needed
+5. FORMATTING: Major headings should be BOLD, UNDERLINED, and CENTER ALIGNED. Minor headings should be BOLD and CENTER ALIGNED.
 
 REQUIRED REPORT STRUCTURE:
 
