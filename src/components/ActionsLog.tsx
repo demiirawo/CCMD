@@ -393,7 +393,11 @@ export const ActionsLog = ({
             "text-sm",
             isDynamicPanelColourEnabled ? "text-white/80" : "text-muted-foreground"
           )}>
-            {openActions.length} open, {closedActions.length} closed (30 days)
+            {(() => {
+              const overdueActions = openActions.filter(action => getDaysRemaining(action.dueDate) < 0);
+              const inProgressActions = openActions.filter(action => getDaysRemaining(action.dueDate) >= 0);
+              return `${inProgressActions.length} in progress, ${overdueActions.length} overdue`;
+            })()}
           </span>
         </div>
         <div className="p-1 rounded-lg hover:bg-accent/50 transition-colors outline-none">
