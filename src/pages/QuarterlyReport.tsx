@@ -261,37 +261,38 @@ CONTENT REQUIREMENTS:
 REPORT STRUCTURE (include all sections with substantial content):
 
 1. Executive Summary
-Write a comprehensive 500-600 word executive summary that captures the quarter's key achievements, challenges, strategic outlook, and operational performance for ${companyName}. Include quantitative metrics and qualitative assessments.
+Write a comprehensive 500-600 word executive summary that objectively captures the quarter's key findings, challenges, operational performance, and factual outcomes for ${companyName}. Include quantitative metrics and qualitative assessments based strictly on the data provided.
 
-2. Operational Successes and Achievements
-Analyze positive outcomes, achievements, and improvements in service delivery at ${companyName}. Include detailed discussion of performance metrics, successful initiatives, compliance achievements, and operational excellence examples. Provide specific evidence and measurable outcomes.
+2. Operational Performance and Outcomes
+Analyze operational outcomes, performance metrics, and service delivery results at ${companyName}. Report on what actually occurred based on the meeting data, including both positive and negative outcomes. Provide specific evidence and measurable results without bias.
 
-3. Learning Opportunities and Strategic Challenges
-Examine areas for improvement, incidents, challenges faced, and lessons learned by ${companyName}. Provide detailed analysis of root causes, impacts on operations, and strategic responses. Include forward-looking mitigation strategies.
+3. Challenges and Areas for Improvement
+Examine areas requiring attention, incidents, challenges faced, and issues identified by ${companyName}. Provide factual analysis of problems, impacts on operations, and documented responses. Include specific evidence from the meeting data.
 
-4. Workforce Development and Capacity Analysis
-Detailed analysis of ${companyName}'s staffing levels, recruitment effectiveness, retention strategies, training compliance, supervision quality, and capacity planning initiatives. Include staff development outcomes and future workforce planning.
+4. Workforce Management and Capacity Analysis
+Factual analysis of ${companyName}'s staffing levels, recruitment activities, retention data, training compliance status, supervision records, and capacity planning based solely on meeting documentation.
 
-5. Care Quality and Service Excellence
-Comprehensive review of ${companyName}'s care planning effectiveness, service quality metrics, care plan compliance, risk management protocols, client outcomes, and satisfaction measures. Include quality assurance findings.
+5. Care Quality and Service Delivery
+Objective review of ${companyName}'s care planning status, service quality data, care plan compliance records, risk management activities, and documented client outcomes based on meeting records.
 
 6. Health, Safety and Risk Management
-Thorough analysis of ${companyName}'s incident patterns, safety performance, risk mitigation strategies, safeguarding effectiveness, regulatory compliance, and emergency preparedness. Include trend analysis and preventive measures.
+Factual analysis of ${companyName}'s incident records, safety performance data, risk management activities, safeguarding records, and regulatory compliance status as documented in meetings.
 
-7. Continuous Improvement and Innovation
-Detailed discussion of ${companyName}'s improvement initiatives, quality enhancement programs, feedback integration, technology adoption, and innovation projects. Include measurable impacts and future development plans.
+7. Quality Assurance and Feedback
+Objective review of ${companyName}'s quality assurance activities, feedback received, audit findings, and improvement initiatives as recorded in meeting data.
 
-8. Strategic Outlook and Future Planning
-Forward-looking analysis with strategic recommendations for ${companyName}, priority areas for focus, planned initiatives for the coming quarter, resource allocation, and long-term objectives.
+8. Summary and Next Steps
+Factual summary of planned actions, identified priorities, and documented next steps for ${companyName} based on meeting decisions and action items.
 
 WRITING STYLE:
-- Professional, analytical tone appropriate for senior management and regulatory bodies
-- Use industry-standard terminology and professional care sector language
-- Ensure each paragraph flows logically to the next with clear transitions
-- Include quantitative analysis with qualitative interpretation
-- Demonstrate understanding of care sector challenges and best practices
-- Maintain consistency in tense and perspective throughout
+- Objective, factual tone appropriate for professional documentation and regulatory reporting
+- Use industry-standard terminology and neutral professional language
+- Present facts without interpretation or bias towards positive or negative outcomes
+- Report what actually happened based on the data provided
+- Avoid subjective language, assumptions, or evaluative statements not supported by data
+- Maintain consistency in factual reporting throughout
 - ALWAYS use "${companyName}" when referring to the organization
+- Focus strictly on documented evidence and recorded outcomes
 
 COMPLETION REQUIREMENT:
 - COMPLETE ALL SECTIONS FULLY - do not stop mid-sentence or mid-paragraph
@@ -326,10 +327,12 @@ CRITICAL FACTUAL REQUIREMENTS:
 WRITING REQUIREMENTS:
 - Write in natural language prose with flowing paragraphs
 - Minimum 500 words per section (aim for 600-700 words)
-- Include detailed analysis ONLY of what the data actually shows
+- Include objective analysis ONLY of what the data actually shows
+- Report both positive and negative findings without bias
 - Stay strictly within the bounds of the provided information
+- Use neutral, factual language throughout
 
-Focus on creating a factual narrative based exclusively on ${companyName}'s actual data and performance as evidenced in the provided analytics and context. Do not supplement with hypothetical scenarios or industry generalizations.`
+Focus on creating an objective, factual report based exclusively on ${companyName}'s actual documented performance and activities as evidenced in the provided data. Avoid any subjective interpretation or bias towards positive outcomes.`
       }];
       console.log('🚀 Calling OpenAI API with enhanced model...');
       // Switch to more powerful model for long-form content generation

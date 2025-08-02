@@ -386,37 +386,37 @@ REPORT STRUCTURE (you MUST use these exact headings and include all sections):
 ${companyName} Quarterly Report - ${quarter} ${year}
 
 1. Executive Summary
-Write a comprehensive 200-300 word executive summary that captures the quarter's key achievements, challenges, strategic outlook, and significant changes since ${prevQuarter} ${prevYear} for ${companyName}.
+Write a comprehensive 200-300 word objective summary that captures the quarter's key findings, challenges, operational performance, and documented outcomes for ${companyName}. Compare factually with ${prevQuarter} ${prevYear} where data is available.
 
-2. Successes and Achievements
-Analyze positive outcomes, achievements, and improvements for ${companyName}. Include detailed discussion of performance metrics, successful initiatives, compliance achievements, and operational excellence examples. Compare performance with ${prevQuarter} ${prevYear} where data is available.
+2. Operational Performance and Outcomes
+Analyze operational results, performance metrics, and service delivery outcomes for ${companyName}. Report objectively on what occurred based on meeting data. Compare performance with ${prevQuarter} ${prevYear} where data is available.
 
-3. Learning Opportunities and Challenges
-Examine areas for improvement, incidents, challenges faced, and lessons learned by ${companyName}. Provide detailed analysis of root causes and impacts on operations. Compare incident patterns and challenge areas with the previous quarter.
+3. Challenges and Areas for Improvement
+Examine areas requiring attention, incidents, challenges, and issues identified by ${companyName}. Provide factual analysis of problems and documented responses. Compare challenge areas with the previous quarter.
 
-4. Workforce Development and Capacity
-Detailed analysis of ${companyName}'s staffing levels, recruitment, retention, training compliance, supervision quality, and capacity planning initiatives. Include comparative analysis of workforce metrics between ${quarter} ${year} and ${prevQuarter} ${prevYear}.
+4. Workforce Management and Capacity
+Factual analysis of ${companyName}'s staffing levels, recruitment activities, retention data, training compliance, and supervision records. Include objective comparison of workforce metrics between ${quarter} ${year} and ${prevQuarter} ${prevYear}.
 
-5. Care Quality and Service Excellence
-Comprehensive review of ${companyName}'s care planning effectiveness, service quality metrics, care plan compliance, risk management, and client outcomes. Analyze improvements or declines in care quality since the previous quarter. Include [ANALYTICS DATA: feedback] to display the 12-month feedback analytics chart showing compliments, complaints, suggestions, and resolution trends.
+5. Care Quality and Service Delivery
+Objective review of ${companyName}'s care planning status, service quality data, care plan compliance, risk management, and documented outcomes. Analyze objectively any changes in care quality since the previous quarter. Include [ANALYTICS DATA: feedback] to display the 12-month feedback analytics chart showing compliments, complaints, suggestions, and resolution trends.
 
 6. Health, Safety and Risk Management
-Thorough analysis of ${companyName}'s incident patterns, safety performance, risk mitigation strategies, safeguarding effectiveness, and regulatory compliance. Compare safety metrics and incident trends with ${prevQuarter} ${prevYear}. Include [ANALYTICS DATA: incidents] to display the 12-month incidents analytics chart showing incidents, accidents, safeguarding concerns, and resolution rates.
+Factual analysis of ${companyName}'s incident records, safety performance, risk management activities, safeguarding records, and regulatory compliance. Compare safety metrics and incident data with ${prevQuarter} ${prevYear}. Include [ANALYTICS DATA: incidents] to display the 12-month incidents analytics chart showing incidents, accidents, safeguarding concerns, and resolution rates.
 
-7. Continuous Improvement and Innovation
-Detailed discussion of ${companyName}'s improvement initiatives, quality enhancement programs, feedback integration, and innovation projects. Analyze progress on improvement initiatives since the previous quarter. Reference feedback analytics data to demonstrate how customer insights are driving improvements.
+7. Quality Assurance and Feedback
+Factual review of ${companyName}'s quality assurance activities, feedback received, audit findings, and improvement initiatives. Analyze objectively any progress on quality initiatives since the previous quarter.
 
-8. Strategic Outlook and Future Planning
-Forward-looking analysis with strategic recommendations for ${companyName}, priority areas for focus, planned initiatives for the coming quarter, and lessons learned from quarter-to-quarter performance trends.
+8. Summary and Next Steps
+Factual summary with documented plans for ${companyName}, recorded priorities, planned actions for the coming quarter, and documented lessons from quarter-to-quarter performance data.
 
 WRITING STYLE:
-- Professional, analytical tone appropriate for senior management and regulatory bodies
-- Use industry-standard terminology and professional care sector language
-- Ensure each paragraph flows logically to the next
-- Include quantitative analysis with qualitative interpretation
-- Demonstrate understanding of care sector challenges and best practices
+- Objective, factual tone appropriate for professional documentation and regulatory reporting
+- Use industry-standard terminology and neutral professional language
+- Present facts without bias towards positive or negative outcomes
+- Report what actually happened based on the documented evidence
+- Avoid subjective language, assumptions, or evaluative statements not supported by data
 - Always refer to ${companyName} by name rather than using generic terms
-- Focus on organisational outcomes rather than individual performance`;
+- Focus on organisational outcomes and documented evidence rather than subjective assessments`;
       const userPrompt = `Generate a detailed quarterly report for ${quarter} ${year} based STRICTLY on the following data. Do not add any information beyond what is provided.
 
 Meeting Analysis: ${meetings.length} management meetings were held during this quarter, covering ${dataContext.meetingDetails.map(m => m.sectionSummary.length).reduce((a, b) => a + b, 0)} different operational areas.
