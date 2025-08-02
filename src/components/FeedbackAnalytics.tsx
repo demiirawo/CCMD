@@ -73,40 +73,63 @@ export const FeedbackAnalytics = ({
 
   const loadData = async () => {
     if (!profile?.company_id) return;
-    console.log('FeedbackAnalytics: Loading data for company_id:', profile.company_id, 'meetingId:', meetingId);
+    console.log('🔍 FeedbackAnalytics: Loading data for company_id:', profile.company_id, 'meetingId:', meetingId);
+    console.log('🔍 FeedbackAnalytics: Props received - meetingDate:', meetingDate, 'meetingId:', meetingId);
     
     try {
-      // Load data for the specific meeting if meetingId is provided, otherwise load company-wide data
-      let query = supabase
+      // Strategy: Load ALL feedback analytics for this company and consolidate the most recent data
+      // This ensures we don't lose data due to meeting ID inconsistencies
+      const { data: allData, error } = await supabase
         .from('feedback_analytics')
-        .select('monthly_data')
-        .eq('company_id', profile.company_id);
-      
-      if (meetingId) {
-        query = query.eq('meeting_id', meetingId);
-      } else {
-        query = query.is('meeting_id', null);
-      }
-      
-      const { data, error } = await query.maybeSingle();
+        .select('id, meeting_id, monthly_data, updated_at')
+        .eq('company_id', profile.company_id)
+        .order('updated_at', { ascending: false });
 
+      console.log('🔍 FeedbackAnalytics: Found all company data:', allData?.length || 0, 'records');
+      
       if (error && error.code !== 'PGRST116') {
         console.error('Error loading feedback analytics:', error);
         return;
       }
 
-      if (data?.monthly_data) {
-        console.log('FeedbackAnalytics: Found existing data:', data.monthly_data);
-        const loadedData = data.monthly_data as any[];
-        const currentStructure = generateInitialData(meetingDate);
-        const mergedData = currentStructure.map(current => {
-          const existing = loadedData.find(item => item.month === current.month);
-          return existing || current;
+      let consolidatedData = generateInitialData(meetingDate);
+      
+      if (allData && allData.length > 0) {
+        console.log('🔍 FeedbackAnalytics: Consolidating data from', allData.length, 'records');
+        
+        // Consolidate data from all records, prioritizing non-zero values and most recent updates
+        const dataByMonth: Record<string, any> = {};
+        
+        // Process all records, starting with newest
+        allData.forEach((record, recordIndex) => {
+          const recordData = record.monthly_data as any[];
+          if (recordData && Array.isArray(recordData)) {
+            recordData.forEach(monthData => {
+              if (!dataByMonth[monthData.month]) {
+                dataByMonth[monthData.month] = { ...monthData };
+              } else {
+                // Merge data, keeping non-zero values
+                ['compliments', 'complaints', 'suggestions', 'resolved'].forEach(field => {
+                  if (monthData[field] > 0 || dataByMonth[monthData.month][field] === 0) {
+                    dataByMonth[monthData.month][field] = monthData[field];
+                  }
+                });
+              }
+            });
+          }
         });
-        console.log('FeedbackAnalytics: Setting merged data:', mergedData);
-        setMonthlyData(mergedData);
+        
+        // Apply consolidated data to the structure
+        consolidatedData = consolidatedData.map(current => {
+          const consolidated = dataByMonth[current.month];
+          return consolidated || current;
+        });
+        
+        
+        setMonthlyData(consolidatedData);
+        console.log('✅ FeedbackAnalytics: Set consolidated data to state');
       } else {
-        console.log('FeedbackAnalytics: No existing data found, trying localStorage backup');
+        console.log('🔍 FeedbackAnalytics: No database data found, trying localStorage backup');
         // Try to load from localStorage backup
         const backupKey = meetingId ? `feedback_backup_${profile.company_id}_${meetingId}` : `feedback_backup_${profile.company_id}`;
         const backupData = localStorage.getItem(backupKey);
@@ -119,7 +142,7 @@ export const FeedbackAnalytics = ({
               return existing || current;
             });
             setMonthlyData(mergedData);
-            console.log('FeedbackAnalytics: Loaded from localStorage backup');
+            console.log('✅ FeedbackAnalytics: Loaded from localStorage backup');
           } catch (error) {
             console.error('Error loading backup data:', error);
             setMonthlyData(generateInitialData(meetingDate));
