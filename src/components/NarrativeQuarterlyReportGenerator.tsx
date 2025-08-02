@@ -279,7 +279,7 @@ Write approximately 1500-2500 words using only plain text formatting that regula
         </CardContent>
       </Card>;
   }
-  return <Card>
+  return <Card className="bg-transparent border-0 shadow-none">
       
       <CardContent>
         
