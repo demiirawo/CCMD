@@ -163,7 +163,7 @@ export const ReadOnlyDashboardView = ({ meetingId }: ReadOnlyDashboardViewProps)
           </div>
         </div>
         
-        {/* Static Dashboard Header - Updated to match current design */}
+        {/* Dashboard Header - Matching current design */}
         <div className="bg-primary/10 pt-14 pb-8 px-14 mb-8 rounded-xl shadow-sm -mx-8">
           {/* Meeting Info Section */}
           <div className="grid grid-cols-2 gap-4 mb-10 items-start">
@@ -230,64 +230,162 @@ export const ReadOnlyDashboardView = ({ meetingId }: ReadOnlyDashboardViewProps)
           </div>
         </div>
 
-        {/* Static Dashboard Sections */}
-        {meeting.sections.filter(section => section.id !== "meeting-overview").map(section => (
-          <Card key={section.id} className="bg-white shadow-lg">
-            <CardHeader>
-              <CardTitle>
-                {section.title}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
+        {/* Dashboard Sections - Matching current design */}
+        {meeting.sections.filter(section => section.id !== "meeting-overview").map(section => {
+          const getSectionStatus = () => {
+            if (!section.items || section.items.length === 0) return 'green';
+            const applicableItems = section.items.filter(item => item.status !== 'na');
+            if (applicableItems.length === 0) return 'green';
+            
+            const hasRed = applicableItems.some(item => item.status === 'red');
+            const hasAmber = applicableItems.some(item => item.status === 'amber');
+            
+            if (hasRed) return 'red';
+            if (hasAmber) return 'amber';
+            return 'green';
+          };
+
+          const getLastUpdated = () => {
+            if (!section.items || section.items.length === 0) return null;
+            
+            const dates = section.items
+              .map(item => item.lastReviewed)
+              .filter(date => date && date.trim() !== '')
+              .sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
+            
+            return dates[0] || null;
+          };
+
+          const getSectionBackgroundClass = (status: string) => {
+            const baseClass = "-mx-8 px-14 py-6";
+            switch (status) {
+              case 'green':
+                return `bg-status-green text-white ${baseClass}`;
+              case 'amber':
+                return `bg-status-amber text-white ${baseClass}`;
+              case 'red':
+                return `bg-status-red text-white ${baseClass}`;
+              default:
+                return `bg-primary/10 ${baseClass}`;
+            }
+          };
+
+          const sectionStatus = getSectionStatus();
+          const lastUpdated = getLastUpdated();
+
+          return (
+            <div key={section.id} className={`rounded-2xl shadow-lg ${getSectionBackgroundClass(sectionStatus)}`}>
+              <div className="flex items-center justify-between cursor-pointer mb-4">
+                <div className="flex items-center gap-3">
+                  <div>
+                    <h3 className="text-xl font-bold text-white">{section.title}</h3>
+                    {lastUpdated && (
+                      <p className="text-sm mt-1 text-white/80">
+                        Updated: {lastUpdated}
+                      </p>
+                    )}
+                  </div>
+                  <div className="ml-4">
+                    <StatusBadge status={sectionStatus} />
+                  </div>
+                </div>
+              </div>
+              
+              <div className="space-y-2">
                 {section.items && section.items.length > 0 ? (
-                  section.items.map((item, index) => (
-                    <div key={index} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
-                      <div className="flex justify-between items-start mb-3">
-                        <h4 className="font-medium text-gray-900">{item.title}</h4>
-                        <StatusBadge status={item.status} />
-                      </div>
-                      
-                      {item.observation && (
-                        <div className="mb-3">
-                          <p className="text-sm text-gray-600 font-medium mb-1">Observation:</p>
-                          <p className="text-sm text-gray-700">{item.observation}</p>
-                        </div>
-                      )}
+                  section.items.map((item, index) => {
+                    const getStatusBackgroundClass = (status: string) => {
+                      switch (status) {
+                        case 'green':
+                          return 'bg-green-50 border border-green-200';
+                        case 'amber':
+                          return 'bg-amber-50 border border-amber-200';
+                        case 'red':
+                          return 'bg-red-50 border border-red-200';
+                        case 'na':
+                          return 'bg-gray-50 border border-gray-200';
+                        default:
+                          return 'bg-white border border-gray-200';
+                      }
+                    };
 
-                      {item.lastReviewed && (
-                        <div className="mb-3">
-                          <p className="text-xs text-gray-500">Last reviewed: {item.lastReviewed}</p>
-                        </div>
-                      )}
+                    return (
+                      <div key={index} className={`relative w-full rounded-xl p-8 mb-3 shadow-md min-h-[140px] ${getStatusBackgroundClass(item.status)}`}>
+                        <div className="flex items-start gap-4 w-full">
+                          <div className="flex-shrink-0">
+                            <StatusBadge status={item.status} />
+                          </div>
+                          
+                          <div className="flex-1 min-w-0 mr-3 flex flex-col justify-between h-full">
+                            <div>
+                              <h4 className="font-semibold text-foreground text-sm truncate">
+                                {item.title}
+                              </h4>
+                              
+                              <p className="text-xs text-muted-foreground mt-1">
+                                Updated: {item.lastReviewed}
+                              </p>
+                            </div>
+                          </div>
+                          
+                          <div className="flex-[5] min-w-0 space-y-3">
+                            {/* Current Situation Section */}
+                            <div>
+                              <label className="text-xs font-medium text-muted-foreground mb-1 block">CURRENT SITUATION</label>
+                              <div className="w-full p-3 rounded-lg text-sm min-h-[80px] flex items-start border border-border/30 bg-muted/20">
+                                <span className="break-words w-full whitespace-pre-wrap">
+                                  {item.observation || "No current situation recorded"}
+                                </span>
+                              </div>
+                            </div>
 
-                      {item.actions && item.actions.length > 0 && (
-                        <div className="bg-blue-50 p-3 rounded-lg">
-                          <p className="text-sm font-medium text-blue-800 mb-2">Related Actions:</p>
-                          <div className="space-y-2">
-                            {item.actions.map((action, actionIndex) => (
-                              <div key={actionIndex} className="text-sm text-blue-700">
-                                • {action.description || action.name} 
-                                {action.targetDate && (
-                                  <span className="text-blue-600"> (Due: {action.targetDate})</span>
+                            {/* Trends & Themes Section */}
+                            {item.trendsThemes && (
+                              <div>
+                                <label className="text-xs font-medium text-muted-foreground mb-1 block">TREND & THEMES</label>
+                                <div className="w-full p-3 rounded-lg text-sm min-h-[80px] flex items-start border border-border/30 bg-muted/20">
+                                  <span className="break-words w-full whitespace-pre-wrap">
+                                    {item.trendsThemes}
+                                  </span>
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Actions Section */}
+                            <div>
+                              <label className="text-xs font-medium text-muted-foreground mb-1 block">ACTIONS</label>
+                              <div className="space-y-2">
+                                {item.actions && item.actions.length > 0 ? (
+                                  item.actions.map((action, actionIndex) => (
+                                    <div key={actionIndex} className="p-3 border border-border/30 rounded-lg bg-muted/20">
+                                      <div className="text-sm font-medium">{action.description}</div>
+                                      <div className="text-xs text-muted-foreground mt-1">
+                                        Assigned to: {action.name} | Due: {action.targetDate}
+                                      </div>
+                                    </div>
+                                  ))
+                                ) : (
+                                  <div className="p-3 border border-border/30 rounded-lg bg-muted/20 text-sm text-muted-foreground">
+                                    No actions
+                                  </div>
                                 )}
                               </div>
-                            ))}
+                            </div>
                           </div>
                         </div>
-                      )}
-                    </div>
-                  ))
+                      </div>
+                    );
+                  })
                 ) : (
-                  <div className="text-center py-8 text-gray-500">
+                  <div className="text-center py-8 text-white/80">
                     <FileText className="h-8 w-8 mx-auto mb-2 opacity-50" />
                     <p className="text-sm">No items tracked in this section</p>
                   </div>
                 )}
               </div>
-            </CardContent>
-          </Card>
-        ))}
+            </div>
+          );
+        })}
       </div>
     </div>
   );
