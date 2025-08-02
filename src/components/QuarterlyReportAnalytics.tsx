@@ -4,13 +4,11 @@ import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, ResponsiveContai
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-
 interface QuarterlyReportAnalyticsProps {
   type: 'feedback' | 'incidents';
   quarter: string;
   year: string;
 }
-
 const generateInitialData = (type: 'feedback' | 'incidents', meetingDate?: Date) => {
   const months = [];
   const currentDate = meetingDate || new Date();
@@ -20,11 +18,11 @@ const generateInitialData = (type: 'feedback' | 'incidents', meetingDate?: Date)
       month: 'short',
       year: '2-digit'
     });
-    
     if (type === 'feedback') {
       months.push({
         month: monthName,
-        compliments: Math.floor(Math.random() * 5), // Add some test data
+        compliments: Math.floor(Math.random() * 5),
+        // Add some test data
         complaints: Math.floor(Math.random() * 3),
         suggestions: Math.floor(Math.random() * 2),
         resolved: Math.floor(Math.random() * 4)
@@ -32,7 +30,8 @@ const generateInitialData = (type: 'feedback' | 'incidents', meetingDate?: Date)
     } else {
       months.push({
         month: monthName,
-        incidents: Math.floor(Math.random() * 3), // Add some test data
+        incidents: Math.floor(Math.random() * 3),
+        // Add some test data
         accidents: Math.floor(Math.random() * 2),
         safeguarding: Math.floor(Math.random() * 2),
         resolved: Math.floor(Math.random() * 4)
@@ -41,100 +40,89 @@ const generateInitialData = (type: 'feedback' | 'incidents', meetingDate?: Date)
   }
   return months;
 };
-
 const feedbackChartConfig = {
   compliments: {
     label: "Compliments",
-    color: "#22c55e",
+    color: "#22c55e"
   },
   complaints: {
-    label: "Complaints", 
-    color: "#ef4444",
+    label: "Complaints",
+    color: "#ef4444"
   },
   suggestions: {
     label: "Suggestions",
-    color: "#3b82f6",
+    color: "#3b82f6"
   },
   resolved: {
     label: "Resolved",
-    color: "#f59e0b",
-  },
+    color: "#f59e0b"
+  }
 };
-
 const incidentsChartConfig = {
   incidents: {
     label: "Incidents",
-    color: "#ef4444",
+    color: "#ef4444"
   },
   accidents: {
     label: "Accidents",
-    color: "#f59e0b", 
+    color: "#f59e0b"
   },
   safeguarding: {
     label: "Safeguarding",
-    color: "#3b82f6",
+    color: "#3b82f6"
   },
   resolved: {
     label: "Resolved",
-    color: "#22c55e",
-  },
+    color: "#22c55e"
+  }
 };
-
 export const QuarterlyReportAnalytics: React.FC<QuarterlyReportAnalyticsProps> = ({
   type,
   quarter,
   year
 }) => {
-  const { profile } = useAuth();
+  const {
+    profile
+  } = useAuth();
   const [monthlyData, setMonthlyData] = useState<any[]>([]);
 
   // Calculate a representative date for the quarter
   const getQuarterDate = (quarter: string, year: string) => {
-    const quarterMap: { [key: string]: string } = {
+    const quarterMap: {
+      [key: string]: string;
+    } = {
       'Q1': `${year}-03-31`,
-      'Q2': `${year}-06-30`, 
+      'Q2': `${year}-06-30`,
       'Q3': `${year}-09-30`,
       'Q4': `${year}-12-31`
     };
     return quarterMap[quarter] || `${year}-12-31`;
   };
-
   const quarterDate = new Date(getQuarterDate(quarter, year));
-
   useEffect(() => {
     console.log(`🔄 QuarterlyReportAnalytics useEffect triggered for ${type}`);
     loadData();
   }, [profile?.company_id, type, quarter, year]);
-
   const loadData = async () => {
     if (!profile?.company_id) return;
-    
     console.log(`🔍 QuarterlyReportAnalytics: Loading ${type} data for company:`, profile.company_id);
-    
     try {
       const dataType = type === 'feedback' ? 'feedback_analytics' : 'incidents_analytics';
-      
-      const { data: allData, error } = await supabase
-        .from('dashboard_data')
-        .select('data_content, updated_at')
-        .eq('company_id', profile.company_id)
-        .eq('data_type', dataType);
-
+      const {
+        data: allData,
+        error
+      } = await supabase.from('dashboard_data').select('data_content, updated_at').eq('company_id', profile.company_id).eq('data_type', dataType);
       if (error) {
         console.error(`❌ Error loading ${type} analytics:`, error);
         setMonthlyData(generateInitialData(type, quarterDate));
         return;
       }
-
       console.log(`📊 Found ${type} data records:`, allData?.length || 0);
-
       if (allData && allData.length > 0) {
         // Consolidate data from multiple records
         const initialData = generateInitialData(type, quarterDate);
         const consolidatedData = [...initialData];
-
         console.log(`📅 Initial ${type} data structure:`, initialData[0]);
-
         allData.forEach((record, recordIndex) => {
           console.log(`📋 Processing ${type} record ${recordIndex}:`, record.data_content);
           if (record.data_content && typeof record.data_content === 'object') {
@@ -154,7 +142,6 @@ export const QuarterlyReportAnalytics: React.FC<QuarterlyReportAnalyticsProps> =
             }
           }
         });
-
         console.log(`✅ Final consolidated ${type} data:`, consolidatedData);
         setMonthlyData(consolidatedData);
       } else {
@@ -166,17 +153,13 @@ export const QuarterlyReportAnalytics: React.FC<QuarterlyReportAnalyticsProps> =
       setMonthlyData(generateInitialData(type, quarterDate));
     }
   };
-
   const chartConfig = type === 'feedback' ? feedbackChartConfig : incidentsChartConfig;
   const chartTitle = type === 'feedback' ? 'Feedback Analytics' : 'Incidents, Accidents & Safeguarding Analytics';
-
   console.log(`📊 Rendering ${type} chart with data:`, monthlyData);
   console.log(`📊 Chart config:`, chartConfig);
-
-  return (
-    <Card className="p-4 bg-white">
+  return <Card className="p-4 bg-white">
       <div className="flex items-center justify-between mb-4">
-        <h4 className="text-lg font-semibold text-foreground">{chartTitle}</h4>
+        
         <span className="text-sm text-muted-foreground px-2">
           {monthlyData[0]?.month} - {monthlyData[monthlyData.length - 1]?.month}
         </span>
@@ -185,45 +168,40 @@ export const QuarterlyReportAnalytics: React.FC<QuarterlyReportAnalyticsProps> =
       <ChartContainer config={chartConfig} className="h-64 w-full">
         <ResponsiveContainer width="100%" height="100%">
           <ComposedChart data={monthlyData} margin={{
-            top: 5,
-            right: 5,
-            bottom: 25,
-            left: 5
-          }}>
+          top: 5,
+          right: 5,
+          bottom: 25,
+          left: 5
+        }}>
             <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
             <XAxis dataKey="month" axisLine={false} tickLine={false} className="text-xs" />
             <YAxis axisLine={false} tickLine={false} className="text-xs" />
             <ChartTooltip content={<ChartTooltipContent />} />
             
-            {type === 'feedback' ? (
-              <>
+            {type === 'feedback' ? <>
                 <Bar dataKey="compliments" fill="#22c55e" name="Compliments" stackId="feedback" />
                 <Bar dataKey="complaints" fill="#ef4444" name="Complaints" stackId="feedback" />
                 <Bar dataKey="suggestions" fill="#3b82f6" name="Suggestions" stackId="feedback" />
                 <Line type="monotone" dataKey="resolved" stroke="#f59e0b" strokeWidth={2} dot={{
-                  r: 3,
-                  fill: "#f59e0b"
-                }} name="Resolved" />
-              </>
-            ) : (
-              <>
+              r: 3,
+              fill: "#f59e0b"
+            }} name="Resolved" />
+              </> : <>
                 <Bar dataKey="incidents" fill="#ef4444" name="Incidents" stackId="incidents" />
                 <Bar dataKey="accidents" fill="#f59e0b" name="Accidents" stackId="incidents" />
                 <Bar dataKey="safeguarding" fill="#3b82f6" name="Safeguarding" stackId="incidents" />
                 <Line type="monotone" dataKey="resolved" stroke="#22c55e" strokeWidth={2} dot={{
-                  r: 3,
-                  fill: "#22c55e"
-                }} name="Resolved" />
-              </>
-            )}
+              r: 3,
+              fill: "#22c55e"
+            }} name="Resolved" />
+              </>}
           </ComposedChart>
         </ResponsiveContainer>
       </ChartContainer>
       
       {/* Legend */}
       <div className="flex flex-wrap justify-center gap-4 mt-4 pt-4 border-t border-border">
-        {type === 'feedback' ? (
-          <>
+        {type === 'feedback' ? <>
             <div className="flex items-center gap-2">
               <div className="w-4 h-4 bg-green-500 rounded"></div>
               <span className="text-xs text-muted-foreground">Compliments</span>
@@ -240,9 +218,7 @@ export const QuarterlyReportAnalytics: React.FC<QuarterlyReportAnalyticsProps> =
               <div className="w-4 h-3 border-b-2 border-amber-500"></div>
               <span className="text-xs text-muted-foreground">Resolved</span>
             </div>
-          </>
-        ) : (
-          <>
+          </> : <>
             <div className="flex items-center gap-2">
               <div className="w-4 h-4 bg-red-500 rounded"></div>
               <span className="text-xs text-muted-foreground">Incidents</span>
@@ -259,9 +235,7 @@ export const QuarterlyReportAnalytics: React.FC<QuarterlyReportAnalyticsProps> =
               <div className="w-4 h-3 border-b-2 border-green-500"></div>
               <span className="text-xs text-muted-foreground">Resolved</span>
             </div>
-          </>
-        )}
+          </>}
       </div>
-    </Card>
-  );
+    </Card>;
 };
