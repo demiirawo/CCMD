@@ -111,7 +111,7 @@ export const DashboardHeader = ({
           if (e.key === "Escape") {
             setEditingField(null);
           }
-        }} autoFocus placeholder="Click to add meeting summary or use AI Summary to generate automatically..." /> : <button onClick={() => setEditingField("purpose")} className="w-full text-left min-h-12 p-2 text-sm text-foreground hover:bg-white hover:border-gray-400 transition-colors rounded whitespace-pre-wrap break-words overflow-wrap-anywhere border border-gray-200">
+        }} autoFocus /> : <button onClick={() => setEditingField("purpose")} className="w-full text-left min-h-12 p-2 text-sm text-foreground hover:bg-white hover:border-gray-400 transition-colors rounded whitespace-pre-wrap break-words overflow-wrap-anywhere border border-gray-200">
                 {purpose || "Click to add meeting summary or use AI Summary to generate automatically..."}
               </button>}
         </div>
