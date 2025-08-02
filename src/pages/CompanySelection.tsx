@@ -167,7 +167,7 @@ export const CompanySelection = () => {
 
   // Filter companies based on search
   const filteredCompanies = useMemo(() => {
-    if (!searchValue.trim()) return [];
+    if (!searchValue.trim()) return companies;
     return companies.filter(company => company.name.toLowerCase().includes(searchValue.toLowerCase()));
   }, [companies, searchValue]);
   return <div className="min-h-screen flex items-center justify-center px-4 bg-stone-50">
@@ -196,65 +196,67 @@ export const CompanySelection = () => {
               </div>
             </div>
 
-            {searchValue.trim() && <div className="space-y-2">
-                <p className="text-sm text-muted-foreground">
+            {filteredCompanies.length > 0 && <div className="space-y-2">
+                {searchValue.trim() && <p className="text-sm text-muted-foreground">
                   {filteredCompanies.length} result{filteredCompanies.length !== 1 ? 's' : ''} found
-                </p>
-                {filteredCompanies.length > 0 ? <div className="grid gap-2 max-h-60 overflow-y-auto">
-                    {filteredCompanies.map(company => <Card key={company.id} className="hover:bg-accent transition-colors">
-                        <CardContent className="p-4">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                              <Building2 className="h-5 w-5 text-muted-foreground" />
-                              <div>
-                                <h4 className="font-medium">{company.name}</h4>
-                                <p className="text-sm text-muted-foreground">
-                                  Created {new Date(company.created_at).toLocaleDateString()}
-                                </p>
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <Button 
-                                variant="outline" 
-                                size="sm" 
-                                onClick={() => handleCopyCompanyLink(company)} 
-                                disabled={loading}
-                                className="hover:bg-accent"
-                              >
-                                <Copy className="h-4 w-4" />
-                              </Button>
-                              <Button onClick={() => handleSelectCompany(company.id)} disabled={loading} className="bg-stone-400 hover:bg-stone-300 text-black">
-                                Select
-                              </Button>
-                              {profile?.role === 'admin' && <AlertDialog>
-                                  <AlertDialogTrigger asChild>
-                                    <Button variant="outline" size="sm" className="text-destructive hover:text-destructive-foreground hover:bg-destructive" disabled={loading}>
-                                      <Trash2 className="h-4 w-4" />
-                                    </Button>
-                                  </AlertDialogTrigger>
-                                  <AlertDialogContent>
-                                    <AlertDialogHeader>
-                                      <AlertDialogTitle>Delete Company</AlertDialogTitle>
-                                      <AlertDialogDescription>
-                                        Are you sure you want to delete "{company.name}"? This action cannot be undone and will permanently delete all company data including meetings, actions, and analytics.
-                                      </AlertDialogDescription>
-                                    </AlertDialogHeader>
-                                    <AlertDialogFooter>
-                                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                      <AlertDialogAction onClick={() => handleDeleteCompany(company.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                                        Delete Company
-                                      </AlertDialogAction>
-                                    </AlertDialogFooter>
-                                  </AlertDialogContent>
-                                </AlertDialog>}
+                </p>}
+                <div className="grid gap-2 max-h-60 overflow-y-auto">
+                  {filteredCompanies.map(company => <Card key={company.id} className="hover:bg-accent transition-colors">
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <Building2 className="h-5 w-5 text-muted-foreground" />
+                            <div>
+                              <h4 className="font-medium">{company.name}</h4>
+                              <p className="text-sm text-muted-foreground">
+                                Created {new Date(company.created_at).toLocaleDateString()}
+                              </p>
                             </div>
                           </div>
-                        </CardContent>
-                      </Card>)}
-                  </div> : <div className="text-center py-8">
-                    <Building2 className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-                    <p className="text-sm text-muted-foreground">No companies found matching "{searchValue}"</p>
-                  </div>}
+                          <div className="flex items-center gap-2">
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              onClick={() => handleCopyCompanyLink(company)} 
+                              disabled={loading}
+                              className="hover:bg-accent"
+                            >
+                              <Copy className="h-4 w-4" />
+                            </Button>
+                            <Button onClick={() => handleSelectCompany(company.id)} disabled={loading} className="bg-stone-400 hover:bg-stone-300 text-black">
+                              Select
+                            </Button>
+                            {profile?.role === 'admin' && <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button variant="outline" size="sm" className="text-destructive hover:text-destructive-foreground hover:bg-destructive" disabled={loading}>
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>Delete Company</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      Are you sure you want to delete "{company.name}"? This action cannot be undone and will permanently delete all company data including meetings, actions, and analytics.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction onClick={() => handleDeleteCompany(company.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                                      Delete Company
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>)}
+                </div>
+              </div>}
+              
+              {searchValue.trim() && filteredCompanies.length === 0 && <div className="text-center py-8">
+                <Building2 className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                <p className="text-sm text-muted-foreground">No companies found matching "{searchValue}"</p>
               </div>}
 
             {!searchValue.trim() && companies.length === 0 && <div className="text-center py-8">
