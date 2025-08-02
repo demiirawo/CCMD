@@ -37,18 +37,11 @@ export const StatusBadge = ({
 }: StatusBadgeProps) => {
   const config = statusConfig[status];
   const [isChanging, setIsChanging] = useState(false);
-  const [showSuccessGlow, setShowSuccessGlow] = useState(false);
   const [prevStatus, setPrevStatus] = useState(status);
 
   useEffect(() => {
     if (prevStatus !== status) {
       setIsChanging(true);
-      
-      // Special success glow for green status
-      if (status === 'green' && prevStatus !== 'green') {
-        setShowSuccessGlow(true);
-        setTimeout(() => setShowSuccessGlow(false), 1000);
-      }
       
       // Reset changing state after animation
       setTimeout(() => setIsChanging(false), 300);
@@ -62,7 +55,6 @@ export const StatusBadge = ({
         "inline-flex items-center justify-center rounded-lg text-lg font-bold min-w-16 h-16 px-3 transition-all duration-300 shadow-none border border-white",
         config.className,
         isChanging && "animate-scale-in",
-        showSuccessGlow && "success-glow animate-pulse",
         className
       )}
       title={config.title}
