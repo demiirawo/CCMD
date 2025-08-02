@@ -391,6 +391,87 @@ export const Reports = () => {
     }
   };
 
+  const handleExportWord = async (meetingId: string, meetingTitle: string) => {
+    try {
+      toast({
+        title: "Generating Word Document",
+        description: "Please wait while we generate your Word document..."
+      });
+
+      // Get the meeting data
+      const { data: meetingData, error } = await supabase
+        .from('meetings')
+        .select('*')
+        .eq('id', meetingId)
+        .single();
+
+      if (error || !meetingData) {
+        throw new Error('Failed to fetch meeting data');
+      }
+
+      const parsedMeeting = {
+        ...meetingData,
+        attendees: JSON.parse(typeof meetingData.attendees === 'string' ? meetingData.attendees : '[]'),
+        sections: JSON.parse(typeof meetingData.sections === 'string' ? meetingData.sections : '[]')
+      };
+
+      // Create Word document content
+      const attendeesList = parsedMeeting.attendees.map((attendee: any) => attendee.name).join(', ');
+      let content = `${parsedMeeting.title}\n\n`;
+      content += `Date: ${new Date(parsedMeeting.date).toLocaleDateString('en-GB')}\n`;
+      content += `Purpose: ${parsedMeeting.purpose}\n`;
+      content += `Attendees: ${attendeesList}\n\n`;
+
+      // Add sections content
+      parsedMeeting.sections.forEach((section: any) => {
+        content += `${section.title}\n`;
+        content += '='.repeat(section.title.length) + '\n\n';
+        
+        section.items?.forEach((item: any) => {
+          content += `${item.title}\n`;
+          content += `Status: ${item.status?.toUpperCase() || 'NOT SET'}\n`;
+          if (item.observation) {
+            content += `Latest Update: ${item.observation}\n`;
+          }
+          if (item.trendsThemes) {
+            content += `Trends & Themes: ${item.trendsThemes}\n`;
+          }
+          if (item.actionsRequired) {
+            content += `Actions Required: ${item.actionsRequired}\n`;
+          }
+          if (item.keyDocuments) {
+            content += `Key Documents: ${item.keyDocuments}\n`;
+          }
+          content += '\n';
+        });
+        content += '\n';
+      });
+
+      // Create and download the file
+      const blob = new Blob([content], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${meetingTitle.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_meeting_report.docx`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      toast({
+        title: "Word Document Generated",
+        description: "Your meeting report has been downloaded successfully"
+      });
+    } catch (error) {
+      console.error('Error generating Word document:', error);
+      toast({
+        title: "Word Export Failed",
+        description: "There was an error generating the Word document. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
   // Get unique years from meetings for the filter
   const getAvailableYears = () => {
     const years = meetings.map(meeting => meeting.year);
@@ -506,10 +587,13 @@ export const Reports = () => {
                                         <DialogTitle className="text-xl font-bold">
                                           {meeting.title} - Dashboard View
                                         </DialogTitle>
-                                        <div className="flex items-center gap-2">
-                                           <Button variant="outline" size="sm" onClick={() => handleExportPDF(meeting.id, meeting.title)}>
-                                             Save PDF
-                                           </Button>
+                                         <div className="flex items-center gap-2">
+                                            <Button variant="outline" size="sm" onClick={() => handleExportWord(meeting.id, meeting.title)}>
+                                              Export Word
+                                            </Button>
+                                            <Button variant="outline" size="sm" onClick={() => handleExportPDF(meeting.id, meeting.title)}>
+                                              Save PDF
+                                            </Button>
                                           <DialogTrigger asChild>
                                             <Button variant="ghost" size="sm" className="gap-1">
                                               <X className="h-4 w-4" />
