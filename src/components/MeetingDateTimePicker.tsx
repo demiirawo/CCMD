@@ -63,6 +63,6 @@ export const MeetingDateTimePicker = ({
         </PopoverContent>
       </Popover>
       
-      <Input type="time" value={time} onChange={e => handleTimeChange(e.target.value)} className="w-32 bg-white" />
+      <Input type="time" value={time} onChange={e => handleTimeChange(e.target.value)} className="w-32 bg-white border border-gray-200" />
     </div>;
 };
