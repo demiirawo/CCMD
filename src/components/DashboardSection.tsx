@@ -58,7 +58,7 @@ export const DashboardSection = ({
 }: DashboardSectionProps) => {
   const { companies, profile } = useAuth();
   const currentCompany = companies.find(c => c.id === profile?.company_id);
-  const isDynamicPanelColourEnabled = (currentCompany as any)?.dynamic_panel_colour || false;
+  const isDynamicPanelColourEnabled = true;
   const storageKey = `section_${title.replace(/\s+/g, '_').toLowerCase()}_open`;
   const [isOpen, setIsOpen] = useState(() => {
     const saved = sessionStorage.getItem(storageKey);

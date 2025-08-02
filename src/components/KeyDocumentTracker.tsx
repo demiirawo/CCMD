@@ -51,7 +51,7 @@ export const KeyDocumentTracker = ({
 }: KeyDocumentTrackerProps) => {
   const { companies, profile } = useAuth();
   const currentCompany = companies.find(c => c.id === profile?.company_id);
-  const isDynamicPanelColourEnabled = (currentCompany as any)?.dynamic_panel_colour || false;
+  const isDynamicPanelColourEnabled = true;
   
   const [isExpanded, setIsExpanded] = useState(() => {
     const saved = sessionStorage.getItem('key_documents_expanded');

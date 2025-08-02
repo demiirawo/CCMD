@@ -60,7 +60,7 @@ export const ActionsLog = ({
 }: ActionsLogProps) => {
   const { companies, profile } = useAuth();
   const currentCompany = companies.find(c => c.id === profile?.company_id);
-  const isDynamicPanelColourEnabled = (currentCompany as any)?.dynamic_panel_colour || false;
+  const isDynamicPanelColourEnabled = true;
   
   const [isExpanded, setIsExpanded] = useState(() => {
     const saved = sessionStorage.getItem('actions_log_expanded');
