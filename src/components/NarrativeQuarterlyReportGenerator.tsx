@@ -124,8 +124,8 @@ REPORT REQUIREMENTS:
 1. AUDIENCE: Internal stakeholders, CQC, Ofsted, and local authorities
 2. STYLE: Professional, narrative-driven, regulatory compliance focused
 3. STRUCTURE: Follow the exact structure below with these headings and subheadings
-4. FORMAT: Plain text only - NO MARKDOWN formatting, asterisks, or special characters
-5. FORMATTING: Major headings should be BOLD with gray underline and CENTER ALIGNED. Minor headings should be BOLD and CENTER ALIGNED.
+4. FORMAT: Use markdown formatting for headings only - # for major sections, ## for subsections
+5. FORMATTING: Major headings use # and minor headings use ##
 
 REQUIRED REPORT STRUCTURE (in this exact order):
 
@@ -170,9 +170,9 @@ Next Steps
 CRITICAL WRITING INSTRUCTIONS:
 
 1. Use ONLY the headings and subheadings provided above
-2. Write in plain text without any markdown formatting
-3. Major headings must be BOLD with gray underline and CENTER ALIGNED
-4. Minor headings (subheadings) must be BOLD and CENTER ALIGNED
+2. Format major section headings with # (e.g., "# Executive Summary")
+3. Format minor headings (subheadings) with ## (e.g., "## Resourcing")
+4. Write all content in natural paragraph format without other markdown
 5. Tell a compelling narrative about the service's overall journey through the quarter
 6. Focus on progression showing how challenges evolved and what actions were taken
 7. Frame everything through the lens of quality, safety, and person-centered care

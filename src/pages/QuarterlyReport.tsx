@@ -287,7 +287,7 @@ export const QuarterlyReport = () => {
         content: 'You are a professional report writer specializing in objective, factual quarterly reports. You NEVER create fictional content and strictly adhere to provided data. You maintain complete objectivity and clearly state when information is not available. You follow exact heading structures and use specified terminology.'
       }, {
         role: 'user' as const,
-        content: `You are a seasoned care management consultant crafting a compelling quarterly narrative report. Your mission is to transform raw meeting data into an engaging story that captures the journey, challenges, triumphs, and evolution of ${companyName} during ${quarter} ${year}.
+content: `You are a seasoned care management consultant crafting a compelling quarterly narrative report. Your mission is to transform raw meeting data into an engaging story that captures the journey, challenges, triumphs, and evolution of ${companyName} during ${quarter} ${year}.
 
 CRITICAL WRITING REQUIREMENTS:
 1. ALWAYS refer to the organization as "${companyName}" throughout the report
@@ -295,6 +295,8 @@ CRITICAL WRITING REQUIREMENTS:
 3. Use "${companyName}" consistently in every section when referring to the company
 4. When discussing staff, refer to them as "${companyName} staff" or "${companyName} team members"
 5. When discussing management, refer to them as "${companyName} management" or "${companyName} leadership team"
+6. Format major section headings with # (e.g., "# Executive Summary")
+7. Format minor headings (subheadings) with ## (e.g., "## Resourcing")
 
 REQUIRED SECTION STRUCTURE (in this exact order):
 1. Executive Summary
@@ -1179,10 +1181,6 @@ REPORTING INSTRUCTIONS:
                         }}>
                                   {line.trim()}
                                 </p>;
-                      }
-                      if (line.trim().length > 20 && line.trim().length <= 50) {
-                        // Shorter content lines - subheadings or brief statements
-                        return;
                       }
                       if (line.trim().length > 0) {
                         // Other content - brief lines
