@@ -1245,7 +1245,6 @@ REPORTING INSTRUCTIONS:
           h2 {
             font-size: 16pt !important;
             font-weight: bold !important;
-            border-bottom: 1pt solid black !important;
             padding-bottom: 6pt !important;
           }
           
