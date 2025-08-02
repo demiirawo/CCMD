@@ -148,29 +148,65 @@ export const SupervisionAnalytics = ({
   const saveSupervisionData = async (newData: typeof supervisionData) => {
     if (!profile?.company_id) return;
 
-    try {
-      const { error } = await supabase.from('dashboard_data').upsert({
-        company_id: profile.company_id,
-        meeting_id: meetingId,
-        data_type: 'supervision_analytics',
-        data_content: newData,
-        updated_at: new Date().toISOString()
-      }, {
-        onConflict: 'company_id,meeting_id,data_type'
-      });
+    console.log('🔄 SupervisionAnalytics: Starting save operation', {
+      companyId: profile.company_id,
+      meetingId,
+      data: newData,
+      timestamp: new Date().toISOString()
+    });
 
-      if (error) {
-        console.error('Error saving supervision data:', error);
-        throw error;
+    try {
+      const dataToSave = {
+        company_id: profile.company_id,
+        meeting_id: meetingId || null,
+        monthly_data: newData,
+        metrics: newData,
+        updated_at: new Date().toISOString()
+      };
+
+      console.log('💾 SupervisionAnalytics: Attempting database save with payload:', dataToSave);
+
+      // First try to update existing record
+      const { data: existingData } = await supabase
+        .from('supervision_analytics')
+        .select('id')
+        .eq('company_id', profile.company_id)
+        .eq('meeting_id', meetingId || null)
+        .maybeSingle();
+
+      let result;
+      if (existingData) {
+        // Update existing record
+        console.log('📝 SupervisionAnalytics: Updating existing record:', existingData.id);
+        result = await supabase
+          .from('supervision_analytics')
+          .update(dataToSave)
+          .eq('id', existingData.id)
+          .select();
       } else {
+        // Insert new record
+        console.log('➕ SupervisionAnalytics: Inserting new record');
+        result = await supabase
+          .from('supervision_analytics')
+          .insert(dataToSave)
+          .select();
+      }
+
+      if (result.error) {
+        console.error('❌ SupervisionAnalytics: Database save failed:', result.error);
+        throw result.error;
+      } else {
+        console.log('✅ SupervisionAnalytics: Successfully saved to database:', result.data);
         // Save backup to localStorage
         localStorage.setItem(`supervision_backup_${profile.company_id}`, JSON.stringify(newData));
+        console.log('💾 SupervisionAnalytics: Also saved backup to localStorage');
       }
     } catch (error) {
-      console.error('Error saving supervision data:', error);
+      console.error('❌ SupervisionAnalytics: Exception in saveData:', error);
       // Fallback to localStorage
       if (profile?.company_id) {
         localStorage.setItem(`supervision_backup_${profile.company_id}`, JSON.stringify(newData));
+        console.log('💾 SupervisionAnalytics: Exception fallback to localStorage');
       }
     }
   };
