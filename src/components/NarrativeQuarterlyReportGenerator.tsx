@@ -136,7 +136,7 @@ REPORT REQUIREMENTS:
 2. STYLE: Professional, narrative-driven, regulatory compliance focused
 3. STRUCTURE: Follow the exact structure below with these headings and subheadings
 4. FORMAT: Plain text only - NO MARKDOWN formatting, asterisks, or special characters
-5. FORMATTING: Major headings should be BOLD, UNDERLINED, and CENTER ALIGNED. Minor headings should be BOLD and CENTER ALIGNED.
+5. FORMATTING: Major headings should be BOLD with gray underline and CENTER ALIGNED. Minor headings should be BOLD and CENTER ALIGNED.
 
 REQUIRED REPORT STRUCTURE:
 
@@ -182,7 +182,7 @@ CRITICAL WRITING INSTRUCTIONS:
 
 1. Use ONLY the headings and subheadings provided above
 2. Write in plain text without any markdown formatting
-3. Major headings must be BOLD, UNDERLINED, and CENTER ALIGNED
+3. Major headings must be BOLD with gray underline and CENTER ALIGNED
 4. Minor headings (subheadings) must be BOLD and CENTER ALIGNED
 5. Tell a compelling narrative about the service's overall journey through the quarter
 6. Focus on progression showing how challenges evolved and what actions were taken
