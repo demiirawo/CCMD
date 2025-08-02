@@ -137,9 +137,9 @@ REPORT REQUIREMENTS:
 3. STRUCTURE: Follow the exact structure below with these headings and subheadings
 4. FORMAT: Plain text only - NO MARKDOWN formatting, asterisks, or special characters
 5. FORMATTING: 
-   - Major headings should be center-aligned with title case formatting and underlined (like "Executive Summary" centered with underline)
-   - Minor headings (subheadings) should be center-aligned with proper capitalization but no underline
-   - Use proper spacing between sections for visual clarity
+   - Major headings should be written in ALL CAPS, center-aligned with extra spacing above and below
+   - Minor headings (subheadings) should be center-aligned with proper capitalization
+   - Use text formatting like underscores or equal signs to create visual separation if needed
 
 REQUIRED REPORT STRUCTURE:
 

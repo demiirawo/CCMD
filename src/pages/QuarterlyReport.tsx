@@ -1070,6 +1070,7 @@ REPORTING INSTRUCTIONS:
                         // Section headers (e.g., "1. Executive Summary")
                         return <div key={lineIndex} className="mb-8">
                                   <h2 className="text-2xl font-bold text-gray-800 pb-3 mb-6 mt-8" style={{
+                            borderBottom: '2px solid #e5e7eb',
                             fontSize: '18pt',
                             fontWeight: 'bold',
                             color: '#374151',
@@ -1092,6 +1093,7 @@ REPORTING INSTRUCTIONS:
                         const elements = [
                           <div key={lineIndex} className="mb-8">
                             <h2 className="text-2xl font-bold text-gray-800 pb-3 mb-6" style={{
+                              borderBottom: '2px solid #e5e7eb',
                               fontSize: '18pt',
                               fontWeight: 'bold',
                               color: '#374151',
@@ -1243,6 +1245,7 @@ REPORTING INSTRUCTIONS:
           h2 {
             font-size: 16pt !important;
             font-weight: bold !important;
+            border-bottom: 1pt solid black !important;
             padding-bottom: 6pt !important;
           }
           
