@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useOpenAI } from "@/hooks/useOpenAI";
 import { Document, Packer, Paragraph, TextRun, HeadingLevel, ImageRun } from 'docx';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, ComposedChart, Line } from 'recharts';
+import { QuarterlyReportAnalytics } from '@/components/QuarterlyReportAnalytics';
 interface CompanyInfo {
   name: string;
   logo_url: string | null;
@@ -1100,7 +1101,7 @@ REPORTING INSTRUCTIONS:
                       // Handle markdown-style minor headings (## heading)
                       if (line.trim().startsWith('## ') && line.trim().length > 3) {
                         const headingText = line.trim().replace(/^## /, '');
-                        return <div key={lineIndex} className="mb-6">
+                        const elements = [<div key={lineIndex} className="mb-6">
                                   <h2 className="text-xl font-bold text-gray-800 mb-4 mt-6 text-center" style={{
                             fontSize: '18pt',
                             fontWeight: 'bold',
@@ -1108,7 +1109,23 @@ REPORTING INSTRUCTIONS:
                           }}>
                                     {headingText}
                                   </h2>
-                                </div>;
+                                </div>];
+
+                        // Add feedback analytics chart for Feedback subsection
+                        if (headingText === 'Feedback') {
+                          elements.push(<div key={`${lineIndex}-feedback-analytics`} className="my-6">
+                              <QuarterlyReportAnalytics type="feedback" quarter={quarter} year={year} />
+                            </div>);
+                        }
+
+                        // Add incidents analytics chart for Incidents, Accidents and Safeguarding subsection
+                        if (headingText === 'Incidents, Accidents and Safeguarding') {
+                          elements.push(<div key={`${lineIndex}-incidents-analytics`} className="my-6">
+                              <QuarterlyReportAnalytics type="incidents" quarter={quarter} year={year} />
+                            </div>);
+                        }
+
+                        return elements;
                       }
                       if (line.trim().match(/^\d+\.\s/)) {
                         // Section headers (e.g., "1. Executive Summary")

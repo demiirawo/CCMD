@@ -148,7 +148,7 @@ Care Planning & Delivery (Changes to "Support Planning & Delivery" for companies
 - Transportation
 
 Safety
-- Incidents & Accidents
+- Incidents, Accidents and Safeguarding
 - Risk Register
 - Infection Control
 - Information Governance
@@ -180,6 +180,7 @@ CRITICAL WRITING INSTRUCTIONS:
 13. DO NOT use "red", "amber", or "green" status language - instead use professional terms like "critical", "risk", "positive", "excellent", "concerning", "satisfactory"
 14. DO NOT mention anything related to Supported Housing unless explicitly present in the meeting data
 15. If information is not available for a section, simply omit that section
+16. NOTE: Interactive 12-month analytics charts will be automatically included in the "## Feedback" and "## Incidents, Accidents and Safeguarding" sections - do not reference these charts in your written content as they are added automatically
 
 Write approximately 1500-2500 words using only plain text formatting that regulatory bodies would find comprehensive and reassuring about the service's commitment to quality and continuous improvement.`;
       const reportContent = await generateResponse([{
