@@ -271,7 +271,7 @@ export const StatusItem = ({
                 </span>
               </div> : isEditingObservation ? <CommentEditor initialValue={item.observation} onSubmit={handleObservationSubmit} onCancel={() => setIsEditingObservation(false)} placeholder="Enter your current situation..." autoSave={true} onAutoSave={value => onObservationChange?.(item.id, value)} /> : <button onClick={() => setIsEditingObservation(true)} className="w-full text-left p-3 rounded-lg transition-colors text-sm min-h-[80px] flex items-start border border-border/30 break-words overflow-hidden bg-white text-black hover:border-border/40 focus:outline-none focus:ring-2 focus:ring-border/30">
                   <span className="break-words w-full whitespace-pre-wrap">
-                    {item.observation || "Click to add current situation..."}
+                    {item.observation || "Click to add latest update..."}
                   </span>
                 </button>}
           </div>
