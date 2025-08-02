@@ -586,7 +586,12 @@ REPORTING INSTRUCTIONS:
             
             URL.revokeObjectURL(svgUrl);
             
-            console.log(`✅ Full chart with legend captured for ${chartType}`);
+            // Add black border around the entire image
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(1, 1, canvas.width - 2, canvas.height - 2);
+            
+            console.log(`✅ Full chart with legend and border captured for ${chartType}`);
 
             // Convert to ArrayBuffer
             canvas.toBlob((blob) => {
