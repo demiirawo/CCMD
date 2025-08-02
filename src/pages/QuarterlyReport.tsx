@@ -504,80 +504,82 @@ REPORTING INSTRUCTIONS:
   };
   const captureChartAsImage = async (chartType: 'feedback' | 'incidents'): Promise<ArrayBuffer | null> => {
     try {
-      // Try multiple selectors to find the chart
-      const selectors = [
-        `[data-chart-type="${chartType}"]`,
-        `[data-chart-container="${chartType}"]`,
-        `.recharts-wrapper`
-      ];
+      console.log(`🎯 Starting capture for ${chartType} chart`);
       
-      let chartElement: HTMLElement | null = null;
+      // Find all chart containers
+      const allChartContainers = document.querySelectorAll('[data-chart-type]');
+      console.log(`📊 Found ${allChartContainers.length} chart containers:`, 
+        Array.from(allChartContainers).map(el => el.getAttribute('data-chart-type')));
       
-      for (const selector of selectors) {
-        const elements = document.querySelectorAll(selector);
-        console.log(`Selector ${selector} found ${elements.length} elements`);
-        
-        if (chartType === 'feedback' && elements.length >= 1) {
-          chartElement = elements[0] as HTMLElement;
-          break;
-        } else if (chartType === 'incidents' && elements.length >= 2) {
-          chartElement = elements[1] as HTMLElement;
-          break;
-        } else if (elements.length === 1) {
-          chartElement = elements[0] as HTMLElement;
-          break;
-        }
-      }
-
+      const chartElement = document.querySelector(`[data-chart-type="${chartType}"]`) as HTMLElement;
+      
       if (!chartElement) {
-        console.warn(`Chart element not found for type: ${chartType}`);
+        console.error(`❌ No chart element found for ${chartType}`);
         return null;
       }
 
-      console.log(`Found chart element for ${chartType}:`, {
-        selector: chartElement.getAttribute('data-chart-type') || chartElement.getAttribute('data-chart-container'),
-        dimensions: chartElement.getBoundingClientRect()
+      console.log(`✅ Found chart element:`, {
+        type: chartType,
+        bounds: chartElement.getBoundingClientRect(),
+        offsetWidth: chartElement.offsetWidth,
+        offsetHeight: chartElement.offsetHeight,
+        innerHTML: chartElement.innerHTML.substring(0, 200) + '...'
       });
 
-      // Wait longer for chart to fully render including animations
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Check for SVG elements inside
+      const svgElements = chartElement.querySelectorAll('svg');
+      console.log(`🎨 Found ${svgElements.length} SVG elements in chart`);
+      svgElements.forEach((svg, index) => {
+        console.log(`SVG ${index}:`, {
+          width: svg.getAttribute('width'),
+          height: svg.getAttribute('height'),
+          viewBox: svg.getAttribute('viewBox')
+        });
+      });
 
+      // Wait for charts to be fully rendered
+      console.log(`⏳ Waiting for chart to render...`);
+      await new Promise(resolve => setTimeout(resolve, 3000));
+
+      console.log(`📸 Starting html2canvas capture...`);
       const html2canvas = (await import('html2canvas')).default;
+      
       const canvas = await html2canvas(chartElement, {
         backgroundColor: '#ffffff',
-        scale: 2,
+        scale: 1, // Reduce scale to test
         useCORS: true,
         allowTaint: true,
-        logging: false,
-        removeContainer: true,
+        logging: true, // Enable logging
+        removeContainer: false,
+        foreignObjectRendering: true, // Better SVG support
         width: chartElement.offsetWidth,
-        height: chartElement.offsetHeight,
-        scrollX: 0,
-        scrollY: 0
+        height: chartElement.offsetHeight
       });
 
-      console.log(`Captured canvas for ${chartType}:`, {
+      console.log(`🖼️ Canvas created:`, {
         width: canvas.width,
-        height: canvas.height
+        height: canvas.height,
+        dataURL: canvas.toDataURL().substring(0, 100) + '...'
       });
 
       return new Promise((resolve) => {
         canvas.toBlob((blob) => {
           if (blob) {
+            console.log(`✅ Blob created successfully for ${chartType}, size: ${blob.size} bytes`);
             const reader = new FileReader();
             reader.onload = () => {
-              console.log(`Successfully converted ${chartType} chart to ArrayBuffer`);
+              console.log(`✅ ArrayBuffer ready for ${chartType}`);
               resolve(reader.result as ArrayBuffer);
             };
             reader.readAsArrayBuffer(blob);
           } else {
-            console.warn(`Failed to create blob for ${chartType} chart`);
+            console.error(`❌ Failed to create blob for ${chartType}`);
             resolve(null);
           }
         }, 'image/png', 1.0);
       });
     } catch (error) {
-      console.error(`Error capturing ${chartType} chart:`, error);
+      console.error(`💥 Error capturing ${chartType} chart:`, error);
       return null;
     }
   };
