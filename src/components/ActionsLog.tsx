@@ -270,30 +270,30 @@ export const ActionsLog = ({
               )}>
                   <td className={cn(
                     "py-3 px-3 text-sm",
+                    action.closed ? "text-black" :
                     isDynamicPanelColourEnabled ? "text-white" : 
-                    action.closed ? "text-foreground" : 
                     !action.closed && (getDaysRemaining(action.dueDate) < 0 || getDaysRemaining(action.dueDate) <= 5 || getDaysRemaining(action.dueDate) > 5) ? "text-white" : "text-foreground"
                   )}>
                     {index + 1}
                   </td>
                   <td className={cn(
                     "py-3 px-3 text-sm",
+                    action.closed ? "text-black" :
                     isDynamicPanelColourEnabled ? "text-white" :
-                    action.closed ? "text-foreground" : 
                     !action.closed && (getDaysRemaining(action.dueDate) < 0 || getDaysRemaining(action.dueDate) <= 5 || getDaysRemaining(action.dueDate) > 5) ? "text-white" : "text-foreground"
                   )}>
                     <div className="min-w-0 max-w-md">
                       <div className={cn(
                         "font-medium break-words whitespace-pre-wrap",
-                        isDynamicPanelColourEnabled ? "text-white" :
-                        action.closed ? "text-muted-foreground" : "text-foreground"
+                        action.closed ? "text-black" :
+                        isDynamicPanelColourEnabled ? "text-white" : "text-foreground"
                       )}>
                         {action.action}
                       </div>
                       <div className={cn(
                         "text-xs mt-1 break-words",
+                        action.closed ? "text-black/80" :
                         isDynamicPanelColourEnabled ? "text-white/80" :
-                        action.closed ? "text-muted-foreground" : 
                         !action.closed && (getDaysRemaining(action.dueDate) < 0 || getDaysRemaining(action.dueDate) <= 5 || getDaysRemaining(action.dueDate) > 5) ? "text-white/80" : "text-muted-foreground"
                       )}>
                         From: {action.itemTitle}
@@ -308,16 +308,16 @@ export const ActionsLog = ({
                   </td>
                   <td className={cn(
                     "py-3 px-3 text-sm",
+                    action.closed ? "text-black" :
                     isDynamicPanelColourEnabled ? "text-white" :
-                    action.closed ? "text-foreground" : 
                     !action.closed && (getDaysRemaining(action.dueDate) < 0 || getDaysRemaining(action.dueDate) <= 5 || getDaysRemaining(action.dueDate) > 5) ? "text-white" : "text-foreground"
                   )}>
                     {action.mentionedAttendee}
                   </td>
                   <td className={cn(
                     "py-3 px-3 text-sm",
+                    action.closed ? "text-black" :
                     isDynamicPanelColourEnabled ? "text-white" :
-                    action.closed ? "text-foreground" : 
                     !action.closed && (getDaysRemaining(action.dueDate) < 0 || getDaysRemaining(action.dueDate) <= 5 || getDaysRemaining(action.dueDate) > 5) ? "text-white" : "text-foreground"
                   )}>
                     <div className="flex items-center gap-2">
@@ -369,6 +369,7 @@ export const ActionsLog = ({
                   </td>
                   {title.includes("Closed") && <td className={cn(
                     "py-3 px-3 text-sm",
+                    action.closed ? "text-black/80" :
                     isDynamicPanelColourEnabled ? "text-white/80" : "text-muted-foreground"
                   )}>
                       {action.closedDate ? new Date(action.closedDate).toLocaleDateString('en-GB') : '-'}
