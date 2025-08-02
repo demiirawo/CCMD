@@ -52,23 +52,23 @@ export const useMeetingEmailNotification = () => {
       // Debug action items structure
       console.log('🔍 Action items raw data:', JSON.stringify(meetingData.actions, null, 2));
       
-      // Separate actions by type
-      const myActions = meetingData.actions.filter(action => {
-        const assignee = action.mentionedAttendee || action.mentioned_attendee || action.assignee || action.assigned_to || action.owner || '';
-        return assignee.toLowerCase().includes('my') || assignee.toLowerCase().includes('me');
-      });
+      // Separate actions by type - for each attendee's email, customize the "My Actions" section
+      const getCurrentUserActions = (attendeeEmail: string) => {
+        return meetingData.actions.filter(action => {
+          const assignee = action.mentionedAttendee || action.mentioned_attendee || action.assignee || action.assigned_to || action.owner || '';
+          // Check if this action is assigned to the current email recipient
+          return assignee.toLowerCase().includes(attendeeEmail.toLowerCase()) || 
+                 assignee.toLowerCase().includes('my') || 
+                 assignee.toLowerCase().includes('me');
+        });
+      };
       
       const officeTeamActions = meetingData.actions.filter(action => {
         const assignee = action.mentionedAttendee || action.mentioned_attendee || action.assignee || action.assigned_to || action.owner || '';
-        return assignee.toLowerCase().includes('office team') || assignee.toLowerCase().includes('office');
-      });
-      
-      const otherActions = meetingData.actions.filter(action => {
-        const assignee = action.mentionedAttendee || action.mentioned_attendee || action.assignee || action.assigned_to || action.owner || '';
+        // Include actions assigned to office team or any other team member (not the current user)
         return !assignee.toLowerCase().includes('my') && 
                !assignee.toLowerCase().includes('me') && 
-               !assignee.toLowerCase().includes('office team') && 
-               !assignee.toLowerCase().includes('office');
+               assignee.trim() !== ''; // Exclude actions with no assignee
       });
 
       // Format action items with categories
@@ -137,52 +137,22 @@ export const useMeetingEmailNotification = () => {
         `;
       };
 
-      const actionItemsHtml = meetingData.actions.length > 0 
-        ? `
-          <h3 style="color: #374151; margin-bottom: 16px;">Action Items (${meetingData.actions.length} total):</h3>
-          ${formatActionSection(myActions, 'My Actions')}
-          ${formatActionSection(officeTeamActions, 'Office Team Actions')}
-          ${formatActionSection(otherActions, 'Other Actions')}
-        `
-        : '<h3 style="color: #374151; margin-bottom: 16px;">Action Items:</h3><p style="color: #6B7280;">No action items recorded.</p>';
+      // Function to generate personalized action items HTML for each attendee
+      const generateActionItemsHtml = (attendeeEmail: string) => {
+        const myActions = getCurrentUserActions(attendeeEmail);
+        const otherActions = officeTeamActions.filter(action => {
+          const assignee = action.mentionedAttendee || action.mentioned_attendee || action.assignee || action.assigned_to || action.owner || '';
+          return !assignee.toLowerCase().includes(attendeeEmail.toLowerCase());
+        });
 
-      // Create email HTML content
-      const emailHtml = `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #ffffff;">
-          <div style="border-bottom: 2px solid #3B82F6; padding-bottom: 20px; margin-bottom: 30px;">
-            <h1 style="color: #1F2937; margin: 0; font-size: 24px;">Meeting Summary</h1>
-            <p style="color: #6B7280; margin: 5px 0 0 0; font-size: 16px;">${meetingData.title}</p>
-            <p style="color: #9CA3AF; margin: 5px 0 0 0; font-size: 14px;">${new Date(meetingData.date).toLocaleDateString('en-GB')} at ${new Date(meetingData.date).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}</p>
-            <p style="color: #9CA3AF; margin: 5px 0 0 0; font-size: 14px;">👥 Attendees: ${attendedCount} of ${totalAttendeesCount} attended</p>
-          </div>
-          
-          ${shouldIncludeSummary ? `
-          <div style="margin-bottom: 30px;">
-            <h3 style="color: #374151; margin-bottom: 16px;">Meeting Notes:</h3>
-            <div style="background-color: #F9FAFB; padding: 16px; border-radius: 8px; border-left: 4px solid #3B82F6;">
-              <p style="color: #6B7280; margin: 0; line-height: 1.6;">${meetingSummaryText}</p>
-            </div>
-          </div>
-          ` : `
-          <div style="margin-bottom: 30px;">
-            <h3 style="color: #374151; margin-bottom: 16px;">Meeting Notes:</h3>
-            <div style="background-color: #F9FAFB; padding: 16px; border-radius: 8px; border-left: 4px solid #3B82F6;">
-              <p style="color: #9CA3AF; margin: 0; line-height: 1.6; font-style: italic;">No meeting summary provided</p>
-            </div>
-          </div>
-          `}
-
-          <div style="margin-bottom: 30px;">
-            ${actionItemsHtml}
-          </div>
-
-          <div style="border-top: 1px solid #E5E7EB; padding-top: 20px;">
-            <p style="color: #9CA3AF; font-size: 12px; text-align: center; margin: 0;">
-              This email was automatically generated from CCMD
-            </p>
-          </div>
-        </div>
-      `;
+        return meetingData.actions.length > 0 
+          ? `
+            <h3 style="color: #374151; margin-bottom: 16px;">Action Items (${meetingData.actions.length} total):</h3>
+            ${formatActionSection(myActions, 'My Actions')}
+            ${formatActionSection(otherActions, 'Office Team')}
+          `
+          : '<h3 style="color: #374151; margin-bottom: 16px;">Action Items:</h3><p style="color: #6B7280;">No action items recorded.</p>';
+      };
 
       // Send emails to all attendees
       console.log('📤 Starting to send emails to:', attendeeEmails.length, 'recipients');
@@ -190,6 +160,47 @@ export const useMeetingEmailNotification = () => {
       const emailPromises = attendeeEmails.map(async (email) => {
         try {
           console.log(`📧 Sending email to: ${email}`);
+          
+          // Generate personalized email content for this attendee
+          const personalizedActionItemsHtml = generateActionItemsHtml(email);
+          
+          // Create email HTML content
+          const emailHtml = `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #ffffff;">
+              <div style="border-bottom: 2px solid #3B82F6; padding-bottom: 20px; margin-bottom: 30px;">
+                <h1 style="color: #1F2937; margin: 0; font-size: 24px;">Meeting Summary</h1>
+                <p style="color: #6B7280; margin: 5px 0 0 0; font-size: 16px;">${meetingData.title}</p>
+                <p style="color: #9CA3AF; margin: 5px 0 0 0; font-size: 14px;">${new Date(meetingData.date).toLocaleDateString('en-GB')} at ${new Date(meetingData.date).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}</p>
+                <p style="color: #9CA3AF; margin: 5px 0 0 0; font-size: 14px;">👥 Attendees: ${attendedCount} of ${totalAttendeesCount} attended</p>
+              </div>
+              
+              ${shouldIncludeSummary ? `
+              <div style="margin-bottom: 30px;">
+                <h3 style="color: #374151; margin-bottom: 16px;">Meeting Notes:</h3>
+                <div style="background-color: #F9FAFB; padding: 16px; border-radius: 8px; border-left: 4px solid #3B82F6;">
+                  <p style="color: #6B7280; margin: 0; line-height: 1.6;">${meetingSummaryText}</p>
+                </div>
+              </div>
+              ` : `
+              <div style="margin-bottom: 30px;">
+                <h3 style="color: #374151; margin-bottom: 16px;">Meeting Notes:</h3>
+                <div style="background-color: #F9FAFB; padding: 16px; border-radius: 8px; border-left: 4px solid #3B82F6;">
+                  <p style="color: #9CA3AF; margin: 0; line-height: 1.6; font-style: italic;">No meeting summary provided</p>
+                </div>
+              </div>
+              `}
+
+              <div style="margin-bottom: 30px;">
+                ${personalizedActionItemsHtml}
+              </div>
+
+              <div style="border-top: 1px solid #E5E7EB; padding-top: 20px;">
+                <p style="color: #9CA3AF; font-size: 12px; text-align: center; margin: 0;">
+                  This email was automatically generated from CCMD
+                </p>
+              </div>
+            </div>
+          `;
           
           const { data, error } = await supabase.functions.invoke('send-email', {
             body: {
