@@ -210,11 +210,11 @@ export const ActionsLog = ({
     if (action.closed) return '';
     const daysRemaining = getDaysRemaining(action.dueDate);
     if (daysRemaining < 0) {
-      return 'bg-red-800 text-white border-l-4 border-l-red-500'; // Overdue
+      return 'bg-red-100 text-red-900 border border-red-200'; // Overdue
     } else if (daysRemaining <= 5) {
-      return 'bg-amber-800 text-white border-l-4 border-l-amber-500'; // Due within 5 days
+      return 'bg-yellow-100 text-yellow-900 border border-yellow-200'; // Due within 5 days
     } else {
-      return 'bg-green-800 text-white border-l-4 border-l-green-500'; // More than 5 days
+      return 'bg-green-100 text-green-900 border border-green-200'; // More than 5 days
     }
   };
   const renderActionsTable = (actionsList: ActionLogEntry[], title: string) => {
@@ -272,7 +272,9 @@ export const ActionsLog = ({
                     "py-3 px-3 text-sm",
                     action.closed ? "text-black" :
                     isDynamicPanelColourEnabled ? "text-white" : 
-                    !action.closed && (getDaysRemaining(action.dueDate) < 0 || getDaysRemaining(action.dueDate) <= 5 || getDaysRemaining(action.dueDate) > 5) ? "text-white" : "text-foreground"
+                    getDaysRemaining(action.dueDate) < 0 ? "text-red-900" :
+                    getDaysRemaining(action.dueDate) <= 5 ? "text-yellow-900" : 
+                    "text-green-900"
                   )}>
                     {index + 1}
                   </td>
@@ -280,13 +282,18 @@ export const ActionsLog = ({
                     "py-3 px-3 text-sm",
                     action.closed ? "text-black" :
                     isDynamicPanelColourEnabled ? "text-white" :
-                    !action.closed && (getDaysRemaining(action.dueDate) < 0 || getDaysRemaining(action.dueDate) <= 5 || getDaysRemaining(action.dueDate) > 5) ? "text-white" : "text-foreground"
+                    getDaysRemaining(action.dueDate) < 0 ? "text-red-900" :
+                    getDaysRemaining(action.dueDate) <= 5 ? "text-yellow-900" : 
+                    "text-green-900"
                   )}>
                     <div className="min-w-0 max-w-md">
                       <div className={cn(
                         "font-medium break-words whitespace-pre-wrap",
                         action.closed ? "text-black" :
-                        isDynamicPanelColourEnabled ? "text-white" : "text-foreground"
+                        isDynamicPanelColourEnabled ? "text-white" :
+                        getDaysRemaining(action.dueDate) < 0 ? "text-red-900" :
+                        getDaysRemaining(action.dueDate) <= 5 ? "text-yellow-900" : 
+                        "text-green-900"
                       )}>
                         {action.action}
                       </div>
@@ -294,7 +301,9 @@ export const ActionsLog = ({
                         "text-xs mt-1 break-words",
                         action.closed ? "text-black/80" :
                         isDynamicPanelColourEnabled ? "text-white/80" :
-                        !action.closed && (getDaysRemaining(action.dueDate) < 0 || getDaysRemaining(action.dueDate) <= 5 || getDaysRemaining(action.dueDate) > 5) ? "text-white/80" : "text-muted-foreground"
+                        getDaysRemaining(action.dueDate) < 0 ? "text-red-700" :
+                        getDaysRemaining(action.dueDate) <= 5 ? "text-yellow-700" : 
+                        "text-green-700"
                       )}>
                         From: {action.itemTitle}
                       </div>
@@ -310,7 +319,9 @@ export const ActionsLog = ({
                     "py-3 px-3 text-sm",
                     action.closed ? "text-black" :
                     isDynamicPanelColourEnabled ? "text-white" :
-                    !action.closed && (getDaysRemaining(action.dueDate) < 0 || getDaysRemaining(action.dueDate) <= 5 || getDaysRemaining(action.dueDate) > 5) ? "text-white" : "text-foreground"
+                    getDaysRemaining(action.dueDate) < 0 ? "text-red-900" :
+                    getDaysRemaining(action.dueDate) <= 5 ? "text-yellow-900" : 
+                    "text-green-900"
                   )}>
                     {action.mentionedAttendee}
                   </td>
@@ -318,7 +329,9 @@ export const ActionsLog = ({
                     "py-3 px-3 text-sm",
                     action.closed ? "text-black" :
                     isDynamicPanelColourEnabled ? "text-white" :
-                    !action.closed && (getDaysRemaining(action.dueDate) < 0 || getDaysRemaining(action.dueDate) <= 5 || getDaysRemaining(action.dueDate) > 5) ? "text-white" : "text-foreground"
+                    getDaysRemaining(action.dueDate) < 0 ? "text-red-900" :
+                    getDaysRemaining(action.dueDate) <= 5 ? "text-yellow-900" : 
+                    "text-green-900"
                   )}>
                     <div className="flex items-center gap-2">
                       <span>{action.dueDate}</span>
@@ -341,7 +354,9 @@ export const ActionsLog = ({
                       {!action.closed && onActionEdit && action.sourceType !== "document" && <Button variant="ghost" size="sm" onClick={() => setEditingAction(action)} className={cn(
                         "h-8 w-8 p-0",
                         isDynamicPanelColourEnabled ? "text-white hover:bg-white/20" :
-                        !action.closed && (getDaysRemaining(action.dueDate) < 0 || getDaysRemaining(action.dueDate) <= 5 || getDaysRemaining(action.dueDate) > 5) ? "text-white hover:bg-white/20" : "text-blue-500 hover:bg-blue-100"
+                        getDaysRemaining(action.dueDate) < 0 ? "text-red-700 hover:bg-red-50" :
+                        getDaysRemaining(action.dueDate) <= 5 ? "text-yellow-700 hover:bg-yellow-50" : 
+                        "text-green-700 hover:bg-green-50"
                       )} title="Edit action">
                           <Edit className="h-4 w-4" />
                         </Button>}
@@ -349,19 +364,25 @@ export const ActionsLog = ({
                         "h-8 w-8 p-0",
                         action.closed ? "opacity-50" :
                         isDynamicPanelColourEnabled ? "hover:bg-white/20" :
-                        !action.closed && (getDaysRemaining(action.dueDate) < 0 || getDaysRemaining(action.dueDate) <= 5 || getDaysRemaining(action.dueDate) > 5) ? "hover:bg-white/20" : "hover:bg-green-100"
+                        getDaysRemaining(action.dueDate) < 0 ? "hover:bg-red-50" :
+                        getDaysRemaining(action.dueDate) <= 5 ? "hover:bg-yellow-50" : 
+                        "hover:bg-green-50"
                       )} title="Mark as completed">
                         <Check className={cn(
                           "h-4 w-4",
                           action.closed ? "text-green-600" :
                           isDynamicPanelColourEnabled ? "text-white" :
-                          !action.closed && (getDaysRemaining(action.dueDate) < 0 || getDaysRemaining(action.dueDate) <= 5 || getDaysRemaining(action.dueDate) > 5) ? "text-white" : "text-muted-foreground"
+                          getDaysRemaining(action.dueDate) < 0 ? "text-red-700" :
+                          getDaysRemaining(action.dueDate) <= 5 ? "text-yellow-700" : 
+                          "text-green-700"
                         )} />
                       </Button>
                       {!action.closed && <Button variant="ghost" size="sm" onClick={() => onActionDelete?.(action.id)} className={cn(
                         "h-8 w-8 p-0",
                         isDynamicPanelColourEnabled ? "text-white hover:bg-white/20" :
-                        !action.closed && (getDaysRemaining(action.dueDate) < 0 || getDaysRemaining(action.dueDate) <= 5 || getDaysRemaining(action.dueDate) > 5) ? "text-white hover:bg-white/20" : "text-red-500 hover:bg-red-100"
+                        getDaysRemaining(action.dueDate) < 0 ? "text-red-700 hover:bg-red-50" :
+                        getDaysRemaining(action.dueDate) <= 5 ? "text-yellow-700 hover:bg-yellow-50" : 
+                        "text-green-700 hover:bg-green-50"
                       )} title="Delete action">
                           <Minus className="h-4 w-4" />
                         </Button>}
