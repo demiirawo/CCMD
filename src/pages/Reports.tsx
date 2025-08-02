@@ -660,10 +660,13 @@ export const Reports = () => {
                                 <CalendarDays className="h-4 w-4" />
                                 {formatDate(meeting.date)}
                               </div>
-                              <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                                <Users className="h-4 w-4" />
-                                {meeting.attendees.length} attendee{meeting.attendees.length !== 1 ? 's' : ''}
-                              </div>
+                              {/* Only show attendees for meetings with purpose (not custom meetings) */}
+                              {meeting.purpose && (
+                                <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                                  <Users className="h-4 w-4" />
+                                  {meeting.attendees.length} attendee{meeting.attendees.length !== 1 ? 's' : ''}
+                                </div>
+                              )}
                               {meeting.document_url && (
                                 <div className="flex items-center gap-1 text-sm text-primary">
                                   <FileText className="h-4 w-4" />
@@ -672,6 +675,35 @@ export const Reports = () => {
                                     target="_blank" 
                                     rel="noopener noreferrer"
                                     className="hover:underline flex items-center gap-1"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      // For Supabase storage, we need to get a signed URL
+                                      if (meeting.document_url?.includes('supabase')) {
+                                        e.preventDefault();
+                                        // Extract the file path from the URL
+                                        const urlParts = meeting.document_url.split('/');
+                                        const fileName = urlParts[urlParts.length - 1];
+                                        const companyId = urlParts[urlParts.length - 2];
+                                        const filePath = `${companyId}/${fileName}`;
+                                        
+                                        // Get signed URL and open
+                                        supabase.storage
+                                          .from('meeting-documents')
+                                          .createSignedUrl(filePath, 3600) // 1 hour expiry
+                                          .then(({ data, error }) => {
+                                            if (error) {
+                                              console.error('Error creating signed URL:', error);
+                                              toast({
+                                                title: "Error",
+                                                description: "Could not access document",
+                                                variant: "destructive"
+                                              });
+                                            } else if (data?.signedUrl) {
+                                              window.open(data.signedUrl, '_blank');
+                                            }
+                                          });
+                                      }
+                                    }}
                                   >
                                     View Document
                                     <ExternalLink className="h-3 w-3" />
@@ -680,14 +712,15 @@ export const Reports = () => {
                               )}
                               
                             </div>
-                            <div className="flex items-center gap-2">
-                               {/* View Dashboard Dialog */}
-                               <Dialog>
-                                 <DialogTrigger asChild>
-                                      <Button variant="default" size="sm">
-                                        View
-                                      </Button>
-                                 </DialogTrigger>
+                             <div className="flex items-center gap-2">
+                                {/* View Dashboard Dialog - Only show for meetings with purpose (not custom meetings) */}
+                                {meeting.purpose && (
+                                  <Dialog>
+                                    <DialogTrigger asChild>
+                                         <Button variant="default" size="sm">
+                                           View
+                                         </Button>
+                                    </DialogTrigger>
                                  <DialogContent className="max-w-[95vw] max-h-[95vh] overflow-y-auto bg-background p-0">
                                    <div className="relative">
                                      {/* Close button */}
@@ -717,11 +750,8 @@ export const Reports = () => {
                                       </div>
                                    </div>
                                  </DialogContent>
-                               </Dialog>
-
-
-                               {/* Export PDF Button */}
-                                
+                                </Dialog>
+                                )}
 
                               {/* Delete Meeting Dialog */}
                               {canEdit && <AlertDialog>
