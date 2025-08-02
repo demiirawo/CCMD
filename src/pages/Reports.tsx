@@ -520,12 +520,6 @@ export const Reports = () => {
   }
   return <div className="min-h-screen bg-gray-100 p-4 lg:p-8 pt-40">
       <div className="w-[90%] mx-auto space-y-6">
-        {/* Add Meeting Button */}
-        {canEdit && (
-          <div className="pt-8">
-            <AddMeetingDialog onMeetingAdded={fetchMeetings} />
-          </div>
-        )}
 
         {/* Year Filter */}
         <div className="flex items-center gap-4 mb-6">
@@ -643,7 +637,8 @@ export const Reports = () => {
                     </div>
                     
                     <div className="flex items-center gap-3">
-                      {canEdit && <div onClick={e => e.stopPropagation()}>
+                      {canEdit && <div onClick={e => e.stopPropagation()} className="flex items-center gap-2">
+                          <AddMeetingDialog onMeetingAdded={fetchMeetings} />
                           <QuarterlyReportGenerator quarter={quarter} year={year} meetings={quarterMeetings} />
                         </div>}
                       
