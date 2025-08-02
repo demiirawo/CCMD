@@ -15,7 +15,6 @@ import { Settings } from "./pages/Settings";
 import { Auth } from "./pages/Auth";
 import { AdminAuth } from "./pages/AdminAuth";
 import { CompanySelection } from "./pages/CompanySelection";
-import { CompanyDirect } from "./pages/CompanyDirect";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -27,7 +26,6 @@ const AppContent = () => {
     <Routes>
       <Route path="/auth" element={<Auth />} />
       <Route path="/admin" element={<AdminAuth />} />
-      <Route path="/company/:slug" element={<CompanyDirect />} />
       
       <Route path="/company-selection" element={
         <ProtectedRoute>
