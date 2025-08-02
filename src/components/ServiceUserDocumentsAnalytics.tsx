@@ -153,7 +153,7 @@ export const ServiceUserDocumentsAnalytics = ({
       return <Input value={editValue} onChange={e => setEditValue(e.target.value)} onBlur={handleSave} onKeyDown={e => {
         if (e.key === 'Enter') handleSave();
         if (e.key === 'Escape') setEditing(false);
-      }} className="w-16 h-8 text-sm" autoFocus />;
+      }} className="w-16 h-8 text-sm bg-stone-50 text-black" autoFocus />;
     }
     return <span className="cursor-pointer hover:bg-accent/50 p-1 rounded" onClick={handleStartEdit}>
         {value}
@@ -199,7 +199,7 @@ export const ServiceUserDocumentsAnalytics = ({
               onChange={e => handleInputChange('incompleteDocuments', parseInt(e.target.value) || 0)} 
               min="0" 
               max={totalServiceUsers}
-              className="w-24 h-12 text-center text-lg font-semibold [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none bg-stone-50" 
+              className="w-24 h-12 text-center text-lg font-semibold [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none bg-stone-50 text-black" 
             />
             <div className="text-xs text-muted-foreground text-center">
               Service users with incomplete documents

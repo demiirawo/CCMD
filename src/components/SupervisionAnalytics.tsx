@@ -166,7 +166,7 @@ export const SupervisionAnalytics = ({
             if (e.key === 'Enter') handleSave();
             if (e.key === 'Escape') setEditing(false);
           }}
-          className="w-16 h-8 text-sm"
+          className="w-16 h-8 text-sm bg-stone-50 text-black"
           autoFocus
         />
       );
