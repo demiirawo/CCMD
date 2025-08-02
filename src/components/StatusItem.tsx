@@ -209,7 +209,7 @@ export const StatusItem = ({
   };
 
   return <div className={cn(
-    "relative w-full rounded-xl p-8 mb-3 shadow-md hover:scale-[1.01] transition-transform duration-300 min-h-[140px] outline outline-stone-50",
+    "relative w-full rounded-xl p-8 mb-3 shadow-md hover:scale-[1.01] transition-transform duration-300 min-h-[140px]",
     getStatusBackgroundClass(item.status)
   )}>
       <div className="flex items-start gap-4 w-full outline-none">
@@ -319,7 +319,7 @@ export const StatusItem = ({
                 </span>
               </div>
             ) : (
-              isEditingObservation ? <CommentEditor initialValue={item.observation} onSubmit={handleObservationSubmit} onCancel={() => setIsEditingObservation(false)} placeholder="Enter your current situation..." autoSave={true} onAutoSave={(value) => onObservationChange?.(item.id, value)} /> : <button onClick={() => setIsEditingObservation(true)} className="w-full text-left p-3 rounded-lg transition-colors text-sm min-h-[80px] flex items-start border border-border/30 break-words overflow-hidden bg-white text-black outline outline-stone-50 hover:border-border/40 focus:outline-none focus:ring-2 focus:ring-border/30">
+              isEditingObservation ? <CommentEditor initialValue={item.observation} onSubmit={handleObservationSubmit} onCancel={() => setIsEditingObservation(false)} placeholder="Enter your current situation..." autoSave={true} onAutoSave={(value) => onObservationChange?.(item.id, value)} /> : <button onClick={() => setIsEditingObservation(true)} className="w-full text-left p-3 rounded-lg transition-colors text-sm min-h-[80px] flex items-start border border-border/30 break-words overflow-hidden bg-white text-black hover:border-border/40 focus:outline-none focus:ring-2 focus:ring-border/30">
                   <span className="break-words w-full whitespace-pre-wrap">
                     {item.observation || "Click to add current situation..."}
                   </span>
