@@ -430,7 +430,7 @@ export type Database = {
           {
             foreignKeyName: "incidents_analytics_company_id_fkey"
             columns: ["company_id"]
-            isOneToOne: true
+            isOneToOne: false
             referencedRelation: "companies"
             referencedColumns: ["id"]
           },
@@ -878,7 +878,7 @@ export type Database = {
           {
             foreignKeyName: "staff_documents_analytics_company_id_fkey"
             columns: ["company_id"]
-            isOneToOne: true
+            isOneToOne: false
             referencedRelation: "companies"
             referencedColumns: ["id"]
           },
@@ -910,7 +910,7 @@ export type Database = {
           {
             foreignKeyName: "staff_training_analytics_company_id_fkey"
             columns: ["company_id"]
-            isOneToOne: true
+            isOneToOne: false
             referencedRelation: "companies"
             referencedColumns: ["id"]
           },
