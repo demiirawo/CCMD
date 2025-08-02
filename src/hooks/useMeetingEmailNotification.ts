@@ -38,22 +38,47 @@ export const useMeetingEmailNotification = () => {
         return;
       }
 
-      // Generate meeting summary content - only include if there's meaningful content
+      // Generate meeting summary content - check if there's a meaningful summary
       const meetingSummaryText = meetingData.meetingSummary?.trim();
       const shouldIncludeSummary = meetingSummaryText && 
         meetingSummaryText !== '' && 
         meetingSummaryText !== 'No summary provided' &&
         meetingSummaryText.length > 0;
       
+      // Count attendees who actually attended
+      const attendedCount = meetingData.attendees.filter(attendee => attendee.attended).length;
+      const totalAttendeesCount = meetingData.attendees.length;
+      
       // Debug action items structure
       console.log('🔍 Action items raw data:', JSON.stringify(meetingData.actions, null, 2));
       
-      // Format action items with correct field names from ActionLogEntry interface
-      const actionItemsHtml = meetingData.actions.length > 0 
-        ? `
-          <h3 style="color: #374151; margin-bottom: 16px;">Action Items:</h3>
+      // Separate actions by type
+      const myActions = meetingData.actions.filter(action => {
+        const assignee = action.mentionedAttendee || action.mentioned_attendee || action.assignee || action.assigned_to || action.owner || '';
+        return assignee.toLowerCase().includes('my') || assignee.toLowerCase().includes('me');
+      });
+      
+      const officeTeamActions = meetingData.actions.filter(action => {
+        const assignee = action.mentionedAttendee || action.mentioned_attendee || action.assignee || action.assigned_to || action.owner || '';
+        return assignee.toLowerCase().includes('office team') || assignee.toLowerCase().includes('office');
+      });
+      
+      const otherActions = meetingData.actions.filter(action => {
+        const assignee = action.mentionedAttendee || action.mentioned_attendee || action.assignee || action.assigned_to || action.owner || '';
+        return !assignee.toLowerCase().includes('my') && 
+               !assignee.toLowerCase().includes('me') && 
+               !assignee.toLowerCase().includes('office team') && 
+               !assignee.toLowerCase().includes('office');
+      });
+
+      // Format action items with categories
+      const formatActionSection = (actions: any[], title: string) => {
+        if (actions.length === 0) return '';
+        
+        return `
+          <h4 style="color: #374151; margin: 16px 0 8px 0; font-size: 16px;">${title} (${actions.length})</h4>
           <ul style="margin: 0; padding-left: 20px;">
-            ${meetingData.actions.map((action, index) => {
+            ${actions.map((action, index) => {
               console.log(`🔍 Processing action ${index}:`, {
                 raw: action,
                 keys: Object.keys(action),
@@ -109,8 +134,17 @@ export const useMeetingEmailNotification = () => {
               `;
             }).join('')}
           </ul>
+        `;
+      };
+
+      const actionItemsHtml = meetingData.actions.length > 0 
+        ? `
+          <h3 style="color: #374151; margin-bottom: 16px;">Action Items (${meetingData.actions.length} total):</h3>
+          ${formatActionSection(myActions, 'My Actions')}
+          ${formatActionSection(officeTeamActions, 'Office Team Actions')}
+          ${formatActionSection(otherActions, 'Other Actions')}
         `
-        : '<p style="color: #6B7280;">No action items recorded.</p>';
+        : '<h3 style="color: #374151; margin-bottom: 16px;">Action Items:</h3><p style="color: #6B7280;">No action items recorded.</p>';
 
       // Create email HTML content
       const emailHtml = `
@@ -119,16 +153,24 @@ export const useMeetingEmailNotification = () => {
             <h1 style="color: #1F2937; margin: 0; font-size: 24px;">Meeting Summary</h1>
             <p style="color: #6B7280; margin: 5px 0 0 0; font-size: 16px;">${meetingData.title}</p>
             <p style="color: #9CA3AF; margin: 5px 0 0 0; font-size: 14px;">${new Date(meetingData.date).toLocaleDateString('en-GB')} at ${new Date(meetingData.date).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}</p>
+            <p style="color: #9CA3AF; margin: 5px 0 0 0; font-size: 14px;">👥 Attendees: ${attendedCount} of ${totalAttendeesCount} attended</p>
           </div>
           
           ${shouldIncludeSummary ? `
           <div style="margin-bottom: 30px;">
-            <h3 style="color: #374151; margin-bottom: 16px;">Meeting Summary:</h3>
+            <h3 style="color: #374151; margin-bottom: 16px;">Meeting Notes:</h3>
             <div style="background-color: #F9FAFB; padding: 16px; border-radius: 8px; border-left: 4px solid #3B82F6;">
               <p style="color: #6B7280; margin: 0; line-height: 1.6;">${meetingSummaryText}</p>
             </div>
           </div>
-          ` : ''}
+          ` : `
+          <div style="margin-bottom: 30px;">
+            <h3 style="color: #374151; margin-bottom: 16px;">Meeting Notes:</h3>
+            <div style="background-color: #F9FAFB; padding: 16px; border-radius: 8px; border-left: 4px solid #3B82F6;">
+              <p style="color: #9CA3AF; margin: 0; line-height: 1.6; font-style: italic;">No meeting summary provided</p>
+            </div>
+          </div>
+          `}
 
           <div style="margin-bottom: 30px;">
             ${actionItemsHtml}
