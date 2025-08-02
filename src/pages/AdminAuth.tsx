@@ -20,7 +20,7 @@ export const AdminAuth = () => {
 
   useEffect(() => {
     if (user && !loading) {
-      navigate('/');
+      navigate('/admin-dashboard');
     }
   }, [user, loading, navigate]);
 

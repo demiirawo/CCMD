@@ -14,6 +14,7 @@ import ReportBuilder from "./pages/ReportBuilder";
 import { Settings } from "./pages/Settings";
 import { Auth } from "./pages/Auth";
 import { AdminAuth } from "./pages/AdminAuth";
+import { AdminDashboard } from "./pages/AdminDashboard";
 import { CompanySelection } from "./pages/CompanySelection";
 import NotFound from "./pages/NotFound";
 
@@ -26,6 +27,11 @@ const AppContent = () => {
     <Routes>
       <Route path="/auth" element={<Auth />} />
       <Route path="/admin" element={<AdminAuth />} />
+      <Route path="/admin-dashboard" element={
+        <ProtectedRoute>
+          <AdminDashboard />
+        </ProtectedRoute>
+      } />
       
       <Route path="/company-selection" element={
         <ProtectedRoute>
