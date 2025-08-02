@@ -356,10 +356,10 @@ export const KeyDocumentTracker = ({
                     <div className={`text-sm p-2 rounded border text-center h-9 flex items-center justify-center ${
                       doc.nextReviewDate 
                         ? getDocumentStatus(doc.nextReviewDate) === 'red' 
-                          ? 'status-red' 
+                          ? 'bg-red-100 border-red-200 text-red-800' 
                           : getDocumentStatus(doc.nextReviewDate) === 'amber' 
-                          ? 'status-amber' 
-                          : 'status-green'
+                          ? 'bg-amber-100 border-amber-200 text-amber-800' 
+                          : 'bg-green-100 border-green-200 text-green-800'
                         : 'bg-white/20 border-white/30 text-gray-700'
                     }`}>
                       {doc.nextReviewDate ? (
