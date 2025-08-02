@@ -22,7 +22,6 @@ export const AddMeetingDialog = ({
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     title: "",
-    purpose: "",
     date: undefined as Date | undefined
   });
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -77,7 +76,7 @@ export const AddMeetingDialog = ({
       const quarter = `Q${Math.floor(currentMonth / 3) + 1}`;
       const meetingData = {
         title: formData.title,
-        purpose: formData.purpose || null,
+        purpose: null,
         date: formData.date.toISOString(),
         year: currentYear,
         quarter,
@@ -117,7 +116,6 @@ export const AddMeetingDialog = ({
       });
       setFormData({
         title: "",
-        purpose: "",
         date: undefined
       });
       setSelectedFile(null);
@@ -154,13 +152,6 @@ export const AddMeetingDialog = ({
           })} placeholder="Enter meeting title" required />
           </div>
 
-          <div>
-            <Label htmlFor="purpose">Purpose</Label>
-            <Textarea id="purpose" value={formData.purpose} onChange={e => setFormData({
-            ...formData,
-            purpose: e.target.value
-          })} placeholder="Enter meeting purpose (optional)" rows={3} />
-          </div>
 
           <div>
             <Label>Meeting Date *</Label>
