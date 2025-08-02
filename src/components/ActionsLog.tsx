@@ -3,6 +3,8 @@ import { AlertCircle, Check, Minus, Edit, ChevronDown, ChevronRight } from "luci
 import { StatusBadge } from "./StatusBadge";
 import { Button } from "./ui/button";
 import { ActionEditDialog } from "./ActionEditDialog";
+import { useAuth } from "@/hooks/useAuth";
+import { cn } from "@/lib/utils";
 
 export interface AuditEntry {
   timestamp: string;
@@ -56,6 +58,10 @@ export const ActionsLog = ({
   readOnly = false,
   currentUsername
 }: ActionsLogProps) => {
+  const { companies, profile } = useAuth();
+  const currentCompany = companies.find(c => c.id === profile?.company_id);
+  const isDynamicPanelColourEnabled = (currentCompany as any)?.dynamic_panel_colour || false;
+  
   const [isExpanded, setIsExpanded] = useState(() => {
     const saved = sessionStorage.getItem('actions_log_expanded');
     return saved !== null ? JSON.parse(saved) : false;
@@ -184,8 +190,20 @@ export const ActionsLog = ({
 
   const overallStatus = getOverallActionStatus();
   
-  // Get background class - always use theme color for Actions
+  // Get background class with dynamic panel colour support
   const getBackgroundClass = () => {
+    if (isDynamicPanelColourEnabled) {
+      switch (overallStatus) {
+        case 'green':
+          return 'bg-status-green text-white';
+        case 'amber':
+          return 'bg-status-amber text-white';
+        case 'red':
+          return 'bg-status-red text-white';
+        default:
+          return 'bg-primary/10';
+      }
+    }
     return 'bg-primary/10';
   };
   const getActionRowClass = (action: ActionLogEntry): string => {
@@ -291,16 +309,31 @@ export const ActionsLog = ({
         onPanelStateChange?.();
       }}>
         <div className="flex items-center gap-2">
-          <h3 className="text-xl font-bold text-foreground flex items-center gap-2">
-            
+          <h3 className={cn(
+            "text-xl font-bold flex items-center gap-2",
+            isDynamicPanelColourEnabled ? "text-white" : "text-foreground"
+          )}>
             Actions
           </h3>
-          <span className="text-sm text-muted-foreground">
+          <span className={cn(
+            "text-sm",
+            isDynamicPanelColourEnabled ? "text-white/80" : "text-muted-foreground"
+          )}>
             {openActions.length} open, {closedActions.length} closed (30 days)
           </span>
         </div>
         <div className="p-1 rounded-lg hover:bg-accent/50 transition-colors outline-none">
-          {isOpen ? <ChevronDown className="w-5 h-5 text-muted-foreground" /> : <ChevronRight className="w-5 h-5 text-muted-foreground" />}
+          {isOpen ? (
+            <ChevronDown className={cn(
+              "w-5 h-5",
+              isDynamicPanelColourEnabled ? "text-white/80" : "text-muted-foreground"
+            )} />
+          ) : (
+            <ChevronRight className={cn(
+              "w-5 h-5",
+              isDynamicPanelColourEnabled ? "text-white/80" : "text-muted-foreground"
+            )} />
+          )}
         </div>
       </div>
 
