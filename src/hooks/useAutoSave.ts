@@ -32,13 +32,16 @@ export const useAutoSave = ({
       // Only save if data has actually changed
       if (dataString === lastSavedRef.current) return;
 
+      // For meeting_headers, we need to specify the conflict resolution
       const { error } = await (supabase as any)
         .from(table)
         .upsert({
           company_id: profile.company_id,
           ...data,
           updated_at: new Date().toISOString()
-        });
+        }, table === 'meeting_headers' ? {
+          onConflict: 'company_id,meeting_date'
+        } : undefined);
 
       if (error) {
         console.error(`Auto-save error for ${table}:`, error);
