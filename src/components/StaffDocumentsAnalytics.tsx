@@ -339,7 +339,7 @@ export const StaffDocumentsAnalytics = ({
         {/* Onboarding Row */}
         <div className="text-sm text-foreground">Onboarding:</div>
         <div className="text-lg text-foreground text-center">{staffData.onboarding}</div>
-        <div className="flex justify-center">
+        <div className="flex justify-center text-foreground">
           <EditableCell 
             value={complianceData.onboardingCompliant} 
             onChange={(value) => handleComplianceChange('onboardingCompliant', value)}
