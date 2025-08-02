@@ -376,7 +376,7 @@ export const ActionsLog = ({
       </div>;
   };
   return <div className={`rounded-2xl p-6 shadow-lg -mx-8 px-14 outline-none ${getBackgroundClass()}`}>
-      <div className="flex items-center justify-between cursor-pointer mb-4 outline-none" onClick={() => {
+      <div className="flex items-center justify-between cursor-pointer mb-6 outline-none" onClick={() => {
         const newState = !isExpanded;
         setIsExpanded(newState);
         sessionStorage.setItem('actions_log_expanded', JSON.stringify(newState));
