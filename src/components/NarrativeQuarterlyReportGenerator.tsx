@@ -134,36 +134,55 @@ REPORT REQUIREMENTS:
 
 1. AUDIENCE: Internal stakeholders, CQC, Ofsted, and local authorities
 2. STYLE: Professional, narrative-driven, regulatory compliance focused
-3. STRUCTURE: Chronological progression showing the service's journey through ${quarter} ${year}
+3. STRUCTURE: Follow the exact structure below with these headings and subheadings
+4. FORMAT: Plain text only - NO MARKDOWN formatting, asterisks, or special characters
 
-NARRATIVE FRAMEWORK:
-Write a flowing narrative that weaves together insights from these key service areas:
+REQUIRED REPORT STRUCTURE:
 
-• **Staff Management & Development**: Workforce stability, recruitment, training, competency, supervision effectiveness
-• **Care Planning & Service Delivery**: Person-centered planning, risk management, documentation quality, medication safety
-• **Safety & Safeguarding**: Incident management, risk mitigation, infection control, information governance
-• **Quality Improvement**: Feedback integration, audit outcomes, continuous improvement initiatives
-• **Supported Housing** (if applicable): Tenancy support, property safety, benefits management
+Staff
+- Resourcing
+- Staff Documents  
+- Training
+- Spot Checks
+- Staff Supervisions
+- Staff Meetings
+
+Care Planning & Delivery Section
+- Care Plans & Risk Assessments
+- Service User Documents
+- Medication Management
+- Care Notes
+- Call Monitoring
+- Transportation
+
+Safety
+- Incidents & Accidents
+- Risk Register
+- Infection Control
+- Information Governance
+
+Continuous Improvement
+- Feedback
+- Audits
+
+Supported Housing Section (only if applicable)
+- Tenancy & Benefits
+- Property Safety & Maintenance
 
 CRITICAL WRITING INSTRUCTIONS:
 
-1. **Tell a Story**: Transform the meeting updates into a compelling narrative about the service's journey through the quarter
-2. **Focus on Progression**: Show how challenges evolved, what actions were taken, and what outcomes were achieved
-3. **Regulatory Lens**: Frame everything through the lens of quality, safety, and person-centered care
-4. **Evidence-Based**: Base all content strictly on the meeting data provided - never invent information
-5. **Professional Tone**: Use language appropriate for regulatory and senior stakeholder audiences
-6. **Connect the Dots**: Show relationships between different areas (e.g., how staff training impacts care quality)
-7. **Highlight Improvements**: Demonstrate commitment to continuous improvement and learning
-8. **Action Orientation**: Show how the service identifies issues and takes decisive action
+1. Use ONLY the headings and subheadings provided above
+2. Write in plain text without any markdown formatting
+3. Tell a compelling narrative about the service's journey through the quarter
+4. Focus on progression showing how challenges evolved and what actions were taken
+5. Frame everything through the lens of quality, safety, and person-centered care
+6. Base all content strictly on the meeting data provided - never invent information
+7. Use professional language appropriate for regulatory and senior stakeholder audiences
+8. Show relationships between different areas and demonstrate continuous improvement
+9. Transform status indicators into meaningful insights about service quality
+10. If information is not available for a section, simply omit that section
 
-CONTENT RULES:
-- Transform status indicators into meaningful insights about service quality
-- Convert action items into evidence of proactive management and improvement
-- If information is not available for a section, simply omit it rather than stating it's unavailable
-- Focus on the human impact - what these developments mean for service users and staff
-- Maintain truthfulness while presenting information in the most positive appropriate light
-
-Write approximately 1500-2500 words that regulatory bodies would find comprehensive and reassuring about the service's commitment to quality and continuous improvement.`;
+Write approximately 1500-2500 words using only plain text formatting that regulatory bodies would find comprehensive and reassuring about the service's commitment to quality and continuous improvement.`;
 
       const reportContent = await generateResponse([
         { role: 'system', content: 'You are an expert care service compliance report writer.' },
