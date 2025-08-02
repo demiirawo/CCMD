@@ -80,17 +80,17 @@ export const DashboardHeader = ({
     </div>;
   return <div className="bg-primary/10 p-8 mb-8 rounded-xl shadow-sm -mx-8 px-14 outline-none">
       {/* Office Team and Meeting Info Section */}
-      <div className="grid grid-cols-3 gap-6 mb-6">
-        {/* Office Team - Spans 2 columns */}
-        <div className="col-span-2">
+      <div className="grid grid-cols-2 gap-6 mb-6">
+        {/* Office Team - 50% width */}
+        <div>
           <div className="p-4 rounded-lg border border-gray-100 min-h-24 bg-white">
             <h3 className="text-sm font-medium text-muted-foreground mb-2">Office Team</h3>
             <TeamAttendeesDisplay onAttendanceChange={readOnly ? undefined : onAttendeesChange} readOnly={readOnly} />
           </div>
         </div>
         
-        {/* Meeting Info Panel */}
-        <div className="space-y-4">
+        {/* Meeting Info Panel - 50% width with internal 2-column grid */}
+        <div className="grid grid-cols-2 gap-4">
           <EditableField field="title" value={title} label="Meeting Title" textClass="" />
           <div className="p-4 rounded-lg border border-gray-100 h-24 bg-white">
             <h3 className="text-sm font-medium text-muted-foreground mb-2">Meeting Date & Time</h3>
