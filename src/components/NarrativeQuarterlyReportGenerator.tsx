@@ -157,10 +157,6 @@ Continuous Improvement
 - Feedback
 - Audits
 
-Supported Housing Section (Only displayed for companies that have "Supported Housing" in their services)
-- Tenancy & Benefits
-- Property Safety & Maintenance
-
 Successes and Achievements
 
 Learning Opportunities and Challenges
