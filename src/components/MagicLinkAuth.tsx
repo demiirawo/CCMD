@@ -39,7 +39,7 @@ export const MagicLinkAuth = () => {
         const {
           data: teamMembers,
           error: checkError
-        } = await supabase.from('team_members').select('email, name, companies:company_id(name)').eq('email', email.trim().toLowerCase());
+        } = await supabase.from('team_members').select('email, name').eq('email', email.trim().toLowerCase());
         console.log('Team member check result:', {
           teamMembers,
           checkError
