@@ -333,10 +333,10 @@ export const ActionForm = ({
             ...prev,
             name: value
           }))}>
-              <SelectTrigger className="h-9 bg-white">
+              <SelectTrigger className="h-9 bg-white text-black">
                 <SelectValue placeholder="Select person..." />
               </SelectTrigger>
-              <SelectContent className="bg-white">
+              <SelectContent className="bg-white text-black">
                 {attendees.map((attendee, index) => <SelectItem key={`${attendee}-${index}`} value={attendee}>
                     {attendee}
                   </SelectItem>)}
@@ -365,13 +365,13 @@ export const ActionForm = ({
             <label className="text-xs font-medium text-muted-foreground mb-1 block uppercase">DATE</label>
             <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
               <PopoverTrigger asChild>
-                <Button variant="outline" className={`h-9 w-9 p-0 bg-white ${newAction.targetDate ? 'bg-green-50 border-green-300' : ''}`} title={newAction.targetDate || "Select date"}>
+                <Button variant="outline" className={`h-9 w-9 p-0 bg-white text-black ${newAction.targetDate ? 'bg-green-50 border-green-300' : ''}`} title={newAction.targetDate || "Select date"}>
                   <Calendar className="h-4 w-4" />
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0 bg-white border shadow-lg" align="start">
+              <PopoverContent className="w-auto p-0 bg-white border shadow-lg text-black" align="start">
                 <div className="bg-white rounded-lg">
-                  <CalendarComponent mode="single" onSelect={handleDateSelect} initialFocus className="p-3 pointer-events-auto bg-white rounded-lg" disabled={date => date < new Date()} />
+                  <CalendarComponent mode="single" onSelect={handleDateSelect} initialFocus className="p-3 pointer-events-auto bg-white rounded-lg text-black" disabled={date => date < new Date()} />
                 </div>
               </PopoverContent>
             </Popover>
