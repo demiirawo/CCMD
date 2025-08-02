@@ -99,7 +99,7 @@ export const DashboardHeader = ({
       <div className="grid grid-cols-2 gap-6 mb-6">
         {/* Office Team - 50% width */}
         <div className="p-4 rounded-lg border border-gray-100 min-h-24 bg-white">
-          <h3 className="text-sm font-medium text-muted-foreground mb-2">Office Team</h3>
+          <h3 className="text-sm font-medium text-muted-foreground mb-2">Meeting Attendees</h3>
           <TeamAttendeesDisplay onAttendanceChange={readOnly ? undefined : onAttendeesChange} readOnly={readOnly} />
         </div>
         
