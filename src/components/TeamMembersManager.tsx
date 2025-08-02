@@ -8,7 +8,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { Users, Plus, Trash2, UserCheck } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+
 type UserPermission = 'read' | 'edit' | 'company_admin';
+
 interface TeamMember {
   id: string;
   name: string;
@@ -16,19 +18,23 @@ interface TeamMember {
   permission: UserPermission;
   created_at: string;
 }
+
 interface TeamMembersManagerProps {
   companyId: string;
 }
+
 const PERMISSION_LABELS = {
   read: 'Read',
   edit: 'Edit',
   company_admin: 'Company Admin'
 };
+
 const PERMISSION_DESCRIPTIONS = {
   read: 'Can access company, view dashboard and reports',
   edit: 'Can add and edit content (not settings)',
   company_admin: 'Full access including delete and settings'
 };
+
 export const TeamMembersManager = ({
   companyId
 }: TeamMembersManagerProps) => {
@@ -49,10 +55,13 @@ export const TeamMembersManager = ({
     email: '',
     permission: 'read'
   });
+
   const canManageTeam = (profile as any)?.permission === 'company_admin' || profile?.role === 'admin';
+
   useEffect(() => {
     fetchTeamMembers();
   }, [companyId]);
+
   const fetchTeamMembers = async () => {
     try {
       const {
@@ -72,6 +81,7 @@ export const TeamMembersManager = ({
       });
     }
   };
+
   const handleAddMember = async () => {
     if (!newMember.name.trim()) {
       toast({
@@ -121,6 +131,7 @@ export const TeamMembersManager = ({
       setLoading(false);
     }
   };
+
   const handleUpdatePermission = async (memberId: string, permission: UserPermission) => {
     try {
       const {
@@ -143,6 +154,7 @@ export const TeamMembersManager = ({
       });
     }
   };
+
   const handleDeleteMember = async (memberId: string, memberName: string) => {
     if (!confirm(`Are you sure you want to remove ${memberName} from the team?`)) return;
     try {
@@ -164,6 +176,7 @@ export const TeamMembersManager = ({
       });
     }
   };
+
   return <Card className="bg-stone-50">
       <CardHeader>
         <CardTitle>
@@ -183,14 +196,14 @@ export const TeamMembersManager = ({
                 <Input id="member-name" value={newMember.name} onChange={e => setNewMember(prev => ({
               ...prev,
               name: e.target.value
-            }))} placeholder="Enter name" />
+            }))} placeholder="Enter name" className="border-gray-200" />
               </div>
               <div>
                 <Label htmlFor="member-email">Email *</Label>
                 <Input id="member-email" type="email" value={newMember.email} onChange={e => setNewMember(prev => ({
               ...prev,
               email: e.target.value
-            }))} placeholder="Enter email (required for login)" />
+            }))} placeholder="Enter email (required for login)" className="border-gray-200" />
               </div>
               <div>
                 <Label htmlFor="member-permission">Permission</Label>
