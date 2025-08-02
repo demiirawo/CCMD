@@ -502,47 +502,82 @@ REPORTING INSTRUCTIONS:
         return `${quarter} ${year}`;
     }
   };
-  const captureChartAsImage = async (chartSelector: string): Promise<ArrayBuffer | null> => {
+  const captureChartAsImage = async (chartType: 'feedback' | 'incidents'): Promise<ArrayBuffer | null> => {
     try {
-      const chartElement = document.querySelector(chartSelector) as HTMLElement;
+      // Try multiple selectors to find the chart
+      const selectors = [
+        `[data-chart-type="${chartType}"]`,
+        `[data-chart-container="${chartType}"]`,
+        `.recharts-wrapper`
+      ];
+      
+      let chartElement: HTMLElement | null = null;
+      
+      for (const selector of selectors) {
+        const elements = document.querySelectorAll(selector);
+        console.log(`Selector ${selector} found ${elements.length} elements`);
+        
+        if (chartType === 'feedback' && elements.length >= 1) {
+          chartElement = elements[0] as HTMLElement;
+          break;
+        } else if (chartType === 'incidents' && elements.length >= 2) {
+          chartElement = elements[1] as HTMLElement;
+          break;
+        } else if (elements.length === 1) {
+          chartElement = elements[0] as HTMLElement;
+          break;
+        }
+      }
+
       if (!chartElement) {
-        console.warn(`Chart element not found: ${chartSelector}`);
-        // Try alternative selectors
-        const allCharts = document.querySelectorAll('[data-chart-type]');
-        console.log('Available chart elements:', Array.from(allCharts).map(el => el.getAttribute('data-chart-type')));
+        console.warn(`Chart element not found for type: ${chartType}`);
         return null;
       }
 
-      console.log(`Found chart element for ${chartSelector}:`, chartElement.getBoundingClientRect());
+      console.log(`Found chart element for ${chartType}:`, {
+        selector: chartElement.getAttribute('data-chart-type') || chartElement.getAttribute('data-chart-container'),
+        dimensions: chartElement.getBoundingClientRect()
+      });
 
-      // Wait a bit for chart to fully render
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Wait longer for chart to fully render including animations
+      await new Promise(resolve => setTimeout(resolve, 2000));
 
       const html2canvas = (await import('html2canvas')).default;
       const canvas = await html2canvas(chartElement, {
         backgroundColor: '#ffffff',
         scale: 2,
-        width: chartElement.offsetWidth,
-        height: chartElement.offsetHeight,
         useCORS: true,
         allowTaint: true,
         logging: false,
-        removeContainer: true
+        removeContainer: true,
+        width: chartElement.offsetWidth,
+        height: chartElement.offsetHeight,
+        scrollX: 0,
+        scrollY: 0
+      });
+
+      console.log(`Captured canvas for ${chartType}:`, {
+        width: canvas.width,
+        height: canvas.height
       });
 
       return new Promise((resolve) => {
         canvas.toBlob((blob) => {
           if (blob) {
             const reader = new FileReader();
-            reader.onload = () => resolve(reader.result as ArrayBuffer);
+            reader.onload = () => {
+              console.log(`Successfully converted ${chartType} chart to ArrayBuffer`);
+              resolve(reader.result as ArrayBuffer);
+            };
             reader.readAsArrayBuffer(blob);
           } else {
+            console.warn(`Failed to create blob for ${chartType} chart`);
             resolve(null);
           }
         }, 'image/png', 1.0);
       });
     } catch (error) {
-      console.error('Error capturing chart:', error);
+      console.error(`Error capturing ${chartType} chart:`, error);
       return null;
     }
   };
@@ -657,9 +692,9 @@ REPORTING INSTRUCTIONS:
 
       // Capture chart images - target the entire chart cards
       console.log('Capturing feedback chart...');
-      const feedbackChartImage = await captureChartAsImage('[data-chart-type="feedback"]');
+      const feedbackChartImage = await captureChartAsImage('feedback');
       console.log('Capturing incidents chart...');
-      const incidentsChartImage = await captureChartAsImage('[data-chart-type="incidents"]');
+      const incidentsChartImage = await captureChartAsImage('incidents');
       console.log('Charts captured:', { 
         feedbackChart: feedbackChartImage ? 'success' : 'failed',
         incidentsChart: incidentsChartImage ? 'success' : 'failed'

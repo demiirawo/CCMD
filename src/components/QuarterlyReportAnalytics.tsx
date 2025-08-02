@@ -165,7 +165,7 @@ export const QuarterlyReportAnalytics: React.FC<QuarterlyReportAnalyticsProps> =
         </span>
       </div>
       
-      <ChartContainer config={chartConfig} className="h-64 w-full">
+      <ChartContainer config={chartConfig} className="h-64 w-full" data-chart-container={type}>
         <ResponsiveContainer width="100%" height="100%">
           <ComposedChart data={monthlyData} margin={{
           top: 5,
