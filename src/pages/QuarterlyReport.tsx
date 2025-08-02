@@ -504,7 +504,7 @@ REPORTING INSTRUCTIONS:
   };
   const captureChartAsImage = async (chartType: 'feedback' | 'incidents'): Promise<ArrayBuffer | null> => {
     try {
-      console.log(`🎯 Starting SVG-based capture for ${chartType} chart`);
+      console.log(`🎯 Starting full chart capture for ${chartType} chart`);
       
       const chartElement = document.querySelector(`[data-chart-type="${chartType}"]`) as HTMLElement;
       
@@ -513,85 +513,48 @@ REPORTING INSTRUCTIONS:
         return null;
       }
 
-      // Find the SVG element within the chart
-      const svgElement = chartElement.querySelector('svg');
-      if (!svgElement) {
-        console.error(`❌ No SVG found in ${chartType} chart`);
-        return null;
-      }
-
-      console.log(`✅ Found SVG for ${chartType}:`, {
-        width: svgElement.getAttribute('width'),
-        height: svgElement.getAttribute('height'),
-        viewBox: svgElement.getAttribute('viewBox')
+      console.log(`✅ Found chart container for ${chartType}:`, {
+        width: chartElement.offsetWidth,
+        height: chartElement.offsetHeight
       });
 
       // Wait for chart to be fully rendered
       await new Promise(resolve => setTimeout(resolve, 2000));
 
-      // Convert SVG to canvas directly
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      if (!ctx) {
-        console.error(`❌ Could not get canvas context for ${chartType}`);
-        return null;
-      }
+      // Use html2canvas to capture the entire chart container (including legend)
+      const html2canvas = (await import('html2canvas')).default;
+      
+      const canvas = await html2canvas(chartElement, {
+        backgroundColor: '#ffffff',
+        scale: 2, // Higher scale for better quality
+        useCORS: true,
+        allowTaint: true,
+        logging: false,
+        foreignObjectRendering: true,
+        width: chartElement.offsetWidth,
+        height: chartElement.offsetHeight
+      });
 
-      // Set canvas size based on SVG
-      const svgWidth = parseInt(svgElement.getAttribute('width') || '565');
-      const svgHeight = parseInt(svgElement.getAttribute('height') || '256');
-      canvas.width = svgWidth;
-      canvas.height = svgHeight;
-
-      // Create image from SVG
-      const svgData = new XMLSerializer().serializeToString(svgElement);
-      const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
-      const svgUrl = URL.createObjectURL(svgBlob);
+      console.log(`✅ Full chart captured for ${chartType}:`, {
+        width: canvas.width,
+        height: canvas.height
+      });
 
       return new Promise((resolve) => {
-        const img = new Image();
-        img.onload = () => {
-          console.log(`🖼️ SVG image loaded for ${chartType}, drawing to canvas...`);
-          
-          // Fill white background
-          ctx.fillStyle = '#ffffff';
-          ctx.fillRect(0, 0, canvas.width, canvas.height);
-          
-          // Draw the SVG image
-          ctx.drawImage(img, 0, 0);
-          
-          // Clean up
-          URL.revokeObjectURL(svgUrl);
-          
-          console.log(`✅ Canvas ready for ${chartType}:`, {
-            width: canvas.width,
-            height: canvas.height
-          });
-
-          // Convert to ArrayBuffer
-          canvas.toBlob((blob) => {
-            if (blob) {
-              console.log(`✅ Blob created for ${chartType}, size: ${blob.size} bytes`);
-              const reader = new FileReader();
-              reader.onload = () => {
-                console.log(`✅ ArrayBuffer ready for ${chartType}`);
-                resolve(reader.result as ArrayBuffer);
-              };
-              reader.readAsArrayBuffer(blob);
-            } else {
-              console.error(`❌ Failed to create blob for ${chartType}`);
-              resolve(null);
-            }
-          }, 'image/png', 1.0);
-        };
-
-        img.onerror = (error) => {
-          console.error(`❌ Failed to load SVG image for ${chartType}:`, error);
-          URL.revokeObjectURL(svgUrl);
-          resolve(null);
-        };
-
-        img.src = svgUrl;
+        canvas.toBlob((blob) => {
+          if (blob) {
+            console.log(`✅ Blob created for ${chartType}, size: ${blob.size} bytes`);
+            const reader = new FileReader();
+            reader.onload = () => {
+              console.log(`✅ ArrayBuffer ready for ${chartType}`);
+              resolve(reader.result as ArrayBuffer);
+            };
+            reader.readAsArrayBuffer(blob);
+          } else {
+            console.error(`❌ Failed to create blob for ${chartType}`);
+            resolve(null);
+          }
+        }, 'image/png', 1.0);
       });
 
     } catch (error) {
@@ -788,22 +751,26 @@ REPORTING INSTRUCTIONS:
           }
         }));
       } else if (trimmedLine.startsWith('# ')) {
-        // Main heading (remove # markdown)
+        // Main heading (remove # markdown) - center, bold, underlined
         const text = trimmedLine.replace(/^#\s+/, '');
         paragraphs.push(new Paragraph({
           children: [new TextRun({
             text: text,
             bold: true,
+            underline: {
+              type: 'single'
+            },
             size: 28
           })],
           heading: HeadingLevel.HEADING_1,
+          alignment: 'center',
           spacing: {
             before: 400,
             after: 200
           }
         }));
       } else if (trimmedLine.startsWith('## ')) {
-        // Sub heading (remove ## markdown)
+        // Sub heading (remove ## markdown) - center, bold
         const text = trimmedLine.replace(/^##\s+/, '');
         paragraphs.push(new Paragraph({
           children: [new TextRun({
@@ -812,6 +779,7 @@ REPORTING INSTRUCTIONS:
             size: 24
           })],
           heading: HeadingLevel.HEADING_2,
+          alignment: 'center',
           spacing: {
             before: 300,
             after: 150
