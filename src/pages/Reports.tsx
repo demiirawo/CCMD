@@ -343,7 +343,8 @@ export const Reports = () => {
         useCORS: true,
         allowTaint: true,
         backgroundColor: '#ffffff',
-        width: 1200, // Match dashboard width
+        width: 1200,
+        // Match dashboard width
         height: tempContainer.scrollHeight
       });
 
@@ -395,7 +396,6 @@ export const Reports = () => {
       });
     }
   };
-
   const handleExportWord = async (meetingId: string, meetingTitle: string) => {
     try {
       toast({
@@ -404,16 +404,13 @@ export const Reports = () => {
       });
 
       // Get the meeting data
-      const { data: meetingData, error } = await supabase
-        .from('meetings')
-        .select('*')
-        .eq('id', meetingId)
-        .single();
-
+      const {
+        data: meetingData,
+        error
+      } = await supabase.from('meetings').select('*').eq('id', meetingId).single();
       if (error || !meetingData) {
         throw new Error('Failed to fetch meeting data');
       }
-
       const parsedMeeting = {
         ...meetingData,
         attendees: JSON.parse(typeof meetingData.attendees === 'string' ? meetingData.attendees : '[]'),
@@ -431,7 +428,6 @@ export const Reports = () => {
       parsedMeeting.sections.forEach((section: any) => {
         content += `${section.title}\n`;
         content += '='.repeat(section.title.length) + '\n\n';
-        
         section.items?.forEach((item: any) => {
           content += `${item.title}\n`;
           content += `Status: ${item.status?.toUpperCase() || 'NOT SET'}\n`;
@@ -453,7 +449,9 @@ export const Reports = () => {
       });
 
       // Create and download the file
-      const blob = new Blob([content], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
+      const blob = new Blob([content], {
+        type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+      });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
@@ -462,7 +460,6 @@ export const Reports = () => {
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
-
       toast({
         title: "Word Document Generated",
         description: "Your meeting report has been downloaded successfully"
@@ -485,24 +482,25 @@ export const Reports = () => {
 
   // Filter meetings by selected year
   const filteredMeetings = selectedYear ? meetings.filter(meeting => meeting.year === selectedYear) : meetings;
-  
+
   // Pagination logic
   const totalMeetings = filteredMeetings.length;
   const totalPages = Math.ceil(totalMeetings / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const paginatedMeetings = filteredMeetings.slice(startIndex, endIndex);
-  
   const groupedMeetings = groupMeetingsByQuarter(paginatedMeetings);
 
   // Reset current page when year filter changes
   useEffect(() => {
     setCurrentPage(1);
   }, [selectedYear]);
-
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
   };
   if (loading) {
     return <div className="min-h-screen bg-background p-4 lg:p-8">
@@ -522,7 +520,7 @@ export const Reports = () => {
       <div className="w-[90%] mx-auto space-y-6">
 
         {/* Year Filter */}
-        <div className="flex items-center justify-center gap-4 mb-6 bg-white p-4 rounded-lg shadow-sm">
+        <div className="flex items-center justify-center gap-4 mb-6 bg-white p-4 rounded-lg shadow-sm py-[15px] my-[35px]">
           <label className="text-sm font-medium text-foreground">Filter by Year:</label>
           <Select value={selectedYear?.toString() || "all"} onValueChange={value => setSelectedYear(value === "all" ? null : parseInt(value))}>
             <SelectTrigger className="w-48">
@@ -596,51 +594,43 @@ export const Reports = () => {
                                 {formatDate(meeting.date)}
                               </div>
                               {/* Hide attendees for custom meetings (purpose is null) */}
-                              {meeting.purpose !== null && (
-                                <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                              {meeting.purpose !== null && <div className="flex items-center gap-1 text-sm text-muted-foreground">
                                   <Users className="h-4 w-4" />
                                   {meeting.attendees.length} attendee{meeting.attendees.length !== 1 ? 's' : ''}
-                                </div>
-                              )}
-                              {meeting.document_url && (
-                                <div className="flex items-center gap-1 text-sm text-primary">
+                                </div>}
+                              {meeting.document_url && <div className="flex items-center gap-1 text-sm text-primary">
                                   <FileText className="h-4 w-4" />
-                                  <a 
-                                    href="#" 
-                                    className="hover:underline flex items-center gap-1 cursor-pointer"
-                                    onClick={(e) => {
-                                      e.preventDefault();
-                                      e.stopPropagation();
-                                      
-                                      // Create signed URL for private storage
-                                      supabase.storage
-                                        .from('meeting-documents')
-                                        .createSignedUrl(meeting.document_url, 3600) // 1 hour expiry
-                                        .then(({ data, error }) => {
-                                          if (error) {
-                                            console.error('Error creating signed URL:', error);
-                                            toast({
-                                              title: "Error",
-                                              description: "Could not access document",
-                                              variant: "destructive"
-                                            });
-                                          } else if (data?.signedUrl) {
-                                            window.open(data.signedUrl, '_blank');
-                                          }
-                                        });
-                                    }}
-                                  >
+                                  <a href="#" className="hover:underline flex items-center gap-1 cursor-pointer" onClick={e => {
+                        e.preventDefault();
+                        e.stopPropagation();
+
+                        // Create signed URL for private storage
+                        supabase.storage.from('meeting-documents').createSignedUrl(meeting.document_url, 3600) // 1 hour expiry
+                        .then(({
+                          data,
+                          error
+                        }) => {
+                          if (error) {
+                            console.error('Error creating signed URL:', error);
+                            toast({
+                              title: "Error",
+                              description: "Could not access document",
+                              variant: "destructive"
+                            });
+                          } else if (data?.signedUrl) {
+                            window.open(data.signedUrl, '_blank');
+                          }
+                        });
+                      }}>
                                     View Document
                                     <ExternalLink className="h-3 w-3" />
                                   </a>
-                                </div>
-                              )}
+                                </div>}
                               
                             </div>
                              <div className="flex items-center gap-2">
                                 {/* Hide View button for custom meetings (purpose is null) */}
-                                {meeting.purpose !== null && (
-                                  <Dialog>
+                                {meeting.purpose !== null && <Dialog>
                                     <DialogTrigger asChild>
                                          <Button variant="default" size="sm">
                                            View
@@ -675,8 +665,7 @@ export const Reports = () => {
                                       </div>
                                    </div>
                                  </DialogContent>
-                                </Dialog>
-                                )}
+                                </Dialog>}
 
                               {/* Delete Meeting Dialog */}
                               {canEdit && <AlertDialog>
