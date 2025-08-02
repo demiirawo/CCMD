@@ -59,7 +59,7 @@ export const StatusBadge = ({
   return (
     <span
       className={cn(
-        "inline-flex items-center justify-center rounded-lg text-lg font-bold min-w-16 h-16 px-3 transition-all duration-300 shadow-none",
+        "inline-flex items-center justify-center rounded-lg text-lg font-bold min-w-16 h-16 px-3 transition-all duration-300 shadow-none border-2 border-white",
         config.className,
         isChanging && "animate-scale-in",
         showSuccessGlow && "success-glow animate-pulse",
