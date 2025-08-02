@@ -152,8 +152,6 @@ export const IncidentsAnalytics = ({
           meeting_id: meetingId || null,
           monthly_data: newData,
           updated_at: new Date().toISOString()
-        }, {
-          onConflict: meetingId ? 'company_id,meeting_id' : 'company_id'
         });
 
       if (error) {
@@ -191,6 +189,11 @@ export const IncidentsAnalytics = ({
     const [editValue, setEditValue] = useState('');
     const handleStartEdit = () => {
       setEditing(true);
+      setEditValue(value.toString());
+    };
+    
+    const handleCancel = () => {
+      setEditing(false);
       setEditValue('');
     };
     const handleSave = () => {
