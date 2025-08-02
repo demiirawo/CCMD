@@ -382,23 +382,25 @@ export const ActionsLog = ({
         sessionStorage.setItem('actions_log_expanded', JSON.stringify(newState));
         onPanelStateChange?.();
       }}>
-        <div className="flex items-center gap-2">
-          <h3 className={cn(
-            "text-xl font-bold flex items-center gap-2",
-            isDynamicPanelColourEnabled ? "text-white" : "text-foreground"
-          )}>
-            Actions
-          </h3>
-          <span className={cn(
-            "text-sm",
-            isDynamicPanelColourEnabled ? "text-white/80" : "text-muted-foreground"
-          )}>
-            {(() => {
-              const overdueActions = openActions.filter(action => getDaysRemaining(action.dueDate) < 0);
-              const inProgressActions = openActions.filter(action => getDaysRemaining(action.dueDate) >= 0);
-              return `${inProgressActions.length} in progress, ${overdueActions.length} overdue`;
-            })()}
-          </span>
+        <div className="flex items-center gap-3">
+          <div>
+            <h3 className={cn(
+              "text-xl font-bold",
+              isDynamicPanelColourEnabled ? "text-white" : "text-foreground"
+            )}>
+              Actions
+            </h3>
+            <p className={cn(
+              "text-sm",
+              isDynamicPanelColourEnabled ? "text-white/80" : "text-muted-foreground"
+            )}>
+              {(() => {
+                const overdueActions = openActions.filter(action => getDaysRemaining(action.dueDate) < 0);
+                const inProgressActions = openActions.filter(action => getDaysRemaining(action.dueDate) >= 0);
+                return `${inProgressActions.length} in progress, ${overdueActions.length} overdue`;
+              })()}
+            </p>
+          </div>
         </div>
         <div className="p-1 rounded-lg hover:bg-accent/50 transition-colors outline-none">
           {isOpen ? (
