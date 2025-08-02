@@ -136,6 +136,7 @@ REPORT REQUIREMENTS:
 2. STYLE: Professional, narrative-driven, regulatory compliance focused
 3. STRUCTURE: Follow the exact structure below with these headings and subheadings
 4. FORMAT: Plain text only - NO MARKDOWN formatting, asterisks, or special characters
+5. FORMATTING: Major headings should be BOLD, UNDERLINED, and CENTER ALIGNED. Minor headings should be BOLD and CENTER ALIGNED.
 
 REQUIRED REPORT STRUCTURE:
 
@@ -165,22 +166,23 @@ Continuous Improvement
 - Feedback
 - Audits
 
-Supported Housing Section (only if applicable)
-- Tenancy & Benefits
-- Property Safety & Maintenance
-
 CRITICAL WRITING INSTRUCTIONS:
 
 1. Use ONLY the headings and subheadings provided above
 2. Write in plain text without any markdown formatting
-3. Tell a compelling narrative about the service's journey through the quarter
-4. Focus on progression showing how challenges evolved and what actions were taken
-5. Frame everything through the lens of quality, safety, and person-centered care
-6. Base all content strictly on the meeting data provided - never invent information
-7. Use professional language appropriate for regulatory and senior stakeholder audiences
-8. Show relationships between different areas and demonstrate continuous improvement
-9. Transform status indicators into meaningful insights about service quality
-10. If information is not available for a section, simply omit that section
+3. Major headings must be BOLD, UNDERLINED, and CENTER ALIGNED
+4. Minor headings (subheadings) must be BOLD and CENTER ALIGNED
+5. Tell a compelling narrative about the service's overall journey through the quarter
+6. Focus on progression showing how challenges evolved and what actions were taken
+7. Frame everything through the lens of quality, safety, and person-centered care
+8. Base all content strictly on the meeting data provided - never invent information
+9. Use professional language appropriate for regulatory and senior stakeholder audiences
+10. Show relationships between different areas and demonstrate continuous improvement
+11. Transform status indicators into meaningful insights about service quality
+12. DO NOT make specific references to individual names - focus on how the service overall performed
+13. DO NOT use "red", "amber", or "green" status language - instead use professional terms like "critical", "risk", "positive", "excellent", "concerning", "satisfactory"
+14. DO NOT mention anything related to Supported Housing unless explicitly present in the meeting data
+15. If information is not available for a section, simply omit that section
 
 Write approximately 1500-2500 words using only plain text formatting that regulatory bodies would find comprehensive and reassuring about the service's commitment to quality and continuous improvement.`;
 
