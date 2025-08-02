@@ -227,6 +227,23 @@ All colors MUST be HSL.
     animation: pulse 0.8s ease-in-out;
     box-shadow: none !important;
   }
+
+  /* Dynamic panel colours for high-level panels */
+  .bg-status-green {
+    background: hsl(var(--status-green)) !important;
+  }
+
+  .bg-status-amber {
+    background: hsl(var(--status-amber)) !important;
+  }
+
+  .bg-status-red {
+    background: hsl(var(--status-red)) !important;
+  }
+
+  .bg-status-na {
+    background: hsl(var(--status-na)) !important;
+  }
 }
 
 @layer base {

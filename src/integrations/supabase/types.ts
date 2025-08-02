@@ -259,6 +259,7 @@ export type Database = {
       companies: {
         Row: {
           created_at: string
+          dynamic_panel_colour: boolean | null
           id: string
           logo_url: string | null
           name: string
@@ -269,6 +270,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          dynamic_panel_colour?: boolean | null
           id?: string
           logo_url?: string | null
           name: string
@@ -279,6 +281,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          dynamic_panel_colour?: boolean | null
           id?: string
           logo_url?: string | null
           name?: string

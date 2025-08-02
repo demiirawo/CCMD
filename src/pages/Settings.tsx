@@ -98,6 +98,7 @@ export const Settings = () => {
   const [selectedTheme, setSelectedTheme] = useState("#3b82f6");
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
   const [selectedLogo, setSelectedLogo] = useState<string>("");
+  const [dynamicPanelColour, setDynamicPanelColour] = useState(false);
   const currentCompany = companies.find(c => c.id === profile?.company_id);
 
   // Debug logging
@@ -114,13 +115,14 @@ export const Settings = () => {
         const {
           data,
           error
-        } = await supabase.from("companies").select("theme_color, services, logo_url").eq("id", currentCompany.id).maybeSingle();
+        } = await supabase.from("companies").select("theme_color, services, logo_url, dynamic_panel_colour").eq("id", currentCompany.id).maybeSingle();
         if (error) throw error;
         if (data) {
           const themeColor = data.theme_color || "#3b82f6";
           setSelectedTheme(themeColor);
           setSelectedServices(data.services || []);
           setSelectedLogo(data.logo_url || "");
+          setDynamicPanelColour(data.dynamic_panel_colour || false);
 
           // Apply theme color immediately on load
           document.documentElement.style.setProperty('--primary', hexToHsl(themeColor));
@@ -212,7 +214,8 @@ export const Settings = () => {
       } = await supabase.from("companies").update({
         theme_color: selectedTheme,
         services: selectedServices,
-        logo_url: selectedLogo
+        logo_url: selectedLogo,
+        dynamic_panel_colour: dynamicPanelColour
       }).eq("id", currentCompany.id);
       if (error) throw error;
 
@@ -222,12 +225,13 @@ export const Settings = () => {
       // Force reload the current company settings to ensure UI stays consistent
       const {
         data
-      } = await supabase.from("companies").select("theme_color, services, logo_url").eq("id", currentCompany.id).maybeSingle();
+      } = await supabase.from("companies").select("theme_color, services, logo_url, dynamic_panel_colour").eq("id", currentCompany.id).maybeSingle();
       if (data) {
         const themeColor = data.theme_color || "#3b82f6";
         setSelectedTheme(themeColor);
         setSelectedServices(data.services || []);
         setSelectedLogo(data.logo_url || "");
+        setDynamicPanelColour(data.dynamic_panel_colour || false);
 
         // Apply theme color after save
         document.documentElement.style.setProperty('--primary', hexToHsl(themeColor));
@@ -306,6 +310,31 @@ export const Settings = () => {
                     {service}
                   </Label>
                 </div>)}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Dynamic Panel Colour Toggle */}
+        <Card className="bg-stone-50">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Palette className="h-5 w-5" />
+              Dynamic Panel Colour
+            </CardTitle>
+            <CardDescription>
+              When enabled, high-level panels will match their RAG status colour with white text
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="dynamic-panel-colour"
+                checked={dynamicPanelColour}
+                onCheckedChange={(checked) => setDynamicPanelColour(checked as boolean)}
+              />
+              <Label htmlFor="dynamic-panel-colour" className="text-sm font-normal cursor-pointer">
+                Enable dynamic panel colours
+              </Label>
             </div>
           </CardContent>
         </Card>

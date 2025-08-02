@@ -5,6 +5,7 @@ import { SubsectionMetadata } from "./SubsectionMetadataDialog";
 import { ChevronDown, ChevronRight, Plus, CheckCircle, AlertTriangle, XCircle } from "lucide-react";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/hooks/useAuth";
 
 interface DashboardSectionProps {
   title: string;
@@ -55,6 +56,9 @@ export const DashboardSection = ({
   panelStateTracker,
   readOnly = false
 }: DashboardSectionProps) => {
+  const { companies, profile } = useAuth();
+  const currentCompany = companies.find(c => c.id === profile?.company_id);
+  const isDynamicPanelColourEnabled = (currentCompany as any)?.dynamic_panel_colour || false;
   const storageKey = `section_${title.replace(/\s+/g, '_').toLowerCase()}_open`;
   const [isOpen, setIsOpen] = useState(() => {
     const saved = sessionStorage.getItem(storageKey);
@@ -182,7 +186,23 @@ export const DashboardSection = ({
       ? "-mx-8 px-14 py-6" 
       : "p-6";
     
-    // High level panels use theme color background
+    // High level panels use dynamic color based on status when enabled
+    if (isHighLevelPanel && isDynamicPanelColourEnabled) {
+      switch (status) {
+        case 'green':
+          return `bg-status-green text-white ${baseClass}`;
+        case 'amber':
+          return `bg-status-amber text-white ${baseClass}`;
+        case 'red':
+          return `bg-status-red text-white ${baseClass}`;
+        case 'na':
+          return `bg-status-na text-white ${baseClass}`;
+        default:
+          return `bg-primary/10 ${baseClass}`;
+      }
+    }
+    
+    // High level panels use theme color background when dynamic color is disabled
     if (isHighLevelPanel) {
       return `bg-primary/10 ${baseClass}`;
     }
@@ -219,12 +239,25 @@ export const DashboardSection = ({
       >
         <div className="flex items-center gap-3">
           <div>
-            <h3 className="text-xl font-bold text-foreground">{title}</h3>
-            {getLastUpdated() && (
-              <p className="text-sm text-muted-foreground mt-1">
-                Updated: {getLastUpdated()}
-              </p>
-            )}
+            {(() => {
+              const isHighLevelPanel = ["Staff", "Care Planning & Delivery", "Support Planning & Delivery", "Safety", "Continuous Improvement", "Key Review Dates", "Actions", "Supported Housing"].includes(title);
+              return (
+                <>
+                  <h3 className={cn(
+                    "text-xl font-bold",
+                    isHighLevelPanel && isDynamicPanelColourEnabled ? "text-white" : "text-foreground"
+                  )}>{title}</h3>
+                  {getLastUpdated() && (
+                    <p className={cn(
+                      "text-sm mt-1",
+                      isHighLevelPanel && isDynamicPanelColourEnabled ? "text-white/80" : "text-muted-foreground"
+                    )}>
+                      Updated: {getLastUpdated()}
+                    </p>
+                  )}
+                </>
+              );
+            })()}
           </div>
           <div className="ml-4">
             {getStatusIcon(getOverallStatus())}
