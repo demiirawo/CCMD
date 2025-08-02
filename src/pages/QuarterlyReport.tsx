@@ -667,8 +667,10 @@ REPORTING INSTRUCTIONS:
   const parseContentForWord = (content: string): Paragraph[] => {
     const paragraphs: Paragraph[] = [];
     const lines = content.split('\n');
+    
     for (const line of lines) {
       const trimmedLine = line.trim();
+      
       if (trimmedLine === '') {
         // Add spacing for empty lines
         paragraphs.push(new Paragraph({
@@ -677,8 +679,65 @@ REPORTING INSTRUCTIONS:
             after: 200
           }
         }));
+      } else if (trimmedLine.startsWith('# ')) {
+        // Main heading (remove # markdown)
+        const text = trimmedLine.replace(/^#\s+/, '');
+        paragraphs.push(new Paragraph({
+          children: [new TextRun({
+            text: text,
+            bold: true,
+            size: 28
+          })],
+          heading: HeadingLevel.HEADING_1,
+          spacing: {
+            before: 400,
+            after: 200
+          }
+        }));
+      } else if (trimmedLine.startsWith('## ')) {
+        // Sub heading (remove ## markdown)
+        const text = trimmedLine.replace(/^##\s+/, '');
+        paragraphs.push(new Paragraph({
+          children: [new TextRun({
+            text: text,
+            bold: true,
+            size: 24
+          })],
+          heading: HeadingLevel.HEADING_2,
+          spacing: {
+            before: 300,
+            after: 150
+          }
+        }));
+        
+        // Add chart placeholders for specific sections
+        if (text === 'Feedback') {
+          paragraphs.push(new Paragraph({
+            children: [new TextRun({
+              text: '[12-Month Feedback Analytics Chart]',
+              italics: true,
+              size: 20
+            })],
+            spacing: {
+              after: 200
+            },
+            alignment: 'center'
+          }));
+        } else if (text === 'Incidents, Accidents and Safeguarding') {
+          paragraphs.push(new Paragraph({
+            children: [new TextRun({
+              text: '[12-Month Incidents, Accidents & Safeguarding Analytics Chart]',
+              italics: true,
+              size: 20
+            })],
+            spacing: {
+              after: 200
+            },
+            alignment: 'center'
+          }));
+        }
       } else if (trimmedLine.match(/^\d+\.\s/)) {
-        // Section headers (e.g., "1. Executive Summary")
+        // Numbered section headers (e.g., "1. Executive Summary")
         paragraphs.push(new Paragraph({
           children: [new TextRun({
             text: trimmedLine,
@@ -706,10 +765,15 @@ REPORTING INSTRUCTIONS:
           }
         }));
       } else if (trimmedLine.length > 0) {
-        // Regular paragraphs
+        // Regular paragraphs - remove any remaining markdown
+        const cleanText = trimmedLine
+          .replace(/\*\*(.*?)\*\*/g, '$1') // Remove bold markdown
+          .replace(/\*(.*?)\*/g, '$1') // Remove italic markdown
+          .replace(/`(.*?)`/g, '$1'); // Remove code markdown
+          
         paragraphs.push(new Paragraph({
           children: [new TextRun({
-            text: trimmedLine,
+            text: cleanText,
             size: 22
           })],
           spacing: {
