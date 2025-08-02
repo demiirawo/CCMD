@@ -348,9 +348,7 @@ export const ActionsLog = ({
                       {!action.closed && onActionEdit && action.sourceType !== "document" && <Button variant="ghost" size="sm" onClick={() => setEditingAction(action)} className={cn(
                         "h-8 w-8 p-0",
                         isDynamicPanelColourEnabled ? "text-white hover:bg-white/20" :
-                         getDaysRemaining(action.dueDate) < 0 ? "text-red-700 hover:bg-red-50" :
-                         getDaysRemaining(action.dueDate) <= 5 ? "text-amber-700 hover:bg-amber-50" : 
-                         "text-green-700 hover:bg-green-50"
+                         "text-black hover:bg-gray-50"
                       )} title="Edit action">
                           <Edit className="h-4 w-4" />
                         </Button>}
