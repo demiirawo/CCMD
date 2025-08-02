@@ -34,7 +34,7 @@ export const Navigation = () => {
   };
 
   return (
-    <nav className="bg-primary text-primary-foreground border-b border-primary/20 px-6 py-3">
+    <nav className="bg-primary text-primary-foreground border-b border-primary/20 px-6 py-3 fixed top-0 left-0 right-0 z-50">
       <div className="max-w-7xl mx-auto">
         <div className="flex items-center justify-between">
           <div className="flex space-x-8">
@@ -65,6 +65,13 @@ export const Navigation = () => {
           <div className="flex items-center gap-4">
             {currentCompany && (
               <div className="flex items-center gap-2 text-sm text-primary-foreground/80">
+                {currentCompany.logo_url && (
+                  <img 
+                    src={currentCompany.logo_url} 
+                    alt={`${currentCompany.name} logo`} 
+                    className="h-6 w-6 object-contain rounded"
+                  />
+                )}
                 <span>{currentCompany.name}</span>
               </div>
             )}

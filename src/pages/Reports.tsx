@@ -449,7 +449,7 @@ export const Reports = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 p-4 lg:p-8">
+    <div className="min-h-screen bg-gray-100 p-4 lg:p-8 pt-20">
       <div className="w-[90%] mx-auto space-y-6">
         {/* Year Filter */}
         <div className="flex items-center gap-4 mb-6">
