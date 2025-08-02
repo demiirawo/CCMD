@@ -345,32 +345,20 @@ export const ActionsLog = ({
                   </td>
                   <td className="py-3 px-3">
                     <div className="flex gap-1">
-                      {!action.closed && onActionEdit && action.sourceType !== "document" && <Button variant="ghost" size="sm" onClick={() => setEditingAction(action)} className={cn(
-                        "h-8 w-8 p-0",
-                        isDynamicPanelColourEnabled ? "text-white hover:bg-white/20" :
-                         "text-black hover:bg-gray-50"
-                      )} title="Edit action">
-                          <Edit className="h-4 w-4" />
+                      {!action.closed && onActionEdit && action.sourceType !== "document" && <Button variant="ghost" size="sm" onClick={() => setEditingAction(action)} className="h-8 w-8 p-0 text-black hover:bg-gray-50" title="Edit action">
+                          <Edit className="h-4 w-4 text-black" />
                         </Button>}
                       <Button variant="ghost" size="sm" onClick={() => onActionComplete?.(action.id)} disabled={action.closed} className={cn(
                         "h-8 w-8 p-0",
-                        action.closed ? "opacity-50" :
-                        isDynamicPanelColourEnabled ? "hover:bg-white/20" :
-                         "hover:bg-gray-50"
+                        action.closed ? "opacity-50" : "hover:bg-gray-50"
                       )} title="Mark as completed">
                         <Check className={cn(
                           "h-4 w-4",
-                          action.closed ? "text-green-600" :
-                          isDynamicPanelColourEnabled ? "text-white" :
-                           "text-black"
+                          action.closed ? "text-green-600" : "text-black"
                         )} />
                       </Button>
-                      {!action.closed && <Button variant="ghost" size="sm" onClick={() => onActionDelete?.(action.id)} className={cn(
-                        "h-8 w-8 p-0",
-                        isDynamicPanelColourEnabled ? "text-white hover:bg-white/20" :
-                         "text-black hover:bg-gray-50"
-                      )} title="Delete action">
-                          <Minus className="h-4 w-4" />
+                      {!action.closed && <Button variant="ghost" size="sm" onClick={() => onActionDelete?.(action.id)} className="h-8 w-8 p-0 text-black hover:bg-gray-50" title="Delete action">
+                          <Minus className="h-4 w-4 text-black" />
                         </Button>}
                     </div>
                   </td>
