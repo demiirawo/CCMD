@@ -271,39 +271,35 @@ export const ActionsLog = ({
                   <td className={cn(
                     "py-3 px-3 text-sm",
                     action.closed ? "text-black" :
-                    isDynamicPanelColourEnabled ? "text-white" : 
-                     getDaysRemaining(action.dueDate) < 0 ? "text-red-900" :
-                     getDaysRemaining(action.dueDate) <= 5 ? "text-amber-900" : 
-                     "text-green-900"
+                    getDaysRemaining(action.dueDate) < 0 ? "text-red-900" :
+                    getDaysRemaining(action.dueDate) <= 5 ? "text-amber-900" : 
+                    "text-green-900"
                   )}>
                     {index + 1}
                   </td>
                   <td className={cn(
                     "py-3 px-3 text-sm",
                     action.closed ? "text-black" :
-                    isDynamicPanelColourEnabled ? "text-white" :
-                     getDaysRemaining(action.dueDate) < 0 ? "text-red-900" :
-                     getDaysRemaining(action.dueDate) <= 5 ? "text-amber-900" : 
-                     "text-green-900"
+                    getDaysRemaining(action.dueDate) < 0 ? "text-red-900" :
+                    getDaysRemaining(action.dueDate) <= 5 ? "text-amber-900" : 
+                    "text-green-900"
                   )}>
                     <div className="min-w-0 max-w-md">
                       <div className={cn(
                         "font-medium break-words whitespace-pre-wrap",
                         action.closed ? "text-black" :
-                        isDynamicPanelColourEnabled ? "text-white" :
-                         getDaysRemaining(action.dueDate) < 0 ? "text-red-900" :
-                         getDaysRemaining(action.dueDate) <= 5 ? "text-amber-900" : 
-                         "text-green-900"
+                        getDaysRemaining(action.dueDate) < 0 ? "text-red-900" :
+                        getDaysRemaining(action.dueDate) <= 5 ? "text-amber-900" : 
+                        "text-green-900"
                       )}>
                         {action.action}
                       </div>
                       <div className={cn(
                         "text-xs mt-1 break-words",
                         action.closed ? "text-black/80" :
-                        isDynamicPanelColourEnabled ? "text-white/80" :
-                         getDaysRemaining(action.dueDate) < 0 ? "text-red-700" :
-                         getDaysRemaining(action.dueDate) <= 5 ? "text-amber-700" : 
-                         "text-green-700"
+                        getDaysRemaining(action.dueDate) < 0 ? "text-red-700" :
+                        getDaysRemaining(action.dueDate) <= 5 ? "text-amber-700" : 
+                        "text-green-700"
                       )}>
                         From: {action.itemTitle}
                       </div>
@@ -318,20 +314,18 @@ export const ActionsLog = ({
                   <td className={cn(
                     "py-3 px-3 text-sm",
                     action.closed ? "text-black" :
-                    isDynamicPanelColourEnabled ? "text-white" :
-                     getDaysRemaining(action.dueDate) < 0 ? "text-red-900" :
-                     getDaysRemaining(action.dueDate) <= 5 ? "text-amber-900" : 
-                     "text-green-900"
+                    getDaysRemaining(action.dueDate) < 0 ? "text-red-900" :
+                    getDaysRemaining(action.dueDate) <= 5 ? "text-amber-900" : 
+                    "text-green-900"
                   )}>
                     {action.mentionedAttendee}
                   </td>
                   <td className={cn(
                     "py-3 px-3 text-sm",
                     action.closed ? "text-black" :
-                    isDynamicPanelColourEnabled ? "text-white" :
-                     getDaysRemaining(action.dueDate) < 0 ? "text-red-900" :
-                     getDaysRemaining(action.dueDate) <= 5 ? "text-amber-900" : 
-                     "text-green-900"
+                    getDaysRemaining(action.dueDate) < 0 ? "text-red-900" :
+                    getDaysRemaining(action.dueDate) <= 5 ? "text-amber-900" : 
+                    "text-green-900"
                   )}>
                     <div className="flex items-center gap-2">
                       <span>{action.dueDate}</span>
