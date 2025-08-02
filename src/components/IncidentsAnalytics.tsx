@@ -184,27 +184,58 @@ export const IncidentsAnalytics = ({
     });
     
     try {
-      const { error } = await supabase
-        .from('incidents_analytics')
-        .upsert({
-          company_id: profile.company_id,
-          meeting_id: meetingId || null,
-          monthly_data: newData,
-          updated_at: new Date().toISOString()
-        });
+      const dataToSave = {
+        company_id: profile.company_id,
+        meeting_id: meetingId || null,
+        monthly_data: newData,
+        updated_at: new Date().toISOString()
+      };
 
-      if (error) {
-        console.error('Error saving incidents analytics:', error);
-        throw error;
+      console.log('💾 IncidentsAnalytics: Attempting database save with payload:', dataToSave);
+
+      // First try to update existing record
+      const { data: existingData } = await supabase
+        .from('incidents_analytics')
+        .select('id')
+        .eq('company_id', profile.company_id)
+        .eq('meeting_id', meetingId || null)
+        .maybeSingle();
+
+      let result;
+      if (existingData) {
+        // Update existing record
+        console.log('📝 IncidentsAnalytics: Updating existing record:', existingData.id);
+        result = await supabase
+          .from('incidents_analytics')
+          .update(dataToSave)
+          .eq('id', existingData.id)
+          .select();
       } else {
+        // Insert new record
+        console.log('➕ IncidentsAnalytics: Inserting new record');
+        result = await supabase
+          .from('incidents_analytics')
+          .insert(dataToSave)
+          .select();
+      }
+
+      if (result.error) {
+        console.error('❌ IncidentsAnalytics: Database save failed:', result.error);
+        throw result.error;
+      } else {
+        console.log('✅ IncidentsAnalytics: Successfully saved to database:', result.data);
         // Save to localStorage as backup
-        localStorage.setItem(meetingId ? `incidents_backup_${profile.company_id}_${meetingId}` : `incidents_backup_${profile.company_id}`, JSON.stringify(newData));
+        const backupKey = meetingId ? `incidents_backup_${profile.company_id}_${meetingId}` : `incidents_backup_${profile.company_id}`;
+        localStorage.setItem(backupKey, JSON.stringify(newData));
+        console.log('💾 IncidentsAnalytics: Also saved backup to localStorage:', backupKey);
       }
     } catch (error) {
-      console.error('Error saving incidents analytics:', error);
+      console.error('❌ IncidentsAnalytics: Exception in saveData:', error);
       // Save to localStorage as fallback
       if (profile?.company_id) {
-        localStorage.setItem(meetingId ? `incidents_backup_${profile.company_id}_${meetingId}` : `incidents_backup_${profile.company_id}`, JSON.stringify(newData));
+        const backupKey = meetingId ? `incidents_backup_${profile.company_id}_${meetingId}` : `incidents_backup_${profile.company_id}`;
+        localStorage.setItem(backupKey, JSON.stringify(newData));
+        console.log('💾 IncidentsAnalytics: Exception fallback to localStorage:', backupKey);
       }
     }
   };
