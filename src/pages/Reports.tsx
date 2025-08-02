@@ -338,7 +338,8 @@ export const Reports = () => {
         useCORS: true,
         allowTaint: true,
         backgroundColor: '#ffffff',
-        width: 1200, // Match dashboard width
+        width: 1200,
+        // Match dashboard width
         height: tempContainer.scrollHeight
       });
 
@@ -390,7 +391,6 @@ export const Reports = () => {
       });
     }
   };
-
   const handleExportWord = async (meetingId: string, meetingTitle: string) => {
     try {
       toast({
@@ -399,16 +399,13 @@ export const Reports = () => {
       });
 
       // Get the meeting data
-      const { data: meetingData, error } = await supabase
-        .from('meetings')
-        .select('*')
-        .eq('id', meetingId)
-        .single();
-
+      const {
+        data: meetingData,
+        error
+      } = await supabase.from('meetings').select('*').eq('id', meetingId).single();
       if (error || !meetingData) {
         throw new Error('Failed to fetch meeting data');
       }
-
       const parsedMeeting = {
         ...meetingData,
         attendees: JSON.parse(typeof meetingData.attendees === 'string' ? meetingData.attendees : '[]'),
@@ -426,7 +423,6 @@ export const Reports = () => {
       parsedMeeting.sections.forEach((section: any) => {
         content += `${section.title}\n`;
         content += '='.repeat(section.title.length) + '\n\n';
-        
         section.items?.forEach((item: any) => {
           content += `${item.title}\n`;
           content += `Status: ${item.status?.toUpperCase() || 'NOT SET'}\n`;
@@ -448,7 +444,9 @@ export const Reports = () => {
       });
 
       // Create and download the file
-      const blob = new Blob([content], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
+      const blob = new Blob([content], {
+        type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+      });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
@@ -457,7 +455,6 @@ export const Reports = () => {
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
-
       toast({
         title: "Word Document Generated",
         description: "Your meeting report has been downloaded successfully"
@@ -588,9 +585,7 @@ export const Reports = () => {
                                           {meeting.title} - Dashboard View
                                         </DialogTitle>
                                          <div className="flex items-center gap-2">
-                                            <Button variant="outline" size="sm" onClick={() => handleExportWord(meeting.id, meeting.title)}>
-                                              Export Word
-                                            </Button>
+                                            
                                             <Button variant="outline" size="sm" onClick={() => handleExportPDF(meeting.id, meeting.title)}>
                                               Save PDF
                                             </Button>
