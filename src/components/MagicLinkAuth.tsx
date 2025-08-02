@@ -47,13 +47,18 @@ export const MagicLinkAuth = () => {
         console.log('Team members found:', teamMembers?.length || 0);
         if (checkError) {
           console.error('Team member check error:', checkError);
-          throw checkError;
+          toast({
+            title: "Error",
+            description: "Unable to verify email address. Please try again.",
+            variant: "destructive"
+          });
+          return;
         }
         if (!teamMembers || teamMembers.length === 0) {
           console.log('No team members found for email:', email.trim().toLowerCase());
           toast({
-            title: "Email not found",
-            description: "This email address is not associated with any company teams. Please contact your administrator.",
+            title: "Email Address Not Recognized",
+            description: "This email address is not registered with any company. Please check your email address or contact your administrator for access.",
             variant: "destructive"
           });
           return;
