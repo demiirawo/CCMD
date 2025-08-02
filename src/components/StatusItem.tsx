@@ -285,7 +285,7 @@ export const StatusItem = ({
                 </span>
               </div> : isEditingTrendsThemes ? <CommentEditor initialValue={item.trendsThemes || ''} onSubmit={handleTrendsThemesSubmit} onCancel={() => setIsEditingTrendsThemes(false)} placeholder="Enter trends & themes..." autoSave={true} onAutoSave={value => onTrendsThemesChange?.(item.id, value)} /> : <button onClick={() => setIsEditingTrendsThemes(true)} className="w-full text-left p-3 rounded-lg transition-colors text-sm min-h-[80px] flex items-start border border-border/30 break-words overflow-hidden bg-white text-black hover:border-border/40 focus:outline-none focus:ring-2 focus:ring-border/30">
                   <span className="break-words w-full whitespace-pre-wrap">
-                    {item.trendsThemes || "Click to add trends & themes..."}
+                    {item.trendsThemes || "Click to add trend analysis..."}
                   </span>
                 </button>}
           </div>
