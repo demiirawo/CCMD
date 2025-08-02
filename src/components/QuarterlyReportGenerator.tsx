@@ -417,25 +417,51 @@ WRITING STYLE:
 - Avoid subjective language, assumptions, or evaluative statements not supported by data
 - Always refer to ${companyName} by name rather than using generic terms
 - Focus on organisational outcomes and documented evidence rather than subjective assessments`;
+      // Get company information for proper terminology
+      let companyInfo = null;
+      let careOrSupport = 'Care';
+      if (profile?.company_id) {
+        try {
+          const { data: companyData } = await supabase
+            .from('companies')
+            .select('services')
+            .eq('id', profile.company_id)
+            .single();
+          if (companyData) {
+            companyInfo = companyData;
+            const isOnlySupportedHousing = companyData.services?.length === 1 && 
+              companyData.services.includes('Supported Housing');
+            careOrSupport = isOnlySupportedHousing ? 'Support' : 'Care';
+          }
+        } catch (error) {
+          console.warn('Could not fetch company services:', error);
+        }
+      }
+
+      const hasSupportedHousing = companyInfo?.services?.includes('Supported Housing');
+
       const userPrompt = `Generate a detailed quarterly report for ${quarter} ${year} based STRICTLY on the following data. Do not add any information beyond what is provided.
 
-Meeting Analysis: ${meetings.length} management meetings were held during this quarter, covering ${dataContext.meetingDetails.map(m => m.sectionSummary.length).reduce((a, b) => a + b, 0)} different operational areas.
+Meeting Analysis: ${meetings.length} management meetings were held during this quarter.
 
 Data Context: ${JSON.stringify(dataContext, null, 2)}
 
 CRITICAL INSTRUCTIONS:
 - Base ALL content exclusively on the data provided above
 - Do not create examples, scenarios, or metrics not present in the data
-- If data is insufficient for a section, write exactly "Information not available on this area" for that section
+- If data is insufficient for a section, write exactly "No information available for this area during ${quarter} ${year}" for that section
 - Focus only on trends, patterns, and insights that are directly evidenced in the provided data
 - Write in natural language prose with detailed paragraphs but remain strictly factual
-- No markdown formatting allowed`;
+- Use the exact heading structure specified in the system prompt
+- Include 12-month graph references where specified
+- Use "${careOrSupport}" terminology where indicated
+- ${hasSupportedHousing ? 'Include Supported Housing section' : 'Skip Supported Housing section'}`;
       const response = await generateResponse([{
         role: 'system',
-        content: systemPrompt
+        content: 'You are a professional report writer specializing in objective, factual quarterly reports. You NEVER create fictional content and strictly adhere to provided data. You maintain complete objectivity and clearly state when information is not available. You follow exact heading structures and use specified terminology.'
       }, {
         role: 'user',
-        content: userPrompt
+        content: systemPrompt + '\n\n' + userPrompt
       }], 'gpt-4.1-2025-04-14');
       if (response) {
         setGeneratedReport(response);

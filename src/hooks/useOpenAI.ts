@@ -20,7 +20,7 @@ export const useOpenAI = (): UseOpenAIReturn => {
 
   const generateResponse = async (
     messages: Message[], 
-    model: string = 'gpt-4o-mini'
+    model: string = 'gpt-4.1-2025-04-14'
   ): Promise<string | null> => {
     setIsLoading(true);
     setError(null);

@@ -13,6 +13,7 @@ interface CompanyInfo {
   name: string;
   logo_url: string | null;
   theme_color: string;
+  services: string[];
 }
 export const QuarterlyReport = () => {
   const [searchParams] = useSearchParams();
@@ -225,114 +226,88 @@ export const QuarterlyReport = () => {
 
       // Process analytics data for narrative inclusion
       const processedAnalytics = await processAnalyticsData();
+      // Determine if company uses "Care" or "Support" terminology
+      const isOnlySupportedHousing = companyInfo?.services?.length === 1 && 
+        companyInfo.services.includes('Supported Housing');
+      const careOrSupport = isOnlySupportedHousing ? 'Support' : 'Care';
+      
+      // Check if company has Supported Housing services
+      const hasSupportedHousing = companyInfo?.services?.includes('Supported Housing');
+
       const messages = [{
         role: 'system' as const,
-        content: `You are an expert care agency analyst writing a comprehensive quarterly report for ${companyName} for ${quarter} ${year}. Your task is to generate a detailed, professional quarterly report based STRICTLY on the provided meeting data and analytics.
-
-CRITICAL FACTUAL REQUIREMENTS:
-- Base ALL content EXCLUSIVELY on the provided meeting data and analytics
-- DO NOT create hypothetical scenarios, examples, or data that wasn't provided
-- DO NOT infer information beyond what is explicitly stated in the data
-- DO NOT add industry assumptions or general statements not supported by the data
-- If specific data is not available for a section, simply state "Information not available on this area" and move to the next section
-- Only reference metrics, trends, and observations that are directly supported by the provided data
-- REFUSE to write content when insufficient data is available rather than creating placeholder content
-
-CRITICAL FORMATTING REQUIREMENTS:
-- Write in flowing, natural language prose with complete sentences and paragraphs
-- Each section must contain a minimum of 4-6 substantial paragraphs (200-300 words each)
-- Use professional business language suitable for board presentations and regulatory reviews
-- DO NOT use markdown formatting (no #, ##, *, -, etc.) - write in plain text
-- DO NOT use bullet points or lists - write in paragraph format only
-- Include specific numbers, percentages, and metrics ONLY from the provided data
-- Provide detailed interpretations and insights based solely on the data provided
-- Write with analytical depth but remain strictly factual
-- ALWAYS refer to "${companyName}" by name throughout the report - never use generic terms like "the agency" or "the organization"
-
-CONTENT REQUIREMENTS:
-- Minimum 400-500 words per section (aim for 600-700 words each for comprehensive coverage)
-- Include specific examples ONLY from the provided meeting data
-- Demonstrate comparative analysis ONLY where supported by the data
-- Draw connections between different operational areas ONLY where evidenced in the data
-- Provide strategic insights based strictly on the patterns shown in the data
-- Reference regulatory compliance ONLY where mentioned in the meeting data
-- ENSURE THE REPORT IS COMPLETE - do not cut off mid-sentence
-
-REPORT STRUCTURE (include all sections with substantial content):
-
-1. Executive Summary
-Write a comprehensive 500-600 word executive summary that objectively captures the quarter's key findings, challenges, operational performance, and factual outcomes for ${companyName}. Include quantitative metrics and qualitative assessments based strictly on the data provided.
-
-2. Operational Performance and Outcomes
-Analyze operational outcomes, performance metrics, and service delivery results at ${companyName}. Report on what actually occurred based on the meeting data, including both positive and negative outcomes. Provide specific evidence and measurable results without bias.
-
-3. Challenges and Areas for Improvement
-Examine areas requiring attention, incidents, challenges faced, and issues identified by ${companyName}. Provide factual analysis of problems, impacts on operations, and documented responses. Include specific evidence from the meeting data.
-
-4. Workforce Management and Capacity Analysis
-Factual analysis of ${companyName}'s staffing levels, recruitment activities, retention data, training compliance status, supervision records, and capacity planning based solely on meeting documentation.
-
-5. Care Quality and Service Delivery
-Objective review of ${companyName}'s care planning status, service quality data, care plan compliance records, risk management activities, and documented client outcomes based on meeting records.
-
-6. Health, Safety and Risk Management
-Factual analysis of ${companyName}'s incident records, safety performance data, risk management activities, safeguarding records, and regulatory compliance status as documented in meetings.
-
-7. Quality Assurance and Feedback
-Objective review of ${companyName}'s quality assurance activities, feedback received, audit findings, and improvement initiatives as recorded in meeting data.
-
-8. Summary and Next Steps
-Factual summary of planned actions, identified priorities, and documented next steps for ${companyName} based on meeting decisions and action items.
-
-WRITING STYLE:
-- Objective, factual tone appropriate for professional documentation and regulatory reporting
-- Use industry-standard terminology and neutral professional language
-- Present facts without interpretation or bias towards positive or negative outcomes
-- Report what actually happened based on the data provided
-- Avoid subjective language, assumptions, or evaluative statements not supported by data
-- Maintain consistency in factual reporting throughout
-- ALWAYS use "${companyName}" when referring to the organization
-- Focus strictly on documented evidence and recorded outcomes
-
-COMPLETION REQUIREMENT:
-- COMPLETE ALL SECTIONS FULLY - do not stop mid-sentence or mid-paragraph
-- Each section must be fully written and concluded
-- The report must end with a complete strategic outlook section
-- Ensure the final sentence provides proper closure to the document
-
-DATA INTEGRATION:
-- Reference and analyze ONLY the provided analytics data
-- Transform raw data into meaningful insights and trends based strictly on what the data shows
-- Provide context and interpretation ONLY for metrics actually present in the data
-- Connect operational data to strategic implications ONLY where supported by the evidence provided
-- If data is missing or insufficient for a section, write exactly "Information not available on this area" and proceed to the next section`
+        content: 'You are a professional report writer specializing in objective, factual quarterly reports. You NEVER create fictional content and strictly adhere to provided data. You maintain complete objectivity and clearly state when information is not available. You follow exact heading structures and use specified terminology.'
       }, {
         role: 'user' as const,
-        content: `Generate a comprehensive quarterly report for ${companyName} covering ${quarter} ${year} based STRICTLY on the provided data.
+        content: `You are a professional report writer creating an objective quarterly report. Your task is to analyze the provided meeting data and analytics to create a factual, unbiased report.
 
-${additionalContext ? `IMPORTANT CONTEXT TO INTEGRATE: ${additionalContext}` : ''}
+CRITICAL RULES - VIOLATION OF THESE RULES IS UNACCEPTABLE:
+1. NEVER create, invent, or assume any information not explicitly provided in the data
+2. NEVER use positive or negative bias - remain completely objective
+3. For any section where no information is available, state "No information available for this area during ${quarter} ${year}"
+4. When citing statistics, specify the exact source from the provided data
+5. Use ONLY the exact heading structure provided below
+6. Use "${careOrSupport}" terminology instead of "Care" where specified
+7. Include exactly one 12-month incident graph and one 12-month feedback graph reference in appropriate sections
 
-ANALYTICS DATA TO REFERENCE: ${JSON.stringify(processedAnalytics, null, 2)}
+COMPANY: ${companyName}
+REPORTING PERIOD: ${quarter} ${year}
 
-CRITICAL FACTUAL REQUIREMENTS:
-- Base ALL content EXCLUSIVELY on the provided analytics data and any additional context
-- DO NOT create, infer, or assume any information not explicitly provided
-- If specific information is not available in the data, write exactly "Information not available on this area" for that section
-- Reference ONLY the specific metrics and trends present in the actual data provided
-- Provide forward-looking recommendations ONLY based on patterns evident in the data
-- Maintain professional care sector terminology throughout
-- ALWAYS refer to the organization as "${companyName}" - never use generic terms
-- COMPLETE ALL SECTIONS FULLY - ensure the report ends properly with a complete conclusion
+DATA PROVIDED:
+${additionalContext ? `Additional Context: ${additionalContext}` : ''}
+Analytics Data: ${JSON.stringify(processedAnalytics, null, 2)}
 
-WRITING REQUIREMENTS:
-- Write in natural language prose with flowing paragraphs
-- Minimum 500 words per section (aim for 600-700 words)
-- Include objective analysis ONLY of what the data actually shows
-- Report both positive and negative findings without bias
-- Stay strictly within the bounds of the provided information
-- Use neutral, factual language throughout
+REQUIRED HEADING STRUCTURE (use exactly as shown):
 
-Focus on creating an objective, factual report based exclusively on ${companyName}'s actual documented performance and activities as evidenced in the provided data. Avoid any subjective interpretation or bias towards positive outcomes.`
+# Executive Summary
+
+# Successes and Achievements
+
+# Learning Opportunities and Strategic Challenges
+
+# Staff
+## Resourcing
+## Staff Documents
+## Training
+## Spot Checks
+## Staff Supervisions
+## Staff Meetings
+
+# ${careOrSupport} Planning & Delivery
+## ${careOrSupport} Plans & Risk Assessments
+## Service User Documents
+## Medication Management
+## ${careOrSupport} Notes
+## Call Monitoring
+## Transportation
+
+# Safety
+## Incidents & Accidents
+(Include reference to 12-month incident analytics graph here when data available)
+## Risk Register
+## Infection Control
+## Information Governance
+
+# Continuous Improvement
+## Feedback
+(Include reference to 12-month feedback analytics graph here when data available)
+## Audits
+
+${hasSupportedHousing ? `# Supported Housing
+## Tenancy & Benefits
+## Property Safety & Maintenance
+
+` : ''}# Next Steps and Future Planning
+
+REPORTING INSTRUCTIONS:
+- Base all content strictly on the provided meeting data and analytics
+- If a section has no corresponding data, write "No information available for this area during ${quarter} ${year}"
+- When referencing statistics, specify the source (e.g., "Based on analytics data from [specific source]")
+- Maintain professional, objective tone throughout
+- Do not speculate, assume, or create hypothetical scenarios
+- Focus on factual observations rather than interpretative conclusions
+- Write in flowing paragraph format, not bullet points or lists
+- Each section should be substantive (minimum 200 words) when data is available`
       }];
       console.log('🚀 Calling OpenAI API with enhanced model...');
       // Switch to more powerful model for long-form content generation
@@ -377,7 +352,7 @@ Focus on creating an objective, factual report based exclusively on ${companyNam
       const {
         data,
         error
-      } = await supabase.from('companies').select('name, logo_url, theme_color').eq('id', profile.company_id).single();
+      } = await supabase.from('companies').select('name, logo_url, theme_color, services').eq('id', profile.company_id).single();
       if (error) {
         console.error('Error loading company info:', error);
         return;
