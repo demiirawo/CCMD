@@ -79,7 +79,7 @@ export const DashboardHeader = ({
           </button>
       )}
     </div>;
-  return <div className="bg-primary/10 p-8 mb-8 rounded-xl shadow-sm -mx-8 px-14 outline-none">
+  return <div className="bg-primary p-8 mb-8 rounded-xl shadow-sm -mx-8 px-14 outline-none">
       {/* Meeting Info Section */}
       <div className="grid grid-cols-2 gap-4 mb-6">
         <EditableField field="title" value={title} label="Meeting Title" textClass="" />
