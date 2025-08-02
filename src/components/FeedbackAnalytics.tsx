@@ -171,20 +171,39 @@ export const FeedbackAnalytics = ({
         updated_at: new Date().toISOString()
       };
 
-      console.log('💾 FeedbackAnalytics: Attempting Supabase upsert with payload:', dataToSave);
+      console.log('💾 FeedbackAnalytics: Attempting database save with payload:', dataToSave);
 
-      const { data: savedData, error } = await supabase
+      // First try to update existing record
+      const { data: existingData } = await supabase
         .from('feedback_analytics')
-        .upsert(dataToSave, {
-          onConflict: meetingId ? 'company_id,meeting_id' : 'company_id'
-        })
-        .select();
+        .select('id')
+        .eq('company_id', profile.company_id)
+        .eq('meeting_id', meetingId || null)
+        .maybeSingle();
 
-      if (error) {
-        console.error('❌ FeedbackAnalytics: Supabase save failed:', error);
-        throw error;
+      let result;
+      if (existingData) {
+        // Update existing record
+        console.log('📝 FeedbackAnalytics: Updating existing record:', existingData.id);
+        result = await supabase
+          .from('feedback_analytics')
+          .update(dataToSave)
+          .eq('id', existingData.id)
+          .select();
       } else {
-        console.log('✅ FeedbackAnalytics: Successfully saved to Supabase:', savedData);
+        // Insert new record
+        console.log('➕ FeedbackAnalytics: Inserting new record');
+        result = await supabase
+          .from('feedback_analytics')
+          .insert(dataToSave)
+          .select();
+      }
+
+      if (result.error) {
+        console.error('❌ FeedbackAnalytics: Database save failed:', result.error);
+        throw result.error;
+      } else {
+        console.log('✅ FeedbackAnalytics: Successfully saved to database:', result.data);
         // Save to localStorage as backup
         const backupKey = meetingId ? `feedback_backup_${profile.company_id}_${meetingId}` : `feedback_backup_${profile.company_id}`;
         localStorage.setItem(backupKey, JSON.stringify(newData));
