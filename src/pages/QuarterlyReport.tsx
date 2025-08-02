@@ -245,8 +245,7 @@ CRITICAL RULES - VIOLATION OF THESE RULES IS UNACCEPTABLE:
 1. NEVER create, invent, or assume any information not explicitly provided in the data
 2. NEVER use positive or negative bias - remain completely objective
 3. For any section where no information is available, state "No information available for this area during ${quarter} ${year}"
-4. When citing statistics, specify the exact source from the provided data
-5. Use ONLY the exact heading structure provided below
+4. Use ONLY the exact heading structure provided below
 6. Use "${careOrSupport}" terminology instead of "Care" where specified
 7. Include exactly one 12-month incident graph and one 12-month feedback graph reference in appropriate sections
 8. PAY SPECIAL ATTENTION to "LATEST UPDATE" and "TREND ANALYSIS" fields in the meeting data - these contain critical information for each dashboard item
