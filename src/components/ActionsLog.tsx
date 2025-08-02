@@ -266,7 +266,7 @@ export const ActionsLog = ({
               {actionsList.map((action, index) => <tr key={action.id} className={`border-b border-border/20 ${action.closed ? 'opacity-75' : ''} ${getActionRowClass(action)}`}>
                   <td className={cn(
                     "py-3 px-3 text-sm",
-                    isDynamicPanelColourEnabled && !action.closed ? "text-white" : 
+                    isDynamicPanelColourEnabled ? "text-white" : 
                     action.closed ? "text-foreground" : 
                     !action.closed && (getDaysRemaining(action.dueDate) < 0 || getDaysRemaining(action.dueDate) <= 5 || getDaysRemaining(action.dueDate) > 5) ? "text-white" : "text-foreground"
                   )}>
@@ -274,21 +274,21 @@ export const ActionsLog = ({
                   </td>
                   <td className={cn(
                     "py-3 px-3 text-sm",
-                    isDynamicPanelColourEnabled && !action.closed ? "text-white" :
+                    isDynamicPanelColourEnabled ? "text-white" :
                     action.closed ? "text-foreground" : 
                     !action.closed && (getDaysRemaining(action.dueDate) < 0 || getDaysRemaining(action.dueDate) <= 5 || getDaysRemaining(action.dueDate) > 5) ? "text-white" : "text-foreground"
                   )}>
                     <div className="min-w-0 max-w-md">
                       <div className={cn(
                         "font-medium break-words whitespace-pre-wrap",
-                        isDynamicPanelColourEnabled && !action.closed ? "text-white" :
+                        isDynamicPanelColourEnabled ? "text-white" :
                         action.closed ? "text-muted-foreground" : "text-foreground"
                       )}>
                         {action.action}
                       </div>
                       <div className={cn(
                         "text-xs mt-1 break-words",
-                        isDynamicPanelColourEnabled && !action.closed ? "text-white/80" :
+                        isDynamicPanelColourEnabled ? "text-white/80" :
                         action.closed ? "text-muted-foreground" : 
                         !action.closed && (getDaysRemaining(action.dueDate) < 0 || getDaysRemaining(action.dueDate) <= 5 || getDaysRemaining(action.dueDate) > 5) ? "text-white/80" : "text-muted-foreground"
                       )}>
@@ -304,7 +304,7 @@ export const ActionsLog = ({
                   </td>
                   <td className={cn(
                     "py-3 px-3 text-sm",
-                    isDynamicPanelColourEnabled && !action.closed ? "text-white" :
+                    isDynamicPanelColourEnabled ? "text-white" :
                     action.closed ? "text-foreground" : 
                     !action.closed && (getDaysRemaining(action.dueDate) < 0 || getDaysRemaining(action.dueDate) <= 5 || getDaysRemaining(action.dueDate) > 5) ? "text-white" : "text-foreground"
                   )}>
@@ -312,7 +312,7 @@ export const ActionsLog = ({
                   </td>
                   <td className={cn(
                     "py-3 px-3 text-sm",
-                    isDynamicPanelColourEnabled && !action.closed ? "text-white" :
+                    isDynamicPanelColourEnabled ? "text-white" :
                     action.closed ? "text-foreground" : 
                     !action.closed && (getDaysRemaining(action.dueDate) < 0 || getDaysRemaining(action.dueDate) <= 5 || getDaysRemaining(action.dueDate) > 5) ? "text-white" : "text-foreground"
                   )}>
@@ -336,7 +336,7 @@ export const ActionsLog = ({
                     <div className="flex gap-1">
                       {!action.closed && onActionEdit && action.sourceType !== "document" && <Button variant="ghost" size="sm" onClick={() => setEditingAction(action)} className={cn(
                         "h-8 w-8 p-0",
-                        isDynamicPanelColourEnabled && !action.closed ? "text-white hover:bg-white/20" :
+                        isDynamicPanelColourEnabled ? "text-white hover:bg-white/20" :
                         !action.closed && (getDaysRemaining(action.dueDate) < 0 || getDaysRemaining(action.dueDate) <= 5 || getDaysRemaining(action.dueDate) > 5) ? "text-white hover:bg-white/20" : "text-blue-500 hover:bg-blue-100"
                       )} title="Edit action">
                           <Edit className="h-4 w-4" />
@@ -344,19 +344,19 @@ export const ActionsLog = ({
                       <Button variant="ghost" size="sm" onClick={() => onActionComplete?.(action.id)} disabled={action.closed} className={cn(
                         "h-8 w-8 p-0",
                         action.closed ? "opacity-50" :
-                        isDynamicPanelColourEnabled && !action.closed ? "hover:bg-white/20" :
+                        isDynamicPanelColourEnabled ? "hover:bg-white/20" :
                         !action.closed && (getDaysRemaining(action.dueDate) < 0 || getDaysRemaining(action.dueDate) <= 5 || getDaysRemaining(action.dueDate) > 5) ? "hover:bg-white/20" : "hover:bg-green-100"
                       )} title="Mark as completed">
                         <Check className={cn(
                           "h-4 w-4",
                           action.closed ? "text-green-600" :
-                          isDynamicPanelColourEnabled && !action.closed ? "text-white" :
+                          isDynamicPanelColourEnabled ? "text-white" :
                           !action.closed && (getDaysRemaining(action.dueDate) < 0 || getDaysRemaining(action.dueDate) <= 5 || getDaysRemaining(action.dueDate) > 5) ? "text-white" : "text-muted-foreground"
                         )} />
                       </Button>
                       {!action.closed && <Button variant="ghost" size="sm" onClick={() => onActionDelete?.(action.id)} className={cn(
                         "h-8 w-8 p-0",
-                        isDynamicPanelColourEnabled && !action.closed ? "text-white hover:bg-white/20" :
+                        isDynamicPanelColourEnabled ? "text-white hover:bg-white/20" :
                         !action.closed && (getDaysRemaining(action.dueDate) < 0 || getDaysRemaining(action.dueDate) <= 5 || getDaysRemaining(action.dueDate) > 5) ? "text-white hover:bg-white/20" : "text-red-500 hover:bg-red-100"
                       )} title="Delete action">
                           <Minus className="h-4 w-4" />
