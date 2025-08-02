@@ -518,11 +518,11 @@ export const Reports = () => {
         </div>
       </div>;
   }
-  return <div className="min-h-screen bg-gray-100 p-4 lg:p-8 pt-32">
+  return <div className="min-h-screen bg-gray-100 p-4 lg:p-8 pt-40">
       <div className="w-[90%] mx-auto space-y-6">
         {/* Add Meeting Button */}
         {canEdit && (
-          <div className="pt-4">
+          <div className="pt-8">
             <AddMeetingDialog onMeetingAdded={fetchMeetings} />
           </div>
         )}
