@@ -260,11 +260,11 @@ export const ReadOnlyDashboardView = ({ meetingId }: ReadOnlyDashboardViewProps)
             const baseClass = "-mx-8 px-14 py-6";
             switch (status) {
               case 'green':
-                return `bg-status-green text-white ${baseClass}`;
+                return `bg-status-green ${baseClass}`;
               case 'amber':
-                return `bg-status-amber text-white ${baseClass}`;
+                return `bg-status-amber ${baseClass}`;
               case 'red':
-                return `bg-status-red text-white ${baseClass}`;
+                return `bg-status-red ${baseClass}`;
               default:
                 return `bg-primary/10 ${baseClass}`;
             }
@@ -278,9 +278,9 @@ export const ReadOnlyDashboardView = ({ meetingId }: ReadOnlyDashboardViewProps)
               <div className="flex items-center justify-between cursor-pointer mb-4">
                 <div className="flex items-center gap-3">
                   <div>
-                    <h3 className="text-xl font-bold text-white">{section.title}</h3>
+                    <h3 className="text-xl font-bold text-foreground">{section.title}</h3>
                     {lastUpdated && (
-                      <p className="text-sm mt-1 text-white/80">
+                      <p className="text-sm mt-1 text-muted-foreground">
                         Updated: {lastUpdated}
                       </p>
                     )}
@@ -377,7 +377,7 @@ export const ReadOnlyDashboardView = ({ meetingId }: ReadOnlyDashboardViewProps)
                     );
                   })
                 ) : (
-                  <div className="text-center py-8 text-white/80">
+                  <div className="text-center py-8 text-muted-foreground">
                     <FileText className="h-8 w-8 mx-auto mb-2 opacity-50" />
                     <p className="text-sm">No items tracked in this section</p>
                   </div>
