@@ -209,7 +209,7 @@ export const StatusItem = ({
   };
 
   return <div className={cn(
-    "relative w-full rounded-xl p-8 mb-3 shadow-md hover:scale-[1.01] transition-transform duration-300 min-h-[140px]",
+    "relative w-full rounded-xl p-8 mb-3 shadow-md hover:scale-[1.01] transition-transform duration-300 min-h-[140px] outline outline-stone-50",
     getStatusBackgroundClass(item.status)
   )}>
       <div className="flex items-start gap-4 w-full outline-none">
