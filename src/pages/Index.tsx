@@ -1791,11 +1791,6 @@ const Index = () => {
             readOnly={!canEdit}
           />
           
-          <MeetingSummaryPanel 
-            purpose={headerData.purpose}
-            onPurposeChange={canEdit ? (value) => handleDataChange("purpose", value) : undefined}
-            readOnly={!canEdit}
-          />
           
           <ActionsLog
             actions={actionsLog} 

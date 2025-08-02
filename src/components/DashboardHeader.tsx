@@ -94,12 +94,16 @@ export const DashboardHeader = ({
         </div>
       </div>
 
-      {/* Office Team Section */}
-      <div className="mb-6">
+      {/* Office Team and Meeting Summary Section */}
+      <div className="grid grid-cols-2 gap-6 mb-6">
+        {/* Office Team - 50% width */}
         <div className="p-4 rounded-lg border border-gray-100 min-h-24 bg-white">
           <h3 className="text-sm font-medium text-muted-foreground mb-2">Office Team</h3>
           <TeamAttendeesDisplay onAttendanceChange={readOnly ? undefined : onAttendeesChange} readOnly={readOnly} />
         </div>
+        
+        {/* Meeting Summary - 50% width */}
+        <EditableField field="purpose" value={purpose} label="Meeting Summary" containerClass="min-h-24" />
       </div>
     </div>;
 };
