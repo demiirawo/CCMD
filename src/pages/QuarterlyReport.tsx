@@ -49,20 +49,14 @@ export const QuarterlyReport = () => {
       loadExistingReport();
     }
   }, [quarter, year, profile?.company_id, content, shouldGenerate]);
-
   const loadExistingReport = async () => {
     if (!profile?.company_id || !quarter || !year) return;
-
     try {
       console.log('🔍 Loading existing report from database...');
-      const { data, error } = await supabase
-        .from('quarterly_reports')
-        .select('report_content, analytics_data')
-        .eq('company_id', profile.company_id)
-        .eq('quarter', quarter)
-        .eq('year', parseInt(year))
-        .maybeSingle();
-
+      const {
+        data,
+        error
+      } = await supabase.from('quarterly_reports').select('report_content, analytics_data').eq('company_id', profile.company_id).eq('quarter', quarter).eq('year', parseInt(year)).maybeSingle();
       if (error) {
         console.error('Error loading existing report:', error);
         toast({
@@ -72,14 +66,14 @@ export const QuarterlyReport = () => {
         });
         return;
       }
-
       if (data && data.report_content) {
         console.log('✅ Found existing report in database');
         setReportContent(data.report_content);
         splitContentIntoPages(data.report_content);
-        
         if (data.analytics_data && typeof data.analytics_data === 'object') {
-          setAnalyticsImages(data.analytics_data as { [key: string]: any });
+          setAnalyticsImages(data.analytics_data as {
+            [key: string]: any;
+          });
         }
       } else {
         console.log('❌ No existing report found in database');
@@ -283,13 +277,11 @@ export const QuarterlyReport = () => {
       // Process analytics data for narrative inclusion
       const processedAnalytics = await processAnalyticsData();
       // Determine if company uses "Care" or "Support" terminology
-      const isOnlySupportedHousing = companyInfo?.services?.length === 1 && 
-        companyInfo.services.includes('Supported Housing');
+      const isOnlySupportedHousing = companyInfo?.services?.length === 1 && companyInfo.services.includes('Supported Housing');
       const careOrSupport = isOnlySupportedHousing ? 'Support' : 'Care';
-      
+
       // Check if company has Supported Housing services
       const hasSupportedHousing = companyInfo?.services?.includes('Supported Housing');
-
       const messages = [{
         role: 'system' as const,
         content: 'You are a professional report writer specializing in objective, factual quarterly reports. You NEVER create fictional content and strictly adhere to provided data. You maintain complete objectivity and clearly state when information is not available. You follow exact heading structures and use specified terminology.'
@@ -418,7 +410,7 @@ REPORTING INSTRUCTIONS:
       console.error('❌ Error generating report:', error);
       setHasGenerationFailed(true); // Prevent infinite retry loop
       toast({
-        title: "Generation Failed", 
+        title: "Generation Failed",
         description: error instanceof Error ? error.message : "Failed to generate the quarterly report. Please try again.",
         variant: "destructive"
       });
@@ -1075,7 +1067,7 @@ REPORTING INSTRUCTIONS:
                       }
 
                       // Handle natural language prose content
-                      
+
                       // Handle markdown-style major headings (# heading)
                       if (line.trim().startsWith('# ') && line.trim().length > 2) {
                         const headingText = line.trim().replace(/^# /, '');
@@ -1091,7 +1083,7 @@ REPORTING INSTRUCTIONS:
                                   </h1>
                                 </div>;
                       }
-                      
+
                       // Handle markdown-style minor headings (## heading)
                       if (line.trim().startsWith('## ') && line.trim().length > 3) {
                         const headingText = line.trim().replace(/^## /, '');
@@ -1105,7 +1097,6 @@ REPORTING INSTRUCTIONS:
                                   </h2>
                                 </div>;
                       }
-                      
                       if (line.trim().match(/^\d+\.\s/)) {
                         // Section headers (e.g., "1. Executive Summary")
                         return <div key={lineIndex} className="mb-8">
@@ -1130,50 +1121,41 @@ REPORTING INSTRUCTIONS:
                       // Check for standalone section titles (without numbers) - expanded list
                       if (line.trim().length > 0 && line.trim().length < 100 && (line.trim() === 'Executive Summary' || line.trim() === 'Operational Successes' || line.trim() === 'Operational Successes and Achievements' || line.trim() === 'Learning Opportunities and Challenges' || line.trim() === 'Learning Opportunities and Strategic Challenges' || line.trim() === 'Workforce and Capacity Analysis' || line.trim() === 'Workforce Development and Capacity Analysis' || line.trim() === 'Care Quality and Service Delivery' || line.trim() === 'Care Quality and Service Excellence' || line.trim() === 'Health, Safety and Risk Management' || line.trim() === 'Continuous Improvement and Innovation' || line.trim() === 'Strategic Outlook and Recommendations' || line.trim() === 'Strategic Outlook and Future Planning' || line.trim().includes('Summary') || line.trim().includes('Analysis') || line.trim().includes('Development') || line.trim().includes('Excellence') || line.trim().includes('Management') || line.trim().includes('Innovation') || line.trim().includes('Outlook') || line.trim().includes('Planning'))) {
                         const sectionTitle = line.trim();
-                        const elements = [
-                          <div key={lineIndex} className="mb-8">
+                        const elements = [<div key={lineIndex} className="mb-8">
                             <h2 className="text-2xl font-bold text-gray-800 pb-3 mb-6" style={{
-                              borderBottom: '2px solid #9ca3af',
-                              fontSize: '18pt',
-                              fontWeight: 'bold',
-                              color: '#374151',
-                              paddingBottom: '12px'
-                            }}>
+                            borderBottom: '2px solid #9ca3af',
+                            fontSize: '18pt',
+                            fontWeight: 'bold',
+                            color: '#374151',
+                            paddingBottom: '12px'
+                          }}>
                               {sectionTitle}
                             </h2>
-                          </div>
-                        ];
-                        
+                          </div>];
+
                         // Add feedback graph for Care Quality and Service Excellence section
-                        if ((sectionTitle === 'Care Quality and Service Excellence' || sectionTitle === 'Care Quality and Service Delivery') && 
-                            analyticsImages.feedback && analyticsImages.feedback.hasData) {
+                        if ((sectionTitle === 'Care Quality and Service Excellence' || sectionTitle === 'Care Quality and Service Delivery') && analyticsImages.feedback && analyticsImages.feedback.hasData) {
                           console.log('📊 Adding feedback chart for section:', sectionTitle);
                           console.log('📊 Feedback data:', analyticsImages.feedback);
-                          elements.push(
-                            <div key={`${lineIndex}-feedback`} className="my-6 p-4 border border-gray-200 rounded-lg bg-gray-50">
+                          elements.push(<div key={`${lineIndex}-feedback`} className="my-6 p-4 border border-gray-200 rounded-lg bg-gray-50">
                               <h3 className="text-lg font-semibold text-gray-800 mb-3">Client Feedback Analytics</h3>
                               {renderAnalyticsChart('feedback', analyticsImages.feedback)}
-                            </div>
-                          );
+                            </div>);
                         } else {
                           console.log('📊 Feedback chart not added - section:', sectionTitle, 'hasData:', analyticsImages.feedback?.hasData);
                         }
-                        
+
                         // Add incident graph for Health, Safety and Risk Management section
-                        if (sectionTitle === 'Health, Safety and Risk Management' && 
-                            analyticsImages.incidents && analyticsImages.incidents.hasData) {
+                        if (sectionTitle === 'Health, Safety and Risk Management' && analyticsImages.incidents && analyticsImages.incidents.hasData) {
                           console.log('📊 Adding incidents chart for section:', sectionTitle);
                           console.log('📊 Incidents data:', analyticsImages.incidents);
-                          elements.push(
-                            <div key={`${lineIndex}-incidents`} className="my-6 p-4 border border-gray-200 rounded-lg bg-gray-50">
+                          elements.push(<div key={`${lineIndex}-incidents`} className="my-6 p-4 border border-gray-200 rounded-lg bg-gray-50">
                               <h3 className="text-lg font-semibold text-gray-800 mb-3">Incidents, Accidents & Safeguarding Analytics</h3>
                               {renderAnalyticsChart('incidents', analyticsImages.incidents)}
-                            </div>
-                          );
+                            </div>);
                         } else {
                           console.log('📊 Incidents chart not added - section:', sectionTitle, 'hasData:', analyticsImages.incidents?.hasData);
                         }
-                        
                         return elements;
                       }
                       if (line.trim().length > 50) {
@@ -1200,11 +1182,11 @@ REPORTING INSTRUCTIONS:
                       }
                       if (line.trim().length > 0) {
                         // Other content - brief lines
-                        return <p key={lineIndex} className="mb-3 text-gray-700 leading-relaxed" style={{
+                        return <p key={lineIndex} style={{
                           marginBottom: '0.75rem',
                           lineHeight: '1.6',
                           fontSize: '12pt'
-                        }}>
+                        }} className="mb-3 text-gray-700 leading-relaxed text-4xl text-center">
                                   {line.trim()}
                                 </p>;
                       }
