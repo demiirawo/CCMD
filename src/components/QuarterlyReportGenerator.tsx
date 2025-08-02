@@ -521,7 +521,7 @@ Remember: Write in natural language prose with detailed paragraphs. No markdown 
   return <div className="space-y-2">
       <Button variant="default" className="gap-2" onClick={generateReport}>
         <FileText className="h-4 w-4" />
-        Generate AI Report
+        Generate Report
       </Button>
       {/* Temporary debug info */}
       
