@@ -8,6 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { format, addDays, addWeeks, addMonths, addYears, differenceInDays } from "date-fns";
 import { Card } from "./ui/card";
 import { StatusBadge, StatusType } from "./StatusBadge";
+import { useAuth } from "@/hooks/useAuth";
+import { cn } from "@/lib/utils";
 
 export interface DocumentData {
   id: string;
@@ -47,6 +49,10 @@ export const KeyDocumentTracker = ({
   panelStateTracker,
   readOnly = false
 }: KeyDocumentTrackerProps) => {
+  const { companies, profile } = useAuth();
+  const currentCompany = companies.find(c => c.id === profile?.company_id);
+  const isDynamicPanelColourEnabled = (currentCompany as any)?.dynamic_panel_colour || false;
+  
   const [isExpanded, setIsExpanded] = useState(() => {
     const saved = sessionStorage.getItem('key_documents_expanded');
     return saved !== null ? JSON.parse(saved) : false;
@@ -191,8 +197,23 @@ export const KeyDocumentTracker = ({
     groupedDocuments.push(["Uncategorized", uncategorizedDocs]);
   }
 
-  // Function to get background class - always use theme color for Key Review Dates
+  // Function to get background class with dynamic panel colour support
   const getBackgroundClass = () => {
+    if (isDynamicPanelColourEnabled) {
+      const status = getOverallStatus();
+      switch (status) {
+        case 'green':
+          return 'bg-status-green text-white';
+        case 'amber':
+          return 'bg-status-amber text-white';
+        case 'red':
+          return 'bg-status-red text-white';
+        case 'na':
+          return 'bg-status-na text-white';
+        default:
+          return 'bg-primary/10';
+      }
+    }
     return 'bg-primary/10';
   };
 
@@ -205,8 +226,14 @@ export const KeyDocumentTracker = ({
       }}>
         <div className="flex items-center gap-3">
           <div>
-            <h3 className="text-xl font-bold text-foreground">Key Review Dates</h3>
-            <p className="text-sm text-muted-foreground">
+            <h3 className={cn(
+              "text-xl font-bold",
+              isDynamicPanelColourEnabled ? "text-white" : "text-foreground"
+            )}>Key Review Dates</h3>
+            <p className={cn(
+              "text-sm",
+              isDynamicPanelColourEnabled ? "text-white/80" : "text-muted-foreground"
+            )}>
               Updated: {new Date().toLocaleDateString('en-GB')}
             </p>
           </div>
@@ -215,7 +242,17 @@ export const KeyDocumentTracker = ({
           </div>
         </div>
         <div className="p-1 rounded-lg hover:bg-accent/50 transition-colors outline-none">
-          {isOpen ? <ChevronDown className="w-5 h-5 text-muted-foreground" /> : <ChevronRight className="w-5 h-5 text-muted-foreground" />}
+          {isOpen ? (
+            <ChevronDown className={cn(
+              "w-5 h-5",
+              isDynamicPanelColourEnabled ? "text-white/80" : "text-muted-foreground"
+            )} />
+          ) : (
+            <ChevronRight className={cn(
+              "w-5 h-5", 
+              isDynamicPanelColourEnabled ? "text-white/80" : "text-muted-foreground"
+            )} />
+          )}
         </div>
       </div>
       
