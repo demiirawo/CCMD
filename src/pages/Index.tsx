@@ -12,7 +12,7 @@ import { StatusItemData } from "@/components/StatusItem";
 import { ActionItem } from "@/components/ActionForm";
 import { SubsectionMetadata } from "@/components/SubsectionMetadataDialog";
 import { StatusType } from "@/components/StatusBadge";
-import { Users, Target, BarChart3, FileText, Heart, Shield, Calendar, UserCheck, ClipboardList, HeartHandshake, TrendingUp, Save, Download, ChevronDown, ChevronUp, Copy, Home } from "lucide-react";
+import { Users, Target, BarChart3, FileText, Heart, Shield, Calendar, UserCheck, ClipboardList, HeartHandshake, TrendingUp, Save, Download, ChevronDown, ChevronUp, Copy, Home, Loader2 } from "lucide-react";
 import { MeetingStatusSummary } from "@/components/MeetingStatusSummary";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -50,6 +50,7 @@ const Index = () => {
   const [actionsLog, setActionsLog] = useState<ActionLogEntry[]>([]);
   const [allSectionsExpanded, setAllSectionsExpanded] = useState<boolean | undefined>(undefined);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [panelStateTracker, setPanelStateTracker] = useState<number>(0); // Force re-render when panels change
 
   // Function to update temporary analytics data with real meeting ID
@@ -1376,6 +1377,7 @@ const Index = () => {
   // NEW SAVE MEETING FUNCTIONALITY - REBUILT FROM SCRATCH
   const saveMeetingToDatabase = async () => {
     try {
+      setIsSaving(true);
       // Parse the date from the date-time picker format (dd/MM/yyyy HH:mm)
       const parseDateString = (dateString: string) => {
         try {
@@ -1510,6 +1512,8 @@ const Index = () => {
         description: "An unexpected error occurred while saving the meeting",
         variant: "destructive"
       });
+    } finally {
+      setIsSaving(false);
     }
   };
   const handleExportPDF = async () => {
@@ -1672,9 +1676,23 @@ const Index = () => {
             <ChevronDown className="w-4 h-4" />
             {getToggleButtonText()}
           </Button>
-          <Button onClick={saveMeetingToDatabase} variant="outline" className={`gap-2 transition-all duration-500 ${saveSuccess ? 'success-glow' : ''}`}>
-            <Save className="w-4 h-4" />
-            Save & Send
+          <Button 
+            onClick={saveMeetingToDatabase} 
+            variant="outline" 
+            className={`gap-2 transition-all duration-500 ${saveSuccess ? 'success-glow' : ''}`}
+            disabled={isSaving}
+          >
+            {isSaving ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Saving...
+              </>
+            ) : (
+              <>
+                <Save className="w-4 h-4" />
+                Save & Send
+              </>
+            )}
           </Button>
           
         </div>
