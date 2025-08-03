@@ -130,7 +130,7 @@ export const RobustMeetingSummary = ({
                 <button
                   onClick={() => setIsEditing(true)}
                   className={cn(
-                    "w-full text-left min-h-24 p-3 text-sm text-foreground hover:bg-gray-50 transition-colors rounded border border-transparent hover:border-gray-300 whitespace-pre-wrap break-words overflow-wrap-anywhere",
+                    "w-full text-left min-h-24 p-3 text-sm text-foreground hover:bg-gray-50 transition-colors rounded border border-gray-200 hover:border-gray-300 whitespace-pre-wrap break-words overflow-wrap-anywhere",
                     isSaving && "bg-blue-50"
                   )}
                 >
