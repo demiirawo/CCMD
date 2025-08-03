@@ -85,7 +85,7 @@ export const Meetings = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="agenda">meeting detail</Label>
+              <Label htmlFor="agenda">Meeting Detail</Label>
               <Textarea id="agenda" value={meetingData.agenda} onChange={e => handleInputChange("agenda", e.target.value)} placeholder="Enter meeting agenda and discussion points..." className="min-h-[200px]" />
             </div>
 
