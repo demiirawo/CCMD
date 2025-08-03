@@ -192,6 +192,7 @@ export const CompanySelection = () => {
   const fetchAllActions = async () => {
     if (profile?.role !== 'admin') return;
     
+    console.log('Fetching all actions for admin...');
     setActionsLoading(true);
     try {
       const { data, error } = await supabase
@@ -202,8 +203,11 @@ export const CompanySelection = () => {
         `)
         .order('due_date', { ascending: true });
 
+      console.log('Actions query result:', { data, error });
+      
       if (error) throw error;
       setAllActions(data || []);
+      console.log('Set actions:', data?.length || 0, 'actions found');
     } catch (error) {
       console.error('Error fetching actions:', error);
       toast({
@@ -217,6 +221,7 @@ export const CompanySelection = () => {
   };
 
   useEffect(() => {
+    console.log('Actions effect triggered:', { actionsOpen, role: profile?.role });
     if (actionsOpen && profile?.role === 'admin') {
       fetchAllActions();
     }
