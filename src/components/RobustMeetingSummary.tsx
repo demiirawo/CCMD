@@ -72,7 +72,6 @@ export const RobustMeetingSummary = ({
             <div className="flex items-center gap-2">
               <CardTitle className="text-lg">Meeting Summary</CardTitle>
               {isSaving && <Loader2 className="w-4 h-4 animate-spin text-blue-500" />}
-              {!isSaving && summary}
             </div>
             {!readOnly && <AISummaryButton meetingData={meetingData} onSummaryGenerated={handleAISummary} />}
           </div>
