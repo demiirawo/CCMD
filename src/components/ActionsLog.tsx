@@ -262,19 +262,23 @@ export const ActionsLog = ({
       return 'bg-green-100 border border-green-300 text-green-900'; // More than 5 days
     }
   };
-  const renderActionsTable = (actionsList: ActionLogEntry[], title: string) => {
-    if (actionsList.length === 0) return null;
+  const renderCombinedActionsTable = () => {
+    // Combine all actions and sort by due date
+    const allActions = [...openActions, ...closedActions].sort(sortByDueDate);
+    
+    if (allActions.length === 0) return null;
+    
     return <div className="mb-6">
         <h4 className={cn(
           "text-lg font-semibold mb-3 flex items-center gap-2",
           isDynamicPanelColourEnabled ? "text-white" : "text-foreground"
         )}>
-          {title}
+          All Actions
           <span className={cn(
             "text-sm font-normal",
             isDynamicPanelColourEnabled ? "text-white/80" : "text-muted-foreground"
           )}>
-            ({actionsList.length})
+            ({allActions.length})
           </span>
         </h4>
         <div className="overflow-x-auto">
@@ -297,10 +301,10 @@ export const ActionsLog = ({
                   "text-left py-2 px-3 text-sm font-semibold",
                   isDynamicPanelColourEnabled ? "text-white" : "text-foreground"
                 )}>Due Date</th>
-                {title.includes("Closed") && <th className={cn(
+                <th className={cn(
                   "text-left py-2 px-3 text-sm font-semibold",
                   isDynamicPanelColourEnabled ? "text-white" : "text-foreground"
-                )}>Closed</th>}
+                )}>Status</th>
                 <th className={cn(
                   "text-left py-2 px-3 text-sm font-semibold",
                   isDynamicPanelColourEnabled ? "text-white" : "text-foreground"
@@ -308,7 +312,7 @@ export const ActionsLog = ({
               </tr>
             </thead>
             <tbody>
-              {actionsList.map((action, index) => <tr key={action.id} className={cn(
+              {allActions.map((action, index) => <tr key={action.id} className={cn(
                 `border-b border-border/20`,
                 action.closed ? 'bg-stone-50' : '',
                 getActionRowClass(action)
@@ -372,29 +376,35 @@ export const ActionsLog = ({
                     getDaysRemaining(action.dueDate) <= 5 ? "text-amber-900" : 
                     "text-green-900"
                   )}>
-                    <div className="flex items-center gap-2">
-                      <span>{action.dueDate}</span>
-                      {!action.closed && <span className={`text-xs px-2 py-1 rounded-full ${getDaysRemaining(action.dueDate) < 0 ? 'bg-red-100 text-red-700' : getDaysRemaining(action.dueDate) <= 5 ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'}`}>
-                          {(() => {
-                      const days = getDaysRemaining(action.dueDate);
-                      if (days < 0) {
-                        return `${Math.abs(days)} day(s) overdue`;
-                      } else if (days === 0) {
-                        return 'Due today';
-                      } else {
-                        return `${days} day(s) left`;
-                      }
-                    })()}
-                        </span>}
-                    </div>
+                    {action.dueDate}
                   </td>
-                  {title.includes("Closed") && <td className={cn(
-                    "py-3 px-3 text-sm",
-                    action.closed ? "text-black/80" :
-                    isDynamicPanelColourEnabled ? "text-white/80" : "text-muted-foreground"
+                  <td className={cn(
+                    "py-3 pl-3 pr-1 text-sm",
+                    action.closed ? "text-black/80" : ""
                   )}>
-                      {action.closedDate ? new Date(action.closedDate).toLocaleDateString('en-GB') : '-'}
-                    </td>}
+                    {action.closed ? (
+                      <span className="text-green-600 font-medium">
+                        Closed {action.closedDate ? new Date(action.closedDate).toLocaleDateString('en-GB') : ''}
+                      </span>
+                    ) : (
+                      <span className={`px-2 py-1 rounded-full text-xs ${
+                        getDaysRemaining(action.dueDate) < 0 ? 'bg-red-100 text-red-700' : 
+                        getDaysRemaining(action.dueDate) <= 5 ? 'bg-amber-100 text-amber-700' : 
+                        'bg-green-100 text-green-700'
+                      }`}>
+                        {(() => {
+                          const days = getDaysRemaining(action.dueDate);
+                          if (days < 0) {
+                            return `${Math.abs(days)} day(s) overdue`;
+                          } else if (days === 0) {
+                            return 'Due today';
+                          } else {
+                            return `${days} day(s) left`;
+                          }
+                        })()}
+                      </span>
+                    )}
+                  </td>
                   <td className="py-3 px-3">
                     <div className="flex gap-1">
                       {!action.closed && onActionEdit && action.sourceType !== "document" && <Button variant="ghost" size="sm" onClick={() => setEditingAction(action)} className="h-8 w-8 p-0 text-black hover:bg-gray-50" title="Edit action">
@@ -480,25 +490,20 @@ export const ActionsLog = ({
         </div>
       </div>
 
-      {isOpen && <div>
-          {actions.length === 0 ? <div className={cn(
-            "text-center py-8",
-            isDynamicPanelColourEnabled ? "text-white/80" : "text-muted-foreground"
-          )}>
-              <p>No actions logged yet.</p>
-            </div> : <>
-              {myActions.length > 0 && renderActionsTable(myActions, "My Actions")}
-              {officeTeamActions.length > 0 && renderActionsTable(officeTeamActions, "Office Team Actions")}
-              {renderActionsTable(closedActions, "Closed Actions (Last 30 Days)")}
-              
-              {openActions.length === 0 && closedActions.length === 0 && <div className={cn(
+      {isOpen && (
+          <div className="space-y-4">
+            {renderCombinedActionsTable()}
+            
+            {actions.length === 0 && (
+              <p className={cn(
                 "text-center py-8",
                 isDynamicPanelColourEnabled ? "text-white/80" : "text-muted-foreground"
               )}>
-                  <p>No recent actions to display.</p>
-                </div>}
-            </>}
-        </div>}
+                No actions recorded yet
+              </p>
+            )}
+          </div>
+        )}
       
       <ActionEditDialog isOpen={!!editingAction} onClose={() => setEditingAction(null)} action={editingAction} onSave={(actionId, updates) => {
       onActionEdit?.(actionId, updates);
