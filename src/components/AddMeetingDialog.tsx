@@ -58,7 +58,7 @@ export const AddMeetingDialog = ({
       console.error('Upload error:', uploadError);
       throw new Error('Failed to upload document');
     }
-    
+
     // Return the file path instead of public URL since the bucket is private
     return filePath;
   };
@@ -73,7 +73,8 @@ export const AddMeetingDialog = ({
       const quarter = `Q${Math.floor(currentMonth / 3) + 1}`;
       const meetingData = {
         title: formData.title,
-        purpose: null, // Always null for custom meetings
+        purpose: null,
+        // Always null for custom meetings
         date: formData.date.toISOString(),
         year: currentYear,
         quarter,
@@ -131,7 +132,7 @@ export const AddMeetingDialog = ({
   };
   return <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="mb-6 py-[9px] my-[22px]">
+        <Button className="mb-6 my-0 py-[16px]">
           <Plus className="h-4 w-4 mr-2" />
           Add Custom Meeting
         </Button>
