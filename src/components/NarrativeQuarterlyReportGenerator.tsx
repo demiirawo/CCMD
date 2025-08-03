@@ -265,7 +265,7 @@ Write approximately 1500-2500 words using only plain text formatting that regula
         
         <CardContent className="">
           
-          <div className="flex justify-between items-center gap-2">
+          <div className="flex justify-evenly items-start gap-2 w-full">
             <Button onClick={viewReport} className="flex items-center gap-2">
               <Eye className="h-4 w-4" />
               View Report

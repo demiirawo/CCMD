@@ -571,11 +571,9 @@ export const Reports = () => {
                     </div>
                     
                     <div className="flex items-center gap-3">
-                      {canEdit && <div onClick={e => e.stopPropagation()} className="flex items-start justify-between w-full gap-2">
+                      {canEdit && <div onClick={e => e.stopPropagation()} className="flex items-start justify-evenly w-full gap-2">
                           <AddMeetingDialog onMeetingAdded={fetchMeetings} />
-                          <div className="flex flex-col gap-1 mt-1">
-                            <NarrativeQuarterlyReportGenerator quarter={quarter} year={year} meetings={quarterMeetings} />
-                          </div>
+                          <NarrativeQuarterlyReportGenerator quarter={quarter} year={year} meetings={quarterMeetings} />
                         </div>}
                       
                       <div className="p-1 rounded-lg hover:bg-accent/50 transition-colors">
