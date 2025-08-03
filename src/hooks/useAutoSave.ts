@@ -42,7 +42,7 @@ export const useAutoSave = ({
       const { error } = await (supabase as any)
         .from(table)
         .upsert(upsertData, { 
-          onConflict: data.id ? 'id' : undefined,
+          onConflict: data.id ? 'id' : (table === 'meeting_headers' ? 'company_id,meeting_date' : undefined),
           ignoreDuplicates: false 
         });
 
