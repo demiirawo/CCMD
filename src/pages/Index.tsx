@@ -7,7 +7,7 @@ import { useMeetingEmailNotification } from "@/hooks/useMeetingEmailNotification
 import { Attendee } from "@/components/TeamAttendeesDisplay";
 import { DashboardSection } from "@/components/DashboardSection";
 import { ActionsLog, ActionLogEntry } from "@/components/ActionsLog";
-import { MeetingSummaryPanel } from "@/components/MeetingSummaryPanel";
+import { RobustMeetingSummary } from "@/components/RobustMeetingSummary";
 import { KeyDocumentTracker, DocumentData } from "@/components/KeyDocumentTracker";
 import { StatusItemData } from "@/components/StatusItem";
 import { ActionItem } from "@/components/ActionForm";
