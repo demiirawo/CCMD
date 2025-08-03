@@ -299,7 +299,7 @@ Write approximately 1500-2500 words using only plain text formatting that regula
         <Button onClick={generateNarrativeReport} disabled={isGenerating || isLoading} className="w-full">
           {isGenerating || isLoading ? <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Generating Narrative Report...
+              Generating Report...
             </> : <>
               <FileText className="mr-2 h-4 w-4" />
               Generate Report

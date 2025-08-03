@@ -12,7 +12,7 @@ export const Navigation = () => {
 
   const navItems = [
     { name: "Dashboard", path: "/" },
-    { name: "History", path: "/reports" }
+    { name: "Report", path: "/reports" }
   ];
 
   // Only show settings for company admins and super admins
