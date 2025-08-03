@@ -3,6 +3,7 @@ import { MeetingDateTimePicker } from "./MeetingDateTimePicker";
 import { TeamAttendeesDisplay, Attendee } from "./TeamAttendeesDisplay";
 import { MeetingStatusSummary } from "./MeetingStatusSummary";
 import { AISummaryButton } from "./AISummaryButton";
+import { RobustMeetingSummary } from "./RobustMeetingSummary";
 import { useAuth } from "@/hooks/useAuth";
 import { useState } from "react";
 interface DashboardHeaderProps {
@@ -95,15 +96,29 @@ export const DashboardHeader = ({
         </div>
       </div>
 
-      {/* Office Team Section */}
-      <div className="grid grid-cols-1 gap-6 mb-6 items-start">
+      {/* Office Team and Meeting Summary Section */}
+      <div className="grid grid-cols-2 gap-6 mb-6 items-start">
         {/* Office Team - 50% width */}
         <div className="p-4 rounded-lg border border-gray-100 min-h-24 bg-white">
           <h3 className="text-sm font-medium text-muted-foreground mb-2 py-[8px]">Meeting Attendees</h3>
           <TeamAttendeesDisplay onAttendanceChange={readOnly ? undefined : onAttendeesChange} readOnly={readOnly} />
         </div>
         
-        {/* Meeting Summary section removed - now handled by RobustMeetingSummary component */}
+        
+        {/* Meeting Summary - 50% width */}
+        <RobustMeetingSummary 
+          meetingDate={date}
+          readOnly={readOnly}
+          meetingData={{
+            title,
+            date,
+            attendees,
+            purpose,
+            sections: sections || [],
+            actionsLog: actionsLog || [],
+            companyName: companies.find(c => c.id === profile?.company_id)?.name || "the organization"
+          }}
+        />
       </div>
     </div>;
 };

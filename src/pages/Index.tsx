@@ -7,7 +7,6 @@ import { useMeetingEmailNotification } from "@/hooks/useMeetingEmailNotification
 import { Attendee } from "@/components/TeamAttendeesDisplay";
 import { DashboardSection } from "@/components/DashboardSection";
 import { ActionsLog, ActionLogEntry } from "@/components/ActionsLog";
-import { RobustMeetingSummary } from "@/components/RobustMeetingSummary";
 import { KeyDocumentTracker, DocumentData } from "@/components/KeyDocumentTracker";
 import { StatusItemData } from "@/components/StatusItem";
 import { ActionItem } from "@/components/ActionForm";
@@ -1682,20 +1681,6 @@ const Index = () => {
         
         <div id="dashboard-container" className="space-y-6">
           <DashboardHeader date={headerData.date} title={headerData.title} attendees={headerData.attendees} purpose={headerData.purpose} stats={calculateStats()} sections={dashboardData.sections} actionsLog={actionsLog} onDataChange={canEdit ? handleDataChange : undefined} onAttendeesChange={canEdit ? handleAttendeesChange : undefined} readOnly={!canEdit} />
-          
-          <RobustMeetingSummary 
-            meetingDate={headerData.date}
-            readOnly={!canEdit}
-            meetingData={{
-              title: headerData.title,
-              date: headerData.date,
-              attendees: headerData.attendees,
-              purpose: headerData.purpose,
-              sections: dashboardData.sections,
-              actionsLog: actionsLog,
-              companyName: companies.find(c => c.id === profile?.company_id)?.name || "the organization"
-            }}
-          />
           
           
           <ActionsLog actions={actionsLog} onActionComplete={canEdit ? handleActionComplete : undefined} onActionDelete={canEdit ? handleActionDelete : undefined} onActionUndo={canEdit ? handleActionUndo : undefined} onResetActions={canEdit ? resetActionsLog : undefined} onActionEdit={canEdit ? handleActionEdit : undefined} attendees={getAttendeesList()} onPanelStateChange={triggerPanelStateUpdate} panelStateTracker={panelStateTracker} readOnly={!canEdit} currentUsername={profile?.username} />
