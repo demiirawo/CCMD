@@ -87,14 +87,44 @@ export const useMeetingEmailNotification = () => {
         });
       };
 
+      // Sort actions by due date (soonest first)
+      const sortActionsByDueDate = (actions: any[]) => {
+        return actions.sort((a, b) => {
+          const parseDueDate = (dueDate: string): Date => {
+            if (!dueDate || dueDate.trim() === '') return new Date('9999-12-31');
+            
+            // Handle DD/MM/YYYY format (e.g., "28/07/2026")
+            if (dueDate.includes('/') && dueDate.split('/').length === 3) {
+              const parts = dueDate.split('/');
+              if (parts.length === 3 && parts[0].length <= 2 && parts[1].length <= 2 && parts[2].length === 4) {
+                // DD/MM/YYYY format - convert to YYYY-MM-DD
+                const [day, month, year] = parts;
+                return new Date(`${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`);
+              }
+            }
+            // Try standard parsing
+            return new Date(dueDate);
+          };
+          
+          const aDueDate = parseDueDate(a.dueDate || a.due_date || a.targetDate || a.target_date || '');
+          const bDueDate = parseDueDate(b.dueDate || b.due_date || b.targetDate || b.target_date || '');
+          
+          // Sort by date ascending (overdue and soonest first)
+          return aDueDate.getTime() - bDueDate.getTime();
+        });
+      };
+
       // Format action items with categories
       const formatActionSection = (actions: any[], title: string) => {
         if (actions.length === 0) return '';
         
+        // Sort actions by due date within the group
+        const sortedActions = sortActionsByDueDate([...actions]);
+        
         return `
-          <h4 style="color: #374151; margin: 16px 0 8px 0; font-size: 16px;">${title} (${actions.length})</h4>
+          <h4 style="color: #374151; margin: 16px 0 8px 0; font-size: 16px;">${title} (${sortedActions.length})</h4>
           <ul style="margin: 0; padding-left: 20px;">
-            ${actions.map((action, index) => {
+            ${sortedActions.map((action, index) => {
               console.log(`🔍 Processing action ${index}:`, {
                 raw: action,
                 keys: Object.keys(action),
