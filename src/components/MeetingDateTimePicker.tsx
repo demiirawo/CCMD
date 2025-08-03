@@ -33,6 +33,17 @@ export const MeetingDateTimePicker = ({
     now.setMinutes(0, 0, 0);
     return format(now, "HH:mm");
   });
+
+  // Set the initial value when component mounts
+  React.useEffect(() => {
+    if (!value) {
+      // If no value is provided, set the default datetime
+      const now = new Date();
+      now.setMinutes(0, 0, 0); // Set to current hour with 00 minutes
+      const formattedDateTime = format(now, "dd/MM/yyyy HH:mm");
+      onChange(formattedDateTime);
+    }
+  }, [value, onChange]);
   const handleDateSelect = (newDate: Date | undefined) => {
     if (newDate) {
       setDate(newDate);
