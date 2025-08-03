@@ -49,9 +49,11 @@ export const RobustMeetingSummary = ({
     .replace(/\n{3,}/g, '\n\n') // Clean up excessive line breaks
     .trim();
   };
-  const handleAISummary = (generatedSummary: string) => {
+  const handleAISummary = async (generatedSummary: string) => {
     const cleanSummary = stripMarkdown(generatedSummary);
     updateSummary(cleanSummary);
+    // Force immediate save for AI-generated summaries
+    await forceSave();
   };
   if (isLoading) {
     return <div className="bg-primary/10 p-8 rounded-xl shadow-sm -mx-8 px-14 mb-8 outline-none">
