@@ -75,7 +75,7 @@ export const Meetings = () => {
 
               <div className="space-y-2">
                 <Label htmlFor="facilitator">Meeting Facilitator *</Label>
-                <Input id="facilitator" value={meetingData.facilitator} onChange={e => handleInputChange("facilitator", e.target.value)} placeholder="Enter facilitator name" />
+                <Input id="facilitator" value={meetingData.facilitator} onChange={e => handleInputChange("facilitator", e.target.value)} />
               </div>
 
               <div className="space-y-2">
