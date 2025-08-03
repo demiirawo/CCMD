@@ -115,7 +115,8 @@ export const DashboardHeader = ({
                   attendees,
                   purpose,
                   sections: sections || [],
-                  actionsLog: actionsLog || []
+                  actionsLog: actionsLog || [],
+                  companyName: companies.find(c => c.id === profile?.company_id)?.name || "the organization"
                 }}
                 onSummaryGenerated={summary => onDataChange?.("purpose", summary)} 
               />

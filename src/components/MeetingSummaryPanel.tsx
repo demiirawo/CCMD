@@ -14,6 +14,7 @@ interface MeetingSummaryPanelProps {
     purpose: string;
     sections: any[];
     actionsLog: any[];
+    companyName?: string;
   };
 }
 

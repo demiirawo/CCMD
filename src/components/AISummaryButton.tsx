@@ -13,6 +13,7 @@ interface AISummaryButtonProps {
     purpose: string;
     sections: any[];
     actionsLog: any[];
+    companyName?: string;
   };
 }
 
@@ -173,10 +174,11 @@ export const AISummaryButton = ({ onSummaryGenerated, meetingData }: AISummaryBu
     
     setIsGenerating(true);
     try {
-      const meetingData = collectMeetingData();
-      console.log('Collected meeting data:', meetingData);
+      const companyName = meetingData?.companyName || "the organization";
+      const collectedData = collectMeetingData();
+      console.log('Collected meeting data:', collectedData);
       
-      if (!meetingData.trim()) {
+      if (!collectedData.trim()) {
         console.log('No meeting data found');
         toast({
           title: "No Data Found",
@@ -193,6 +195,7 @@ export const AISummaryButton = ({ onSummaryGenerated, meetingData }: AISummaryBu
 
 Instructions:
 - State only the facts of what was discussed, reviewed, or decided
+- When referring to the company, use "${companyName}" instead of generic terms like "provider" or "the organization"
 - Avoid cliche phrases about "commitment to compliance" or "quality care" 
 - Do not add editorial commentary or assessments
 - Use simple, direct language
@@ -202,7 +205,7 @@ Instructions:
         },
         {
           role: "user" as const,
-          content: `Create a factual summary based on this meeting data:\n\n${meetingData}`
+          content: `Create a factual summary for ${companyName} based on this meeting data:\n\n${collectedData}`
         }
       ];
 
