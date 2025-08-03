@@ -363,11 +363,11 @@ export const CompanySelection = () => {
                             <div key={action.id} className="flex items-center justify-between p-3 bg-accent/50 rounded-lg">
                               <div className="flex-1">
                                 <h4 className="font-medium text-sm">{action.item_title}</h4>
-                                <p className="text-xs text-muted-foreground">
-                                  {action.companies?.name} • Assigned to: {action.mentioned_attendee}
+                                <p className="text-xs text-muted-foreground mb-1">
+                                  {action.action_text}
                                 </p>
                                 <p className="text-xs text-muted-foreground">
-                                  Due: {action.due_date}
+                                  {action.companies?.name} • Due: {action.due_date}
                                 </p>
                               </div>
                               <div className={`px-2 py-1 rounded text-xs font-medium ${
