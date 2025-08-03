@@ -80,7 +80,7 @@ export const Meetings = () => {
 
               <div className="space-y-2">
                 <Label htmlFor="attendance">Meeting Attendance</Label>
-                <Textarea id="attendance" value={meetingData.attendance} onChange={e => handleInputChange("attendance", e.target.value)} placeholder="List attendees..." className="min-h-[100px]" />
+                <Textarea id="attendance" value={meetingData.attendance} onChange={e => handleInputChange("attendance", e.target.value)} className="min-h-[100px]" />
               </div>
             </div>
 
