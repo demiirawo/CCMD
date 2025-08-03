@@ -280,7 +280,7 @@ Write approximately 1500-2500 words using only plain text formatting that regula
   }
   return <Card className="bg-transparent border-0 shadow-none">
       
-      <CardContent>
+      <CardContent className="p-0">
         
         
         <Button onClick={generateNarrativeReport} disabled={isGenerating || isLoading} className="w-full">
