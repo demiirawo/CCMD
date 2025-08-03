@@ -88,8 +88,8 @@ export const RobustMeetingSummary = ({
             if (e.key === "Escape") {
               setIsEditing(false);
             }
-          }} autoFocus placeholder="Click to add meeting summary or use AI Summary to generate automatically..." /> : <button onClick={() => setIsEditing(true)} className={cn("w-full text-left min-h-24 p-3 text-sm text-foreground hover:bg-gray-50 transition-colors rounded border border-gray-200 hover:border-gray-300 whitespace-pre-wrap break-words overflow-wrap-anywhere", isSaving && "bg-blue-50")}>
-                  {summary || "Click to add meeting summary or use AI Summary to generate automatically..."}
+          }} autoFocus placeholder="" /> : <button onClick={() => setIsEditing(true)} className={cn("w-full text-left min-h-24 p-3 text-sm text-foreground hover:bg-gray-50 transition-colors rounded border border-gray-200 hover:border-gray-300 whitespace-pre-wrap break-words overflow-wrap-anywhere", isSaving && "bg-blue-50")}>
+                  {summary || ""}
                 </button>}
           </div>
         </CardContent>
