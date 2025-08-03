@@ -297,14 +297,14 @@ export const ActionsLog = ({
                   "text-left py-2 px-3 text-sm font-semibold",
                   isDynamicPanelColourEnabled ? "text-white" : "text-foreground"
                 )}>Due Date</th>
-                <th className={cn(
-                  "text-left py-2 px-3 text-sm font-semibold",
-                  isDynamicPanelColourEnabled ? "text-white" : "text-foreground"
-                )}>Actions</th>
                 {title.includes("Closed") && <th className={cn(
                   "text-left py-2 px-3 text-sm font-semibold",
                   isDynamicPanelColourEnabled ? "text-white" : "text-foreground"
                 )}>Closed</th>}
+                <th className={cn(
+                  "text-left py-2 px-3 text-sm font-semibold",
+                  isDynamicPanelColourEnabled ? "text-white" : "text-foreground"
+                )}>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -388,6 +388,13 @@ export const ActionsLog = ({
                         </span>}
                     </div>
                   </td>
+                  {title.includes("Closed") && <td className={cn(
+                    "py-3 px-3 text-sm",
+                    action.closed ? "text-black/80" :
+                    isDynamicPanelColourEnabled ? "text-white/80" : "text-muted-foreground"
+                  )}>
+                      {action.closedDate ? new Date(action.closedDate).toLocaleDateString('en-GB') : '-'}
+                    </td>}
                   <td className="py-3 px-3">
                     <div className="flex gap-1">
                       {!action.closed && onActionEdit && action.sourceType !== "document" && <Button variant="ghost" size="sm" onClick={() => setEditingAction(action)} className="h-8 w-8 p-0 text-black hover:bg-gray-50" title="Edit action">
@@ -410,13 +417,6 @@ export const ActionsLog = ({
                         </Button>}
                     </div>
                   </td>
-                  {title.includes("Closed") && <td className={cn(
-                    "py-3 px-3 text-sm",
-                    action.closed ? "text-black/80" :
-                    isDynamicPanelColourEnabled ? "text-white/80" : "text-muted-foreground"
-                  )}>
-                      {action.closedDate ? new Date(action.closedDate).toLocaleDateString('en-GB') : '-'}
-                    </td>}
                 </tr>)}
             </tbody>
           </table>
