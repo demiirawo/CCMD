@@ -319,7 +319,7 @@ export const ActionsLog = ({
               )}>
                   <td className={cn(
                     "py-3 px-3 text-sm",
-                    action.closed ? "text-black" :
+                    action.closed ? "text-muted-foreground" :
                     getDaysRemaining(action.dueDate) < 0 ? "text-red-900" :
                     getDaysRemaining(action.dueDate) <= 5 ? "text-amber-900" : 
                     "text-green-900"
@@ -328,15 +328,15 @@ export const ActionsLog = ({
                   </td>
                    <td className={cn(
                      "py-3 pl-3 pr-0 text-sm",
-                    action.closed ? "text-black" :
+                    action.closed ? "text-muted-foreground" :
                     getDaysRemaining(action.dueDate) < 0 ? "text-red-900" :
                     getDaysRemaining(action.dueDate) <= 5 ? "text-amber-900" : 
                     "text-green-900"
                   )}>
                     <div className="min-w-0 max-w-md">
                       <div className={cn(
-                        "font-medium break-words whitespace-pre-wrap",
-                        action.closed ? "text-black" :
+                        "text-sm font-medium break-words whitespace-pre-wrap",
+                        action.closed ? "text-muted-foreground" :
                         getDaysRemaining(action.dueDate) < 0 ? "text-red-900" :
                         getDaysRemaining(action.dueDate) <= 5 ? "text-amber-900" : 
                         "text-green-900"
@@ -345,7 +345,7 @@ export const ActionsLog = ({
                       </div>
                       <div className={cn(
                         "text-xs mt-1 break-words",
-                        action.closed ? "text-black/80" :
+                        action.closed ? "text-muted-foreground/80" :
                         getDaysRemaining(action.dueDate) < 0 ? "text-red-700" :
                         getDaysRemaining(action.dueDate) <= 5 ? "text-amber-700" : 
                         "text-green-700"
@@ -362,7 +362,7 @@ export const ActionsLog = ({
                   </td>
                   <td className={cn(
                     "py-3 pl-3 pr-1 text-sm",
-                    action.closed ? "text-black" :
+                    action.closed ? "text-muted-foreground" :
                     getDaysRemaining(action.dueDate) < 0 ? "text-red-900" :
                     getDaysRemaining(action.dueDate) <= 5 ? "text-amber-900" : 
                     "text-green-900"
@@ -371,7 +371,7 @@ export const ActionsLog = ({
                   </td>
                   <td className={cn(
                     "py-3 pl-3 pr-1 text-sm",
-                    action.closed ? "text-black" :
+                    action.closed ? "text-muted-foreground" :
                     getDaysRemaining(action.dueDate) < 0 ? "text-red-900" :
                     getDaysRemaining(action.dueDate) <= 5 ? "text-amber-900" : 
                     "text-green-900"
