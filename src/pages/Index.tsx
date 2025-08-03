@@ -691,11 +691,18 @@ const Index = () => {
     });
   };
   const handleAttendeesChange = async (attendees: Attendee[]) => {
+    debugMeetingSummary('handleAttendeesChange_START', { attendees, currentHeaderData: headerData, source: 'attendees_change' });
+    
     const updatedHeaderData = { ...headerData, attendees };
+    
+    debugMeetingSummary('handleAttendeesChange_UPDATE', { updatedHeaderData, source: 'about_to_set_state' });
+    
     setHeaderData(updatedHeaderData);
 
     // Save the updated header data using the same mechanism as feedback analytics
     await saveHeaderData(updatedHeaderData);
+    
+    debugMeetingSummary('handleAttendeesChange_COMPLETE', { finalHeaderData: updatedHeaderData, source: 'after_save' });
   };
   const handleStatusChange = async (sectionId: string, itemId: string, newStatus: StatusType) => {
     const lastReviewed = new Date().toLocaleDateString('en-GB', {
