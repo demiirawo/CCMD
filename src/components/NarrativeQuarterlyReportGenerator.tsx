@@ -16,11 +16,13 @@ interface NarrativeQuarterlyReportGeneratorProps {
     date: string;
     sections: any[];
     actions_log: any[];
+    document_url?: string;
   }>;
 }
 interface MeetingNarrative {
   date: string;
   title: string;
+  documentUrl?: string;
   sectionUpdates: {
     sectionName: string;
     subsectionUpdates: {
@@ -101,6 +103,7 @@ export const NarrativeQuarterlyReportGenerator: React.FC<NarrativeQuarterlyRepor
       return {
         date: meeting.date,
         title: meeting.title,
+        documentUrl: meeting.document_url,
         sectionUpdates
       };
     });
@@ -135,6 +138,7 @@ DATA INPUTS TO CONSIDER:
 - Metadata Notes: Additional contextual information and detailed notes (metadata.description) from section details
 - Meeting Summaries: Overall meeting context and key discussion points
 - RAG Status: Current risk assessment levels (Green = satisfactory/positive, Amber = requires attention, Red = critical/concerning)
+- Document Attachments: Reference and incorporate content from any attached documents that provide additional context or evidence
 
 6. ANALYSIS APPROACH: Synthesize all these data inputs to create a comprehensive narrative that shows the full picture of service performance and quality improvements
 
