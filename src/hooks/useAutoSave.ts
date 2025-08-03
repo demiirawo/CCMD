@@ -39,12 +39,39 @@ export const useAutoSave = ({
         updated_at: new Date().toISOString()
       };
 
-      const { error } = await (supabase as any)
-        .from(table)
-        .upsert(upsertData, { 
-          onConflict: data.id ? 'id' : (table === 'meeting_headers' ? 'company_id,meeting_date' : undefined),
-          ignoreDuplicates: false 
-        });
+      let query;
+      if (table === 'meeting_headers') {
+        // For meeting_headers, check if record exists first
+        const existing = await supabase
+          .from(table)
+          .select('id')
+          .eq('company_id', profile.company_id)
+          .eq('meeting_date', upsertData.meeting_date)
+          .maybeSingle();
+
+        if (existing.data) {
+          // Update existing record
+          query = supabase
+            .from(table)
+            .update(upsertData)
+            .eq('id', existing.data.id);
+        } else {
+          // Insert new record
+          query = supabase
+            .from(table)
+            .insert(upsertData);
+        }
+      } else {
+        // For other tables, use standard upsert
+        query = (supabase as any)
+          .from(table)
+          .upsert(upsertData, { 
+            onConflict: data.id ? 'id' : undefined,
+            ignoreDuplicates: false 
+          });
+      }
+
+      const { error } = await query;
 
       if (error) {
         console.error(`Auto-save error for ${table}:`, error);
