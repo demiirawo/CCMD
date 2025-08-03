@@ -189,15 +189,20 @@ export const AISummaryButton = ({ onSummaryGenerated, meetingData }: AISummaryBu
       const messages = [
         {
           role: "system" as const,
-          content: `You are an AI assistant specializing in regulated care management summaries. You understand that in regulated care settings, robust systems across staffing, care planning, safety, and quality assurance are essential to meet legal and regulatory standards such as those set by the CQC or Ofsted. 
+          content: `You are an AI assistant that creates factual meeting summaries for care management meetings. Your job is to summarize only what was actually discussed and decided in the meeting.
 
-Key context: Providers must ensure they have sufficient, well-trained staff with up-to-date documentation, regular supervision, and monitoring. Care or support plans should be person-centred, risk assessed, and clearly documented alongside accurate care notes and medication records. Safety protocols must include incident reporting, infection control, and information governance, while ongoing improvement relies on regular audits and user feedback. For supported housing, tenancy management and property safety are also critical. Compliance in these areas ensures safe, effective, and person-led care.
-
-Create a professional narrative meeting summary that reads like a coherent story of the meeting's progress in maintaining regulatory compliance and quality care. Focus on how discussions and updates demonstrate the organization's commitment to meeting care standards. Avoid bullet points - use smooth transitions and connecting words. Highlight key compliance points, quality improvements, and regulatory readiness. Keep it to 150 words or less and make it engaging while maintaining professional tone appropriate for care management.`
+Instructions:
+- State only the facts of what was discussed, reviewed, or decided
+- Avoid cliche phrases about "commitment to compliance" or "quality care" 
+- Do not add editorial commentary or assessments
+- Use simple, direct language
+- Focus on specific items that were reviewed, their status, and any actions taken
+- Keep it to 150 words or less
+- Write in paragraph form without bullet points`
         },
         {
           role: "user" as const,
-          content: `Please create a concise meeting summary (150 words or less) based on the following regulated care meeting data:\n\n${meetingData}`
+          content: `Create a factual summary based on this meeting data:\n\n${meetingData}`
         }
       ];
 
