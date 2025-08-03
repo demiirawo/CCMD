@@ -141,30 +141,88 @@ const Index = () => {
     purpose: ""
   });
 
-  // Auto-save header data with the custom hook
-  useAutoSave({
-    table: 'meeting_headers',
-    data: {
-      // Don't include ID - let the database handle the unique constraint
-      meeting_date: (() => {
+  // Manual save function for header data (following feedback analytics pattern)
+  const saveHeaderData = async (newHeaderData: typeof headerData) => {
+    if (!profile?.company_id) return;
+    
+    console.log('🔄 MeetingHeaders: Starting save operation', {
+      companyId: profile.company_id,
+      meetingId: currentMeetingId,
+      headerData: newHeaderData,
+      timestamp: new Date().toISOString()
+    });
+    
+    try {
+      const meeting_date = (() => {
         try {
-          const parts = headerData.date.match(/(\d{2})\/(\d{2})\/(\d{4})\s+(\d{2}):(\d{2})/);
+          const parts = newHeaderData.date.match(/(\d{2})\/(\d{2})\/(\d{4})\s+(\d{2}):(\d{2})/);
           if (parts) {
             const [, day, month, year, hour, minute] = parts;
             return new Date(parseInt(year), parseInt(month) - 1, parseInt(day), parseInt(hour), parseInt(minute)).toISOString();
           }
-          return new Date(headerData.date).toISOString();
+          return new Date(newHeaderData.date).toISOString();
         } catch (error) {
           return new Date().toISOString();
         }
-      })(),
-      title: headerData.title,
-      attendees: headerData.attendees,
-      purpose: headerData.purpose
-    },
-    dependencies: [headerData],
-    onError: error => console.error('Auto-save error for meeting headers:', error)
-  });
+      })();
+
+      const dataToSave = {
+        company_id: profile.company_id,
+        meeting_date,
+        title: newHeaderData.title,
+        attendees: JSON.parse(JSON.stringify(newHeaderData.attendees)),
+        purpose: newHeaderData.purpose,
+        updated_at: new Date().toISOString()
+      };
+
+      console.log('💾 MeetingHeaders: Attempting database save with payload:', dataToSave);
+
+      // First try to find existing record
+      const { data: existingData } = await supabase
+        .from('meeting_headers')
+        .select('id')
+        .eq('company_id', profile.company_id)
+        .eq('meeting_date', meeting_date)
+        .maybeSingle();
+
+      let result;
+      if (existingData) {
+        // Update existing record
+        console.log('🔄 MeetingHeaders: Updating existing record');
+        result = await supabase
+          .from('meeting_headers')
+          .update(dataToSave)
+          .eq('id', existingData.id)
+          .select();
+      } else {
+        // Insert new record
+        console.log('➕ MeetingHeaders: Inserting new record');
+        result = await supabase
+          .from('meeting_headers')
+          .insert(dataToSave)
+          .select();
+      }
+
+      if (result.error) {
+        console.error('❌ MeetingHeaders: Database save failed:', result.error);
+        throw result.error;
+      } else {
+        console.log('✅ MeetingHeaders: Successfully saved to database:', result.data);
+        // Save to localStorage as backup
+        const backupKey = currentMeetingId ? `headers_backup_${profile.company_id}_${currentMeetingId}` : `headers_backup_${profile.company_id}`;
+        localStorage.setItem(backupKey, JSON.stringify(newHeaderData));
+        console.log('💾 MeetingHeaders: Also saved backup to localStorage:', backupKey);
+      }
+    } catch (error) {
+      console.error('❌ MeetingHeaders: Exception in saveHeaderData:', error);
+      // Save to localStorage as fallback
+      if (profile?.company_id) {
+        const backupKey = currentMeetingId ? `headers_backup_${profile.company_id}_${currentMeetingId}` : `headers_backup_${profile.company_id}`;
+        localStorage.setItem(backupKey, JSON.stringify(newHeaderData));
+        console.log('💾 MeetingHeaders: Exception fallback to localStorage:', backupKey);
+      }
+    }
+  };
 
   // Load header data from database on component mount
   useEffect(() => {
@@ -585,95 +643,23 @@ const Index = () => {
     loadSubsectionData();
   }, [profile?.company_id]);
   const handleDataChange = async (field: string, value: string) => {
-    setHeaderData(prev => ({
-      ...prev,
-      [field]: value
-    }));
-
-    // Save header data to database immediately
-    if (profile?.company_id) {
-      try {
-        const updatedHeaderData = {
-          ...headerData,
-          [field]: value
-        };
-        const parseDateString = (dateString: string) => {
-          try {
-            const parts = dateString.match(/(\d{2})\/(\d{2})\/(\d{4})\s+(\d{2}):(\d{2})/);
-            if (parts) {
-              const [, day, month, year, hour, minute] = parts;
-              return new Date(parseInt(year), parseInt(month) - 1, parseInt(day), parseInt(hour), parseInt(minute));
-            }
-            return new Date(dateString);
-          } catch (error) {
-            return new Date();
-          }
-        };
-        const meetingDate = field === 'date' ? parseDateString(value) : parseDateString(updatedHeaderData.date);
-        const { error } = await supabase
-          .from('meeting_headers')
-          .upsert({
-            company_id: profile.company_id,
-            meeting_date: meetingDate.toISOString(),
-            title: field === 'title' ? value : updatedHeaderData.title,
-            attendees: JSON.parse(JSON.stringify(updatedHeaderData.attendees)),
-            purpose: field === 'purpose' ? value : updatedHeaderData.purpose
-          }, {
-            onConflict: 'company_id,meeting_date'
-          });
-        if (error) {
-          console.error('Error saving header data:', error);
-        }
-      } catch (error) {
-        console.error('Failed to save header data to database:', error);
-      }
-    }
+    const updatedHeaderData = { ...headerData, [field]: value };
+    setHeaderData(updatedHeaderData);
+    
+    // Save the updated header data using the same mechanism as feedback analytics
+    await saveHeaderData(updatedHeaderData);
+    
     toast({
       title: "Field Updated",
       description: `${field.charAt(0).toUpperCase() + field.slice(1)} has been updated and saved`
     });
   };
   const handleAttendeesChange = async (attendees: Attendee[]) => {
-    setHeaderData(prev => ({
-      ...prev,
-      attendees
-    }));
+    const updatedHeaderData = { ...headerData, attendees };
+    setHeaderData(updatedHeaderData);
 
-    // Save attendance data to meeting headers
-    if (profile?.company_id) {
-      try {
-        const parseDateString = (dateString: string) => {
-          try {
-            const parts = dateString.match(/(\d{2})\/(\d{2})\/(\d{4})\s+(\d{2}):(\d{2})/);
-            if (parts) {
-              const [, day, month, year, hour, minute] = parts;
-              return new Date(parseInt(year), parseInt(month) - 1, parseInt(day), parseInt(hour), parseInt(minute));
-            }
-            return new Date(dateString);
-          } catch (error) {
-            return new Date();
-          }
-        };
-        const meetingDate = parseDateString(headerData.date);
-        const { error } = await supabase
-          .from('meeting_headers')
-          .upsert({
-            company_id: profile.company_id,
-            meeting_date: meetingDate.toISOString(),
-            title: headerData.title,
-            attendees: JSON.parse(JSON.stringify(attendees)),
-            purpose: headerData.purpose
-          }, {
-            onConflict: 'company_id,meeting_date'
-          });
-        console.log('Saving attendance data:', attendees);
-        if (error) {
-          console.error('Error saving attendance:', error);
-        }
-      } catch (error) {
-        console.error('Failed to save attendance:', error);
-      }
-    }
+    // Save the updated header data using the same mechanism as feedback analytics
+    await saveHeaderData(updatedHeaderData);
   };
   const handleStatusChange = async (sectionId: string, itemId: string, newStatus: StatusType) => {
     const lastReviewed = new Date().toLocaleDateString('en-GB', {
