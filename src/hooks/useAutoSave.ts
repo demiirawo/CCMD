@@ -32,13 +32,18 @@ export const useAutoSave = ({
       // Only save if data has actually changed
       if (dataString === lastSavedRef.current) return;
 
-      // Use simple upsert without conflict specification
+      // Use upsert with proper conflict resolution
+      const upsertData = {
+        company_id: profile.company_id,
+        ...data,
+        updated_at: new Date().toISOString()
+      };
+
       const { error } = await (supabase as any)
         .from(table)
-        .upsert({
-          company_id: profile.company_id,
-          ...data,
-          updated_at: new Date().toISOString()
+        .upsert(upsertData, { 
+          onConflict: data.id ? 'id' : undefined,
+          ignoreDuplicates: false 
         });
 
       if (error) {

@@ -145,6 +145,7 @@ const Index = () => {
   useAutoSave({
     table: 'meeting_headers',
     data: {
+      ...(currentMeetingId && { id: currentMeetingId }), // Include ID for updates
       meeting_date: (() => {
         try {
           const parts = headerData.date.match(/(\d{2})\/(\d{2})\/(\d{4})\s+(\d{2}):(\d{2})/);
@@ -161,7 +162,7 @@ const Index = () => {
       attendees: headerData.attendees,
       purpose: headerData.purpose
     },
-    dependencies: [headerData],
+    dependencies: [headerData, currentMeetingId],
     onError: error => console.error('Auto-save error for meeting headers:', error)
   });
 
