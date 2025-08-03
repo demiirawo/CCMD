@@ -564,6 +564,28 @@ REPORTING INSTRUCTIONS:
         return `${quarter} ${year}`;
     }
   };
+
+  const processCompanyPlaceholders = (content: string, companyInfo: CompanyInfo | null): string => {
+    if (!companyInfo || !content) return content;
+    
+    const companyName = companyInfo.name || 'Care Agency';
+    console.log('🔄 Replacing placeholders in content with company name:', companyName);
+    
+    // Replace various placeholder formats
+    return content
+      .replace(/\{\{company_name\}\}/gi, companyName)
+      .replace(/\{\{company\}\}/gi, companyName)
+      .replace(/\[Company Name\]/gi, companyName)
+      .replace(/\[COMPANY NAME\]/gi, companyName)
+      .replace(/Your Care Agency/gi, companyName)
+      .replace(/The Care Agency/gi, companyName)
+      .replace(/Care Agency/gi, companyName)
+      .replace(/our organization/gi, companyName)
+      .replace(/Our organization/gi, companyName)
+      .replace(/the organization/gi, companyName)
+      .replace(/The organization/gi, companyName);
+  };
+
   const captureChartAsImage = async (chartType: 'feedback' | 'incidents'): Promise<ArrayBuffer | null> => {
     try {
       console.log(`🎯 Starting full container capture for ${chartType} chart`);
@@ -848,8 +870,12 @@ REPORTING INSTRUCTIONS:
         incidentsChart: incidentsChartImage ? 'success' : 'failed'
       });
 
+      // Process report content to replace company placeholders
+      const processedContent = processCompanyPlaceholders(reportContent, companyInfo);
+      console.log('📝 Processed report content with company info');
+      
       // Add content with chart images
-      documentChildren.push(...(await parseContentForWordWithCharts(reportContent, feedbackChartImage, incidentsChartImage)));
+      documentChildren.push(...(await parseContentForWordWithCharts(processedContent, feedbackChartImage, incidentsChartImage)));
 
       // Parse the report content and create Word document structure
       const doc = new Document({
