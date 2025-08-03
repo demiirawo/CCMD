@@ -297,7 +297,7 @@ export const ActionsLog = ({
                   isDynamicPanelColourEnabled ? "text-white" : "text-foreground"
                 )}>Description</th>
                 <th className={cn(
-                  "text-left py-2 px-3 text-sm font-semibold",
+                  "text-left py-2 pl-3 pr-1 text-sm font-semibold",
                   isDynamicPanelColourEnabled ? "text-white" : "text-foreground"
                 )}>Owner</th>
                 <th className={cn(
