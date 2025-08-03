@@ -330,8 +330,8 @@ export const ActionsLog = ({
                   )}>
                     {startIndex + index + 1}
                   </td>
-                  <td className={cn(
-                    "py-3 pl-3 pr-0 text-sm",
+                   <td className={cn(
+                     "py-3 pl-3 text-sm -mr-1",
                     action.closed ? "text-muted-foreground" :
                     getDaysRemaining(action.dueDate) < 0 ? "text-red-900" :
                     getDaysRemaining(action.dueDate) <= 5 ? "text-amber-900" : 
