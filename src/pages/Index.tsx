@@ -141,9 +141,23 @@ const Index = () => {
     purpose: ""
   });
 
+  // Debug function to log meeting summary/purpose state
+  const debugMeetingSummary = (location: string, data: any) => {
+    console.log(`📝 MEETING_SUMMARY_DEBUG [${location}]:`, {
+      timestamp: new Date().toISOString(),
+      location,
+      currentPurpose: headerData.purpose,
+      newPurpose: data?.purpose,
+      dataSource: data?.source || 'unknown',
+      stackTrace: new Error().stack?.split('\n').slice(1, 4).join('\n')
+    });
+  };
+
   // Manual save function for header data (following feedback analytics pattern)
   const saveHeaderData = async (newHeaderData: typeof headerData) => {
     if (!profile?.company_id) return;
+    
+    debugMeetingSummary('saveHeaderData_START', { newHeaderData, source: 'save_function_entry' });
     
     console.log('🔄 MeetingHeaders: Starting save operation', {
       companyId: profile.company_id,
@@ -175,6 +189,8 @@ const Index = () => {
         updated_at: new Date().toISOString()
       };
 
+      debugMeetingSummary('saveHeaderData_PAYLOAD', { dataToSave, source: 'before_database_save' });
+
       console.log('💾 MeetingHeaders: Attempting database save with payload:', dataToSave);
 
       // First try to find existing record
@@ -205,13 +221,16 @@ const Index = () => {
 
       if (result.error) {
         console.error('❌ MeetingHeaders: Database save failed:', result.error);
+        debugMeetingSummary('saveHeaderData_ERROR', { error: result.error, source: 'database_save_failed' });
         throw result.error;
       } else {
         console.log('✅ MeetingHeaders: Successfully saved to database:', result.data);
+        debugMeetingSummary('saveHeaderData_SUCCESS', { savedData: result.data, source: 'database_save_success' });
         // Save to localStorage as backup
         const backupKey = currentMeetingId ? `headers_backup_${profile.company_id}_${currentMeetingId}` : `headers_backup_${profile.company_id}`;
         localStorage.setItem(backupKey, JSON.stringify(newHeaderData));
         console.log('💾 MeetingHeaders: Also saved backup to localStorage:', backupKey);
+        debugMeetingSummary('saveHeaderData_BACKUP', { backupKey, newHeaderData, source: 'localStorage_backup' });
       }
     } catch (error) {
       console.error('❌ MeetingHeaders: Exception in saveHeaderData:', error);
@@ -241,8 +260,10 @@ const Index = () => {
         }
         if (data && data.length > 0) {
           const headerRecord = data[0];
+          debugMeetingSummary('loadHeaderData_FOUND', { headerRecord, source: 'database_load' });
+          
           console.log('Loading header data from database:', headerRecord);
-          setHeaderData({
+          const loadedData = {
             date: new Date(headerRecord.meeting_date).toLocaleDateString('en-GB', {
               day: '2-digit',
               month: '2-digit',
@@ -255,7 +276,15 @@ const Index = () => {
             title: headerRecord.title || '',
             attendees: Array.isArray(headerRecord.attendees) ? headerRecord.attendees as unknown as Attendee[] : [],
             purpose: headerRecord.purpose || ''
-          });
+          };
+          
+          debugMeetingSummary('loadHeaderData_SETTING', { loadedData, source: 'about_to_set_state' });
+          
+          setHeaderData(loadedData);
+          
+          debugMeetingSummary('loadHeaderData_SET', { loadedData, source: 'after_set_state' });
+        } else {
+          debugMeetingSummary('loadHeaderData_EMPTY', { data, source: 'database_empty' });
         }
       } catch (error) {
         console.error('Failed to load header data:', error);
@@ -643,11 +672,18 @@ const Index = () => {
     loadSubsectionData();
   }, [profile?.company_id]);
   const handleDataChange = async (field: string, value: string) => {
+    debugMeetingSummary('handleDataChange_START', { field, value, source: 'user_input' });
+    
     const updatedHeaderData = { ...headerData, [field]: value };
+    
+    debugMeetingSummary('handleDataChange_UPDATE', { field, value, updatedHeaderData, source: 'state_update' });
+    
     setHeaderData(updatedHeaderData);
     
     // Save the updated header data using the same mechanism as feedback analytics
     await saveHeaderData(updatedHeaderData);
+    
+    debugMeetingSummary('handleDataChange_SAVED', { field, value, updatedHeaderData, source: 'after_save' });
     
     toast({
       title: "Field Updated",
