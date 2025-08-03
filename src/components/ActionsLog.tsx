@@ -337,7 +337,7 @@ export const ActionsLog = ({
                     getDaysRemaining(action.dueDate) <= 5 ? "text-amber-900" : 
                     "text-green-900"
                   )}>
-                    <div className="min-w-0 max-w-md">
+                    <div className="w-80 min-h-0">
                       <div className={cn(
                         "text-sm font-medium break-words whitespace-pre-wrap",
                         action.closed ? "text-muted-foreground" :
