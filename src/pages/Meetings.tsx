@@ -6,7 +6,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { MeetingDateTimePicker } from "@/components/MeetingDateTimePicker";
 import { toast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 export const Meetings = () => {
+  const { profile } = useAuth();
   const [meetingData, setMeetingData] = useState({
     title: "",
     dateTime: "",
@@ -14,13 +17,24 @@ export const Meetings = () => {
     attendance: "",
     agenda: ""
   });
+  const [isSaving, setIsSaving] = useState(false);
+
   const handleInputChange = (field: string, value: string) => {
     setMeetingData(prev => ({
       ...prev,
       [field]: value
     }));
   };
-  const handleSave = () => {
+
+  const getQuarter = (date: Date) => {
+    const month = date.getMonth() + 1;
+    if (month <= 3) return 'Q1';
+    if (month <= 6) return 'Q2';
+    if (month <= 9) return 'Q3';
+    return 'Q4';
+  };
+
+  const handleSave = async () => {
     // Basic validation
     if (!meetingData.title || !meetingData.dateTime || !meetingData.facilitator) {
       toast({
@@ -31,11 +45,113 @@ export const Meetings = () => {
       return;
     }
 
-    // TODO: Save to database
-    toast({
-      title: "Success",
-      description: "Meeting has been saved successfully"
-    });
+    if (!profile?.company_id) {
+      toast({
+        title: "Error",
+        description: "No company selected",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsSaving(true);
+
+    try {
+      // Parse the dateTime string to Date object
+      const meetingDate = new Date(meetingData.dateTime);
+      const quarter = getQuarter(meetingDate);
+      const year = meetingDate.getFullYear();
+
+      // Convert attendance text to attendees array
+      const attendeesArray = meetingData.attendance
+        .split('\n')
+        .filter(line => line.trim())
+        .map((name, index) => ({
+          id: `attendee-${index}`,
+          name: name.trim(),
+          email: ""
+        }));
+
+      // Create sections structure with meeting detail
+      const sections = [
+        {
+          id: "meeting-details",
+          title: "Meeting Details",
+          items: [
+            {
+              id: "facilitator",
+              title: "Facilitator",
+              status: "green",
+              lastReviewed: "",
+              observation: meetingData.facilitator,
+              actions: [],
+              details: "",
+              metadata: {}
+            },
+            {
+              id: "agenda", 
+              title: "Meeting Detail",
+              status: "green",
+              lastReviewed: "",
+              observation: meetingData.agenda,
+              actions: [],
+              details: "",
+              metadata: {}
+            }
+          ]
+        }
+      ];
+
+      const meetingPayload = {
+        title: meetingData.title,
+        date: meetingDate.toISOString(),
+        quarter,
+        year,
+        company_id: profile.company_id,
+        purpose: `Facilitated by: ${meetingData.facilitator}`,
+        attendees: JSON.stringify(attendeesArray),
+        sections: JSON.stringify(sections),
+        actions_log: JSON.stringify([])
+      };
+
+      const { error } = await supabase
+        .from('meetings')
+        .insert(meetingPayload);
+
+      if (error) {
+        console.error('Error saving meeting:', error);
+        toast({
+          title: "Save Failed", 
+          description: "Failed to save the meeting. Please try again.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      toast({
+        title: "Success",
+        description: "Meeting has been saved successfully and will appear in Reports"
+      });
+
+      // Clear the form after successful save
+      setMeetingData({
+        title: "",
+        dateTime: "",
+        facilitator: "",
+        attendance: "",
+        agenda: ""
+      });
+
+    } catch (error) {
+      console.error('Error saving meeting:', error);
+      toast({
+        title: "Save Failed",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSaving(false);
+    }
   };
   const handleClear = () => {
     setMeetingData({
@@ -90,8 +206,8 @@ export const Meetings = () => {
             </div>
 
             <div className="flex gap-4 pt-6">
-              <Button onClick={handleSave} className="flex-1">
-                Save Meeting
+              <Button onClick={handleSave} className="flex-1" disabled={isSaving}>
+                {isSaving ? "Saving..." : "Save Meeting"}
               </Button>
               <Button onClick={handleClear} variant="outline" className="flex-1">
                 Clear Form
