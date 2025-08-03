@@ -248,19 +248,28 @@ const Index = () => {
   useEffect(() => {
     const loadHeaderData = async () => {
       if (!profile?.company_id) return;
+      
       try {
-        const {
-          data,
-          error
-        } = await supabase.from('meeting_headers').select('*').eq('company_id', profile.company_id).order('updated_at', {
-          ascending: false
-        }).limit(1);
+        // Use the same date logic as the save function to ensure we load the correct meeting
+        const meetingDate = new Date(headerData.date.split(' ')[0].split('/').reverse().join('-') + 'T' + headerData.date.split(' ')[1] + ':00.000Z').toISOString();
+        
+        debugMeetingSummary('loadHeaderData_START', { meetingDate, headerDataDate: headerData.date, source: 'load_start' });
+        
+        const { data, error } = await supabase
+          .from('meeting_headers')
+          .select('*')
+          .eq('company_id', profile.company_id)
+          .eq('meeting_date', meetingDate)
+          .maybeSingle();
+          
         if (error) {
           console.error('Error loading header data:', error);
+          debugMeetingSummary('loadHeaderData_ERROR', { error, meetingDate, source: 'database_error' });
           return;
         }
-        if (data && data.length > 0) {
-          const headerRecord = data[0];
+        
+        if (data) {
+          const headerRecord = data;
           debugMeetingSummary('loadHeaderData_FOUND', { headerRecord, source: 'database_load' });
           
           console.log('Loading header data from database:', headerRecord);
@@ -285,7 +294,7 @@ const Index = () => {
           
           debugMeetingSummary('loadHeaderData_SET', { loadedData, source: 'after_set_state' });
         } else {
-          debugMeetingSummary('loadHeaderData_EMPTY', { data, source: 'database_empty' });
+          debugMeetingSummary('loadHeaderData_EMPTY', { meetingDate, source: 'database_empty' });
         }
       } catch (error) {
         console.error('Failed to load header data:', error);
