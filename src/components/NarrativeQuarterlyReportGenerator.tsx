@@ -127,7 +127,16 @@ REPORT REQUIREMENTS:
 3. STRUCTURE: Follow the exact structure below with these headings and subheadings
 4. FORMAT: Use markdown formatting for headings only - # for major sections, ## for subsections
 5. FORMATTING: Major headings use # and minor headings use ##
-6. TREND ANALYSIS: Pay special attention to the 'trendAnalysis' field in each subsection - use this data to show progression, improvements, or deterioration over time
+
+DATA INPUTS TO CONSIDER:
+- Latest Update: Current status and recent developments for each subsection
+- Trend Analysis: Historical progression data showing improvements, deterioration, or stability over time
+- Actions: Specific action items, their assignees, due dates, and completion status
+- Metadata Notes: Additional contextual information and detailed notes (metadata.description) from section details
+- Meeting Summaries: Overall meeting context and key discussion points
+- RAG Status: Current risk assessment levels (Green = satisfactory/positive, Amber = requires attention, Red = critical/concerning)
+
+6. ANALYSIS APPROACH: Synthesize all these data inputs to create a comprehensive narrative that shows the full picture of service performance and quality improvements
 
 REQUIRED REPORT STRUCTURE (in this exact order):
 
