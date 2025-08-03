@@ -438,6 +438,7 @@ export type Database = {
       }
       key_documents: {
         Row: {
+          comment: string | null
           company_id: string
           created_at: string
           due_date: string | null
@@ -449,6 +450,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          comment?: string | null
           company_id: string
           created_at?: string
           due_date?: string | null
@@ -460,6 +462,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          comment?: string | null
           company_id?: string
           created_at?: string
           due_date?: string | null

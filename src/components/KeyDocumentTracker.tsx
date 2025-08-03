@@ -21,6 +21,7 @@ export interface DocumentData {
   reviewFrequencyNumber: string;
   reviewFrequencyPeriod: string;
   nextReviewDate: string | null;
+  comment?: string;
   updatedAt?: string;
 }
 
@@ -174,6 +175,7 @@ export const KeyDocumentTracker = ({
       reviewFrequencyNumber: '',
       reviewFrequencyPeriod: '',
       nextReviewDate: null,
+      comment: '',
       updatedAt: new Date().toISOString()
     };
     const updatedDocuments = [...documents, newDocument];
@@ -377,6 +379,22 @@ export const KeyDocumentTracker = ({
                     </div>
                   </div>
 
+                  <div className="col-span-1">
+                    {/* Empty space to align with remove button above */}
+                  </div>
+                </div>
+
+                {/* Third line: Comment */}
+                <div className="grid grid-cols-12 gap-3 items-start">
+                  <div className="col-span-11">
+                    <label className="text-xs text-gray-700 mb-1 block">Comment</label>
+                    <Input 
+                      value={doc.comment || ''} 
+                      onChange={e => handleDocumentChange(documents.indexOf(doc), 'comment', e.target.value)} 
+                      placeholder="Enter comment" 
+                      className="text-sm h-9 bg-white text-black" 
+                    />
+                  </div>
                   <div className="col-span-1">
                     {/* Empty space to align with remove button above */}
                   </div>
