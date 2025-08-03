@@ -571,7 +571,7 @@ export const Reports = () => {
                     </div>
                     
                     <div className="flex items-center gap-3">
-                      {canEdit && <div onClick={e => e.stopPropagation()} className="flex items-center gap-2">
+                      {canEdit && <div onClick={e => e.stopPropagation()} className="flex items-center justify-between w-full gap-2">
                           <AddMeetingDialog onMeetingAdded={fetchMeetings} />
                           <NarrativeQuarterlyReportGenerator quarter={quarter} year={year} meetings={quarterMeetings} />
                         </div>}
