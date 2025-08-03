@@ -190,7 +190,7 @@ export const TeamMembersManager = ({
                 <Input id="member-name" value={newMember.name} onChange={e => setNewMember(prev => ({
               ...prev,
               name: e.target.value
-            }))} placeholder="Enter name" className="border-gray-200" />
+            }))} className="border-gray-200" />
               </div>
               <div>
                 <Label htmlFor="member-email">Email *</Label>
