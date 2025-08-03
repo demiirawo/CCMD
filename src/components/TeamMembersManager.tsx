@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Users, Plus, Trash2, UserCheck } from "lucide-react";
+import { Users, Plus, Trash2, UserCheck, Pencil } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
 type UserPermission = 'read' | 'edit' | 'company_admin';
@@ -40,6 +40,7 @@ export const TeamMembersManager = ({
   } = useToast();
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [loading, setLoading] = useState(false);
+  const [editingMember, setEditingMember] = useState<TeamMember | null>(null);
   const [newMember, setNewMember] = useState<{
     name: string;
     email: string;
@@ -149,6 +150,43 @@ export const TeamMembersManager = ({
     }
   };
 
+  const handleEditMember = async () => {
+    if (!editingMember || !editingMember.name.trim() || !editingMember.email?.trim()) {
+      toast({
+        title: "Invalid input",
+        description: "Name and email are required.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('team_members')
+        .update({
+          name: editingMember.name.trim(),
+          email: editingMember.email.trim()
+        })
+        .eq('id', editingMember.id);
+
+      if (error) throw error;
+
+      await fetchTeamMembers();
+      setEditingMember(null);
+      toast({
+        title: "Team member updated",
+        description: "Team member details have been updated."
+      });
+    } catch (error) {
+      console.error('Error updating team member:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update team member.",
+        variant: "destructive"
+      });
+    }
+  };
+
   const handleDeleteMember = async (memberId: string, memberName: string) => {
     if (!confirm(`Are you sure you want to remove ${memberName} from the team?`)) return;
     try {
@@ -235,31 +273,88 @@ export const TeamMembersManager = ({
               <p>No team members added yet</p>
               {canManageTeam && <p className="text-sm">Add team members using the form above</p>}
             </div> : <div className="space-y-2">
-              {teamMembers.map(member => <div key={member.id} className="flex items-center justify-between p-3 border rounded-lg bg-white">
-                  <div className="flex-1">
-                    <div className="font-medium">{member.name}</div>
-                    <div className="text-sm text-muted-foreground">{member.email}</div>
-                  </div>
-                  
-                  <div className="flex items-center gap-3">
-                    {canManageTeam ? <Select value={member.permission} onValueChange={(value: UserPermission) => handleUpdatePermission(member.id, value)}>
-                        <SelectTrigger className="w-40">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {Object.entries(PERMISSION_LABELS).map(([value, label]) => <SelectItem key={value} value={value}>
-                              {label}
-                            </SelectItem>)}
-                        </SelectContent>
-                      </Select> : <span className="text-sm px-3 py-1 bg-muted rounded-md">
-                        {PERMISSION_LABELS[member.permission]}
-                      </span>}
+              {teamMembers.map(member => {
+                if (editingMember?.id === member.id) {
+                  return (
+                    <div key={member.id} className="p-3 border rounded-lg bg-white space-y-3">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <div>
+                          <Label htmlFor="edit-name">Name *</Label>
+                          <Input 
+                            id="edit-name" 
+                            value={editingMember.name} 
+                            onChange={e => setEditingMember(prev => prev ? {...prev, name: e.target.value} : null)} 
+                            className="border-gray-200" 
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="edit-email">Email *</Label>
+                          <Input 
+                            id="edit-email" 
+                            type="email" 
+                            value={editingMember.email || ''} 
+                            onChange={e => setEditingMember(prev => prev ? {...prev, email: e.target.value} : null)} 
+                            className="border-gray-200" 
+                          />
+                        </div>
+                        <div className="flex items-end gap-2">
+                          <Button onClick={handleEditMember} size="sm" className="flex-1">
+                            Save
+                          </Button>
+                          <Button onClick={() => setEditingMember(null)} variant="outline" size="sm">
+                            Cancel
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                }
+                
+                return (
+                  <div key={member.id} className="flex items-center justify-between p-3 border rounded-lg bg-white">
+                    <div className="flex-1">
+                      <div className="font-medium">{member.name}</div>
+                      <div className="text-sm text-muted-foreground">{member.email}</div>
+                    </div>
                     
-                    {canManageTeam && <Button variant="ghost" size="sm" onClick={() => handleDeleteMember(member.id, member.name)} className="text-red-500 hover:text-red-700 hover:bg-red-50">
-                        <Trash2 className="h-4 w-4" />
-                      </Button>}
+                    <div className="flex items-center gap-2">
+                      {canManageTeam ? <Select value={member.permission} onValueChange={(value: UserPermission) => handleUpdatePermission(member.id, value)}>
+                          <SelectTrigger className="w-40">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {Object.entries(PERMISSION_LABELS).map(([value, label]) => <SelectItem key={value} value={value}>
+                                {label}
+                              </SelectItem>)}
+                          </SelectContent>
+                        </Select> : <span className="text-sm px-3 py-1 bg-muted rounded-md">
+                          {PERMISSION_LABELS[member.permission]}
+                        </span>}
+                      
+                      {canManageTeam && (
+                        <>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={() => setEditingMember(member)} 
+                            className="text-blue-500 hover:text-blue-700 hover:bg-blue-50"
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={() => handleDeleteMember(member.id, member.name)} 
+                            className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </>
+                      )}
+                    </div>
                   </div>
-                </div>)}
+                );
+              })}
             </div>}
         </div>
 
