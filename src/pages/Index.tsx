@@ -1705,8 +1705,7 @@ const Index = () => {
               </>
             ) : (
               <>
-                <Save className="w-4 h-4" />
-                Save & Send
+                Send
               </>
             )}
           </Button>
