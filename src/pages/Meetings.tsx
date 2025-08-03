@@ -207,7 +207,14 @@ export const Meetings = () => {
             </div>
 
             <div className="flex gap-4 pt-6">
-              <Button onClick={handleSave} className="flex-1" disabled={isSaving}>
+              <Button 
+                onClick={() => {
+                  console.log("Button clicked - calling handleSave");
+                  handleSave();
+                }}
+                className="flex-1" 
+                disabled={isSaving}
+              >
                 {isSaving ? "Saving..." : "Save Meeting"}
               </Button>
               <Button onClick={handleClear} variant="outline" className="flex-1">
