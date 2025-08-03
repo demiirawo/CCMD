@@ -77,7 +77,7 @@ export const RobustMeetingSummary = ({
   }
 
   return (
-    <div className="bg-primary/10 p-8 rounded-xl shadow-sm -mx-8 px-14 mb-8 outline-none">
+    <div className="bg-primary/10 rounded-xl shadow-sm outline-none">
       <Card className="w-full bg-white">
         <CardHeader className="pb-4">
           <div className="flex items-center justify-between">
