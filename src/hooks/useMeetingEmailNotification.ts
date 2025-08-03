@@ -247,7 +247,7 @@ export const useMeetingEmailNotification = () => {
               <div style="margin-bottom: 30px; text-align: center;">
                 <div style="background-color: #F3F4F6; padding: 20px; border-radius: 8px; border: 1px solid #D1D5DB;">
                   <p style="color: #374151; margin: 0 0 12px 0; font-size: 16px;">You can view the dashboard by using the 
-                    <a href="https://lovable.dev/projects/gwywpkhxpbokmbhwsnod" 
+                    <a href="https://ccmd.co.uk" 
                        style="color: #3B82F6; text-decoration: none; font-weight: bold;">LINK</a>
                   </p>
                 </div>
