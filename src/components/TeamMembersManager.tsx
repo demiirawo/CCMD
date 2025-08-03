@@ -26,13 +26,7 @@ interface TeamMembersManagerProps {
 const PERMISSION_LABELS = {
   read: 'Read',
   edit: 'Edit',
-  company_admin: 'Company Admin'
-};
-
-const PERMISSION_DESCRIPTIONS = {
-  read: 'Can access company, view dashboard and reports',
-  edit: 'Can add and edit content (not settings)',
-  company_admin: 'Full access including delete and settings'
+  company_admin: 'Admin'
 };
 
 export const TeamMembersManager = ({
@@ -216,12 +210,7 @@ export const TeamMembersManager = ({
                   </SelectTrigger>
                   <SelectContent>
                     {Object.entries(PERMISSION_LABELS).map(([value, label]) => <SelectItem key={value} value={value}>
-                        <div className="flex flex-col">
-                          <span>{label}</span>
-                          <span className="text-xs text-muted-foreground">
-                            {PERMISSION_DESCRIPTIONS[value as keyof typeof PERMISSION_DESCRIPTIONS]}
-                          </span>
-                        </div>
+                        {label}
                       </SelectItem>)}
                   </SelectContent>
                 </Select>
