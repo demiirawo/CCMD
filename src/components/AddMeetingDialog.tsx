@@ -132,7 +132,7 @@ export const AddMeetingDialog = ({
   };
   return <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="mb-6 my-0 py-[16px] px-[19px]">
+        <Button className="mb-6 my-0 py-[16px] px-[19px] mx-0">
           <Plus className="h-4 w-4 mr-2" />
           Add Custom Meeting
         </Button>
