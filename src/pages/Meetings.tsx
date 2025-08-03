@@ -35,6 +35,7 @@ export const Meetings = () => {
   };
 
   const handleSave = async () => {
+    console.log("Save button clicked!", meetingData);
     // Basic validation
     if (!meetingData.title || !meetingData.dateTime || !meetingData.facilitator) {
       toast({
