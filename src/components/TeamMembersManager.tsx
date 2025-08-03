@@ -197,7 +197,7 @@ export const TeamMembersManager = ({
                 <Input id="member-email" type="email" value={newMember.email} onChange={e => setNewMember(prev => ({
               ...prev,
               email: e.target.value
-            }))} placeholder="Enter email (required for login)" className="border-gray-200" />
+            }))} className="border-gray-200" />
               </div>
               <div>
                 <Label htmlFor="member-permission">Permission</Label>
