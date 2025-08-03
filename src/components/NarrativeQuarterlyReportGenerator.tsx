@@ -91,6 +91,7 @@ export const NarrativeQuarterlyReportGenerator: React.FC<NarrativeQuarterlyRepor
               name: item.title || item.name || 'Unknown Item',
               status: item.status || 'unknown',
               latestUpdate: item.observation || item.latest_update || '',
+              trendAnalysis: item.trendAnalysis || item.trend_analysis || '',
               lastReviewed: item.lastReviewed || '',
               actions: item.actions || []
             };
@@ -126,6 +127,7 @@ REPORT REQUIREMENTS:
 3. STRUCTURE: Follow the exact structure below with these headings and subheadings
 4. FORMAT: Use markdown formatting for headings only - # for major sections, ## for subsections
 5. FORMATTING: Major headings use # and minor headings use ##
+6. TREND ANALYSIS: Pay special attention to the 'trendAnalysis' field in each subsection - use this data to show progression, improvements, or deterioration over time
 
 REQUIRED REPORT STRUCTURE (in this exact order):
 
