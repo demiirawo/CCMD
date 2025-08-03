@@ -644,13 +644,10 @@ export const Reports = () => {
                                         <DialogTitle className="text-xl font-bold">
                                           {meeting.title} - Dashboard View
                                         </DialogTitle>
-                                         <div className="flex items-center gap-2">
-                                            <Button variant="outline" size="sm" onClick={() => handleExportWord(meeting.id, meeting.title)}>
-                                              Export Word
-                                            </Button>
-                                            <Button variant="outline" size="sm" onClick={() => handleExportPDF(meeting.id, meeting.title)}>
-                                              Save PDF
-                                            </Button>
+                                          <div className="flex items-center gap-2">
+                                             <Button variant="outline" size="sm" onClick={() => handleExportPDF(meeting.id, meeting.title)}>
+                                               Save PDF
+                                             </Button>
                                           <DialogTrigger asChild>
                                             <Button variant="ghost" size="sm" className="gap-1">
                                               <X className="h-4 w-4" />

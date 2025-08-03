@@ -246,7 +246,18 @@ export const ReadOnlyDashboardView = ({ meetingId }: ReadOnlyDashboardViewProps)
         </div>
 
         {/* Dashboard Sections - Matching current design */}
-        {meeting.sections.filter(section => section.id !== "meeting-overview").map(section => {
+        {meeting.sections.filter(section => {
+          // Filter out meeting overview
+          if (section.id === "meeting-overview") return false;
+          
+          // Hide Supported Housing section unless it's enabled in company services
+          if (section.id === "supported-housing") {
+            const currentCompany = companies.find(c => c.id === profile?.company_id);
+            return currentCompany?.services?.includes("Supported Housing") || false;
+          }
+          
+          return true;
+        }).map(section => {
           const getSectionStatus = () => {
             if (!section.items || section.items.length === 0) return 'green';
             const applicableItems = section.items.filter(item => item.status !== 'na');
