@@ -30,12 +30,12 @@ export const RobustMeetingSummary = ({
     isSaving,
     forceSave
   } = useMeetingSummaryResilience(meetingDate);
-  const handleEdit = (value: string) => {
+  const handleEdit = async (value: string) => {
     setIsEditing(false);
-    updateSummary(value);
+    await updateSummary(value);
   };
-  const handleInput = (value: string) => {
-    updateSummary(value);
+  const handleInput = async (value: string) => {
+    await updateSummary(value);
   };
   const stripMarkdown = (text: string) => {
     return text.replace(/\*\*(.*?)\*\*/g, '$1') // Remove bold
@@ -51,9 +51,7 @@ export const RobustMeetingSummary = ({
   };
   const handleAISummary = async (generatedSummary: string) => {
     const cleanSummary = stripMarkdown(generatedSummary);
-    updateSummary(cleanSummary);
-    // Force immediate save for AI-generated summaries
-    await forceSave();
+    await updateSummary(cleanSummary);
   };
   if (isLoading) {
     return <div className="bg-primary/10 p-8 rounded-xl shadow-sm -mx-8 px-14 mb-8 outline-none">

@@ -202,8 +202,8 @@ export const useMeetingSummaryResilience = (meetingDate: string) => {
     }
   }, [profile?.company_id, meetingDate, loadFromLocalStorage]);
 
-  // Update summary with auto-save
-  const updateSummary = useCallback((newSummary: string) => {
+  // Update summary with immediate save
+  const updateSummary = useCallback(async (newSummary: string) => {
     setSummary(newSummary);
     
     // Clear existing timeout
@@ -214,12 +214,17 @@ export const useMeetingSummaryResilience = (meetingDate: string) => {
     // Save to localStorage immediately
     saveToLocalStorage(newSummary);
 
-    // Debounce database save
-    saveTimeoutRef.current = setTimeout(() => {
-      if (newSummary !== lastSavedRef.current) {
-        saveToDatabase(newSummary);
+    // Save to database immediately (no debouncing for critical updates)
+    try {
+      const success = await saveToDatabase(newSummary);
+      if (success) {
+        console.log('✅ MeetingSummary: Immediate save successful');
+      } else {
+        console.warn('⚠️ MeetingSummary: Immediate save failed, but localStorage backup is available');
       }
-    }, 1000);
+    } catch (error) {
+      console.error('❌ MeetingSummary: Immediate save error:', error);
+    }
   }, [saveToLocalStorage, saveToDatabase]);
 
   // Force save (for immediate operations)
