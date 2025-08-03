@@ -357,7 +357,7 @@ export const ActionsLog = ({
                     </div>
                   </td>
                   <td className={cn(
-                    "py-3 px-3 text-sm",
+                    "py-3 pl-3 pr-1 text-sm",
                     action.closed ? "text-black" :
                     getDaysRemaining(action.dueDate) < 0 ? "text-red-900" :
                     getDaysRemaining(action.dueDate) <= 5 ? "text-amber-900" : 
@@ -366,7 +366,7 @@ export const ActionsLog = ({
                     {action.mentionedAttendee}
                   </td>
                   <td className={cn(
-                    "py-3 px-3 text-sm",
+                    "py-3 pl-3 pr-1 text-sm",
                     action.closed ? "text-black" :
                     getDaysRemaining(action.dueDate) < 0 ? "text-red-900" :
                     getDaysRemaining(action.dueDate) <= 5 ? "text-amber-900" : 
