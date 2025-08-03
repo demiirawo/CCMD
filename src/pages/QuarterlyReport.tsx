@@ -30,6 +30,7 @@ export const QuarterlyReport = () => {
     isLoading: isGenerating
   } = useOpenAI();
   const [companyInfo, setCompanyInfo] = useState<CompanyInfo | null>(null);
+  const [isLoadingCompanyInfo, setIsLoadingCompanyInfo] = useState(false);
   const [reportContent, setReportContent] = useState<string>("");
   const [reportPages, setReportPages] = useState<string[]>([]);
   const [isExporting, setIsExporting] = useState(false);
@@ -431,19 +432,30 @@ REPORTING INSTRUCTIONS:
     }
   };
   const loadCompanyInfo = async () => {
-    if (!profile?.company_id) return;
+    if (!profile?.company_id) {
+      console.warn('⚠️ No company ID found in profile');
+      return;
+    }
+    
+    setIsLoadingCompanyInfo(true);
     try {
+      console.log('🔍 Loading company info for ID:', profile.company_id);
       const {
         data,
         error
       } = await supabase.from('companies').select('name, logo_url, theme_color, services').eq('id', profile.company_id).single();
+      
       if (error) {
-        console.error('Error loading company info:', error);
+        console.error('❌ Error loading company info:', error);
         return;
       }
+      
+      console.log('✅ Company info loaded successfully:', data?.name);
       setCompanyInfo(data);
     } catch (error) {
-      console.error('Error loading company info:', error);
+      console.error('💥 Exception loading company info:', error);
+    } finally {
+      setIsLoadingCompanyInfo(false);
     }
   };
   const splitContentIntoPages = (content: string) => {
@@ -638,6 +650,41 @@ REPORTING INSTRUCTIONS:
       });
       return;
     }
+
+    // Ensure company info is loaded before export
+    if (!companyInfo || isLoadingCompanyInfo) {
+      console.log('⏳ Company info not loaded or still loading, waiting...');
+      
+      // If actively loading, wait for it to complete
+      if (isLoadingCompanyInfo) {
+        console.log('⏳ Waiting for company info to finish loading...');
+        // Wait up to 5 seconds for loading to complete
+        let attempts = 0;
+        while (isLoadingCompanyInfo && attempts < 50) {
+          await new Promise(resolve => setTimeout(resolve, 100));
+          attempts++;
+        }
+      }
+      
+      // If still no company info, try loading it
+      if (!companyInfo) {
+        console.log('⏳ Loading company info for export...');
+        await loadCompanyInfo();
+        
+        // Check again after loading
+        if (!companyInfo) {
+          console.error('❌ Failed to load company info for export');
+          toast({
+            title: "Export Error",
+            description: "Company information could not be loaded. Please try again.",
+            variant: "destructive"
+          });
+          return;
+        }
+      }
+    }
+
+    console.log('📋 Starting export with company:', companyInfo?.name);
     setIsExporting(true);
     try {
       // Fetch logo if available and get its dimensions
@@ -702,8 +749,12 @@ REPORTING INSTRUCTIONS:
       }
 
       // Add cover page content
+      const companyName = companyInfo?.name || 'Care Agency';
+      console.log('📄 Creating cover page with company name:', companyName);
+      console.log('📋 Company info object:', companyInfo);
+      
       documentChildren.push(new Paragraph({
-        text: companyInfo?.name || 'Care Agency',
+        text: companyName,
         heading: HeadingLevel.TITLE,
         alignment: 'center',
         spacing: {
@@ -1167,9 +1218,9 @@ REPORTING INSTRUCTIONS:
               <Printer className="h-4 w-4" />
               Print
             </Button>
-            <Button onClick={exportToWord} disabled={isExporting} variant="outline" className="gap-2">
+            <Button onClick={exportToWord} disabled={isExporting || isLoadingCompanyInfo || !companyInfo} variant="outline" className="gap-2">
               <FileText className="h-4 w-4" />
-              {isExporting ? 'Exporting...' : 'Export Word'}
+              {isExporting ? 'Exporting...' : isLoadingCompanyInfo ? 'Loading...' : 'Export Word'}
             </Button>
           </div>
         </div>
