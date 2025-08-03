@@ -995,6 +995,57 @@ const Index = () => {
       description: "Action has been marked as complete and removed from subsection"
     });
   };
+
+  const handleActionUndo = async (actionId: string) => {
+    const actionToUndo = actionsLog.find(action => action.id === actionId);
+    if (!actionToUndo) return;
+
+    const updatedAction = {
+      ...actionToUndo,
+      closed: false,
+      closedDate: undefined,
+      auditTrail: [
+        ...(actionToUndo.auditTrail || []),
+        {
+          timestamp: new Date().toLocaleString('en-GB'),
+          change: `Action reopened by ${profile?.username || 'Unknown user'}`
+        }
+      ]
+    };
+
+    // Update local state
+    const updatedActions = actionsLog.map(action => 
+      action.id === actionId ? updatedAction : action
+    );
+    setActionsLog(updatedActions);
+
+    // Update database
+    const { error } = await supabase
+      .from('actions_log')
+      .update({ 
+        closed: false,
+        closed_date: null,
+        audit_trail: updatedAction.auditTrail as any
+      })
+      .eq('action_id', actionId)
+      .eq('company_id', profile?.company_id);
+
+    if (error) {
+      console.error('Error undoing action:', error);
+      toast({
+        title: "Error",
+        description: "Failed to reopen action",
+        variant: "destructive",
+      });
+      // Revert the local state on error
+      setActionsLog(actionsLog);
+    } else {
+      toast({
+        title: "Action Reopened",
+        description: "Action has been reopened",
+      });
+    }
+  };
   const handleActionDelete = async (actionId: string) => {
     // Remove action from actions log
     setActionsLog(prev => prev.filter(action => action.id !== actionId));
@@ -1647,7 +1698,7 @@ const Index = () => {
           <DashboardHeader date={headerData.date} title={headerData.title} attendees={headerData.attendees} purpose={headerData.purpose} stats={calculateStats()} sections={dashboardData.sections} actionsLog={actionsLog} onDataChange={canEdit ? handleDataChange : undefined} onAttendeesChange={canEdit ? handleAttendeesChange : undefined} readOnly={!canEdit} />
           
           
-          <ActionsLog actions={actionsLog} onActionComplete={canEdit ? handleActionComplete : undefined} onActionDelete={canEdit ? handleActionDelete : undefined} onResetActions={canEdit ? resetActionsLog : undefined} onActionEdit={canEdit ? handleActionEdit : undefined} attendees={getAttendeesList()} onPanelStateChange={triggerPanelStateUpdate} panelStateTracker={panelStateTracker} readOnly={!canEdit} currentUsername={profile?.username} />
+          <ActionsLog actions={actionsLog} onActionComplete={canEdit ? handleActionComplete : undefined} onActionDelete={canEdit ? handleActionDelete : undefined} onActionUndo={canEdit ? handleActionUndo : undefined} onResetActions={canEdit ? resetActionsLog : undefined} onActionEdit={canEdit ? handleActionEdit : undefined} attendees={getAttendeesList()} onPanelStateChange={triggerPanelStateUpdate} panelStateTracker={panelStateTracker} readOnly={!canEdit} currentUsername={profile?.username} />
           
           <KeyDocumentTracker documents={keyDocuments} onDocumentsChange={canEdit ? async newDocuments => {
           setKeyDocuments(newDocuments);

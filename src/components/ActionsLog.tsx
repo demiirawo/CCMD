@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { AlertCircle, Check, Minus, Edit, ChevronDown, ChevronRight, Copy } from "lucide-react";
+import { AlertCircle, Check, Minus, Edit, ChevronDown, ChevronRight, Copy, RotateCcw } from "lucide-react";
 import { StatusBadge } from "./StatusBadge";
 import { Button } from "./ui/button";
 import { ActionEditDialog } from "./ActionEditDialog";
@@ -31,6 +31,7 @@ interface ActionsLogProps {
   actions: ActionLogEntry[];
   onActionComplete?: (actionId: string) => void;
   onActionDelete?: (actionId: string) => void;
+  onActionUndo?: (actionId: string) => void;
   onResetActions?: () => void;
   onActionEdit?: (actionId: string, updates: {
     comment?: string;
@@ -49,6 +50,7 @@ export const ActionsLog = ({
   actions,
   onActionComplete,
   onActionDelete,
+  onActionUndo,
   onResetActions,
   onActionEdit,
   attendees = [],
@@ -390,6 +392,9 @@ export const ActionsLog = ({
                     <div className="flex gap-1">
                       {!action.closed && onActionEdit && action.sourceType !== "document" && <Button variant="ghost" size="sm" onClick={() => setEditingAction(action)} className="h-8 w-8 p-0 text-black hover:bg-gray-50" title="Edit action">
                           <Edit className="h-4 w-4 text-black" />
+                        </Button>}
+                      {action.closed && onActionUndo && !readOnly && <Button variant="ghost" size="sm" onClick={() => onActionUndo(action.id)} className="h-8 w-8 p-0 text-black hover:bg-gray-50" title="Undo - reopen this action">
+                          <RotateCcw className="h-4 w-4 text-black" />
                         </Button>}
                       <Button variant="ghost" size="sm" onClick={() => onActionComplete?.(action.id)} disabled={action.closed} className={cn(
                         "h-8 w-8 p-0",
