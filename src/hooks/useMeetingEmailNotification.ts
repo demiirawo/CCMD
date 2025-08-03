@@ -244,6 +244,15 @@ export const useMeetingEmailNotification = () => {
                 ${personalizedActionItemsHtml}
               </div>
 
+              <div style="margin-bottom: 30px; text-align: center;">
+                <div style="background-color: #F3F4F6; padding: 20px; border-radius: 8px; border: 1px solid #D1D5DB;">
+                  <p style="color: #374151; margin: 0 0 12px 0; font-size: 16px;">You can view the dashboard by using the 
+                    <a href="https://gwywpkhxpbokmbhwsnod.supabase.co/auth/v1/authorize?provider=email" 
+                       style="color: #3B82F6; text-decoration: none; font-weight: bold;">LINK</a>
+                  </p>
+                </div>
+              </div>
+
               <div style="border-top: 1px solid #E5E7EB; padding-top: 20px;">
                 <p style="color: #9CA3AF; font-size: 12px; text-align: center; margin: 0;">
                   This email was automatically generated from CCMD
