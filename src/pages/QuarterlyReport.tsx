@@ -145,6 +145,19 @@ export const QuarterlyReport = () => {
     } else {
       console.log('📊 No analytics parameter found in URL');
     }
+    
+    // Debug user session and profile
+    console.log('🔍 Debug: Current user profile when loading company info:', profile);
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      console.log('🔍 Debug: Current session:', session?.user?.id);
+      console.log('🔍 Debug: Session error:', error);
+    });
+    
+    // Test direct company access for debugging
+    supabase.from('companies').select('id, name').then(({ data, error }) => {
+      console.log('🔍 Direct company query test:', { data, error });
+    });
+    
     loadCompanyInfo();
   }, [content, analytics]);
   const processAnalyticsData = async () => {
@@ -432,21 +445,58 @@ REPORTING INSTRUCTIONS:
     }
   };
   const loadCompanyInfo = async () => {
+    console.log('🔍 Starting loadCompanyInfo...');
+    console.log('👤 Current profile:', profile);
+    console.log('🏢 Profile company_id:', profile?.company_id);
+    
     if (!profile?.company_id) {
       console.warn('⚠️ No company ID found in profile');
+      
+      // Let's try to get the company ID from user_companies table as a fallback
+      try {
+        console.log('🔄 Attempting to fetch company from user_companies...');
+        const { data: userCompanies, error: userCompaniesError } = await supabase
+          .from('user_companies')
+          .select('company_id, companies(name, logo_url, theme_color, services)')
+          .eq('is_active', true)
+          .limit(1);
+          
+        console.log('📊 User companies result:', { userCompanies, userCompaniesError });
+        
+        if (userCompanies && userCompanies.length > 0 && userCompanies[0].companies) {
+          console.log('✅ Found company via user_companies:', userCompanies[0].companies);
+          setCompanyInfo(userCompanies[0].companies as CompanyInfo);
+          return;
+        }
+      } catch (fallbackError) {
+        console.error('❌ Fallback company fetch failed:', fallbackError);
+      }
+      
       return;
     }
     
     setIsLoadingCompanyInfo(true);
     try {
       console.log('🔍 Loading company info for ID:', profile.company_id);
+      
+      // First, let's check if we can access this company at all
+      const { data: companyCheck, error: companyCheckError } = await supabase
+        .from('companies')
+        .select('id, name')
+        .eq('id', profile.company_id);
+        
+      console.log('🔍 Company access check:', { companyCheck, companyCheckError });
+      
       const {
         data,
         error
       } = await supabase.from('companies').select('name, logo_url, theme_color, services').eq('id', profile.company_id).single();
       
+      console.log('📊 Company query result:', { data, error });
+      
       if (error) {
         console.error('❌ Error loading company info:', error);
+        console.error('❌ Error details:', JSON.stringify(error, null, 2));
         return;
       }
       
