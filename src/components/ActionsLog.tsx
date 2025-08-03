@@ -383,7 +383,7 @@ export const ActionsLog = ({
                     action.closed ? "text-black/80" : ""
                   )}>
                     {action.closed ? (
-                      <span className="text-green-600">
+                      <span className="text-green-600 text-xs">
                         Closed {action.closedDate ? new Date(action.closedDate).toLocaleDateString('en-GB') : ''}
                       </span>
                     ) : (
