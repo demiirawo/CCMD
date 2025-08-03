@@ -606,33 +606,6 @@ export type Database = {
           },
         ]
       }
-      meeting_summaries: {
-        Row: {
-          company_id: string
-          created_at: string
-          id: string
-          meeting_date: string
-          summary_text: string
-          updated_at: string
-        }
-        Insert: {
-          company_id: string
-          created_at?: string
-          id?: string
-          meeting_date: string
-          summary_text?: string
-          updated_at?: string
-        }
-        Update: {
-          company_id?: string
-          created_at?: string
-          id?: string
-          meeting_date?: string
-          summary_text?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
       meetings: {
         Row: {
           actions_log: Json
