@@ -196,11 +196,12 @@ export const CompanySelection = () => {
     setActionsLoading(true);
     try {
       const { data, error } = await supabase
-        .from('actions')
+        .from('actions_log')
         .select(`
           *,
           companies!inner(name)
         `)
+        .eq('closed', false)
         .order('due_date', { ascending: true });
 
       console.log('Actions query result:', { data, error });
@@ -360,23 +361,23 @@ export const CompanySelection = () => {
                           {allActions.map((action) => (
                             <div key={action.id} className="flex items-center justify-between p-3 bg-accent/50 rounded-lg">
                               <div className="flex-1">
-                                <h4 className="font-medium text-sm">{action.title}</h4>
+                                <h4 className="font-medium text-sm">{action.item_title}</h4>
                                 <p className="text-xs text-muted-foreground">
-                                  {action.companies?.name} • Assigned to: {action.assignee}
+                                  {action.companies?.name} • Assigned to: {action.mentioned_attendee}
                                 </p>
                                 <p className="text-xs text-muted-foreground">
-                                  Due: {new Date(action.due_date).toLocaleDateString()}
+                                  Due: {action.due_date}
                                 </p>
                               </div>
                               <div className={`px-2 py-1 rounded text-xs font-medium ${
-                                action.status === 'completed' 
+                                action.status === 'green' 
                                   ? 'bg-green-100 text-green-800' 
-                                  : action.status === 'in_progress'
+                                  : action.status === 'amber'
                                   ? 'bg-yellow-100 text-yellow-800'
                                   : 'bg-red-100 text-red-800'
                               }`}>
-                                {action.status === 'completed' ? 'Done' : 
-                                 action.status === 'in_progress' ? 'In Progress' : 'Pending'}
+                                {action.status === 'green' ? 'Green' : 
+                                 action.status === 'amber' ? 'Amber' : 'Red'}
                               </div>
                             </div>
                           ))}
