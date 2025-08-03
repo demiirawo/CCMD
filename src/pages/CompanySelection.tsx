@@ -150,16 +150,48 @@ export const CompanySelection = () => {
   };
   const handleCopyCompanyLink = async (company: any) => {
     const companyUrl = `${window.location.origin}/company/${company.slug || company.id}`;
+    
+    console.log('Attempting to copy URL:', companyUrl);
+    console.log('Clipboard API available:', !!navigator.clipboard);
+    console.log('Secure context:', window.isSecureContext);
+    
     try {
-      await navigator.clipboard.writeText(companyUrl);
-      toast({
-        title: 'Success',
-        description: 'Company dashboard link copied to clipboard!'
-      });
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(companyUrl);
+        console.log('Successfully copied to clipboard');
+        toast({
+          title: 'Success',
+          description: 'Company dashboard link copied to clipboard!'
+        });
+      } else {
+        // Fallback for non-secure contexts
+        const textArea = document.createElement('textarea');
+        textArea.value = companyUrl;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-999999px';
+        textArea.style.top = '-999999px';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        
+        const successful = document.execCommand('copy');
+        document.body.removeChild(textArea);
+        
+        if (successful) {
+          console.log('Successfully copied using fallback method');
+          toast({
+            title: 'Success',
+            description: 'Company dashboard link copied to clipboard!'
+          });
+        } else {
+          throw new Error('Fallback copy method failed');
+        }
+      }
     } catch (error) {
+      console.error('Copy failed:', error);
       toast({
         title: 'Error',
-        description: 'Failed to copy link to clipboard',
+        description: 'Failed to copy link to clipboard. Please copy manually: ' + companyUrl,
         variant: 'destructive'
       });
     }
