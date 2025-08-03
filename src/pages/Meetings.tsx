@@ -58,10 +58,15 @@ export const Meetings = () => {
     setIsSaving(true);
 
     try {
-      // Parse the dateTime string to Date object
-      const meetingDate = new Date(meetingData.dateTime);
+      // Parse the dateTime string correctly (format: dd/MM/yyyy HH:mm)
+      const [datePart, timePart] = meetingData.dateTime.split(' ');
+      const [day, month, year] = datePart.split('/').map(Number);
+      const [hours, minutes] = timePart.split(':').map(Number);
+      
+      // Create date with correct month (month is 0-indexed in JavaScript)
+      const meetingDate = new Date(year, month - 1, day, hours, minutes);
       const quarter = getQuarter(meetingDate);
-      const year = meetingDate.getFullYear();
+      const meetingYear = meetingDate.getFullYear();
 
       // Convert attendance text to attendees array
       const attendeesArray = meetingData.attendance
@@ -107,7 +112,7 @@ export const Meetings = () => {
         title: meetingData.title,
         date: meetingDate.toISOString(),
         quarter,
-        year,
+        year: meetingYear,
         company_id: profile.company_id,
         purpose: `Facilitated by: ${meetingData.facilitator}`,
         attendees: JSON.stringify(attendeesArray),
