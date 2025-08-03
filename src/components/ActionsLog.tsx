@@ -263,8 +263,8 @@ export const ActionsLog = ({
     }
   };
   const renderCombinedActionsTable = () => {
-    // Combine all actions and sort by due date
-    const allActions = [...openActions, ...closedActions].sort(sortByDueDate);
+    // Show open actions first (sorted by due date), then closed actions
+    const allActions = [...openActions.sort(sortByDueDate), ...closedActions.sort(sortByDueDate)];
     
     if (allActions.length === 0) return null;
     
@@ -413,15 +413,9 @@ export const ActionsLog = ({
                       {action.closed && onActionUndo && !readOnly && <Button variant="ghost" size="sm" onClick={() => onActionUndo(action.id)} className="h-8 w-8 p-0 text-black hover:bg-gray-50" title="Undo - reopen this action">
                           <RotateCcw className="h-4 w-4 text-black" />
                         </Button>}
-                      <Button variant="ghost" size="sm" onClick={() => onActionComplete?.(action.id)} disabled={action.closed} className={cn(
-                        "h-8 w-8 p-0",
-                        action.closed ? "opacity-50" : "hover:bg-gray-50"
-                      )} title="Mark as completed">
-                        <Check className={cn(
-                          "h-4 w-4",
-                          action.closed ? "text-green-600" : "text-black"
-                        )} />
-                      </Button>
+                      {!action.closed && <Button variant="ghost" size="sm" onClick={() => onActionComplete?.(action.id)} className="h-8 w-8 p-0 hover:bg-gray-50" title="Mark as completed">
+                          <Check className="h-4 w-4 text-black" />
+                        </Button>}
                       {!action.closed && <Button variant="ghost" size="sm" onClick={() => onActionDelete?.(action.id)} className="h-8 w-8 p-0 text-black hover:bg-gray-50" title="Delete action">
                           <Minus className="h-4 w-4 text-black" />
                         </Button>}
