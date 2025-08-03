@@ -57,11 +57,11 @@ export const Meetings = () => {
           
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Meeting Information</CardTitle>
+        <Card className="bg-stone-50">
+          <CardHeader className="bg-stone-50">
+            
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-6 bg-stone-50">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <Label htmlFor="title">Meeting Title *</Label>
