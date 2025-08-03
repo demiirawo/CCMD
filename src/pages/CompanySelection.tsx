@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,15 +6,20 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Building2, Trash2, Search, Copy } from 'lucide-react';
+import { Plus, Building2, Trash2, Search, Copy, ChevronDown, Clock } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { supabase } from '@/integrations/supabase/client';
 export const CompanySelection = () => {
   const [newCompanyName, setNewCompanyName] = useState('');
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [searchValue, setSearchValue] = useState('');
+  const [actionsOpen, setActionsOpen] = useState(false);
+  const [allActions, setAllActions] = useState<any[]>([]);
+  const [actionsLoading, setActionsLoading] = useState(false);
   const {
     profile,
     companies,
@@ -183,6 +188,40 @@ export const CompanySelection = () => {
     }
   };
 
+  // Fetch all actions across all companies for admin
+  const fetchAllActions = async () => {
+    if (profile?.role !== 'admin') return;
+    
+    setActionsLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('actions')
+        .select(`
+          *,
+          companies!inner(name)
+        `)
+        .order('due_date', { ascending: true });
+
+      if (error) throw error;
+      setAllActions(data || []);
+    } catch (error) {
+      console.error('Error fetching actions:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to fetch actions',
+        variant: 'destructive'
+      });
+    } finally {
+      setActionsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (actionsOpen && profile?.role === 'admin') {
+      fetchAllActions();
+    }
+  }, [actionsOpen, profile?.role]);
+
   // Filter companies based on search
   const filteredCompanies = useMemo(() => {
     if (!searchValue.trim()) return companies;
@@ -287,6 +326,64 @@ export const CompanySelection = () => {
 
             {!searchValue.trim() && companies.length > 0}
           </div>
+
+          {profile?.role === 'admin' && (
+            <div className="border-t pt-6">
+              <Collapsible open={actionsOpen} onOpenChange={setActionsOpen}>
+                <CollapsibleTrigger asChild>
+                  <Button variant="outline" className="w-full justify-between">
+                    <div className="flex items-center gap-2">
+                      <Clock className="h-4 w-4" />
+                      My Actions Across All Clients
+                    </div>
+                    <ChevronDown className={`h-4 w-4 transition-transform ${actionsOpen ? 'rotate-180' : ''}`} />
+                  </Button>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="mt-4">
+                  <Card>
+                    <CardContent className="p-4">
+                      {actionsLoading ? (
+                        <div className="text-center py-4">
+                          <p className="text-sm text-muted-foreground">Loading actions...</p>
+                        </div>
+                      ) : allActions.length === 0 ? (
+                        <div className="text-center py-4">
+                          <Clock className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                          <p className="text-sm text-muted-foreground">No actions found</p>
+                        </div>
+                      ) : (
+                        <div className="space-y-2 max-h-60 overflow-y-auto">
+                          {allActions.map((action) => (
+                            <div key={action.id} className="flex items-center justify-between p-3 bg-accent/50 rounded-lg">
+                              <div className="flex-1">
+                                <h4 className="font-medium text-sm">{action.title}</h4>
+                                <p className="text-xs text-muted-foreground">
+                                  {action.companies?.name} • Assigned to: {action.assignee}
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                  Due: {new Date(action.due_date).toLocaleDateString()}
+                                </p>
+                              </div>
+                              <div className={`px-2 py-1 rounded text-xs font-medium ${
+                                action.status === 'completed' 
+                                  ? 'bg-green-100 text-green-800' 
+                                  : action.status === 'in_progress'
+                                  ? 'bg-yellow-100 text-yellow-800'
+                                  : 'bg-red-100 text-red-800'
+                              }`}>
+                                {action.status === 'completed' ? 'Done' : 
+                                 action.status === 'in_progress' ? 'In Progress' : 'Pending'}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </CollapsibleContent>
+              </Collapsible>
+            </div>
+          )}
           
           {profile?.role === 'admin' && <div className="border-t pt-6">
               <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
