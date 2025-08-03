@@ -109,16 +109,16 @@ export const ActionsLog = ({
     return aDueDate.getTime() - bDueDate.getTime();
   };
   
-  // Group open actions by current user vs team
+  // Group all actions by current user vs team (including both open and closed)
   const allOpenActions = actions
     .filter(action => !action.closed)
     .sort(sortByDueDate);
     
-  const myActions = allOpenActions.filter(action => 
+  const myActions = actions.filter(action => 
     currentUsername && action.mentionedAttendee === currentUsername
   );
   
-  const officeTeamActions = allOpenActions.filter(action => 
+  const officeTeamActions = actions.filter(action => 
     !currentUsername || action.mentionedAttendee !== currentUsername
   );
   
@@ -262,23 +262,26 @@ export const ActionsLog = ({
       return 'bg-green-100 border border-green-300 text-green-900'; // More than 5 days
     }
   };
-  const renderCombinedActionsTable = () => {
-    // Show open actions first (sorted by due date), then closed actions
-    const allActions = [...openActions.sort(sortByDueDate), ...closedActions.sort(sortByDueDate)];
+  const renderActionsTable = (actions: ActionLogEntry[], title: string, startIndex: number = 0) => {
+    if (actions.length === 0) return null;
     
-    if (allActions.length === 0) return null;
+    // Sort actions: open first, then closed
+    const openActionsInCategory = actions.filter(action => !action.closed).sort(sortByDueDate);
+    const closedActionsInCategory = actions.filter(action => action.closed).sort(sortByDueDate);
+    const sortedActions = [...openActionsInCategory, ...closedActionsInCategory];
     
-    return <div className="mb-6">
+    return (
+      <div className="mb-6">
         <h4 className={cn(
           "text-lg font-semibold mb-3 flex items-center gap-2",
           isDynamicPanelColourEnabled ? "text-white" : "text-foreground"
         )}>
-          All Actions
+          {title}
           <span className={cn(
             "text-sm font-normal",
             isDynamicPanelColourEnabled ? "text-white/80" : "text-muted-foreground"
           )}>
-            ({allActions.length})
+            ({sortedActions.length})
           </span>
         </h4>
         <div className="overflow-x-auto">
@@ -312,11 +315,12 @@ export const ActionsLog = ({
               </tr>
             </thead>
             <tbody>
-              {allActions.map((action, index) => <tr key={action.id} className={cn(
-                `border-b border-border/20`,
-                action.closed ? 'bg-stone-50' : '',
-                getActionRowClass(action)
-              )}>
+              {sortedActions.map((action, index) => (
+                <tr key={action.id} className={cn(
+                  `border-b border-border/20`,
+                  action.closed ? 'bg-stone-50' : '',
+                  getActionRowClass(action)
+                )}>
                   <td className={cn(
                     "py-3 px-3 text-sm",
                     action.closed ? "text-muted-foreground" :
@@ -324,10 +328,10 @@ export const ActionsLog = ({
                     getDaysRemaining(action.dueDate) <= 5 ? "text-amber-900" : 
                     "text-green-900"
                   )}>
-                    {index + 1}
+                    {startIndex + index + 1}
                   </td>
-                   <td className={cn(
-                     "py-3 pl-3 pr-0 text-sm",
+                  <td className={cn(
+                    "py-3 pl-3 pr-0 text-sm",
                     action.closed ? "text-muted-foreground" :
                     getDaysRemaining(action.dueDate) < 0 ? "text-red-900" :
                     getDaysRemaining(action.dueDate) <= 5 ? "text-amber-900" : 
@@ -353,11 +357,15 @@ export const ActionsLog = ({
                         From: {action.itemTitle}
                       </div>
                       {/* Show full audit trail */}
-                      {action.auditTrail && action.auditTrail.length > 0 && <div className="text-xs mt-2 space-y-1">
-                          {action.auditTrail.map((entry, entryIndex) => <div key={entryIndex} className="text-blue-600 bg-blue-50 p-1 rounded border-l-2 border-blue-200">
+                      {action.auditTrail && action.auditTrail.length > 0 && (
+                        <div className="text-xs mt-2 space-y-1">
+                          {action.auditTrail.map((entry, entryIndex) => (
+                            <div key={entryIndex} className="text-blue-600 bg-blue-50 p-1 rounded border-l-2 border-blue-200">
                               <span className="font-medium">{entry.timestamp}:</span> {entry.change}
-                            </div>)}
-                        </div>}
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </td>
                   <td className={cn(
@@ -407,25 +415,35 @@ export const ActionsLog = ({
                   </td>
                   <td className="py-3 px-3">
                     <div className="flex gap-1">
-                      {!action.closed && onActionEdit && action.sourceType !== "document" && <Button variant="ghost" size="sm" onClick={() => setEditingAction(action)} className="h-8 w-8 p-0 text-black hover:bg-gray-50" title="Edit action">
+                      {!action.closed && onActionEdit && action.sourceType !== "document" && (
+                        <Button variant="ghost" size="sm" onClick={() => setEditingAction(action)} className="h-8 w-8 p-0 text-black hover:bg-gray-50" title="Edit action">
                           <Edit className="h-4 w-4 text-black" />
-                        </Button>}
-                      {action.closed && onActionUndo && !readOnly && <Button variant="ghost" size="sm" onClick={() => onActionUndo(action.id)} className="h-8 w-8 p-0 text-black hover:bg-gray-50" title="Undo - reopen this action">
+                        </Button>
+                      )}
+                      {action.closed && onActionUndo && !readOnly && (
+                        <Button variant="ghost" size="sm" onClick={() => onActionUndo(action.id)} className="h-8 w-8 p-0 text-black hover:bg-gray-50" title="Undo - reopen this action">
                           <RotateCcw className="h-4 w-4 text-black" />
-                        </Button>}
-                      {!action.closed && <Button variant="ghost" size="sm" onClick={() => onActionComplete?.(action.id)} className="h-8 w-8 p-0 hover:bg-gray-50" title="Mark as completed">
+                        </Button>
+                      )}
+                      {!action.closed && (
+                        <Button variant="ghost" size="sm" onClick={() => onActionComplete?.(action.id)} className="h-8 w-8 p-0 hover:bg-gray-50" title="Mark as completed">
                           <Check className="h-4 w-4 text-black" />
-                        </Button>}
-                      {!action.closed && <Button variant="ghost" size="sm" onClick={() => onActionDelete?.(action.id)} className="h-8 w-8 p-0 text-black hover:bg-gray-50" title="Delete action">
+                        </Button>
+                      )}
+                      {!action.closed && (
+                        <Button variant="ghost" size="sm" onClick={() => onActionDelete?.(action.id)} className="h-8 w-8 p-0 text-black hover:bg-gray-50" title="Delete action">
                           <Minus className="h-4 w-4 text-black" />
-                        </Button>}
+                        </Button>
+                      )}
                     </div>
                   </td>
-                </tr>)}
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
-      </div>;
+      </div>
+    );
   };
   return <div className={`rounded-2xl p-6 shadow-lg -mx-8 px-14 outline-none ${getBackgroundClass()}`}>
       <div className="flex items-center justify-between cursor-pointer mb-6 outline-none" onClick={() => {
@@ -486,7 +504,8 @@ export const ActionsLog = ({
 
       {isOpen && (
           <div className="space-y-4">
-            {renderCombinedActionsTable()}
+            {currentUsername && myActions.length > 0 && renderActionsTable(myActions, "My Actions", 0)}
+            {officeTeamActions.length > 0 && renderActionsTable(officeTeamActions, "Office Team Actions", myActions.length)}
             
             {actions.length === 0 && (
               <p className={cn(
