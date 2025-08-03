@@ -338,7 +338,7 @@ export const CompanySelection = () => {
                 <CollapsibleTrigger asChild>
                   <Button variant="outline" className="w-full justify-between">
                     <div className="flex items-center gap-2">
-                      My actions
+                      My Actions
                     </div>
                     <ChevronDown className={`h-4 w-4 transition-transform ${actionsOpen ? 'rotate-180' : ''}`} />
                   </Button>
