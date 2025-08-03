@@ -370,16 +370,6 @@ export const CompanySelection = () => {
                                   {action.companies?.name} • Due: {action.due_date}
                                 </p>
                               </div>
-                              <div className={`px-2 py-1 rounded text-xs font-medium ${
-                                action.status === 'green' 
-                                  ? 'bg-green-100 text-green-800' 
-                                  : action.status === 'amber'
-                                  ? 'bg-yellow-100 text-yellow-800'
-                                  : 'bg-red-100 text-red-800'
-                              }`}>
-                                {action.status === 'green' ? 'Green' : 
-                                 action.status === 'amber' ? 'Amber' : 'Red'}
-                              </div>
                             </div>
                           ))}
                         </div>
