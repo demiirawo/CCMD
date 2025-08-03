@@ -95,65 +95,15 @@ export const DashboardHeader = ({
         </div>
       </div>
 
-      {/* Office Team and Meeting Summary Section */}
-      <div className="grid grid-cols-2 gap-6 mb-6 items-start">
+      {/* Office Team Section */}
+      <div className="grid grid-cols-1 gap-6 mb-6 items-start">
         {/* Office Team - 50% width */}
         <div className="p-4 rounded-lg border border-gray-100 min-h-24 bg-white">
           <h3 className="text-sm font-medium text-muted-foreground mb-2 py-[8px]">Meeting Attendees</h3>
           <TeamAttendeesDisplay onAttendanceChange={readOnly ? undefined : onAttendeesChange} readOnly={readOnly} />
         </div>
         
-        {/* Meeting Summary - 50% width */}
-        <div className="p-4 rounded-lg border border-gray-100 min-h-24 bg-white">
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-medium text-muted-foreground mx-0 px-0 py-[3px] my-0">Meeting Summary</h3>
-            {!readOnly && (
-              <AISummaryButton 
-                meetingData={{
-                  title,
-                  date,
-                  attendees,
-                  purpose,
-                  sections: sections || [],
-                  actionsLog: actionsLog || [],
-                  companyName: companies.find(c => c.id === profile?.company_id)?.name || "the organization"
-                }}
-                onSummaryGenerated={summary => onDataChange?.("purpose", summary)} 
-              />
-            )}
-          </div>
-          {readOnly ? (
-            <div className="w-full min-h-12 p-2 text-sm text-foreground bg-gray-50 border border-gray-200 rounded whitespace-pre-wrap break-words overflow-wrap-anywhere">
-              {purpose || "No meeting summary provided."}
-            </div>
-          ) : (
-            editingField === "purpose" ? (
-              <textarea 
-                defaultValue={purpose} 
-                className="w-full min-h-12 p-2 text-sm text-foreground bg-white border border-gray-300 rounded resize-none whitespace-pre-wrap" 
-                onBlur={e => handleFieldEdit("purpose", e.target.value)}
-                onChange={e => onDataChange?.("purpose", e.target.value)}
-                onKeyDown={e => {
-                  if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault();
-                    handleFieldEdit("purpose", e.currentTarget.value);
-                  }
-                  if (e.key === "Escape") {
-                    setEditingField(null);
-                  }
-                }} 
-                autoFocus 
-              />
-            ) : (
-              <button 
-                onClick={() => setEditingField("purpose")} 
-                className="w-full text-left min-h-12 p-2 text-sm text-foreground hover:bg-white hover:border-gray-400 transition-colors rounded whitespace-pre-wrap break-words overflow-wrap-anywhere border border-gray-200"
-              >
-                {purpose}
-              </button>
-            )
-          )}
-        </div>
+        {/* Meeting Summary section removed - now handled by RobustMeetingSummary component */}
       </div>
     </div>;
 };
