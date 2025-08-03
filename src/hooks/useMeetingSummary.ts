@@ -7,7 +7,9 @@ interface MeetingSummaryData {
   id?: string;
   company_id: string;
   meeting_date: string;
-  summary_text: string;
+  purpose: string;
+  title: string;
+  attendees: any[];
   created_at?: string;
   updated_at?: string;
 }
@@ -93,35 +95,37 @@ export const useMeetingSummary = ({
       const [day, month, year] = datePart.split('/');
       const isoDate = new Date(`${year}-${month}-${day}T${timePart}:00.000Z`).toISOString();
       
-      const summaryData: MeetingSummaryData = {
-        company_id: profile.company_id,
-        meeting_date: isoDate,
-        summary_text: text,
-        updated_at: new Date().toISOString()
-      };
-
-      console.log('💾 Meeting Summary: Saving to database', summaryData);
+      console.log('💾 Meeting Summary: Saving to database', { text, isoDate, companyId: profile.company_id });
 
       // Check if record exists
       const { data: existing } = await supabase
-        .from('meeting_summaries')
-        .select('id')
+        .from('meeting_headers')
+        .select('id, title, attendees')
         .eq('company_id', profile.company_id)
         .eq('meeting_date', isoDate)
         .maybeSingle();
 
+      const summaryData = {
+        company_id: profile.company_id,
+        meeting_date: isoDate,
+        purpose: text,
+        title: existing?.title || 'Management Meeting',
+        attendees: existing?.attendees || [],
+        updated_at: new Date().toISOString()
+      };
+
       let result;
       if (existing) {
-        // Update existing
+        // Update existing record - only update purpose field
         result = await supabase
-          .from('meeting_summaries')
-          .update(summaryData)
+          .from('meeting_headers')
+          .update({ purpose: text, updated_at: new Date().toISOString() })
           .eq('id', existing.id)
           .select();
       } else {
-        // Insert new
+        // Insert new record
         result = await supabase
-          .from('meeting_summaries')
+          .from('meeting_headers')
           .insert(summaryData)
           .select();
       }
@@ -139,11 +143,6 @@ export const useMeetingSummary = ({
       // Create backup after successful save
       createBackup(text);
       
-      toast({
-        title: "Meeting Summary Saved",
-        description: "Your meeting summary has been saved successfully",
-      });
-
       return true;
     } catch (error) {
       console.error('❌ Meeting Summary: Save failed', error);
@@ -190,8 +189,8 @@ export const useMeetingSummary = ({
       console.log('🔍 Meeting Summary: Loading from database', { isoDate, companyId: profile.company_id });
 
       const { data, error } = await supabase
-        .from('meeting_summaries')
-        .select('*')
+        .from('meeting_headers')
+        .select('purpose')
         .eq('company_id', profile.company_id)
         .eq('meeting_date', isoDate)
         .maybeSingle();
@@ -203,8 +202,8 @@ export const useMeetingSummary = ({
 
       if (data) {
         console.log('✅ Meeting Summary: Loaded from database', data);
-        setSummaryText(data.summary_text || '');
-        lastSavedDataRef.current = data.summary_text || '';
+        setSummaryText(data.purpose || '');
+        lastSavedDataRef.current = data.purpose || '';
         setHasUnsavedChanges(false);
         return;
       }
@@ -229,6 +228,11 @@ export const useMeetingSummary = ({
       if (backupData) {
         setSummaryText(backupData);
         setHasUnsavedChanges(true);
+        
+        toast({
+          title: "Data Recovered",
+          description: "Meeting summary restored from local backup",
+        });
       } else {
         setSummaryText('');
         lastSavedDataRef.current = '';
@@ -237,7 +241,7 @@ export const useMeetingSummary = ({
     } finally {
       setIsLoading(false);
     }
-  }, [profile?.company_id, meetingDate, restoreFromBackup]);
+  }, [profile?.company_id, meetingDate, restoreFromBackup, toast]);
 
   // Auto-save with debouncing
   const debouncedSave = useCallback((text: string) => {
