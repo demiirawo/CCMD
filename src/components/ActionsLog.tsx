@@ -209,18 +209,10 @@ export const ActionsLog = ({
 
     let formattedText = 'ACTIONS LOG\n\n';
     
-    if (myActions.length > 0) {
-      formattedText += `MY ACTIONS (${myActions.length})\n`;
+    if (openActions.length > 0) {
+      formattedText += `OPEN ACTIONS (${openActions.length})\n`;
       formattedText += '=' .repeat(20) + '\n';
-      myActions.forEach((action, index) => {
-        formattedText += formatAction(action, index) + '\n\n';
-      });
-    }
-    
-    if (officeTeamActions.length > 0) {
-      formattedText += `OFFICE TEAM ACTIONS (${officeTeamActions.length})\n`;
-      formattedText += '=' .repeat(25) + '\n';
-      officeTeamActions.forEach((action, index) => {
+      openActions.forEach((action, index) => {
         formattedText += formatAction(action, index) + '\n\n';
       });
     }
