@@ -51,7 +51,7 @@ export const Meetings = () => {
     });
   };
   return <div className="min-h-screen bg-background pt-20">
-      <div className="max-w-4xl mx-auto p-6">
+      <div className="max-w-6xl mx-auto p-6">
         <div className="mb-8">
           
           
