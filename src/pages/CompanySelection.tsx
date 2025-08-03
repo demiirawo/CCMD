@@ -202,6 +202,7 @@ export const CompanySelection = () => {
           companies!inner(name)
         `)
         .eq('closed', false)
+        .eq('mentioned_attendee', profile?.username)
         .order('due_date', { ascending: true });
 
       console.log('Actions query result:', { data, error });
