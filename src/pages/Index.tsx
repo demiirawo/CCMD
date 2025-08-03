@@ -148,6 +148,7 @@ const Index = () => {
       location,
       currentPurpose: headerData.purpose,
       newPurpose: data?.purpose,
+      fullData: data,
       dataSource: data?.source || 'unknown',
       stackTrace: new Error().stack?.split('\n').slice(1, 4).join('\n')
     });
