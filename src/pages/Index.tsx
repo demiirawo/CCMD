@@ -1644,7 +1644,7 @@ const Index = () => {
         </div>
         
         <div id="dashboard-container" className="space-y-6">
-          <DashboardHeader date={headerData.date} title={headerData.title} attendees={headerData.attendees} purpose={headerData.purpose} stats={calculateStats()} sections={dashboardData.sections} onDataChange={canEdit ? handleDataChange : undefined} onAttendeesChange={canEdit ? handleAttendeesChange : undefined} readOnly={!canEdit} />
+          <DashboardHeader date={headerData.date} title={headerData.title} attendees={headerData.attendees} purpose={headerData.purpose} stats={calculateStats()} sections={dashboardData.sections} actionsLog={actionsLog} onDataChange={canEdit ? handleDataChange : undefined} onAttendeesChange={canEdit ? handleAttendeesChange : undefined} readOnly={!canEdit} />
           
           
           <ActionsLog actions={actionsLog} onActionComplete={canEdit ? handleActionComplete : undefined} onActionDelete={canEdit ? handleActionDelete : undefined} onResetActions={canEdit ? resetActionsLog : undefined} onActionEdit={canEdit ? handleActionEdit : undefined} attendees={getAttendeesList()} onPanelStateChange={triggerPanelStateUpdate} panelStateTracker={panelStateTracker} readOnly={!canEdit} currentUsername={profile?.username} />

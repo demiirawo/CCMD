@@ -20,8 +20,15 @@ interface DashboardHeaderProps {
     title: string;
     items: Array<{
       status: "green" | "amber" | "red" | "na";
+      title?: string;
+      observation?: string;
+      trendsThemes?: string;
+      details?: string;
+      actions?: any[];
+      lastReviewed?: string;
     }>;
   }>;
+  actionsLog?: any[];
   onDataChange?: (field: string, value: string) => void;
   onAttendeesChange?: (attendees: Attendee[]) => void;
   readOnly?: boolean;
@@ -33,6 +40,7 @@ export const DashboardHeader = ({
   purpose,
   stats,
   sections,
+  actionsLog,
   onDataChange,
   onAttendeesChange,
   readOnly = false
@@ -99,7 +107,19 @@ export const DashboardHeader = ({
         <div className="p-4 rounded-lg border border-gray-100 min-h-24 bg-white">
           <div className="flex items-center justify-between mb-2">
             <h3 className="text-sm font-medium text-muted-foreground mx-0 px-0 py-[3px] my-0">Meeting Summary</h3>
-            {!readOnly && <AISummaryButton onSummaryGenerated={summary => onDataChange?.("purpose", summary)} />}
+            {!readOnly && (
+              <AISummaryButton 
+                meetingData={{
+                  title,
+                  date,
+                  attendees,
+                  purpose,
+                  sections: sections || [],
+                  actionsLog: actionsLog || []
+                }}
+                onSummaryGenerated={summary => onDataChange?.("purpose", summary)} 
+              />
+            )}
           </div>
           {readOnly ? <div className="w-full min-h-12 p-2 text-sm text-foreground bg-gray-50 border border-gray-200 rounded whitespace-pre-wrap break-words overflow-wrap-anywhere">
               {purpose || "No meeting summary provided."}

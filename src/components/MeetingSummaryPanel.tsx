@@ -7,9 +7,17 @@ interface MeetingSummaryPanelProps {
   purpose: string;
   onPurposeChange?: (value: string) => void;
   readOnly?: boolean;
+  meetingData?: {
+    title: string;
+    date: string;
+    attendees: any[];
+    purpose: string;
+    sections: any[];
+    actionsLog: any[];
+  };
 }
 
-export const MeetingSummaryPanel = ({ purpose, onPurposeChange, readOnly = false }: MeetingSummaryPanelProps) => {
+export const MeetingSummaryPanel = ({ purpose, onPurposeChange, readOnly = false, meetingData }: MeetingSummaryPanelProps) => {
   const [editingPurpose, setEditingPurpose] = useState(false);
 
   const handlePurposeEdit = (value: string) => {
@@ -45,7 +53,10 @@ export const MeetingSummaryPanel = ({ purpose, onPurposeChange, readOnly = false
               <CardTitle className="text-lg">Meeting Summary</CardTitle>
             </div>
             {!readOnly && (
-              <AISummaryButton onSummaryGenerated={(summary) => onPurposeChange?.(stripMarkdown(summary))} />
+              <AISummaryButton 
+                meetingData={meetingData}
+                onSummaryGenerated={(summary) => onPurposeChange?.(stripMarkdown(summary))} 
+              />
             )}
           </div>
         </CardHeader>

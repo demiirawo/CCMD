@@ -6,162 +6,161 @@ import { useToast } from "@/hooks/use-toast";
 
 interface AISummaryButtonProps {
   onSummaryGenerated?: (summary: string) => void;
+  meetingData?: {
+    title: string;
+    date: string;
+    attendees: any[];
+    purpose: string;
+    sections: any[];
+    actionsLog: any[];
+  };
 }
 
-export const AISummaryButton = ({ onSummaryGenerated }: AISummaryButtonProps) => {
+export const AISummaryButton = ({ onSummaryGenerated, meetingData }: AISummaryButtonProps) => {
   const { generateResponse, isLoading } = useOpenAI();
   const { toast } = useToast();
   const [isGenerating, setIsGenerating] = useState(false);
 
   const collectMeetingData = () => {
-    console.log('Starting data collection...');
+    console.log('Starting data collection with structured data...');
+    
+    if (!meetingData) {
+      console.log('No meeting data provided, falling back to DOM scraping');
+      // Fallback to DOM scraping if no data provided (for backward compatibility)
+      return collectFromDOM();
+    }
+
     let allData = "";
     
-    // Get meeting date from the header to filter recent updates
-    const getCurrentMeetingDate = () => {
-      // Try to get the meeting date from localStorage or URL params
-      const meetingId = new URLSearchParams(window.location.search).get('meeting') || 
-                       localStorage.getItem('currentMeetingId');
-      
-      // Look for date in the dashboard header
-      const dateElements = document.querySelectorAll('[class*="meeting-date"], [class*="date"]');
-      for (const element of dateElements) {
-        const dateText = element.textContent?.trim();
-        if (dateText) {
-          const parsedDate = new Date(dateText);
-          if (!isNaN(parsedDate.getTime())) {
-            return parsedDate;
-          }
-        }
-      }
-      
-      // Fallback to today if no meeting date found
-      return new Date();
-    };
-
-    const meetingDate = getCurrentMeetingDate();
-    const meetingDateStr = meetingDate.toISOString().split('T')[0]; // YYYY-MM-DD format
-    console.log('Meeting date for filtering:', meetingDateStr);
+    // Meeting basic information
+    if (meetingData.title) {
+      allData += `Meeting Title: ${meetingData.title}\n`;
+    }
     
-    // Get meeting title from the editable field
-    const titleButton = document.querySelector('button[class*="text-left"]');
-    if (titleButton) {
-      const titleText = titleButton.textContent?.trim();
-      if (titleText) {
-        allData += `Meeting Title: ${titleText}\n`;
+    if (meetingData.date) {
+      allData += `Meeting Date: ${meetingData.date}\n`;
+    }
+    
+    if (meetingData.attendees && meetingData.attendees.length > 0) {
+      const attendeeNames = meetingData.attendees
+        .map(attendee => typeof attendee === 'string' ? attendee : attendee.name || attendee.email)
+        .filter(name => name && name.trim())
+        .join(', ');
+      if (attendeeNames) {
+        allData += `Attendees: ${attendeeNames}\n`;
       }
     }
     
-    // Get meeting purpose from the Meeting Summary section
-    const purposeElements = document.querySelectorAll('button[class*="text-left"]');
-    purposeElements.forEach((element) => {
-      const text = element.textContent?.trim();
-      if (text && text !== titleButton?.textContent?.trim()) {
-        allData += `Meeting Purpose: ${text}\n`;
-      }
-    });
-    
-    // Get attendees - look for elements with attendee data
-    const attendeeElements = document.querySelectorAll('[class*="attendee"], [class*="MeetingAttendeesManager"] input, [class*="MeetingAttendeesManager"] button');
-    const attendees: string[] = [];
-    attendeeElements.forEach((element) => {
-      const text = element.textContent?.trim() || (element as HTMLInputElement).value?.trim();
-      if (text && text.length > 0 && !attendees.includes(text)) {
-        attendees.push(text);
-      }
-    });
-    if (attendees.length > 0) {
-      allData += `Attendees: ${attendees.join(', ')}\n`;
+    if (meetingData.purpose && meetingData.purpose.trim()) {
+      allData += `Current Meeting Purpose: ${meetingData.purpose}\n`;
     }
-
-    // Get all dashboard sections and their items (filter by meeting date)
-    const sections = document.querySelectorAll('[data-section-id], [class*="DashboardSection"]');
-    sections.forEach((section) => {
-      const sectionTitle = section.querySelector('h2, h3, [class*="title"]');
-      if (sectionTitle?.textContent) {
-        let sectionHasRecentUpdates = false;
-        let sectionData = `\n=== ${sectionTitle.textContent} ===\n`;
+    
+    // Dashboard sections and items
+    if (meetingData.sections && meetingData.sections.length > 0) {
+      meetingData.sections.forEach((section: any) => {
+        if (!section.items || section.items.length === 0) return;
         
-        // Get all items in this section
-        const items = section.querySelectorAll('[class*="StatusItem"], [data-item-id]');
-        items.forEach((item) => {
-          const itemTitle = item.querySelector('h4, h5, [class*="title"]');
-          const observation = item.querySelector('textarea, [class*="observation"]');
-          const statusBadge = item.querySelector('[class*="badge"]');
-          const lastReviewed = item.querySelector('[class*="last-reviewed"], [class*="lastReviewed"]');
+        // Check if any items in this section have meaningful content
+        const itemsWithContent = section.items.filter((item: any) => 
+          item.observation?.trim() || 
+          item.trendsThemes?.trim() || 
+          item.details?.trim() ||
+          (item.actions && item.actions.length > 0) ||
+          item.status !== 'green'
+        );
+        
+        if (itemsWithContent.length > 0) {
+          allData += `\n=== ${section.title} ===\n`;
           
-          // Check if this item was updated during or after the meeting
-          let isRecentlyUpdated = false;
-          
-          // Check last reviewed date
-          if (lastReviewed?.textContent) {
-            const lastReviewedText = lastReviewed.textContent.trim();
-            const reviewDate = new Date(lastReviewedText);
-            if (!isNaN(reviewDate.getTime()) && reviewDate >= meetingDate) {
-              isRecentlyUpdated = true;
+          itemsWithContent.forEach((item: any) => {
+            allData += `- ${item.title}`;
+            if (item.status && item.status !== 'green') {
+              allData += ` (Status: ${item.status})`;
             }
-          }
-          
-          // Check if observation has content (indicating recent update)
-          const obsText = observation?.textContent || (observation as HTMLTextAreaElement)?.value;
-          if (obsText?.trim() && obsText.trim().length > 0) {
-            isRecentlyUpdated = true;
-          }
-          
-          // Only include items that were recently updated
-          if (isRecentlyUpdated && itemTitle?.textContent) {
-            sectionHasRecentUpdates = true;
-            sectionData += `- ${itemTitle.textContent}`;
-            if (statusBadge?.textContent) {
-              sectionData += ` (Status: ${statusBadge.textContent})`;
+            if (item.lastReviewed) {
+              allData += ` (Last Reviewed: ${item.lastReviewed})`;
             }
-            if (obsText?.trim()) {
-              sectionData += `\n  Observation: ${obsText.trim()}`;
+            allData += '\n';
+            
+            if (item.observation?.trim()) {
+              allData += `  Observation: ${item.observation.trim()}\n`;
             }
-            sectionData += '\n';
+            
+            if (item.trendsThemes?.trim()) {
+              allData += `  Trends/Themes: ${item.trendsThemes.trim()}\n`;
+            }
+            
+            if (item.details?.trim()) {
+              allData += `  Details: ${item.details.trim()}\n`;
+            }
+            
+            if (item.actions && item.actions.length > 0) {
+              allData += `  Actions:\n`;
+              item.actions.forEach((action: any) => {
+                allData += `    - ${action.text || action.action}\n`;
+              });
+            }
+          });
+        }
+      });
+    }
+    
+    // Actions log
+    if (meetingData.actionsLog && meetingData.actionsLog.length > 0) {
+      allData += '\n=== Actions from Meeting ===\n';
+      meetingData.actionsLog.forEach((action: any) => {
+        allData += `- ${action.action || action.text}`;
+        if (action.assignee) {
+          allData += ` (Assignee: ${action.assignee})`;
+        }
+        if (action.dueDate) {
+          allData += ` (Due: ${action.dueDate})`;
+        }
+        if (action.status) {
+          allData += ` (Status: ${action.status})`;
+        }
+        allData += '\n';
+      });
+    }
+
+    console.log('Data collection completed. Total data length:', allData.length);
+    return allData;
+  };
+
+  // Fallback DOM scraping method (simplified)
+  const collectFromDOM = () => {
+    let allData = "";
+    
+    // Get meeting title
+    const titleElement = document.querySelector('[data-testid="meeting-title"], .meeting-title');
+    if (titleElement?.textContent) {
+      allData += `Meeting Title: ${titleElement.textContent.trim()}\n`;
+    }
+    
+    // Get dashboard sections with observations
+    const sections = document.querySelectorAll('[data-section-id]');
+    sections.forEach((section) => {
+      const sectionTitle = section.querySelector('h2, h3')?.textContent;
+      if (sectionTitle) {
+        const observations = section.querySelectorAll('textarea[value], textarea');
+        let sectionHasContent = false;
+        let sectionData = `\n=== ${sectionTitle} ===\n`;
+        
+        observations.forEach((textarea) => {
+          const value = (textarea as HTMLTextAreaElement).value?.trim();
+          if (value) {
+            sectionHasContent = true;
+            const itemTitle = textarea.closest('[data-item-id]')?.querySelector('h4, h5')?.textContent || 'Item';
+            sectionData += `- ${itemTitle}: ${value}\n`;
           }
         });
         
-        // Only add section if it has recent updates
-        if (sectionHasRecentUpdates) {
+        if (sectionHasContent) {
           allData += sectionData;
         }
       }
     });
-
-    // Get actions from the actions log (filter by creation date)
-    const actionsElements = document.querySelectorAll('[class*="ActionsLog"] [class*="action"], [data-action-id]');
-    if (actionsElements.length > 0) {
-      let recentActions: string[] = [];
-      
-      actionsElements.forEach((action) => {
-        const actionText = action.textContent?.trim();
-        const actionDate = action.querySelector('[class*="date"], [class*="created"]');
-        
-        // Check if action was created during or after the meeting
-        let isRecentAction = true; // Default to true if no date found
-        if (actionDate?.textContent) {
-          const createdDate = new Date(actionDate.textContent.trim());
-          if (!isNaN(createdDate.getTime()) && createdDate < meetingDate) {
-            isRecentAction = false;
-          }
-        }
-        
-        if (actionText && isRecentAction) {
-          recentActions.push(actionText);
-        }
-      });
-      
-      if (recentActions.length > 0) {
-        allData += '\n=== New Actions from This Meeting ===\n';
-        recentActions.forEach((action) => {
-          allData += `- ${action}\n`;
-        });
-      }
-    }
-
-    console.log('Data collection completed. Total data length:', allData.length);
-    console.log('Filtered data for meeting date:', meetingDateStr);
+    
     return allData;
   };
 
@@ -190,11 +189,15 @@ export const AISummaryButton = ({ onSummaryGenerated }: AISummaryButtonProps) =>
       const messages = [
         {
           role: "system" as const,
-          content: "You are an AI assistant that creates narrative meeting summaries. Write a flowing, professional summary that reads like a coherent story of the meeting. Avoid bullet points and lists - instead use smooth transitions and connecting words to create a natural narrative flow. Highlight key discussion points, status updates, and outcomes in paragraph form. Keep it to 150 words or less and make it engaging to read."
+          content: `You are an AI assistant specializing in regulated care management summaries. You understand that in regulated care settings, robust systems across staffing, care planning, safety, and quality assurance are essential to meet legal and regulatory standards such as those set by the CQC or Ofsted. 
+
+Key context: Providers must ensure they have sufficient, well-trained staff with up-to-date documentation, regular supervision, and monitoring. Care or support plans should be person-centred, risk assessed, and clearly documented alongside accurate care notes and medication records. Safety protocols must include incident reporting, infection control, and information governance, while ongoing improvement relies on regular audits and user feedback. For supported housing, tenancy management and property safety are also critical. Compliance in these areas ensures safe, effective, and person-led care.
+
+Create a professional narrative meeting summary that reads like a coherent story of the meeting's progress in maintaining regulatory compliance and quality care. Focus on how discussions and updates demonstrate the organization's commitment to meeting care standards. Avoid bullet points - use smooth transitions and connecting words. Highlight key compliance points, quality improvements, and regulatory readiness. Keep it to 150 words or less and make it engaging while maintaining professional tone appropriate for care management.`
         },
         {
           role: "user" as const,
-          content: `Please create a concise meeting summary (150 words or less) based on the following meeting data:\n\n${meetingData}`
+          content: `Please create a concise meeting summary (150 words or less) based on the following regulated care meeting data:\n\n${meetingData}`
         }
       ];
 
