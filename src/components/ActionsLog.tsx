@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { AlertCircle, Check, Minus, Edit, ChevronDown, ChevronRight } from "lucide-react";
+import { AlertCircle, Check, Minus, Edit, ChevronDown, ChevronRight, Copy } from "lucide-react";
 import { StatusBadge } from "./StatusBadge";
 import { Button } from "./ui/button";
 import { ActionEditDialog } from "./ActionEditDialog";
@@ -189,6 +189,58 @@ export const ActionsLog = ({
   };
 
   const overallStatus = getOverallActionStatus();
+
+  // Function to copy actions in a nicely formatted way
+  const copyActionsToClipboard = async () => {
+    const formatAction = (action: ActionLogEntry, index: number): string => {
+      const status = action.closed ? 'Closed' : (() => {
+        const days = getDaysRemaining(action.dueDate);
+        if (days < 0) return `${Math.abs(days)} day(s) overdue`;
+        if (days === 0) return 'Due today';
+        return `${days} day(s) left`;
+      })();
+      
+      return `${index + 1}. ${action.action}
+   Owner: ${action.mentionedAttendee}
+   Due Date: ${action.dueDate}
+   Status: ${status}
+   From: ${action.itemTitle}`;
+    };
+
+    let formattedText = 'ACTIONS LOG\n\n';
+    
+    if (myActions.length > 0) {
+      formattedText += `MY ACTIONS (${myActions.length})\n`;
+      formattedText += '=' .repeat(20) + '\n';
+      myActions.forEach((action, index) => {
+        formattedText += formatAction(action, index) + '\n\n';
+      });
+    }
+    
+    if (officeTeamActions.length > 0) {
+      formattedText += `OFFICE TEAM ACTIONS (${officeTeamActions.length})\n`;
+      formattedText += '=' .repeat(25) + '\n';
+      officeTeamActions.forEach((action, index) => {
+        formattedText += formatAction(action, index) + '\n\n';
+      });
+    }
+    
+    if (closedActions.length > 0) {
+      formattedText += `CLOSED ACTIONS - LAST 30 DAYS (${closedActions.length})\n`;
+      formattedText += '=' .repeat(35) + '\n';
+      closedActions.forEach((action, index) => {
+        formattedText += formatAction(action, index) + 
+          `\n   Closed: ${action.closedDate ? new Date(action.closedDate).toLocaleDateString('en-GB') : 'N/A'}\n\n`;
+      });
+    }
+
+    try {
+      await navigator.clipboard.writeText(formattedText);
+      // You can add a toast notification here if needed
+    } catch (err) {
+      console.error('Failed to copy to clipboard:', err);
+    }
+  };
   
   // Get background class with dynamic panel colour support
   const getBackgroundClass = () => {
@@ -385,10 +437,25 @@ export const ActionsLog = ({
         <div className="flex items-center gap-3">
           <div>
             <h3 className={cn(
-              "text-xl font-bold",
+              "text-xl font-bold flex items-center gap-2",
               isDynamicPanelColourEnabled ? "text-white" : "text-foreground"
             )}>
               Actions
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  copyActionsToClipboard();
+                }}
+                className={cn(
+                  "h-6 w-6 p-0 hover:bg-white/20",
+                  isDynamicPanelColourEnabled ? "text-white/80 hover:text-white" : "text-foreground"
+                )}
+                title="Copy actions log to clipboard"
+              >
+                <Copy className="h-4 w-4" />
+              </Button>
             </h3>
             <p className={cn(
               "text-sm",
