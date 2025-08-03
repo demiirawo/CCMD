@@ -1486,9 +1486,25 @@ const Index = () => {
           return `${section.title}: ${greenCount} Green, ${amberCount} Amber, ${redCount} Red items`;
         }).join('. ');
 
-        // Only use the meeting purpose if it exists and is not empty, otherwise send empty summary
-        const meetingSummary = (headerData.purpose && headerData.purpose.trim() !== '') ? headerData.purpose : '';
-        console.log('📋 Using meeting summary:', meetingSummary || 'No summary provided');
+        // Fetch the meeting summary from the database
+        let meetingSummary = '';
+        try {
+          const normalizedDate = meetingDate.toISOString();
+          const { data: summaryData } = await supabase
+            .from('meeting_summaries')
+            .select('summary_text')
+            .eq('company_id', profile?.company_id)
+            .eq('meeting_date', normalizedDate)
+            .maybeSingle();
+          
+          meetingSummary = summaryData?.summary_text || '';
+          console.log('📋 Using meeting summary from database:', meetingSummary || 'No summary provided');
+        } catch (summaryError) {
+          console.warn('⚠️ Could not fetch meeting summary:', summaryError);
+          // Fallback to purpose if summary fetch fails
+          meetingSummary = (headerData.purpose && headerData.purpose.trim() !== '') ? headerData.purpose : '';
+        }
+        
         await sendMeetingEmails({
           title: headerData.title,
           date: meetingDate.toISOString(),
