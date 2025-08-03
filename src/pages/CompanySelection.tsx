@@ -357,7 +357,7 @@ export const CompanySelection = () => {
                           <p className="text-sm text-muted-foreground">No actions found</p>
                         </div>
                       ) : (
-                        <div className="space-y-2 max-h-60 overflow-y-auto">
+                        <div className="space-y-2 max-h-96 overflow-y-auto">
                           {allActions.map((action) => (
                             <div key={action.id} className="flex items-center justify-between p-3 bg-accent/50 rounded-lg">
                               <div className="flex-1">
