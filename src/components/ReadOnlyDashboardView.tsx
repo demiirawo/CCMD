@@ -6,6 +6,7 @@ import { Attendee } from "@/components/MeetingAttendeesManager";
 import { StatusBadge } from "@/components/StatusBadge";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useMeetingSummaryResilience } from "@/hooks/useMeetingSummaryResilience";
 import { Users, HeartHandshake, Shield, TrendingUp, Calendar, CalendarDays, Clock, Target, FileText, UserCheck } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
@@ -49,6 +50,11 @@ export const ReadOnlyDashboardView = ({ meetingId }: ReadOnlyDashboardViewProps)
   const { profile, companies } = useAuth();
   const [meeting, setMeeting] = useState<ParsedMeeting | null>(null);
   const [loading, setLoading] = useState(true);
+  
+  // Use the new meeting summary system
+  const {
+    summary: meetingSummary
+  } = useMeetingSummaryResilience(meeting?.date || '');
 
   useEffect(() => {
     loadMeetingData();
@@ -63,7 +69,7 @@ export const ReadOnlyDashboardView = ({ meetingId }: ReadOnlyDashboardViewProps)
         .select('*')
         .eq('id', meetingId)
         .eq('company_id', profile.company_id)
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error('Error loading meeting:', error);
@@ -223,7 +229,7 @@ export const ReadOnlyDashboardView = ({ meetingId }: ReadOnlyDashboardViewProps)
                 <h3 className="text-sm font-medium text-muted-foreground mx-0 px-0 py-[3px] my-0">Meeting Summary</h3>
               </div>
               <div className="w-full min-h-12 p-2 text-sm text-foreground bg-gray-50 border border-gray-200 rounded whitespace-pre-wrap break-words overflow-wrap-anywhere">
-                {meeting.purpose || "No meeting summary provided."}
+                {meetingSummary || "No meeting summary provided."}
               </div>
             </div>
           </div>
