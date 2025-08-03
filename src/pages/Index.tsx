@@ -610,17 +610,17 @@ const Index = () => {
           }
         };
         const meetingDate = field === 'date' ? parseDateString(value) : parseDateString(updatedHeaderData.date);
-        const {
-          error
-        } = await supabase.from('meeting_headers').upsert({
-          company_id: profile.company_id,
-          meeting_date: meetingDate.toISOString(),
-          title: field === 'title' ? value : updatedHeaderData.title,
-          attendees: JSON.parse(JSON.stringify(updatedHeaderData.attendees)),
-          purpose: field === 'purpose' ? value : updatedHeaderData.purpose
-        }, {
-          onConflict: 'company_id'
-        });
+        const { error } = await supabase
+          .from('meeting_headers')
+          .upsert({
+            company_id: profile.company_id,
+            meeting_date: meetingDate.toISOString(),
+            title: field === 'title' ? value : updatedHeaderData.title,
+            attendees: JSON.parse(JSON.stringify(updatedHeaderData.attendees)),
+            purpose: field === 'purpose' ? value : updatedHeaderData.purpose
+          }, {
+            onConflict: 'company_id,meeting_date'
+          });
         if (error) {
           console.error('Error saving header data:', error);
         }
@@ -655,17 +655,17 @@ const Index = () => {
           }
         };
         const meetingDate = parseDateString(headerData.date);
-        const {
-          error
-        } = await supabase.from('meeting_headers').upsert({
-          company_id: profile.company_id,
-          meeting_date: meetingDate.toISOString(),
-          title: headerData.title,
-          attendees: JSON.parse(JSON.stringify(attendees)),
-          purpose: headerData.purpose
-        }, {
-          onConflict: 'company_id'
-        });
+        const { error } = await supabase
+          .from('meeting_headers')
+          .upsert({
+            company_id: profile.company_id,
+            meeting_date: meetingDate.toISOString(),
+            title: headerData.title,
+            attendees: JSON.parse(JSON.stringify(attendees)),
+            purpose: headerData.purpose
+          }, {
+            onConflict: 'company_id,meeting_date'
+          });
         console.log('Saving attendance data:', attendees);
         if (error) {
           console.error('Error saving attendance:', error);
