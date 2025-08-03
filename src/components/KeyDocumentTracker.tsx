@@ -391,7 +391,6 @@ export const KeyDocumentTracker = ({
                     <Input 
                       value={doc.comment || ''} 
                       onChange={e => handleDocumentChange(documents.indexOf(doc), 'comment', e.target.value)} 
-                      placeholder="Enter comment" 
                       className="text-sm h-9 bg-white text-black" 
                     />
                   </div>
