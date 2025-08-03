@@ -203,8 +203,7 @@ export const ActionsLog = ({
       return `${index + 1}. ${action.action}
    Owner: ${action.mentionedAttendee}
    Due Date: ${action.dueDate}
-   Status: ${status}
-   From: ${action.itemTitle}`;
+   Status: ${status}`;
     };
 
     let formattedText = 'ACTIONS LOG\n\n';
