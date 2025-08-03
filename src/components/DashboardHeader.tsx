@@ -122,19 +122,37 @@ export const DashboardHeader = ({
               />
             )}
           </div>
-          {readOnly ? <div className="w-full min-h-12 p-2 text-sm text-foreground bg-gray-50 border border-gray-200 rounded whitespace-pre-wrap break-words overflow-wrap-anywhere">
+          {readOnly ? (
+            <div className="w-full min-h-12 p-2 text-sm text-foreground bg-gray-50 border border-gray-200 rounded whitespace-pre-wrap break-words overflow-wrap-anywhere">
               {purpose || "No meeting summary provided."}
-            </div> : editingField === "purpose" ? <textarea defaultValue={purpose} className="w-full min-h-12 p-2 text-sm text-foreground bg-white border border-gray-300 rounded resize-none whitespace-pre-wrap" onBlur={e => handleFieldEdit("purpose", e.target.value)} onKeyDown={e => {
-          if (e.key === "Enter" && !e.shiftKey) {
-            e.preventDefault();
-            handleFieldEdit("purpose", e.currentTarget.value);
-          }
-          if (e.key === "Escape") {
-            setEditingField(null);
-          }
-        }} autoFocus /> : <button onClick={() => setEditingField("purpose")} className="w-full text-left min-h-12 p-2 text-sm text-foreground hover:bg-white hover:border-gray-400 transition-colors rounded whitespace-pre-wrap break-words overflow-wrap-anywhere border border-gray-200">
-                {purpose || ""}
-              </button>}
+            </div>
+          ) : (
+            editingField === "purpose" ? (
+              <textarea 
+                defaultValue={purpose} 
+                className="w-full min-h-12 p-2 text-sm text-foreground bg-white border border-gray-300 rounded resize-none whitespace-pre-wrap" 
+                onBlur={e => handleFieldEdit("purpose", e.target.value)}
+                onChange={e => onDataChange?.("purpose", e.target.value)}
+                onKeyDown={e => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    handleFieldEdit("purpose", e.currentTarget.value);
+                  }
+                  if (e.key === "Escape") {
+                    setEditingField(null);
+                  }
+                }} 
+                autoFocus 
+              />
+            ) : (
+              <button 
+                onClick={() => setEditingField("purpose")} 
+                className="w-full text-left min-h-12 p-2 text-sm text-foreground hover:bg-white hover:border-gray-400 transition-colors rounded whitespace-pre-wrap break-words overflow-wrap-anywhere border border-gray-200"
+              >
+                {purpose || "Click to add meeting summary or use AI Summary to generate automatically..."}
+              </button>
+            )
+          )}
         </div>
       </div>
     </div>;

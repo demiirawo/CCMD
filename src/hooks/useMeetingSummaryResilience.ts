@@ -87,7 +87,7 @@ export const useMeetingSummaryResilience = (meetingDate: string) => {
       console.log('💾 MeetingSummary: Attempting to save:', dataToSave);
 
       // Check if record exists
-      const { data: existing } = await supabase
+      const { data: existing } = await (supabase as any)
         .from('meeting_summaries')
         .select('id')
         .eq('company_id', profile.company_id)
@@ -97,7 +97,7 @@ export const useMeetingSummaryResilience = (meetingDate: string) => {
       let result;
       if (existing) {
         // Update existing
-        result = await supabase
+        result = await (supabase as any)
           .from('meeting_summaries')
           .update(dataToSave)
           .eq('id', existing.id)
@@ -105,7 +105,7 @@ export const useMeetingSummaryResilience = (meetingDate: string) => {
         console.log('🔄 MeetingSummary: Updated existing record');
       } else {
         // Insert new
-        result = await supabase
+        result = await (supabase as any)
           .from('meeting_summaries')
           .insert(dataToSave)
           .select();
@@ -156,7 +156,7 @@ export const useMeetingSummaryResilience = (meetingDate: string) => {
 
       console.log('🔍 MeetingSummary: Loading from database for date:', normalizedDate);
 
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('meeting_summaries')
         .select('*')
         .eq('company_id', profile.company_id)

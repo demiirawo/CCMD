@@ -141,30 +141,13 @@ const Index = () => {
     purpose: ""
   });
 
-  // Debug function to log meeting summary/purpose state
-  const debugMeetingSummary = (location: string, data: any) => {
-    console.log(`📝 MEETING_SUMMARY_DEBUG [${location}]:`, {
-      timestamp: new Date().toISOString(),
-      location,
-      currentPurpose: headerData.purpose,
-      newPurpose: data?.purpose,
-      fullData: data,
-      dataSource: data?.source || 'unknown',
-      stackTrace: new Error().stack?.split('\n').slice(1, 4).join('\n')
-    });
-  };
-
-  // Manual save function for header data (following feedback analytics pattern)
+  // Simplified save function for header data - just for compatibility
   const saveHeaderData = async (newHeaderData: typeof headerData) => {
     if (!profile?.company_id) return;
     
-    debugMeetingSummary('saveHeaderData_START', { newHeaderData, source: 'save_function_entry' });
-    
-    console.log('🔄 MeetingHeaders: Starting save operation', {
+    console.log('🔄 MeetingHeaders: Basic save operation', {
       companyId: profile.company_id,
-      meetingId: currentMeetingId,
-      headerData: newHeaderData,
-      timestamp: new Date().toISOString()
+      headerData: newHeaderData
     });
     
     try {
@@ -190,11 +173,9 @@ const Index = () => {
         updated_at: new Date().toISOString()
       };
 
-      debugMeetingSummary('saveHeaderData_PAYLOAD', { dataToSave, source: 'before_database_save' });
-
       console.log('💾 MeetingHeaders: Attempting database save with payload:', dataToSave);
 
-      // First try to find existing record
+      // Try to find existing record
       const { data: existingData } = await supabase
         .from('meeting_headers')
         .select('id')
@@ -222,16 +203,13 @@ const Index = () => {
 
       if (result.error) {
         console.error('❌ MeetingHeaders: Database save failed:', result.error);
-        debugMeetingSummary('saveHeaderData_ERROR', { error: result.error, source: 'database_save_failed' });
         throw result.error;
       } else {
         console.log('✅ MeetingHeaders: Successfully saved to database:', result.data);
-        debugMeetingSummary('saveHeaderData_SUCCESS', { savedData: result.data, source: 'database_save_success' });
         // Save to localStorage as backup
         const backupKey = currentMeetingId ? `headers_backup_${profile.company_id}_${currentMeetingId}` : `headers_backup_${profile.company_id}`;
         localStorage.setItem(backupKey, JSON.stringify(newHeaderData));
         console.log('💾 MeetingHeaders: Also saved backup to localStorage:', backupKey);
-        debugMeetingSummary('saveHeaderData_BACKUP', { backupKey, newHeaderData, source: 'localStorage_backup' });
       }
     } catch (error) {
       console.error('❌ MeetingHeaders: Exception in saveHeaderData:', error);
@@ -261,8 +239,6 @@ const Index = () => {
         }
         if (data && data.length > 0) {
           const headerRecord = data[0];
-          debugMeetingSummary('loadHeaderData_FOUND', { headerRecord, source: 'database_load' });
-          
           console.log('Loading header data from database:', headerRecord);
           const loadedData = {
             date: new Date(headerRecord.meeting_date).toLocaleDateString('en-GB', {
@@ -278,14 +254,7 @@ const Index = () => {
             attendees: Array.isArray(headerRecord.attendees) ? headerRecord.attendees as unknown as Attendee[] : [],
             purpose: headerRecord.purpose || ''
           };
-          
-          debugMeetingSummary('loadHeaderData_SETTING', { loadedData, source: 'about_to_set_state' });
-          
           setHeaderData(loadedData);
-          
-          debugMeetingSummary('loadHeaderData_SET', { loadedData, source: 'after_set_state' });
-        } else {
-          debugMeetingSummary('loadHeaderData_EMPTY', { data, source: 'database_empty' });
         }
       } catch (error) {
         console.error('Failed to load header data:', error);
@@ -673,18 +642,11 @@ const Index = () => {
     loadSubsectionData();
   }, [profile?.company_id]);
   const handleDataChange = async (field: string, value: string) => {
-    debugMeetingSummary('handleDataChange_START', { field, value, source: 'user_input' });
-    
     const updatedHeaderData = { ...headerData, [field]: value };
-    
-    debugMeetingSummary('handleDataChange_UPDATE', { field, value, updatedHeaderData, source: 'state_update' });
-    
     setHeaderData(updatedHeaderData);
     
     // Save the updated header data using the same mechanism as feedback analytics
     await saveHeaderData(updatedHeaderData);
-    
-    debugMeetingSummary('handleDataChange_SAVED', { field, value, updatedHeaderData, source: 'after_save' });
     
     toast({
       title: "Field Updated",
@@ -692,18 +654,11 @@ const Index = () => {
     });
   };
   const handleAttendeesChange = async (attendees: Attendee[]) => {
-    debugMeetingSummary('handleAttendeesChange_START', { attendees, currentHeaderData: headerData, source: 'attendees_change' });
-    
     const updatedHeaderData = { ...headerData, attendees };
-    
-    debugMeetingSummary('handleAttendeesChange_UPDATE', { updatedHeaderData, source: 'about_to_set_state' });
-    
     setHeaderData(updatedHeaderData);
 
     // Save the updated header data using the same mechanism as feedback analytics
     await saveHeaderData(updatedHeaderData);
-    
-    debugMeetingSummary('handleAttendeesChange_COMPLETE', { finalHeaderData: updatedHeaderData, source: 'after_save' });
   };
   const handleStatusChange = async (sectionId: string, itemId: string, newStatus: StatusType) => {
     const lastReviewed = new Date().toLocaleDateString('en-GB', {
@@ -1727,6 +1682,20 @@ const Index = () => {
         
         <div id="dashboard-container" className="space-y-6">
           <DashboardHeader date={headerData.date} title={headerData.title} attendees={headerData.attendees} purpose={headerData.purpose} stats={calculateStats()} sections={dashboardData.sections} actionsLog={actionsLog} onDataChange={canEdit ? handleDataChange : undefined} onAttendeesChange={canEdit ? handleAttendeesChange : undefined} readOnly={!canEdit} />
+          
+          <RobustMeetingSummary 
+            meetingDate={headerData.date}
+            readOnly={!canEdit}
+            meetingData={{
+              title: headerData.title,
+              date: headerData.date,
+              attendees: headerData.attendees,
+              purpose: headerData.purpose,
+              sections: dashboardData.sections,
+              actionsLog: actionsLog,
+              companyName: companies.find(c => c.id === profile?.company_id)?.name || "the organization"
+            }}
+          />
           
           
           <ActionsLog actions={actionsLog} onActionComplete={canEdit ? handleActionComplete : undefined} onActionDelete={canEdit ? handleActionDelete : undefined} onActionUndo={canEdit ? handleActionUndo : undefined} onResetActions={canEdit ? resetActionsLog : undefined} onActionEdit={canEdit ? handleActionEdit : undefined} attendees={getAttendeesList()} onPanelStateChange={triggerPanelStateUpdate} panelStateTracker={panelStateTracker} readOnly={!canEdit} currentUsername={profile?.username} />
