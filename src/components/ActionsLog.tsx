@@ -289,27 +289,27 @@ export const ActionsLog = ({
             <thead>
               <tr className="border-b border-border/30">
                 <th className={cn(
-                  "text-left py-2 px-3 text-sm font-semibold",
+                  "text-left py-2 px-3 text-sm font-semibold w-16",
                   isDynamicPanelColourEnabled ? "text-white" : "text-foreground"
                 )}>ID</th>
                 <th className={cn(
-                  "text-left py-2 pl-3 text-sm font-semibold",
+                  "text-left py-2 pl-3 text-sm font-semibold w-80",
                   isDynamicPanelColourEnabled ? "text-white" : "text-foreground"
                 )}>Description</th>
                 <th className={cn(
-                  "text-left py-2 pl-3 pr-1 text-sm font-semibold",
+                  "text-left py-2 pl-3 pr-1 text-sm font-semibold w-32",
                   isDynamicPanelColourEnabled ? "text-white" : "text-foreground"
                 )}>Owner</th>
                 <th className={cn(
-                  "text-left py-2 pl-3 pr-1 text-sm font-semibold",
+                  "text-left py-2 pl-3 pr-1 text-sm font-semibold w-28",
                   isDynamicPanelColourEnabled ? "text-white" : "text-foreground"
                 )}>Due Date</th>
                 <th className={cn(
-                  "text-left py-2 pl-3 pr-1 text-sm font-semibold",
+                  "text-left py-2 pl-3 pr-1 text-sm font-semibold w-28",
                   isDynamicPanelColourEnabled ? "text-white" : "text-foreground"
                 )}>Status</th>
                 <th className={cn(
-                  "text-left py-2 px-3 text-sm font-semibold",
+                  "text-left py-2 px-3 text-sm font-semibold w-24",
                   isDynamicPanelColourEnabled ? "text-white" : "text-foreground"
                 )}>Actions</th>
               </tr>
