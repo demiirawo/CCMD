@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -148,20 +149,6 @@ export const Meetings = () => {
     } finally {
       setIsSaving(false);
     }
-  };
-
-  const handleClear = () => {
-    setMeetingData({
-      title: "",
-      dateTime: "",
-      facilitator: "",
-      attendance: "",
-      agenda: ""
-    });
-    toast({
-      title: "Cleared",
-      description: "Meeting form has been cleared"
-    });
   };
 
   return (
