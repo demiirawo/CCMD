@@ -180,7 +180,7 @@ export const Meetings = () => {
         </div>
 
         <Card className="bg-stone-50">
-          <CardHeader className="bg-stone-50">
+          <CardHeader style={{ backgroundColor: 'hsl(var(--meetings-bg))' }}>
             
           </CardHeader>
           <CardContent className="space-y-6" style={{ backgroundColor: 'hsl(var(--meetings-bg))' }}>
