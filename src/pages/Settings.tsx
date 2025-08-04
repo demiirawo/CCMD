@@ -277,7 +277,7 @@ export const Settings = () => {
             </CardTitle>
             
           </CardHeader>
-          <CardContent className="space-y-4" style={{backgroundColor: '#F4F5F6'}}>
+          <CardContent className="space-y-4" style={{backgroundColor: '#EAEBEC'}}>
             <div className="grid grid-cols-2 gap-3">
               {THEME_COLORS.map(color => <div key={color.value} className={`h-16 rounded-lg cursor-pointer transition-all hover:scale-105 ${selectedTheme === color.value ? "ring-4 ring-primary ring-offset-2" : "hover:ring-2 hover:ring-muted-foreground"}`} style={{
                 backgroundColor: color.value
