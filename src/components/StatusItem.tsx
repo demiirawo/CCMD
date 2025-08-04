@@ -264,7 +264,9 @@ export const StatusItem = ({
         <div className="flex-[5] min-w-0 space-y-3">
           {/* Observation Section */}
           <div>
-            <label className="text-xs font-medium text-muted-foreground mb-1 block">LATEST UPDATE</label>
+            <label className="text-xs font-medium text-muted-foreground mb-1 block">
+              {item.id === "achievements-learning" ? "ACHIEVEMENTS" : "LATEST UPDATE"}
+            </label>
             {readOnly ? <div className="w-full p-3 rounded-lg text-sm min-h-[80px] flex items-start border border-border/30 bg-muted/20">
                 <span className="break-words w-full whitespace-pre-wrap">
                   {item.observation || "No observation"}
