@@ -202,7 +202,7 @@ export const Meetings = () => {
                 <CardTitle className="font-medium text-base text-stone-950">Meeting Summary</CardTitle>
               </CardHeader>
               <CardContent>
-                <Textarea value={meetingData.agenda} onChange={e => handleInputChange("agenda", e.target.value)} className="min-h-[200px]" />
+                <Textarea value={meetingData.agenda} onChange={e => handleInputChange("agenda", e.target.value)} className="min-h-[200px] border-gray-200" />
               </CardContent>
             </Card>
           </div>
