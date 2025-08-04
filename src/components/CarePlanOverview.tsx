@@ -50,7 +50,7 @@ export const CarePlanOverview = ({
       // This ensures we don't lose data due to meeting ID inconsistencies
       const { data: allData, error } = await supabase
         .from('care_plan_overview')
-        .select('id, meeting_id, high_risk, medium_risk, low_risk, na_risk, updated_at')
+        .select('id, meeting_id, high_risk, medium_risk, low_risk, na_risk, overdue, updated_at')
         .eq('company_id', profile.company_id)
         .order('updated_at', { ascending: false });
 
@@ -73,7 +73,7 @@ export const CarePlanOverview = ({
         console.log('🔍 CarePlanOverview: Consolidating data from', allData.length, 'records');
         
         // Consolidate data from all records, prioritizing non-zero values and most recent updates
-        const dataFields = ['high_risk', 'medium_risk', 'low_risk', 'na_risk'];
+        const dataFields = ['high_risk', 'medium_risk', 'low_risk', 'na_risk', 'overdue'];
         
         // Process all records, starting with newest
         allData.forEach((record, recordIndex) => {
@@ -167,6 +167,7 @@ export const CarePlanOverview = ({
         medium_risk: newData.mediumRisk,
         low_risk: newData.lowRisk,
         na_risk: newData.naRisk,
+        overdue: newData.overdue,
         updated_at: new Date().toISOString()
       };
 
