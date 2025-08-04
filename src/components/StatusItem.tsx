@@ -75,7 +75,7 @@ interface StatusItemProps {
   readOnly?: boolean;
 }
 
-const StatusItemComponent = ({
+export const StatusItem = memo(({
   item,
   onStatusChange,
   onObservationChange,
@@ -568,6 +568,4 @@ const StatusItemComponent = ({
       )}
     </div>
   );
-};
-
-export const StatusItem = memo(StatusItemComponent);
+});
