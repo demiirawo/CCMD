@@ -348,18 +348,10 @@ export const Settings = () => {
       </div>
 
       {/* Save Button */}
-      <Card>
-        <CardContent className="pt-6">
-          <div className="flex justify-between items-center">
-            <div>
-              
-              
-            </div>
-            <Button onClick={handleSave} disabled={loading}>
-              {loading ? "Saving..." : "Save Changes"}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="flex justify-end">
+        <Button onClick={handleSave} disabled={loading}>
+          {loading ? "Saving..." : "Save Changes"}
+        </Button>
+      </div>
     </div>;
 };
