@@ -245,21 +245,33 @@ export const StatusItem = ({
         
         {readOnly ? (
           <div className="flex-shrink-0">
-            {item.id !== "achievements-learning" && <StatusBadge status={item.status} />}
+            {item.id === "achievements-learning" ? (
+              <div className="opacity-30 pointer-events-none">
+                <StatusBadge status={item.status} />
+              </div>
+            ) : (
+              <StatusBadge status={item.status} />
+            )}
           </div>
         ) : (
-          <button 
-            onClick={(e) => {
-              e.stopPropagation();
-              const statusOrder: StatusType[] = ["green", "amber", "red", "na"];
-              const currentIndex = statusOrder.indexOf(item.status);
-              const nextStatus = statusOrder[(currentIndex + 1) % statusOrder.length];
-              onStatusChange?.(item.id, nextStatus);
-            }} 
-            className={`flex-shrink-0 hover:scale-110 transition-transform ${item.id === "achievements-learning" ? "hidden" : ""}`}
-          >
-            <StatusBadge status={item.status} />
-          </button>
+          item.id === "achievements-learning" ? (
+            <div className="flex-shrink-0 opacity-30 pointer-events-none">
+              <StatusBadge status={item.status} />
+            </div>
+          ) : (
+            <button 
+              onClick={(e) => {
+                e.stopPropagation();
+                const statusOrder: StatusType[] = ["green", "amber", "red", "na"];
+                const currentIndex = statusOrder.indexOf(item.status);
+                const nextStatus = statusOrder[(currentIndex + 1) % statusOrder.length];
+                onStatusChange?.(item.id, nextStatus);
+              }} 
+              className="flex-shrink-0 hover:scale-110 transition-transform"
+            >
+              <StatusBadge status={item.status} />
+            </button>
+          )
         )}
         
         <div className="flex-1 min-w-0 mr-3 flex flex-col justify-between h-full">
