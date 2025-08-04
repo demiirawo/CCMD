@@ -142,7 +142,7 @@ export const Meetings = () => {
       setIsSaving(false);
     }
   };
-  return <div className="min-h-screen bg-muted/30">
+  return <div className="min-h-screen bg-stone-50">
       <div className="max-w-7xl mx-auto p-6 pt-20">
         <div className="flex justify-between items-center mb-6">
           <div className="flex gap-2 ml-auto">
@@ -157,7 +157,7 @@ export const Meetings = () => {
 
         <div style={{
         backgroundColor: '#DFE1E3'
-      }} className="rounded-lg p-6 px-[20px] py-[29px]">
+      }} className="rounded-lg p-6 px-[50px] py-[29px]">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Meeting Title Card */}
             <Card className="bg-white">
