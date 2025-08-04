@@ -186,7 +186,7 @@ export const Meetings = () => {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="facilitator">Meeting Facilitator *</Label>
+                  <Label htmlFor="facilitator" className="font-medium text-base text-stone-950">Meeting Facilitator *</Label>
                   <Input id="facilitator" value={meetingData.facilitator} onChange={e => handleInputChange("facilitator", e.target.value)} />
                 </div>
                 <div className="space-y-2">
