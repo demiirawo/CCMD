@@ -565,6 +565,15 @@ const Index = () => {
         actions: [],
         details: "",
         metadata: {}
+      }, {
+        id: "achievements-learning",
+        title: "Achievements & Learning",
+        status: "green" as StatusType,
+        lastReviewed: "",
+        observation: "",
+        actions: [],
+        details: "",
+        metadata: {}
       }]
     }, {
       id: "supported-housing",
