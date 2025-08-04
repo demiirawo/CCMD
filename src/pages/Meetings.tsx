@@ -165,7 +165,7 @@ export const Meetings = () => {
                 <CardTitle className="font-medium text-base text-stone-950">Meeting Title</CardTitle>
               </CardHeader>
               <CardContent>
-                <Input value={meetingData.title} onChange={e => handleInputChange("title", e.target.value)} className="text-base" />
+                <Input value={meetingData.title} onChange={e => handleInputChange("title", e.target.value)} className="text-base border-gray-200" />
               </CardContent>
             </Card>
 
