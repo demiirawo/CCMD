@@ -374,7 +374,7 @@ export const StatusItem = ({
           {/* Trends & Themes Section */}
           <div>
             <label className="text-xs font-medium text-muted-foreground mb-0.5 block">
-              {item.id === "achievements-learning" ? "LESSONS LEARNED" : "TREND ANALYSIS"}
+              {item.id === "achievements-learning" ? "CHALLENGES" : "TREND ANALYSIS"}
             </label>
             {readOnly ? (
               <div className="w-full p-3 rounded-lg text-sm min-h-[80px] flex items-start border border-border/30 bg-muted/20">
