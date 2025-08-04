@@ -195,7 +195,7 @@ export const Meetings = () => {
           </div>
         </div>
 
-        <div className="bg-muted/50 rounded-lg p-6">
+        <div className="rounded-lg p-6" style={{ backgroundColor: '#DFE1E3' }}>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Meeting Title Card */}
             <Card className="bg-white">
