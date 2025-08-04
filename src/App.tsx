@@ -33,6 +33,11 @@ const AppContent = () => {
           <CompanySelection />
         </ProtectedRoute>
       } />
+      <Route path="/company/:companySlug" element={
+        <ProtectedRoute>
+          <CompanySelector />
+        </ProtectedRoute>
+      } />
       <Route path="/" element={
         <ProtectedRoute requireCompany>
           <>

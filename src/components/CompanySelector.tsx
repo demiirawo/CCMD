@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -27,6 +28,8 @@ interface UserCompany {
 export const CompanySelector = () => {
   const { user, profile } = useAuth();
   const { toast } = useToast();
+  const { companySlug } = useParams();
+  const navigate = useNavigate();
   const [userCompanies, setUserCompanies] = useState<UserCompany[]>([]);
   const [loading, setLoading] = useState(true);
   const [selecting, setSelecting] = useState(false);
@@ -34,6 +37,31 @@ export const CompanySelector = () => {
   useEffect(() => {
     fetchUserCompanies();
   }, [user?.id]);
+
+  // Auto-select company if slug is provided
+  useEffect(() => {
+    if (companySlug && userCompanies.length > 0 && !loading) {
+      const targetCompany = userCompanies.find(uc => 
+        uc.companies.id === companySlug || 
+        uc.companies.name.toLowerCase().replace(/\s+/g, '-') === companySlug
+      );
+      
+      if (targetCompany) {
+        handleSelectCompany(
+          targetCompany.id, 
+          targetCompany.company_id, 
+          targetCompany.team_member_id
+        );
+      } else {
+        toast({
+          title: "Company not found",
+          description: "You don't have access to this company or it doesn't exist.",
+          variant: "destructive"
+        });
+        navigate('/company-selection');
+      }
+    }
+  }, [companySlug, userCompanies, loading]);
 
   const fetchUserCompanies = async () => {
     if (!user?.id) return;
@@ -113,8 +141,8 @@ export const CompanySelector = () => {
         description: `You're now viewing ${selectedCompany.companies.name}.`
       });
 
-      // Refresh the page to update all contexts
-      window.location.reload();
+      // Navigate to dashboard after selection
+      navigate('/');
     } catch (error) {
       console.error('Error selecting company:', error);
       toast({
