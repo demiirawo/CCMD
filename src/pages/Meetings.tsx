@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -239,7 +238,6 @@ export const Meetings = () => {
                   value={meetingData.agenda}
                   onChange={(e) => handleInputChange("agenda", e.target.value)}
                   className="min-h-[200px]"
-                  placeholder="Enter meeting summary and key points discussed..."
                 />
               </CardContent>
             </Card>
