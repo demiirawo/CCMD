@@ -567,7 +567,7 @@ const Index = () => {
         metadata: {}
       }, {
         id: "achievements-learning",
-        title: "Achievements & Learning",
+        title: "Reflection",
         status: "green" as StatusType,
         lastReviewed: "",
         observation: "",
