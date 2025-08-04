@@ -349,7 +349,7 @@ export const Settings = () => {
 
       {/* Save Button */}
       <Card>
-        <CardContent className="pt-6" style={{backgroundColor: '#F4F5F6'}}>
+        <CardContent className="pt-6" style={{backgroundColor: '#EAEBEC'}}>
           <div className="flex justify-between items-center">
             <div>
               
