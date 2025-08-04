@@ -553,7 +553,7 @@ export const Reports = () => {
           const yearNum = parseInt(year);
           const isCurrent = isCurrentQuarter(quarter, yearNum);
           const isExpanded = isQuarterExpanded(quarterKey);
-          return <div key={quarterKey} className="shadow-lg border border-border/50 bg-primary/5 p-6 rounded-2xl mx-0 px-[95px]">
+          return <div key={quarterKey} className="shadow-lg border border-border/50 p-6 rounded-2xl mx-0 px-[95px]" style={{backgroundColor: '#DFE1E3'}}>
                   {/* Quarter Header with Collapsible Controls */}
                   <div className="flex items-center justify-between cursor-pointer mb-4" onClick={() => toggleQuarterExpansion(quarterKey)}>
                     <div className="flex items-center gap-4">
