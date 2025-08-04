@@ -369,7 +369,7 @@ export const StatusItem = memo(({
                 className="w-full text-left p-3 rounded-lg transition-colors text-sm min-h-[80px] flex items-start border border-border/30 break-words overflow-hidden bg-white text-black hover:border-border/40 focus:outline-none focus:ring-2 focus:ring-border/30"
               >
                 <span className="break-words w-full whitespace-pre-wrap">
-                  {item.observation || ""}
+                  {item.observation}
                 </span>
               </button>
             )}
