@@ -173,62 +173,105 @@ export const Meetings = () => {
     });
   };
   return (
-    <div className="min-h-screen bg-background">
-      <div className="max-w-6xl mx-auto p-4 pt-20">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold text-foreground mb-2">New Meeting</h1>
-          <p className="text-muted-foreground">Create a new meeting that will be available in Reports</p>
+    <div className="min-h-screen bg-muted/30">
+      <div className="max-w-7xl mx-auto p-6 pt-20">
+        <div className="flex justify-between items-center mb-6">
+          <div>
+            <h1 className="text-2xl font-semibold text-foreground">New Meeting</h1>
+          </div>
+          <div className="flex gap-2">
+            <Button onClick={handleClear} variant="outline">
+              Clear All
+            </Button>
+            <Button 
+              onClick={() => {
+                console.log("Button clicked - calling handleSave");
+                handleSave();
+              }}
+              disabled={isSaving}
+            >
+              {isSaving ? "Saving..." : "Save"}
+            </Button>
+          </div>
         </div>
 
-        <Card>
-          <CardHeader style={{ backgroundColor: 'hsl(var(--meetings-bg))' }}>
-            <CardTitle className="text-foreground">Meeting Details</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6" style={{ backgroundColor: 'hsl(var(--meetings-bg))' }}>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <Label htmlFor="title">Meeting Title *</Label>
-                <Input id="title" value={meetingData.title} onChange={e => handleInputChange("title", e.target.value)} />
-              </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Meeting Title Card */}
+          <Card className="bg-white">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-lg font-medium">Meeting Title</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Input 
+                value={meetingData.title} 
+                onChange={e => handleInputChange("title", e.target.value)}
+                placeholder="Enter meeting title"
+                className="text-base"
+              />
+            </CardContent>
+          </Card>
 
-              <div className="space-y-2">
-                <Label htmlFor="dateTime">Meeting Date & Time *</Label>
-                <MeetingDateTimePicker value={meetingData.dateTime} onChange={value => handleInputChange("dateTime", value)} />
-              </div>
+          {/* Meeting Date & Time Card */}
+          <Card className="bg-white">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-lg font-medium">Meeting Date & Time</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <MeetingDateTimePicker 
+                value={meetingData.dateTime} 
+                onChange={value => handleInputChange("dateTime", value)} 
+              />
+            </CardContent>
+          </Card>
 
+          {/* Meeting Attendees Card */}
+          <Card className="bg-white">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-lg font-medium">Meeting Attendees</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="facilitator">Meeting Facilitator *</Label>
-                <Input id="facilitator" value={meetingData.facilitator} onChange={e => handleInputChange("facilitator", e.target.value)} />
+                <Input 
+                  id="facilitator" 
+                  value={meetingData.facilitator} 
+                  onChange={e => handleInputChange("facilitator", e.target.value)}
+                  placeholder="Enter facilitator name"
+                />
               </div>
-
               <div className="space-y-2">
-                <Label htmlFor="attendance">Meeting Attendance</Label>
-                <Textarea id="attendance" value={meetingData.attendance} onChange={e => handleInputChange("attendance", e.target.value)} className="min-h-[100px]" />
+                <Label htmlFor="attendance">Attendees</Label>
+                <Textarea 
+                  id="attendance" 
+                  value={meetingData.attendance} 
+                  onChange={e => handleInputChange("attendance", e.target.value)} 
+                  className="min-h-[120px]"
+                  placeholder="Enter attendee names (one per line)"
+                />
               </div>
-            </div>
+            </CardContent>
+          </Card>
 
-            <div className="space-y-2">
-              <Label htmlFor="agenda">Meeting Detail</Label>
-              <Textarea id="agenda" value={meetingData.agenda} onChange={e => handleInputChange("agenda", e.target.value)} className="min-h-[200px]" />
-            </div>
-
-            <div className="flex gap-4 pt-6">
-              <Button 
-                onClick={() => {
-                  console.log("Button clicked - calling handleSave");
-                  handleSave();
-                }}
-                className="flex-1" 
-                disabled={isSaving}
-              >
-                {isSaving ? "Saving..." : "Save Meeting"}
-              </Button>
-              <Button onClick={handleClear} variant="outline" className="flex-1">
-                Clear Form
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+          {/* Meeting Summary Card */}
+          <Card className="bg-white">
+            <CardHeader className="pb-4">
+              <div className="flex justify-between items-center">
+                <CardTitle className="text-lg font-medium">Meeting Summary</CardTitle>
+                <Button variant="outline" size="sm" className="text-sm">
+                  AI Summary
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <Textarea 
+                value={meetingData.agenda} 
+                onChange={e => handleInputChange("agenda", e.target.value)} 
+                className="min-h-[200px]"
+                placeholder="Enter meeting summary and key points discussed..."
+              />
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );
