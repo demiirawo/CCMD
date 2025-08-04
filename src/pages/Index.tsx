@@ -1621,7 +1621,7 @@ const Index = () => {
       });
     }
   };
-  console.log('Rendering Index with actionsLog length:', actionsLog.length, 'actionsLog:', actionsLog);
+  
 
   // Function to trigger re-evaluation of panel states
   const triggerPanelStateUpdate = () => {
@@ -1795,15 +1795,6 @@ const Index = () => {
           const hasHomeCare = currentCompany?.services?.includes("Domiciliary (Home) Care") || false;
           const useSupportedTerminology = hasSupportedHousing && !hasHomeCare;
 
-          // Debug logging for terminology logic
-          console.log("Terminology Debug:", {
-            currentCompany: currentCompany?.name,
-            services: currentCompany?.services,
-            hasSupportedHousing,
-            hasHomeCare,
-            useSupportedTerminology,
-            sectionTitle: section.title
-          });
 
           // Conditionally modify section title (text only, no visual changes)
           let sectionTitle = section.title;
