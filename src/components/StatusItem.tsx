@@ -246,7 +246,7 @@ export const StatusItem = ({
         {readOnly ? (
           <div className="flex-shrink-0">
             {item.id === "achievements-learning" ? (
-              <div className="opacity-30 pointer-events-none">
+              <div className="invisible pointer-events-none">
                 <StatusBadge status={item.status} />
               </div>
             ) : (
@@ -255,7 +255,7 @@ export const StatusItem = ({
           </div>
         ) : (
           item.id === "achievements-learning" ? (
-            <div className="flex-shrink-0 opacity-30 pointer-events-none">
+            <div className="flex-shrink-0 invisible pointer-events-none">
               <StatusBadge status={item.status} />
             </div>
           ) : (
