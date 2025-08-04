@@ -960,6 +960,7 @@ export type Database = {
           id: string
           item_id: string
           last_reviewed: string | null
+          lessons_learned: string | null
           metadata: Json | null
           observation: string | null
           section_id: string
@@ -975,6 +976,7 @@ export type Database = {
           id?: string
           item_id: string
           last_reviewed?: string | null
+          lessons_learned?: string | null
           metadata?: Json | null
           observation?: string | null
           section_id: string
@@ -990,6 +992,7 @@ export type Database = {
           id?: string
           item_id?: string
           last_reviewed?: string | null
+          lessons_learned?: string | null
           metadata?: Json | null
           observation?: string | null
           section_id?: string

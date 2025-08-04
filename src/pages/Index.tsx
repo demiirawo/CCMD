@@ -632,6 +632,7 @@ const Index = () => {
                     status: savedData.status as StatusType || item.status,
                     observation: savedData.observation as string || item.observation,
                     trendsThemes: (savedData as any).trends_themes as string || item.trendsThemes || "",
+                    lessonsLearned: (savedData as any).lessons_learned as string || item.lessonsLearned || "",
                     actions: savedData.actions ? typeof savedData.actions === 'string' ? JSON.parse(savedData.actions) : savedData.actions : item.actions,
                     metadata: savedData.metadata ? typeof savedData.metadata === 'string' ? JSON.parse(savedData.metadata) : savedData.metadata : item.metadata || {},
                     lastReviewed: savedData.updated_at ? new Date(savedData.updated_at).toLocaleDateString('en-GB') : item.lastReviewed
@@ -789,6 +790,44 @@ const Index = () => {
     toast({
       title: "Trends & Themes Updated",
       description: "Item trends & themes have been saved"
+    });
+  };
+
+  const handleLessonsLearnedChange = async (sectionId: string, itemId: string, newLessonsLearned: string) => {
+    // Update local state
+    setDashboardData(prev => ({
+      ...prev,
+      sections: prev.sections.map(section => section.id === sectionId ? {
+        ...section,
+        items: section.items.map(item => item.id === itemId ? {
+          ...item,
+          lessonsLearned: newLessonsLearned,
+          lastReviewed: new Date().toLocaleDateString('en-GB')
+        } : item)
+      } : section)
+    }));
+
+    // Save to database immediately for persistence
+    if (profile?.company_id) {
+      try {
+        const { error } = await supabase.from('subsection_data').upsert({
+          company_id: profile.company_id,
+          section_id: sectionId,
+          item_id: itemId,
+          lessons_learned: newLessonsLearned
+        }, {
+          onConflict: 'company_id,section_id,item_id'
+        });
+        if (error) {
+          console.error('Error saving lessons learned:', error);
+        }
+      } catch (error) {
+        console.error('Failed to save lessons learned to database:', error);
+      }
+    }
+    toast({
+      title: "Lessons Learned Updated",
+      description: "Lessons learned have been saved"
     });
   };
   const handleActionsChange = async (sectionId: string, itemId: string, newActions: ActionItem[]) => {
@@ -1807,7 +1846,30 @@ const Index = () => {
             ...item,
             title: item.title === "Care Plans & Risk Assessments" ? "Support Plans & Risk Assessments" : item.title
           })) : section.items;
-          return <DashboardSection key={section.id} title={sectionTitle} items={modifiedItems} onItemStatusChange={canEdit ? (itemId, status) => handleStatusChange(section.id, itemId, status) : undefined} onItemObservationChange={canEdit ? (itemId, observation) => handleObservationChange(section.id, itemId, observation) : undefined} onItemTrendsThemesChange={canEdit ? (itemId, trendsThemes) => handleTrendsThemesChange(section.id, itemId, trendsThemes) : undefined} onItemActionsChange={canEdit ? (itemId, actions) => handleActionsChange(section.id, itemId, actions) : undefined} onItemDocumentsChange={canEdit ? (itemId, documents) => handleDocumentsChange(section.id, itemId, documents) : undefined} onItemMetadataChange={canEdit ? (itemId, metadata) => handleMetadataChange(section.id, itemId, metadata) : undefined} onActionCreated={canEdit ? handleActionCreated : undefined} onSubsectionActionEdit={canEdit ? handleSubsectionActionEdit : undefined} onSubsectionActionComplete={canEdit ? handleSubsectionActionComplete : undefined} onSubsectionActionDelete={canEdit ? handleSubsectionActionDelete : undefined} attendees={getAttendeesList()} meetingDate={meetingDate} meetingId={currentMeetingId || tempMeetingId} onPanelStateChange={triggerPanelStateUpdate} panelStateTracker={panelStateTracker} readOnly={!canEdit} />;
+          return (
+            <DashboardSection 
+              key={section.id} 
+              title={sectionTitle} 
+              items={modifiedItems} 
+              onItemStatusChange={canEdit ? (itemId, status) => handleStatusChange(section.id, itemId, status) : undefined} 
+              onItemObservationChange={canEdit ? (itemId, observation) => handleObservationChange(section.id, itemId, observation) : undefined} 
+              onItemTrendsThemesChange={canEdit ? (itemId, trendsThemes) => handleTrendsThemesChange(section.id, itemId, trendsThemes) : undefined} 
+              onItemLessonsLearnedChange={canEdit ? (itemId, lessonsLearned) => handleLessonsLearnedChange(section.id, itemId, lessonsLearned) : undefined}
+              onItemActionsChange={canEdit ? (itemId, actions) => handleActionsChange(section.id, itemId, actions) : undefined} 
+              onItemDocumentsChange={canEdit ? (itemId, documents) => handleDocumentsChange(section.id, itemId, documents) : undefined} 
+              onItemMetadataChange={canEdit ? (itemId, metadata) => handleMetadataChange(section.id, itemId, metadata) : undefined} 
+              onActionCreated={canEdit ? handleActionCreated : undefined} 
+              onSubsectionActionEdit={canEdit ? handleSubsectionActionEdit : undefined} 
+              onSubsectionActionComplete={canEdit ? handleSubsectionActionComplete : undefined} 
+              onSubsectionActionDelete={canEdit ? handleSubsectionActionDelete : undefined} 
+              attendees={getAttendeesList()} 
+              meetingDate={meetingDate} 
+              meetingId={currentMeetingId || tempMeetingId} 
+              onPanelStateChange={triggerPanelStateUpdate} 
+              panelStateTracker={panelStateTracker} 
+              readOnly={!canEdit} 
+            />
+          );
         })}
         </div>
       </div>

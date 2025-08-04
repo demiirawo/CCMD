@@ -14,6 +14,7 @@ interface DashboardSectionProps {
   onItemStatusChange?: (id: string, status: StatusType) => void;
   onItemObservationChange?: (id: string, observation: string) => void;
   onItemTrendsThemesChange?: (id: string, trendsThemes: string) => void;
+  onItemLessonsLearnedChange?: (id: string, lessonsLearned: string) => void;
   onItemActionsChange?: (id: string, actions: import("./ActionForm").ActionItem[]) => void;
   onItemDocumentsChange?: (id: string, documents: import("./StatusItem").DocumentData[]) => void;
   onItemMetadataChange?: (id: string, metadata: SubsectionMetadata) => void;
@@ -39,6 +40,7 @@ export const DashboardSection = ({
   onItemStatusChange,
   onItemObservationChange,
   onItemTrendsThemesChange,
+  onItemLessonsLearnedChange,
   onItemActionsChange,
   onItemDocumentsChange,
   onItemMetadataChange,
@@ -302,6 +304,7 @@ export const DashboardSection = ({
               onStatusChange={readOnly ? undefined : onItemStatusChange}
               onObservationChange={readOnly ? undefined : onItemObservationChange}
               onTrendsThemesChange={readOnly ? undefined : onItemTrendsThemesChange}
+              onLessonsLearnedChange={readOnly ? undefined : onItemLessonsLearnedChange}
               onActionsChange={readOnly ? undefined : onItemActionsChange}
               onDocumentsChange={readOnly ? undefined : onItemDocumentsChange}
               onMetadataChange={readOnly ? undefined : onItemMetadataChange}

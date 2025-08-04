@@ -38,6 +38,7 @@ export interface StatusItemData {
   lastReviewed: string;
   observation: string;
   trendsThemes?: string;
+  lessonsLearned?: string;
   actions: ActionItem[];
   accountable?: string[];
   details?: string;
@@ -50,6 +51,7 @@ interface StatusItemProps {
   onStatusChange?: (id: string, status: StatusType) => void;
   onObservationChange?: (id: string, observation: string) => void;
   onTrendsThemesChange?: (id: string, trendsThemes: string) => void;
+  onLessonsLearnedChange?: (id: string, lessonsLearned: string) => void;
   onActionsChange?: (id: string, actions: ActionItem[]) => void;
   onAccountableChange?: (id: string, accountable: string[]) => void;
   onActionCreated?: (itemTitle: string, mentionedAttendee: string, comment: string, action: string, dueDate: string, subsectionActionId?: string) => void;
@@ -82,6 +84,7 @@ export const StatusItem = memo(({
   onStatusChange,
   onObservationChange,
   onTrendsThemesChange,
+  onLessonsLearnedChange,
   onActionsChange,
   onAccountableChange,
   onActionCreated,
@@ -385,8 +388,8 @@ export const StatusItem = memo(({
             {item.id === "achievements-learning" ? (
               <>
                 <LessonsLearnedField
-                  value={item.trendsThemes || ''}
-                  onChange={(value) => onTrendsThemesChange?.(item.id, value)}
+                  value={item.lessonsLearned || ''}
+                  onChange={(value) => onLessonsLearnedChange?.(item.id, value)}
                   readOnly={readOnly}
                 />
               </>
