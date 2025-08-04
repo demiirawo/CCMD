@@ -8,6 +8,7 @@ import { MeetingDateTimePicker } from "@/components/MeetingDateTimePicker";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+
 export const Meetings = () => {
   const { profile } = useAuth();
   const [meetingData, setMeetingData] = useState({
@@ -256,12 +257,7 @@ export const Meetings = () => {
             {/* Meeting Summary Card */}
             <Card className="bg-white">
               <CardHeader className="pb-4">
-                <div className="flex justify-between items-center">
-                  <CardTitle className="text-lg font-medium">Meeting Summary</CardTitle>
-                  <Button variant="outline" size="sm" className="text-sm">
-                    AI Summary
-                  </Button>
-                </div>
+                <CardTitle className="text-lg font-medium">Meeting Summary</CardTitle>
               </CardHeader>
               <CardContent>
                 <Textarea 
