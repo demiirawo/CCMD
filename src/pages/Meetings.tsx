@@ -190,7 +190,7 @@ export const Meetings = () => {
                   <Input id="facilitator" value={meetingData.facilitator} onChange={e => handleInputChange("facilitator", e.target.value)} />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="attendance">Attendees</Label>
+                  <Label htmlFor="attendance" className="font-medium text-base text-stone-950">Attendees</Label>
                   <Textarea id="attendance" value={meetingData.attendance} onChange={e => handleInputChange("attendance", e.target.value)} className="min-h-[120px]" />
                 </div>
               </CardContent>
