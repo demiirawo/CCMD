@@ -289,7 +289,7 @@ export const StatusItem = ({
                 onSave={handleMetadataChange}
               >
                 <h4 className="font-semibold text-foreground text-base cursor-pointer hover:text-primary transition-colors line-clamp-2">
-                  {item.id === "achievements-learning" ? `${item.title} (Q3, Jun-Aug)` : item.title}
+                  {item.title}
                 </h4>
               </SubsectionMetadataDialog>
             )}
@@ -301,7 +301,7 @@ export const StatusItem = ({
             )}
             
             <p className="text-xs text-muted-foreground mt-1">
-              Updated: {item.metadata?.updated || item.lastReviewed}
+              {item.id === "achievements-learning" ? "Q3, Jun-Aug" : `Updated: ${item.metadata?.updated || item.lastReviewed}`}
             </p>
             
             {/* Display metadata below title */}
