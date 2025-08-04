@@ -86,7 +86,7 @@ export const LessonsLearnedField = ({ value, onChange, readOnly = false }: Lesso
           onBlur={handleBlur}
           onKeyDown={handleKeyDown}
           className="w-full p-3 rounded-lg border border-border bg-background resize-none min-h-[80px] text-sm text-black"
-          placeholder="Enter lessons learned..."
+          placeholder=""
           autoFocus
         />
       </>
