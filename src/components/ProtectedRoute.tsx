@@ -1,5 +1,5 @@
 import React from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 
 interface ProtectedRouteProps {
@@ -9,6 +9,7 @@ interface ProtectedRouteProps {
 
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requireCompany = false }) => {
   const { user, profile, loading } = useAuth();
+  const location = useLocation();
 
   if (loading) {
     return (
@@ -25,8 +26,11 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requir
     return <Navigate to="/auth" replace />;
   }
 
+  // Allow access to company slug routes even without profile for auto-selection
+  const isCompanySlugRoute = location.pathname.startsWith('/company/');
+  
   // If user exists but no profile, they might need to select a company
-  if (!profile) {
+  if (!profile && !isCompanySlugRoute) {
     return <Navigate to="/company-selection" replace />;
   }
 
