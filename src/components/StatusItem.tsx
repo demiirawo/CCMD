@@ -359,7 +359,7 @@ export const StatusItem = memo(({
                 initialValue={item.observation} 
                 onSubmit={handleObservationSubmit} 
                 onCancel={() => setIsEditingObservation(false)} 
-                placeholder="Enter your current situation..." 
+                placeholder="" 
                 autoSave={true} 
                 onAutoSave={(value) => onObservationChange?.(item.id, value)} 
               />
