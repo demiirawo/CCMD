@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -223,7 +224,6 @@ export const Meetings = () => {
                     value={meetingData.attendance}
                     onChange={(e) => handleInputChange("attendance", e.target.value)}
                     className="min-h-[120px]"
-                    placeholder="Enter attendee names (one per line)"
                   />
                 </div>
               </CardContent>
