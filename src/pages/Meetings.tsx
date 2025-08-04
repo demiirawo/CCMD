@@ -150,14 +150,14 @@ export const Meetings = () => {
             <Button 
               variant="outline" 
               size="sm" 
-              className="bg-primary/5" 
+              className="gap-2 bg-primary/5" 
               onClick={() => {
                 console.log("Button clicked - calling handleSave");
                 handleSave();
               }} 
               disabled={isSaving}
             >
-              {isSaving && <Loader2 className="animate-spin" />}
+              {isSaving && <Loader2 className="animate-spin" size={16} />}
               {isSaving ? "Saving..." : "Save"}
             </Button>
           </div>
