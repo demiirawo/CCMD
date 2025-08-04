@@ -66,7 +66,7 @@ export const MeetingDateTimePicker = ({
         <PopoverTrigger asChild>
           <Button variant={"outline"} className={cn("flex-1 justify-start text-left font-normal bg-white border border-gray-200", !date && "text-muted-foreground")}>
             <CalendarIcon className="mr-2 h-4 w-4" />
-            {date ? format(date, "dd/MM/yyyy") : <span>Pick a date</span>}
+            {date ? format(date, "dd/MM/yyyy") : <span>Pick a date (DD/MM/YYYY)</span>}
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0" align="start">
