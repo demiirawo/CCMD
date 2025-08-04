@@ -142,7 +142,7 @@ export const Meetings = () => {
       setIsSaving(false);
     }
   };
-  return <div className="min-h-screen bg-stone-50">
+  return <div className="min-h-screen" style={{backgroundColor: '#F4F5F6'}}>
       <div className="max-w-7xl mx-auto p-6 pt-20">
         <div className="flex justify-between items-center mb-6">
           <div className="flex gap-2 ml-auto">
