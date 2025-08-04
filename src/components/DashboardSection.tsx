@@ -1,6 +1,6 @@
 import { StatusItem, StatusItemData } from "./StatusItem";
 import { StatusType, StatusBadge } from "./StatusBadge";
-import { AchievementsLearningItem } from "./AchievementsLearningItem";
+
 import { SubsectionMetadata } from "./SubsectionMetadataDialog";
 import { ChevronDown, ChevronRight, Plus, CheckCircle, AlertTriangle, XCircle } from "lucide-react";
 import { useState, useEffect } from "react";
@@ -17,7 +17,6 @@ interface DashboardSectionProps {
   onItemActionsChange?: (id: string, actions: import("./ActionForm").ActionItem[]) => void;
   onItemDocumentsChange?: (id: string, documents: import("./StatusItem").DocumentData[]) => void;
   onItemMetadataChange?: (id: string, metadata: SubsectionMetadata) => void;
-  onCustomFieldChange?: (id: string, field: string, value: string) => void;
   onAddItem?: (sectionTitle: string) => void;
   onActionCreated?: (itemTitle: string, mentionedAttendee: string, comment: string, action: string, dueDate: string, subsectionActionId?: string) => void;
   onSubsectionActionEdit?: (sectionId: string, actionId: string, updates: { comment?: string; dueDate?: string }) => void;
@@ -43,7 +42,6 @@ export const DashboardSection = ({
   onItemActionsChange,
   onItemDocumentsChange,
   onItemMetadataChange,
-  onCustomFieldChange,
   onAddItem,
   onActionCreated,
   onSubsectionActionEdit,
@@ -298,38 +296,26 @@ export const DashboardSection = ({
       {isExpanded && (
         <div className="space-y-2">
            {items.map((item) => (
-            item.id === "achievements-learning" ? (
-              <AchievementsLearningItem
-                key={item.id}
-                item={item}
-                onStatusChange={readOnly ? undefined : onItemStatusChange}
-                onCustomFieldChange={readOnly ? undefined : onCustomFieldChange}
-                onMetadataChange={readOnly ? undefined : onItemMetadataChange}
-                attendees={attendees}
-                readOnly={readOnly}
-              />
-            ) : (
-              <StatusItem
-                key={item.id}
-                item={item}
-                onStatusChange={readOnly ? undefined : onItemStatusChange}
-                onObservationChange={readOnly ? undefined : onItemObservationChange}
-                onTrendsThemesChange={readOnly ? undefined : onItemTrendsThemesChange}
-                onActionsChange={readOnly ? undefined : onItemActionsChange}
-                onDocumentsChange={readOnly ? undefined : onItemDocumentsChange}
-                onMetadataChange={readOnly ? undefined : onItemMetadataChange}
-                onActionCreated={readOnly ? undefined : onActionCreated}
-                onSubsectionActionEdit={readOnly ? undefined : onSubsectionActionEdit}
-                onSubsectionActionComplete={readOnly ? undefined : onSubsectionActionComplete}
-                onSubsectionActionDelete={readOnly ? undefined : onSubsectionActionDelete}
-                attendees={attendees}
-                monthlyStaffData={monthlyStaffData}
-                onMonthlyStaffDataChange={readOnly ? undefined : setMonthlyStaffData}
-                meetingDate={meetingDate}
-                meetingId={meetingId}
-                readOnly={readOnly}
-              />
-            )
+            <StatusItem
+              key={item.id}
+              item={item}
+              onStatusChange={readOnly ? undefined : onItemStatusChange}
+              onObservationChange={readOnly ? undefined : onItemObservationChange}
+              onTrendsThemesChange={readOnly ? undefined : onItemTrendsThemesChange}
+              onActionsChange={readOnly ? undefined : onItemActionsChange}
+              onDocumentsChange={readOnly ? undefined : onItemDocumentsChange}
+              onMetadataChange={readOnly ? undefined : onItemMetadataChange}
+              onActionCreated={readOnly ? undefined : onActionCreated}
+              onSubsectionActionEdit={readOnly ? undefined : onSubsectionActionEdit}
+              onSubsectionActionComplete={readOnly ? undefined : onSubsectionActionComplete}
+              onSubsectionActionDelete={readOnly ? undefined : onSubsectionActionDelete}
+              attendees={attendees}
+              monthlyStaffData={monthlyStaffData}
+              onMonthlyStaffDataChange={readOnly ? undefined : setMonthlyStaffData}
+              meetingDate={meetingDate}
+              meetingId={meetingId}
+              readOnly={readOnly}
+            />
           ))}
           
           {items.length === 0 && (

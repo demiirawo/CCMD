@@ -394,7 +394,6 @@ const Index = () => {
         status: "green" as StatusType,
         lastReviewed: "",
         observation: "",
-        trendsThemes: "",
         actions: [],
         details: "",
         metadata: {}
@@ -404,7 +403,6 @@ const Index = () => {
         status: "green" as StatusType,
         lastReviewed: "",
         observation: "",
-        trendsThemes: "",
         actions: [],
         details: "",
         metadata: {}
@@ -414,7 +412,6 @@ const Index = () => {
         status: "green" as StatusType,
         lastReviewed: "",
         observation: "",
-        trendsThemes: "",
         actions: [],
         details: "",
         metadata: {}
@@ -424,7 +421,6 @@ const Index = () => {
         status: "green" as StatusType,
         lastReviewed: "",
         observation: "",
-        trendsThemes: "",
         actions: [],
         details: "",
         metadata: {}
@@ -434,7 +430,6 @@ const Index = () => {
         status: "green" as StatusType,
         lastReviewed: "",
         observation: "",
-        trendsThemes: "",
         actions: [],
         details: "",
         metadata: {}
@@ -444,7 +439,6 @@ const Index = () => {
         status: "green" as StatusType,
         lastReviewed: "",
         observation: "",
-        trendsThemes: "",
         actions: [],
         details: "",
         metadata: {}
@@ -459,7 +453,6 @@ const Index = () => {
         status: "green" as StatusType,
         lastReviewed: "",
         observation: "",
-        trendsThemes: "",
         actions: [],
         details: "",
         metadata: {}
@@ -469,7 +462,6 @@ const Index = () => {
         status: "green" as StatusType,
         lastReviewed: "",
         observation: "",
-        trendsThemes: "",
         actions: [],
         details: "",
         metadata: {}
@@ -479,7 +471,6 @@ const Index = () => {
         status: "green" as StatusType,
         lastReviewed: "",
         observation: "",
-        trendsThemes: "",
         actions: [],
         details: "",
         metadata: {}
@@ -489,7 +480,6 @@ const Index = () => {
         status: "green" as StatusType,
         lastReviewed: "",
         observation: "",
-        trendsThemes: "",
         actions: [],
         details: "",
         metadata: {}
@@ -499,7 +489,6 @@ const Index = () => {
         status: "green" as StatusType,
         lastReviewed: "",
         observation: "",
-        trendsThemes: "",
         actions: [],
         details: "",
         metadata: {}
@@ -509,7 +498,6 @@ const Index = () => {
         status: "green" as StatusType,
         lastReviewed: "",
         observation: "",
-        trendsThemes: "",
         actions: [],
         details: "",
         metadata: {}
@@ -524,7 +512,6 @@ const Index = () => {
         status: "green" as StatusType,
         lastReviewed: "",
         observation: "",
-        trendsThemes: "",
         actions: [],
         details: "",
         metadata: {}
@@ -534,7 +521,6 @@ const Index = () => {
         status: "green" as StatusType,
         lastReviewed: "",
         observation: "",
-        trendsThemes: "",
         actions: [],
         details: "",
         metadata: {}
@@ -544,7 +530,6 @@ const Index = () => {
         status: "green" as StatusType,
         lastReviewed: "",
         observation: "",
-        trendsThemes: "",
         actions: [],
         details: "",
         metadata: {}
@@ -554,7 +539,6 @@ const Index = () => {
         status: "green" as StatusType,
         lastReviewed: "",
         observation: "",
-        trendsThemes: "",
         actions: [],
         details: "",
         metadata: {}
@@ -569,7 +553,6 @@ const Index = () => {
         status: "green" as StatusType,
         lastReviewed: "",
         observation: "",
-        trendsThemes: "",
         actions: [],
         details: "",
         metadata: {}
@@ -579,25 +562,9 @@ const Index = () => {
         status: "green" as StatusType,
         lastReviewed: "",
         observation: "",
-        trendsThemes: "",
         actions: [],
         details: "",
         metadata: {}
-      }, {
-        id: "achievements-learning",
-        title: "Achievements & Learning Opportunities",
-        status: "green" as StatusType,
-        lastReviewed: "",
-        observation: "",
-        trendsThemes: "",
-        actions: [],
-        details: "",
-        metadata: {},
-        customFields: {
-          achievements: "",
-          challenges: "",
-          lessonsLearned: ""
-        }
       }]
     }, {
       id: "supported-housing",
@@ -609,7 +576,6 @@ const Index = () => {
         status: "green" as StatusType,
         lastReviewed: "",
         observation: "",
-        trendsThemes: "",
         actions: [],
         details: "",
         metadata: {}
@@ -619,7 +585,6 @@ const Index = () => {
         status: "green" as StatusType,
         lastReviewed: "",
         observation: "",
-        trendsThemes: "",
         actions: [],
         details: "",
         metadata: {}
@@ -873,7 +838,6 @@ const Index = () => {
       description: "Item documents have been saved"
     });
   };
-
   const handleMetadataChange = async (sectionId: string, itemId: string, metadata: SubsectionMetadata) => {
     // Update local state
     setDashboardData(prev => ({
@@ -910,25 +874,6 @@ const Index = () => {
     toast({
       title: "Subsection Updated",
       description: "Subsection details have been saved"
-    });
-  };
-
-  const handleCustomFieldChange = async (sectionId: string, itemId: string, field: string, value: string) => {
-    setDashboardData(prev => ({
-      ...prev,
-      sections: prev.sections.map(section => section.id === sectionId ? {
-        ...section,
-        items: section.items.map(item => item.id === itemId ? {
-          ...item,
-          customFields: { ...item.customFields, [field]: value },
-          lastReviewed: new Date().toLocaleDateString('en-GB')
-        } : item)
-      } : section)
-    }));
-    
-    toast({
-      title: "Field Updated",
-      description: `${field} has been updated`
     });
   };
   const handleActionCreated = async (itemTitle: string, mentionedAttendee: string, comment: string, action: string, dueDate: string, subsectionActionId?: string) => {

@@ -39,11 +39,6 @@ export interface StatusItemData {
   details?: string;
   documents?: DocumentData[];
   metadata?: SubsectionMetadata;
-  customFields?: {
-    achievements?: string;
-    challenges?: string;
-    lessonsLearned?: string;
-  };
 }
 interface StatusItemProps {
   item: StatusItemData;
