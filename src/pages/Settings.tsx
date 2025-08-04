@@ -258,7 +258,7 @@ export const Settings = () => {
         </div>
       </div>;
   }
-  return <div className="container mx-auto p-6 pt-24 space-y-6 bg-white">
+  return <div className="container mx-auto p-6 pt-24 space-y-6 bg-stone-50">
       <div className="flex items-center gap-3 mb-6">
         
         <div>
