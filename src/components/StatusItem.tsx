@@ -4,7 +4,7 @@ import { StaffTrainingAnalytics } from "./StaffTrainingAnalytics";
 import { SpotCheckAnalytics } from "./SpotCheckAnalytics";
 import { SupervisionAnalytics } from "./SupervisionAnalytics";
 import { ResourcingOverview } from "./ResourcingOverview";
-import { CarePlanOverview } from "./CarePlanOverview";
+import { CarePlanAnalytics } from "./CarePlanAnalytics";
 import { ServiceUserDocumentsAnalytics } from "./ServiceUserDocumentsAnalytics";
 import { IncidentsAnalytics } from "./IncidentsAnalytics";
 import { FeedbackAnalytics } from "./FeedbackAnalytics";
@@ -334,7 +334,7 @@ export const StatusItem = ({
           {item.title.toLowerCase().includes('supervision') && <SupervisionAnalytics meetingDate={meetingDate} meetingId={meetingId} />}
           
           
-          {item.title.toLowerCase().includes('care plans') && <CarePlanOverview meetingDate={meetingDate} meetingId={meetingId} />}
+          {item.title.toLowerCase().includes('care plans') && <CarePlanAnalytics meetingDate={meetingDate} meetingId={meetingId} />}
           
           {item.title.toLowerCase().includes('service user documents') && <ServiceUserDocumentsAnalytics meetingDate={meetingDate} meetingId={meetingId} />}
           

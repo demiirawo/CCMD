@@ -305,11 +305,13 @@ function getDefaultAnalyticsData(analyticsType: string): AnalyticsData {
         monthlyData: []
       };
     case 'care_plan':
+    case 'care_plan_overview':
       return {
-        totalPlans: 0,
-        upToDatePlans: 0,
-        overduePlans: 0,
-        frequencies: {}
+        high_risk: 0,
+        medium_risk: 0,
+        low_risk: 0,
+        na_risk: 0,
+        overdue: 0
       };
     case 'medication':
       return {
