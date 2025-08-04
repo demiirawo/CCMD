@@ -269,7 +269,7 @@ export const Settings = () => {
 
       <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3">
         {/* Theme Color Selection */}
-        <Card>
+        <Card style={{backgroundColor: '#EAEBEC'}}>
           <CardHeader style={{backgroundColor: '#EAEBEC'}}>
             <CardTitle className="flex items-center gap-2">
               
