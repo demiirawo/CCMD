@@ -9,7 +9,7 @@ import { ServiceUserDocumentsAnalytics } from "./ServiceUserDocumentsAnalytics";
 import { IncidentsAnalytics } from "./IncidentsAnalytics";
 import { FeedbackAnalytics } from "./FeedbackAnalytics";
 import { ChevronDown, ChevronRight, CalendarIcon, ExternalLink } from "lucide-react";
-import { useState } from "react";
+import { useState, memo, useCallback } from "react";
 import { CommentEditor } from "./CommentEditor";
 import { ActionForm, ActionItem } from "./ActionForm";
 import { Input } from "./ui/input";
@@ -75,7 +75,7 @@ interface StatusItemProps {
   readOnly?: boolean;
 }
 
-export const StatusItem = ({
+const StatusItemComponent = ({
   item,
   onStatusChange,
   onObservationChange,
@@ -96,21 +96,20 @@ export const StatusItem = ({
   readOnly = false
 }: StatusItemProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
-  console.log('StatusItem: Rendering item:', item.title, 'isExpanded:', isExpanded, 'meetingId:', meetingId);
   const [isEditingObservation, setIsEditingObservation] = useState(false);
   const [isEditingTrendsThemes, setIsEditingTrendsThemes] = useState(false);
 
-  const handleObservationSubmit = (observation: string) => {
+  const handleObservationSubmit = useCallback((observation: string) => {
     onObservationChange?.(item.id, observation);
     setIsEditingObservation(false);
-  };
+  }, [item.id, onObservationChange]);
 
-  const handleTrendsThemesSubmit = (trendsThemes: string) => {
+  const handleTrendsThemesSubmit = useCallback((trendsThemes: string) => {
     onTrendsThemesChange?.(item.id, trendsThemes);
     setIsEditingTrendsThemes(false);
-  };
+  }, [item.id, onTrendsThemesChange]);
 
-  const handleActionsChange = (actions: ActionItem[]) => {
+  const handleActionsChange = useCallback((actions: ActionItem[]) => {
     // Check if any actions were removed (deleted) by comparing with previous state
     const removedActions = item.actions.filter(oldAction => !actions.find(newAction => newAction.id === oldAction.id));
 
@@ -119,32 +118,25 @@ export const StatusItem = ({
       onSubsectionActionDelete?.(removedAction.id);
     });
     onActionsChange?.(item.id, actions);
-  };
+  }, [item.actions, item.id, onActionsChange, onSubsectionActionDelete]);
 
-  const handleActionCreated = (name: string, description: string, targetDate: string, actionId: string) => {
-    console.log('Action created in StatusItem:', {
-      name,
-      description,
-      targetDate,
-      actionId,
-      itemTitle: item.title
-    });
+  const handleActionCreated = useCallback((name: string, description: string, targetDate: string, actionId: string) => {
     // Create action entry for the actions log with the same ID for syncing
     onActionCreated?.(item.title, name, `Action from ${item.title}`, description, targetDate, actionId);
-  };
+  }, [item.title, onActionCreated]);
 
-  const handleActionCompleted = (actionId: string) => {
+  const handleActionCompleted = useCallback((actionId: string) => {
     // Remove the completed action from the local actions
     const updatedActions = item.actions.filter(action => action.id !== actionId);
     onActionsChange?.(item.id, updatedActions);
 
     // Mark the action as completed in the main Actions Log
     onSubsectionActionComplete?.(actionId);
-  };
+  }, [item.actions, item.id, onActionsChange, onSubsectionActionComplete]);
 
-  const handleAccountableChange = (accountable: string[]) => {
+  const handleAccountableChange = useCallback((accountable: string[]) => {
     onAccountableChange?.(item.id, accountable);
-  };
+  }, [item.id, onAccountableChange]);
 
   const calculateNextReviewDate = (lastReviewDate: Date | null, frequency: string): Date | null => {
     if (!lastReviewDate || !frequency) return null;
@@ -577,3 +569,5 @@ export const StatusItem = ({
     </div>
   );
 };
+
+export const StatusItem = memo(StatusItemComponent);
