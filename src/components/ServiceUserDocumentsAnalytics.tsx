@@ -112,7 +112,7 @@ export const ServiceUserDocumentsAnalytics = ({
   const loadCarePlanData = async () => {
     if (!profile?.company_id) return;
     try {
-      // Use the same approach as CarePlanOverview to get care plan data
+      // Load care plan data to get total service users
       const {
         data: carePlanData,
         error
@@ -123,7 +123,7 @@ export const ServiceUserDocumentsAnalytics = ({
         setTotalServiceUsers(total);
         console.log('ServiceUserDocuments: Loaded care plan data, total service users:', total);
       } else {
-        // Try to load from localStorage backup (same as CarePlanOverview)
+        // Try to load from localStorage backup
         const backupKey = `care_plan_overview_backup_${profile.company_id}`;
         const backupData = localStorage.getItem(backupKey);
         if (backupData) {

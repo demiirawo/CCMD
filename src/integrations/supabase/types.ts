@@ -266,6 +266,7 @@ export type Database = {
           medium_risk: number
           meeting_id: string | null
           na_risk: number
+          overdue: number
           updated_at: string
         }
         Insert: {
@@ -277,6 +278,7 @@ export type Database = {
           medium_risk?: number
           meeting_id?: string | null
           na_risk?: number
+          overdue?: number
           updated_at?: string
         }
         Update: {
@@ -288,6 +290,7 @@ export type Database = {
           medium_risk?: number
           meeting_id?: string | null
           na_risk?: number
+          overdue?: number
           updated_at?: string
         }
         Relationships: []
