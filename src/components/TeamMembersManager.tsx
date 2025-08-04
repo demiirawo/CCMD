@@ -8,9 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { Users, Plus, Trash2, UserCheck, Pencil } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-
 type UserPermission = 'read' | 'edit' | 'company_admin';
-
 interface TeamMember {
   id: string;
   name: string;
@@ -18,17 +16,14 @@ interface TeamMember {
   permission: UserPermission;
   created_at: string;
 }
-
 interface TeamMembersManagerProps {
   companyId: string;
 }
-
 const PERMISSION_LABELS = {
   read: 'Read',
   edit: 'Edit',
   company_admin: 'Admin'
 };
-
 export const TeamMembersManager = ({
   companyId
 }: TeamMembersManagerProps) => {
@@ -50,13 +45,10 @@ export const TeamMembersManager = ({
     email: '',
     permission: 'read'
   });
-
   const canManageTeam = (profile as any)?.permission === 'company_admin' || profile?.role === 'admin';
-
   useEffect(() => {
     fetchTeamMembers();
   }, [companyId]);
-
   const fetchTeamMembers = async () => {
     try {
       const {
@@ -76,7 +68,6 @@ export const TeamMembersManager = ({
       });
     }
   };
-
   const handleAddMember = async () => {
     if (!newMember.name.trim()) {
       toast({
@@ -126,7 +117,6 @@ export const TeamMembersManager = ({
       setLoading(false);
     }
   };
-
   const handleUpdatePermission = async (memberId: string, permission: UserPermission) => {
     try {
       const {
@@ -149,7 +139,6 @@ export const TeamMembersManager = ({
       });
     }
   };
-
   const handleEditMember = async () => {
     if (!editingMember || !editingMember.name.trim() || !editingMember.email?.trim()) {
       toast({
@@ -159,18 +148,14 @@ export const TeamMembersManager = ({
       });
       return;
     }
-
     try {
-      const { error } = await supabase
-        .from('team_members')
-        .update({
-          name: editingMember.name.trim(),
-          email: editingMember.email.trim()
-        })
-        .eq('id', editingMember.id);
-
+      const {
+        error
+      } = await supabase.from('team_members').update({
+        name: editingMember.name.trim(),
+        email: editingMember.email.trim()
+      }).eq('id', editingMember.id);
       if (error) throw error;
-
       await fetchTeamMembers();
       setEditingMember(null);
       toast({
@@ -186,7 +171,6 @@ export const TeamMembersManager = ({
       });
     }
   };
-
   const handleDeleteMember = async (memberId: string, memberName: string) => {
     if (!confirm(`Are you sure you want to remove ${memberName} from the team?`)) return;
     try {
@@ -208,17 +192,14 @@ export const TeamMembersManager = ({
       });
     }
   };
-
   return <Card className="bg-stone-50">
       <CardHeader>
         <CardTitle>
           Office Team
         </CardTitle>
-        <CardDescription>
-          Manage team members and their permissions
-        </CardDescription>
+        
       </CardHeader>
-      <CardContent className="space-y-4" style={{backgroundColor: '#EAEBEC'}}>
+      <CardContent className="space-y-4">
         {/* Add new team member */}
         {canManageTeam && <div className="p-4 border border-gray-200 rounded-lg bg-white space-y-3">
             
@@ -274,28 +255,22 @@ export const TeamMembersManager = ({
               {canManageTeam && <p className="text-sm">Add team members using the form above</p>}
             </div> : <div className="space-y-2">
               {teamMembers.map(member => {
-                if (editingMember?.id === member.id) {
-                  return (
-                    <div key={member.id} className="p-3 border rounded-lg bg-white space-y-3">
+            if (editingMember?.id === member.id) {
+              return <div key={member.id} className="p-3 border rounded-lg bg-white space-y-3">
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                         <div>
                           <Label htmlFor="edit-name">Name *</Label>
-                          <Input 
-                            id="edit-name" 
-                            value={editingMember.name} 
-                            onChange={e => setEditingMember(prev => prev ? {...prev, name: e.target.value} : null)} 
-                            className="border-gray-200" 
-                          />
+                          <Input id="edit-name" value={editingMember.name} onChange={e => setEditingMember(prev => prev ? {
+                      ...prev,
+                      name: e.target.value
+                    } : null)} className="border-gray-200" />
                         </div>
                         <div>
                           <Label htmlFor="edit-email">Email *</Label>
-                          <Input 
-                            id="edit-email" 
-                            type="email" 
-                            value={editingMember.email || ''} 
-                            onChange={e => setEditingMember(prev => prev ? {...prev, email: e.target.value} : null)} 
-                            className="border-gray-200" 
-                          />
+                          <Input id="edit-email" type="email" value={editingMember.email || ''} onChange={e => setEditingMember(prev => prev ? {
+                      ...prev,
+                      email: e.target.value
+                    } : null)} className="border-gray-200" />
                         </div>
                         <div className="flex items-end gap-2">
                           <Button onClick={handleEditMember} size="sm" className="flex-1">
@@ -306,12 +281,9 @@ export const TeamMembersManager = ({
                           </Button>
                         </div>
                       </div>
-                    </div>
-                  );
-                }
-                
-                return (
-                  <div key={member.id} className="flex items-center justify-between p-3 border rounded-lg bg-white">
+                    </div>;
+            }
+            return <div key={member.id} className="flex items-center justify-between p-3 border rounded-lg bg-white">
                     <div className="flex-1">
                       <div className="font-medium">{member.name}</div>
                       <div className="text-sm text-muted-foreground">{member.email}</div>
@@ -331,30 +303,17 @@ export const TeamMembersManager = ({
                           {PERMISSION_LABELS[member.permission]}
                         </span>}
                       
-                      {canManageTeam && (
-                        <>
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            onClick={() => setEditingMember(member)} 
-                            className="text-blue-500 hover:text-blue-700 hover:bg-blue-50"
-                          >
+                      {canManageTeam && <>
+                          <Button variant="ghost" size="sm" onClick={() => setEditingMember(member)} className="text-blue-500 hover:text-blue-700 hover:bg-blue-50">
                             <Pencil className="h-4 w-4" />
                           </Button>
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            onClick={() => handleDeleteMember(member.id, member.name)} 
-                            className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                          >
+                          <Button variant="ghost" size="sm" onClick={() => handleDeleteMember(member.id, member.name)} className="text-red-500 hover:text-red-700 hover:bg-red-50">
                             <Trash2 className="h-4 w-4" />
                           </Button>
-                        </>
-                      )}
+                        </>}
                     </div>
-                  </div>
-                );
-              })}
+                  </div>;
+          })}
             </div>}
         </div>
 
