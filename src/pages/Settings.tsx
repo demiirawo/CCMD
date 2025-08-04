@@ -258,7 +258,7 @@ export const Settings = () => {
         </div>
       </div>;
   }
-  return <div className="container mx-auto p-6 pt-24 space-y-6" style={{backgroundColor: '#F4F5F6'}}>
+  return <div className="pt-24 space-y-6 px-6" style={{backgroundColor: '#F4F5F6'}}>
       <div className="flex items-center gap-3 mb-6">
         
         <div>
