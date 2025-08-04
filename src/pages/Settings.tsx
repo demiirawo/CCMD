@@ -258,7 +258,7 @@ export const Settings = () => {
         </div>
       </div>;
   }
-  return <div className="container mx-auto p-6 pt-24 space-y-6 bg-stone-50">
+  return <div className="container mx-auto p-6 pt-24 space-y-6" style={{backgroundColor: '#F4F5F6'}}>
       <div className="flex items-center gap-3 mb-6">
         
         <div>
@@ -270,14 +270,14 @@ export const Settings = () => {
       <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3">
         {/* Theme Color Selection */}
         <Card>
-          <CardHeader className="bg-stone-50">
+          <CardHeader style={{backgroundColor: '#F4F5F6'}}>
             <CardTitle className="flex items-center gap-2">
               
               Theme Color
             </CardTitle>
             
           </CardHeader>
-          <CardContent className="space-y-4 bg-stone-50">
+          <CardContent className="space-y-4" style={{backgroundColor: '#F4F5F6'}}>
             <div className="grid grid-cols-2 gap-3">
               {THEME_COLORS.map(color => <div key={color.value} className={`h-16 rounded-lg cursor-pointer transition-all hover:scale-105 ${selectedTheme === color.value ? "ring-4 ring-primary ring-offset-2" : "hover:ring-2 hover:ring-muted-foreground"}`} style={{
                 backgroundColor: color.value
@@ -291,7 +291,7 @@ export const Settings = () => {
         </Card>
 
         {/* Services Selection */}
-        <Card className="bg-stone-50">
+        <Card style={{backgroundColor: '#F4F5F6'}}>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               
@@ -313,7 +313,7 @@ export const Settings = () => {
 
 
         {/* Logo Upload */}
-        <Card className="bg-stone-50">
+        <Card style={{backgroundColor: '#F4F5F6'}}>
           <CardHeader>
             <CardTitle>
               Company Logo
@@ -349,7 +349,7 @@ export const Settings = () => {
 
       {/* Save Button */}
       <Card>
-        <CardContent className="pt-6 bg-stone-50">
+        <CardContent className="pt-6" style={{backgroundColor: '#F4F5F6'}}>
           <div className="flex justify-between items-center">
             <div>
               
