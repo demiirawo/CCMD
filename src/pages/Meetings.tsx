@@ -8,6 +8,7 @@ import { MeetingDateTimePicker } from "@/components/MeetingDateTimePicker";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { Loader2 } from "lucide-react";
 export const Meetings = () => {
   const {
     profile
@@ -146,10 +147,17 @@ export const Meetings = () => {
       <div className="max-w-7xl mx-auto p-6 pt-20">
         <div className="flex justify-between items-center mb-6">
           <div className="flex gap-2 ml-auto">
-            <Button onClick={() => {
-            console.log("Button clicked - calling handleSave");
-            handleSave();
-          }} disabled={isSaving}>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="bg-primary/5" 
+              onClick={() => {
+                console.log("Button clicked - calling handleSave");
+                handleSave();
+              }} 
+              disabled={isSaving}
+            >
+              {isSaving && <Loader2 className="animate-spin" />}
               {isSaving ? "Saving..." : "Save"}
             </Button>
           </div>
