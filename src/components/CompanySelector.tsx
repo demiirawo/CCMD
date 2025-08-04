@@ -40,19 +40,32 @@ export const CompanySelector = () => {
 
   // Auto-select company if slug is provided
   useEffect(() => {
+    console.log('CompanySelector auto-select effect:', { companySlug, userCompaniesLength: userCompanies.length, loading });
+    
     if (companySlug && userCompanies.length > 0 && !loading) {
+      console.log('Searching for company with slug:', companySlug);
+      console.log('Available companies:', userCompanies.map(uc => ({ 
+        id: uc.companies.id, 
+        name: uc.companies.name,
+        slug: uc.companies.name.toLowerCase().replace(/\s+/g, '-')
+      })));
+      
       const targetCompany = userCompanies.find(uc => 
         uc.companies.id === companySlug || 
         uc.companies.name.toLowerCase().replace(/\s+/g, '-') === companySlug
       );
       
+      console.log('Target company found:', targetCompany);
+      
       if (targetCompany) {
+        console.log('Auto-selecting company:', targetCompany.companies.name);
         handleSelectCompany(
           targetCompany.id, 
           targetCompany.company_id, 
           targetCompany.team_member_id
         );
       } else {
+        console.log('Company not found, redirecting to company selection');
         toast({
           title: "Company not found",
           description: "You don't have access to this company or it doesn't exist.",

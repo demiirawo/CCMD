@@ -11,6 +11,15 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requir
   const { user, profile, loading } = useAuth();
   const location = useLocation();
 
+  console.log('ProtectedRoute:', { 
+    pathname: location.pathname, 
+    user: !!user, 
+    profile: !!profile, 
+    loading, 
+    requireCompany,
+    isCompanySlugRoute: location.pathname.startsWith('/company/')
+  });
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -23,6 +32,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requir
   }
 
   if (!user) {
+    console.log('No user, redirecting to /auth');
     return <Navigate to="/auth" replace />;
   }
 
@@ -31,18 +41,22 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requir
   
   // If user exists but no profile, they might need to select a company
   if (!profile && !isCompanySlugRoute) {
+    console.log('No profile and not company slug route, redirecting to /company-selection');
     return <Navigate to="/company-selection" replace />;
   }
 
   // Admin users (legacy) can bypass company selection
-  if (profile.role === 'admin') {
+  if (profile && profile.role === 'admin') {
+    console.log('Admin user, allowing access');
     return <>{children}</>;
   }
 
   // For team members, check if they have company access
-  if (requireCompany && !profile.company_id) {
+  if (requireCompany && profile && !profile.company_id) {
+    console.log('Require company but no company_id, redirecting to /company-selection');
     return <Navigate to="/company-selection" replace />;
   }
 
+  console.log('ProtectedRoute allowing access');
   return <>{children}</>;
 };
