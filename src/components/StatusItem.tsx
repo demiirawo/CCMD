@@ -280,7 +280,7 @@ export const StatusItem = ({
 
           {/* Trends & Themes Section */}
           <div>
-            <label className="text-xs font-medium text-muted-foreground mb-1 block"><label className="text-xs font-medium text-muted-foreground mb-1 block">{item.id === "achievements-learning" ? "LESSONS LEARNED" : "TREND ANALYSIS"} </label> </label>
+            <label className="<label className="text-xs font-medium text-muted-foreground mb-0.5 block">{item.id === "achievements-learning" ? "LESSONS LEARNED" : "TREND ANALYSIS"}</label> </label>
             {readOnly ? <div className="w-full p-3 rounded-lg text-sm min-h-[80px] flex items-start border border-border/30 bg-muted/20">
                 <span className="break-words w-full whitespace-pre-wrap">
                   {item.trendsThemes || "No trends & themes"}
