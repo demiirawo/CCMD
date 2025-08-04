@@ -232,7 +232,8 @@ export const StatusItem = ({
             item.title.toLowerCase().includes('transportation') || 
             item.title.toLowerCase().includes('information governance') || 
             item.title.toLowerCase().includes('medication management') || 
-            item.title.toLowerCase().includes('care notes') 
+            item.title.toLowerCase().includes('care notes') ||
+            item.id === "achievements-learning"
             ? 'opacity-0 invisible pointer-events-none' : ''
           }`}
         >
