@@ -9,9 +9,7 @@ import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 export const Meetings = () => {
-  const {
-    profile
-  } = useAuth();
+  const { profile } = useAuth();
   const [meetingData, setMeetingData] = useState({
     title: "",
     dateTime: "",
@@ -20,12 +18,14 @@ export const Meetings = () => {
     agenda: ""
   });
   const [isSaving, setIsSaving] = useState(false);
+
   const handleInputChange = (field: string, value: string) => {
     setMeetingData(prev => ({
       ...prev,
       [field]: value
     }));
   };
+
   const getQuarter = (date: Date) => {
     const month = date.getMonth() + 1;
     if (month <= 3) return 'Q1';
@@ -33,6 +33,7 @@ export const Meetings = () => {
     if (month <= 9) return 'Q3';
     return 'Q4';
   };
+
   const handleSave = async () => {
     console.log("Save button clicked!", meetingData);
     // Basic validation
@@ -44,6 +45,7 @@ export const Meetings = () => {
       });
       return;
     }
+
     if (!profile?.company_id) {
       toast({
         title: "Error",
@@ -52,49 +54,60 @@ export const Meetings = () => {
       });
       return;
     }
+
     setIsSaving(true);
+
     try {
       // Parse the dateTime string correctly (format: dd/MM/yyyy HH:mm)
       const [datePart, timePart] = meetingData.dateTime.split(' ');
       const [day, month, year] = datePart.split('/').map(Number);
       const [hours, minutes] = timePart.split(':').map(Number);
-
+      
       // Create date with correct month (month is 0-indexed in JavaScript)
       const meetingDate = new Date(year, month - 1, day, hours, minutes);
       const quarter = getQuarter(meetingDate);
       const meetingYear = meetingDate.getFullYear();
 
       // Convert attendance text to attendees array
-      const attendeesArray = meetingData.attendance.split('\n').filter(line => line.trim()).map((name, index) => ({
-        id: `attendee-${index}`,
-        name: name.trim(),
-        email: ""
-      }));
+      const attendeesArray = meetingData.attendance
+        .split('\n')
+        .filter(line => line.trim())
+        .map((name, index) => ({
+          id: `attendee-${index}`,
+          name: name.trim(),
+          email: ""
+        }));
 
       // Create sections structure with meeting detail
-      const sections = [{
-        id: "meeting-details",
-        title: "Meeting Details",
-        items: [{
-          id: "facilitator",
-          title: "Facilitator",
-          status: "green",
-          lastReviewed: "",
-          observation: meetingData.facilitator,
-          actions: [],
-          details: "",
-          metadata: {}
-        }, {
-          id: "agenda",
-          title: "Meeting Detail",
-          status: "green",
-          lastReviewed: "",
-          observation: meetingData.agenda,
-          actions: [],
-          details: "",
-          metadata: {}
-        }]
-      }];
+      const sections = [
+        {
+          id: "meeting-details",
+          title: "Meeting Details",
+          items: [
+            {
+              id: "facilitator",
+              title: "Facilitator",
+              status: "green",
+              lastReviewed: "",
+              observation: meetingData.facilitator,
+              actions: [],
+              details: "",
+              metadata: {}
+            },
+            {
+              id: "agenda", 
+              title: "Meeting Detail",
+              status: "green",
+              lastReviewed: "",
+              observation: meetingData.agenda,
+              actions: [],
+              details: "",
+              metadata: {}
+            }
+          ]
+        }
+      ];
+
       const meetingPayload = {
         title: meetingData.title,
         date: meetingDate.toISOString(),
@@ -106,18 +119,21 @@ export const Meetings = () => {
         sections: JSON.stringify(sections),
         actions_log: JSON.stringify([])
       };
-      const {
-        error
-      } = await supabase.from('meetings').insert(meetingPayload);
+
+      const { error } = await supabase
+        .from('meetings')
+        .insert(meetingPayload);
+
       if (error) {
         console.error('Error saving meeting:', error);
         toast({
-          title: "Save Failed",
+          title: "Save Failed", 
           description: "Failed to save the meeting. Please try again.",
           variant: "destructive"
         });
         return;
       }
+
       toast({
         title: "Success",
         description: "Meeting has been saved successfully and will appear in Reports"
@@ -131,6 +147,7 @@ export const Meetings = () => {
         attendance: "",
         agenda: ""
       });
+
     } catch (error) {
       console.error('Error saving meeting:', error);
       toast({
@@ -155,58 +172,109 @@ export const Meetings = () => {
       description: "Meeting form has been cleared"
     });
   };
-  return <div className="min-h-screen bg-background pt-20">
-      <div className="max-w-6xl mx-auto p-6">
-        <div className="mb-8">
-          
-          
+  return (
+    <div className="min-h-screen bg-muted/30">
+      <div className="max-w-7xl mx-auto p-6 pt-20">
+        <div className="flex justify-between items-center mb-6">
+          <div>
+            <h1 className="text-2xl font-semibold text-foreground">New Meeting</h1>
+          </div>
+          <div className="flex gap-2">
+            <Button onClick={handleClear} variant="outline">
+              Clear All
+            </Button>
+            <Button 
+              onClick={() => {
+                console.log("Button clicked - calling handleSave");
+                handleSave();
+              }}
+              disabled={isSaving}
+            >
+              {isSaving ? "Saving..." : "Save"}
+            </Button>
+          </div>
         </div>
 
-        <Card className="bg-stone-50">
-          <CardHeader className="bg-stone-50">
-            
-          </CardHeader>
-          <CardContent className="space-y-6 bg-stone-50">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <Label htmlFor="title">Meeting Title *</Label>
-                <Input id="title" value={meetingData.title} onChange={e => handleInputChange("title", e.target.value)} />
-              </div>
+        <div className="rounded-lg p-6 px-14 -mx-8" style={{ backgroundColor: '#DFE1E3' }}>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Meeting Title Card */}
+            <Card className="bg-white">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-lg font-medium">Meeting Title</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Input 
+                  value={meetingData.title} 
+                  onChange={e => handleInputChange("title", e.target.value)}
+                  placeholder="Enter meeting title"
+                  className="text-base"
+                />
+              </CardContent>
+            </Card>
 
-              <div className="space-y-2">
-                <Label htmlFor="dateTime">Meeting Date & Time *</Label>
-                <MeetingDateTimePicker value={meetingData.dateTime} onChange={value => handleInputChange("dateTime", value)} />
-              </div>
+            {/* Meeting Date & Time Card */}
+            <Card className="bg-white">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-lg font-medium">Meeting Date & Time</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <MeetingDateTimePicker 
+                  value={meetingData.dateTime} 
+                  onChange={value => handleInputChange("dateTime", value)} 
+                />
+              </CardContent>
+            </Card>
 
-              <div className="space-y-2 py-0">
-                <Label htmlFor="facilitator">Meeting Facilitator *</Label>
-                <Input id="facilitator" value={meetingData.facilitator} onChange={e => handleInputChange("facilitator", e.target.value)} />
-              </div>
+            {/* Meeting Attendees Card */}
+            <Card className="bg-white">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-lg font-medium">Meeting Attendees</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="facilitator">Meeting Facilitator *</Label>
+                  <Input 
+                    id="facilitator" 
+                    value={meetingData.facilitator} 
+                    onChange={e => handleInputChange("facilitator", e.target.value)}
+                    placeholder="Enter facilitator name"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="attendance">Attendees</Label>
+                  <Textarea 
+                    id="attendance" 
+                    value={meetingData.attendance} 
+                    onChange={e => handleInputChange("attendance", e.target.value)} 
+                    className="min-h-[120px]"
+                    placeholder="Enter attendee names (one per line)"
+                  />
+                </div>
+              </CardContent>
+            </Card>
 
-              <div className="space-y-2">
-                <Label htmlFor="attendance">Meeting Attendance</Label>
-                <Textarea id="attendance" value={meetingData.attendance} onChange={e => handleInputChange("attendance", e.target.value)} className="min-h-[100px]" />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="agenda">Meeting Detail</Label>
-              <Textarea id="agenda" value={meetingData.agenda} onChange={e => handleInputChange("agenda", e.target.value)} className="min-h-[200px]" />
-            </div>
-
-            <div className="flex gap-4 pt-6">
-              <Button onClick={() => {
-              console.log("Button clicked - calling handleSave");
-              handleSave();
-            }} className="flex-1" disabled={isSaving}>
-                {isSaving ? "Saving..." : "Save Meeting"}
-              </Button>
-              <Button onClick={handleClear} variant="outline" className="flex-1">
-                Clear Form
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+            {/* Meeting Summary Card */}
+            <Card className="bg-white">
+              <CardHeader className="pb-4">
+                <div className="flex justify-between items-center">
+                  <CardTitle className="text-lg font-medium">Meeting Summary</CardTitle>
+                  <Button variant="outline" size="sm" className="text-sm">
+                    AI Summary
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <Textarea 
+                  value={meetingData.agenda} 
+                  onChange={e => handleInputChange("agenda", e.target.value)} 
+                  className="min-h-[200px]"
+                  placeholder="Enter meeting summary and key points discussed..."
+                />
+              </CardContent>
+            </Card>
+          </div>
+        </div>
       </div>
-    </div>;
+    </div>
+  );
 };
