@@ -873,19 +873,6 @@ const Index = () => {
       description: "Item documents have been saved"
     });
   };
-  const handleCustomFieldChange = async (sectionId: string, itemId: string, field: string, value: string) => {
-    setDashboardData(prev => ({
-      ...prev,
-      sections: prev.sections.map(section => section.id === sectionId ? {
-        ...section,
-        items: section.items.map(item => item.id === itemId ? {
-          ...item,
-          customFields: { ...item.customFields, [field]: value },
-          lastReviewed: new Date().toLocaleDateString('en-GB')
-        } : item)
-      } : section)
-    }));
-  };
 
   const handleMetadataChange = async (sectionId: string, itemId: string, metadata: SubsectionMetadata) => {
     // Update local state
