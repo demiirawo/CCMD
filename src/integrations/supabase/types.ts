@@ -965,6 +965,7 @@ export type Database = {
           section_id: string
           session_id: string | null
           status: string | null
+          trends_themes: string | null
           updated_at: string
         }
         Insert: {
@@ -979,6 +980,7 @@ export type Database = {
           section_id: string
           session_id?: string | null
           status?: string | null
+          trends_themes?: string | null
           updated_at?: string
         }
         Update: {
@@ -993,6 +995,7 @@ export type Database = {
           section_id?: string
           session_id?: string | null
           status?: string | null
+          trends_themes?: string | null
           updated_at?: string
         }
         Relationships: [
