@@ -291,7 +291,7 @@ export const Settings = () => {
         </Card>
 
         {/* Services Selection */}
-        <Card style={{backgroundColor: '#F4F5F6'}}>
+        <Card style={{backgroundColor: '#EAEBEC'}}>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               
