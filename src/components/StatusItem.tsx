@@ -403,39 +403,72 @@ export const StatusItem = ({
             )}
           </div>
 
-          {/* Actions Section */}
+          {/* Actions Section / Duplicate LESSONS LEARNED for Achievements & Learning */}
           <div>
-            <label className="text-xs font-medium text-muted-foreground mb-1 block">ACTIONS</label>
-            {readOnly ? (
-              <div className="space-y-2">
-                {item.actions.length > 0 ? (
-                  item.actions.map((action, index) => (
-                    <div key={index} className="p-3 border border-border/30 rounded-lg bg-muted/20">
-                      <div className="text-sm font-medium">{action.description}</div>
-                      <div className="text-xs text-muted-foreground mt-1">
-                        Assigned to: {action.name} | Due: {action.targetDate}
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <div className="p-3 border border-border/30 rounded-lg bg-muted/20 text-sm text-muted-foreground">
-                    No actions
+            {item.id === "achievements-learning" ? (
+              <>
+                <label className="text-xs font-medium text-muted-foreground mb-0.5 block">LESSONS LEARNED</label>
+                {readOnly ? (
+                  <div className="w-full p-3 rounded-lg text-sm min-h-[80px] flex items-start border border-border/30 bg-muted/20">
+                    <span className="break-words w-full whitespace-pre-wrap">
+                      {item.trendsThemes || "No lessons learned"}
+                    </span>
                   </div>
+                ) : isEditingTrendsThemes ? (
+                  <CommentEditor 
+                    initialValue={item.trendsThemes || ''} 
+                    onSubmit={handleTrendsThemesSubmit} 
+                    onCancel={() => setIsEditingTrendsThemes(false)} 
+                    placeholder="Enter lessons learned..." 
+                    autoSave={true} 
+                    onAutoSave={(value) => onTrendsThemesChange?.(item.id, value)} 
+                  />
+                ) : (
+                  <button 
+                    onClick={() => setIsEditingTrendsThemes(true)} 
+                    className="w-full text-left p-3 rounded-lg transition-colors text-sm min-h-[80px] flex items-start border border-border/30 break-words overflow-hidden bg-white text-black hover:border-border/40 focus:outline-none focus:ring-2 focus:ring-border/30"
+                  >
+                    <span className="break-words w-full whitespace-pre-wrap">
+                      {item.trendsThemes || ""}
+                    </span>
+                  </button>
                 )}
-              </div>
+              </>
             ) : (
-              <ActionForm 
-                actions={item.actions} 
-                attendees={attendees} 
-                sectionStatus={item.status} 
-                onActionsChange={handleActionsChange} 
-                onActionCreated={handleActionCreated} 
-                onActionCompleted={handleActionCompleted} 
-                onActionEdit={(actionId, updates) => {
-                  // Handle action edit at the section level and sync with main Actions Log
-                  onSubsectionActionEdit?.(item.id, actionId, updates);
-                }} 
-              />
+              <>
+                <label className="text-xs font-medium text-muted-foreground mb-1 block">ACTIONS</label>
+                {readOnly ? (
+                  <div className="space-y-2">
+                    {item.actions.length > 0 ? (
+                      item.actions.map((action, index) => (
+                        <div key={index} className="p-3 border border-border/30 rounded-lg bg-muted/20">
+                          <div className="text-sm font-medium">{action.description}</div>
+                          <div className="text-xs text-muted-foreground mt-1">
+                            Assigned to: {action.name} | Due: {action.targetDate}
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="p-3 border border-border/30 rounded-lg bg-muted/20 text-sm text-muted-foreground">
+                        No actions
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <ActionForm 
+                    actions={item.actions} 
+                    attendees={attendees} 
+                    sectionStatus={item.status} 
+                    onActionsChange={handleActionsChange} 
+                    onActionCreated={handleActionCreated} 
+                    onActionCompleted={handleActionCompleted} 
+                    onActionEdit={(actionId, updates) => {
+                      // Handle action edit at the section level and sync with main Actions Log
+                      onSubsectionActionEdit?.(item.id, actionId, updates);
+                    }} 
+                  />
+                )}
+              </>
             )}
           </div>
         </div>
