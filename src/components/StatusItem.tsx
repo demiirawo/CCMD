@@ -245,7 +245,7 @@ export const StatusItem = ({
         
         {readOnly ? (
           <div className="flex-shrink-0">
-            <StatusBadge status={item.status} />
+            {item.id !== "achievements-learning" && <StatusBadge status={item.status} />}
           </div>
         ) : (
           <button 
@@ -256,7 +256,7 @@ export const StatusItem = ({
               const nextStatus = statusOrder[(currentIndex + 1) % statusOrder.length];
               onStatusChange?.(item.id, nextStatus);
             }} 
-            className="flex-shrink-0 hover:scale-110 transition-transform"
+            className={`flex-shrink-0 hover:scale-110 transition-transform ${item.id === "achievements-learning" ? "hidden" : ""}`}
           >
             <StatusBadge status={item.status} />
           </button>
