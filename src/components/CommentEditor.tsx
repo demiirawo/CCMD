@@ -71,7 +71,10 @@ export const CommentEditor = ({
         value={value}
         className="w-full p-3 rounded-lg border border-border bg-background resize-none min-h-[100px] text-sm text-black" 
         placeholder={placeholder}
-        onChange={(e) => setValue(e.target.value)}
+        onChange={(e) => {
+          console.log('CommentEditor onChange:', e.target.value);
+          setValue(e.target.value);
+        }}
         onBlur={handleBlur}
         onKeyDown={handleKeyDown}
         autoFocus 
