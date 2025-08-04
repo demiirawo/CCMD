@@ -74,6 +74,9 @@ All colors MUST be HSL.
     --chart-3: 0 70% 75%;
     --chart-4: 150 60% 75%;
 
+    /* Custom background colors */
+    --meetings-bg: 210 6% 87%;
+
     /* Success glow effect */
     --success-glow: 0 0 20px hsl(142 76% 36% / 0.6), 0 0 40px hsl(142 76% 36% / 0.3);
   }

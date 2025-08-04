@@ -183,7 +183,7 @@ export const Meetings = () => {
           <CardHeader className="bg-stone-50">
             
           </CardHeader>
-          <CardContent className="space-y-6 bg-stone-50">
+          <CardContent className="space-y-6" style={{ backgroundColor: 'hsl(var(--meetings-bg))' }}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <Label htmlFor="title">Meeting Title *</Label>
