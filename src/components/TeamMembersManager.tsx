@@ -218,7 +218,7 @@ export const TeamMembersManager = ({
           Manage team members and their permissions
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-4" style={{backgroundColor: '#EAEBEC'}}>
         {/* Add new team member */}
         {canManageTeam && <div className="p-4 border border-gray-200 rounded-lg bg-white space-y-3">
             
