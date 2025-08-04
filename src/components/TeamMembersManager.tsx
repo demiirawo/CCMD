@@ -192,7 +192,7 @@ export const TeamMembersManager = ({
       });
     }
   };
-  return <Card className="bg-stone-50">
+  return <Card className="bg-[#EAEBEC]">
       <CardHeader>
         <CardTitle>
           Office Team
