@@ -347,7 +347,7 @@ export const ActionForm = ({
           {/* Action Description - Wider to utilize space */}
           <div className="flex-1">
             <label className="text-xs font-medium text-muted-foreground mb-1 block uppercase">ACTION DESCRIPTION</label>
-            <textarea placeholder="Enter action description..." value={newAction.description} onChange={e => setNewAction(prev => ({
+            <textarea placeholder="" value={newAction.description} onChange={e => setNewAction(prev => ({
             ...prev,
             description: e.target.value
           }))} rows={1} style={{
