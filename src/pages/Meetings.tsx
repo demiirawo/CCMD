@@ -8,9 +8,10 @@ import { MeetingDateTimePicker } from "@/components/MeetingDateTimePicker";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-
 export const Meetings = () => {
-  const { profile } = useAuth();
+  const {
+    profile
+  } = useAuth();
   const [meetingData, setMeetingData] = useState({
     title: "",
     dateTime: "",
@@ -19,14 +20,12 @@ export const Meetings = () => {
     agenda: ""
   });
   const [isSaving, setIsSaving] = useState(false);
-
   const handleInputChange = (field: string, value: string) => {
     setMeetingData(prev => ({
       ...prev,
       [field]: value
     }));
   };
-
   const getQuarter = (date: Date) => {
     const month = date.getMonth() + 1;
     if (month <= 3) return 'Q1';
@@ -34,7 +33,6 @@ export const Meetings = () => {
     if (month <= 9) return 'Q3';
     return 'Q4';
   };
-
   const handleSave = async () => {
     console.log("Save button clicked!", meetingData);
     // Basic validation
@@ -46,7 +44,6 @@ export const Meetings = () => {
       });
       return;
     }
-
     if (!profile?.company_id) {
       toast({
         title: "Error",
@@ -55,9 +52,7 @@ export const Meetings = () => {
       });
       return;
     }
-
     setIsSaving(true);
-
     try {
       // Parse the dateTime string correctly (format: dd/MM/yyyy HH:mm)
       const [datePart, timePart] = meetingData.dateTime.split(' ');
@@ -70,14 +65,11 @@ export const Meetings = () => {
       const meetingYear = meetingDate.getFullYear();
 
       // Convert attendance text to attendees array
-      const attendeesArray = meetingData.attendance
-        .split('\n')
-        .filter(line => line.trim())
-        .map((name, index) => ({
-          id: `attendee-${index}`,
-          name: name.trim(),
-          email: ""
-        }));
+      const attendeesArray = meetingData.attendance.split('\n').filter(line => line.trim()).map((name, index) => ({
+        id: `attendee-${index}`,
+        name: name.trim(),
+        email: ""
+      }));
 
       // Create sections structure with meeting detail
       const sections = [{
@@ -103,7 +95,6 @@ export const Meetings = () => {
           metadata: {}
         }]
       }];
-
       const meetingPayload = {
         title: meetingData.title,
         date: meetingDate.toISOString(),
@@ -115,11 +106,9 @@ export const Meetings = () => {
         sections: JSON.stringify(sections),
         actions_log: JSON.stringify([])
       };
-
-      const { error } = await supabase
-        .from('meetings')
-        .insert(meetingPayload);
-
+      const {
+        error
+      } = await supabase.from('meetings').insert(meetingPayload);
       if (error) {
         console.error('Error saving meeting:', error);
         toast({
@@ -129,7 +118,6 @@ export const Meetings = () => {
         });
         return;
       }
-
       toast({
         title: "Success",
         description: "Meeting has been saved successfully and will appear in Reports"
@@ -154,76 +142,56 @@ export const Meetings = () => {
       setIsSaving(false);
     }
   };
-
-  return (
-    <div className="min-h-screen bg-muted/30">
+  return <div className="min-h-screen bg-muted/30">
       <div className="max-w-7xl mx-auto p-6 pt-20">
         <div className="flex justify-between items-center mb-6">
           <div className="flex gap-2 ml-auto">
-            <Button
-              onClick={() => {
-                console.log("Button clicked - calling handleSave");
-                handleSave();
-              }}
-              disabled={isSaving}
-            >
+            <Button onClick={() => {
+            console.log("Button clicked - calling handleSave");
+            handleSave();
+          }} disabled={isSaving}>
               {isSaving ? "Saving..." : "Save"}
             </Button>
           </div>
         </div>
 
-        <div style={{ backgroundColor: '#DFE1E3' }} className="rounded-lg p-6 px-[50px] py-[29px]">
+        <div style={{
+        backgroundColor: '#DFE1E3'
+      }} className="rounded-lg p-6 px-[50px] py-[29px]">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Meeting Title Card */}
             <Card className="bg-white">
               <CardHeader className="pb-4">
-                <CardTitle className="text-sm font-medium text-stone-500">Meeting Title</CardTitle>
+                <CardTitle className="font-medium text-base text-stone-950">Meeting Title</CardTitle>
               </CardHeader>
               <CardContent>
-                <Input
-                  value={meetingData.title}
-                  onChange={(e) => handleInputChange("title", e.target.value)}
-                  placeholder="Enter meeting title"
-                  className="text-base"
-                />
+                <Input value={meetingData.title} onChange={e => handleInputChange("title", e.target.value)} placeholder="Enter meeting title" className="text-base" />
               </CardContent>
             </Card>
 
             {/* Meeting Date & Time Card */}
             <Card className="bg-white">
               <CardHeader className="pb-4">
-                <CardTitle className="text-lg font-medium">Meeting Date & Time</CardTitle>
+                <CardTitle className="font-medium text-base text-stone-950">Meeting Date & Time</CardTitle>
               </CardHeader>
               <CardContent>
-                <MeetingDateTimePicker
-                  value={meetingData.dateTime}
-                  onChange={(value) => handleInputChange("dateTime", value)}
-                />
+                <MeetingDateTimePicker value={meetingData.dateTime} onChange={value => handleInputChange("dateTime", value)} />
               </CardContent>
             </Card>
 
             {/* Meeting Attendees Card */}
             <Card className="bg-white">
               <CardHeader className="pb-4">
-                <CardTitle className="text-base font-medium text-neutral-500">Meeting Attendees</CardTitle>
+                
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="facilitator">Meeting Facilitator *</Label>
-                  <Input
-                    id="facilitator"
-                    value={meetingData.facilitator}
-                    onChange={(e) => handleInputChange("facilitator", e.target.value)}
-                  />
+                  <Input id="facilitator" value={meetingData.facilitator} onChange={e => handleInputChange("facilitator", e.target.value)} />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="attendance">Attendees</Label>
-                  <Textarea
-                    id="attendance"
-                    value={meetingData.attendance}
-                    onChange={(e) => handleInputChange("attendance", e.target.value)}
-                    className="min-h-[120px]"
-                  />
+                  <Textarea id="attendance" value={meetingData.attendance} onChange={e => handleInputChange("attendance", e.target.value)} className="min-h-[120px]" />
                 </div>
               </CardContent>
             </Card>
@@ -231,19 +199,14 @@ export const Meetings = () => {
             {/* Meeting Summary Card */}
             <Card className="bg-white">
               <CardHeader className="pb-4">
-                <CardTitle className="text-lg font-medium text-stone-500">Meeting Summary</CardTitle>
+                <CardTitle className="font-medium text-base text-stone-950">Meeting Summary</CardTitle>
               </CardHeader>
               <CardContent>
-                <Textarea
-                  value={meetingData.agenda}
-                  onChange={(e) => handleInputChange("agenda", e.target.value)}
-                  className="min-h-[200px]"
-                />
+                <Textarea value={meetingData.agenda} onChange={e => handleInputChange("agenda", e.target.value)} className="min-h-[200px]" />
               </CardContent>
             </Card>
           </div>
         </div>
       </div>
-    </div>
-  );
+    </div>;
 };
