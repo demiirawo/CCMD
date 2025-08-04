@@ -313,7 +313,7 @@ export const Settings = () => {
 
 
         {/* Logo Upload */}
-        <Card style={{backgroundColor: '#F4F5F6'}}>
+        <Card style={{backgroundColor: '#EAEBEC'}}>
           <CardHeader>
             <CardTitle>
               Company Logo
