@@ -234,12 +234,15 @@ export const useAnalyticsRecovery = () => {
       // Create backup before attempting save
       await createAnalyticsBackup(companyId, meetingId, analyticsType, data, 'auto_backup');
 
+      // Filter out internal fields before saving to database
+      const { _lastSaved, _backupCreated, _recovered, ...dataToSave } = data;
+      
       // Attempt to save to the main table
       const { error } = await (supabase.from as any)(tableName)
         .upsert([{
           company_id: companyId,
           meeting_id: meetingId,
-          ...data,
+          ...dataToSave,
           updated_at: new Date().toISOString()
         }]);
 
