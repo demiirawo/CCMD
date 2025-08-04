@@ -11,6 +11,8 @@ import { FeedbackAnalytics } from "./FeedbackAnalytics";
 import { ChevronDown, ChevronRight, CalendarIcon, ExternalLink } from "lucide-react";
 import { useState, memo, useCallback } from "react";
 import { CommentEditor } from "./CommentEditor";
+import { ChallengesField } from "./ChallengesField";
+import { LessonsLearnedField } from "./LessonsLearnedField";
 import { ActionForm, ActionItem } from "./ActionForm";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
@@ -97,17 +99,11 @@ export const StatusItem = memo(({
 }: StatusItemProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isEditingObservation, setIsEditingObservation] = useState(false);
-  const [isEditingTrendsThemes, setIsEditingTrendsThemes] = useState(false);
 
   const handleObservationSubmit = useCallback((observation: string) => {
     onObservationChange?.(item.id, observation);
     setIsEditingObservation(false);
   }, [item.id, onObservationChange]);
-
-  const handleTrendsThemesSubmit = useCallback((trendsThemes: string) => {
-    onTrendsThemesChange?.(item.id, trendsThemes);
-    setIsEditingTrendsThemes(false);
-  }, [item.id, onTrendsThemesChange]);
 
   const handleActionsChange = useCallback((actions: ActionItem[]) => {
     // Check if any actions were removed (deleted) by comparing with previous state
@@ -376,68 +372,23 @@ export const StatusItem = memo(({
             )}
           </div>
 
-          {/* Trends & Themes Section */}
-          <div>
-            <label className="text-xs font-medium text-muted-foreground mb-0.5 block">
-              {item.id === "achievements-learning" ? "CHALLENGES" : "TREND ANALYSIS"}
-            </label>
-            {readOnly ? (
-              <div className="w-full p-3 rounded-lg text-sm min-h-[80px] flex items-start border border-border/30 bg-muted/20">
-                <span className="break-words w-full whitespace-pre-wrap">
-                  {item.trendsThemes || "No trends & themes"}
-                </span>
-              </div>
-            ) : isEditingTrendsThemes ? (
-              <CommentEditor 
-                initialValue={item.trendsThemes || ''} 
-                onSubmit={handleTrendsThemesSubmit} 
-                onCancel={() => setIsEditingTrendsThemes(false)} 
-                placeholder="Enter trends & themes..." 
-                autoSave={true} 
-                onAutoSave={(value) => onTrendsThemesChange?.(item.id, value)} 
-              />
-            ) : (
-              <button 
-                onClick={() => setIsEditingTrendsThemes(true)} 
-                className="w-full text-left p-3 rounded-lg transition-colors text-sm min-h-[80px] flex items-start border border-border/30 break-words overflow-hidden bg-white text-black hover:border-border/40 focus:outline-none focus:ring-2 focus:ring-border/30"
-              >
-                <span className="break-words w-full whitespace-pre-wrap">
-                  {item.trendsThemes || ""}
-                </span>
-              </button>
-            )}
-          </div>
+          {/* Challenges Field */}
+          <ChallengesField
+            value={item.trendsThemes || ''}
+            onChange={(value) => onTrendsThemesChange?.(item.id, value)}
+            readOnly={readOnly}
+            itemId={item.id}
+          />
 
           {/* Actions Section / Duplicate LESSONS LEARNED for Achievements & Learning */}
           <div>
             {item.id === "achievements-learning" ? (
               <>
-                <label className="text-xs font-medium text-muted-foreground mb-0.5 block">LESSONS LEARNED</label>
-                {readOnly ? (
-                  <div className="w-full p-3 rounded-lg text-sm min-h-[80px] flex items-start border border-border/30 bg-muted/20">
-                    <span className="break-words w-full whitespace-pre-wrap">
-                      {item.trendsThemes || "No lessons learned"}
-                    </span>
-                  </div>
-                ) : isEditingTrendsThemes ? (
-                  <CommentEditor 
-                    initialValue={item.trendsThemes || ''} 
-                    onSubmit={handleTrendsThemesSubmit} 
-                    onCancel={() => setIsEditingTrendsThemes(false)} 
-                    placeholder="Enter lessons learned..." 
-                    autoSave={true} 
-                    onAutoSave={(value) => onTrendsThemesChange?.(item.id, value)} 
-                  />
-                ) : (
-                  <button 
-                    onClick={() => setIsEditingTrendsThemes(true)} 
-                    className="w-full text-left p-3 rounded-lg transition-colors text-sm min-h-[80px] flex items-start border border-border/30 break-words overflow-hidden bg-white text-black hover:border-border/40 focus:outline-none focus:ring-2 focus:ring-border/30"
-                  >
-                    <span className="break-words w-full whitespace-pre-wrap">
-                      {item.trendsThemes || ""}
-                    </span>
-                  </button>
-                )}
+                <LessonsLearnedField
+                  value={item.trendsThemes || ''}
+                  onChange={(value) => onTrendsThemesChange?.(item.id, value)}
+                  readOnly={readOnly}
+                />
               </>
             ) : (
               <>
