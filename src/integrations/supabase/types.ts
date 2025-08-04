@@ -1144,6 +1144,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      ensure_user_setup_complete: {
+        Args: { user_email: string }
+        Returns: undefined
+      }
       generate_slug: {
         Args: { input_text: string }
         Returns: string
