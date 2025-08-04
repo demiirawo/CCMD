@@ -93,7 +93,7 @@ export const ChallengesField = ({ value, onChange, readOnly = false, itemId }: C
           onBlur={handleBlur}
           onKeyDown={handleKeyDown}
           className="w-full p-3 rounded-lg border border-border bg-background resize-none min-h-[80px] text-sm text-black"
-          placeholder={`Enter ${labelText.toLowerCase()}...`}
+          placeholder=""
           autoFocus
         />
       </div>
