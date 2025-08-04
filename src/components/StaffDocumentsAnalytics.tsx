@@ -62,61 +62,69 @@ export const StaffDocumentsAnalytics = ({
     try {
       console.log('StaffDocumentsAnalytics: Loading staff data for company:', profile.company_id, 'meetingId:', meetingId);
       
-      // Load data for the specific meeting if meetingId is provided, otherwise load company-wide data
-      let query = supabase
-        .from('dashboard_data')
-        .select('data_content')
+      // Strategy: Load ALL resourcing data for this company and consolidate the most recent data
+      // This matches the approach used in ResourcingOverview component
+      const { data: allData, error } = await supabase
+        .from('resourcing_overview')
+        .select('*')
         .eq('company_id', profile.company_id)
-        .eq('data_type', 'resourcing_overview');
-      
-      if (meetingId) {
-        query = query.eq('meeting_id', meetingId);
-      } else {
-        query = query.is('meeting_id', null);
-      }
-      
-      const { data: savedData, error } = await query.maybeSingle();
+        .order('updated_at', { ascending: false });
 
+      console.log('🔍 StaffDocumentsAnalytics: Found all company resourcing data:', allData?.length || 0, 'records');
+      
       if (error && error.code !== 'PGRST116') {
         console.error('StaffDocumentsAnalytics: Error loading staff data:', error);
         return;
       }
 
-      console.log('StaffDocumentsAnalytics: Raw data received:', savedData);
-
-      if (savedData?.data_content) {
-        const resourcingData = savedData.data_content as any;
-        console.log('StaffDocumentsAnalytics: Resourcing data:', resourcingData);
+      if (allData && allData.length > 0) {
+        console.log('🔍 StaffDocumentsAnalytics: Consolidating staff data from', allData.length, 'records');
         
-        const newStaffData = {
-          onboarding: resourcingData.onboarding || 0,
-          onProbation: resourcingData.onProbation || 0,
-          active: resourcingData.active || 0
+        // Use the most recent non-zero values, prioritizing data from the current meeting if available
+        let consolidatedData = {
+          onboarding: 0,
+          onProbation: 0,
+          active: 0
         };
         
-        console.log('StaffDocumentsAnalytics: Setting staff data:', newStaffData);
-        setStaffData(newStaffData);
-      } else {
-        console.log('StaffDocumentsAnalytics: No data found, checking for any resourcing_overview data');
-        
-        // Fallback: check for any resourcing data without meeting_id filter
-        const { data: fallbackData } = await supabase
-          .from('dashboard_data')
-          .select('data_content')
-          .eq('company_id', profile.company_id)
-          .eq('data_type', 'resourcing_overview')
-          .order('updated_at', { ascending: false })
-          .limit(1)
-          .maybeSingle();
+        // Process all records to find the best values
+        allData.forEach((record, index) => {
+          console.log(`🔍 StaffDocumentsAnalytics: Processing staff record ${index + 1}:`, record);
           
-        if (fallbackData?.data_content) {
-          const resourcingData = fallbackData.data_content as any;
-          console.log('StaffDocumentsAnalytics: Using fallback data:', resourcingData);
-          setStaffData({
-            onboarding: resourcingData.onboarding || 0,
-            onProbation: resourcingData.onProbation || 0,
-            active: resourcingData.active || 0
-          });
+          // If this is the first record or if we find non-zero values, use them
+          if (index === 0 || 
+              (record.onboarding > 0 && consolidatedData.onboarding === 0) ||
+              (record.on_probation > 0 && consolidatedData.onProbation === 0) ||
+              (record.active > 0 && consolidatedData.active === 0)) {
+            
+            consolidatedData = {
+              onboarding: record.onboarding || consolidatedData.onboarding,
+              onProbation: record.on_probation || consolidatedData.onProbation,
+              active: record.active || consolidatedData.active
+            };
+          }
+        });
+        
+        console.log('🔍 StaffDocumentsAnalytics: Consolidated staff data:', consolidatedData);
+        setStaffData(consolidatedData);
+        console.log('✅ StaffDocumentsAnalytics: Set consolidated staff data to state');
+      } else {
+        console.log('🔍 StaffDocumentsAnalytics: No database staff data found, trying localStorage backup');
+        // Try to load from localStorage backup
+        const backupKey = meetingId ? `resourcing_overview_backup_${profile.company_id}_${meetingId}` : `resourcing_overview_backup_${profile.company_id}`;
+        const backupData = localStorage.getItem(backupKey);
+        if (backupData) {
+          try {
+            const backup = JSON.parse(backupData);
+            setStaffData({
+              onboarding: backup.onboarding || 0,
+              onProbation: backup.onProbation || 0,
+              active: backup.active || 0
+            });
+            console.log('✅ StaffDocumentsAnalytics: Loaded staff data from localStorage backup');
+          } catch (error) {
+            console.error('Error loading backup data:', error);
+          }
         }
       }
     } catch (error) {
