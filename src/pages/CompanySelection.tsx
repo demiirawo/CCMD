@@ -98,36 +98,14 @@ export const CompanySelection = () => {
       setNewCompanyName('');
       setCreateDialogOpen(false);
       // Automatically select the new company
-      await handleSelectCompany(data.id);
+      await handleSelectCompany(data);
     }
     setLoading(false);
   };
-  const handleSelectCompany = async (companyId: string) => {
-    console.log('Selecting company:', companyId);
-    setLoading(true);
-    const {
-      error
-    } = await selectCompany(companyId);
-    console.log('Select company result:', {
-      error
-    });
-    if (error) {
-      console.error('Error selecting company:', error);
-      toast({
-        title: 'Error',
-        description: error.message,
-        variant: 'destructive'
-      });
-      setLoading(false);
-    } else {
-      console.log('Company selected successfully, navigating to /');
-      toast({
-        title: 'Success',
-        description: 'Company selected successfully!'
-      });
-      navigate('/');
-      setLoading(false);
-    }
+  const handleSelectCompany = async (company: any) => {
+    console.log('Navigating to company:', company);
+    const slug = company.slug || company.name.toLowerCase().replace(/\s+/g, '-');
+    navigate(`/company/${slug}`);
   };
   const handleDeleteCompany = async (companyId: string) => {
     setLoading(true);
@@ -262,7 +240,7 @@ export const CompanySelection = () => {
                             </div>
                           </div>
                           <div className="flex items-center gap-2">
-                            <Button onClick={() => handleSelectCompany(company.id)} disabled={loading} className="bg-stone-400 hover:bg-stone-300 text-black">
+                            <Button onClick={() => handleSelectCompany(company)} disabled={loading} className="bg-stone-400 hover:bg-stone-300 text-black">
                               Select
                             </Button>
                             {profile?.role === 'admin' && <AlertDialog>
