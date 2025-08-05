@@ -1,8 +1,11 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 
+console.log('Landing.tsx file loaded');
+
 const Landing: React.FC = () => {
+  console.log('Landing component function called');
   const { user, profile, companies, loading } = useAuth();
 
   console.log('=== Landing Component Rendering ===');
