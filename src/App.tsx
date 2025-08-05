@@ -33,9 +33,7 @@ const AppContent = () => {
       <Route path="/admin" element={<AdminAuth />} />
       
       <Route path="/company-selection" element={
-        <ProtectedRoute>
-          <CompanySelection />
-        </ProtectedRoute>
+        <CompanySelection />
       } />
       <Route path="/company/:slug" element={
         <ProtectedRoute>
