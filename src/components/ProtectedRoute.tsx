@@ -57,6 +57,6 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requir
     return <Navigate to="/company-selection" replace />;
   }
 
-  console.log('ProtectedRoute allowing access');
+  console.log('ProtectedRoute allowing access - final fallback');
   return <>{children}</>;
 };
