@@ -23,7 +23,9 @@ import CompanyDashboard from "./pages/CompanyDashboard";
 const queryClient = new QueryClient();
 
 const AppContent = () => {
+  console.log('AppContent rendering, pathname:', window.location.pathname);
   useTheme(); // Apply theme across all pages
+  console.log('About to render Routes');
   
   return (
     <Routes>
@@ -40,7 +42,12 @@ const AppContent = () => {
           <CompanyDashboard />
         </ProtectedRoute>
       } />
-      <Route path="/" element={<Landing />} />
+      <Route path="/" element={
+        <>
+          {console.log('Root route "/" matched, rendering Landing')}
+          <Landing />
+        </>
+      } />
       <Route path="/meetings" element={
         <ProtectedRoute requireCompany>
           <>
