@@ -9,8 +9,10 @@ export const Auth = () => {
   const [searchParams] = useSearchParams();
 
   useEffect(() => {
+    console.log('Auth useEffect:', { user: !!user, loading, returnTo: searchParams.get('returnTo') });
     if (user && !loading) {
       const returnTo = searchParams.get('returnTo');
+      console.log('Auth redirecting to:', returnTo || '/');
       navigate(returnTo || '/');
     }
   }, [user, loading, navigate, searchParams]);
