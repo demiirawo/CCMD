@@ -91,21 +91,54 @@ const CompanyDashboard: React.FC = () => {
     return <Navigate to={`/auth?returnTo=/company/${slug}`} replace />;
   }
 
-  // Only redirect to company selection if we're sure user has no companies (not loading)
-  if (!loading && !companies.length) {
-    return <Navigate to="/company-selection" replace />;
+  // For admin users, we bypass company selection entirely
+  if (profile?.role === 'admin') {
+    console.log('Admin user detected, proceeding to dashboard without company checks');
+    
+    // If companies are loaded and we have a slug, proceed
+    if (companies.length > 0 && slug) {
+      const company = companies.find(c => 
+        'slug' in c ? c.slug === slug : 
+        c.name.toLowerCase().replace(/\s+/g, '-') === slug
+      );
+      
+      if (company) {
+        console.log('Company found for admin:', company.name);
+        // Ensure the company is selected in the auth context
+        if (profile.company_id !== company.id) {
+          console.log('Selecting company for admin:', company.id);
+          selectCompany(company.id);
+        }
+        
+        return (
+          <>
+            <Navigation />
+            <Index />
+          </>
+        );
+      } else {
+        console.log('Company not found, redirecting to selection');
+        return <Navigate to="/company-selection" replace />;
+      }
+    } else if (companies.length === 0 && !loading) {
+      console.log('No companies found for admin');
+      return <Navigate to="/company-selection" replace />;
+    } else {
+      // Still loading companies
+      return (
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+            <p>Loading company dashboard...</p>
+          </div>
+        </div>
+      );
+    }
   }
 
-  // Wait for loading to complete before checking company
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p>Loading company dashboard...</p>
-        </div>
-      </div>
-    );
+  // For non-admin users, continue with existing logic
+  if (!loading && !companies.length) {
+    return <Navigate to="/company-selection" replace />;
   }
 
   const company = companies.find(c => 
@@ -117,7 +150,12 @@ const CompanyDashboard: React.FC = () => {
     return <Navigate to="/company-selection" replace />;
   }
 
-  // Render the dashboard with navigation once company is selected
+  // Auto-select company if not already selected
+  if (profile?.company_id !== company.id) {
+    console.log('Selecting company:', company.id, 'current:', profile?.company_id);
+    selectCompany(company.id);
+  }
+
   return (
     <>
       <Navigation />
