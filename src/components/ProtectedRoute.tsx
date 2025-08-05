@@ -9,10 +9,8 @@ interface ProtectedRouteProps {
 }
 
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requireCompany = false }) => {
-  const { user, profile, companies, selectCompany, loading } = useAuth();
+  const { user, profile, loading } = useAuth();
   const location = useLocation();
-  const [searchParams, setSearchParams] = useSearchParams();
-  const { toast } = useToast();
 
   console.log('ProtectedRoute:', { 
     pathname: location.pathname, 
@@ -23,56 +21,6 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requir
     isCompanySlugRoute: location.pathname.startsWith('/company/')
   });
 
-  // Handle company auto-selection from URL parameter - MUST be before any early returns
-  useEffect(() => {
-    if (!user || loading) return; // Skip if no user or still loading
-    
-    const companyParam = searchParams.get('company');
-    if (companyParam && companies.length > 0 && profile) {
-      console.log('Company parameter found:', companyParam, 'Available companies:', companies.length);
-      
-      // Find company by matching slug (generated from name)
-      const targetCompany = companies.find(company => 
-        company.name.toLowerCase().replace(/\s+/g, '-') === companyParam
-      );
-      
-      if (targetCompany) {
-        console.log('Found matching company:', targetCompany.name);
-        // Only auto-select if user doesn't already have this company selected
-        if (profile.company_id !== targetCompany.id) {
-          console.log('Auto-selecting company from URL parameter');
-          selectCompany(targetCompany.id).then(({ error }) => {
-            if (error) {
-              console.error('Error auto-selecting company:', error);
-              toast({
-                title: "Error",
-                description: "Failed to select company from link.",
-                variant: "destructive"
-              });
-            } else {
-              toast({
-                title: "Company selected",
-                description: `You're now viewing ${targetCompany.name}.`
-              });
-            }
-          });
-        }
-        // Remove the company parameter from URL after processing
-        searchParams.delete('company');
-        setSearchParams(searchParams, { replace: true });
-      } else {
-        console.log('Company not found for parameter:', companyParam);
-        toast({
-          title: "Company not found",
-          description: "You don't have access to this company.",
-          variant: "destructive"
-        });
-        // Remove invalid parameter
-        searchParams.delete('company');
-        setSearchParams(searchParams, { replace: true });
-      }
-    }
-  }, [user, loading, companies, profile, searchParams, setSearchParams, selectCompany, toast]);
 
   if (loading) {
     return (
