@@ -38,11 +38,7 @@ const AppContent = () => {
           <CompanySelection />
         </ProtectedRoute>
       } />
-      <Route path="/company/:slug" element={
-        <ProtectedRoute>
-          <CompanyDashboard />
-        </ProtectedRoute>
-      } />
+      <Route path="/company/:slug" element={<CompanyDashboard />} />
       <Route path="/" element={
         <>
           {console.log('Root route "/" matched, rendering Landing')}
