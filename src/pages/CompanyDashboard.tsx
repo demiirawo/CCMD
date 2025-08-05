@@ -6,6 +6,7 @@ import { Navigation } from '@/components/Navigation';
 import Index from './Index';
 
 const CompanyDashboard: React.FC = () => {
+  console.log('=== CompanyDashboard component mounted ===');
   const { slug } = useParams<{ slug: string }>();
   const { user, profile, companies, selectCompany, loading } = useAuth();
   const { toast } = useToast();
