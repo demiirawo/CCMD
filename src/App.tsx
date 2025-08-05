@@ -4,7 +4,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Navigation } from "./components/Navigation";
 import { AuthProvider } from "./components/AuthProvider";
 import { ProtectedRoute } from "./components/ProtectedRoute";
-import { CompanySelector } from "@/components/CompanySelector";
+
 import { useTheme } from "./hooks/useTheme";
 import Index from "./pages/Index";
 
