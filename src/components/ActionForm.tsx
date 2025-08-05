@@ -371,7 +371,13 @@ export const ActionForm = ({
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0 bg-white border shadow-lg text-black" align="start">
                 <div className="bg-white rounded-lg">
-                  <CalendarComponent mode="single" onSelect={handleDateSelect} initialFocus className="p-3 pointer-events-auto bg-white rounded-lg text-black" disabled={date => date < new Date()} />
+                  <CalendarComponent mode="single" onSelect={handleDateSelect} initialFocus className="p-3 pointer-events-auto bg-white rounded-lg text-black" disabled={date => {
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    const compareDate = new Date(date);
+                    compareDate.setHours(0, 0, 0, 0);
+                    return compareDate < today;
+                  }} />
                 </div>
               </PopoverContent>
             </Popover>
