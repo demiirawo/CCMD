@@ -4,8 +4,6 @@ import { StaffTrainingAnalytics } from "./StaffTrainingAnalytics";
 import { SpotCheckAnalytics } from "./SpotCheckAnalytics";
 import { SupervisionAnalytics } from "./SupervisionAnalytics";
 import { ResourcingOverview } from "./ResourcingOverview";
-import { CarePlanAnalytics } from "./CarePlanAnalytics";
-import { ServiceUserDocumentsAnalytics } from "./ServiceUserDocumentsAnalytics";
 import { IncidentsAnalytics } from "./IncidentsAnalytics";
 import { FeedbackAnalytics } from "./FeedbackAnalytics";
 import { ChevronDown, ChevronRight, CalendarIcon, ExternalLink } from "lucide-react";
@@ -503,13 +501,6 @@ export const StatusItem = memo(({
             <SupervisionAnalytics meetingDate={meetingDate} meetingId={meetingId} />
           )}
           
-          {item.title.toLowerCase().includes('care plans') && (
-            <CarePlanAnalytics meetingDate={meetingDate} meetingId={meetingId} />
-          )}
-          
-          {item.title.toLowerCase().includes('service user documents') && (
-            <ServiceUserDocumentsAnalytics meetingDate={meetingDate} meetingId={meetingId} />
-          )}
           
           {item.title.toLowerCase().includes('incidents') && (
             <IncidentsAnalytics meetingDate={meetingDate} meetingId={meetingId} />
