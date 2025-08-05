@@ -11,6 +11,16 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requir
   const { user, profile, loading } = useAuth();
   const location = useLocation();
 
+  console.log('ProtectedRoute check:', {
+    pathname: location.pathname,
+    user: !!user,
+    profile: !!profile,
+    profileRole: profile?.role,
+    loading,
+    requireCompany,
+    isCompanySlugRoute: location.pathname.startsWith('/company/')
+  });
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
