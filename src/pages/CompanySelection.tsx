@@ -103,9 +103,23 @@ export const CompanySelection = () => {
     setLoading(false);
   };
   const handleSelectCompany = async (company: any) => {
-    console.log('Navigating to company:', company);
-    const slug = company.slug || company.name.toLowerCase().replace(/\s+/g, '-');
-    navigate(`/company/${slug}`);
+    console.log('handleSelectCompany called with:', company);
+    console.log('Company slug:', company.slug);
+    
+    try {
+      const slug = company.slug || company.name.toLowerCase().replace(/\s+/g, '-');
+      console.log('Final slug for navigation:', slug);
+      console.log('Navigating to:', `/company/${slug}`);
+      navigate(`/company/${slug}`);
+      console.log('Navigation completed');
+    } catch (error) {
+      console.error('Error in handleSelectCompany:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to navigate to company',
+        variant: 'destructive'
+      });
+    }
   };
   const handleDeleteCompany = async (companyId: string) => {
     setLoading(true);
