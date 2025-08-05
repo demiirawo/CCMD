@@ -61,55 +61,47 @@ export const SpotCheckAnalytics = ({
     try {
       console.log('SpotCheckAnalytics: Loading staff data for company:', profile.company_id, 'meetingId:', meetingId);
       
-      // Load data for the specific meeting if meetingId is provided, otherwise load company-wide data
-      let query = supabase.from('dashboard_data').select('data_content').eq('company_id', profile.company_id).eq('data_type', 'resourcing_overview');
-      if (meetingId) {
-        query = query.eq('meeting_id', meetingId);
-      } else {
-        query = query.is('meeting_id', null);
-      }
+      // Strategy: Load ALL resourcing data for this company and consolidate the most recent data
+      const { data: allData, error } = await supabase
+        .from('resourcing_overview')
+        .select('*')
+        .eq('company_id', profile.company_id)
+        .order('updated_at', { ascending: false });
 
-      const { data: savedData, error } = await query.maybeSingle();
-
+      console.log('🔍 SpotCheckAnalytics: Found all company data:', allData?.length || 0, 'records');
+      
       if (error && error.code !== 'PGRST116') {
         console.error('SpotCheckAnalytics: Error loading staff data:', error);
         return;
       }
 
-      console.log('SpotCheckAnalytics: Raw data received:', savedData);
-
-      if (savedData?.data_content) {
-        const resourcingData = savedData.data_content as any;
-        console.log('SpotCheckAnalytics: Resourcing data:', resourcingData);
+      if (allData && allData.length > 0) {
+        console.log('🔍 SpotCheckAnalytics: Consolidating data from', allData.length, 'records');
         
-        const newStaffData = {
-          onProbation: resourcingData.onProbation || 0,
-          active: resourcingData.active || 0
+        // Use the most recent non-zero values, prioritizing data from the current meeting if available
+        let consolidatedData = {
+          onProbation: 0,
+          active: 0
         };
         
-        console.log('SpotCheckAnalytics: Setting staff data:', newStaffData);
-        setStaffData(newStaffData);
-      } else {
-        console.log('SpotCheckAnalytics: No data found, checking for any resourcing_overview data');
-        
-        // Fallback: check for any resourcing data without meeting_id filter
-        const { data: fallbackData } = await supabase
-          .from('dashboard_data')
-          .select('data_content')
-          .eq('company_id', profile.company_id)
-          .eq('data_type', 'resourcing_overview')
-          .order('updated_at', { ascending: false })
-          .limit(1)
-          .maybeSingle();
+        // Process all records to find the best values
+        allData.forEach((record, index) => {
+          console.log(`🔍 SpotCheckAnalytics: Processing record ${index + 1}:`, record);
           
-        if (fallbackData?.data_content) {
-          const resourcingData = fallbackData.data_content as any;
-          console.log('SpotCheckAnalytics: Using fallback data:', resourcingData);
-          setStaffData({
-            onProbation: resourcingData.onProbation || 0,
-            active: resourcingData.active || 0
-          });
-        }
+          // If this is the first record or if we find non-zero values, use them
+          if (index === 0 || 
+              (record.on_probation > 0 && consolidatedData.onProbation === 0) ||
+              (record.active > 0 && consolidatedData.active === 0)) {
+            
+            consolidatedData = {
+              onProbation: record.on_probation || consolidatedData.onProbation,
+              active: record.active || consolidatedData.active
+            };
+          }
+        });
+        
+        console.log('🔍 SpotCheckAnalytics: Consolidated data:', consolidatedData);
+        setStaffData(consolidatedData);
       }
     } catch (error) {
       console.error('SpotCheckAnalytics: Error loading staff data:', error);

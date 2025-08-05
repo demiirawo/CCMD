@@ -38,33 +38,73 @@ export const SupervisionAnalytics = ({
     }
   }, [profile?.company_id, meetingId]);
 
+  // Listen for resourcing data updates
+  useEffect(() => {
+    const handleResourcingUpdate = (event: CustomEvent) => {
+      if (event.detail.companyId === profile?.company_id && 
+          event.detail.meetingId === meetingId) {
+        console.log('SupervisionAnalytics: Received resourcing data update:', event.detail.data);
+        setStaffData({
+          onProbation: event.detail.data.onProbation || 0,
+          active: event.detail.data.active || 0
+        });
+      }
+    };
+
+    window.addEventListener('resourcing-data-updated', handleResourcingUpdate as EventListener);
+    return () => window.removeEventListener('resourcing-data-updated', handleResourcingUpdate as EventListener);
+  }, [profile?.company_id, meetingId]);
+
   const loadStaffData = async () => {
     if (!profile?.company_id) return;
 
     try {
-      // Load data from the resourcing_overview table
-      let query = supabase.from('resourcing_overview').select('*').eq('company_id', profile.company_id);
-      if (meetingId) {
-        query = query.eq('meeting_id', meetingId);
-      } else {
-        query = query.is('meeting_id', null);
-      }
+      console.log('SupervisionAnalytics: Loading staff data for company:', profile.company_id, 'meetingId:', meetingId);
+      
+      // Strategy: Load ALL resourcing data for this company and consolidate the most recent data
+      const { data: allData, error } = await supabase
+        .from('resourcing_overview')
+        .select('*')
+        .eq('company_id', profile.company_id)
+        .order('updated_at', { ascending: false });
 
-      const { data: savedData, error } = await query.maybeSingle();
-
+      console.log('🔍 SupervisionAnalytics: Found all company data:', allData?.length || 0, 'records');
+      
       if (error && error.code !== 'PGRST116') {
-        console.error('Error loading staff data:', error);
+        console.error('SupervisionAnalytics: Error loading staff data:', error);
         return;
       }
 
-      if (savedData) {
-        setStaffData({
-          onProbation: savedData.on_probation || 0,
-          active: savedData.active || 0
+      if (allData && allData.length > 0) {
+        console.log('🔍 SupervisionAnalytics: Consolidating data from', allData.length, 'records');
+        
+        // Use the most recent non-zero values, prioritizing data from the current meeting if available
+        let consolidatedData = {
+          onProbation: 0,
+          active: 0
+        };
+        
+        // Process all records to find the best values
+        allData.forEach((record, index) => {
+          console.log(`🔍 SupervisionAnalytics: Processing record ${index + 1}:`, record);
+          
+          // If this is the first record or if we find non-zero values, use them
+          if (index === 0 || 
+              (record.on_probation > 0 && consolidatedData.onProbation === 0) ||
+              (record.active > 0 && consolidatedData.active === 0)) {
+            
+            consolidatedData = {
+              onProbation: record.on_probation || consolidatedData.onProbation,
+              active: record.active || consolidatedData.active
+            };
+          }
         });
+        
+        console.log('🔍 SupervisionAnalytics: Consolidated data:', consolidatedData);
+        setStaffData(consolidatedData);
       }
     } catch (error) {
-      console.error('Error loading staff data:', error);
+      console.error('SupervisionAnalytics: Error loading staff data:', error);
     }
   };
 
