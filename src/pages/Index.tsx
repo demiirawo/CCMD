@@ -32,59 +32,6 @@ const Index = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  // Handle company auto-selection from URL parameter
-  useEffect(() => {
-    const companyParam = searchParams.get('company');
-    
-    if (companyParam && companies.length > 0 && profile) {
-      console.log('Dashboard: Processing company parameter:', companyParam);
-      
-      // Find company by generated slug from name
-      const targetCompany = companies.find(company => {
-        const generatedSlug = company.name.toLowerCase().replace(/\s+/g, '-');
-        return generatedSlug === companyParam;
-      });
-      
-      if (targetCompany) {
-        console.log('Dashboard: Found matching company:', targetCompany.name);
-        
-        // Only auto-select if user doesn't already have this company selected
-        if (profile.company_id !== targetCompany.id) {
-          console.log('Dashboard: Auto-selecting company from URL');
-          selectCompany(targetCompany.id).then(({ error }) => {
-            if (error) {
-              console.error('Dashboard: Error selecting company:', error);
-              toast({
-                title: "Error",
-                description: "Failed to select company from link.",
-                variant: "destructive"
-              });
-            } else {
-              toast({
-                title: "Company selected",
-                description: `You're now viewing ${targetCompany.name}.`
-              });
-            }
-          });
-        }
-        
-        // Clean up URL
-        searchParams.delete('company');
-        setSearchParams(searchParams, { replace: true });
-      } else {
-        console.log('Dashboard: Company not found for parameter:', companyParam);
-        toast({
-          title: "Company not found",
-          description: "You don't have access to this company.",
-          variant: "destructive"
-        });
-        // Clean up URL and redirect to company selection
-        searchParams.delete('company');
-        setSearchParams(searchParams, { replace: true });
-        navigate('/company-selection');
-      }
-    }
-  }, [companies, profile, searchParams, setSearchParams, selectCompany, navigate, toast]);
 
   // Check if user has edit permissions
   const canEdit = profile?.permission === 'edit' || profile?.permission === 'company_admin' || profile?.role === 'admin';
