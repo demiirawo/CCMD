@@ -7,6 +7,7 @@ import { ProtectedRoute } from "./components/ProtectedRoute";
 
 import { useTheme } from "./hooks/useTheme";
 import Index from "./pages/Index";
+import Landing from "./pages/Landing";
 
 import { Reports } from "./pages/Reports";
 import { QuarterlyReport } from "./pages/QuarterlyReport";
@@ -39,14 +40,7 @@ const AppContent = () => {
           <CompanyDashboard />
         </ProtectedRoute>
       } />
-      <Route path="/" element={
-        <ProtectedRoute requireCompany>
-          <>
-            <Navigation />
-            <Index />
-          </>
-        </ProtectedRoute>
-      } />
+      <Route path="/" element={<Landing />} />
       <Route path="/meetings" element={
         <ProtectedRoute requireCompany>
           <>
