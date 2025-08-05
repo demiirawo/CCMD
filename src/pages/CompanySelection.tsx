@@ -107,6 +107,11 @@ export const CompanySelection = () => {
     console.log('Company slug:', company.slug);
     
     try {
+      // First, select the company in the auth context
+      console.log('Calling selectCompany with ID:', company.id);
+      await selectCompany(company.id);
+      console.log('selectCompany completed');
+      
       const slug = company.slug || company.name.toLowerCase().replace(/\s+/g, '-');
       console.log('Final slug for navigation:', slug);
       console.log('Navigating to:', `/company/${slug}`);
