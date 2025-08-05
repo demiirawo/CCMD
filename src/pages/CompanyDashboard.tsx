@@ -10,8 +10,21 @@ const CompanyDashboard: React.FC = () => {
   const { user, profile, companies, selectCompany, loading } = useAuth();
   const { toast } = useToast();
 
+  console.log('CompanyDashboard mounted with:', { slug, user: !!user, companies: companies.length, loading, profile });
+
   useEffect(() => {
-    if (!slug || !user || !companies.length || loading) return;
+    console.log('CompanyDashboard useEffect triggered:', { 
+      slug, 
+      user: !!user, 
+      companiesLength: companies.length, 
+      loading,
+      profileCompanyId: profile?.company_id
+    });
+    
+    if (!slug || !user || !companies.length || loading) {
+      console.log('Early return - missing requirements:', { slug, user: !!user, companiesLength: companies.length, loading });
+      return;
+    }
 
     // Find company by slug property (companies should have slug field from database)
     const company = companies.find(c => 
@@ -19,7 +32,10 @@ const CompanyDashboard: React.FC = () => {
       c.name.toLowerCase().replace(/\s+/g, '-') === slug
     );
     
+    console.log('Found company:', company);
+    
     if (!company) {
+      console.log('Company not found for slug:', slug);
       toast({
         title: "Company not found",
         description: "You don't have access to this company.",
@@ -30,7 +46,10 @@ const CompanyDashboard: React.FC = () => {
 
     // Auto-select company if not already selected
     if (profile?.company_id !== company.id) {
+      console.log('Selecting company:', company.id, 'current:', profile?.company_id);
       selectCompany(company.id);
+    } else {
+      console.log('Company already selected:', company.id);
     }
   }, [slug, user, companies, profile, selectCompany, loading, toast]);
 
