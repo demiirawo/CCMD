@@ -36,7 +36,10 @@ const AppContent = () => {
       } />
       <Route path="/company/:slug" element={
         <ProtectedRoute>
-          <CompanyDashboard />
+          <>
+            {(() => { console.log('Route /company/:slug matched'); return null; })()}
+            <CompanyDashboard />
+          </>
         </ProtectedRoute>
       } />
       <Route path="/" element={
