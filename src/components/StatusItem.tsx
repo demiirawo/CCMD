@@ -222,6 +222,8 @@ export const StatusItem = memo(({
             item.title.toLowerCase().includes('information governance') || 
             item.title.toLowerCase().includes('medication management') || 
             item.title.toLowerCase().includes('care notes') ||
+            item.title.toLowerCase().includes('care plan') ||
+            item.title.toLowerCase().includes('risk assessment') ||
             item.id === "achievements-learning"
             ? 'opacity-0 invisible pointer-events-none' : ''
           }`}
