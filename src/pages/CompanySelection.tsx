@@ -35,49 +35,6 @@ export const CompanySelection = () => {
   } = useToast();
   const navigate = useNavigate();
 
-  // Handle incoming company parameter from shared links
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const companyParam = urlParams.get('company');
-    
-    console.log('CompanySelection: Checking for company parameter:', companyParam);
-    
-    if (companyParam && companies.length > 0 && profile) {
-      console.log('CompanySelection: Processing company parameter:', companyParam);
-      
-      // Find company by generated slug from name
-      const targetCompany = companies.find(company => {
-        const generatedSlug = company.name.toLowerCase().replace(/\s+/g, '-');
-        return generatedSlug === companyParam;
-      });
-      
-      if (targetCompany) {
-        console.log('CompanySelection: Found matching company:', targetCompany.name);
-        
-        // Only auto-select if user doesn't already have this company selected
-        if (profile.company_id !== targetCompany.id) {
-          console.log('CompanySelection: Auto-selecting company from URL');
-          handleSelectCompany(targetCompany.id);
-        } else {
-          console.log('CompanySelection: Company already selected, navigating to dashboard');
-          navigate('/');
-        }
-        
-        // Clean up URL
-        window.history.replaceState({}, '', window.location.pathname);
-      } else {
-        console.log('CompanySelection: Company not found for parameter:', companyParam);
-        toast({
-          title: "Company not found",
-          description: "You don't have access to this company.",
-          variant: "destructive"
-        });
-        // Clean up URL
-        window.history.replaceState({}, '', window.location.pathname);
-      }
-    }
-  }, [companies, profile, navigate, toast]);
-
   // Debug logging
   console.log('CompanySelection Debug:', {
     profile,
@@ -192,9 +149,9 @@ export const CompanySelection = () => {
     setLoading(false);
   };
   const handleCopyCompanyLink = async (company: any) => {
-    // Generate slug from company name
+    // Generate slug from company name and create direct dashboard link
     const companySlug = company.name.toLowerCase().replace(/\s+/g, '-');
-    const companyUrl = `${window.location.origin}/company-selection?company=${companySlug}`;
+    const companyUrl = `${window.location.origin}/?company=${companySlug}`;
     
     console.log('CompanySelection: Attempting to copy URL:', companyUrl);
     console.log('CompanySelection: Using slug:', companySlug);
@@ -206,7 +163,7 @@ export const CompanySelection = () => {
         console.log('CompanySelection: Successfully copied to clipboard');
         toast({
           title: 'Success',
-          description: 'Company link copied to clipboard!'
+          description: 'Company dashboard link copied to clipboard!'
         });
       } else {
         // Fallback for non-secure contexts
@@ -226,7 +183,7 @@ export const CompanySelection = () => {
           console.log('CompanySelection: Successfully copied using fallback method');
           toast({
             title: 'Success',
-            description: 'Company link copied to clipboard!'
+            description: 'Company dashboard link copied to clipboard!'
           });
         } else {
           throw new Error('Fallback copy method failed');
