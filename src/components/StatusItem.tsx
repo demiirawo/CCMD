@@ -226,7 +226,7 @@ export const StatusItem = memo(({
             item.title.toLowerCase().includes('audits') ||
             item.title.toLowerCase().includes('reflection') ||
             item.title.toLowerCase().includes('staff meetings')
-            ? 'invisible' : ''
+            ? 'hidden' : ''
           }`}
         >
           {isExpanded ? (
