@@ -1,9 +1,10 @@
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Navigation } from "./components/Navigation";
 import { AuthProvider } from "./components/AuthProvider";
 import { ProtectedRoute } from "./components/ProtectedRoute";
+import { useAuth } from "@/hooks/useAuth";
 
 import { useTheme } from "./hooks/useTheme";
 import Index from "./pages/Index";
@@ -45,7 +46,30 @@ const AppContent = () => {
       <Route path="/" element={
         <>
           {console.log('Root route "/" matched, rendering Landing')}
-          <Landing />
+          {(() => {
+            console.log('Inline component executing');
+            const { user, profile, companies, loading } = useAuth();
+            console.log('Inline auth state:', { user: !!user, profile: !!profile, companies: companies.length, loading });
+            
+            if (loading) {
+              return (
+                <div className="min-h-screen flex items-center justify-center">
+                  <div className="text-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+                    <p>Loading...</p>
+                  </div>
+                </div>
+              );
+            }
+            
+            if (user && profile && profile.role === 'admin' && companies.length > 0) {
+              console.log('Redirecting to /company/oice');
+              return <Navigate to="/company/oice" replace />;
+            }
+            
+            console.log('Redirecting to company selection');
+            return <Navigate to="/company-selection" replace />;
+          })()}
         </>
       } />
       <Route path="/meetings" element={
