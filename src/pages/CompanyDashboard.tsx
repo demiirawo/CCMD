@@ -19,7 +19,8 @@ const CompanyDashboard: React.FC = () => {
       user: !!user, 
       companiesLength: companies.length, 
       loading,
-      profileCompanyId: profile?.company_id
+      profileCompanyId: profile?.company_id,
+      profileRole: profile?.role
     });
     
     if (!slug || !user || !companies.length || loading) {
@@ -53,6 +54,17 @@ const CompanyDashboard: React.FC = () => {
       console.log('Company already selected:', company.id);
     }
   }, [slug, user, companies, profile, selectCompany, loading, toast]);
+
+  // Debug state changes
+  useEffect(() => {
+    console.log('CompanyDashboard state change:', {
+      loading,
+      userExists: !!user,
+      companiesCount: companies.length,
+      profileCompanyId: profile?.company_id,
+      profileRole: profile?.role
+    });
+  }, [loading, user, companies, profile]);
 
   if (loading) {
     return (
