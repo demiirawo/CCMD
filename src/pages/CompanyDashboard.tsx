@@ -13,6 +13,14 @@ const CompanyDashboard: React.FC = () => {
 
   console.log('CompanyDashboard mounted with slug:', slug, 'window.location.pathname:', window.location.pathname);
 
+  console.log('CompanyDashboard mounted with:', { 
+    slug, 
+    user: !!user, 
+    companies: companies.length, 
+    loading, 
+    profile: !!profile 
+  });
+
   console.log('CompanyDashboard mounted with:', { slug, user: !!user, companies: companies.length, loading, profile });
 
   useEffect(() => {
