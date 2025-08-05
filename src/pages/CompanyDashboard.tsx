@@ -49,7 +49,8 @@ const CompanyDashboard: React.FC = () => {
     return <Navigate to={`/auth?returnTo=/company/${slug}`} replace />;
   }
 
-  if (!companies.length) {
+  // Only redirect to company selection if we're sure user has no companies (not loading)
+  if (!loading && !companies.length) {
     return <Navigate to="/company-selection" replace />;
   }
 
