@@ -216,7 +216,11 @@ export const StatusItem = memo(({
             item.title.toLowerCase().includes('care plan') ||
             item.title.toLowerCase().includes('risk assessment') ||
             item.title.toLowerCase().includes('risk') ||
-            item.title.toLowerCase().includes('service user documents')
+            item.title.toLowerCase().includes('service user documents') ||
+            item.title.toLowerCase().includes('medication management') ||
+            item.title.toLowerCase().includes('care notes') ||
+            item.title.toLowerCase().includes('call monitoring') ||
+            item.title.toLowerCase().includes('transportation')
             ? 'invisible' : ''
           }`}
         >
