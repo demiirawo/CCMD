@@ -11,6 +11,8 @@ const CompanyDashboard: React.FC = () => {
   const { user, profile, companies, selectCompany, loading } = useAuth();
   const { toast } = useToast();
 
+  console.log('CompanyDashboard mounted with slug:', slug, 'window.location.pathname:', window.location.pathname);
+
   console.log('CompanyDashboard mounted with:', { slug, user: !!user, companies: companies.length, loading, profile });
 
   useEffect(() => {
