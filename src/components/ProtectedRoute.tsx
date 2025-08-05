@@ -14,13 +14,16 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requir
   console.log('ProtectedRoute:', { 
     pathname: location.pathname, 
     user: !!user, 
+    userId: user?.id?.substring(0, 8) + '...',
     profile: !!profile, 
+    profileId: profile?.id?.substring(0, 8) + '...',
     loading, 
     requireCompany,
     isCompanySlugRoute: location.pathname.startsWith('/company/')
   });
 
   if (loading) {
+    console.log('ProtectedRoute: Still loading, showing loading screen');
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -32,7 +35,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requir
   }
 
   if (!user) {
-    console.log('No user, redirecting to /auth');
+    console.log('ProtectedRoute: No user found, redirecting to /auth');
     return <Navigate to="/auth" replace />;
   }
 
