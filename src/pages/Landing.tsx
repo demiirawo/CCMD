@@ -2,15 +2,14 @@ import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 
-console.log('Landing.tsx file loaded');
+console.log('=== Landing.tsx file loaded ===');
 
 const Landing: React.FC = () => {
-  console.log('Landing component function called');
+  console.log('=== Landing component function called ===');
+  
   const { user, profile, companies, loading } = useAuth();
 
-  console.log('=== Landing Component Rendering ===');
-  console.log('Current URL:', window.location.href);
-  console.log('Auth state:', {
+  console.log('Landing auth state:', {
     user: !!user,
     profile: !!profile,
     profileRole: profile?.role,
@@ -19,9 +18,9 @@ const Landing: React.FC = () => {
     loading
   });
 
-  // If still loading, show loading state
+  // Simple test render first
   if (loading) {
-    console.log('Landing: Still loading, showing spinner');
+    console.log('Landing: showing loading state');
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -32,59 +31,14 @@ const Landing: React.FC = () => {
     );
   }
 
-  // If not logged in, redirect to auth
-  if (!user) {
-    console.log('Landing: No user, redirecting to auth');
-    return <Navigate to="/auth" replace />;
+  // If we have an admin user with companies, redirect to OICE
+  if (user && profile && profile.role === 'admin' && companies.length > 0) {
+    console.log('Landing: Admin user with companies, redirecting to /company/oice');
+    return <Navigate to="/company/oice" replace />;
   }
 
-  // If no profile, redirect to company selection
-  if (!profile) {
-    console.log('Landing: No profile, redirecting to company selection');
-    return <Navigate to="/company-selection" replace />;
-  }
-
-  // If we have profile and companies, redirect to appropriate company
-  if (companies.length > 0) {
-    console.log('Landing: Have companies, determining redirect...');
-    
-    // For admin users, use their selected company or default to first company
-    if (profile.role === 'admin') {
-      let targetCompany;
-      
-      if (profile.company_id) {
-        targetCompany = companies.find(c => c.id === profile.company_id);
-        console.log('Landing: Admin with selected company:', targetCompany?.name);
-      }
-      
-      // If no selected company or selected company not found, use first available
-      if (!targetCompany) {
-        targetCompany = companies[0];
-        console.log('Landing: Admin defaulting to first company:', targetCompany?.name);
-      }
-      
-      if (targetCompany) {
-        const slug = ('slug' in targetCompany && targetCompany.slug) || 
-                    targetCompany.name.toLowerCase().replace(/\s+/g, '-');
-        console.log('Landing: Redirecting admin to:', `/company/${slug}`);
-        return <Navigate to={`/company/${slug}`} replace />;
-      }
-    }
-    
-    // For team members, use their assigned company
-    if (profile.company_id) {
-      const company = companies.find(c => c.id === profile.company_id);
-      if (company) {
-        const slug = ('slug' in company && company.slug) || 
-                    company.name.toLowerCase().replace(/\s+/g, '-');
-        console.log('Landing: Redirecting team member to:', `/company/${slug}`);
-        return <Navigate to={`/company/${slug}`} replace />;
-      }
-    }
-  }
-
-  // Fallback to company selection
-  console.log('Landing: Fallback - redirecting to company selection');
+  // For now, just redirect to company selection
+  console.log('Landing: Fallback redirect to company selection');
   return <Navigate to="/company-selection" replace />;
 };
 
