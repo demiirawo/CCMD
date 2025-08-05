@@ -220,7 +220,12 @@ export const StatusItem = memo(({
             item.title.toLowerCase().includes('medication management') ||
             item.title.toLowerCase().includes('care notes') ||
             item.title.toLowerCase().includes('call monitoring') ||
-            item.title.toLowerCase().includes('transportation')
+            item.title.toLowerCase().includes('transportation') ||
+            item.title.toLowerCase().includes('infection control') ||
+            item.title.toLowerCase().includes('information governance') ||
+            item.title.toLowerCase().includes('audits') ||
+            item.title.toLowerCase().includes('reflection') ||
+            item.title.toLowerCase().includes('staff meetings')
             ? 'invisible' : ''
           }`}
         >
