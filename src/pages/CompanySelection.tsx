@@ -9,7 +9,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Building2, Trash2, Search, Copy, ChevronDown, Clock } from 'lucide-react';
+import { Plus, Building2, Trash2, Search, ChevronDown, Clock } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { supabase } from '@/integrations/supabase/client';
 export const CompanySelection = () => {
@@ -148,56 +148,6 @@ export const CompanySelection = () => {
     }
     setLoading(false);
   };
-  const handleCopyCompanyLink = async (company: any) => {
-    // Generate slug from company name and create direct dashboard link
-    const companySlug = company.name.toLowerCase().replace(/\s+/g, '-');
-    const companyUrl = `${window.location.origin}/?company=${companySlug}`;
-    
-    console.log('CompanySelection: Attempting to copy URL:', companyUrl);
-    console.log('CompanySelection: Using slug:', companySlug);
-    console.log('CompanySelection: Company data:', { name: company.name });
-    
-    try {
-      if (navigator.clipboard && window.isSecureContext) {
-        await navigator.clipboard.writeText(companyUrl);
-        console.log('CompanySelection: Successfully copied to clipboard');
-        toast({
-          title: 'Success',
-          description: 'Company dashboard link copied to clipboard!'
-        });
-      } else {
-        // Fallback for non-secure contexts
-        const textArea = document.createElement('textarea');
-        textArea.value = companyUrl;
-        textArea.style.position = 'fixed';
-        textArea.style.left = '-999999px';
-        textArea.style.top = '-999999px';
-        document.body.appendChild(textArea);
-        textArea.focus();
-        textArea.select();
-        
-        const successful = document.execCommand('copy');
-        document.body.removeChild(textArea);
-        
-        if (successful) {
-          console.log('CompanySelection: Successfully copied using fallback method');
-          toast({
-            title: 'Success',
-            description: 'Company dashboard link copied to clipboard!'
-          });
-        } else {
-          throw new Error('Fallback copy method failed');
-        }
-      }
-    } catch (error) {
-      console.error('CompanySelection: Copy failed:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to copy link. Please copy manually: ' + companyUrl,
-        variant: 'destructive'
-      });
-    }
-  };
 
   const handleSignOut = async () => {
     try {
@@ -312,15 +262,6 @@ export const CompanySelection = () => {
                             </div>
                           </div>
                           <div className="flex items-center gap-2">
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
-                              onClick={() => handleCopyCompanyLink(company)} 
-                              disabled={loading}
-                              className="hover:bg-accent"
-                            >
-                              <Copy className="h-4 w-4" />
-                            </Button>
                             <Button onClick={() => handleSelectCompany(company.id)} disabled={loading} className="bg-stone-400 hover:bg-stone-300 text-black">
                               Select
                             </Button>

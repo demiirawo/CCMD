@@ -17,6 +17,7 @@ import { Auth } from "./pages/Auth";
 import { AdminAuth } from "./pages/AdminAuth";
 import { CompanySelection } from "./pages/CompanySelection";
 import NotFound from "./pages/NotFound";
+import CompanyDashboard from "./pages/CompanyDashboard";
 
 const queryClient = new QueryClient();
 
@@ -33,9 +34,9 @@ const AppContent = () => {
           <CompanySelection />
         </ProtectedRoute>
       } />
-      <Route path="/company/:companySlug" element={
-        <ProtectedRoute>
-          <CompanySelector />
+      <Route path="/company/:slug" element={
+        <ProtectedRoute requireCompany>
+          <CompanyDashboard />
         </ProtectedRoute>
       } />
       <Route path="/" element={
