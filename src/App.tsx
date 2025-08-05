@@ -24,6 +24,8 @@ const queryClient = new QueryClient();
 const AppContent = () => {
   useTheme(); // Apply theme across all pages
   
+  console.log('AppContent rendering, current location:', window.location.pathname);
+  
   return (
     <Routes>
       <Route path="/auth" element={<Auth />} />
