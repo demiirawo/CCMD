@@ -58,9 +58,14 @@ const AppContent = () => {
               );
             }
             
-            if (user && profile && profile.role === 'admin' && companies.length > 0) {
-              console.log('Redirecting to /company/oice');
-              return <Navigate to="/company/oice" replace />;
+            if (user && profile && profile.company_id && companies.length > 0) {
+              const currentCompany = companies.find(c => c.id === profile.company_id);
+              if (currentCompany) {
+                const slug = ('slug' in currentCompany && currentCompany.slug) || 
+                           currentCompany.name.toLowerCase().replace(/\s+/g, '-');
+                console.log('Redirecting to company dashboard:', slug);
+                return <Navigate to={`/company/${slug}`} replace />;
+              }
             }
             
             console.log('Redirecting to company selection');
