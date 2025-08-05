@@ -210,9 +210,9 @@ export const CompanySelection = () => {
     }
   }, [actionsOpen, profile?.role]);
 
-  // Filter companies based on search
+  // Filter companies based on search - only show when searching
   const filteredCompanies = useMemo(() => {
-    if (!searchValue.trim()) return companies;
+    if (!searchValue.trim()) return [];
     return companies.filter(company => company.name.toLowerCase().includes(searchValue.toLowerCase()));
   }, [companies, searchValue]);
   return <div className="min-h-screen flex items-center justify-center px-4 bg-stone-50">
