@@ -24,8 +24,6 @@ const queryClient = new QueryClient();
 const AppContent = () => {
   useTheme(); // Apply theme across all pages
   
-  console.log('AppContent rendering, current location:', window.location.pathname);
-  
   return (
     <Routes>
       <Route path="/auth" element={<Auth />} />
@@ -38,10 +36,7 @@ const AppContent = () => {
       } />
       <Route path="/company/:slug" element={
         <ProtectedRoute>
-          <>
-            {(() => { console.log('Route /company/:slug matched'); return null; })()}
-            <CompanyDashboard />
-          </>
+          <CompanyDashboard />
         </ProtectedRoute>
       } />
       <Route path="/" element={
