@@ -149,9 +149,9 @@ export const CompanySelection = () => {
     setLoading(false);
   };
   const handleCopyCompanyLink = async (company: any) => {
-    // Generate slug from company name to match CompanySelector logic
+    // Generate slug from company name and create a direct dashboard link with company parameter
     const companySlug = company.name.toLowerCase().replace(/\s+/g, '-');
-    const companyUrl = `${window.location.origin}/company/${companySlug}`;
+    const companyUrl = `${window.location.origin}/?company=${companySlug}`;
     
     console.log('Attempting to copy URL:', companyUrl);
     console.log('Clipboard API available:', !!navigator.clipboard);

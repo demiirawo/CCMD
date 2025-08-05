@@ -1,6 +1,7 @@
-import React from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { Navigate, useLocation, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -8,8 +9,10 @@ interface ProtectedRouteProps {
 }
 
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requireCompany = false }) => {
-  const { user, profile, loading } = useAuth();
+  const { user, profile, companies, selectCompany, loading } = useAuth();
   const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const { toast } = useToast();
 
   console.log('ProtectedRoute:', { 
     pathname: location.pathname, 
@@ -35,6 +38,55 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requir
     console.log('No user, redirecting to /auth');
     return <Navigate to="/auth" replace />;
   }
+
+  // Handle company auto-selection from URL parameter
+  useEffect(() => {
+    const companyParam = searchParams.get('company');
+    if (companyParam && companies.length > 0 && profile) {
+      console.log('Company parameter found:', companyParam, 'Available companies:', companies.length);
+      
+      // Find company by matching slug (generated from name)
+      const targetCompany = companies.find(company => 
+        company.name.toLowerCase().replace(/\s+/g, '-') === companyParam
+      );
+      
+      if (targetCompany) {
+        console.log('Found matching company:', targetCompany.name);
+        // Only auto-select if user doesn't already have this company selected
+        if (profile.company_id !== targetCompany.id) {
+          console.log('Auto-selecting company from URL parameter');
+          selectCompany(targetCompany.id).then(({ error }) => {
+            if (error) {
+              console.error('Error auto-selecting company:', error);
+              toast({
+                title: "Error",
+                description: "Failed to select company from link.",
+                variant: "destructive"
+              });
+            } else {
+              toast({
+                title: "Company selected",
+                description: `You're now viewing ${targetCompany.name}.`
+              });
+            }
+          });
+        }
+        // Remove the company parameter from URL after processing
+        searchParams.delete('company');
+        setSearchParams(searchParams, { replace: true });
+      } else {
+        console.log('Company not found for parameter:', companyParam);
+        toast({
+          title: "Company not found",
+          description: "You don't have access to this company.",
+          variant: "destructive"
+        });
+        // Remove invalid parameter
+        searchParams.delete('company');
+        setSearchParams(searchParams, { replace: true });
+      }
+    }
+  }, [companies, profile, searchParams, setSearchParams, selectCompany, toast]);
 
   // Allow access to company slug routes even without profile for auto-selection
   const isCompanySlugRoute = location.pathname.startsWith('/company/');
