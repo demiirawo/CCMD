@@ -149,13 +149,19 @@ export const CompanySelector = () => {
 
       if (profileError) throw profileError;
 
+      // Force refresh of auth state to ensure profile is updated
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError) throw sessionError;
+
       toast({
         title: "Company selected",
         description: `You're now viewing ${selectedCompany.companies.name}.`
       });
 
-      // Navigate to dashboard after selection
-      navigate('/');
+      // Small delay to ensure profile update is reflected in auth context
+      setTimeout(() => {
+        navigate('/');
+      }, 100);
     } catch (error) {
       console.error('Error selecting company:', error);
       toast({
