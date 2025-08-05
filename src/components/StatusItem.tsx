@@ -215,7 +215,8 @@ export const StatusItem = memo(({
           className={`flex-shrink-0 p-1 rounded-lg hover:bg-accent/50 transition-colors bg-transparent ${
             item.title.toLowerCase().includes('care plan') ||
             item.title.toLowerCase().includes('risk assessment') ||
-            item.title.toLowerCase().includes('risk')
+            item.title.toLowerCase().includes('risk') ||
+            item.title.toLowerCase().includes('service user documents')
             ? 'invisible' : ''
           }`}
         >
