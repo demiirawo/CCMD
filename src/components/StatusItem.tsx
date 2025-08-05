@@ -213,19 +213,9 @@ export const StatusItem = memo(({
         <button 
           onClick={() => setIsExpanded(!isExpanded)} 
           className={`flex-shrink-0 p-1 rounded-lg hover:bg-accent/50 transition-colors bg-transparent ${
-            item.title.toLowerCase().includes('risk register') || 
-            item.title.toLowerCase().includes('infection control') || 
-            item.title.toLowerCase().includes('audits') || 
-            item.title.toLowerCase().includes('call monitoring') || 
-            item.title.toLowerCase().includes('staff meetings') || 
-            item.title.toLowerCase().includes('transportation') || 
-            item.title.toLowerCase().includes('information governance') || 
-            item.title.toLowerCase().includes('medication management') || 
-            item.title.toLowerCase().includes('care notes') ||
             item.title.toLowerCase().includes('care plan') ||
-            item.title.toLowerCase().includes('risk assessment') ||
-            item.id === "achievements-learning"
-            ? 'opacity-0 invisible pointer-events-none' : ''
+            item.title.toLowerCase().includes('risk assessment')
+            ? 'invisible' : ''
           }`}
         >
           {isExpanded ? (
