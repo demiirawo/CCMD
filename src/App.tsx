@@ -22,10 +22,7 @@ import CompanyDashboard from "./pages/CompanyDashboard";
 const queryClient = new QueryClient();
 
 const AppContent = () => {
-  console.log('AppContent rendering - start');
-  console.log('Current location in AppContent:', window.location.pathname);
   useTheme(); // Apply theme across all pages
-  console.log('AppContent rendering - after useTheme');
   
   return (
     <Routes>
@@ -33,7 +30,9 @@ const AppContent = () => {
       <Route path="/admin" element={<AdminAuth />} />
       
       <Route path="/company-selection" element={
-        <CompanySelection />
+        <ProtectedRoute>
+          <CompanySelection />
+        </ProtectedRoute>
       } />
       <Route path="/company/:slug" element={
         <ProtectedRoute>
