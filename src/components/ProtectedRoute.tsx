@@ -23,24 +23,10 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requir
     isCompanySlugRoute: location.pathname.startsWith('/company/')
   });
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p>Loading...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!user) {
-    console.log('No user, redirecting to /auth');
-    return <Navigate to="/auth" replace />;
-  }
-
-  // Handle company auto-selection from URL parameter
+  // Handle company auto-selection from URL parameter - MUST be before any early returns
   useEffect(() => {
+    if (!user || loading) return; // Skip if no user or still loading
+    
     const companyParam = searchParams.get('company');
     if (companyParam && companies.length > 0 && profile) {
       console.log('Company parameter found:', companyParam, 'Available companies:', companies.length);
@@ -86,7 +72,23 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requir
         setSearchParams(searchParams, { replace: true });
       }
     }
-  }, [companies, profile, searchParams, setSearchParams, selectCompany, toast]);
+  }, [user, loading, companies, profile, searchParams, setSearchParams, selectCompany, toast]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p>Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    console.log('No user, redirecting to /auth');
+    return <Navigate to="/auth" replace />;
+  }
 
   // Allow access to company slug routes even without profile for auto-selection
   const isCompanySlugRoute = location.pathname.startsWith('/company/');
