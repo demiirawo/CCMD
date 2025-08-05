@@ -38,6 +38,7 @@ interface AuthContextType {
   deleteCompany: (companyId: string) => Promise<{ error: any }>;
   fetchUserProfile: () => Promise<void>;
   fetchCompanies: () => Promise<void>;
+  refreshProfile: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -85,25 +86,44 @@ export const useAuthProvider = (): AuthContextType => {
     }
   };
 
-  const fetchCompanies = async () => {
-    console.log('fetchCompanies called, profile:', profile);
-    if (!profile) {
-      console.log('No profile found, returning early');
-      return;
+  // Helper function to fetch profile data - needs to be accessible outside useEffect
+  const fetchProfileData = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', userId)
+        .single();
+      
+      console.log('Profile fetch result:', { data, error });
+      
+      if (error) {
+        console.error('Error fetching profile:', error);
+        return;
+      }
+      
+      setProfile(data);
+      // After setting profile, fetch companies
+      await fetchCompaniesForProfile(data);
+    } catch (error) {
+      console.error('Error fetching profile:', error);
     }
-    
+  };
+
+  // Helper function to fetch companies for a specific profile
+  const fetchCompaniesForProfile = async (profileData: Profile) => {
     try {
       let query = supabase.from('companies').select('*');
       
-      console.log('Profile role:', profile.role, 'Company ID:', profile.company_id);
+      console.log('Profile role:', profileData.role, 'Company ID:', profileData.company_id);
       
       // If user is not admin, only show their company
-      if (profile.role !== 'admin') {
-        if (!profile.company_id) {
+      if (profileData.role !== 'admin') {
+        if (!profileData.company_id) {
           console.log('Non-admin user has no company_id, returning early');
           return;
         }
-        query = query.eq('id', profile.company_id);
+        query = query.eq('id', profileData.company_id);
         console.log('Fetching specific company for non-admin user');
       } else {
         console.log('Fetching all companies for admin user');
@@ -123,6 +143,16 @@ export const useAuthProvider = (): AuthContextType => {
     } catch (error) {
       console.error('Error fetching companies:', error);
     }
+  };
+
+  const fetchCompanies = async () => {
+    console.log('fetchCompanies called, profile:', profile);
+    if (!profile) {
+      console.log('No profile found, returning early');
+      return;
+    }
+    
+    await fetchCompaniesForProfile(profile);
   };
 
   useEffect(() => {
@@ -389,7 +419,8 @@ export const useAuthProvider = (): AuthContextType => {
     selectCompany,
     deleteCompany,
     fetchUserProfile,
-    fetchCompanies
+    fetchCompanies,
+    refreshProfile: () => user && fetchProfileData(user.id)
   };
 };
 

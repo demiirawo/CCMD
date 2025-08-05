@@ -26,7 +26,7 @@ interface UserCompany {
 }
 
 export const CompanySelector = () => {
-  const { user, profile } = useAuth();
+  const { user, refreshProfile } = useAuth();
   const { toast } = useToast();
   const { companySlug } = useParams();
   const navigate = useNavigate();
@@ -149,19 +149,18 @@ export const CompanySelector = () => {
 
       if (profileError) throw profileError;
 
-      // Force refresh of auth state to ensure profile is updated
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      if (sessionError) throw sessionError;
+      // Force refresh the profile in auth context to get updated company_id
+      refreshProfile();
 
       toast({
         title: "Company selected",
         description: `You're now viewing ${selectedCompany.companies.name}.`
       });
 
-      // Small delay to ensure profile update is reflected in auth context
+      // Navigate after a short delay to ensure auth context has updated
       setTimeout(() => {
         navigate('/');
-      }, 100);
+      }, 200);
     } catch (error) {
       console.error('Error selecting company:', error);
       toast({
