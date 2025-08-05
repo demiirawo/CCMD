@@ -5,8 +5,20 @@ import { useAuth } from '@/hooks/useAuth';
 const Landing: React.FC = () => {
   const { user, profile, companies, loading } = useAuth();
 
+  console.log('=== Landing Component Debug ===');
+  console.log('Landing component - auth state:', {
+    user: !!user,
+    userId: user?.id?.substring(0, 8) + '...',
+    profile: !!profile,
+    profileRole: profile?.role,
+    profileCompanyId: profile?.company_id,
+    companiesCount: companies.length,
+    loading,
+    currentURL: window.location.href
+  });
+
   useEffect(() => {
-    console.log('Landing component - auth state:', {
+    console.log('Landing useEffect triggered with:', {
       user: !!user,
       profile: !!profile,
       profileRole: profile?.role,
