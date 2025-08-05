@@ -204,12 +204,16 @@ export const useMeetingEmailNotification = () => {
           : '<h3 style="color: #374151; margin-bottom: 16px;">Action Items:</h3><p style="color: #6B7280;">No action items recorded.</p>';
       };
 
-      // Send emails to all attendees
+      // Send emails to all attendees with rate limiting
       console.log('📤 Starting to send emails to:', attendeeEmails.length, 'recipients');
       
-      const emailPromises = attendeeEmails.map(async (email) => {
+      const results = [];
+      
+      for (let i = 0; i < attendeeEmails.length; i++) {
+        const email = attendeeEmails[i];
+        
         try {
-          console.log(`📧 Sending email to: ${email}`);
+          console.log(`📧 Sending email ${i + 1}/${attendeeEmails.length} to: ${email}`);
           
           // Generate personalized email content for this attendee
           const personalizedActionItemsHtml = generateActionItemsHtml(email);
@@ -274,18 +278,23 @@ export const useMeetingEmailNotification = () => {
 
           if (error) {
             console.error(`❌ Failed to send email to ${email}:`, error);
-            return { email, success: false, error: error.message };
+            results.push({ email, success: false, error: error.message });
+          } else {
+            console.log(`✅ Email sent successfully to ${email}`);
+            results.push({ email, success: true });
           }
-
-          console.log(`Email sent successfully to ${email}`);
-          return { email, success: true };
         } catch (error) {
-          console.error(`Error sending email to ${email}:`, error);
-          return { email, success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+          console.error(`❌ Error sending email to ${email}:`, error);
+          results.push({ email, success: false, error: error instanceof Error ? error.message : 'Unknown error' });
         }
-      });
 
-      const results = await Promise.all(emailPromises);
+        // Add delay between emails to respect Resend's rate limit (2 requests per second)
+        // Wait 600ms between emails to stay safely under the limit
+        if (i < attendeeEmails.length - 1) {
+          console.log('⏳ Waiting 600ms before next email to respect rate limits...');
+          await new Promise(resolve => setTimeout(resolve, 600));
+        }
+      }
       const successCount = results.filter(r => r.success).length;
       const totalCount = results.length;
 
