@@ -1,17 +1,19 @@
 import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { MagicLinkAuth } from "@/components/MagicLinkAuth";
 
 export const Auth = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   useEffect(() => {
     if (user && !loading) {
-      navigate('/');
+      const returnTo = searchParams.get('returnTo');
+      navigate(returnTo || '/');
     }
-  }, [user, loading, navigate]);
+  }, [user, loading, navigate, searchParams]);
 
   if (loading) {
     return (

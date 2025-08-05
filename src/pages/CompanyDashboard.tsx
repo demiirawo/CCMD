@@ -46,7 +46,7 @@ const CompanyDashboard: React.FC = () => {
   }
 
   if (!user) {
-    return <Navigate to="/auth" replace />;
+    return <Navigate to={`/auth?returnTo=/company/${slug}`} replace />;
   }
 
   if (!companies.length) {

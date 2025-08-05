@@ -35,7 +35,7 @@ const AppContent = () => {
         </ProtectedRoute>
       } />
       <Route path="/company/:slug" element={
-        <ProtectedRoute requireCompany>
+        <ProtectedRoute>
           <CompanyDashboard />
         </ProtectedRoute>
       } />
