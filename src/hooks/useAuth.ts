@@ -87,30 +87,39 @@ export const useAuthProvider = (): AuthContextType => {
     }
   };
 
+  // Function to ensure user setup is complete by calling the database function
+  const ensureUserSetupComplete = async (userEmail: string) => {
+    try {
+      console.log('=== ensureUserSetupComplete called ===');
+      console.log('User email:', userEmail);
+      
+      // Call the database function to ensure setup is complete
+      const { error } = await supabase.rpc('ensure_user_setup_complete', {
+        user_email: userEmail
+      });
+      
+      if (error) {
+        console.error('Error ensuring user setup:', error);
+        return;
+      }
+      
+      console.log('User setup completed successfully');
+    } catch (error) {
+      console.error('Error in ensureUserSetupComplete:', error);
+    }
+  };
+
   // Helper function to fetch profile data - needs to be accessible outside useEffect
-  const fetchProfileData = async (userId: string) => {
+  const fetchProfileData = async (userId: string, userEmail?: string) => {
     try {
       console.log('=== fetchProfileData called ===');
       console.log('User ID:', userId);
+      console.log('User email:', userEmail);
       
-      // First check user_companies to see all company assignments
-      const { data: userCompaniesData, error: userCompaniesError } = await supabase
-        .from('user_companies')
-        .select(`
-          *,
-          companies:company_id (
-            id,
-            name,
-            theme_color,
-            services,
-            logo_url,
-            created_at,
-            updated_at
-          )
-        `)
-        .eq('user_id', userId);
-      
-      console.log('User companies data:', { userCompaniesData, userCompaniesError });
+      // Ensure user setup is complete if we have the email
+      if (userEmail) {
+        await ensureUserSetupComplete(userEmail);
+      }
       
       // Then get the profile
       const { data, error } = await supabase
@@ -236,7 +245,7 @@ export const useAuthProvider = (): AuthContextType => {
           // Use setTimeout(0) to defer Supabase calls and prevent auth context deadlocks
           setTimeout(() => {
             if (!mounted) return;
-            fetchProfileData(session.user.id);
+            fetchProfileData(session.user.id, session.user.email);
           }, 0);
         } else {
           // Clear data when user logs out
@@ -258,7 +267,7 @@ export const useAuthProvider = (): AuthContextType => {
       if (session?.user) {
         setTimeout(() => {
           if (!mounted) return;
-          fetchProfileData(session.user.id);
+          fetchProfileData(session.user.id, session.user.email);
         }, 0);
       }
     });
@@ -419,7 +428,7 @@ export const useAuthProvider = (): AuthContextType => {
     deleteCompany,
     fetchUserProfile,
     fetchCompanies,
-    refreshProfile: () => user && fetchProfileData(user.id)
+    refreshProfile: () => user && fetchProfileData(user.id, user.email)
   };
 };
 
