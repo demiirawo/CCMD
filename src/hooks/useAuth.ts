@@ -20,7 +20,6 @@ interface Company {
   theme_color?: string;
   services?: string[];
   logo_url?: string;
-  slug?: string;
   created_at: string;
   updated_at: string;
 }
@@ -78,36 +77,10 @@ export const useAuthProvider = (): AuthContextType => {
       
       if (error) {
         console.error('Error fetching profile:', error);
-        
-        // If no profile exists but user is authenticated, try to ensure setup is complete
-        if (error.code === 'PGRST116' && user?.email) {
-          console.log('No profile found, attempting to complete user setup...');
-          try {
-            const { error: setupError } = await supabase.rpc('ensure_user_setup_complete', {
-              user_email: user.email
-            });
-            
-            if (setupError) {
-              console.error('Setup function error:', setupError);
-            } else {
-              console.log('Setup function completed, retrying profile fetch...');
-              // Wait a moment then retry
-              setTimeout(() => {
-                if (user?.id) {
-                  fetchProfileData(user.id);
-                }
-              }, 1000);
-            }
-          } catch (setupError) {
-            console.error('Failed to run setup function:', setupError);
-          }
-        }
         return;
       }
       
       setProfile(data);
-      // After setting profile, fetch companies
-      await fetchCompaniesForProfile(data);
     } catch (error) {
       console.error('Error fetching profile:', error);
     }
@@ -126,44 +99,6 @@ export const useAuthProvider = (): AuthContextType => {
       
       if (error) {
         console.error('Error fetching profile:', error);
-        
-        // If no profile exists, try to get the user's email and run setup
-        if (error.code === 'PGRST116') {
-          console.log('Profile not found, checking for user email to run setup...');
-          const { data: authUser } = await supabase.auth.getUser();
-          
-          if (authUser.user?.email) {
-            console.log('Attempting to complete user setup for:', authUser.user.email);
-            try {
-              const { error: setupError } = await supabase.rpc('ensure_user_setup_complete', {
-                user_email: authUser.user.email
-              });
-              
-              if (!setupError) {
-                console.log('Setup completed, retrying profile fetch in 2 seconds...');
-                // Give it a bit more time and retry once more
-                setTimeout(async () => {
-                  try {
-                    const { data: retryData, error: retryError } = await supabase
-                      .from('profiles')
-                      .select('*')
-                      .eq('user_id', userId)
-                      .single();
-                    
-                    if (!retryError && retryData) {
-                      setProfile(retryData);
-                      await fetchCompaniesForProfile(retryData);
-                    }
-                  } catch (retryErr) {
-                    console.error('Retry profile fetch failed:', retryErr);
-                  }
-                }, 2000);
-              }
-            } catch (setupError) {
-              console.error('Setup function failed:', setupError);
-            }
-          }
-        }
         return;
       }
       
@@ -175,82 +110,36 @@ export const useAuthProvider = (): AuthContextType => {
     }
   };
 
-  // Fixed function to fetch companies for a specific profile
+  // Helper function to fetch companies for a specific profile
   const fetchCompaniesForProfile = async (profileData: Profile) => {
     try {
-      console.log('fetchCompaniesForProfile called with profile:', { 
-        role: profileData.role, 
-        companyId: profileData.company_id,
-        userId: profileData.user_id 
-      });
+      let query = supabase.from('companies').select('*');
       
-      // For super admin users
-      if (profileData.role === 'admin') {
-        console.log('Fetching all companies for admin user');
-        const { data, error } = await supabase.from('companies').select('*');
-        
-        if (error) {
-          console.error('Error fetching companies for admin:', error);
+      console.log('Profile role:', profileData.role, 'Company ID:', profileData.company_id);
+      
+      // If user is not admin, only show their company
+      if (profileData.role !== 'admin') {
+        if (!profileData.company_id) {
+          console.log('Non-admin user has no company_id, returning early');
           return;
         }
-        
-        console.log('Setting companies for admin:', data || []);
-        setCompanies(data || []);
+        query = query.eq('id', profileData.company_id);
+        console.log('Fetching specific company for non-admin user');
+      } else {
+        console.log('Fetching all companies for admin user');
+      }
+      
+      const { data, error } = await query;
+      
+      console.log('Companies fetch result:', { data, error });
+      
+      if (error) {
+        console.error('Error fetching companies:', error);
         return;
       }
       
-      // For regular team members, fetch via user_companies with proper joins
-      console.log('Fetching companies for team member via user_companies with joins');
-      console.log('Query parameters:', { user_id: profileData.user_id });
-      
-      const { data: userCompaniesData, error: userCompaniesError } = await supabase
-        .from('user_companies')
-        .select(`
-          id,
-          company_id,
-          team_member_id,
-          is_active,
-          companies (
-            id,
-            name,
-            logo_url,
-            theme_color,
-            services,
-            slug,
-            created_at,
-            updated_at
-          )
-        `)
-        .eq('user_id', profileData.user_id);
-
-      console.log('User companies fetch result:', { data: userCompaniesData, error: userCompaniesError });
-      
-      if (userCompaniesError) {
-        console.error('Error fetching user companies:', userCompaniesError);
-        return;
-      }
-      
-      if (!userCompaniesData || userCompaniesData.length === 0) {
-        console.log('No user companies found for user:', profileData.user_id);
-        setCompanies([]);
-        return;
-      }
-      
-      console.log('Raw user companies data before filtering:', userCompaniesData);
-      
-      // Extract company data from user_companies result and filter out nulls
-      const companiesData = userCompaniesData
-        .map(uc => {
-          console.log('Processing user company record:', uc);
-          return uc.companies;
-        })
-        .filter(c => c !== null);
-      
-      console.log('Companies data after filtering:', companiesData);
-      console.log('Number of companies found:', companiesData.length);
-      console.log('Setting companies from user_companies:', companiesData);
-      setCompanies(companiesData);
-      
+      console.log('Setting companies:', data || []);
+      setCompanies(data || []);
     } catch (error) {
       console.error('Error fetching companies:', error);
     }
@@ -312,11 +201,81 @@ export const useAuthProvider = (): AuthContextType => {
       }
     });
 
+    // Helper function to fetch profile data
+    const fetchProfileData = async (userId: string) => {
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('user_id', userId)
+          .single();
+        
+        console.log('Profile fetch result:', { data, error });
+        
+        if (error) {
+          console.error('Error fetching profile:', error);
+          return;
+        }
+        
+        if (mounted) {
+          setProfile(data);
+          // After setting profile, fetch companies
+          await fetchCompaniesForProfile(data);
+        }
+      } catch (error) {
+        console.error('Error fetching profile:', error);
+      }
+    };
+
+    // Helper function to fetch companies for a specific profile
+    const fetchCompaniesForProfile = async (profileData: Profile) => {
+      try {
+        let query = supabase.from('companies').select('*');
+        
+        console.log('Profile role:', profileData.role, 'Company ID:', profileData.company_id);
+        
+        // If user is not admin, only show their company
+        if (profileData.role !== 'admin') {
+          if (!profileData.company_id) {
+            console.log('Non-admin user has no company_id, returning early');
+            return;
+          }
+          query = query.eq('id', profileData.company_id);
+          console.log('Fetching specific company for non-admin user');
+        } else {
+          console.log('Fetching all companies for admin user');
+        }
+        
+        const { data, error } = await query;
+        
+        console.log('Companies fetch result:', { data, error });
+        
+        if (error) {
+          console.error('Error fetching companies:', error);
+          return;
+        }
+        
+        if (mounted) {
+          console.log('Setting companies:', data || []);
+          setCompanies(data || []);
+        }
+      } catch (error) {
+        console.error('Error fetching companies:', error);
+      }
+    };
+
     return () => {
       mounted = false;
       subscription.unsubscribe();
     };
   }, []);
+
+  // Fetch companies when profile changes
+  useEffect(() => {
+    if (profile) {
+      fetchCompanies();
+    }
+  }, [profile]);
 
   const signUp = async (email: string, password: string, username: string, role: 'admin' | 'user' = 'user') => {
     const redirectUrl = `${window.location.origin}/`;
@@ -347,17 +306,18 @@ export const useAuthProvider = (): AuthContextType => {
 
   const signOut = async () => {
     try {
-      // Clear only session storage when logging out to preserve data persistence
-      // Keep localStorage data intact unless it's auth-related
+      // Clear session storage when logging out
       sessionStorage.clear();
       
-      // Only clear specific auth-related localStorage items, preserve all data backups and analytics
-      const authKeysToRemove = ['sb-gwywpkhxpbokmbhwsnod-auth-token'];
-      authKeysToRemove.forEach(key => {
-        if (localStorage.getItem(key)) {
-          localStorage.removeItem(key);
+      // Clear only auth-related localStorage items, preserve analytics backups
+      const keysToRemove = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && !key.includes('_backup_') && !key.includes('_analytics')) {
+          keysToRemove.push(key);
         }
-      });
+      }
+      keysToRemove.forEach(key => localStorage.removeItem(key));
       
       const { error } = await supabase.auth.signOut();
       
@@ -418,14 +378,8 @@ export const useAuthProvider = (): AuthContextType => {
     
     if (!error) {
       setProfile({ ...profile, company_id: companyId });
-      // Clear session storage when switching companies but preserve persistent data
-      // Only clear dashboard section states, not analytics data
-      const sessionKeys = Object.keys(sessionStorage);
-      sessionKeys.forEach(key => {
-        if (key.includes('dashboard') || key.includes('section')) {
-          sessionStorage.removeItem(key);
-        }
-      });
+      // Clear session storage when switching companies to reset dashboard section states
+      sessionStorage.clear();
     }
     
     return { error };
