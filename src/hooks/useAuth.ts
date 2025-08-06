@@ -1,3 +1,4 @@
+
 import { useState, useEffect, createContext, useContext } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -174,7 +175,7 @@ export const useAuthProvider = (): AuthContextType => {
     }
   };
 
-  // Helper function to fetch companies for a specific profile
+  // Fixed function to fetch companies for a specific profile
   const fetchCompaniesForProfile = async (profileData: Profile) => {
     try {
       console.log('fetchCompaniesForProfile called with profile:', { 
@@ -198,8 +199,8 @@ export const useAuthProvider = (): AuthContextType => {
         return;
       }
       
-      // For regular team members, fetch via user_companies
-      console.log('Fetching companies for team member via user_companies');
+      // For regular team members, fetch via user_companies with proper joins
+      console.log('Fetching companies for team member via user_companies with joins');
       const { data: userCompaniesData, error: userCompaniesError } = await supabase
         .from('user_companies')
         .select(`
@@ -207,7 +208,7 @@ export const useAuthProvider = (): AuthContextType => {
           company_id,
           team_member_id,
           is_active,
-          companies:company_id (
+          companies (
             id,
             name,
             logo_url,
@@ -228,15 +229,15 @@ export const useAuthProvider = (): AuthContextType => {
       }
       
       if (!userCompaniesData || userCompaniesData.length === 0) {
-        console.log('No user companies found');
+        console.log('No user companies found for user:', profileData.user_id);
         setCompanies([]);
         return;
       }
       
-      // Extract company data from user_companies result
+      // Extract company data from user_companies result and filter out nulls
       const companiesData = userCompaniesData
         .map(uc => uc.companies)
-        .filter(c => c !== null);
+        .filter((c): c is Company => c !== null);
       
       console.log('Setting companies from user_companies:', companiesData);
       setCompanies(companiesData);
