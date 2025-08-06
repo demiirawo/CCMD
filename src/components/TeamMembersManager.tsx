@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,55 +9,60 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { Users, Plus, Trash2, UserCheck, Pencil } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+
 type UserPermission = 'read' | 'edit' | 'company_admin';
+
 interface TeamMember {
   id: string;
-  name: string;
+  display_name: string;
   email: string | null;
   permission: UserPermission;
   created_at: string;
+  is_active: boolean;
 }
+
 interface TeamMembersManagerProps {
   companyId: string;
 }
+
 const PERMISSION_LABELS = {
   read: 'Read',
   edit: 'Edit',
   company_admin: 'Admin'
 };
-export const TeamMembersManager = ({
-  companyId
-}: TeamMembersManagerProps) => {
-  const {
-    profile
-  } = useAuth();
-  const {
-    toast
-  } = useToast();
+
+export const TeamMembersManager = ({ companyId }: TeamMembersManagerProps) => {
+  const { profile } = useAuth();
+  const { toast } = useToast();
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [loading, setLoading] = useState(false);
   const [editingMember, setEditingMember] = useState<TeamMember | null>(null);
   const [newMember, setNewMember] = useState<{
-    name: string;
+    display_name: string;
     email: string;
     permission: UserPermission;
   }>({
-    name: '',
+    display_name: '',
     email: '',
     permission: 'read'
   });
-  const canManageTeam = (profile as any)?.permission === 'company_admin' || profile?.role === 'admin';
+
+  // Check if user can manage team - either company admin or super admin
+  const canManageTeam = profile?.role === 'admin' || 
+    (profile && 'permission' in profile && (profile as any).permission === 'company_admin');
+
   useEffect(() => {
     fetchTeamMembers();
   }, [companyId]);
+
   const fetchTeamMembers = async () => {
     try {
-      const {
-        data,
-        error
-      } = await supabase.from('team_members').select('*').eq('company_id', companyId).order('created_at', {
-        ascending: true
-      });
+      const { data, error } = await supabase
+        .from('team_members')
+        .select('*')
+        .eq('company_id', companyId)
+        .order('created_at', { ascending: true });
+
       if (error) throw error;
       setTeamMembers(data || []);
     } catch (error) {
@@ -68,8 +74,9 @@ export const TeamMembersManager = ({
       });
     }
   };
+
   const handleAddMember = async () => {
-    if (!newMember.name.trim()) {
+    if (!newMember.display_name.trim()) {
       toast({
         title: "Name required",
         description: "Please enter a name for the team member.",
@@ -77,6 +84,7 @@ export const TeamMembersManager = ({
       });
       return;
     }
+
     // Check if email already exists in this company (only if email is provided)
     if (newMember.email.trim()) {
       const existingMember = teamMembers.find(
@@ -95,14 +103,16 @@ export const TeamMembersManager = ({
 
     setLoading(true);
     try {
-      const {
-        error
-      } = await supabase.from('team_members').insert({
-        company_id: companyId,
-        name: newMember.name.trim(),
-        email: newMember.email.trim() || null,
-        permission: newMember.permission
-      });
+      const { error } = await supabase
+        .from('team_members')
+        .insert({
+          company_id: companyId,
+          display_name: newMember.display_name.trim(),
+          email: newMember.email.trim() || null,
+          permission: newMember.permission,
+          is_active: true
+        });
+
       if (error) {
         // Handle database constraint violation
         if (error.code === '23505' && error.message.includes('idx_team_members_email_company_unique')) {
@@ -115,15 +125,18 @@ export const TeamMembersManager = ({
         }
         throw error;
       }
+
       setNewMember({
-        name: '',
+        display_name: '',
         email: '',
         permission: 'read'
       });
+      
       await fetchTeamMembers();
+      
       toast({
         title: "Team member added",
-        description: `${newMember.name} has been added to the team.`
+        description: `${newMember.display_name} has been added to the team.`
       });
     } catch (error) {
       console.error('Error adding team member:', error);
@@ -136,15 +149,18 @@ export const TeamMembersManager = ({
       setLoading(false);
     }
   };
+
   const handleUpdatePermission = async (memberId: string, permission: UserPermission) => {
     try {
-      const {
-        error
-      } = await supabase.from('team_members').update({
-        permission
-      }).eq('id', memberId);
+      const { error } = await supabase
+        .from('team_members')
+        .update({ permission })
+        .eq('id', memberId);
+
       if (error) throw error;
+
       await fetchTeamMembers();
+      
       toast({
         title: "Permission updated",
         description: "Team member permission has been updated."
@@ -158,8 +174,9 @@ export const TeamMembersManager = ({
       });
     }
   };
+
   const handleEditMember = async () => {
-    if (!editingMember || !editingMember.name.trim()) {
+    if (!editingMember || !editingMember.display_name.trim()) {
       toast({
         title: "Invalid input",
         description: "Name is required.",
@@ -186,12 +203,14 @@ export const TeamMembersManager = ({
     }
 
     try {
-      const {
-        error
-      } = await supabase.from('team_members').update({
-        name: editingMember.name.trim(),
-        email: editingMember.email?.trim() || null
-      }).eq('id', editingMember.id);
+      const { error } = await supabase
+        .from('team_members')
+        .update({
+          display_name: editingMember.display_name.trim(),
+          email: editingMember.email?.trim() || null
+        })
+        .eq('id', editingMember.id);
+
       if (error) {
         // Handle database constraint violation
         if (error.code === '23505' && error.message.includes('idx_team_members_email_company_unique')) {
@@ -204,8 +223,10 @@ export const TeamMembersManager = ({
         }
         throw error;
       }
+
       await fetchTeamMembers();
       setEditingMember(null);
+      
       toast({
         title: "Team member updated",
         description: "Team member details have been updated."
@@ -219,14 +240,20 @@ export const TeamMembersManager = ({
       });
     }
   };
+
   const handleDeleteMember = async (memberId: string, memberName: string) => {
     if (!confirm(`Are you sure you want to remove ${memberName} from the team?`)) return;
+
     try {
-      const {
-        error
-      } = await supabase.from('team_members').delete().eq('id', memberId);
+      const { error } = await supabase
+        .from('team_members')
+        .delete()
+        .eq('id', memberId);
+
       if (error) throw error;
+
       await fetchTeamMembers();
+      
       toast({
         title: "Team member removed",
         description: `${memberName} has been removed from the team.`
@@ -240,85 +267,105 @@ export const TeamMembersManager = ({
       });
     }
   };
-  return <Card className="bg-[#EAEBEC]">
+
+  return (
+    <Card className="bg-[#EAEBEC]">
       <CardHeader>
-        <CardTitle>
-          Office Team
-        </CardTitle>
-        
+        <CardTitle>Office Team</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Add new team member */}
-        {canManageTeam && <div className="p-4 border border-gray-200 rounded-lg bg-white space-y-3">
-            
+        {canManageTeam && (
+          <div className="p-4 border border-gray-200 rounded-lg bg-white space-y-3">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
               <div>
                 <Label htmlFor="member-name">Name *</Label>
-                <Input id="member-name" value={newMember.name} onChange={e => setNewMember(prev => ({
-              ...prev,
-              name: e.target.value
-            }))} className="border-gray-200" />
+                <Input 
+                  id="member-name" 
+                  value={newMember.display_name} 
+                  onChange={(e) => setNewMember(prev => ({ ...prev, display_name: e.target.value }))}
+                  className="border-gray-200" 
+                />
               </div>
               <div>
                 <Label htmlFor="member-email">Email</Label>
-                <Input id="member-email" type="email" value={newMember.email} onChange={e => setNewMember(prev => ({
-              ...prev,
-              email: e.target.value
-            }))} className="border-gray-200" placeholder="Optional - for login access" />
+                <Input 
+                  id="member-email" 
+                  type="email" 
+                  value={newMember.email} 
+                  onChange={(e) => setNewMember(prev => ({ ...prev, email: e.target.value }))}
+                  className="border-gray-200" 
+                  placeholder="Optional - for login access" 
+                />
               </div>
               <div>
                 <Label htmlFor="member-permission">Permission</Label>
-                <Select value={newMember.permission} onValueChange={(value: UserPermission) => setNewMember(prev => ({
-              ...prev,
-              permission: value
-            }))}>
+                <Select 
+                  value={newMember.permission} 
+                  onValueChange={(value: UserPermission) => setNewMember(prev => ({ ...prev, permission: value }))}
+                >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {Object.entries(PERMISSION_LABELS).map(([value, label]) => <SelectItem key={value} value={value}>
+                    {Object.entries(PERMISSION_LABELS).map(([value, label]) => (
+                      <SelectItem key={value} value={value}>
                         {label}
-                      </SelectItem>)}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
               <div className="flex items-end">
-                <Button onClick={handleAddMember} disabled={loading || !newMember.name.trim()} className="w-full">
+                <Button 
+                  onClick={handleAddMember} 
+                  disabled={loading || !newMember.display_name.trim()} 
+                  className="w-full"
+                >
                   <Plus className="h-4 w-4 mr-2" />
                   Add
                 </Button>
               </div>
             </div>
-          </div>}
+          </div>
+        )}
 
         {/* Team members list */}
         <div className="space-y-2">
-          <h4 className="font-medium">
-            Team Members ({teamMembers.length})
-          </h4>
+          <h4 className="font-medium">Team Members ({teamMembers.length})</h4>
           
-          {teamMembers.length === 0 ? <div className="text-center py-8 text-muted-foreground">
+          {teamMembers.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
               <Users className="h-8 w-8 mx-auto mb-2 opacity-50" />
               <p>No team members added yet</p>
               {canManageTeam && <p className="text-sm">Add team members using the form above</p>}
-            </div> : <div className="space-y-2">
-              {teamMembers.map(member => {
-            if (editingMember?.id === member.id) {
-              return <div key={member.id} className="p-3 border rounded-lg bg-white space-y-3">
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {teamMembers.map((member) => {
+                if (editingMember?.id === member.id) {
+                  return (
+                    <div key={member.id} className="p-3 border rounded-lg bg-white space-y-3">
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                         <div>
                           <Label htmlFor="edit-name">Name *</Label>
-                          <Input id="edit-name" value={editingMember.name} onChange={e => setEditingMember(prev => prev ? {
-                      ...prev,
-                      name: e.target.value
-                    } : null)} className="border-gray-200" />
+                          <Input 
+                            id="edit-name" 
+                            value={editingMember.display_name} 
+                            onChange={(e) => setEditingMember(prev => prev ? { ...prev, display_name: e.target.value } : null)}
+                            className="border-gray-200" 
+                          />
                         </div>
                         <div>
                           <Label htmlFor="edit-email">Email</Label>
-                          <Input id="edit-email" type="email" value={editingMember.email || ''} onChange={e => setEditingMember(prev => prev ? {
-                      ...prev,
-                      email: e.target.value
-                    } : null)} className="border-gray-200" placeholder="Optional - for login access" />
+                          <Input 
+                            id="edit-email" 
+                            type="email" 
+                            value={editingMember.email || ''} 
+                            onChange={(e) => setEditingMember(prev => prev ? { ...prev, email: e.target.value } : null)}
+                            className="border-gray-200" 
+                            placeholder="Optional - for login access" 
+                          />
                         </div>
                         <div className="flex items-end gap-2">
                           <Button onClick={handleEditMember} size="sm" className="flex-1">
@@ -329,46 +376,70 @@ export const TeamMembersManager = ({
                           </Button>
                         </div>
                       </div>
-                    </div>;
-            }
-            return <div key={member.id} className="flex items-center justify-between p-3 border rounded-lg bg-white">
+                    </div>
+                  );
+                }
+
+                return (
+                  <div key={member.id} className="flex items-center justify-between p-3 border rounded-lg bg-white">
                     <div className="flex-1">
-                      <div className="font-medium">{member.name}</div>
+                      <div className="font-medium">{member.display_name}</div>
                       <div className="text-sm text-muted-foreground">
                         {member.email || "No email - cannot login"}
                       </div>
                     </div>
                     
                     <div className="flex items-center gap-2">
-                      {canManageTeam ? <Select value={member.permission} onValueChange={(value: UserPermission) => handleUpdatePermission(member.id, value)}>
+                      {canManageTeam ? (
+                        <Select 
+                          value={member.permission} 
+                          onValueChange={(value: UserPermission) => handleUpdatePermission(member.id, value)}
+                        >
                           <SelectTrigger className="w-40">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            {Object.entries(PERMISSION_LABELS).map(([value, label]) => <SelectItem key={value} value={value}>
+                            {Object.entries(PERMISSION_LABELS).map(([value, label]) => (
+                              <SelectItem key={value} value={value}>
                                 {label}
-                              </SelectItem>)}
+                              </SelectItem>
+                            ))}
                           </SelectContent>
-                        </Select> : <span className="text-sm px-3 py-1 bg-muted rounded-md">
+                        </Select>
+                      ) : (
+                        <span className="text-sm px-3 py-1 bg-muted rounded-md">
                           {PERMISSION_LABELS[member.permission]}
-                        </span>}
+                        </span>
+                      )}
                       
-                      {canManageTeam && <>
-                          <Button variant="ghost" size="sm" onClick={() => setEditingMember(member)} className="text-blue-500 hover:text-blue-700 hover:bg-blue-50">
+                      {canManageTeam && (
+                        <>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={() => setEditingMember(member)} 
+                            className="text-blue-500 hover:text-blue-700 hover:bg-blue-50"
+                          >
                             <Pencil className="h-4 w-4" />
                           </Button>
-                          <Button variant="ghost" size="sm" onClick={() => handleDeleteMember(member.id, member.name)} className="text-red-500 hover:text-red-700 hover:bg-red-50">
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={() => handleDeleteMember(member.id, member.display_name)} 
+                            className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                          >
                             <Trash2 className="h-4 w-4" />
                           </Button>
-                        </>}
+                        </>
+                      )}
                     </div>
-                  </div>;
-          })}
-            </div>}
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
-
-        {/* Permission descriptions */}
-        
       </CardContent>
-    </Card>;
+    </Card>
+  );
 };

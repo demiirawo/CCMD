@@ -1,3 +1,4 @@
+
 import { useState, useEffect, createContext, useContext } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -5,11 +6,9 @@ import { supabase } from '@/integrations/supabase/client';
 interface Profile {
   id: string;
   user_id: string;
-  company_id: string | null;
+  active_company_id: string | null;
   role: 'admin' | 'user';
   username: string | null;
-  permission: 'read' | 'edit' | 'company_admin';
-  team_member_id: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -20,6 +19,7 @@ interface Company {
   theme_color?: string;
   services?: string[];
   logo_url?: string;
+  slug?: string;
   created_at: string;
   updated_at: string;
 }
@@ -115,15 +115,15 @@ export const useAuthProvider = (): AuthContextType => {
     try {
       let query = supabase.from('companies').select('*');
       
-      console.log('Profile role:', profileData.role, 'Company ID:', profileData.company_id);
+      console.log('Profile role:', profileData.role, 'Active company ID:', profileData.active_company_id);
       
       // If user is not admin, only show their company
       if (profileData.role !== 'admin') {
-        if (!profileData.company_id) {
-          console.log('Non-admin user has no company_id, returning early');
+        if (!profileData.active_company_id) {
+          console.log('Non-admin user has no active_company_id, returning early');
           return;
         }
-        query = query.eq('id', profileData.company_id);
+        query = query.eq('id', profileData.active_company_id);
         console.log('Fetching specific company for non-admin user');
       } else {
         console.log('Fetching all companies for admin user');
@@ -200,69 +200,6 @@ export const useAuthProvider = (): AuthContextType => {
         }, 0);
       }
     });
-
-    // Helper function to fetch profile data
-    const fetchProfileData = async (userId: string) => {
-      try {
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('user_id', userId)
-          .single();
-        
-        console.log('Profile fetch result:', { data, error });
-        
-        if (error) {
-          console.error('Error fetching profile:', error);
-          return;
-        }
-        
-        if (mounted) {
-          setProfile(data);
-          // After setting profile, fetch companies
-          await fetchCompaniesForProfile(data);
-        }
-      } catch (error) {
-        console.error('Error fetching profile:', error);
-      }
-    };
-
-    // Helper function to fetch companies for a specific profile
-    const fetchCompaniesForProfile = async (profileData: Profile) => {
-      try {
-        let query = supabase.from('companies').select('*');
-        
-        console.log('Profile role:', profileData.role, 'Company ID:', profileData.company_id);
-        
-        // If user is not admin, only show their company
-        if (profileData.role !== 'admin') {
-          if (!profileData.company_id) {
-            console.log('Non-admin user has no company_id, returning early');
-            return;
-          }
-          query = query.eq('id', profileData.company_id);
-          console.log('Fetching specific company for non-admin user');
-        } else {
-          console.log('Fetching all companies for admin user');
-        }
-        
-        const { data, error } = await query;
-        
-        console.log('Companies fetch result:', { data, error });
-        
-        if (error) {
-          console.error('Error fetching companies:', error);
-          return;
-        }
-        
-        if (mounted) {
-          console.log('Setting companies:', data || []);
-          setCompanies(data || []);
-        }
-      } catch (error) {
-        console.error('Error fetching companies:', error);
-      }
-    };
 
     return () => {
       mounted = false;
@@ -373,11 +310,11 @@ export const useAuthProvider = (): AuthContextType => {
     
     const { error } = await supabase
       .from('profiles')
-      .update({ company_id: companyId })
+      .update({ active_company_id: companyId })
       .eq('user_id', profile.user_id);
     
     if (!error) {
-      setProfile({ ...profile, company_id: companyId });
+      setProfile({ ...profile, active_company_id: companyId });
       // Clear session storage when switching companies to reset dashboard section states
       sessionStorage.clear();
     }
@@ -398,8 +335,8 @@ export const useAuthProvider = (): AuthContextType => {
     if (!error) {
       setCompanies(companies.filter(c => c.id !== companyId));
       // If the deleted company was the user's selected company, clear it
-      if (profile.company_id === companyId) {
-        setProfile({ ...profile, company_id: null });
+      if (profile.active_company_id === companyId) {
+        setProfile({ ...profile, active_company_id: null });
       }
     }
     
