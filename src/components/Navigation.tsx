@@ -12,6 +12,7 @@ export const Navigation = () => {
 
   const navItems = [
     { name: "Dashboard", path: "/" },
+    { name: "Dashboard 1", path: "/dashboard1" },
     { name: "Meetings", path: "/meetings" },
     { name: "Report", path: "/reports" }
   ];
