@@ -74,12 +74,12 @@ export const CompanySelector = () => {
     try {
       console.log('Fetching companies for email:', user.email);
       
-      // Use direct query instead of RPC for now
+      // Use direct query with correct column names
       const { data, error } = await supabase
         .from('team_members')
         .select(`
           id,
-          display_name,
+          name,
           permission,
           is_active,
           companies!inner(
@@ -103,7 +103,7 @@ export const CompanySelector = () => {
         company_slug: item.companies.slug,
         company_logo_url: item.companies.logo_url,
         company_theme_color: item.companies.theme_color,
-        display_name: item.display_name,
+        display_name: item.name,
         permission: item.permission,
         is_active: item.is_active
       })) || [];
