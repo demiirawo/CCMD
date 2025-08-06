@@ -10,7 +10,6 @@ import { Card } from "./ui/card";
 import { StatusBadge, StatusType } from "./StatusBadge";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
-
 export interface DocumentData {
   id: string;
   name: string;
@@ -24,7 +23,6 @@ export interface DocumentData {
   comment?: string;
   updatedAt?: string;
 }
-
 interface KeyDocumentTrackerProps {
   documents?: DocumentData[];
   onDocumentsChange?: (documents: DocumentData[]) => void;
@@ -34,13 +32,11 @@ interface KeyDocumentTrackerProps {
   panelStateTracker?: number;
   readOnly?: boolean;
 }
-
 const categories = ["Governance and Compliance", "Care Delivery", "Staffing and HR", "Finance and Payroll", "Health and Safety", "Client Records and Contracts", "Quality Assurance and Audit", "Transportation and Logistics"];
 const periods = ["days", "weeks", "months", "years"];
 const numbers = Array.from({
   length: 12
 }, (_, i) => (i + 1).toString());
-
 export const KeyDocumentTracker = ({
   documents = [],
   onDocumentsChange,
@@ -50,15 +46,17 @@ export const KeyDocumentTracker = ({
   panelStateTracker,
   readOnly = false
 }: KeyDocumentTrackerProps) => {
-  const { companies, profile } = useAuth();
+  const {
+    companies,
+    profile
+  } = useAuth();
   const currentCompany = companies.find(c => c.id === profile?.company_id);
   const isDynamicPanelColourEnabled = true;
-  
   const [isExpanded, setIsExpanded] = useState(() => {
     const saved = sessionStorage.getItem('key_documents_expanded');
     return saved !== null ? JSON.parse(saved) : false;
   });
-  
+
   // Listen for panel state changes to sync with sessionStorage
   useEffect(() => {
     const saved = sessionStorage.getItem('key_documents_expanded');
@@ -67,9 +65,7 @@ export const KeyDocumentTracker = ({
       setIsExpanded(savedState);
     }
   }, [panelStateTracker, isExpanded]);
-  
   const isOpen = isExpanded;
-
   const calculateNextReviewDate = (lastReviewDate: string | null, number: string, period: string): Date | null => {
     if (!lastReviewDate) return null;
     const lastDate = new Date(lastReviewDate);
@@ -91,7 +87,6 @@ export const KeyDocumentTracker = ({
         return lastDate;
     }
   };
-
   const getDaysRemaining = (nextReviewDate: Date | null) => {
     if (!nextReviewDate) return null;
     const today = new Date();
@@ -107,7 +102,6 @@ export const KeyDocumentTracker = ({
     const diffDays = differenceInDays(reviewDate, today);
     return isNaN(diffDays) ? null : diffDays;
   };
-
   const getDocumentStatus = (nextReviewDate: string | null): StatusType => {
     if (!nextReviewDate) return "green";
     const daysRemaining = getDaysRemaining(new Date(nextReviewDate));
@@ -120,7 +114,6 @@ export const KeyDocumentTracker = ({
       return "green"; // More than 5 days
     }
   };
-
   const getDocumentColorClass = (nextReviewDate: string | null) => {
     if (!nextReviewDate) return "bg-stone-50 text-black border-gray-300";
     const daysRemaining = getDaysRemaining(new Date(nextReviewDate));
@@ -143,7 +136,6 @@ export const KeyDocumentTracker = ({
     if (statuses.some(status => status === "amber")) return "amber";
     return "green";
   };
-
   const handleDocumentChange = (index: number, field: keyof DocumentData, value: any) => {
     const updatedDocuments = [...documents];
     if (updatedDocuments[index]) {
@@ -163,7 +155,6 @@ export const KeyDocumentTracker = ({
       onDocumentsChange?.(updatedDocuments);
     }
   };
-
   const addDocument = () => {
     const newDocument: DocumentData = {
       id: `doc-${Date.now()}`,
@@ -181,7 +172,6 @@ export const KeyDocumentTracker = ({
     const updatedDocuments = [...documents, newDocument];
     onDocumentsChange?.(updatedDocuments);
   };
-
   const removeDocument = (docId: string) => {
     const updatedDocuments = documents.filter(doc => doc.id !== docId);
     onDocumentsChange?.(updatedDocuments);
@@ -218,24 +208,17 @@ export const KeyDocumentTracker = ({
     }
     return 'bg-primary/10';
   };
-
   return <div className={`rounded-2xl p-6 shadow-lg -mx-8 px-14 outline-none ${getBackgroundClass()}`}>
       <div className="flex items-center justify-between cursor-pointer mb-6 outline-none" onClick={() => {
-        const newState = !isExpanded;
-        setIsExpanded(newState);
-        sessionStorage.setItem('key_documents_expanded', JSON.stringify(newState));
-        onPanelStateChange?.();
-      }}>
+      const newState = !isExpanded;
+      setIsExpanded(newState);
+      sessionStorage.setItem('key_documents_expanded', JSON.stringify(newState));
+      onPanelStateChange?.();
+    }}>
         <div className="flex items-center gap-3">
           <div>
-            <h3 className={cn(
-              "text-xl font-bold",
-              isDynamicPanelColourEnabled ? "text-white" : "text-foreground"
-            )}>Key Review Dates</h3>
-            <p className={cn(
-              "text-sm",
-              isDynamicPanelColourEnabled ? "text-white/80" : "text-muted-foreground"
-            )}>
+            <h3 className={cn("text-xl font-bold", isDynamicPanelColourEnabled ? "text-white" : "text-foreground")}>Key Review Dates</h3>
+            <p className={cn("text-sm", isDynamicPanelColourEnabled ? "text-white/80" : "text-muted-foreground")}>
               Updated: {new Date().toLocaleDateString('en-GB')}
             </p>
           </div>
@@ -244,26 +227,13 @@ export const KeyDocumentTracker = ({
           </div>
         </div>
         <div className="p-1 rounded-lg hover:bg-accent/50 transition-colors outline-none">
-          {isOpen ? (
-            <ChevronDown className={cn(
-              "w-5 h-5",
-              isDynamicPanelColourEnabled ? "text-white/80" : "text-muted-foreground"
-            )} />
-          ) : (
-            <ChevronRight className={cn(
-              "w-5 h-5", 
-              isDynamicPanelColourEnabled ? "text-white/80" : "text-muted-foreground"
-            )} />
-          )}
+          {isOpen ? <ChevronDown className={cn("w-5 h-5", isDynamicPanelColourEnabled ? "text-white/80" : "text-muted-foreground")} /> : <ChevronRight className={cn("w-5 h-5", isDynamicPanelColourEnabled ? "text-white/80" : "text-muted-foreground")} />}
         </div>
       </div>
       
       {isOpen && <div className="space-y-6">
         {groupedDocuments.map(([category, docs]) => <div key={category} className="space-y-3">
-            <h4 className={cn(
-              "text-sm font-medium border-b border-border/20 pb-2",
-              isDynamicPanelColourEnabled ? "text-white" : "text-foreground"
-            )}>
+            <h4 className={cn("text-sm font-medium border-b border-border/20 pb-2", isDynamicPanelColourEnabled ? "text-white" : "text-foreground")}>
               {category}
             </h4>
             {docs.map(doc => <div key={doc.id} className={`p-4 border rounded-lg space-y-3 ${getDocumentColorClass(doc.nextReviewDate)}`}>
@@ -290,12 +260,7 @@ export const KeyDocumentTracker = ({
                   
                   <div className="col-span-4">
                     <label className="text-xs text-gray-700 mb-1 block">Document Owner</label>
-                    <Input 
-                      value={doc.owner} 
-                      onChange={e => handleDocumentChange(documents.indexOf(doc), 'owner', e.target.value)} 
-                      placeholder="Enter document owner" 
-                      className="text-sm h-9 bg-white text-black" 
-                    />
+                    <Input value={doc.owner} onChange={e => handleDocumentChange(documents.indexOf(doc), 'owner', e.target.value)} placeholder="Enter document owner" className="text-sm h-9 bg-white text-black" />
                   </div>
 
                   <div className="col-span-1">
@@ -357,27 +322,17 @@ export const KeyDocumentTracker = ({
                   
                   <div className="col-span-4">
                     <label className="text-xs text-gray-700 mb-1 block">Due</label>
-                    <div className={`text-sm p-2 rounded border text-center h-9 flex items-center justify-center ${
-                      doc.nextReviewDate 
-                        ? getDocumentStatus(doc.nextReviewDate) === 'red' 
-                          ? 'bg-red-100 border-red-200 text-red-800' 
-                          : getDocumentStatus(doc.nextReviewDate) === 'amber' 
-                          ? 'bg-amber-100 border-amber-200 text-amber-800' 
-                          : 'bg-green-100 border-green-200 text-green-800'
-                        : 'bg-white/20 border-white/30 text-gray-700'
-                    }`}>
-                      {doc.nextReviewDate ? (
-                        <>
+                    <div className={`text-sm p-2 rounded border text-center h-9 flex items-center justify-center ${doc.nextReviewDate ? getDocumentStatus(doc.nextReviewDate) === 'red' ? 'bg-red-100 border-red-200 text-red-800' : getDocumentStatus(doc.nextReviewDate) === 'amber' ? 'bg-amber-100 border-amber-200 text-amber-800' : 'bg-green-100 border-green-200 text-green-800' : 'bg-white/20 border-white/30 text-gray-700'}`}>
+                      {doc.nextReviewDate ? <>
                           {new Date(doc.nextReviewDate).toLocaleDateString('en-GB')}
                           {(() => {
-                            const daysRemaining = getDaysRemaining(new Date(doc.nextReviewDate));
-                            if (daysRemaining !== null) {
-                              return ` • ${Math.abs(daysRemaining)} day(s) ${daysRemaining < 0 ? 'overdue' : 'remaining'}`;
-                            }
-                            return '';
-                          })()}
-                        </>
-                      ) : ""}
+                    const daysRemaining = getDaysRemaining(new Date(doc.nextReviewDate));
+                    if (daysRemaining !== null) {
+                      return ` • ${Math.abs(daysRemaining)} day(s) ${daysRemaining < 0 ? 'overdue' : 'remaining'}`;
+                    }
+                    return '';
+                  })()}
+                        </> : ""}
                     </div>
                   </div>
 
@@ -390,23 +345,13 @@ export const KeyDocumentTracker = ({
                 <div className="grid grid-cols-12 gap-3 items-start">
                   <div className="col-span-10">
                     <label className="text-xs text-gray-700 mb-1 block">Comment</label>
-                    <Input 
-                      value={doc.comment || ''} 
-                      onChange={e => handleDocumentChange(documents.indexOf(doc), 'comment', e.target.value)} 
-                      className="text-sm h-9 bg-white text-black" 
-                    />
+                    <Input value={doc.comment || ''} onChange={e => handleDocumentChange(documents.indexOf(doc), 'comment', e.target.value)} className="text-sm h-9 bg-white text-black" />
                   </div>
                   <div className="col-span-2 flex gap-1">
                     <div className="flex-1"></div>
                     <div>
                       <label className="text-xs text-gray-700 mb-1 block opacity-0">Delete</label>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={() => removeDocument(doc.id)} 
-                        className="text-xs text-white hover:text-white w-8 h-9 p-0 bg-red-500/80 border-red-400 hover:bg-red-600"
-                        title="Delete this document"
-                      >
+                      <Button variant="outline" size="sm" onClick={() => removeDocument(doc.id)} title="Delete this document" className="text-xs text-white hover:text-white w-8 h-9 p-0 border-red-400 bg-neutral-500 hover:bg-neutral-400">
                         <Minus className="w-3 h-3" />
                       </Button>
                     </div>
