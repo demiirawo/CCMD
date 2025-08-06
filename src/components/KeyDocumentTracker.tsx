@@ -335,6 +335,7 @@ export const KeyDocumentTracker = ({
                           <SelectValue placeholder="#" />
                         </SelectTrigger>
                         <SelectContent className="bg-white">
+                          <SelectItem value="" className="text-sm">-</SelectItem>
                           {numbers.map(num => <SelectItem key={num} value={num} className="text-sm">
                               {num}
                             </SelectItem>)}
@@ -345,6 +346,7 @@ export const KeyDocumentTracker = ({
                           <SelectValue placeholder="Period" />
                         </SelectTrigger>
                         <SelectContent className="bg-white">
+                          <SelectItem value="" className="text-sm">-</SelectItem>
                           {periods.map(period => <SelectItem key={period} value={period} className="text-sm">
                               {period}
                             </SelectItem>)}
@@ -386,7 +388,7 @@ export const KeyDocumentTracker = ({
 
                 {/* Third line: Comment */}
                 <div className="grid grid-cols-12 gap-3 items-start">
-                  <div className="col-span-11">
+                  <div className="col-span-10">
                     <label className="text-xs text-gray-700 mb-1 block">Comment</label>
                     <Input 
                       value={doc.comment || ''} 
@@ -394,8 +396,20 @@ export const KeyDocumentTracker = ({
                       className="text-sm h-9 bg-white text-black" 
                     />
                   </div>
-                  <div className="col-span-1">
-                    {/* Empty space to align with remove button above */}
+                  <div className="col-span-2 flex gap-1">
+                    <div className="flex-1"></div>
+                    <div>
+                      <label className="text-xs text-gray-700 mb-1 block opacity-0">Delete</label>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => removeDocument(doc.id)} 
+                        className="text-xs text-white hover:text-white w-8 h-9 p-0 bg-red-500/80 border-red-400 hover:bg-red-600"
+                        title="Delete this document"
+                      >
+                        <Minus className="w-3 h-3" />
+                      </Button>
+                    </div>
                   </div>
                 </div>
 
