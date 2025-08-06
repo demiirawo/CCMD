@@ -26,7 +26,7 @@ const Inspection = () => {
       <Navigation />
       <div className="pt-20 px-6">
         <div className="max-w-7xl mx-auto">
-          <h1 className="text-3xl font-bold text-foreground mb-8">Inspection</h1>
+          
           <div className="space-y-4">
             {panels.map((panel, index) => <div key={index} className="bg-green-600 text-white p-6 rounded-lg flex items-center justify-between hover:bg-green-700 transition-colors cursor-pointer">
                 <div className="flex-1">
