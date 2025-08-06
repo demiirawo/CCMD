@@ -54,7 +54,7 @@ const DebouncedInput = ({
       value={localValue}
       onChange={handleChange}
       placeholder={placeholder}
-      className={cn("text-xl font-bold flex items-center gap-2 text-foreground", className)}
+      className={cn("text-lg font-bold flex items-center gap-2 text-white", className)}
       type={type}
     />
   );
