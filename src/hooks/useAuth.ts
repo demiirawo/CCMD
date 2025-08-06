@@ -158,49 +158,6 @@ export const useAuthProvider = (): AuthContextType => {
   useEffect(() => {
     let mounted = true;
     
-    // Set up auth state listener FIRST (before checking existing session)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        if (!mounted) return;
-        
-        console.log('Auth state change:', event, session?.user?.id);
-        setSession(session);
-        setUser(session?.user ?? null);
-        setLoading(false);
-        
-        // Handle profile fetching for authenticated users
-        if (session?.user) {
-          console.log('User logged in, deferring profile fetch...');
-          // Use setTimeout(0) to defer Supabase calls and prevent auth context deadlocks
-          setTimeout(() => {
-            if (!mounted) return;
-            fetchProfileData(session.user.id);
-          }, 0);
-        } else {
-          // Clear data when user logs out
-          setProfile(null);
-          setCompanies([]);
-        }
-      }
-    );
-
-    // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!mounted) return;
-      
-      console.log('Initial session check:', session?.user?.id);
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-      
-      if (session?.user) {
-        setTimeout(() => {
-          if (!mounted) return;
-          fetchProfileData(session.user.id);
-        }, 0);
-      }
-    });
-
     // Helper function to fetch profile data
     const fetchProfileData = async (userId: string) => {
       try {
@@ -263,6 +220,49 @@ export const useAuthProvider = (): AuthContextType => {
         console.error('Error fetching companies:', error);
       }
     };
+    
+    // Set up auth state listener FIRST (before checking existing session)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        if (!mounted) return;
+        
+        console.log('Auth state change:', event, session?.user?.id);
+        setSession(session);
+        setUser(session?.user ?? null);
+        setLoading(false);
+        
+        // Handle profile fetching for authenticated users
+        if (session?.user) {
+          console.log('User logged in, deferring profile fetch...');
+          // Use setTimeout(0) to defer Supabase calls and prevent auth context deadlocks
+          setTimeout(() => {
+            if (!mounted) return;
+            fetchProfileData(session.user.id);
+          }, 0);
+        } else {
+          // Clear data when user logs out
+          setProfile(null);
+          setCompanies([]);
+        }
+      }
+    );
+
+    // THEN check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!mounted) return;
+      
+      console.log('Initial session check:', session?.user?.id);
+      setSession(session);
+      setUser(session?.user ?? null);
+      setLoading(false);
+      
+      if (session?.user) {
+        setTimeout(() => {
+          if (!mounted) return;
+          fetchProfileData(session.user.id);
+        }, 0);
+      }
+    });
 
     return () => {
       mounted = false;
@@ -306,18 +306,17 @@ export const useAuthProvider = (): AuthContextType => {
 
   const signOut = async () => {
     try {
-      // Clear session storage when logging out
+      // Clear only session storage when logging out to preserve data persistence
+      // Keep localStorage data intact unless it's auth-related
       sessionStorage.clear();
       
-      // Clear only auth-related localStorage items, preserve analytics backups
-      const keysToRemove = [];
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key && !key.includes('_backup_') && !key.includes('_analytics')) {
-          keysToRemove.push(key);
+      // Only clear specific auth-related localStorage items, preserve all data backups and analytics
+      const authKeysToRemove = ['sb-gwywpkhxpbokmbhwsnod-auth-token'];
+      authKeysToRemove.forEach(key => {
+        if (localStorage.getItem(key)) {
+          localStorage.removeItem(key);
         }
-      }
-      keysToRemove.forEach(key => localStorage.removeItem(key));
+      });
       
       const { error } = await supabase.auth.signOut();
       
@@ -378,8 +377,14 @@ export const useAuthProvider = (): AuthContextType => {
     
     if (!error) {
       setProfile({ ...profile, company_id: companyId });
-      // Clear session storage when switching companies to reset dashboard section states
-      sessionStorage.clear();
+      // Clear session storage when switching companies but preserve persistent data
+      // Only clear dashboard section states, not analytics data
+      const sessionKeys = Object.keys(sessionStorage);
+      sessionKeys.forEach(key => {
+        if (key.includes('dashboard') || key.includes('section')) {
+          sessionStorage.removeItem(key);
+        }
+      });
     }
     
     return { error };
