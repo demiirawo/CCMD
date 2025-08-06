@@ -75,8 +75,8 @@ export const KeyDocumentTracker = ({
     const lastDate = new Date(lastReviewDate);
     if (isNaN(lastDate.getTime())) return null;
 
-    // If no frequency is specified, use the same date as the last review date
-    if (!number || !period) return lastDate;
+    // If no frequency is specified or "none" is selected, use the same date as the last review date
+    if (!number || !period || number === 'none' || period === 'none') return lastDate;
     const num = parseInt(number) || 1;
     switch (period) {
       case 'days':
@@ -335,7 +335,7 @@ export const KeyDocumentTracker = ({
                           <SelectValue placeholder="#" />
                         </SelectTrigger>
                         <SelectContent className="bg-white">
-                          <SelectItem value="" className="text-sm">-</SelectItem>
+                          <SelectItem value="none" className="text-sm">-</SelectItem>
                           {numbers.map(num => <SelectItem key={num} value={num} className="text-sm">
                               {num}
                             </SelectItem>)}
@@ -346,7 +346,7 @@ export const KeyDocumentTracker = ({
                           <SelectValue placeholder="Period" />
                         </SelectTrigger>
                         <SelectContent className="bg-white">
-                          <SelectItem value="" className="text-sm">-</SelectItem>
+                          <SelectItem value="none" className="text-sm">-</SelectItem>
                           {periods.map(period => <SelectItem key={period} value={period} className="text-sm">
                               {period}
                             </SelectItem>)}
