@@ -138,12 +138,42 @@ export const TeamMembersManager = ({
   };
   const handleUpdatePermission = async (memberId: string, permission: UserPermission) => {
     try {
-      const {
-        error
-      } = await supabase.from('team_members').update({
-        permission
-      }).eq('id', memberId);
-      if (error) throw error;
+      // Update the team member permission
+      const { error: teamMemberError } = await supabase
+        .from('team_members')
+        .update({ permission })
+        .eq('id', memberId);
+      
+      if (teamMemberError) throw teamMemberError;
+
+      // Also update the corresponding user's profile if they have an account
+      const { data: teamMemberData } = await supabase
+        .from('team_members')
+        .select('email')
+        .eq('id', memberId)
+        .single();
+
+      if (teamMemberData?.email) {
+        // Find user by email and update their profile permission
+        const { data: userData } = await supabase
+          .from('profiles')
+          .select('user_id')
+          .eq('team_member_id', memberId)
+          .maybeSingle();
+
+        if (userData) {
+          const { error: profileError } = await supabase
+            .from('profiles')
+            .update({ permission })
+            .eq('user_id', userData.user_id);
+          
+          if (profileError) {
+            console.error('Error updating profile permission:', profileError);
+            // Continue execution - team member permission was updated
+          }
+        }
+      }
+
       await fetchTeamMembers();
       toast({
         title: "Permission updated",
