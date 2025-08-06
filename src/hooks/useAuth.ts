@@ -1,3 +1,4 @@
+
 import { useState, useEffect, createContext, useContext } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -89,6 +90,29 @@ export const useAuthProvider = (): AuthContextType => {
   // Helper function to fetch profile data - needs to be accessible outside useEffect
   const fetchProfileData = async (userId: string) => {
     try {
+      console.log('=== fetchProfileData called ===');
+      console.log('User ID:', userId);
+      
+      // First check user_companies to see all company assignments
+      const { data: userCompaniesData, error: userCompaniesError } = await supabase
+        .from('user_companies')
+        .select(`
+          *,
+          companies:company_id (
+            id,
+            name,
+            theme_color,
+            services,
+            logo_url,
+            created_at,
+            updated_at
+          )
+        `)
+        .eq('user_id', userId);
+      
+      console.log('User companies data:', { userCompaniesData, userCompaniesError });
+      
+      // Then get the profile
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -103,56 +127,94 @@ export const useAuthProvider = (): AuthContextType => {
       }
       
       setProfile(data);
-      // After setting profile, fetch companies
-      await fetchCompaniesForProfile(data);
+      // After setting profile, fetch companies using the new approach
+      await fetchCompaniesForUser(userId);
     } catch (error) {
       console.error('Error fetching profile:', error);
     }
   };
 
-  // Helper function to fetch companies for a specific profile
-  const fetchCompaniesForProfile = async (profileData: Profile) => {
+  // New function to fetch companies based on user_companies table
+  const fetchCompaniesForUser = async (userId: string) => {
     try {
-      let query = supabase.from('companies').select('*');
+      console.log('=== fetchCompaniesForUser called ===');
+      console.log('User ID for company fetch:', userId);
       
-      console.log('Profile role:', profileData.role, 'Company ID:', profileData.company_id);
+      const { data: userCompaniesData, error } = await supabase
+        .from('user_companies')
+        .select(`
+          companies:company_id (
+            id,
+            name,
+            theme_color,
+            services,
+            logo_url,
+            created_at,
+            updated_at
+          )
+        `)
+        .eq('user_id', userId);
       
-      // If user is not admin, only show their company
-      if (profileData.role !== 'admin') {
-        if (!profileData.company_id) {
-          console.log('Non-admin user has no company_id, returning early');
-          return;
-        }
-        query = query.eq('id', profileData.company_id);
-        console.log('Fetching specific company for non-admin user');
-      } else {
-        console.log('Fetching all companies for admin user');
-      }
-      
-      const { data, error } = await query;
-      
-      console.log('Companies fetch result:', { data, error });
+      console.log('User companies query result:', { userCompaniesData, error });
       
       if (error) {
-        console.error('Error fetching companies:', error);
+        console.error('Error fetching user companies:', error);
         return;
       }
       
-      console.log('Setting companies:', data || []);
-      setCompanies(data || []);
+      // Extract companies from the nested structure and filter out nulls
+      const companiesArray = userCompaniesData
+        ?.map(uc => uc.companies)
+        .filter(c => c !== null) || [];
+      
+      console.log('Extracted companies array:', companiesArray);
+      console.log('Setting companies:', companiesArray.length, 'companies found');
+      setCompanies(companiesArray);
+    } catch (error) {
+      console.error('Error fetching companies for user:', error);
+    }
+  };
+
+  // Helper function to fetch companies for a specific profile (legacy method for admin)
+  const fetchCompaniesForProfile = async (profileData: Profile) => {
+    try {
+      console.log('=== fetchCompaniesForProfile called (legacy admin method) ===');
+      console.log('Profile role:', profileData.role, 'Company ID:', profileData.company_id);
+      
+      // For admin users, show all companies (legacy behavior)
+      if (profileData.role === 'admin') {
+        console.log('Fetching all companies for admin user');
+        const { data, error } = await supabase
+          .from('companies')
+          .select('*');
+        
+        console.log('Admin companies fetch result:', { data, error });
+        
+        if (error) {
+          console.error('Error fetching companies:', error);
+          return;
+        }
+        
+        console.log('Setting companies (admin):', data || []);
+        setCompanies(data || []);
+      } else {
+        // For non-admin users, use the new user_companies approach
+        await fetchCompaniesForUser(profileData.user_id);
+      }
     } catch (error) {
       console.error('Error fetching companies:', error);
     }
   };
 
   const fetchCompanies = async () => {
-    console.log('fetchCompanies called, profile:', profile);
-    if (!profile) {
-      console.log('No profile found, returning early');
+    console.log('fetchCompanies called, user:', user?.id);
+    if (!user?.id) {
+      console.log('No user found, returning early');
       return;
     }
     
-    await fetchCompaniesForProfile(profile);
+    // Use the new user-based company fetching
+    await fetchCompaniesForUser(user.id);
   };
 
   useEffect(() => {
@@ -201,79 +263,16 @@ export const useAuthProvider = (): AuthContextType => {
       }
     });
 
-    // Helper function to fetch profile data
-    const fetchProfileData = async (userId: string) => {
-      try {
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('user_id', userId)
-          .single();
-        
-        console.log('Profile fetch result:', { data, error });
-        
-        if (error) {
-          console.error('Error fetching profile:', error);
-          return;
-        }
-        
-        if (mounted) {
-          setProfile(data);
-          // After setting profile, fetch companies
-          await fetchCompaniesForProfile(data);
-        }
-      } catch (error) {
-        console.error('Error fetching profile:', error);
-      }
-    };
-
-    // Helper function to fetch companies for a specific profile
-    const fetchCompaniesForProfile = async (profileData: Profile) => {
-      try {
-        let query = supabase.from('companies').select('*');
-        
-        console.log('Profile role:', profileData.role, 'Company ID:', profileData.company_id);
-        
-        // If user is not admin, only show their company
-        if (profileData.role !== 'admin') {
-          if (!profileData.company_id) {
-            console.log('Non-admin user has no company_id, returning early');
-            return;
-          }
-          query = query.eq('id', profileData.company_id);
-          console.log('Fetching specific company for non-admin user');
-        } else {
-          console.log('Fetching all companies for admin user');
-        }
-        
-        const { data, error } = await query;
-        
-        console.log('Companies fetch result:', { data, error });
-        
-        if (error) {
-          console.error('Error fetching companies:', error);
-          return;
-        }
-        
-        if (mounted) {
-          console.log('Setting companies:', data || []);
-          setCompanies(data || []);
-        }
-      } catch (error) {
-        console.error('Error fetching companies:', error);
-      }
-    };
-
     return () => {
       mounted = false;
       subscription.unsubscribe();
     };
   }, []);
 
-  // Fetch companies when profile changes
+  // Fetch companies when profile changes (legacy support)
   useEffect(() => {
-    if (profile) {
-      fetchCompanies();
+    if (profile && profile.role === 'admin') {
+      fetchCompaniesForProfile(profile);
     }
   }, [profile]);
 
