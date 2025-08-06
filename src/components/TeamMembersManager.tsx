@@ -8,22 +8,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { Users, Plus, Trash2, UserCheck, Pencil } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-type UserPermission = 'read' | 'edit' | 'company_admin';
+type DatabasePermission = 'read' | 'edit' | 'company_admin';
 interface TeamMember {
   id: string;
   name: string;
   email: string | null;
-  permission: UserPermission;
+  permission: DatabasePermission; // From database
   created_at: string;
 }
 interface TeamMembersManagerProps {
   companyId: string;
 }
-const PERMISSION_LABELS = {
-  read: 'Read',
-  edit: 'Edit',
-  company_admin: 'Admin'
-};
 export const TeamMembersManager = ({
   companyId
 }: TeamMembersManagerProps) => {
@@ -39,11 +34,9 @@ export const TeamMembersManager = ({
   const [newMember, setNewMember] = useState<{
     name: string;
     email: string;
-    permission: UserPermission;
   }>({
     name: '',
-    email: '',
-    permission: 'read'
+    email: ''
   });
   const canManageTeam = (profile as any)?.permission === 'company_admin' || profile?.role === 'admin';
   useEffect(() => {
@@ -101,7 +94,7 @@ export const TeamMembersManager = ({
         company_id: companyId,
         name: newMember.name.trim(),
         email: newMember.email.trim() || null,
-        permission: newMember.permission
+        permission: 'company_admin' // Always company_admin
       });
       if (error) {
         // Handle database constraint violation
@@ -117,8 +110,7 @@ export const TeamMembersManager = ({
       }
       setNewMember({
         name: '',
-        email: '',
-        permission: 'read'
+        email: ''
       });
       await fetchTeamMembers();
       toast({
@@ -136,58 +128,7 @@ export const TeamMembersManager = ({
       setLoading(false);
     }
   };
-  const handleUpdatePermission = async (memberId: string, permission: UserPermission) => {
-    try {
-      // Update the team member permission
-      const { error: teamMemberError } = await supabase
-        .from('team_members')
-        .update({ permission })
-        .eq('id', memberId);
-      
-      if (teamMemberError) throw teamMemberError;
-
-      // Also update the corresponding user's profile if they have an account
-      const { data: teamMemberData } = await supabase
-        .from('team_members')
-        .select('email')
-        .eq('id', memberId)
-        .single();
-
-      if (teamMemberData?.email) {
-        // Find user by email and update their profile permission
-        const { data: userData } = await supabase
-          .from('profiles')
-          .select('user_id')
-          .eq('team_member_id', memberId)
-          .maybeSingle();
-
-        if (userData) {
-          const { error: profileError } = await supabase
-            .from('profiles')
-            .update({ permission })
-            .eq('user_id', userData.user_id);
-          
-          if (profileError) {
-            console.error('Error updating profile permission:', profileError);
-            // Continue execution - team member permission was updated
-          }
-        }
-      }
-
-      await fetchTeamMembers();
-      toast({
-        title: "Permission updated",
-        description: "Team member permission has been updated."
-      });
-    } catch (error) {
-      console.error('Error updating permission:', error);
-      toast({
-        title: "Error",
-        description: "Failed to update permission.",
-        variant: "destructive"
-      });
-    }
-  };
+  // Remove the permission update function since everyone is company_admin now
   const handleEditMember = async () => {
     if (!editingMember || !editingMember.name.trim()) {
       toast({
@@ -281,7 +222,7 @@ export const TeamMembersManager = ({
         {/* Add new team member */}
         {canManageTeam && <div className="p-4 border border-gray-200 rounded-lg bg-white space-y-3">
             
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               <div>
                 <Label htmlFor="member-name">Name *</Label>
                 <Input id="member-name" value={newMember.name} onChange={e => setNewMember(prev => ({
@@ -296,26 +237,10 @@ export const TeamMembersManager = ({
               email: e.target.value
             }))} className="border-gray-200" placeholder="Optional - for login access" />
               </div>
-              <div>
-                <Label htmlFor="member-permission">Permission</Label>
-                <Select value={newMember.permission} onValueChange={(value: UserPermission) => setNewMember(prev => ({
-              ...prev,
-              permission: value
-            }))}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Object.entries(PERMISSION_LABELS).map(([value, label]) => <SelectItem key={value} value={value}>
-                        {label}
-                      </SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
               <div className="flex items-end">
                 <Button onClick={handleAddMember} disabled={loading || !newMember.name.trim()} className="w-full">
                   <Plus className="h-4 w-4 mr-2" />
-                  Add
+                  Add Admin
                 </Button>
               </div>
             </div>
@@ -365,32 +290,21 @@ export const TeamMembersManager = ({
                     <div className="flex-1">
                       <div className="font-medium">{member.name}</div>
                       <div className="text-sm text-muted-foreground">
-                        {member.email || "No email - cannot login"}
+                        {member.email || "No email - cannot login"} • Company Admin
                       </div>
                     </div>
                     
                     <div className="flex items-center gap-2">
-                      {canManageTeam ? <Select value={member.permission} onValueChange={(value: UserPermission) => handleUpdatePermission(member.id, value)}>
-                          <SelectTrigger className="w-40">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {Object.entries(PERMISSION_LABELS).map(([value, label]) => <SelectItem key={value} value={value}>
-                                {label}
-                              </SelectItem>)}
-                          </SelectContent>
-                        </Select> : <span className="text-sm px-3 py-1 bg-muted rounded-md">
-                          {PERMISSION_LABELS[member.permission]}
-                        </span>}
-                      
-                      {canManageTeam && <>
+                      {canManageTeam && (
+                        <>
                           <Button variant="ghost" size="sm" onClick={() => setEditingMember(member)} className="text-blue-500 hover:text-blue-700 hover:bg-blue-50">
                             <Pencil className="h-4 w-4" />
                           </Button>
                           <Button variant="ghost" size="sm" onClick={() => handleDeleteMember(member.id, member.name)} className="text-red-500 hover:text-red-700 hover:bg-red-50">
                             <Trash2 className="h-4 w-4" />
                           </Button>
-                        </>}
+                        </>
+                      )}
                     </div>
                   </div>;
           })}
