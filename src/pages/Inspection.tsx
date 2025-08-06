@@ -12,12 +12,12 @@ interface Evidence {
   evidence: string;
   comment: string;
   status: StatusType;
-  lastUpdated: string;
 }
 
 interface Category {
   id: string;
   name: string;
+  lastUpdated: string;
   evidenceItems: Evidence[];
 }
 
@@ -78,6 +78,7 @@ const Inspection = () => {
     const newCategory: Category = {
       id: Date.now().toString(),
       name: "New Category",
+      lastUpdated: new Date().toLocaleDateString(),
       evidenceItems: []
     };
 
@@ -93,8 +94,7 @@ const Inspection = () => {
       id: Date.now().toString(),
       evidence: "",
       comment: "",
-      status: "green",
-      lastUpdated: new Date().toLocaleDateString()
+      status: "green"
     };
 
     setPanels(prev => prev.map((panel, index) => 
@@ -103,7 +103,7 @@ const Inspection = () => {
             ...panel,
             categories: panel.categories.map(cat => 
               cat.id === categoryId 
-                ? { ...cat, evidenceItems: [...cat.evidenceItems, newEvidence] }
+                ? { ...cat, evidenceItems: [...cat.evidenceItems, newEvidence], lastUpdated: new Date().toLocaleDateString() }
                 : cat
             )
           }
@@ -135,9 +135,10 @@ const Inspection = () => {
               cat.id === categoryId 
                 ? {
                     ...cat,
+                    lastUpdated: new Date().toLocaleDateString(),
                     evidenceItems: cat.evidenceItems.map(evidence => 
                       evidence.id === evidenceId 
-                        ? { ...evidence, [field]: value, lastUpdated: field !== 'lastUpdated' ? new Date().toLocaleDateString() : evidence.lastUpdated }
+                        ? { ...evidence, [field]: value }
                         : evidence
                     )
                   }
@@ -191,12 +192,17 @@ const Inspection = () => {
                           <Card key={category.id} className="p-4">
                             <div className="mb-4">
                               <div className="flex items-center justify-between mb-2">
-                                <Input
-                                  value={category.name}
-                                  onChange={(e) => updateCategory(panelIndex, category.id, 'name', e.target.value)}
-                                  className="font-medium text-lg max-w-md"
-                                  placeholder="Category name..."
-                                />
+                                <div className="flex items-center gap-4">
+                                  <Input
+                                    value={category.name}
+                                    onChange={(e) => updateCategory(panelIndex, category.id, 'name', e.target.value)}
+                                    className="font-medium text-lg max-w-md"
+                                    placeholder="Category name..."
+                                  />
+                                  <span className="text-sm text-muted-foreground">
+                                    Last updated: {category.lastUpdated}
+                                  </span>
+                                </div>
                                 <Button 
                                   onClick={() => addEvidence(panelIndex, category.id)}
                                   size="sm"
@@ -211,16 +217,15 @@ const Inspection = () => {
                             {category.evidenceItems.length > 0 && (
                               <div className="space-y-2">
                                 {/* Grid Header */}
-                                <div className="grid grid-cols-4 gap-4 font-semibold border-b pb-2 text-sm">
+                                <div className="grid grid-cols-3 gap-4 font-semibold border-b pb-2 text-sm">
                                   <div>Evidence</div>
                                   <div>Comment</div>
                                   <div>Status</div>
-                                  <div>Last Updated</div>
                                 </div>
 
                                 {/* Evidence Rows */}
                                 {category.evidenceItems.map((evidence) => (
-                                  <div key={evidence.id} className="grid grid-cols-4 gap-4 items-start py-2 border-b border-gray-100">
+                                  <div key={evidence.id} className="grid grid-cols-3 gap-4 items-start py-2 border-b border-gray-100">
                                     <div>
                                       <Textarea
                                         value={evidence.evidence}
@@ -253,9 +258,6 @@ const Inspection = () => {
                                         <option value="red">Red</option>
                                         <option value="na">N/A</option>
                                       </select>
-                                    </div>
-                                    <div className="text-sm text-muted-foreground">
-                                      {evidence.lastUpdated}
                                     </div>
                                   </div>
                                 ))}
