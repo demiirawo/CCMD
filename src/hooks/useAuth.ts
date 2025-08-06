@@ -105,6 +105,8 @@ export const useAuthProvider = (): AuthContextType => {
       }
       
       setProfile(data);
+      // After setting profile, fetch companies
+      await fetchCompaniesForProfile(data);
     } catch (error) {
       console.error('Error fetching profile:', error);
     }
@@ -175,33 +177,70 @@ export const useAuthProvider = (): AuthContextType => {
   // Helper function to fetch companies for a specific profile
   const fetchCompaniesForProfile = async (profileData: Profile) => {
     try {
-      let query = supabase.from('companies').select('*');
+      console.log('fetchCompaniesForProfile called with profile:', { 
+        role: profileData.role, 
+        companyId: profileData.company_id,
+        userId: profileData.user_id 
+      });
       
-      console.log('Profile role:', profileData.role, 'Company ID:', profileData.company_id);
-      
-      // If user is not admin, only show their company
-      if (profileData.role !== 'admin') {
-        if (!profileData.company_id) {
-          console.log('Non-admin user has no company_id, returning early');
+      // For super admin users
+      if (profileData.role === 'admin') {
+        console.log('Fetching all companies for admin user');
+        const { data, error } = await supabase.from('companies').select('*');
+        
+        if (error) {
+          console.error('Error fetching companies for admin:', error);
           return;
         }
-        query = query.eq('id', profileData.company_id);
-        console.log('Fetching specific company for non-admin user');
-      } else {
-        console.log('Fetching all companies for admin user');
-      }
-      
-      const { data, error } = await query;
-      
-      console.log('Companies fetch result:', { data, error });
-      
-      if (error) {
-        console.error('Error fetching companies:', error);
+        
+        console.log('Setting companies for admin:', data || []);
+        setCompanies(data || []);
         return;
       }
       
-      console.log('Setting companies:', data || []);
-      setCompanies(data || []);
+      // For regular team members, fetch via user_companies
+      console.log('Fetching companies for team member via user_companies');
+      const { data: userCompaniesData, error: userCompaniesError } = await supabase
+        .from('user_companies')
+        .select(`
+          id,
+          company_id,
+          team_member_id,
+          is_active,
+          companies:company_id (
+            id,
+            name,
+            logo_url,
+            theme_color,
+            services,
+            slug,
+            created_at,
+            updated_at
+          )
+        `)
+        .eq('user_id', profileData.user_id);
+
+      console.log('User companies fetch result:', { data: userCompaniesData, error: userCompaniesError });
+      
+      if (userCompaniesError) {
+        console.error('Error fetching user companies:', userCompaniesError);
+        return;
+      }
+      
+      if (!userCompaniesData || userCompaniesData.length === 0) {
+        console.log('No user companies found');
+        setCompanies([]);
+        return;
+      }
+      
+      // Extract company data from user_companies result
+      const companiesData = userCompaniesData
+        .map(uc => uc.companies)
+        .filter(c => c !== null);
+      
+      console.log('Setting companies from user_companies:', companiesData);
+      setCompanies(companiesData);
+      
     } catch (error) {
       console.error('Error fetching companies:', error);
     }
@@ -219,69 +258,6 @@ export const useAuthProvider = (): AuthContextType => {
 
   useEffect(() => {
     let mounted = true;
-    
-    // Helper function to fetch profile data
-    const fetchProfileData = async (userId: string) => {
-      try {
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('user_id', userId)
-          .single();
-        
-        console.log('Profile fetch result:', { data, error });
-        
-        if (error) {
-          console.error('Error fetching profile:', error);
-          return;
-        }
-        
-        if (mounted) {
-          setProfile(data);
-          // After setting profile, fetch companies
-          await fetchCompaniesForProfile(data);
-        }
-      } catch (error) {
-        console.error('Error fetching profile:', error);
-      }
-    };
-
-    // Helper function to fetch companies for a specific profile
-    const fetchCompaniesForProfile = async (profileData: Profile) => {
-      try {
-        let query = supabase.from('companies').select('*');
-        
-        console.log('Profile role:', profileData.role, 'Company ID:', profileData.company_id);
-        
-        // If user is not admin, only show their company
-        if (profileData.role !== 'admin') {
-          if (!profileData.company_id) {
-            console.log('Non-admin user has no company_id, returning early');
-            return;
-          }
-          query = query.eq('id', profileData.company_id);
-          console.log('Fetching specific company for non-admin user');
-        } else {
-          console.log('Fetching all companies for admin user');
-        }
-        
-        const { data, error } = await query;
-        
-        console.log('Companies fetch result:', { data, error });
-        
-        if (error) {
-          console.error('Error fetching companies:', error);
-          return;
-        }
-        
-        if (mounted) {
-          console.log('Setting companies:', data || []);
-          setCompanies(data || []);
-        }
-      } catch (error) {
-        console.error('Error fetching companies:', error);
-      }
-    };
     
     // Set up auth state listener FIRST (before checking existing session)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -331,13 +307,6 @@ export const useAuthProvider = (): AuthContextType => {
       subscription.unsubscribe();
     };
   }, []);
-
-  // Fetch companies when profile changes
-  useEffect(() => {
-    if (profile) {
-      fetchCompanies();
-    }
-  }, [profile]);
 
   const signUp = async (email: string, password: string, username: string, role: 'admin' | 'user' = 'user') => {
     const redirectUrl = `${window.location.origin}/`;
