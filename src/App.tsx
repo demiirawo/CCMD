@@ -15,6 +15,7 @@ import { QuarterlyReport } from "./pages/QuarterlyReport";
 import ReportBuilder from "./pages/ReportBuilder";
 import { Settings } from "./pages/Settings";
 import { Meetings } from "./pages/Meetings";
+import Inspection from "./pages/Inspection";
 import { Auth } from "./pages/Auth";
 import { AdminAuth } from "./pages/AdminAuth";
 import { CompanySelection } from "./pages/CompanySelection";
@@ -79,6 +80,11 @@ const AppContent = () => {
             <Navigation />
             <Meetings />
           </>
+        </ProtectedRoute>
+      } />
+      <Route path="/inspection" element={
+        <ProtectedRoute requireCompany>
+          <Inspection />
         </ProtectedRoute>
       } />
       <Route path="/reports" element={
