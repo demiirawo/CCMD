@@ -201,6 +201,8 @@ export const useAuthProvider = (): AuthContextType => {
       
       // For regular team members, fetch via user_companies with proper joins
       console.log('Fetching companies for team member via user_companies with joins');
+      console.log('Query parameters:', { user_id: profileData.user_id });
+      
       const { data: userCompaniesData, error: userCompaniesError } = await supabase
         .from('user_companies')
         .select(`
@@ -234,11 +236,18 @@ export const useAuthProvider = (): AuthContextType => {
         return;
       }
       
+      console.log('Raw user companies data before filtering:', userCompaniesData);
+      
       // Extract company data from user_companies result and filter out nulls
       const companiesData = userCompaniesData
-        .map(uc => uc.companies)
-        .filter((c): c is Company => c !== null && typeof c === 'object' && 'id' in c && 'name' in c);
+        .map(uc => {
+          console.log('Processing user company record:', uc);
+          return uc.companies;
+        })
+        .filter(c => c !== null);
       
+      console.log('Companies data after filtering:', companiesData);
+      console.log('Number of companies found:', companiesData.length);
       console.log('Setting companies from user_companies:', companiesData);
       setCompanies(companiesData);
       
