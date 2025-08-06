@@ -510,7 +510,7 @@ const Index = () => {
       icon: <Shield className="w-6 h-6 text-red-600" />,
       items: [{
         id: "incidents-accidents",
-        title: "Incidents & Accidents",
+        title: "Incidents, Accidents & Safeguarding",
         status: "green" as StatusType,
         lastReviewed: "",
         observation: "",

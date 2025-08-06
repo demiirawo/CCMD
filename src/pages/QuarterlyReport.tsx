@@ -379,7 +379,7 @@ REQUIRED HEADING STRUCTURE (use exactly as shown):
 ## Transportation
 
 # Safety
-## Incidents & Accidents
+## Incidents, Accidents & Safeguarding
 (Include reference to 12-month incident analytics graph here when data available)
 ## Risk Register
 ## Infection Control
