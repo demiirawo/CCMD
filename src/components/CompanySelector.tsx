@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Building, Users, CheckCircle } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 export const CompanySelector = () => {
   const { user, userCompanies, selectCompany, refreshProfile } = useAuth();

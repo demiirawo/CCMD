@@ -43,6 +43,7 @@ interface AuthContextType {
   companies: Company[];
   userCompanies: UserCompany[];
   loading: boolean;
+  getCurrentCompanyId: () => string | null;
   signUp: (email: string, password: string, username: string, role?: 'admin' | 'user') => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<{ error: any }>;
@@ -71,6 +72,11 @@ export const useAuthProvider = (): AuthContextType => {
   const [companies, setCompanies] = useState<Company[]>([]);
   const [userCompanies, setUserCompanies] = useState<UserCompany[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Helper function to get current company ID
+  const getCurrentCompanyId = () => {
+    return profile?.active_company_id || null;
+  };
 
   const fetchUserProfile = async () => {
     if (!user?.id) {
@@ -430,6 +436,7 @@ export const useAuthProvider = (): AuthContextType => {
     companies,
     userCompanies,
     loading,
+    getCurrentCompanyId,
     signUp,
     signIn,
     signOut,
