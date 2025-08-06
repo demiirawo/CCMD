@@ -77,27 +77,20 @@ export const TeamMembersManager = ({
       });
       return;
     }
-    if (!newMember.email.trim()) {
-      toast({
-        title: "Email required",
-        description: "Email is required for magic link authentication.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    // Check if email already exists in this company
-    const existingMember = teamMembers.find(
-      member => member.email?.toLowerCase() === newMember.email.trim().toLowerCase()
-    );
-    
-    if (existingMember) {
-      toast({
-        title: "Email already exists",
-        description: `A team member with email "${newMember.email}" already exists in this company.`,
-        variant: "destructive"
-      });
-      return;
+    // Check if email already exists in this company (only if email is provided)
+    if (newMember.email.trim()) {
+      const existingMember = teamMembers.find(
+        member => member.email?.toLowerCase() === newMember.email.trim().toLowerCase()
+      );
+      
+      if (existingMember) {
+        toast({
+          title: "Email already exists",
+          description: `A team member with email "${newMember.email}" already exists in this company.`,
+          variant: "destructive"
+        });
+        return;
+      }
     }
 
     setLoading(true);
@@ -107,7 +100,7 @@ export const TeamMembersManager = ({
       } = await supabase.from('team_members').insert({
         company_id: companyId,
         name: newMember.name.trim(),
-        email: newMember.email.trim(),
+        email: newMember.email.trim() || null,
         permission: newMember.permission
       });
       if (error) {
@@ -166,28 +159,30 @@ export const TeamMembersManager = ({
     }
   };
   const handleEditMember = async () => {
-    if (!editingMember || !editingMember.name.trim() || !editingMember.email?.trim()) {
+    if (!editingMember || !editingMember.name.trim()) {
       toast({
         title: "Invalid input",
-        description: "Name and email are required.",
+        description: "Name is required.",
         variant: "destructive"
       });
       return;
     }
 
-    // Check if email already exists in this company (excluding current member)
-    const existingMember = teamMembers.find(
-      member => member.id !== editingMember.id && 
-                member.email?.toLowerCase() === editingMember.email?.trim().toLowerCase()
-    );
-    
-    if (existingMember) {
-      toast({
-        title: "Email already exists",
-        description: `A team member with email "${editingMember.email}" already exists in this company.`,
-        variant: "destructive"
-      });
-      return;
+    // Check if email already exists in this company (excluding current member, only if email is provided)
+    if (editingMember.email?.trim()) {
+      const existingMember = teamMembers.find(
+        member => member.id !== editingMember.id && 
+                  member.email?.toLowerCase() === editingMember.email?.trim().toLowerCase()
+      );
+      
+      if (existingMember) {
+        toast({
+          title: "Email already exists",
+          description: `A team member with email "${editingMember.email}" already exists in this company.`,
+          variant: "destructive"
+        });
+        return;
+      }
     }
 
     try {
@@ -195,7 +190,7 @@ export const TeamMembersManager = ({
         error
       } = await supabase.from('team_members').update({
         name: editingMember.name.trim(),
-        email: editingMember.email.trim()
+        email: editingMember.email?.trim() || null
       }).eq('id', editingMember.id);
       if (error) {
         // Handle database constraint violation
@@ -265,11 +260,11 @@ export const TeamMembersManager = ({
             }))} className="border-gray-200" />
               </div>
               <div>
-                <Label htmlFor="member-email">Email *</Label>
+                <Label htmlFor="member-email">Email</Label>
                 <Input id="member-email" type="email" value={newMember.email} onChange={e => setNewMember(prev => ({
               ...prev,
               email: e.target.value
-            }))} className="border-gray-200" />
+            }))} className="border-gray-200" placeholder="Optional - for login access" />
               </div>
               <div>
                 <Label htmlFor="member-permission">Permission</Label>
@@ -288,7 +283,7 @@ export const TeamMembersManager = ({
                 </Select>
               </div>
               <div className="flex items-end">
-                <Button onClick={handleAddMember} disabled={loading || !newMember.name.trim() || !newMember.email.trim()} className="w-full">
+                <Button onClick={handleAddMember} disabled={loading || !newMember.name.trim()} className="w-full">
                   <Plus className="h-4 w-4 mr-2" />
                   Add
                 </Button>
@@ -319,11 +314,11 @@ export const TeamMembersManager = ({
                     } : null)} className="border-gray-200" />
                         </div>
                         <div>
-                          <Label htmlFor="edit-email">Email *</Label>
+                          <Label htmlFor="edit-email">Email</Label>
                           <Input id="edit-email" type="email" value={editingMember.email || ''} onChange={e => setEditingMember(prev => prev ? {
                       ...prev,
                       email: e.target.value
-                    } : null)} className="border-gray-200" />
+                    } : null)} className="border-gray-200" placeholder="Optional - for login access" />
                         </div>
                         <div className="flex items-end gap-2">
                           <Button onClick={handleEditMember} size="sm" className="flex-1">
@@ -339,7 +334,9 @@ export const TeamMembersManager = ({
             return <div key={member.id} className="flex items-center justify-between p-3 border rounded-lg bg-white">
                     <div className="flex-1">
                       <div className="font-medium">{member.name}</div>
-                      <div className="text-sm text-muted-foreground">{member.email}</div>
+                      <div className="text-sm text-muted-foreground">
+                        {member.email || "No email - cannot login"}
+                      </div>
                     </div>
                     
                     <div className="flex items-center gap-2">
