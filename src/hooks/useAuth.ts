@@ -237,7 +237,7 @@ export const useAuthProvider = (): AuthContextType => {
       // Extract company data from user_companies result and filter out nulls
       const companiesData = userCompaniesData
         .map(uc => uc.companies)
-        .filter((c): c is Company => c !== null);
+        .filter((c): c is Company => c !== null && typeof c === 'object' && 'id' in c && 'name' in c);
       
       console.log('Setting companies from user_companies:', companiesData);
       setCompanies(companiesData);
