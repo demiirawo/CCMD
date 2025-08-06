@@ -85,6 +85,21 @@ export const TeamMembersManager = ({
       });
       return;
     }
+
+    // Check if email already exists in this company
+    const existingMember = teamMembers.find(
+      member => member.email?.toLowerCase() === newMember.email.trim().toLowerCase()
+    );
+    
+    if (existingMember) {
+      toast({
+        title: "Email already exists",
+        description: `A team member with email "${newMember.email}" already exists in this company.`,
+        variant: "destructive"
+      });
+      return;
+    }
+
     setLoading(true);
     try {
       const {
@@ -95,7 +110,18 @@ export const TeamMembersManager = ({
         email: newMember.email.trim(),
         permission: newMember.permission
       });
-      if (error) throw error;
+      if (error) {
+        // Handle database constraint violation
+        if (error.code === '23505' && error.message.includes('idx_team_members_email_company_unique')) {
+          toast({
+            title: "Email already exists",
+            description: `A team member with email "${newMember.email}" already exists in this company.`,
+            variant: "destructive"
+          });
+          return;
+        }
+        throw error;
+      }
       setNewMember({
         name: '',
         email: '',
@@ -148,6 +174,22 @@ export const TeamMembersManager = ({
       });
       return;
     }
+
+    // Check if email already exists in this company (excluding current member)
+    const existingMember = teamMembers.find(
+      member => member.id !== editingMember.id && 
+                member.email?.toLowerCase() === editingMember.email?.trim().toLowerCase()
+    );
+    
+    if (existingMember) {
+      toast({
+        title: "Email already exists",
+        description: `A team member with email "${editingMember.email}" already exists in this company.`,
+        variant: "destructive"
+      });
+      return;
+    }
+
     try {
       const {
         error
@@ -155,7 +197,18 @@ export const TeamMembersManager = ({
         name: editingMember.name.trim(),
         email: editingMember.email.trim()
       }).eq('id', editingMember.id);
-      if (error) throw error;
+      if (error) {
+        // Handle database constraint violation
+        if (error.code === '23505' && error.message.includes('idx_team_members_email_company_unique')) {
+          toast({
+            title: "Email already exists",
+            description: `A team member with email "${editingMember.email}" already exists in this company.`,
+            variant: "destructive"
+          });
+          return;
+        }
+        throw error;
+      }
       await fetchTeamMembers();
       setEditingMember(null);
       toast({
