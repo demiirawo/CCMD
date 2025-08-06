@@ -3,7 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
+import { useCurrentCompany } from "@/hooks/useCurrentCompany";
 
 interface ResourcingOverviewProps {
   meetingDate?: Date;
@@ -14,7 +14,7 @@ export const ResourcingOverview = ({
   meetingDate,
   meetingId
 }: ResourcingOverviewProps) => {
-  const { profile } = useAuth();
+  const { currentCompanyId } = useCurrentCompany();
   
   const [data, setData] = useState({
     onboarding: 0,
@@ -27,15 +27,15 @@ export const ResourcingOverview = ({
   const capacityPercentage = data.requiredStaffingLevel > 0 ? Math.round(totalCurrentStaff / data.requiredStaffingLevel * 100) : 0;
 
   useEffect(() => {
-    if (profile?.company_id) {
+    if (currentCompanyId) {
       loadData();
     }
-  }, [profile?.company_id, meetingId]);
+  }, [currentCompanyId, meetingId]);
 
   const loadData = async () => {
-    if (!profile?.company_id) return;
+    if (!currentCompanyId) return;
     
-    console.log('🔍 ResourcingOverview: Loading data for company_id:', profile.company_id, 'meetingId:', meetingId);
+    console.log('🔍 ResourcingOverview: Loading data for company_id:', currentCompanyId, 'meetingId:', meetingId);
     
     try {
       // Strategy: Load ALL resourcing data for this company and consolidate the most recent data
@@ -43,7 +43,7 @@ export const ResourcingOverview = ({
       const { data: allData, error } = await supabase
         .from('resourcing_overview')
         .select('*')
-        .eq('company_id', profile.company_id)
+        .eq('company_id', currentCompanyId)
         .order('updated_at', { ascending: false });
 
       console.log('🔍 ResourcingOverview: Found all company data:', allData?.length || 0, 'records');
@@ -89,7 +89,7 @@ export const ResourcingOverview = ({
       } else {
         console.log('🔍 ResourcingOverview: No database data found, trying localStorage backup');
         // Try to load from localStorage backup
-        const backupKey = meetingId ? `resourcing_overview_backup_${profile.company_id}_${meetingId}` : `resourcing_overview_backup_${profile.company_id}`;
+        const backupKey = meetingId ? `resourcing_overview_backup_${currentCompanyId}_${meetingId}` : `resourcing_overview_backup_${currentCompanyId}`;
         const backupData = localStorage.getItem(backupKey);
         if (backupData) {
           try {
@@ -104,7 +104,7 @@ export const ResourcingOverview = ({
     } catch (error) {
       console.error('Error loading resourcing overview:', error);
       // Try to load from localStorage backup
-      const backupKey = meetingId ? `resourcing_overview_backup_${profile.company_id}_${meetingId}` : `resourcing_overview_backup_${profile.company_id}`;
+      const backupKey = meetingId ? `resourcing_overview_backup_${currentCompanyId}_${meetingId}` : `resourcing_overview_backup_${currentCompanyId}`;
       const backupData = localStorage.getItem(backupKey);
       if (backupData) {
         try {
@@ -118,10 +118,10 @@ export const ResourcingOverview = ({
   };
 
   const saveData = async (newData: typeof data) => {
-    if (!profile?.company_id) return;
+    if (!currentCompanyId) return;
     
     console.log('🔄 ResourcingOverview: Starting save operation', {
-      companyId: profile.company_id,
+      companyId: currentCompanyId,
       meetingId,
       data: newData,
       timestamp: new Date().toISOString()
@@ -129,7 +129,7 @@ export const ResourcingOverview = ({
     
     try {
       const dataToSave = {
-        company_id: profile.company_id,
+        company_id: currentCompanyId,
         meeting_id: meetingId || null,
         onboarding: newData.onboarding,
         on_probation: newData.onProbation,
@@ -144,7 +144,7 @@ export const ResourcingOverview = ({
       const { data: existingData } = await supabase
         .from('resourcing_overview')
         .select('id')
-        .eq('company_id', profile.company_id)
+        .eq('company_id', currentCompanyId)
         .eq('meeting_id', meetingId || null)
         .maybeSingle();
 
@@ -172,14 +172,14 @@ export const ResourcingOverview = ({
       } else {
         console.log('✅ ResourcingOverview: Successfully saved to database:', result.data);
         // Save to localStorage as backup
-        const backupKey = meetingId ? `resourcing_overview_backup_${profile.company_id}_${meetingId}` : `resourcing_overview_backup_${profile.company_id}`;
+        const backupKey = meetingId ? `resourcing_overview_backup_${currentCompanyId}_${meetingId}` : `resourcing_overview_backup_${currentCompanyId}`;
         localStorage.setItem(backupKey, JSON.stringify(newData));
         console.log('💾 ResourcingOverview: Also saved backup to localStorage:', backupKey);
         
         // Trigger a custom event to notify other components that data has been updated
         window.dispatchEvent(new CustomEvent('resourcing-data-updated', { 
           detail: { 
-            companyId: profile.company_id, 
+            companyId: currentCompanyId, 
             meetingId, 
             data: newData 
           } 
@@ -188,8 +188,8 @@ export const ResourcingOverview = ({
     } catch (error) {
       console.error('❌ ResourcingOverview: Exception in saveData:', error);
       // Save to localStorage as fallback
-      if (profile?.company_id) {
-        const backupKey = meetingId ? `resourcing_overview_backup_${profile.company_id}_${meetingId}` : `resourcing_overview_backup_${profile.company_id}`;
+      if (currentCompanyId) {
+        const backupKey = meetingId ? `resourcing_overview_backup_${currentCompanyId}_${meetingId}` : `resourcing_overview_backup_${currentCompanyId}`;
         localStorage.setItem(backupKey, JSON.stringify(newData));
         console.log('💾 ResourcingOverview: Exception fallback to localStorage:', backupKey);
       }
@@ -259,51 +259,53 @@ export const ResourcingOverview = ({
     return "Inadequate";
   };
 
-  return <div className="space-y-6 mt-4 p-6 border border-border rounded-lg bg-stone-50">
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-      {/* Staff by Recruitment Stage */}
-      <Card className="p-6">
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <Label htmlFor="onboarding" className="text-sm font-medium">Onboarding:</Label>
-            <EditableCell value={data.onboarding} onChange={value => handleInputChange('onboarding', value)} />
+  return (
+    <div className="space-y-6 mt-4 p-6 border border-border rounded-lg bg-stone-50">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Staff by Recruitment Stage */}
+        <Card className="p-6">
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <Label htmlFor="onboarding" className="text-sm font-medium">Onboarding:</Label>
+              <EditableCell value={data.onboarding} onChange={value => handleInputChange('onboarding', value)} />
+            </div>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="on-probation" className="text-sm font-medium">On Probation:</Label>
+              <EditableCell value={data.onProbation} onChange={value => handleInputChange('onProbation', value)} />
+            </div>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="active" className="text-sm font-medium">Passed Probation:</Label>
+              <EditableCell value={data.active} onChange={value => handleInputChange('active', value)} />
+            </div>
           </div>
-          <div className="flex items-center justify-between">
-            <Label htmlFor="on-probation" className="text-sm font-medium">On Probation:</Label>
-            <EditableCell value={data.onProbation} onChange={value => handleInputChange('onProbation', value)} />
-          </div>
-          <div className="flex items-center justify-between">
-            <Label htmlFor="active" className="text-sm font-medium">Passed Probation:</Label>
-            <EditableCell value={data.active} onChange={value => handleInputChange('active', value)} />
-          </div>
-        </div>
-      </Card>
+        </Card>
 
-      {/* Required Staffing Level */}
-      <Card className="p-6">
-        <div className="flex flex-col items-center justify-center space-y-4">
-          <div className="text-center">
-            
+        {/* Required Staffing Level */}
+        <Card className="p-6">
+          <div className="flex flex-col items-center justify-center space-y-4">
+            <div className="text-center">
+              
+            </div>
+            <EditableCell value={data.requiredStaffingLevel} onChange={value => handleInputChange('requiredStaffingLevel', value)} />
+            <div className="text-xs text-muted-foreground text-center">Target staffing level</div>
           </div>
-          <EditableCell value={data.requiredStaffingLevel} onChange={value => handleInputChange('requiredStaffingLevel', value)} />
-          <div className="text-xs text-muted-foreground text-center">Target staffing level</div>
-        </div>
-      </Card>
+        </Card>
 
-      {/* Capacity Status */}
-      <Card className="p-6">
-        <div className="flex flex-col items-center justify-center space-y-4">
-          <div className={`text-4xl font-bold ${getCapacityColor()}`}>
-            {capacityPercentage}%
+        {/* Capacity Status */}
+        <Card className="p-6">
+          <div className="flex flex-col items-center justify-center space-y-4">
+            <div className={`text-4xl font-bold ${getCapacityColor()}`}>
+              {capacityPercentage}%
+            </div>
+            <div className="text-sm text-center text-muted-foreground">
+              {getCapacityStatus()}
+            </div>
+            <div className="text-xs text-center text-muted-foreground">
+              {totalCurrentStaff} current / {data.requiredStaffingLevel} required
+            </div>
           </div>
-          <div className="text-sm text-center text-muted-foreground">
-            {getCapacityStatus()}
-          </div>
-          <div className="text-xs text-center text-muted-foreground">
-            {totalCurrentStaff} current / {data.requiredStaffingLevel} required
-          </div>
-        </div>
-      </Card>
+        </Card>
+      </div>
     </div>
-  </div>;
+  );
 };
