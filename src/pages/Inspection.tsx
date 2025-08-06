@@ -1,46 +1,227 @@
 import { Navigation } from "@/components/Navigation";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, ChevronDown, Plus } from "lucide-react";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Card, CardHeader, CardContent } from "@/components/ui/card";
+import { StatusBadge, StatusType } from "@/components/StatusBadge";
+
+interface Category {
+  id: string;
+  name: string;
+  evidence: string;
+  evidenceExplanation: string;
+  comment: string;
+  status: StatusType;
+  lastUpdated: string;
+}
+
+interface Panel {
+  name: string;
+  rating: string;
+  updated: string;
+  categories: Category[];
+}
+
 const Inspection = () => {
-  const panels = [{
-    name: "SAFE",
-    rating: "G",
-    updated: "06/08/2025"
-  }, {
-    name: "EFFECTIVE",
-    rating: "G",
-    updated: "06/08/2025"
-  }, {
-    name: "RESPONSIVE",
-    rating: "G",
-    updated: "06/08/2025"
-  }, {
-    name: "WELL LED",
-    rating: "G",
-    updated: "06/08/2025"
-  }, {
-    name: "CARING",
-    rating: "G",
-    updated: "06/08/2025"
-  }];
-  return <div className="min-h-screen bg-background">
+  const [panels, setPanels] = useState<Panel[]>([
+    {
+      name: "SAFE",
+      rating: "G",
+      updated: "06/08/2025",
+      categories: []
+    },
+    {
+      name: "EFFECTIVE", 
+      rating: "G",
+      updated: "06/08/2025",
+      categories: []
+    },
+    {
+      name: "RESPONSIVE",
+      rating: "G", 
+      updated: "06/08/2025",
+      categories: []
+    },
+    {
+      name: "WELL LED",
+      rating: "G",
+      updated: "06/08/2025", 
+      categories: []
+    },
+    {
+      name: "CARING",
+      rating: "G",
+      updated: "06/08/2025",
+      categories: []
+    }
+  ]);
+
+  const [expandedPanels, setExpandedPanels] = useState<Set<number>>(new Set());
+
+  const togglePanel = (index: number) => {
+    const newExpanded = new Set(expandedPanels);
+    if (newExpanded.has(index)) {
+      newExpanded.delete(index);
+    } else {
+      newExpanded.add(index);
+    }
+    setExpandedPanels(newExpanded);
+  };
+
+  const addCategory = (panelIndex: number) => {
+    const newCategory: Category = {
+      id: Date.now().toString(),
+      name: "New Category",
+      evidence: "",
+      evidenceExplanation: "",
+      comment: "",
+      status: "green",
+      lastUpdated: new Date().toLocaleDateString()
+    };
+
+    setPanels(prev => prev.map((panel, index) => 
+      index === panelIndex 
+        ? { ...panel, categories: [...panel.categories, newCategory] }
+        : panel
+    ));
+  };
+
+  const updateCategory = (panelIndex: number, categoryId: string, field: keyof Category, value: string | StatusType) => {
+    setPanels(prev => prev.map((panel, index) => 
+      index === panelIndex 
+        ? {
+            ...panel,
+            categories: panel.categories.map(cat => 
+              cat.id === categoryId 
+                ? { ...cat, [field]: value, lastUpdated: field !== 'lastUpdated' ? new Date().toLocaleDateString() : cat.lastUpdated }
+                : cat
+            )
+          }
+        : panel
+    ));
+  };
+
+  return (
+    <div className="min-h-screen bg-background">
       <Navigation />
       <div className="pt-20 px-6">
         <div className="max-w-7xl mx-auto">
-          
           <div className="space-y-4">
-            {panels.map((panel, index) => <div key={index} className="bg-green-600 text-white p-6 rounded-lg flex items-center justify-between hover:bg-green-700 transition-colors cursor-pointer">
-                <div className="flex-1">
-                  <h2 className="text-xl font-semibold mb-1">{panel.name}</h2>
-                  <p className="text-green-100 text-sm">Updated: {panel.updated}</p>
+            {panels.map((panel, panelIndex) => (
+              <div key={panelIndex} className="bg-green-600 text-white rounded-lg overflow-hidden">
+                <div 
+                  className="p-6 flex items-center justify-between hover:bg-green-700 transition-colors cursor-pointer"
+                  onClick={() => togglePanel(panelIndex)}
+                >
+                  <div className="flex-1">
+                    <h2 className="text-xl font-semibold mb-1">{panel.name}</h2>
+                    <p className="text-green-100 text-sm">Updated: {panel.updated}</p>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    {expandedPanels.has(panelIndex) ? (
+                      <ChevronDown className="h-6 w-6 text-white/80" />
+                    ) : (
+                      <ChevronRight className="h-6 w-6 text-white/80" />
+                    )}
+                  </div>
                 </div>
-                <div className="flex items-center gap-4">
-                  
-                  <ChevronRight className="h-6 w-6 text-white/80" />
-                </div>
-              </div>)}
+
+                {expandedPanels.has(panelIndex) && (
+                  <div className="bg-white text-black p-6">
+                    <div className="mb-4">
+                      <Button 
+                        onClick={() => addCategory(panelIndex)}
+                        className="flex items-center gap-2"
+                      >
+                        <Plus className="h-4 w-4" />
+                        Add Category
+                      </Button>
+                    </div>
+
+                    {panel.categories.length > 0 && (
+                      <div className="space-y-4">
+                        {/* Grid Header */}
+                        <div className="grid grid-cols-6 gap-4 font-semibold border-b pb-2">
+                          <div>Category</div>
+                          <div>Evidence</div>
+                          <div>Evidence Explanation</div>
+                          <div>Comment</div>
+                          <div>Status</div>
+                          <div>Last Updated</div>
+                        </div>
+
+                        {/* Grid Rows */}
+                        {panel.categories.map((category) => (
+                          <Card key={category.id} className="p-4">
+                            <div className="grid grid-cols-6 gap-4 items-start">
+                              <div>
+                                <Input
+                                  value={category.name}
+                                  onChange={(e) => updateCategory(panelIndex, category.id, 'name', e.target.value)}
+                                  className="font-medium"
+                                />
+                              </div>
+                              <div>
+                                <Textarea
+                                  value={category.evidence}
+                                  onChange={(e) => updateCategory(panelIndex, category.id, 'evidence', e.target.value)}
+                                  placeholder="Enter evidence..."
+                                  rows={3}
+                                />
+                              </div>
+                              <div>
+                                <Textarea
+                                  value={category.evidenceExplanation}
+                                  onChange={(e) => updateCategory(panelIndex, category.id, 'evidenceExplanation', e.target.value)}
+                                  placeholder="Enter evidence explanation..."
+                                  rows={3}
+                                />
+                              </div>
+                              <div>
+                                <Textarea
+                                  value={category.comment}
+                                  onChange={(e) => updateCategory(panelIndex, category.id, 'comment', e.target.value)}
+                                  placeholder="Enter comment..."
+                                  rows={3}
+                                />
+                              </div>
+                              <div className="flex flex-col gap-2">
+                                <StatusBadge status={category.status} />
+                                <select
+                                  value={category.status}
+                                  onChange={(e) => updateCategory(panelIndex, category.id, 'status', e.target.value as StatusType)}
+                                  className="p-2 border rounded text-sm"
+                                >
+                                  <option value="green">Green</option>
+                                  <option value="amber">Amber</option>
+                                  <option value="red">Red</option>
+                                  <option value="na">N/A</option>
+                                </select>
+                              </div>
+                              <div className="text-sm text-muted-foreground">
+                                {category.lastUpdated}
+                              </div>
+                            </div>
+                          </Card>
+                        ))}
+                      </div>
+                    )}
+
+                    {panel.categories.length === 0 && (
+                      <div className="text-center py-8 text-muted-foreground">
+                        No categories added yet. Click "Add Category" to get started.
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
         </div>
       </div>
-    </div>;
+    </div>
+  );
 };
 export default Inspection;
