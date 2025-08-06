@@ -8,11 +8,11 @@ import { ThemeProvider } from "next-themes";
 import { AuthProvider } from "@/components/AuthProvider";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 
-// Pages
+// Pages - using named imports
 import Landing from "./pages/Landing";
 import Index from "./pages/Index";
-import Auth from "./pages/Auth";
-import AdminAuth from "./pages/AdminAuth";
+import { Auth } from "./pages/Auth";
+import { AdminAuth } from "./pages/AdminAuth";
 import CompanySelection from "./pages/CompanySelection";
 import CompanyDashboard from "./pages/CompanyDashboard";
 import Meetings from "./pages/Meetings";
