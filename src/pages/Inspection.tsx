@@ -229,8 +229,7 @@ const Inspection = () => {
                                         value={evidence.evidence}
                                         onChange={(e) => updateEvidence(panelIndex, category.id, evidence.id, 'evidence', e.target.value)}
                                         placeholder="Enter evidence..."
-                                        rows={3}
-                                        className="text-sm"
+                                        className="text-sm min-h-[100px] resize-y"
                                       />
                                     </div>
                                     <div>
@@ -238,8 +237,7 @@ const Inspection = () => {
                                         value={evidence.evidenceExplanation}
                                         onChange={(e) => updateEvidence(panelIndex, category.id, evidence.id, 'evidenceExplanation', e.target.value)}
                                         placeholder="Enter evidence explanation..."
-                                        rows={3}
-                                        className="text-sm"
+                                        className="text-sm min-h-[100px] resize-y"
                                       />
                                     </div>
                                     <div>
@@ -247,8 +245,7 @@ const Inspection = () => {
                                         value={evidence.comment}
                                         onChange={(e) => updateEvidence(panelIndex, category.id, evidence.id, 'comment', e.target.value)}
                                         placeholder="Enter comment..."
-                                        rows={3}
-                                        className="text-sm"
+                                        className="text-sm min-h-[100px] resize-y"
                                       />
                                     </div>
                                     <div className="flex flex-col gap-2">
