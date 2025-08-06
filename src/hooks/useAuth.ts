@@ -134,32 +134,39 @@ export const useAuthProvider = (): AuthContextType => {
       } else {
         // For non-admin users, fetch companies through user_companies table
         console.log('Fetching companies for non-admin user via user_companies');
-        const { data, error } = await supabase
+        
+        // First get the user_companies records
+        const { data: userCompanies, error: userCompaniesError } = await supabase
           .from('user_companies')
-          .select(`
-            companies (
-              id,
-              name,
-              theme_color,
-              services,
-              logo_url,
-              created_at,
-              updated_at
-            )
-          `)
+          .select('company_id')
           .eq('user_id', profileData.user_id);
         
-        console.log('User companies fetch result:', { data, error });
+        console.log('User companies fetch result:', { userCompanies, error: userCompaniesError });
         
-        if (error) {
-          console.error('Error fetching user companies:', error);
+        if (userCompaniesError) {
+          console.error('Error fetching user companies:', userCompaniesError);
           return;
         }
         
-        // Extract companies from the joined data
-        companies = (data || [])
-          .map(uc => uc.companies)
-          .filter(company => company !== null) as Company[];
+        if (userCompanies && userCompanies.length > 0) {
+          const companyIds = userCompanies.map(uc => uc.company_id);
+          console.log('Company IDs user has access to:', companyIds);
+          
+          // Then fetch the actual company data
+          const { data: companiesData, error: companiesError } = await supabase
+            .from('companies')
+            .select('*')
+            .in('id', companyIds);
+          
+          console.log('Companies data fetch result:', { companiesData, error: companiesError });
+          
+          if (companiesError) {
+            console.error('Error fetching companies data:', companiesError);
+            return;
+          }
+          
+          companies = companiesData || [];
+        }
       }
       
       console.log('Setting companies:', companies);
