@@ -115,63 +115,22 @@ export const useAuthProvider = (): AuthContextType => {
     try {
       console.log('Profile role:', profileData.role, 'User ID:', profileData.user_id);
       
-      let companies: Company[] = [];
+      // Now we can simply fetch from companies table since RLS will handle the filtering
+      console.log('Fetching companies via RLS filtering');
       
-      // If user is admin, show all companies
-      if (profileData.role === 'admin') {
-        console.log('Fetching all companies for admin user');
-        const { data, error } = await supabase
-          .from('companies')
-          .select('*');
-        
-        if (error) {
-          console.error('Error fetching companies for admin:', error);
-          return;
-        }
-        
-        companies = data || [];
-      } else {
-        // For non-admin users, we need to get companies they have access to
-        console.log('Fetching companies for non-admin user via user_companies');
-        
-        // First get the user_companies records
-        const { data: userCompanies, error: userCompaniesError } = await supabase
-          .from('user_companies')
-          .select(`
-            company_id,
-            companies:company_id (
-              id,
-              name,
-              theme_color,
-              services,
-              logo_url,
-              created_at,
-              updated_at,
-              slug,
-              dynamic_panel_colour
-            )
-          `)
-          .eq('user_id', profileData.user_id);
-        
-        console.log('User companies with join fetch result:', { userCompanies, error: userCompaniesError });
-        
-        if (userCompaniesError) {
-          console.error('Error fetching user companies:', userCompaniesError);
-          return;
-        }
-        
-        if (userCompanies && userCompanies.length > 0) {
-          // Extract companies from the joined data, filtering out null companies
-          companies = userCompanies
-            .map(uc => uc.companies)
-            .filter(company => company !== null) as Company[];
-          
-          console.log('Extracted companies from join:', companies);
-        }
+      const { data, error } = await supabase
+        .from('companies')
+        .select('*');
+      
+      console.log('Companies fetch result:', { data, error });
+      
+      if (error) {
+        console.error('Error fetching companies:', error);
+        return;
       }
       
-      console.log('Setting companies:', companies);
-      setCompanies(companies || []);
+      console.log('Setting companies:', data || []);
+      setCompanies(data || []);
     } catch (error) {
       console.error('Error fetching companies:', error);
     }
