@@ -1,4 +1,3 @@
-
 import { useState, useEffect, createContext, useContext } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -132,16 +131,29 @@ export const useAuthProvider = (): AuthContextType => {
         
         companies = data || [];
       } else {
-        // For non-admin users, fetch companies through user_companies table
+        // For non-admin users, we need to get companies they have access to
         console.log('Fetching companies for non-admin user via user_companies');
         
         // First get the user_companies records
         const { data: userCompanies, error: userCompaniesError } = await supabase
           .from('user_companies')
-          .select('company_id')
+          .select(`
+            company_id,
+            companies:company_id (
+              id,
+              name,
+              theme_color,
+              services,
+              logo_url,
+              created_at,
+              updated_at,
+              slug,
+              dynamic_panel_colour
+            )
+          `)
           .eq('user_id', profileData.user_id);
         
-        console.log('User companies fetch result:', { userCompanies, error: userCompaniesError });
+        console.log('User companies with join fetch result:', { userCompanies, error: userCompaniesError });
         
         if (userCompaniesError) {
           console.error('Error fetching user companies:', userCompaniesError);
@@ -149,23 +161,12 @@ export const useAuthProvider = (): AuthContextType => {
         }
         
         if (userCompanies && userCompanies.length > 0) {
-          const companyIds = userCompanies.map(uc => uc.company_id);
-          console.log('Company IDs user has access to:', companyIds);
+          // Extract companies from the joined data, filtering out null companies
+          companies = userCompanies
+            .map(uc => uc.companies)
+            .filter(company => company !== null) as Company[];
           
-          // Then fetch the actual company data
-          const { data: companiesData, error: companiesError } = await supabase
-            .from('companies')
-            .select('*')
-            .in('id', companyIds);
-          
-          console.log('Companies data fetch result:', { companiesData, error: companiesError });
-          
-          if (companiesError) {
-            console.error('Error fetching companies data:', companiesError);
-            return;
-          }
-          
-          companies = companiesData || [];
+          console.log('Extracted companies from join:', companies);
         }
       }
       
