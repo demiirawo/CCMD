@@ -235,6 +235,72 @@ export const useInspectionData = () => {
     }
   };
 
+  const deleteCategory = async (categoryId: string) => {
+    if (!isSuperAdmin) {
+      toast.error('Only super admin can delete categories');
+      return;
+    }
+
+    try {
+      // First delete all evidence in this category
+      const { error: evidenceError } = await supabase
+        .from('inspection_evidence')
+        .delete()
+        .eq('category_id', categoryId);
+
+      if (evidenceError) throw evidenceError;
+
+      // Then delete the category
+      const { error: categoryError } = await supabase
+        .from('inspection_categories')
+        .delete()
+        .eq('id', categoryId);
+
+      if (categoryError) throw categoryError;
+
+      // Update local state
+      setCategories(prev => prev.filter(c => c.id !== categoryId));
+      setEvidence(prev => prev.filter(e => e.category_id !== categoryId));
+      toast.success('Category deleted successfully');
+    } catch (error) {
+      console.error('Error deleting category:', error);
+      toast.error('Failed to delete category');
+    }
+  };
+
+  const deleteEvidence = async (evidenceId: string) => {
+    if (!isSuperAdmin) {
+      toast.error('Only super admin can delete evidence');
+      return;
+    }
+
+    try {
+      // First delete all responses for this evidence
+      const { error: responsesError } = await supabase
+        .from('inspection_company_responses')
+        .delete()
+        .eq('evidence_id', evidenceId);
+
+      if (responsesError) throw responsesError;
+
+      // Then delete the evidence
+      const { error: evidenceError } = await supabase
+        .from('inspection_evidence')
+        .delete()
+        .eq('id', evidenceId);
+
+      if (evidenceError) throw evidenceError;
+
+      // Update local state
+      setEvidence(prev => prev.filter(e => e.id !== evidenceId));
+      setResponses(prev => prev.filter(r => r.evidence_id !== evidenceId));
+      toast.success('Evidence deleted successfully');
+    } catch (error) {
+      console.error('Error deleting evidence:', error);
+      toast.error('Failed to delete evidence');
+    }
+  };
+
   return {
     panels,
     categories,
@@ -247,5 +313,7 @@ export const useInspectionData = () => {
     addEvidence,
     updateEvidence,
     updateResponse,
+    deleteCategory,
+    deleteEvidence,
   };
 };

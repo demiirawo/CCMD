@@ -1,5 +1,5 @@
 import { Navigation } from "@/components/Navigation";
-import { ChevronRight, ChevronDown, Plus } from "lucide-react";
+import { ChevronRight, ChevronDown, Plus, Trash2 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -49,7 +49,9 @@ const Inspection = () => {
     updateCategory, 
     addEvidence, 
     updateEvidence, 
-    updateResponse 
+    updateResponse,
+    deleteCategory,
+    deleteEvidence
   } = useInspectionData();
 
   const [expandedPanels, setExpandedPanels] = useState<Set<string>>(new Set());
@@ -200,33 +202,47 @@ const Inspection = () => {
                                      Last updated: {getCategoryLastUpdated(category.id)}
                                    </span>
                                  </div>
-                                {isSuperAdmin && (
-                                  <Button 
-                                    onClick={() => handleAddEvidence(category.id)}
-                                    size="sm"
-                                    className="flex items-center gap-2"
-                                  >
-                                    <Plus className="h-4 w-4" />
-                                    Add Evidence
-                                  </Button>
-                                )}
+                                 <div className="flex items-center gap-2">
+                                   {isSuperAdmin && (
+                                     <>
+                                       <Button 
+                                         onClick={() => handleAddEvidence(category.id)}
+                                         size="sm"
+                                         className="flex items-center gap-2"
+                                       >
+                                         <Plus className="h-4 w-4" />
+                                         Add Evidence
+                                       </Button>
+                                       <Button 
+                                         onClick={() => deleteCategory(category.id)}
+                                         size="sm"
+                                         variant="destructive"
+                                         className="flex items-center gap-2"
+                                       >
+                                         <Trash2 className="h-4 w-4" />
+                                         Delete
+                                       </Button>
+                                     </>
+                                   )}
+                                 </div>
                               </div>
                             </div>
 
                             {getEvidenceForCategory(category.id).length > 0 && (
                               <div className="space-y-2">
                                 {/* Grid Header */}
-                                <div className="grid gap-4 font-semibold border-b pb-2 text-sm" style={{gridTemplateColumns: '2fr 2fr 100px'}}>
-                                  <div>Evidence</div>
-                                  <div>Comment</div>
-                                  <div>Status</div>
+                                <div className="grid gap-4 font-semibold border-b pb-2 text-sm" style={{gridTemplateColumns: isSuperAdmin ? '2fr 2fr 100px 60px' : '2fr 2fr 100px'}}>
+                                   <div>Evidence</div>
+                                   <div>Comment</div>
+                                   <div>Status</div>
+                                   {isSuperAdmin && <div></div>}
                                 </div>
 
                                 {/* Evidence Rows */}
                                 {getEvidenceForCategory(category.id).map((evidenceItem) => {
                                   const response = getResponseForEvidence(evidenceItem.id);
                                   return (
-                                    <div key={evidenceItem.id} className="grid gap-4 items-start py-2 border-b border-gray-100" style={{gridTemplateColumns: '2fr 2fr 100px'}}>
+                                    <div key={evidenceItem.id} className="grid gap-4 items-start py-2 border-b border-gray-100" style={{gridTemplateColumns: isSuperAdmin ? '2fr 2fr 100px 60px' : '2fr 2fr 100px'}}>
                                       <div>
                                         {isSuperAdmin ? (
                                           <AutoExpandTextarea
@@ -255,6 +271,18 @@ const Inspection = () => {
                                            onClick={() => handleStatusClick(evidenceItem.id, (response?.status || 'green') as StatusType)}
                                          />
                                        </div>
+                                       {isSuperAdmin && (
+                                         <div className="flex justify-center">
+                                           <Button
+                                             onClick={() => deleteEvidence(evidenceItem.id)}
+                                             size="sm"
+                                             variant="destructive"
+                                             className="h-8 w-8 p-0"
+                                           >
+                                             <Trash2 className="h-4 w-4" />
+                                           </Button>
+                                         </div>
+                                       )}
                                     </div>
                                   );
                                 })}
