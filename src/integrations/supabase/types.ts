@@ -1158,10 +1158,6 @@ export type Database = {
         Args: { input_text: string }
         Returns: string
       }
-      get_user_accessible_company_ids: {
-        Args: Record<PropertyKey, never>
-        Returns: string[]
-      }
       get_user_company_id: {
         Args: Record<PropertyKey, never>
         Returns: string
