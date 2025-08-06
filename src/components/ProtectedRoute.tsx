@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -51,7 +50,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requir
   }
 
   // For team members, check if they have company access
-  if (requireCompany && profile && !profile.active_company_id) {
+  if (requireCompany && profile && !profile.company_id) {
     return <Navigate to="/company-selection" replace />;
   }
 

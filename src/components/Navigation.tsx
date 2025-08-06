@@ -1,8 +1,6 @@
-
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
-import { useCurrentCompany } from "@/hooks/useCurrentCompany";
 import { Button } from "@/components/ui/button";
 import { Building2, LogOut, User, Settings } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -11,7 +9,6 @@ export const Navigation = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { profile, companies, signOut } = useAuth();
-  const { currentCompany, isCompanyAdmin } = useCurrentCompany();
 
   const navItems = [
     { name: "Dashboard", path: "/" },
@@ -21,11 +18,13 @@ export const Navigation = () => {
   ];
 
   // Only show settings for company admins and super admins
-  const canAccessSettings = isCompanyAdmin || profile?.role === 'admin';
+  const canAccessSettings = profile?.permission === 'company_admin' || profile?.role === 'admin';
   
   if (canAccessSettings) {
     navItems.push({ name: "Settings", path: "/settings" });
   }
+
+  const currentCompany = companies.find(c => c.id === profile?.company_id);
 
   const handleSignOut = async () => {
     await signOut();
@@ -68,14 +67,14 @@ export const Navigation = () => {
           <div className="flex items-center gap-4">
             {currentCompany && (
               <div className="flex items-center gap-2 text-sm text-primary-foreground/80">
-                {currentCompany.company_logo_url && (
+                {currentCompany.logo_url && (
                   <img 
-                    src={currentCompany.company_logo_url} 
-                    alt={`${currentCompany.company_name} logo`} 
+                    src={currentCompany.logo_url} 
+                    alt={`${currentCompany.name} logo`} 
                     className="h-6 w-6 object-contain rounded"
                   />
                 )}
-                <span>{currentCompany.company_name}</span>
+                <span>{currentCompany.name}</span>
               </div>
             )}
 

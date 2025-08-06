@@ -1,4 +1,3 @@
-
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
@@ -60,8 +59,8 @@ const AppContent = () => {
               );
             }
             
-            if (user && profile && profile.active_company_id && companies.length > 0) {
-              const currentCompany = companies.find(c => c.id === profile.active_company_id);
+            if (user && profile && profile.company_id && companies.length > 0) {
+              const currentCompany = companies.find(c => c.id === profile.company_id);
               if (currentCompany) {
                 const slug = ('slug' in currentCompany && currentCompany.slug) || 
                            currentCompany.name.toLowerCase().replace(/\s+/g, '-');

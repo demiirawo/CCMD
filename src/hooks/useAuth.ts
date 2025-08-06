@@ -1,4 +1,3 @@
-
 import { useState, useEffect, createContext, useContext } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -6,9 +5,11 @@ import { supabase } from '@/integrations/supabase/client';
 interface Profile {
   id: string;
   user_id: string;
-  username: string | null;
+  company_id: string | null;
   role: 'admin' | 'user';
-  active_company_id: string | null;
+  username: string | null;
+  permission: 'read' | 'edit' | 'company_admin';
+  team_member_id: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -16,7 +17,6 @@ interface Profile {
 interface Company {
   id: string;
   name: string;
-  slug?: string;
   theme_color?: string;
   services?: string[];
   logo_url?: string;
@@ -24,26 +24,12 @@ interface Company {
   updated_at: string;
 }
 
-interface UserCompany {
-  team_member_id: string;
-  company_id: string;
-  company_name: string;
-  company_slug: string | null;
-  company_logo_url: string | null;
-  company_theme_color: string | null;
-  display_name: string;
-  permission: 'read' | 'edit' | 'company_admin';
-  is_active: boolean;
-}
-
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   profile: Profile | null;
   companies: Company[];
-  userCompanies: UserCompany[];
   loading: boolean;
-  getCurrentCompanyId: () => string | null;
   signUp: (email: string, password: string, username: string, role?: 'admin' | 'user') => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<{ error: any }>;
@@ -70,13 +56,7 @@ export const useAuthProvider = (): AuthContextType => {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [companies, setCompanies] = useState<Company[]>([]);
-  const [userCompanies, setUserCompanies] = useState<UserCompany[]>([]);
   const [loading, setLoading] = useState(true);
-
-  // Helper function to get current company ID
-  const getCurrentCompanyId = () => {
-    return profile?.active_company_id || null;
-  };
 
   const fetchUserProfile = async () => {
     if (!user?.id) {
@@ -106,100 +86,9 @@ export const useAuthProvider = (): AuthContextType => {
     }
   };
 
-  // Function to ensure user setup is complete by calling the database function
-  const ensureUserSetupComplete = async (userEmail: string) => {
+  // Helper function to fetch profile data - needs to be accessible outside useEffect
+  const fetchProfileData = async (userId: string) => {
     try {
-      console.log('=== ensureUserSetupComplete called ===');
-      console.log('User email:', userEmail);
-      
-      // Call the database function to ensure setup is complete
-      const { error } = await supabase.rpc('ensure_user_setup_complete', {
-        user_email: userEmail
-      });
-      
-      if (error) {
-        console.error('Error ensuring user setup:', error);
-        return false;
-      }
-      
-      console.log('User setup completed successfully');
-      return true;
-    } catch (error) {
-      console.error('Error in ensureUserSetupComplete:', error);
-      return false;
-    }
-  };
-
-  // Fetch user companies using the new database function
-  const fetchUserCompanies = async (userEmail: string) => {
-    try {
-      console.log('=== fetchUserCompanies called ===');
-      console.log('User email:', userEmail);
-      
-      const { data, error } = await supabase.rpc('get_user_companies', {
-        user_email: userEmail
-      });
-      
-      console.log('User companies query result:', { data, error });
-      
-      if (error) {
-        console.error('Error fetching user companies:', error);
-        return;
-      }
-      
-      // Convert the data to match our UserCompany interface
-      const userCompaniesData: UserCompany[] = (data || []).map((item: any) => ({
-        team_member_id: item.team_member_id,
-        company_id: item.company_id,
-        company_name: item.company_name,
-        company_slug: item.company_slug,
-        company_logo_url: item.company_logo_url,
-        company_theme_color: item.company_theme_color,
-        display_name: item.display_name,
-        permission: item.permission,
-        is_active: item.is_active
-      }));
-      
-      console.log('Setting user companies:', userCompaniesData);
-      setUserCompanies(userCompaniesData);
-      
-      // Also set companies array for backward compatibility
-      const companiesArray: Company[] = userCompaniesData.map(uc => ({
-        id: uc.company_id,
-        name: uc.company_name,
-        slug: uc.company_slug || undefined,
-        theme_color: uc.company_theme_color || undefined,
-        logo_url: uc.company_logo_url || undefined,
-        created_at: '',
-        updated_at: '',
-        services: []
-      }));
-      
-      setCompanies(companiesArray);
-    } catch (error) {
-      console.error('Error fetching user companies:', error);
-    }
-  };
-
-  // Helper function to fetch profile data
-  const fetchProfileData = async (userId: string, userEmail?: string) => {
-    try {
-      console.log('=== fetchProfileData called ===');
-      console.log('User ID:', userId);
-      console.log('User email:', userEmail);
-      
-      // Ensure user setup is complete if we have the email
-      if (userEmail) {
-        const setupComplete = await ensureUserSetupComplete(userEmail);
-        if (!setupComplete) {
-          console.error('Failed to complete user setup');
-        }
-        
-        // Fetch user companies
-        await fetchUserCompanies(userEmail);
-      }
-      
-      // Then get the profile
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -210,39 +99,60 @@ export const useAuthProvider = (): AuthContextType => {
       
       if (error) {
         console.error('Error fetching profile:', error);
-        // If no profile exists, this might be a new user - try to set it up
-        if (error.code === 'PGRST116' && userEmail) {
-          console.log('No profile found, attempting to create one...');
-          await ensureUserSetupComplete(userEmail);
-          // Try fetching profile again
-          const { data: retryData, error: retryError } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('user_id', userId)
-            .single();
-          
-          if (!retryError && retryData) {
-            setProfile(retryData);
-          }
-        }
         return;
       }
       
       setProfile(data);
+      // After setting profile, fetch companies
+      await fetchCompaniesForProfile(data);
     } catch (error) {
       console.error('Error fetching profile:', error);
     }
   };
 
+  // Helper function to fetch companies for a specific profile
+  const fetchCompaniesForProfile = async (profileData: Profile) => {
+    try {
+      let query = supabase.from('companies').select('*');
+      
+      console.log('Profile role:', profileData.role, 'Company ID:', profileData.company_id);
+      
+      // If user is not admin, only show their company
+      if (profileData.role !== 'admin') {
+        if (!profileData.company_id) {
+          console.log('Non-admin user has no company_id, returning early');
+          return;
+        }
+        query = query.eq('id', profileData.company_id);
+        console.log('Fetching specific company for non-admin user');
+      } else {
+        console.log('Fetching all companies for admin user');
+      }
+      
+      const { data, error } = await query;
+      
+      console.log('Companies fetch result:', { data, error });
+      
+      if (error) {
+        console.error('Error fetching companies:', error);
+        return;
+      }
+      
+      console.log('Setting companies:', data || []);
+      setCompanies(data || []);
+    } catch (error) {
+      console.error('Error fetching companies:', error);
+    }
+  };
+
   const fetchCompanies = async () => {
-    console.log('fetchCompanies called, user:', user?.id, user?.email);
-    if (!user?.email) {
-      console.log('No user email found, returning early');
+    console.log('fetchCompanies called, profile:', profile);
+    if (!profile) {
+      console.log('No profile found, returning early');
       return;
     }
     
-    // Fetch user companies using email
-    await fetchUserCompanies(user.email);
+    await fetchCompaniesForProfile(profile);
   };
 
   useEffect(() => {
@@ -250,7 +160,7 @@ export const useAuthProvider = (): AuthContextType => {
     
     // Set up auth state listener FIRST (before checking existing session)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
         if (!mounted) return;
         
         console.log('Auth state change:', event, session?.user?.id);
@@ -260,23 +170,22 @@ export const useAuthProvider = (): AuthContextType => {
         
         // Handle profile fetching for authenticated users
         if (session?.user) {
-          console.log('User authenticated, setting up profile...');
+          console.log('User logged in, deferring profile fetch...');
           // Use setTimeout(0) to defer Supabase calls and prevent auth context deadlocks
-          setTimeout(async () => {
+          setTimeout(() => {
             if (!mounted) return;
-            await fetchProfileData(session.user.id, session.user.email);
+            fetchProfileData(session.user.id);
           }, 0);
         } else {
           // Clear data when user logs out
           setProfile(null);
           setCompanies([]);
-          setUserCompanies([]);
         }
       }
     );
 
     // THEN check for existing session
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
       if (!mounted) return;
       
       console.log('Initial session check:', session?.user?.id);
@@ -285,18 +194,88 @@ export const useAuthProvider = (): AuthContextType => {
       setLoading(false);
       
       if (session?.user) {
-        setTimeout(async () => {
+        setTimeout(() => {
           if (!mounted) return;
-          await fetchProfileData(session.user.id, session.user.email);
+          fetchProfileData(session.user.id);
         }, 0);
       }
     });
+
+    // Helper function to fetch profile data
+    const fetchProfileData = async (userId: string) => {
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('user_id', userId)
+          .single();
+        
+        console.log('Profile fetch result:', { data, error });
+        
+        if (error) {
+          console.error('Error fetching profile:', error);
+          return;
+        }
+        
+        if (mounted) {
+          setProfile(data);
+          // After setting profile, fetch companies
+          await fetchCompaniesForProfile(data);
+        }
+      } catch (error) {
+        console.error('Error fetching profile:', error);
+      }
+    };
+
+    // Helper function to fetch companies for a specific profile
+    const fetchCompaniesForProfile = async (profileData: Profile) => {
+      try {
+        let query = supabase.from('companies').select('*');
+        
+        console.log('Profile role:', profileData.role, 'Company ID:', profileData.company_id);
+        
+        // If user is not admin, only show their company
+        if (profileData.role !== 'admin') {
+          if (!profileData.company_id) {
+            console.log('Non-admin user has no company_id, returning early');
+            return;
+          }
+          query = query.eq('id', profileData.company_id);
+          console.log('Fetching specific company for non-admin user');
+        } else {
+          console.log('Fetching all companies for admin user');
+        }
+        
+        const { data, error } = await query;
+        
+        console.log('Companies fetch result:', { data, error });
+        
+        if (error) {
+          console.error('Error fetching companies:', error);
+          return;
+        }
+        
+        if (mounted) {
+          console.log('Setting companies:', data || []);
+          setCompanies(data || []);
+        }
+      } catch (error) {
+        console.error('Error fetching companies:', error);
+      }
+    };
 
     return () => {
       mounted = false;
       subscription.unsubscribe();
     };
   }, []);
+
+  // Fetch companies when profile changes
+  useEffect(() => {
+    if (profile) {
+      fetchCompanies();
+    }
+  }, [profile]);
 
   const signUp = async (email: string, password: string, username: string, role: 'admin' | 'user' = 'user') => {
     const redirectUrl = `${window.location.origin}/`;
@@ -352,7 +331,6 @@ export const useAuthProvider = (): AuthContextType => {
       setSession(null);
       setProfile(null);
       setCompanies([]);
-      setUserCompanies([]);
       
       return { error: null };
     } catch (error) {
@@ -395,11 +373,11 @@ export const useAuthProvider = (): AuthContextType => {
     
     const { error } = await supabase
       .from('profiles')
-      .update({ active_company_id: companyId })
+      .update({ company_id: companyId })
       .eq('user_id', profile.user_id);
     
     if (!error) {
-      setProfile({ ...profile, active_company_id: companyId });
+      setProfile({ ...profile, company_id: companyId });
       // Clear session storage when switching companies to reset dashboard section states
       sessionStorage.clear();
     }
@@ -419,10 +397,9 @@ export const useAuthProvider = (): AuthContextType => {
     
     if (!error) {
       setCompanies(companies.filter(c => c.id !== companyId));
-      setUserCompanies(userCompanies.filter(uc => uc.company_id !== companyId));
       // If the deleted company was the user's selected company, clear it
-      if (profile.active_company_id === companyId) {
-        setProfile({ ...profile, active_company_id: null });
+      if (profile.company_id === companyId) {
+        setProfile({ ...profile, company_id: null });
       }
     }
     
@@ -434,9 +411,7 @@ export const useAuthProvider = (): AuthContextType => {
     session,
     profile,
     companies,
-    userCompanies,
     loading,
-    getCurrentCompanyId,
     signUp,
     signIn,
     signOut,
@@ -445,7 +420,7 @@ export const useAuthProvider = (): AuthContextType => {
     deleteCompany,
     fetchUserProfile,
     fetchCompanies,
-    refreshProfile: () => user && fetchProfileData(user.id, user.email)
+    refreshProfile: () => user && fetchProfileData(user.id)
   };
 };
 
