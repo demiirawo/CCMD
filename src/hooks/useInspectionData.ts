@@ -301,6 +301,30 @@ export const useInspectionData = () => {
     }
   };
 
+  const updatePanel = async (panelId: string, name: string) => {
+    if (!isSuperAdmin) {
+      toast.error('Only super admin can update panels');
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('inspection_panels')
+        .update({ name })
+        .eq('id', panelId)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setPanels(prev => prev.map(panel => panel.id === panelId ? data : panel));
+      toast.success('Panel updated successfully');
+    } catch (error) {
+      console.error('Error updating panel:', error);
+      toast.error('Failed to update panel');
+    }
+  };
+
   return {
     panels,
     categories,
@@ -315,5 +339,6 @@ export const useInspectionData = () => {
     updateResponse,
     deleteCategory,
     deleteEvidence,
+    updatePanel,
   };
 };

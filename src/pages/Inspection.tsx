@@ -51,7 +51,8 @@ const Inspection = () => {
     updateEvidence, 
     updateResponse,
     deleteCategory,
-    deleteEvidence
+    deleteEvidence,
+    updatePanel
   } = useInspectionData();
 
   const [expandedPanels, setExpandedPanels] = useState<Set<string>>(new Set());
@@ -165,7 +166,16 @@ const Inspection = () => {
                   onClick={() => togglePanel(panel.id)}
                 >
                   <div className="flex-1">
-                    <h2 className="text-xl font-semibold mb-1">{panel.name}</h2>
+                    {isSuperAdmin ? (
+                      <Input
+                        value={panel.name}
+                        onChange={(e) => updatePanel(panel.id, e.target.value)}
+                        className="text-xl font-semibold mb-1 bg-transparent border-none text-white placeholder:text-white/70 p-0 h-auto"
+                        placeholder="Panel name..."
+                      />
+                    ) : (
+                      <h2 className="text-xl font-semibold mb-1">{panel.name}</h2>
+                    )}
                     <p className="text-green-100 text-sm">Updated: {new Date(panel.updated_at).toLocaleDateString()}</p>
                   </div>
                   <div className="flex items-center gap-4">
