@@ -1,8 +1,8 @@
+
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { CQCSection } from "@/components/CQCSection";
-import { Shield, CheckCircle, Heart, Users, Lightbulb } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
 interface CQCCategory {
@@ -68,17 +68,6 @@ export const CQCChecklist = () => {
       });
     } finally {
       setLoading(false);
-    }
-  };
-
-  const getSectionIcon = (sectionName: string) => {
-    switch (sectionName) {
-      case 'SAFE': return <Shield className="w-6 h-6 text-blue-600" />;
-      case 'EFFECTIVE': return <CheckCircle className="w-6 h-6 text-green-600" />;
-      case 'CARING': return <Heart className="w-6 h-6 text-pink-600" />;
-      case 'RESPONSIVE': return <Users className="w-6 h-6 text-purple-600" />;
-      case 'WELL-LED': return <Lightbulb className="w-6 h-6 text-yellow-600" />;
-      default: return <CheckCircle className="w-6 h-6 text-gray-600" />;
     }
   };
 
@@ -246,7 +235,6 @@ export const CQCChecklist = () => {
               <CQCSection
                 key={sectionName}
                 title={sectionName}
-                icon={getSectionIcon(sectionName)}
                 categories={cqcCategories}
                 isAdmin={isAdmin}
                 onEvidenceChange={handleEvidenceChange}

@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { ChevronDown, ChevronUp, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -22,7 +23,6 @@ interface CQCCategory {
 
 interface CQCSectionProps {
   title: string;
-  icon: React.ReactNode;
   categories: CQCCategory[];
   isAdmin: boolean;
   onEvidenceChange: (evidenceId: string, field: string, value: any) => void;
@@ -32,7 +32,6 @@ interface CQCSectionProps {
 
 export const CQCSection = ({
   title,
-  icon,
   categories,
   isAdmin,
   onEvidenceChange,
@@ -67,7 +66,6 @@ export const CQCSection = ({
         onClick={() => setIsOpen(!isOpen)}
       >
         <div className="flex items-center gap-3">
-          {icon}
           <h2 className="text-2xl font-semibold">{title}</h2>
           <StatusBadge status={overallStatus} />
         </div>
