@@ -214,16 +214,10 @@ export const useAuthProvider = (): AuthContextType => {
       console.log('=== fetchProfileData called ===');
       console.log('User ID:', userId);
       
-      // Get user email for setup check
-      const { data: userData } = await supabase
-        .from('auth.users')
-        .select('email')
-        .eq('id', userId)
-        .single();
-      
-      if (userData?.email) {
+      // Get user email from the current user object (available from auth state)
+      if (user?.email) {
         // Ensure user setup is complete before fetching profile
-        await ensureUserSetupComplete(userData.email, userId);
+        await ensureUserSetupComplete(user.email, userId);
       }
       
       // Then get the profile
