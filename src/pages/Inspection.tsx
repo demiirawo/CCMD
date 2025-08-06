@@ -1,6 +1,6 @@
 import { Navigation } from "@/components/Navigation";
 import { ChevronRight, ChevronDown, Plus, Trash2 } from "lucide-react";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -10,26 +10,104 @@ import { StatusBadge } from "@/components/StatusBadge";
 
 type StatusType = 'green' | 'amber' | 'red' | 'na';
 
-const AutoExpandTextarea = ({ value, onChange, placeholder, className }: { 
+// Debounced input component
+const DebouncedInput = ({ 
+  value, 
+  onSave, 
+  placeholder, 
+  className,
+  type = "text" 
+}: { 
   value: string; 
-  onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void; 
+  onSave: (value: string) => void; 
+  placeholder: string; 
+  className: string;
+  type?: string;
+}) => {
+  const [localValue, setLocalValue] = useState(value);
+  const timeoutRef = useRef<NodeJS.Timeout>();
+
+  useEffect(() => {
+    setLocalValue(value);
+  }, [value]);
+
+  const debouncedSave = useCallback((newValue: string) => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+    timeoutRef.current = setTimeout(() => {
+      if (newValue !== value) {
+        onSave(newValue);
+      }
+    }, 1000); // 1 second delay
+  }, [value, onSave]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value;
+    setLocalValue(newValue);
+    debouncedSave(newValue);
+  };
+
+  return (
+    <Input
+      value={localValue}
+      onChange={handleChange}
+      placeholder={placeholder}
+      className={className}
+      type={type}
+    />
+  );
+};
+
+// Debounced textarea component
+const DebouncedTextarea = ({ 
+  value, 
+  onSave, 
+  placeholder, 
+  className 
+}: { 
+  value: string; 
+  onSave: (value: string) => void; 
   placeholder: string; 
   className: string; 
 }) => {
+  const [localValue, setLocalValue] = useState(value);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const timeoutRef = useRef<NodeJS.Timeout>();
+
+  useEffect(() => {
+    setLocalValue(value);
+  }, [value]);
 
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
       textareaRef.current.style.height = textareaRef.current.scrollHeight + 'px';
     }
-  }, [value]);
+  }, [localValue]);
+
+  const debouncedSave = useCallback((newValue: string) => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+    timeoutRef.current = setTimeout(() => {
+      if (newValue !== value) {
+        onSave(newValue);
+      }
+    }, 1000); // 1 second delay
+  }, [value, onSave]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const newValue = e.target.value;
+    setLocalValue(newValue);
+    debouncedSave(newValue);
+  };
 
   return (
     <Textarea
       ref={textareaRef}
-      value={value}
-      onChange={onChange}
+      value={localValue}
+      onChange={handleChange}
       placeholder={placeholder}
       className={className}
       style={{ minHeight: '60px', resize: 'none', overflow: 'hidden' }}
@@ -167,9 +245,9 @@ const Inspection = () => {
                 >
                   <div className="flex-1">
                     {isSuperAdmin ? (
-                      <Input
+                      <DebouncedInput
                         value={panel.name}
-                        onChange={(e) => updatePanel(panel.id, e.target.value)}
+                        onSave={(value) => updatePanel(panel.id, value)}
                         className="text-xl font-semibold mb-1 bg-transparent border-none text-white placeholder:text-white/70 p-0 h-auto"
                         placeholder="Panel name..."
                       />
@@ -218,9 +296,9 @@ const Inspection = () => {
                                        <ChevronRight className="h-5 w-5 text-gray-500" />
                                      )}
                                      {isSuperAdmin ? (
-                                       <Input
+                                       <DebouncedInput
                                          value={category.name}
-                                         onChange={(e) => updateCategory(category.id, e.target.value)}
+                                         onSave={(value) => updateCategory(category.id, value)}
                                          className="font-medium text-lg max-w-md"
                                          placeholder="Category name..."
                                        />
@@ -274,28 +352,28 @@ const Inspection = () => {
                                   const response = getResponseForEvidence(evidenceItem.id);
                                   return (
                                     <div key={evidenceItem.id} className="grid gap-4 items-start py-2 border-b border-gray-100" style={{gridTemplateColumns: isSuperAdmin ? '2fr 2fr 100px 60px' : '2fr 2fr 100px'}}>
-                                      <div>
-                                        {isSuperAdmin ? (
-                                          <AutoExpandTextarea
-                                            value={evidenceItem.evidence_text}
-                                            onChange={(e) => updateEvidence(evidenceItem.id, e.target.value)}
-                                            placeholder="Enter evidence..."
-                                            className="text-sm"
-                                          />
-                                        ) : (
-                                          <div className="text-sm p-2 bg-gray-50 rounded">
-                                            {evidenceItem.evidence_text || "No evidence provided"}
-                                          </div>
-                                        )}
-                                      </div>
-                                      <div>
-                                        <AutoExpandTextarea
-                                          value={response?.comment || ''}
-                                          onChange={(e) => updateResponse(evidenceItem.id, 'comment', e.target.value)}
-                                          placeholder="Enter comment..."
-                                          className="text-sm"
-                                        />
-                                      </div>
+                                       <div>
+                                         {isSuperAdmin ? (
+                                           <DebouncedTextarea
+                                             value={evidenceItem.evidence_text}
+                                             onSave={(value) => updateEvidence(evidenceItem.id, value)}
+                                             placeholder="Enter evidence..."
+                                             className="text-sm"
+                                           />
+                                         ) : (
+                                           <div className="text-sm p-2 bg-gray-50 rounded">
+                                             {evidenceItem.evidence_text || "No evidence provided"}
+                                           </div>
+                                         )}
+                                       </div>
+                                       <div>
+                                         <DebouncedTextarea
+                                           value={response?.comment || ''}
+                                           onSave={(value) => updateResponse(evidenceItem.id, 'comment', value)}
+                                           placeholder="Enter comment..."
+                                           className="text-sm"
+                                         />
+                                       </div>
                                        <div className="flex justify-center">
                                          <StatusBadge 
                                            status={(response?.status || 'green') as StatusType}
