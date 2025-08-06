@@ -351,7 +351,7 @@ export const KeyDocumentTracker = ({
                     <div className="flex-1"></div>
                     <div>
                       <label className="text-xs text-gray-700 mb-1 block opacity-0">Delete</label>
-                      <Button variant="outline" size="sm" onClick={() => removeDocument(doc.id)} title="Delete this document" className="text-xs text-white hover:text-white w-8 h-9 p-0 border-red-400 bg-neutral-500 hover:bg-neutral-400">
+                      <Button variant="outline" size="sm" onClick={() => removeDocument(doc.id)} title="Delete this document" className="text-xs text-white hover:text-white w-8 h-9 p-0 bg-neutral-500 hover:bg-neutral-400">
                         <Minus className="w-3 h-3" />
                       </Button>
                     </div>
