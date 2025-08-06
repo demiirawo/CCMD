@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -120,27 +119,45 @@ export const UserManagement = () => {
 
   const handleDeleteUser = async (userId: string, username?: string) => {
     try {
-      // We can only delete from profiles table with current permissions
-      // The auth user will remain but won't have profile access
+      console.log('Attempting to delete user:', { userId, username });
+      
+      // First, try to delete related records in user_companies
+      const { error: userCompaniesError } = await supabase
+        .from('user_companies')
+        .delete()
+        .eq('user_id', userId);
+      
+      if (userCompaniesError) {
+        console.warn('Error deleting user_companies records:', userCompaniesError);
+        // Continue anyway, this might not exist
+      }
+      
+      // Then delete the profile
       const { error: profileError } = await supabase
         .from('profiles')
         .delete()
         .eq('user_id', userId);
       
-      if (profileError) throw profileError;
+      if (profileError) {
+        console.error('Profile deletion error:', profileError);
+        throw profileError;
+      }
+      
+      console.log('Successfully deleted user profile');
       
       toast({
         title: 'Success',
-        description: `User profile for ${username} has been removed from the system`,
+        description: `User profile for ${username || 'user'} has been removed from the system`,
         variant: 'default'
       });
       
-      fetchUsers();
+      // Refresh the user list
+      await fetchUsers();
     } catch (error) {
       console.error('Error deleting user:', error);
       toast({
         title: 'Error',
-        description: 'Failed to delete user profile',
+        description: `Failed to delete user profile: ${error.message || 'Unknown error'}`,
         variant: 'destructive'
       });
     }
@@ -258,7 +275,7 @@ export const UserManagement = () => {
                           <AlertDialogHeader>
                             <AlertDialogTitle>Delete User Profile</AlertDialogTitle>
                             <AlertDialogDescription>
-                              Are you sure you want to delete the profile for "{user.username}"? This will remove their access to the application but the auth user will remain in the system. This action cannot be undone.
+                              Are you sure you want to delete the profile for "{user.username}"? This will remove their access to the application. This action cannot be undone.
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
