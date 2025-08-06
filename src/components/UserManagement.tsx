@@ -10,8 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
-import { Users, Edit, Trash2, Shield, Mail } from 'lucide-react';
-import type { User } from '@supabase/supabase-js';
+import { Users, Edit, Trash2, Mail, AlertTriangle } from 'lucide-react';
 
 interface UserProfile {
   id: string;
@@ -21,7 +20,6 @@ interface UserProfile {
   permission: 'read' | 'edit' | 'company_admin';
   company_id: string | null;
   created_at: string;
-  email?: string;
   companies?: {
     name: string;
   };
@@ -48,9 +46,9 @@ export const UserManagement = () => {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      console.log('Fetching all users for super admin...');
+      console.log('Fetching all user profiles...');
       
-      // Get all profiles with auth user emails
+      // Get all profiles with company information
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
         .select(`
@@ -60,32 +58,8 @@ export const UserManagement = () => {
 
       if (profilesError) throw profilesError;
 
-      // Get auth users to get emails - handle the admin API error gracefully
-      let authUsers: User[] = [];
-      try {
-        const { data: authData, error: authError } = await supabase.auth.admin.listUsers();
-        if (authError) throw authError;
-        authUsers = authData?.users || [];
-      } catch (authError) {
-        console.error('Cannot access auth admin API:', authError);
-        toast({
-          title: 'Limited Access',
-          description: 'Cannot access full user details. Showing profile data only.',
-          variant: 'destructive'
-        });
-      }
-
-      // Combine profile data with auth user emails
-      const usersWithEmails = profiles?.map(profile => {
-        const authUser = authUsers.find((user: User) => user.id === profile.user_id);
-        return {
-          ...profile,
-          email: authUser?.email || 'Email not available'
-        };
-      }) || [];
-
-      console.log('Fetched users:', usersWithEmails);
-      setUsers(usersWithEmails);
+      console.log('Fetched user profiles:', profiles);
+      setUsers(profiles || []);
     } catch (error) {
       console.error('Error fetching users:', error);
       toast({
@@ -144,42 +118,29 @@ export const UserManagement = () => {
     }
   };
 
-  const handleDeleteUser = async (userId: string, email?: string) => {
+  const handleDeleteUser = async (userId: string, username?: string) => {
     try {
-      // For non-admin API access, we can only delete from profiles table
-      // The auth user deletion requires admin privileges
-      try {
-        const { error: authError } = await supabase.auth.admin.deleteUser(userId);
-        if (authError) throw authError;
-      } catch (authError) {
-        // If admin deletion fails, at least remove from profiles
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .delete()
-          .eq('user_id', userId);
-        
-        if (profileError) throw profileError;
-        
-        toast({
-          title: 'Partial Success',
-          description: 'User profile removed (auth user may still exist)',
-          variant: 'default'
-        });
-        fetchUsers();
-        return;
-      }
-
+      // We can only delete from profiles table with current permissions
+      // The auth user will remain but won't have profile access
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .delete()
+        .eq('user_id', userId);
+      
+      if (profileError) throw profileError;
+      
       toast({
         title: 'Success',
-        description: `User ${email} deleted successfully`
+        description: `User profile for ${username} has been removed from the system`,
+        variant: 'default'
       });
-
-      fetchUsers(); // Refresh the list
+      
+      fetchUsers();
     } catch (error) {
       console.error('Error deleting user:', error);
       toast({
         title: 'Error',
-        description: 'Failed to delete user',
+        description: 'Failed to delete user profile',
         variant: 'destructive'
       });
     }
@@ -237,13 +198,17 @@ export const UserManagement = () => {
           <Users className="h-5 w-5" />
           User Management ({users.length} users)
         </CardTitle>
+        <div className="flex items-center gap-2 text-sm text-amber-600 bg-amber-50 p-2 rounded">
+          <AlertTriangle className="h-4 w-4" />
+          <span>Limited access: Email addresses require service role permissions</span>
+        </div>
       </CardHeader>
       <CardContent>
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Email</TableHead>
+                <TableHead>User ID</TableHead>
                 <TableHead>Username</TableHead>
                 <TableHead>Role</TableHead>
                 <TableHead>Permission</TableHead>
@@ -255,13 +220,13 @@ export const UserManagement = () => {
             <TableBody>
               {users.map((user) => (
                 <TableRow key={user.id}>
-                  <TableCell className="font-medium">
+                  <TableCell className="font-mono text-xs">
                     <div className="flex items-center gap-2">
                       <Mail className="h-4 w-4 text-muted-foreground" />
-                      {user.email}
+                      {user.user_id.slice(0, 8)}...
                     </div>
                   </TableCell>
-                  <TableCell>{user.username || 'Not set'}</TableCell>
+                  <TableCell className="font-medium">{user.username || 'Not set'}</TableCell>
                   <TableCell>
                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${getRoleBadgeColor(user.role)}`}>
                       {user.role}
@@ -291,18 +256,18 @@ export const UserManagement = () => {
                         </AlertDialogTrigger>
                         <AlertDialogContent>
                           <AlertDialogHeader>
-                            <AlertDialogTitle>Delete User</AlertDialogTitle>
+                            <AlertDialogTitle>Delete User Profile</AlertDialogTitle>
                             <AlertDialogDescription>
-                              Are you sure you want to delete user "{user.email}"? This will permanently delete their account and all associated data. This action cannot be undone.
+                              Are you sure you want to delete the profile for "{user.username}"? This will remove their access to the application but the auth user will remain in the system. This action cannot be undone.
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
                             <AlertDialogCancel>Cancel</AlertDialogCancel>
                             <AlertDialogAction 
-                              onClick={() => handleDeleteUser(user.user_id, user.email)}
+                              onClick={() => handleDeleteUser(user.user_id, user.username)}
                               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                             >
-                              Delete User
+                              Delete Profile
                             </AlertDialogAction>
                           </AlertDialogFooter>
                         </AlertDialogContent>
@@ -321,7 +286,7 @@ export const UserManagement = () => {
             <DialogHeader>
               <DialogTitle>Edit User</DialogTitle>
               <DialogDescription>
-                Update user details and permissions for {selectedUser?.email}
+                Update user details and permissions for {selectedUser?.username}
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
