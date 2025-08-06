@@ -15,6 +15,7 @@ import { QuarterlyReport } from "./pages/QuarterlyReport";
 import ReportBuilder from "./pages/ReportBuilder";
 import { Settings } from "./pages/Settings";
 import { Meetings } from "./pages/Meetings";
+import { CQCChecklist } from "./pages/CQCChecklist";
 import { Auth } from "./pages/Auth";
 import { AdminAuth } from "./pages/AdminAuth";
 import { CompanySelection } from "./pages/CompanySelection";
@@ -72,6 +73,14 @@ const AppContent = () => {
             return <Navigate to="/company-selection" replace />;
           })()}
         </>
+      } />
+      <Route path="/cqc-checklist" element={
+        <ProtectedRoute requireCompany>
+          <>
+            <Navigation />
+            <CQCChecklist />
+          </>
+        </ProtectedRoute>
       } />
       <Route path="/meetings" element={
         <ProtectedRoute requireCompany>
