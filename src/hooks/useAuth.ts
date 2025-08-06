@@ -1,4 +1,3 @@
-
 import { useState, useEffect, createContext, useContext } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -100,12 +99,14 @@ export const useAuthProvider = (): AuthContextType => {
       
       if (error) {
         console.error('Error ensuring user setup:', error);
-        return;
+        return false;
       }
       
       console.log('User setup completed successfully');
+      return true;
     } catch (error) {
       console.error('Error in ensureUserSetupComplete:', error);
+      return false;
     }
   };
 
@@ -118,7 +119,10 @@ export const useAuthProvider = (): AuthContextType => {
       
       // Ensure user setup is complete if we have the email
       if (userEmail) {
-        await ensureUserSetupComplete(userEmail);
+        const setupComplete = await ensureUserSetupComplete(userEmail);
+        if (!setupComplete) {
+          console.error('Failed to complete user setup');
+        }
       }
       
       // Then get the profile
@@ -132,6 +136,22 @@ export const useAuthProvider = (): AuthContextType => {
       
       if (error) {
         console.error('Error fetching profile:', error);
+        // If no profile exists, this might be a new user - try to set it up
+        if (error.code === 'PGRST116' && userEmail) {
+          console.log('No profile found, attempting to create one...');
+          await ensureUserSetupComplete(userEmail);
+          // Try fetching profile again
+          const { data: retryData, error: retryError } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('user_id', userId)
+            .single();
+          
+          if (!retryError && retryData) {
+            setProfile(retryData);
+            await fetchCompaniesForUser(userId);
+          }
+        }
         return;
       }
       
@@ -231,7 +251,7 @@ export const useAuthProvider = (): AuthContextType => {
     
     // Set up auth state listener FIRST (before checking existing session)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      async (event, session) => {
         if (!mounted) return;
         
         console.log('Auth state change:', event, session?.user?.id);
@@ -241,11 +261,11 @@ export const useAuthProvider = (): AuthContextType => {
         
         // Handle profile fetching for authenticated users
         if (session?.user) {
-          console.log('User logged in, deferring profile fetch...');
+          console.log('User authenticated, setting up profile...');
           // Use setTimeout(0) to defer Supabase calls and prevent auth context deadlocks
-          setTimeout(() => {
+          setTimeout(async () => {
             if (!mounted) return;
-            fetchProfileData(session.user.id, session.user.email);
+            await fetchProfileData(session.user.id, session.user.email);
           }, 0);
         } else {
           // Clear data when user logs out
@@ -256,7 +276,7 @@ export const useAuthProvider = (): AuthContextType => {
     );
 
     // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (!mounted) return;
       
       console.log('Initial session check:', session?.user?.id);
@@ -265,9 +285,9 @@ export const useAuthProvider = (): AuthContextType => {
       setLoading(false);
       
       if (session?.user) {
-        setTimeout(() => {
+        setTimeout(async () => {
           if (!mounted) return;
-          fetchProfileData(session.user.id, session.user.email);
+          await fetchProfileData(session.user.id, session.user.email);
         }, 0);
       }
     });
