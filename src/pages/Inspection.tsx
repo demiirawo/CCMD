@@ -10,7 +10,6 @@ import { StatusBadge, StatusType } from "@/components/StatusBadge";
 interface Evidence {
   id: string;
   evidence: string;
-  evidenceExplanation: string;
   comment: string;
   status: StatusType;
   lastUpdated: string;
@@ -93,7 +92,6 @@ const Inspection = () => {
     const newEvidence: Evidence = {
       id: Date.now().toString(),
       evidence: "",
-      evidenceExplanation: "",
       comment: "",
       status: "green",
       lastUpdated: new Date().toLocaleDateString()
@@ -213,9 +211,8 @@ const Inspection = () => {
                             {category.evidenceItems.length > 0 && (
                               <div className="space-y-2">
                                 {/* Grid Header */}
-                                <div className="grid grid-cols-5 gap-4 font-semibold border-b pb-2 text-sm">
+                                <div className="grid grid-cols-4 gap-4 font-semibold border-b pb-2 text-sm">
                                   <div>Evidence</div>
-                                  <div>Evidence Explanation</div>
                                   <div>Comment</div>
                                   <div>Status</div>
                                   <div>Last Updated</div>
@@ -223,20 +220,12 @@ const Inspection = () => {
 
                                 {/* Evidence Rows */}
                                 {category.evidenceItems.map((evidence) => (
-                                  <div key={evidence.id} className="grid grid-cols-5 gap-4 items-start py-2 border-b border-gray-100">
+                                  <div key={evidence.id} className="grid grid-cols-4 gap-4 items-start py-2 border-b border-gray-100">
                                     <div>
                                       <Textarea
                                         value={evidence.evidence}
                                         onChange={(e) => updateEvidence(panelIndex, category.id, evidence.id, 'evidence', e.target.value)}
                                         placeholder="Enter evidence..."
-                                        className="text-sm min-h-[100px] resize-y"
-                                      />
-                                    </div>
-                                    <div>
-                                      <Textarea
-                                        value={evidence.evidenceExplanation}
-                                        onChange={(e) => updateEvidence(panelIndex, category.id, evidence.id, 'evidenceExplanation', e.target.value)}
-                                        placeholder="Enter evidence explanation..."
                                         className="text-sm min-h-[100px] resize-y"
                                       />
                                     </div>
