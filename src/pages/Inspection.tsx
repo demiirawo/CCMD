@@ -55,6 +55,7 @@ const Inspection = () => {
   } = useInspectionData();
 
   const [expandedPanels, setExpandedPanels] = useState<Set<string>>(new Set());
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
 
   const togglePanel = (panelId: string) => {
     const newExpanded = new Set(expandedPanels);
@@ -64,6 +65,16 @@ const Inspection = () => {
       newExpanded.add(panelId);
     }
     setExpandedPanels(newExpanded);
+  };
+
+  const toggleCategory = (categoryId: string) => {
+    const newExpanded = new Set(expandedCategories);
+    if (newExpanded.has(categoryId)) {
+      newExpanded.delete(categoryId);
+    } else {
+      newExpanded.add(categoryId);
+    }
+    setExpandedCategories(newExpanded);
   };
 
   const handleAddCategory = async (panelId: string) => {
@@ -183,20 +194,30 @@ const Inspection = () => {
                     {getCategoriesForPanel(panel.id).length > 0 && (
                       <div className="space-y-6">
                         {getCategoriesForPanel(panel.id).map((category) => (
-                          <Card key={category.id} className="p-4">
-                            <div className="mb-4">
-                              <div className="flex items-center justify-between mb-2">
+                           <Card key={category.id} className="p-4">
+                             <div 
+                               className="mb-4 cursor-pointer hover:bg-gray-50 rounded p-2 -m-2 transition-colors"
+                               onClick={() => toggleCategory(category.id)}
+                             >
+                               <div className="flex items-center justify-between mb-2">
                                  <div className="flex items-center gap-4">
-                                   {isSuperAdmin ? (
-                                     <Input
-                                       value={category.name}
-                                       onChange={(e) => updateCategory(category.id, e.target.value)}
-                                       className="font-medium text-lg max-w-md"
-                                       placeholder="Category name..."
-                                     />
-                                   ) : (
-                                     <h3 className="font-medium text-lg">{category.name}</h3>
-                                   )}
+                                   <div className="flex items-center gap-2">
+                                     {expandedCategories.has(category.id) ? (
+                                       <ChevronDown className="h-5 w-5 text-gray-500" />
+                                     ) : (
+                                       <ChevronRight className="h-5 w-5 text-gray-500" />
+                                     )}
+                                     {isSuperAdmin ? (
+                                       <Input
+                                         value={category.name}
+                                         onChange={(e) => updateCategory(category.id, e.target.value)}
+                                         className="font-medium text-lg max-w-md"
+                                         placeholder="Category name..."
+                                       />
+                                     ) : (
+                                       <h3 className="font-medium text-lg">{category.name}</h3>
+                                     )}
+                                   </div>
                                    <StatusBadge status={getCategoryStatus(category.id)} />
                                    <span className="text-sm text-muted-foreground">
                                      Last updated: {getCategoryLastUpdated(category.id)}
@@ -228,7 +249,7 @@ const Inspection = () => {
                               </div>
                             </div>
 
-                            {getEvidenceForCategory(category.id).length > 0 && (
+                            {expandedCategories.has(category.id) && getEvidenceForCategory(category.id).length > 0 && (
                               <div className="space-y-2">
                                 {/* Grid Header */}
                                 <div className="grid gap-4 font-semibold border-b pb-2 text-sm" style={{gridTemplateColumns: isSuperAdmin ? '2fr 2fr 100px 60px' : '2fr 2fr 100px'}}>
@@ -289,7 +310,7 @@ const Inspection = () => {
                               </div>
                             )}
 
-                            {getEvidenceForCategory(category.id).length === 0 && (
+                            {expandedCategories.has(category.id) && getEvidenceForCategory(category.id).length === 0 && (
                               <div className="text-center py-4 text-muted-foreground text-sm">
                                 {isSuperAdmin ? "No evidence added yet. Click 'Add Evidence' to get started." : "No evidence available for this category."}
                               </div>
