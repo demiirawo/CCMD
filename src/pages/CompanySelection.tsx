@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -12,6 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Plus, Building2, Trash2, Search, ChevronDown, Clock } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { supabase } from '@/integrations/supabase/client';
+
 export const CompanySelection = () => {
   const [newCompanyName, setNewCompanyName] = useState('');
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
@@ -44,16 +46,14 @@ export const CompanySelection = () => {
     localLoading: loading
   });
 
-  // Debug logging
-  console.log('CompanySelection Debug:', {
-    profile,
-    companies,
-    companiesLength: companies.length
-  });
+  // Check if user is super admin
+  const isSuperAdmin = profile?.role === 'admin';
+
   const handleRefreshCompanies = async () => {
     console.log('Manually refreshing companies...');
     await fetchCompanies();
   };
+
   const clearAllCompanyData = (companyId: string) => {
     // Clear all localStorage data related to meetings and forms for new companies
     const keysToRemove: string[] = [];
@@ -68,6 +68,7 @@ export const CompanySelection = () => {
     // Also clear any persistent meeting IDs for this company
     localStorage.removeItem(`persistentMeetingId_${companyId}`);
   };
+
   const handleCreateCompany = async () => {
     if (!newCompanyName.trim()) {
       toast({
@@ -102,6 +103,7 @@ export const CompanySelection = () => {
     }
     setLoading(false);
   };
+
   const handleSelectCompany = async (company: any) => {
     console.log('handleSelectCompany called with:', company);
     console.log('Company slug:', company.slug);
@@ -126,6 +128,7 @@ export const CompanySelection = () => {
       });
     }
   };
+
   const handleDeleteCompany = async (companyId: string) => {
     setLoading(true);
     const {
@@ -210,11 +213,17 @@ export const CompanySelection = () => {
     }
   }, [actionsOpen, profile?.role]);
 
-  // Filter companies based on search - only show when searching
+  // Filter companies based on search - only for super admin
   const filteredCompanies = useMemo(() => {
-    if (!searchValue.trim()) return [];
+    if (!isSuperAdmin || !searchValue.trim()) return [];
     return companies.filter(company => company.name.toLowerCase().includes(searchValue.toLowerCase()));
-  }, [companies, searchValue]);
+  }, [companies, searchValue, isSuperAdmin]);
+
+  // For non-admin users, show all their assigned companies directly
+  const displayCompanies = isSuperAdmin ? 
+    (searchValue.trim() ? filteredCompanies : []) : 
+    companies;
+
   return <div className="min-h-screen flex items-center justify-center px-4 bg-stone-50">
       <Card className="w-full max-w-2xl">
         <CardHeader>
@@ -233,20 +242,35 @@ export const CompanySelection = () => {
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-4">
-            <div className="space-y-2">
-              <h3 className="text-lg font-semibold">Search Companies</h3>
-              <div className="relative">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input placeholder="Search company name..." value={searchValue} onChange={e => setSearchValue(e.target.value)} className="pl-9" />
+            {/* Search section - only for super admin */}
+            {isSuperAdmin && (
+              <div className="space-y-2">
+                <h3 className="text-lg font-semibold">Search Companies</h3>
+                <div className="relative">
+                  <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input placeholder="Search company name..." value={searchValue} onChange={e => setSearchValue(e.target.value)} className="pl-9" />
+                </div>
               </div>
-            </div>
+            )}
 
-            {filteredCompanies.length > 0 && <div className="space-y-2">
-                {searchValue.trim() && <p className="text-sm text-muted-foreground">
+            {/* Companies display section */}
+            {!isSuperAdmin && (
+              <div className="space-y-2">
+                <h3 className="text-lg font-semibold">Your Companies</h3>
+                {companies.length > 0 && (
+                  <p className="text-sm text-muted-foreground">
+                    Select a company to access
+                  </p>
+                )}
+              </div>
+            )}
+
+            {displayCompanies.length > 0 && <div className="space-y-2">
+                {isSuperAdmin && searchValue.trim() && <p className="text-sm text-muted-foreground">
                   {filteredCompanies.length} result{filteredCompanies.length !== 1 ? 's' : ''} found
                 </p>}
                 <div className="grid gap-2 max-h-60 overflow-y-auto">
-                  {filteredCompanies.map(company => <Card key={company.id} className="hover:bg-accent transition-colors">
+                  {displayCompanies.map(company => <Card key={company.id} className="hover:bg-accent transition-colors">
                       <CardContent className="p-4">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
@@ -262,7 +286,7 @@ export const CompanySelection = () => {
                             <Button onClick={() => handleSelectCompany(company)} disabled={loading} className="bg-stone-400 hover:bg-stone-300 text-black">
                               Select
                             </Button>
-                            {profile?.role === 'admin' && <AlertDialog>
+                            {isSuperAdmin && <AlertDialog>
                                 <AlertDialogTrigger asChild>
                                   <Button variant="outline" size="sm" className="text-destructive hover:text-destructive-foreground hover:bg-destructive" disabled={loading}>
                                     <Trash2 className="h-4 w-4" />
@@ -290,23 +314,28 @@ export const CompanySelection = () => {
                 </div>
               </div>}
               
-              {searchValue.trim() && filteredCompanies.length === 0 && <div className="text-center py-8">
+            {/* No results for super admin search */}
+            {isSuperAdmin && searchValue.trim() && filteredCompanies.length === 0 && <div className="text-center py-8">
                 <Building2 className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
                 <p className="text-sm text-muted-foreground">No companies found matching "{searchValue}"</p>
               </div>}
 
-            {!searchValue.trim() && companies.length === 0 && <div className="text-center py-8">
+            {/* No companies found */}
+            {((isSuperAdmin && !searchValue.trim()) || (!isSuperAdmin && companies.length === 0)) && <div className="text-center py-8">
                 <Building2 className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-semibold mb-2">No Companies Found</h3>
+                <h3 className="text-lg font-semibold mb-2">
+                  {isSuperAdmin ? 'Search Companies' : 'No Companies Found'}
+                </h3>
                 <p className="text-muted-foreground mb-4">
-                  {profile?.role === 'admin' ? 'Create your first company to get started' : 'Contact your administrator to be assigned to a company'}
+                  {isSuperAdmin 
+                    ? 'Use the search above to find companies' 
+                    : 'Contact your administrator to be assigned to a company'
+                  }
                 </p>
               </div>}
-
-            {!searchValue.trim() && companies.length > 0}
           </div>
 
-          {profile?.role === 'admin' && (
+          {isSuperAdmin && (
             <div className="border-t pt-6">
               <Collapsible open={actionsOpen} onOpenChange={setActionsOpen}>
                 <CollapsibleTrigger asChild>
@@ -352,7 +381,7 @@ export const CompanySelection = () => {
             </div>
           )}
           
-          {profile?.role === 'admin' && <div className="border-t pt-6">
+          {isSuperAdmin && <div className="border-t pt-6">
               <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
                 <DialogTrigger asChild>
                   <Button className="w-full bg-zinc-400 hover:bg-zinc-300 text-black">
