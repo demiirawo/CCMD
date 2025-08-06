@@ -1,6 +1,6 @@
 import { Navigation } from "@/components/Navigation";
 import { ChevronRight, ChevronDown, Plus } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -27,6 +27,33 @@ interface Panel {
   updated: string;
   categories: Category[];
 }
+
+const AutoExpandTextarea = ({ value, onChange, placeholder, className }: { 
+  value: string; 
+  onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void; 
+  placeholder: string; 
+  className: string; 
+}) => {
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = textareaRef.current.scrollHeight + 'px';
+    }
+  }, [value]);
+
+  return (
+    <Textarea
+      ref={textareaRef}
+      value={value}
+      onChange={onChange}
+      placeholder={placeholder}
+      className={className}
+      style={{ minHeight: '60px', resize: 'none', overflow: 'hidden' }}
+    />
+  );
+};
 
 const Inspection = () => {
   const [panels, setPanels] = useState<Panel[]>([
@@ -227,25 +254,19 @@ const Inspection = () => {
                                 {category.evidenceItems.map((evidence) => (
                                   <div key={evidence.id} className="grid gap-4 items-start py-2 border-b border-gray-100" style={{gridTemplateColumns: '2fr 2fr 150px'}}>
                                     <div>
-                                      <Textarea
+                                      <AutoExpandTextarea
                                         value={evidence.evidence}
                                         onChange={(e) => updateEvidence(panelIndex, category.id, evidence.id, 'evidence', e.target.value)}
                                         placeholder="Enter evidence..."
-                                        className="text-sm resize-none overflow-hidden"
-                                        style={{ height: 'auto', minHeight: '60px' }}
-                                        onInput={(e) => {
-                                          const target = e.target as HTMLTextAreaElement;
-                                          target.style.height = 'auto';
-                                          target.style.height = target.scrollHeight + 'px';
-                                        }}
+                                        className="text-sm"
                                       />
                                     </div>
                                     <div>
-                                      <Textarea
+                                      <AutoExpandTextarea
                                         value={evidence.comment}
                                         onChange={(e) => updateEvidence(panelIndex, category.id, evidence.id, 'comment', e.target.value)}
                                         placeholder="Enter comment..."
-                                        className="text-sm min-h-[100px] resize-y"
+                                        className="text-sm"
                                       />
                                     </div>
                                     <div>
