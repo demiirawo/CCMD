@@ -1,155 +1,253 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { useAutoSave } from '@/hooks/useAutoSave';
 import { DashboardHeader } from '@/components/DashboardHeader';
 import { DashboardSection } from '@/components/DashboardSection';
-import { Navigation } from '@/components/Navigation';
 import { StatusItemData } from '@/components/StatusItem';
+import { Attendee } from '@/components/MeetingAttendeesManager';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
 
-interface CQCSection {
-  title: string;
-  items: StatusItemData[];
-}
+// CQC-specific sections
+const CQC_SECTIONS = [
+  {
+    id: "safe",
+    title: "Safe",
+    items: []
+  },
+  {
+    id: "effective",
+    title: "Effective",
+    items: []
+  },
+  {
+    id: "caring",
+    title: "Caring",
+    items: []
+  },
+  {
+    id: "responsive",
+    title: "Responsive",
+    items: []
+  },
+  {
+    id: "well-led",
+    title: "Well-Led",
+    items: []
+  }
+];
 
 const CQCChecklist: React.FC = () => {
-  const { user, profile } = useAuth();
-  const [attendees, setAttendees] = useState<Array<{
-    id: string;
-    name: string;
-    role: string;
-    email: string;
-  }>>([]);
-
-  const [meetingData, setMeetingData] = useState({
-    title: "CQC Assessment Meeting",
-    date: new Date().toLocaleDateString('en-GB', {
-      day: '2-digit',
-      month: '2-digit', 
-      year: 'numeric'
-    }) + ' ' + new Date().toLocaleTimeString('en-GB', {
-      hour: '2-digit',
-      minute: '2-digit'
-    }),
-    purpose: "CQC regulatory assessment and compliance review"
+  const { profile, companies } = useAuth();
+  const [sections, setSections] = useState(CQC_SECTIONS);
+  const [attendees, setAttendees] = useState<Attendee[]>([]);
+  const [cqcData, setCqcData] = useState({
+    title: "CQC Quality Review",
+    date: new Date().toISOString(),
+    purpose: "CQC quality assessment and compliance review"
   });
+  const [panelStateTracker, setPanelStateTracker] = useState(0);
 
-  const [cqcData, setCqcData] = useState<Record<string, CQCSection>>({
-    safe: {
-      title: "Safe",
-      items: []
-    },
-    effective: {
-      title: "Effective", 
-      items: []
-    },
-    caring: {
-      title: "Caring",
-      items: []
-    },
-    responsive: {
-      title: "Responsive",
-      items: []
-    },
-    wellLed: {
-      title: "Well-Led",
-      items: []
-    }
-  });
+  const currentCompany = companies.find(c => c.id === profile?.company_id);
 
-  const handleSectionUpdate = (sectionKey: string, items: StatusItemData[]) => {
-    setCqcData(prev => ({
-      ...prev,
-      [sectionKey]: {
-        ...prev[sectionKey],
-        items
+  useEffect(() => {
+    loadCQCData();
+  }, [profile?.company_id]);
+
+  const loadCQCData = async () => {
+    if (!profile?.company_id) return;
+
+    try {
+      // Load or create CQC checklist data
+      const { data, error } = await supabase
+        .from('meetings')
+        .select('*')
+        .eq('company_id', profile.company_id)
+        .eq('meeting_type', 'cqc_checklist')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error loading CQC data:', error);
+        return;
       }
-    }));
+
+      if (data) {
+        // Parse existing data
+        const parsedSections = typeof data.sections === 'string' ? JSON.parse(data.sections) : data.sections;
+        const parsedAttendees = typeof data.attendees === 'string' ? JSON.parse(data.attendees) : data.attendees;
+        
+        setSections(parsedSections || CQC_SECTIONS);
+        setAttendees(parsedAttendees || []);
+        setCqcData({
+          title: data.title || "CQC Quality Review",
+          date: data.date || new Date().toISOString(),
+          purpose: data.purpose || "CQC quality assessment and compliance review"
+        });
+      }
+    } catch (error) {
+      console.error('Error loading CQC data:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load CQC checklist data",
+        variant: "destructive"
+      });
+    }
   };
 
-  const handleAttendeesUpdate = (newAttendees: typeof attendees) => {
-    setAttendees(newAttendees);
+  const saveCQCData = async () => {
+    if (!profile?.company_id) return;
+
+    try {
+      const { error } = await supabase
+        .from('meetings')
+        .upsert({
+          company_id: profile.company_id,
+          meeting_type: 'cqc_checklist',
+          title: cqcData.title,
+          date: cqcData.date,
+          purpose: cqcData.purpose,
+          attendees: JSON.stringify(attendees),
+          sections: JSON.stringify(sections),
+          actions_log: JSON.stringify([])
+        }, {
+          onConflict: 'company_id,meeting_type'
+        });
+
+      if (error) {
+        console.error('Error saving CQC data:', error);
+        toast({
+          title: "Error",
+          description: "Failed to save CQC checklist data",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error('Error saving CQC data:', error);
+    }
   };
 
   const handleDataChange = (field: string, value: string) => {
-    setMeetingData(prev => ({
+    setCqcData(prev => ({
       ...prev,
       [field]: value
     }));
+    saveCQCData();
   };
 
-  // Auto-save functionality
-  useAutoSave({
-    data: { sections: cqcData, attendees, meetingData },
-    delay: 2000
-  });
+  const handleItemStatusChange = (sectionId: string, itemId: string, status: any) => {
+    setSections(prev => prev.map(section => {
+      if (section.id === sectionId) {
+        return {
+          ...section,
+          items: section.items.map((item: StatusItemData) => 
+            item.id === itemId ? { ...item, status } : item
+          )
+        };
+      }
+      return section;
+    }));
+    saveCQCData();
+  };
 
-  const getStats = () => {
-    const allItems = Object.values(cqcData).flatMap(section => section.items);
+  const handleItemObservationChange = (sectionId: string, itemId: string, observation: string) => {
+    setSections(prev => prev.map(section => {
+      if (section.id === sectionId) {
+        return {
+          ...section,
+          items: section.items.map((item: StatusItemData) => 
+            item.id === itemId ? { ...item, observation } : item
+          )
+        };
+      }
+      return section;
+    }));
+    saveCQCData();
+  };
+
+  const handleAddItem = (sectionTitle: string) => {
+    const sectionId = sections.find(s => s.title === sectionTitle)?.id;
+    if (!sectionId) return;
+
+    const newItem: StatusItemData = {
+      id: `item_${Date.now()}`,
+      title: "New CQC Item",
+      status: "green",
+      observation: "",
+      trendsThemes: "",
+      lessonsLearned: "",
+      actions: [],
+      documents: [],
+      lastReviewed: new Date().toLocaleDateString('en-GB')
+    };
+
+    setSections(prev => prev.map(section => {
+      if (section.id === sectionId) {
+        return {
+          ...section,
+          items: [...section.items, newItem]
+        };
+      }
+      return section;
+    }));
+    saveCQCData();
+  };
+
+  const calculateStats = () => {
+    const allItems = sections.flatMap(section => section.items || []);
     return {
-      green: allItems.filter(item => item.status === 'green').length,
-      amber: allItems.filter(item => item.status === 'amber').length,
-      red: allItems.filter(item => item.status === 'red').length
+      green: allItems.filter(item => item.status === "green").length,
+      amber: allItems.filter(item => item.status === "amber").length,
+      red: allItems.filter(item => item.status === "red").length
     };
   };
 
-  if (!user || !profile) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p>Loading...</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
-      <Navigation />
-      
-      <div className="container mx-auto px-4 py-6 max-w-7xl">
+    <div className="bg-gray-100 p-4 lg:p-8">
+      <div className="w-[90%] mx-auto space-y-6">
+        {/* Company Header */}
+        {currentCompany && (
+          <div className="text-center py-6">
+            {currentCompany.logo_url && (
+              <img 
+                src={currentCompany.logo_url} 
+                alt={`${currentCompany.name} logo`}
+                className="h-16 w-auto mx-auto mb-4"
+              />
+            )}
+            <h1 className="text-2xl font-bold text-foreground">{currentCompany.name}</h1>
+          </div>
+        )}
+
         <DashboardHeader
-          title={meetingData.title}
-          date={meetingData.date}
+          date={cqcData.date}
+          title={cqcData.title}
           attendees={attendees}
-          purpose={meetingData.purpose}
-          stats={getStats()}
+          purpose={cqcData.purpose}
+          stats={calculateStats()}
+          sections={sections}
+          actionsLog={[]}
           onDataChange={handleDataChange}
-          onAttendeesChange={handleAttendeesUpdate}
+          onAttendeesChange={setAttendees}
         />
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+        {/* CQC Sections */}
+        {sections.map((section) => (
           <DashboardSection
-            title="Safe"
-            items={cqcData.safe.items}
-            onItemsChange={(items) => handleSectionUpdate('safe', items)}
+            key={section.id}
+            title={section.title}
+            items={section.items || []}
+            onItemStatusChange={(itemId, status) => handleItemStatusChange(section.id, itemId, status)}
+            onItemObservationChange={(itemId, observation) => handleItemObservationChange(section.id, itemId, observation)}
+            onAddItem={handleAddItem}
+            attendees={attendees.map(a => a.name)}
+            defaultOpen={true}
+            panelStateTracker={panelStateTracker}
+            onPanelStateChange={() => setPanelStateTracker(prev => prev + 1)}
+            meetingDate={new Date(cqcData.date)}
           />
-
-          <DashboardSection
-            title="Effective"
-            items={cqcData.effective.items}
-            onItemsChange={(items) => handleSectionUpdate('effective', items)}
-          />
-
-          <DashboardSection
-            title="Caring"
-            items={cqcData.caring.items}
-            onItemsChange={(items) => handleSectionUpdate('caring', items)}
-          />
-
-          <DashboardSection
-            title="Responsive"
-            items={cqcData.responsive.items}
-            onItemsChange={(items) => handleSectionUpdate('responsive', items)}
-          />
-
-          <DashboardSection
-            title="Well-Led"
-            items={cqcData.wellLed.items}
-            onItemsChange={(items) => handleSectionUpdate('wellLed', items)}
-          />
-        </div>
+        ))}
       </div>
     </div>
   );

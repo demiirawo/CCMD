@@ -8,17 +8,17 @@ import { ThemeProvider } from "next-themes";
 import { AuthProvider } from "@/components/AuthProvider";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 
-// Pages - using named imports
+// Pages
 import Landing from "./pages/Landing";
 import Index from "./pages/Index";
-import { Auth } from "./pages/Auth";
-import { AdminAuth } from "./pages/AdminAuth";
-import { CompanySelection } from "./pages/CompanySelection";
+import Auth from "./pages/Auth";
+import AdminAuth from "./pages/AdminAuth";
+import CompanySelection from "./pages/CompanySelection";
 import CompanyDashboard from "./pages/CompanyDashboard";
-import { Meetings } from "./pages/Meetings";
-import { Reports } from "./pages/Reports";
-import { Settings } from "./pages/Settings";
-import { QuarterlyReport } from "./pages/QuarterlyReport";
+import Meetings from "./pages/Meetings";
+import Reports from "./pages/Reports";
+import Settings from "./pages/Settings";
+import QuarterlyReport from "./pages/QuarterlyReport";
 import ReportBuilder from "./pages/ReportBuilder";
 import CQCChecklist from "./pages/CQCChecklist";
 import NotFound from "./pages/NotFound";
