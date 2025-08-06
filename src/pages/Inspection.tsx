@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { useInspectionData } from "@/hooks/useInspectionData";
+import { StatusBadge } from "@/components/StatusBadge";
 
 type StatusType = 'green' | 'amber' | 'red' | 'na';
 
@@ -95,6 +96,24 @@ const Inspection = () => {
     return new Date(lastUpdate).toLocaleDateString();
   };
 
+  const getCategoryStatus = (categoryId: string): StatusType => {
+    const categoryEvidence = evidence.filter(ev => ev.category_id === categoryId);
+    const categoryResponses = responses.filter(r => 
+      categoryEvidence.some(ev => ev.id === r.evidence_id)
+    );
+    
+    if (categoryResponses.length === 0) return 'green';
+    
+    const statuses = categoryResponses.map(r => r.status as StatusType);
+    
+    // If any evidence is red, category is red
+    if (statuses.includes('red')) return 'red';
+    // If any evidence is amber, category is amber
+    if (statuses.includes('amber')) return 'amber';
+    // Otherwise, category is green
+    return 'green';
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
@@ -153,21 +172,22 @@ const Inspection = () => {
                           <Card key={category.id} className="p-4">
                             <div className="mb-4">
                               <div className="flex items-center justify-between mb-2">
-                                <div className="flex items-center gap-4">
-                                  {isSuperAdmin ? (
-                                    <Input
-                                      value={category.name}
-                                      onChange={(e) => updateCategory(category.id, e.target.value)}
-                                      className="font-medium text-lg max-w-md"
-                                      placeholder="Category name..."
-                                    />
-                                  ) : (
-                                    <h3 className="font-medium text-lg">{category.name}</h3>
-                                  )}
-                                  <span className="text-sm text-muted-foreground">
-                                    Last updated: {getCategoryLastUpdated(category.id)}
-                                  </span>
-                                </div>
+                                 <div className="flex items-center gap-4">
+                                   {isSuperAdmin ? (
+                                     <Input
+                                       value={category.name}
+                                       onChange={(e) => updateCategory(category.id, e.target.value)}
+                                       className="font-medium text-lg max-w-md"
+                                       placeholder="Category name..."
+                                     />
+                                   ) : (
+                                     <h3 className="font-medium text-lg">{category.name}</h3>
+                                   )}
+                                   <StatusBadge status={getCategoryStatus(category.id)} />
+                                   <span className="text-sm text-muted-foreground">
+                                     Last updated: {getCategoryLastUpdated(category.id)}
+                                   </span>
+                                 </div>
                                 {isSuperAdmin && (
                                   <Button 
                                     onClick={() => handleAddEvidence(category.id)}
