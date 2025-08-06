@@ -11,6 +11,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
 import { Users, Edit, Trash2, Shield, Mail } from 'lucide-react';
+import type { User } from '@supabase/supabase-js';
 
 interface UserProfile {
   id: string;
@@ -59,17 +60,27 @@ export const UserManagement = () => {
 
       if (profilesError) throw profilesError;
 
-      // Get auth users to get emails
-      const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
-      
-      if (authError) throw authError;
+      // Get auth users to get emails - handle the admin API error gracefully
+      let authUsers: User[] = [];
+      try {
+        const { data: authData, error: authError } = await supabase.auth.admin.listUsers();
+        if (authError) throw authError;
+        authUsers = authData?.users || [];
+      } catch (authError) {
+        console.error('Cannot access auth admin API:', authError);
+        toast({
+          title: 'Limited Access',
+          description: 'Cannot access full user details. Showing profile data only.',
+          variant: 'destructive'
+        });
+      }
 
       // Combine profile data with auth user emails
       const usersWithEmails = profiles?.map(profile => {
-        const authUser = authUsers.users.find(user => user.id === profile.user_id);
+        const authUser = authUsers.find((user: User) => user.id === profile.user_id);
         return {
           ...profile,
-          email: authUser?.email
+          email: authUser?.email || 'Email not available'
         };
       }) || [];
 
@@ -135,10 +146,28 @@ export const UserManagement = () => {
 
   const handleDeleteUser = async (userId: string, email?: string) => {
     try {
-      // Delete the user from auth (this will cascade to profiles due to foreign key)
-      const { error: authError } = await supabase.auth.admin.deleteUser(userId);
-      
-      if (authError) throw authError;
+      // For non-admin API access, we can only delete from profiles table
+      // The auth user deletion requires admin privileges
+      try {
+        const { error: authError } = await supabase.auth.admin.deleteUser(userId);
+        if (authError) throw authError;
+      } catch (authError) {
+        // If admin deletion fails, at least remove from profiles
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .delete()
+          .eq('user_id', userId);
+        
+        if (profileError) throw profileError;
+        
+        toast({
+          title: 'Partial Success',
+          description: 'User profile removed (auth user may still exist)',
+          variant: 'default'
+        });
+        fetchUsers();
+        return;
+      }
 
       toast({
         title: 'Success',
