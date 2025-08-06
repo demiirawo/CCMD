@@ -20,6 +20,7 @@ import { AdminAuth } from "./pages/AdminAuth";
 import { CompanySelection } from "./pages/CompanySelection";
 import NotFound from "./pages/NotFound";
 import CompanyDashboard from "./pages/CompanyDashboard";
+import Dashboard1 from "./pages/Dashboard1";
 
 const queryClient = new QueryClient();
 
@@ -104,6 +105,14 @@ const AppContent = () => {
           <>
             <Navigation />
             <Settings />
+          </>
+        </ProtectedRoute>
+      } />
+      <Route path="/dashboard1" element={
+        <ProtectedRoute requireCompany>
+          <>
+            <Navigation />
+            <Dashboard1 />
           </>
         </ProtectedRoute>
       } />
