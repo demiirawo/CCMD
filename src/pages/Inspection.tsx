@@ -237,8 +237,7 @@ const Inspection = () => {
                                         className="text-sm min-h-[100px] resize-y"
                                       />
                                     </div>
-                                    <div className="flex flex-col gap-2">
-                                      <StatusBadge status={evidence.status} />
+                                    <div>
                                       <select
                                         value={evidence.status}
                                         onChange={(e) => updateEvidence(panelIndex, category.id, evidence.id, 'status', e.target.value as StatusType)}
