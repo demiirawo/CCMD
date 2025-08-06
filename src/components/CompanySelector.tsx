@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -35,7 +36,9 @@ export const CompanySelector = () => {
   const [selecting, setSelecting] = useState(false);
 
   useEffect(() => {
-    fetchUserCompanies();
+    if (user?.id) {
+      fetchUserCompanies();
+    }
   }, [user?.id]);
 
   // Auto-select company if slug is provided
@@ -77,9 +80,30 @@ export const CompanySelector = () => {
   }, [companySlug, userCompanies, loading]);
 
   const fetchUserCompanies = async () => {
-    if (!user?.id) return;
+    if (!user?.id) {
+      console.log('No user ID, skipping company fetch');
+      return;
+    }
+
+    console.log('Fetching user companies for:', user.id);
+    console.log('User email:', user.email);
 
     try {
+      // First ensure user setup is complete
+      if (user.email) {
+        console.log('Ensuring user setup is complete...');
+        const { error: setupError } = await supabase.rpc('ensure_user_setup_complete', {
+          user_email: user.email
+        });
+        
+        if (setupError) {
+          console.error('Error ensuring user setup:', setupError);
+        } else {
+          console.log('User setup completed');
+        }
+      }
+
+      // Now fetch user companies with the same query structure as the auth hook
       const { data, error } = await supabase
         .from('user_companies')
         .select(`
@@ -101,13 +125,26 @@ export const CompanySelector = () => {
         `)
         .eq('user_id', user.id);
 
-      if (error) throw error;
-      setUserCompanies(data as UserCompany[] || []);
+      console.log('User companies query result:', { data, error });
+
+      if (error) {
+        console.error('Error fetching user companies:', error);
+        throw error;
+      }
+
+      // Filter out any records with null companies or team_members
+      const validUserCompanies = (data || []).filter(uc => 
+        uc.companies && uc.team_members
+      ) as UserCompany[];
+      
+      console.log('Valid user companies:', validUserCompanies);
+      setUserCompanies(validUserCompanies);
+      
     } catch (error) {
-      console.error('Error fetching user companies:', error);
+      console.error('Error in fetchUserCompanies:', error);
       toast({
         title: "Error",
-        description: "Failed to load your companies.",
+        description: "Failed to load your companies. Please refresh the page.",
         variant: "destructive"
       });
     } finally {
@@ -187,15 +224,33 @@ export const CompanySelector = () => {
   if (userCompanies.length === 0) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
+        <div className="text-center max-w-md mx-auto p-6">
           <Building className="h-16 w-16 mx-auto mb-4 text-muted-foreground opacity-50" />
           <h1 className="text-2xl font-bold mb-2">No Companies Found</h1>
-          <p className="text-muted-foreground">
-            Your email address is not associated with any companies yet.
+          <p className="text-muted-foreground mb-4">
+            Your email address ({user?.email}) is not associated with any companies yet.
           </p>
-          <p className="text-sm text-muted-foreground mt-2">
+          <p className="text-sm text-muted-foreground mb-6">
             Please contact your administrator to be added to a company team.
           </p>
+          
+          <div className="space-y-4">
+            <Button 
+              onClick={fetchUserCompanies}
+              variant="outline"
+              disabled={loading}
+            >
+              {loading ? 'Checking...' : 'Refresh'}
+            </Button>
+            
+            <Button 
+              variant="outline" 
+              onClick={() => supabase.auth.signOut()}
+              className="w-full"
+            >
+              Sign Out
+            </Button>
+          </div>
         </div>
       </div>
     );
