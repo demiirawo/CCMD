@@ -74,14 +74,42 @@ export const CompanySelector = () => {
     try {
       console.log('Fetching companies for email:', user.email);
       
-      const { data, error } = await supabase.rpc('get_user_companies', {
-        user_email: user.email
-      });
+      // Use direct query instead of RPC for now
+      const { data, error } = await supabase
+        .from('team_members')
+        .select(`
+          id,
+          display_name,
+          permission,
+          is_active,
+          companies!inner(
+            id,
+            name,
+            slug,
+            logo_url,
+            theme_color
+          )
+        `)
+        .eq('email', user.email)
+        .eq('is_active', true);
 
       if (error) throw error;
       
-      console.log('User companies result:', data);
-      setUserCompanies(data || []);
+      // Transform the data to match UserCompany interface
+      const transformedData = data?.map(item => ({
+        team_member_id: item.id,
+        company_id: item.companies.id,
+        company_name: item.companies.name,
+        company_slug: item.companies.slug,
+        company_logo_url: item.companies.logo_url,
+        company_theme_color: item.companies.theme_color,
+        display_name: item.display_name,
+        permission: item.permission,
+        is_active: item.is_active
+      })) || [];
+      
+      console.log('User companies result:', transformedData);
+      setUserCompanies(transformedData);
     } catch (error) {
       console.error('Error fetching user companies:', error);
       toast({
