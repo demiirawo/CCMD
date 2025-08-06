@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -9,15 +8,21 @@ import { useToast } from "@/hooks/use-toast";
 import { Building, Users, CheckCircle } from "lucide-react";
 
 interface UserCompany {
-  team_member_id: string;
+  id: string;
   company_id: string;
-  company_name: string;
-  company_slug: string | null;
-  company_logo_url: string | null;
-  company_theme_color: string | null;
-  display_name: string;
-  permission: 'read' | 'edit' | 'company_admin';
+  team_member_id: string;
   is_active: boolean;
+  companies: {
+    id: string;
+    name: string;
+    logo_url: string | null;
+    theme_color: string | null;
+  };
+  team_members: {
+    id: string;
+    name: string;
+    permission: 'read' | 'edit' | 'company_admin';
+  };
 }
 
 export const CompanySelector = () => {
@@ -31,7 +36,7 @@ export const CompanySelector = () => {
 
   useEffect(() => {
     fetchUserCompanies();
-  }, [user?.email]);
+  }, [user?.id]);
 
   // Auto-select company if slug is provided
   useEffect(() => {
@@ -40,22 +45,25 @@ export const CompanySelector = () => {
     if (companySlug && userCompanies.length > 0 && !loading) {
       console.log('Searching for company with slug:', companySlug);
       console.log('Available companies:', userCompanies.map(uc => ({ 
-        id: uc.company_id, 
-        name: uc.company_name,
-        slug: uc.company_slug || uc.company_name.toLowerCase().replace(/\s+/g, '-')
+        id: uc.companies.id, 
+        name: uc.companies.name,
+        slug: uc.companies.name.toLowerCase().replace(/\s+/g, '-')
       })));
       
       const targetCompany = userCompanies.find(uc => 
-        uc.company_id === companySlug || 
-        uc.company_slug === companySlug ||
-        uc.company_name.toLowerCase().replace(/\s+/g, '-') === companySlug
+        uc.companies.id === companySlug || 
+        uc.companies.name.toLowerCase().replace(/\s+/g, '-') === companySlug
       );
       
       console.log('Target company found:', targetCompany);
       
       if (targetCompany) {
-        console.log('Auto-selecting company:', targetCompany.company_name);
-        handleSelectCompany(targetCompany);
+        console.log('Auto-selecting company:', targetCompany.companies.name);
+        handleSelectCompany(
+          targetCompany.id, 
+          targetCompany.company_id, 
+          targetCompany.team_member_id
+        );
       } else {
         console.log('Company not found, redirecting to company selection');
         toast({
@@ -69,47 +77,32 @@ export const CompanySelector = () => {
   }, [companySlug, userCompanies, loading]);
 
   const fetchUserCompanies = async () => {
-    if (!user?.email) return;
+    if (!user?.id) return;
 
     try {
-      console.log('Fetching companies for email:', user.email);
-      
-      // Use direct query with correct column names
       const { data, error } = await supabase
-        .from('team_members')
+        .from('user_companies')
         .select(`
           id,
-          name,
-          permission,
+          company_id,
+          team_member_id,
           is_active,
-          companies!inner(
+          companies:company_id (
             id,
             name,
-            slug,
             logo_url,
             theme_color
+          ),
+          team_members:team_member_id (
+            id,
+            name,
+            permission
           )
         `)
-        .eq('email', user.email)
-        .eq('is_active', true);
+        .eq('user_id', user.id);
 
       if (error) throw error;
-      
-      // Transform the data to match UserCompany interface
-      const transformedData = data?.map(item => ({
-        team_member_id: item.id,
-        company_id: item.companies.id,
-        company_name: item.companies.name,
-        company_slug: item.companies.slug,
-        company_logo_url: item.companies.logo_url,
-        company_theme_color: item.companies.theme_color,
-        display_name: item.name,
-        permission: item.permission,
-        is_active: item.is_active
-      })) || [];
-      
-      console.log('User companies result:', transformedData);
-      setUserCompanies(transformedData);
+      setUserCompanies(data as UserCompany[] || []);
     } catch (error) {
       console.error('Error fetching user companies:', error);
       toast({
@@ -122,40 +115,46 @@ export const CompanySelector = () => {
     }
   };
 
-  const handleSelectCompany = async (userCompany: UserCompany) => {
+  const handleSelectCompany = async (userCompanyId: string, companyId: string, teamMemberId: string) => {
     setSelecting(true);
     try {
-      // First, set all team members for this user to inactive
+      // Set all user companies to inactive
       await supabase
-        .from('team_members')
+        .from('user_companies')
         .update({ is_active: false })
-        .eq('email', user!.email);
+        .eq('user_id', user!.id);
 
-      // Set selected team member as active
+      // Set selected company as active
       const { error: updateError } = await supabase
-        .from('team_members')
+        .from('user_companies')
         .update({ is_active: true })
-        .eq('id', userCompany.team_member_id);
+        .eq('id', userCompanyId);
 
       if (updateError) throw updateError;
+
+      // Get team member details
+      const selectedCompany = userCompanies.find(uc => uc.id === userCompanyId);
+      if (!selectedCompany) throw new Error('Company not found');
 
       // Update or create profile for this company
       const { error: profileError } = await supabase
         .from('profiles')
         .upsert({
           user_id: user!.id,
-          username: userCompany.display_name,
-          active_company_id: userCompany.company_id
+          username: selectedCompany.team_members.name,
+          permission: selectedCompany.team_members.permission,
+          team_member_id: teamMemberId,
+          company_id: companyId
         });
 
       if (profileError) throw profileError;
 
-      // Force refresh the profile in auth context to get updated active_company_id
+      // Force refresh the profile in auth context to get updated company_id
       refreshProfile();
 
       toast({
         title: "Company selected",
-        description: `You're now viewing ${userCompany.company_name}.`
+        description: `You're now viewing ${selectedCompany.companies.name}.`
       });
 
       // Navigate after a short delay to ensure auth context has updated
@@ -206,7 +205,7 @@ export const CompanySelector = () => {
     // Auto-select if only one company and redirect
     const singleCompany = userCompanies[0];
     if (!singleCompany.is_active) {
-      handleSelectCompany(singleCompany);
+      handleSelectCompany(singleCompany.id, singleCompany.company_id, singleCompany.team_member_id);
     }
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -233,39 +232,43 @@ export const CompanySelector = () => {
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {userCompanies.map((userCompany) => (
               <Card 
-                key={userCompany.team_member_id}
+                key={userCompany.id}
                 className={`cursor-pointer transition-all hover:shadow-lg ${
                   userCompany.is_active 
                     ? 'ring-2 ring-primary bg-primary/5' 
                     : 'hover:bg-muted/50'
                 }`}
-                onClick={() => handleSelectCompany(userCompany)}
+                onClick={() => handleSelectCompany(
+                  userCompany.id, 
+                  userCompany.company_id, 
+                  userCompany.team_member_id
+                )}
               >
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      {userCompany.company_logo_url ? (
+                      {userCompany.companies.logo_url ? (
                         <img 
-                          src={userCompany.company_logo_url} 
-                          alt={`${userCompany.company_name} logo`}
+                          src={userCompany.companies.logo_url} 
+                          alt={`${userCompany.companies.name} logo`}
                           className="w-12 h-12 rounded-lg object-cover"
                         />
                       ) : (
                         <div 
                           className="w-12 h-12 rounded-lg flex items-center justify-center text-white font-bold"
                           style={{ 
-                            backgroundColor: userCompany.company_theme_color || '#3b82f6' 
+                            backgroundColor: userCompany.companies.theme_color || '#3b82f6' 
                           }}
                         >
-                          {userCompany.company_name.charAt(0).toUpperCase()}
+                          {userCompany.companies.name.charAt(0).toUpperCase()}
                         </div>
                       )}
                       <div>
-                        <CardTitle className="text-lg">{userCompany.company_name}</CardTitle>
+                        <CardTitle className="text-lg">{userCompany.companies.name}</CardTitle>
                         <CardDescription>
-                          {userCompany.permission === 'company_admin' 
+                          {userCompany.team_members.permission === 'company_admin' 
                             ? 'Company Admin' 
-                            : userCompany.permission === 'edit'
+                            : userCompany.team_members.permission === 'edit'
                             ? 'Editor'
                             : 'Viewer'
                           }
@@ -280,7 +283,7 @@ export const CompanySelector = () => {
                 <CardContent>
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Users className="h-4 w-4" />
-                    <span>Logged in as {userCompany.display_name}</span>
+                    <span>Logged in as {userCompany.team_members.name}</span>
                   </div>
                 </CardContent>
               </Card>

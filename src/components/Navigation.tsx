@@ -1,8 +1,6 @@
-
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
-import { useCurrentCompany } from "@/hooks/useCurrentCompany";
 import { Button } from "@/components/ui/button";
 import { Building2, LogOut, User, Settings } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -10,22 +8,22 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 export const Navigation = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { profile, signOut } = useAuth();
-  const { currentCompany } = useCurrentCompany();
+  const { profile, companies, signOut } = useAuth();
 
   const navItems = [
     { name: "Dashboard", path: "/" },
-    { name: "CQC Checklist", path: "/cqc-checklist" },
     { name: "Meetings", path: "/meetings" },
     { name: "Report", path: "/reports" }
   ];
 
   // Only show settings for company admins and super admins
-  const canAccessSettings = profile?.role === 'admin';
+  const canAccessSettings = profile?.permission === 'company_admin' || profile?.role === 'admin';
   
   if (canAccessSettings) {
     navItems.push({ name: "Settings", path: "/settings" });
   }
+
+  const currentCompany = companies.find(c => c.id === profile?.company_id);
 
   const handleSignOut = async () => {
     await signOut();

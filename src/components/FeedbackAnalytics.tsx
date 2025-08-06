@@ -6,9 +6,8 @@ import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, ResponsiveContai
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { useCurrentCompany } from "@/hooks/useCurrentCompany";
+import { useAuth } from "@/hooks/useAuth";
 import { useTheme } from "@/hooks/useTheme";
-
 const generateInitialData = (meetingDate?: Date) => {
   const months = [];
   const currentDate = meetingDate || new Date();
@@ -28,7 +27,6 @@ const generateInitialData = (meetingDate?: Date) => {
   }
   return months;
 };
-
 const chartConfig = {
   compliments: {
     label: "Compliments",
@@ -47,37 +45,35 @@ const chartConfig = {
     color: "hsl(var(--chart-4))"
   }
 };
-
 interface FeedbackAnalyticsProps {
   meetingDate?: Date;
   meetingId?: string;
 }
-
 export const FeedbackAnalytics = ({
   meetingDate,
   meetingId
 }: FeedbackAnalyticsProps) => {
-  const { companyId } = useCurrentCompany();
+  const { profile } = useAuth();
   useTheme();
   
   const [monthlyData, setMonthlyData] = useState(generateInitialData(meetingDate));
   
   useEffect(() => {
-    if (companyId) {
+    if (profile?.company_id) {
       loadData();
     }
-  }, [companyId, meetingId]);
+  }, [profile?.company_id, meetingId]);
 
   useEffect(() => {
     // Always reload from database when meeting date changes to preserve all data
-    if (companyId) {
+    if (profile?.company_id) {
       loadData();
     }
-  }, [meetingDate, companyId, meetingId]);
+  }, [meetingDate, profile?.company_id, meetingId]);
 
   const loadData = async () => {
-    if (!companyId) return;
-    console.log('🔍 FeedbackAnalytics: Loading data for company_id:', companyId, 'meetingId:', meetingId);
+    if (!profile?.company_id) return;
+    console.log('🔍 FeedbackAnalytics: Loading data for company_id:', profile.company_id, 'meetingId:', meetingId);
     console.log('🔍 FeedbackAnalytics: Props received - meetingDate:', meetingDate, 'meetingId:', meetingId);
     
     try {
@@ -86,7 +82,7 @@ export const FeedbackAnalytics = ({
       const { data: allData, error } = await supabase
         .from('feedback_analytics')
         .select('id, meeting_id, monthly_data, updated_at')
-        .eq('company_id', companyId)
+        .eq('company_id', profile.company_id)
         .order('updated_at', { ascending: false });
 
       console.log('🔍 FeedbackAnalytics: Found all company data:', allData?.length || 0, 'records');
@@ -135,7 +131,7 @@ export const FeedbackAnalytics = ({
       } else {
         console.log('🔍 FeedbackAnalytics: No database data found, trying localStorage backup');
         // Try to load from localStorage backup
-        const backupKey = meetingId ? `feedback_backup_${companyId}_${meetingId}` : `feedback_backup_${companyId}`;
+        const backupKey = meetingId ? `feedback_backup_${profile.company_id}_${meetingId}` : `feedback_backup_${profile.company_id}`;
         const backupData = localStorage.getItem(backupKey);
         if (backupData) {
           try {
@@ -158,7 +154,7 @@ export const FeedbackAnalytics = ({
     } catch (error) {
       console.error('Error loading feedback analytics:', error);
       // Try to load from localStorage backup
-      const backupKey = meetingId ? `feedback_backup_${companyId}_${meetingId}` : `feedback_backup_${companyId}`;
+      const backupKey = meetingId ? `feedback_backup_${profile.company_id}_${meetingId}` : `feedback_backup_${profile.company_id}`;
       const backupData = localStorage.getItem(backupKey);
       if (backupData) {
         try {
@@ -180,10 +176,10 @@ export const FeedbackAnalytics = ({
   };
 
   const saveData = async (newData: any[]) => {
-    if (!companyId) return;
+    if (!profile?.company_id) return;
     
     console.log('🔄 FeedbackAnalytics: Starting save operation', {
-      companyId: companyId,
+      companyId: profile.company_id,
       meetingId,
       dataLength: newData.length,
       timestamp: new Date().toISOString(),
@@ -192,7 +188,7 @@ export const FeedbackAnalytics = ({
     
     try {
       const dataToSave = {
-        company_id: companyId,
+        company_id: profile.company_id,
         meeting_id: meetingId || null,
         monthly_data: newData,
         updated_at: new Date().toISOString()
@@ -204,7 +200,7 @@ export const FeedbackAnalytics = ({
       const { data: existingData } = await supabase
         .from('feedback_analytics')
         .select('id')
-        .eq('company_id', companyId)
+        .eq('company_id', profile.company_id)
         .eq('meeting_id', meetingId || null)
         .maybeSingle();
 
@@ -232,21 +228,20 @@ export const FeedbackAnalytics = ({
       } else {
         console.log('✅ FeedbackAnalytics: Successfully saved to database:', result.data);
         // Save to localStorage as backup
-        const backupKey = meetingId ? `feedback_backup_${companyId}_${meetingId}` : `feedback_backup_${companyId}`;
+        const backupKey = meetingId ? `feedback_backup_${profile.company_id}_${meetingId}` : `feedback_backup_${profile.company_id}`;
         localStorage.setItem(backupKey, JSON.stringify(newData));
         console.log('💾 FeedbackAnalytics: Also saved backup to localStorage:', backupKey);
       }
     } catch (error) {
       console.error('❌ FeedbackAnalytics: Exception in saveData:', error);
       // Save to localStorage as fallback
-      if (companyId) {
-        const backupKey = meetingId ? `feedback_backup_${companyId}_${meetingId}` : `feedback_backup_${companyId}`;
+      if (profile?.company_id) {
+        const backupKey = meetingId ? `feedback_backup_${profile.company_id}_${meetingId}` : `feedback_backup_${profile.company_id}`;
         localStorage.setItem(backupKey, JSON.stringify(newData));
         console.log('💾 FeedbackAnalytics: Exception fallback to localStorage:', backupKey);
       }
     }
   };
-
   const handleCellEdit = (monthIndex: number, field: 'compliments' | 'complaints' | 'suggestions' | 'resolved', value: number) => {
     console.log('🖱️ FeedbackAnalytics: Cell edit triggered', {
       monthIndex,
@@ -265,7 +260,6 @@ export const FeedbackAnalytics = ({
     console.log('📊 FeedbackAnalytics: About to save data:', newData[monthIndex]);
     saveData(newData);
   };
-
   const EditableCell = ({
     value,
     onChange
@@ -294,7 +288,6 @@ export const FeedbackAnalytics = ({
         {value}
       </span>;
   };
-
   const visibleData = monthlyData;
 
   return <div data-analytics="feedback" className="space-y-6 mt-4 p-6 border border-border rounded-lg bg-stone-50">

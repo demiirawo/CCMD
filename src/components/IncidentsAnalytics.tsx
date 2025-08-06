@@ -6,9 +6,8 @@ import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, ResponsiveContai
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { useCurrentCompany } from "@/hooks/useCurrentCompany";
+import { useAuth } from "@/hooks/useAuth";
 import { useTheme } from "@/hooks/useTheme";
-
 const generateInitialData = (meetingDate?: Date) => {
   const months = [];
   const currentDate = meetingDate || new Date();
@@ -28,7 +27,6 @@ const generateInitialData = (meetingDate?: Date) => {
   }
   return months;
 };
-
 const chartConfig = {
   incidents: {
     label: "Incidents",
@@ -47,38 +45,36 @@ const chartConfig = {
     color: "hsl(var(--chart-4))"
   }
 };
-
 interface IncidentsAnalyticsProps {
   meetingDate?: Date;
   meetingId?: string;
 }
-
 export const IncidentsAnalytics = ({
   meetingDate,
   meetingId
 }: IncidentsAnalyticsProps) => {
-  const { companyId } = useCurrentCompany();
+  const { profile } = useAuth();
   useTheme();
   
   const [monthlyData, setMonthlyData] = useState(generateInitialData(meetingDate));
   
   useEffect(() => {
-    if (companyId) {
+    if (profile?.company_id) {
       loadData();
     }
-  }, [companyId, meetingId]);
+  }, [profile?.company_id, meetingId]);
 
   useEffect(() => {
     // Always reload from database when meeting date changes to preserve all data
-    if (companyId) {
+    if (profile?.company_id) {
       loadData();
     }
-  }, [meetingDate, companyId, meetingId]);
+  }, [meetingDate, profile?.company_id, meetingId]);
 
   const loadData = async () => {
-    if (!companyId) return;
+    if (!profile?.company_id) return;
     
-    console.log('🔍 IncidentsAnalytics: Loading data for company_id:', companyId, 'meetingId:', meetingId);
+    console.log('🔍 IncidentsAnalytics: Loading data for company_id:', profile.company_id, 'meetingId:', meetingId);
     console.log('🔍 IncidentsAnalytics: Props received - meetingDate:', meetingDate, 'meetingId:', meetingId);
     
     try {
@@ -87,7 +83,7 @@ export const IncidentsAnalytics = ({
       const { data: allData, error } = await supabase
         .from('incidents_analytics')
         .select('id, meeting_id, monthly_data, updated_at')
-        .eq('company_id', companyId)
+        .eq('company_id', profile.company_id)
         .order('updated_at', { ascending: false });
 
       console.log('🔍 IncidentsAnalytics: Found all company data:', allData?.length || 0, 'records');
@@ -136,7 +132,7 @@ export const IncidentsAnalytics = ({
       } else {
         console.log('🔍 IncidentsAnalytics: No database data found, trying localStorage backup');
         // Try to load from localStorage backup
-        const backupKey = meetingId ? `incidents_backup_${companyId}_${meetingId}` : `incidents_backup_${companyId}`;
+        const backupKey = meetingId ? `incidents_backup_${profile.company_id}_${meetingId}` : `incidents_backup_${profile.company_id}`;
         const backupData = localStorage.getItem(backupKey);
         if (backupData) {
           try {
@@ -158,7 +154,7 @@ export const IncidentsAnalytics = ({
     } catch (error) {
       console.error('Error loading incidents analytics:', error);
       // Try to load from localStorage backup
-      const backupKey = meetingId ? `incidents_backup_${companyId}_${meetingId}` : `incidents_backup_${companyId}`;
+      const backupKey = meetingId ? `incidents_backup_${profile.company_id}_${meetingId}` : `incidents_backup_${profile.company_id}`;
       const backupData = localStorage.getItem(backupKey);
       if (backupData) {
         try {
@@ -177,10 +173,10 @@ export const IncidentsAnalytics = ({
   };
 
   const saveData = async (newData: any[]) => {
-    if (!companyId) return;
+    if (!profile?.company_id) return;
     
     console.log('🔄 IncidentsAnalytics: Starting save operation', {
-      companyId: companyId,
+      companyId: profile.company_id,
       meetingId,
       dataLength: newData.length,
       timestamp: new Date().toISOString(),
@@ -189,7 +185,7 @@ export const IncidentsAnalytics = ({
     
     try {
       const dataToSave = {
-        company_id: companyId,
+        company_id: profile.company_id,
         meeting_id: meetingId || null,
         monthly_data: newData,
         updated_at: new Date().toISOString()
@@ -201,7 +197,7 @@ export const IncidentsAnalytics = ({
       const { data: existingData } = await supabase
         .from('incidents_analytics')
         .select('id')
-        .eq('company_id', companyId)
+        .eq('company_id', profile.company_id)
         .eq('meeting_id', meetingId || null)
         .maybeSingle();
 
@@ -229,21 +225,20 @@ export const IncidentsAnalytics = ({
       } else {
         console.log('✅ IncidentsAnalytics: Successfully saved to database:', result.data);
         // Save to localStorage as backup
-        const backupKey = meetingId ? `incidents_backup_${companyId}_${meetingId}` : `incidents_backup_${companyId}`;
+        const backupKey = meetingId ? `incidents_backup_${profile.company_id}_${meetingId}` : `incidents_backup_${profile.company_id}`;
         localStorage.setItem(backupKey, JSON.stringify(newData));
         console.log('💾 IncidentsAnalytics: Also saved backup to localStorage:', backupKey);
       }
     } catch (error) {
       console.error('❌ IncidentsAnalytics: Exception in saveData:', error);
       // Save to localStorage as fallback
-      if (companyId) {
-        const backupKey = meetingId ? `incidents_backup_${companyId}_${meetingId}` : `incidents_backup_${companyId}`;
+      if (profile?.company_id) {
+        const backupKey = meetingId ? `incidents_backup_${profile.company_id}_${meetingId}` : `incidents_backup_${profile.company_id}`;
         localStorage.setItem(backupKey, JSON.stringify(newData));
         console.log('💾 IncidentsAnalytics: Exception fallback to localStorage:', backupKey);
       }
     }
   };
-
   const handleCellEdit = (monthIndex: number, field: 'incidents' | 'accidents' | 'safeguarding' | 'resolved', value: number) => {
     const newData = [...monthlyData];
     newData[monthIndex] = {
@@ -253,7 +248,6 @@ export const IncidentsAnalytics = ({
     setMonthlyData(newData);
     saveData(newData);
   };
-
   const EditableCell = ({
     value,
     onChange
@@ -287,7 +281,6 @@ export const IncidentsAnalytics = ({
         {value}
       </span>;
   };
-
   const visibleData = monthlyData;
 
   return <div data-analytics="incidents" className="space-y-6 mt-4 p-6 border border-border rounded-lg bg-stone-50">
