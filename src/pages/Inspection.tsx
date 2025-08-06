@@ -217,7 +217,7 @@ const Inspection = () => {
                             {category.evidenceItems.length > 0 && (
                               <div className="space-y-2">
                                 {/* Grid Header */}
-                                <div className="grid grid-cols-3 gap-4 font-semibold border-b pb-2 text-sm">
+                                <div className="grid gap-4 font-semibold border-b pb-2 text-sm" style={{gridTemplateColumns: '2fr 2fr 150px'}}>
                                   <div>Evidence</div>
                                   <div>Comment</div>
                                   <div>Status</div>
@@ -225,7 +225,7 @@ const Inspection = () => {
 
                                 {/* Evidence Rows */}
                                 {category.evidenceItems.map((evidence) => (
-                                  <div key={evidence.id} className="grid grid-cols-3 gap-4 items-start py-2 border-b border-gray-100">
+                                  <div key={evidence.id} className="grid gap-4 items-start py-2 border-b border-gray-100" style={{gridTemplateColumns: '2fr 2fr 150px'}}>
                                     <div>
                                       <Textarea
                                         value={evidence.evidence}
