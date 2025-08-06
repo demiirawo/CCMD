@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { useInspectionData } from "@/hooks/useInspectionData";
 import { StatusBadge } from "@/components/StatusBadge";
+import { cn } from "@/lib/utils";
 
 type StatusType = 'green' | 'amber' | 'red' | 'na';
 
@@ -53,7 +54,7 @@ const DebouncedInput = ({
       value={localValue}
       onChange={handleChange}
       placeholder={placeholder}
-      className={className}
+      className={cn("text-xl font-bold flex items-center gap-2 text-foreground", className)}
       type={type}
     />
   );
