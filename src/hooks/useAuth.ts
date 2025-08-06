@@ -1,3 +1,4 @@
+
 import { useState, useEffect, createContext, useContext } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -86,20 +87,17 @@ export const useAuthProvider = (): AuthContextType => {
     }
   };
 
-  // Enhanced function to ensure user setup is complete
-  const ensureUserSetupComplete = async (userEmail: string, userId: string) => {
+  // Helper function to fetch profile data - needs to be accessible outside useEffect
+  const fetchProfileData = async (userId: string) => {
     try {
-      console.log('=== ensureUserSetupComplete called ===');
-      console.log('User email:', userEmail, 'User ID:', userId);
+      console.log('=== fetchProfileData called ===');
+      console.log('User ID:', userId);
       
-      // First check if team_members records exist for this email
-      const { data: teamMembers, error: teamMembersError } = await supabase
-        .from('team_members')
+      // First check user_companies to see all company assignments
+      const { data: userCompaniesData, error: userCompaniesError } = await supabase
+        .from('user_companies')
         .select(`
-          id,
-          company_id,
-          name,
-          permission,
+          *,
           companies:company_id (
             id,
             name,
@@ -110,115 +108,9 @@ export const useAuthProvider = (): AuthContextType => {
             updated_at
           )
         `)
-        .eq('email', userEmail);
-      
-      console.log('Team members query result:', { teamMembers, teamMembersError });
-      
-      if (teamMembersError) {
-        console.error('Error fetching team members:', teamMembersError);
-        return;
-      }
-      
-      if (!teamMembers || teamMembers.length === 0) {
-        console.log('No team member records found for email:', userEmail);
-        return;
-      }
-      
-      // For each team member record, ensure user_companies entry exists
-      for (const teamMember of teamMembers) {
-        console.log('Processing team member:', teamMember);
-        
-        // Check if user_companies record exists
-        const { data: existingUserCompany } = await supabase
-          .from('user_companies')
-          .select('id')
-          .eq('user_id', userId)
-          .eq('team_member_id', teamMember.id)
-          .eq('company_id', teamMember.company_id)
-          .single();
-        
-        if (!existingUserCompany) {
-          console.log('Creating user_companies record for:', {
-            userId,
-            teamMemberId: teamMember.id,
-            companyId: teamMember.company_id
-          });
-          
-          // Create the user_companies record
-          const { error: insertError } = await supabase
-            .from('user_companies')
-            .insert({
-              user_id: userId,
-              team_member_id: teamMember.id,
-              company_id: teamMember.company_id,
-              is_active: false
-            });
-          
-          if (insertError) {
-            console.error('Error creating user_companies record:', insertError);
-          } else {
-            console.log('Successfully created user_companies record');
-          }
-        }
-      }
-      
-      // Now check if user has a profile, and if they belong to only one company, activate it
-      const { data: userCompanies } = await supabase
-        .from('user_companies')
-        .select('*')
         .eq('user_id', userId);
       
-      console.log('User companies after setup:', userCompanies);
-      
-      // If user belongs to only one company, set it as active and create profile
-      if (userCompanies && userCompanies.length === 1) {
-        const userCompany = userCompanies[0];
-        const teamMember = teamMembers.find(tm => tm.id === userCompany.team_member_id);
-        
-        if (teamMember) {
-          console.log('Setting single company as active and creating profile');
-          
-          // Set company as active
-          await supabase
-            .from('user_companies')
-            .update({ is_active: true })
-            .eq('id', userCompany.id);
-          
-          // Create or update profile
-          const { error: profileError } = await supabase
-            .from('profiles')
-            .upsert({
-              user_id: userId,
-              username: teamMember.name,
-              permission: teamMember.permission,
-              team_member_id: teamMember.id,
-              company_id: teamMember.company_id
-            });
-          
-          if (profileError) {
-            console.error('Error creating/updating profile:', profileError);
-          } else {
-            console.log('Successfully created/updated profile');
-          }
-        }
-      }
-      
-    } catch (error) {
-      console.error('Error in ensureUserSetupComplete:', error);
-    }
-  };
-
-  // Helper function to fetch profile data - now includes setup check
-  const fetchProfileData = async (userId: string) => {
-    try {
-      console.log('=== fetchProfileData called ===');
-      console.log('User ID:', userId);
-      
-      // Get user email from the current user object (available from auth state)
-      if (user?.email) {
-        // Ensure user setup is complete before fetching profile
-        await ensureUserSetupComplete(user.email, userId);
-      }
+      console.log('User companies data:', { userCompaniesData, userCompaniesError });
       
       // Then get the profile
       const { data, error } = await supabase
@@ -235,14 +127,14 @@ export const useAuthProvider = (): AuthContextType => {
       }
       
       setProfile(data);
-      // After setting profile, fetch companies
+      // After setting profile, fetch companies using the new approach
       await fetchCompaniesForUser(userId);
     } catch (error) {
       console.error('Error fetching profile:', error);
     }
   };
 
-  // Enhanced function to fetch companies based on user_companies table
+  // New function to fetch companies based on user_companies table
   const fetchCompaniesForUser = async (userId: string) => {
     try {
       console.log('=== fetchCompaniesForUser called ===');
