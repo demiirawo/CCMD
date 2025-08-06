@@ -213,5 +213,93 @@ export const DashboardSection = ({
         return `bg-white ${baseClass}`;
     }
   };
-  return;
+  const overallStatus = getOverallStatus();
+  const lastUpdated = getLastUpdated();
+
+  const toggleSection = () => {
+    const newState = !isOpen;
+    setIsOpen(newState);
+    sessionStorage.setItem(storageKey, JSON.stringify(newState));
+    onPanelStateChange?.();
+  };
+
+  return (
+    <div className={`rounded-lg border border-gray-200 ${getSectionBackgroundClass(overallStatus)}`}>
+      <div 
+        className="flex items-center justify-between cursor-pointer"
+        onClick={toggleSection}
+      >
+        <div className="flex items-center gap-3">
+          {icon}
+          <div>
+            <h2 className="text-lg font-semibold">{title}</h2>
+            {lastUpdated && (
+              <p className="text-sm opacity-80">Last updated: {lastUpdated}</p>
+            )}
+          </div>
+        </div>
+        
+        <div className="flex items-center gap-4">
+          {getStatusIcon(overallStatus)}
+          <div className="flex items-center gap-2">
+            {statusCounts.green > 0 && (
+              <div className="flex items-center gap-1">
+                <StatusBadge status="green" />
+                <span className="text-sm">{statusCounts.green}</span>
+              </div>
+            )}
+            {statusCounts.amber > 0 && (
+              <div className="flex items-center gap-1">
+                <StatusBadge status="amber" />
+                <span className="text-sm">{statusCounts.amber}</span>
+              </div>
+            )}
+            {statusCounts.red > 0 && (
+              <div className="flex items-center gap-1">
+                <StatusBadge status="red" />
+                <span className="text-sm">{statusCounts.red}</span>
+              </div>
+            )}
+          </div>
+          {isExpanded ? <ChevronDown className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
+        </div>
+      </div>
+
+      {isExpanded && (
+        <div className="mt-4 space-y-4">
+          {items.map((item) => (
+            <StatusItem
+              key={item.id}
+              {...item}
+              onStatusChange={onItemStatusChange}
+              onObservationChange={onItemObservationChange}
+              onTrendsThemesChange={onItemTrendsThemesChange}
+              onLessonsLearnedChange={onItemLessonsLearnedChange}
+              onActionsChange={onItemActionsChange}
+              onDocumentsChange={onItemDocumentsChange}
+              onMetadataChange={onItemMetadataChange}
+              onActionCreated={onActionCreated}
+              onSubsectionActionEdit={onSubsectionActionEdit}
+              onSubsectionActionComplete={onSubsectionActionComplete}
+              onSubsectionActionDelete={onSubsectionActionDelete}
+              attendees={attendees}
+              meetingDate={meetingDate}
+              meetingId={meetingId}
+              readOnly={readOnly}
+            />
+          ))}
+          
+          {!readOnly && onAddItem && (
+            <button
+              onClick={() => onAddItem(title)}
+              className="flex items-center gap-2 text-blue-600 hover:text-blue-700 text-sm font-medium"
+            >
+              <Plus className="w-4 h-4" />
+              Add Item
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
 };

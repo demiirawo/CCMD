@@ -70,186 +70,16 @@ const Dashboard1 = () => {
     attendees: "",
     purpose: "",
     sections: [{
-      id: "meeting-overview",
-      title: "Meeting Overview",
-      icon: <Calendar className="w-6 h-6 text-blue-600" />,
-      items: [{
-        id: "meeting-date",
-        title: "Meeting Date",
-        status: "green" as StatusType,
-        lastReviewed: "Today",
-        observation: "Meeting scheduled for today",
-        trendsThemes: "",
-        actions: [],
-        details: "",
-        metadata: {}
-      }, {
-        id: "meeting-attendees",
-        title: "Meeting Attendees",
-        status: "green" as StatusType,
-        lastReviewed: "Today",
-        observation: "All key staff attending",
-        trendsThemes: "",
-        actions: [],
-        details: "",
-        metadata: {}
-      }, {
-        id: "meeting-purpose",
-        title: "Meeting Purpose",
-        status: "green" as StatusType,
-        lastReviewed: "Today",
-        observation: "Review and planning session",
-        trendsThemes: "",
-        actions: [],
-        details: "",
-        metadata: {}
-      }]
-    }, {
-      id: "staff",
-      title: "Staff",
-      icon: <Users className="w-6 h-6 text-purple-600" />,
-      items: [{
-        id: "recruitment",
-        title: "Resourcing",
-        status: "amber" as StatusType,
-        lastReviewed: "Last week",
-        observation: "Currently recruiting for 2 positions",
-        actions: [],
-        details: "",
-        metadata: {}
-      }, {
-        id: "staff-documents",
-        title: "Staff Documents",
-        status: "green" as StatusType,
-        lastReviewed: "Yesterday",
-        observation: "All documents up to date",
-        actions: [],
-        details: "",
-        metadata: {}
-      }, {
-        id: "training",
-        title: "Training",
-        status: "green" as StatusType,
-        lastReviewed: "This week",
-        observation: "Training compliance at 95%",
-        actions: [],
-        details: "",
-        metadata: {}
-      }, {
-        id: "spot-checks",
-        title: "Spot Checks",
-        status: "green" as StatusType,
-        lastReviewed: "Yesterday",
-        observation: "All spot checks completed",
-        actions: [],
-        details: "",
-        metadata: {}
-      }, {
-        id: "staff-supervisions",
-        title: "Staff Supervisions",
-        status: "amber" as StatusType,
-        lastReviewed: "Last week",
-        observation: "2 supervisions overdue",
-        actions: [],
-        details: "",
-        metadata: {}
-      }, {
-        id: "staff-meetings",
-        title: "Staff Meetings",
-        status: "green" as StatusType,
-        lastReviewed: "Today",
-        observation: "Monthly staff meeting scheduled",
-        actions: [],
-        details: "",
-        metadata: {}
-      }]
-    }, {
-      id: "care-planning",
-      title: "Care Planning & Delivery",
-      icon: <HeartHandshake className="w-6 h-6 text-green-600" />,
-      items: [{
-        id: "care-plans",
-        title: "Care Plans & Risk Assessments",
-        status: "green" as StatusType,
-        lastReviewed: "This week",
-        observation: "All care plans reviewed",
-        actions: [],
-        details: "",
-        metadata: {}
-      }, {
-        id: "service-user-docs",
-        title: "Service User Documents",
-        status: "green" as StatusType,
-        lastReviewed: "Yesterday",
-        observation: "Documentation complete",
-        actions: [],
-        details: "",
-        metadata: {}
-      }, {
-        id: "medication",
-        title: "Medication Management",
-        status: "green" as StatusType,
-        lastReviewed: "Today",
-        observation: "No medication errors",
-        actions: [],
-        details: "",
-        metadata: {}
-      }, {
-        id: "care-notes",
-        title: "Care Notes",
-        status: "amber" as StatusType,
-        lastReviewed: "Yesterday",
-        observation: "Some notes pending review",
-        actions: [],
-        details: "",
-        metadata: {}
-      }, {
-        id: "call-monitoring",
-        title: "Call Monitoring",
-        status: "green" as StatusType,
-        lastReviewed: "This week",
-        observation: "Call monitoring up to date",
-        actions: [],
-        details: "",
-        metadata: {}
-      }, {
-        id: "transportation",
-        title: "Transportation",
-        status: "green" as StatusType,
-        lastReviewed: "Today",
-        observation: "All transport arranged",
-        actions: [],
-        details: "",
-        metadata: {}
-      }]
-    }, {
-      id: "safety",
-      title: "Safety & Compliance",
-      icon: <Shield className="w-6 h-6 text-red-600" />,
+      id: "safe",
+      title: "SAFE",
+      icon: <Shield className="w-6 h-6 text-blue-600" />,
       items: [{
         id: "safeguarding",
         title: "Safeguarding",
         status: "green" as StatusType,
         lastReviewed: "This week",
-        observation: "No safeguarding concerns",
-        actions: [],
-        details: "",
-        metadata: {}
-      }, {
-        id: "incidents",
-        title: "Incidents & Accidents",
-        status: "amber" as StatusType,
-        lastReviewed: "Yesterday",
-        observation: "1 minor incident this week",
-        actions: [],
-        details: "",
-        metadata: {}
-      }, {
-        id: "health-safety",
-        title: "Health & Safety",
-        status: "green" as StatusType,
-        lastReviewed: "Today",
-        observation: "All safety checks complete",
+        observation: "No safeguarding concerns identified",
+        trendsThemes: "",
         actions: [],
         details: "",
         metadata: {}
@@ -257,76 +87,159 @@ const Dashboard1 = () => {
         id: "infection-control",
         title: "Infection Control",
         status: "green" as StatusType,
-        lastReviewed: "This week",
-        observation: "IPC measures in place",
+        lastReviewed: "Yesterday",
+        observation: "All IPC measures in place",
+        trendsThemes: "",
         actions: [],
         details: "",
         metadata: {}
       }, {
-        id: "mental-capacity",
-        title: "Mental Capacity Act",
-        status: "green" as StatusType,
-        lastReviewed: "Last week",
-        observation: "All assessments current",
-        actions: [],
-        details: "",
-        metadata: {}
-      }, {
-        id: "dols",
-        title: "DoLS",
-        status: "green" as StatusType,
-        lastReviewed: "This week",
-        observation: "No DoLS applications needed",
+        id: "medication-safety",
+        title: "Medication Safety",
+        status: "amber" as StatusType,
+        lastReviewed: "Today",
+        observation: "Minor medication storage issues identified",
+        trendsThemes: "",
         actions: [],
         details: "",
         metadata: {}
       }]
     }, {
-      id: "continuous-improvement",
-      title: "Continuous Improvement",
-      icon: <TrendingUp className="w-6 h-6 text-orange-600" />,
+      id: "effective",
+      title: "EFFECTIVE",
+      icon: <Target className="w-6 h-6 text-green-600" />,
       items: [{
-        id: "feedback",
-        title: "Service User & Family Feedback",
+        id: "care-outcomes",
+        title: "Care Outcomes",
         status: "green" as StatusType,
         lastReviewed: "This week",
-        observation: "Positive feedback received",
+        observation: "Positive outcomes achieved for all service users",
+        trendsThemes: "",
         actions: [],
         details: "",
         metadata: {}
       }, {
-        id: "audits",
-        title: "Internal Audits",
+        id: "evidence-based-care",
+        title: "Evidence-Based Care",
+        status: "green" as StatusType,
+        lastReviewed: "Last week",
+        observation: "All care plans based on best practice guidance",
+        trendsThemes: "",
+        actions: [],
+        details: "",
+        metadata: {}
+      }, {
+        id: "staff-competency",
+        title: "Staff Competency",
         status: "amber" as StatusType,
-        lastReviewed: "Last month",
-        observation: "Audit scheduled for next week",
-        actions: [],
-        details: "",
-        metadata: {}
-      }, {
-        id: "action-plans",
-        title: "Action Plans",
-        status: "green" as StatusType,
         lastReviewed: "Yesterday",
-        observation: "Action plans on track",
+        observation: "2 staff members require additional training",
+        trendsThemes: "",
         actions: [],
         details: "",
         metadata: {}
-      }, {
-        id: "complaints",
-        title: "Complaints & Compliments",
-        status: "green" as StatusType,
-        lastReviewed: "This week",
-        observation: "No complaints this month",
-        actions: [],
-        details: "",
-        metadata: {}
-      }, {
-        id: "cqc-compliance",
-        title: "CQC Compliance",
+      }]
+    }, {
+      id: "caring",
+      title: "CARING",
+      icon: <Heart className="w-6 h-6 text-red-600" />,
+      items: [{
+        id: "dignity-respect",
+        title: "Dignity & Respect",
         status: "green" as StatusType,
         lastReviewed: "Today",
-        observation: "Fully compliant",
+        observation: "High standards of dignity maintained",
+        trendsThemes: "",
+        actions: [],
+        details: "",
+        metadata: {}
+      }, {
+        id: "compassionate-care",
+        title: "Compassionate Care",
+        status: "green" as StatusType,
+        lastReviewed: "This week",
+        observation: "Positive feedback on staff compassion",
+        trendsThemes: "",
+        actions: [],
+        details: "",
+        metadata: {}
+      }, {
+        id: "family-involvement",
+        title: "Family Involvement",
+        status: "green" as StatusType,
+        lastReviewed: "Last week",
+        observation: "Regular family engagement maintained",
+        trendsThemes: "",
+        actions: [],
+        details: "",
+        metadata: {}
+      }]
+    }, {
+      id: "responsive",
+      title: "RESPONSIVE",
+      icon: <Users className="w-6 h-6 text-purple-600" />,
+      items: [{
+        id: "individual-needs",
+        title: "Individual Needs",
+        status: "green" as StatusType,
+        lastReviewed: "Yesterday",
+        observation: "Care plans reflect individual preferences",
+        trendsThemes: "",
+        actions: [],
+        details: "",
+        metadata: {}
+      }, {
+        id: "complaints-handling",
+        title: "Complaints Handling",
+        status: "green" as StatusType,
+        lastReviewed: "This week",
+        observation: "No complaints received this month",
+        trendsThemes: "",
+        actions: [],
+        details: "",
+        metadata: {}
+      }, {
+        id: "access-to-services",
+        title: "Access to Services",
+        status: "amber" as StatusType,
+        lastReviewed: "Today",
+        observation: "Some delays in accessing external services",
+        trendsThemes: "",
+        actions: [],
+        details: "",
+        metadata: {}
+      }]
+    }, {
+      id: "well-led",
+      title: "WELL LED",
+      icon: <UserCheck className="w-6 h-6 text-orange-600" />,
+      items: [{
+        id: "leadership-vision",
+        title: "Leadership & Vision",
+        status: "green" as StatusType,
+        lastReviewed: "Last week",
+        observation: "Clear leadership structure in place",
+        trendsThemes: "",
+        actions: [],
+        details: "",
+        metadata: {}
+      }, {
+        id: "governance-systems",
+        title: "Governance Systems",
+        status: "green" as StatusType,
+        lastReviewed: "Yesterday",
+        observation: "Robust governance processes implemented",
+        trendsThemes: "",
+        actions: [],
+        details: "",
+        metadata: {}
+      }, {
+        id: "continuous-improvement",
+        title: "Continuous Improvement",
+        status: "amber" as StatusType,
+        lastReviewed: "Today",
+        observation: "Quality improvement plan in development",
+        trendsThemes: "",
         actions: [],
         details: "",
         metadata: {}

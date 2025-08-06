@@ -43,5 +43,17 @@ export const StatusBadge = ({
       setPrevStatus(status);
     }
   }, [status, prevStatus]);
-  return;
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center justify-center w-8 h-8 text-xs font-bold rounded-full text-white transition-all duration-300",
+        config.className,
+        isChanging && "scale-110 animate-pulse",
+        className
+      )}
+      title={config.title}
+    >
+      {config.label}
+    </span>
+  );
 };
