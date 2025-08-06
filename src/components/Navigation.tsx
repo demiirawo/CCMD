@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -33,7 +32,7 @@ export const Navigation = () => {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   
   const currentCompany = companies.find(c => c.id === profile?.company_id);
-  const companySlug = currentCompany?.slug || currentCompany?.name.toLowerCase().replace(/\s+/g, '-');
+  const companySlug = currentCompany?.name?.toLowerCase().replace(/\s+/g, '-') || '';
 
   const handleSignOut = async () => {
     setIsLoggingOut(true);
@@ -137,8 +136,8 @@ export const Navigation = () => {
               <DropdownMenuContent className="w-56" align="end" forceMount>
                 <div className="flex items-center justify-start gap-2 p-2">
                   <div className="flex flex-col space-y-1 leading-none">
-                    {profile?.full_name && (
-                      <p className="font-medium">{profile.full_name}</p>
+                    {profile?.name && (
+                      <p className="font-medium">{profile.name}</p>
                     )}
                     {user?.email && (
                       <p className="w-[200px] truncate text-sm text-muted-foreground">

@@ -5,17 +5,11 @@ import { useAutoSave } from '@/hooks/useAutoSave';
 import { DashboardHeader } from '@/components/DashboardHeader';
 import { DashboardSection } from '@/components/DashboardSection';
 import { Navigation } from '@/components/Navigation';
+import { StatusItemData } from '@/components/StatusItem';
 
 interface CQCSection {
   title: string;
-  items: Array<{
-    title: string;
-    content: string;
-    status: 'green' | 'amber' | 'red' | 'blue';
-    rag: 'green' | 'amber' | 'red';
-    last_updated: string;
-    assigned_to: string;
-  }>;
+  items: StatusItemData[];
 }
 
 const CQCChecklist: React.FC = () => {
@@ -26,6 +20,19 @@ const CQCChecklist: React.FC = () => {
     role: string;
     email: string;
   }>>([]);
+
+  const [meetingData, setMeetingData] = useState({
+    title: "CQC Assessment Meeting",
+    date: new Date().toLocaleDateString('en-GB', {
+      day: '2-digit',
+      month: '2-digit', 
+      year: 'numeric'
+    }) + ' ' + new Date().toLocaleTimeString('en-GB', {
+      hour: '2-digit',
+      minute: '2-digit'
+    }),
+    purpose: "CQC regulatory assessment and compliance review"
+  });
 
   const [cqcData, setCqcData] = useState<Record<string, CQCSection>>({
     safe: {
@@ -50,7 +57,7 @@ const CQCChecklist: React.FC = () => {
     }
   });
 
-  const handleSectionUpdate = (sectionKey: string, items: any[]) => {
+  const handleSectionUpdate = (sectionKey: string, items: StatusItemData[]) => {
     setCqcData(prev => ({
       ...prev,
       [sectionKey]: {
@@ -64,15 +71,27 @@ const CQCChecklist: React.FC = () => {
     setAttendees(newAttendees);
   };
 
+  const handleDataChange = (field: string, value: string) => {
+    setMeetingData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
   // Auto-save functionality
   useAutoSave({
-    data: { sections: cqcData, attendees },
-    onSave: async (data) => {
-      console.log('Auto-saving CQC checklist data:', data);
-      // Auto-save logic would go here
-    },
+    data: { sections: cqcData, attendees, meetingData },
     delay: 2000
   });
+
+  const getStats = () => {
+    const allItems = Object.values(cqcData).flatMap(section => section.items);
+    return {
+      green: allItems.filter(item => item.status === 'green').length,
+      amber: allItems.filter(item => item.status === 'amber').length,
+      red: allItems.filter(item => item.status === 'red').length
+    };
+  };
 
   if (!user || !profile) {
     return (
@@ -91,44 +110,42 @@ const CQCChecklist: React.FC = () => {
       
       <div className="container mx-auto px-4 py-6 max-w-7xl">
         <DashboardHeader
-          title="CQC Checklist"
-          meetingType="CQC Assessment"
+          title={meetingData.title}
+          date={meetingData.date}
           attendees={attendees}
-          onAttendeesUpdate={handleAttendeesUpdate}
+          purpose={meetingData.purpose}
+          stats={getStats()}
+          onDataChange={handleDataChange}
+          onAttendeesChange={handleAttendeesUpdate}
         />
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
           <DashboardSection
             title="Safe"
-            sectionKey="safe"
             items={cqcData.safe.items}
             onItemsChange={(items) => handleSectionUpdate('safe', items)}
           />
 
           <DashboardSection
             title="Effective"
-            sectionKey="effective"
             items={cqcData.effective.items}
             onItemsChange={(items) => handleSectionUpdate('effective', items)}
           />
 
           <DashboardSection
             title="Caring"
-            sectionKey="caring"
             items={cqcData.caring.items}
             onItemsChange={(items) => handleSectionUpdate('caring', items)}
           />
 
           <DashboardSection
             title="Responsive"
-            sectionKey="responsive"
             items={cqcData.responsive.items}
             onItemsChange={(items) => handleSectionUpdate('responsive', items)}
           />
 
           <DashboardSection
             title="Well-Led"
-            sectionKey="wellLed"
             items={cqcData.wellLed.items}
             onItemsChange={(items) => handleSectionUpdate('wellLed', items)}
           />
