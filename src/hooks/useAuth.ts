@@ -1,3 +1,4 @@
+
 import { useState, useEffect, createContext, useContext } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -5,11 +6,9 @@ import { supabase } from '@/integrations/supabase/client';
 interface Profile {
   id: string;
   user_id: string;
-  company_id: string | null;
-  role: 'admin' | 'user';
   username: string | null;
-  permission: 'read' | 'edit' | 'company_admin';
-  team_member_id: string | null;
+  role: 'admin' | 'user';
+  active_company_id: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -17,6 +16,7 @@ interface Profile {
 interface Company {
   id: string;
   name: string;
+  slug?: string;
   theme_color?: string;
   services?: string[];
   logo_url?: string;
@@ -24,11 +24,24 @@ interface Company {
   updated_at: string;
 }
 
+interface UserCompany {
+  team_member_id: string;
+  company_id: string;
+  company_name: string;
+  company_slug: string | null;
+  company_logo_url: string | null;
+  company_theme_color: string | null;
+  display_name: string;
+  permission: 'read' | 'edit' | 'company_admin';
+  is_active: boolean;
+}
+
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   profile: Profile | null;
   companies: Company[];
+  userCompanies: UserCompany[];
   loading: boolean;
   signUp: (email: string, password: string, username: string, role?: 'admin' | 'user') => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
@@ -56,6 +69,7 @@ export const useAuthProvider = (): AuthContextType => {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [companies, setCompanies] = useState<Company[]>([]);
+  const [userCompanies, setUserCompanies] = useState<UserCompany[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchUserProfile = async () => {
@@ -110,7 +124,58 @@ export const useAuthProvider = (): AuthContextType => {
     }
   };
 
-  // Helper function to fetch profile data - needs to be accessible outside useEffect
+  // Fetch user companies using the new database function
+  const fetchUserCompanies = async (userEmail: string) => {
+    try {
+      console.log('=== fetchUserCompanies called ===');
+      console.log('User email:', userEmail);
+      
+      const { data, error } = await supabase.rpc('get_user_companies', {
+        user_email: userEmail
+      });
+      
+      console.log('User companies query result:', { data, error });
+      
+      if (error) {
+        console.error('Error fetching user companies:', error);
+        return;
+      }
+      
+      // Convert the data to match our UserCompany interface
+      const userCompaniesData: UserCompany[] = (data || []).map((item: any) => ({
+        team_member_id: item.team_member_id,
+        company_id: item.company_id,
+        company_name: item.company_name,
+        company_slug: item.company_slug,
+        company_logo_url: item.company_logo_url,
+        company_theme_color: item.company_theme_color,
+        display_name: item.display_name,
+        permission: item.permission,
+        is_active: item.is_active
+      }));
+      
+      console.log('Setting user companies:', userCompaniesData);
+      setUserCompanies(userCompaniesData);
+      
+      // Also set companies array for backward compatibility
+      const companiesArray: Company[] = userCompaniesData.map(uc => ({
+        id: uc.company_id,
+        name: uc.company_name,
+        slug: uc.company_slug || undefined,
+        theme_color: uc.company_theme_color || undefined,
+        logo_url: uc.company_logo_url || undefined,
+        created_at: '',
+        updated_at: '',
+        services: []
+      }));
+      
+      setCompanies(companiesArray);
+    } catch (error) {
+      console.error('Error fetching user companies:', error);
+    }
+  };
+
+  // Helper function to fetch profile data
   const fetchProfileData = async (userId: string, userEmail?: string) => {
     try {
       console.log('=== fetchProfileData called ===');
@@ -123,6 +188,9 @@ export const useAuthProvider = (): AuthContextType => {
         if (!setupComplete) {
           console.error('Failed to complete user setup');
         }
+        
+        // Fetch user companies
+        await fetchUserCompanies(userEmail);
       }
       
       // Then get the profile
@@ -149,101 +217,26 @@ export const useAuthProvider = (): AuthContextType => {
           
           if (!retryError && retryData) {
             setProfile(retryData);
-            await fetchCompaniesForUser(userId);
           }
         }
         return;
       }
       
       setProfile(data);
-      // After setting profile, fetch companies using the new approach
-      await fetchCompaniesForUser(userId);
     } catch (error) {
       console.error('Error fetching profile:', error);
     }
   };
 
-  // New function to fetch companies based on user_companies table
-  const fetchCompaniesForUser = async (userId: string) => {
-    try {
-      console.log('=== fetchCompaniesForUser called ===');
-      console.log('User ID for company fetch:', userId);
-      
-      const { data: userCompaniesData, error } = await supabase
-        .from('user_companies')
-        .select(`
-          companies:company_id (
-            id,
-            name,
-            theme_color,
-            services,
-            logo_url,
-            created_at,
-            updated_at
-          )
-        `)
-        .eq('user_id', userId);
-      
-      console.log('User companies query result:', { userCompaniesData, error });
-      
-      if (error) {
-        console.error('Error fetching user companies:', error);
-        return;
-      }
-      
-      // Extract companies from the nested structure and filter out nulls
-      const companiesArray = userCompaniesData
-        ?.map(uc => uc.companies)
-        .filter(c => c !== null) || [];
-      
-      console.log('Extracted companies array:', companiesArray);
-      console.log('Setting companies:', companiesArray.length, 'companies found');
-      setCompanies(companiesArray);
-    } catch (error) {
-      console.error('Error fetching companies for user:', error);
-    }
-  };
-
-  // Helper function to fetch companies for a specific profile (legacy method for admin)
-  const fetchCompaniesForProfile = async (profileData: Profile) => {
-    try {
-      console.log('=== fetchCompaniesForProfile called (legacy admin method) ===');
-      console.log('Profile role:', profileData.role, 'Company ID:', profileData.company_id);
-      
-      // For admin users, show all companies (legacy behavior)
-      if (profileData.role === 'admin') {
-        console.log('Fetching all companies for admin user');
-        const { data, error } = await supabase
-          .from('companies')
-          .select('*');
-        
-        console.log('Admin companies fetch result:', { data, error });
-        
-        if (error) {
-          console.error('Error fetching companies:', error);
-          return;
-        }
-        
-        console.log('Setting companies (admin):', data || []);
-        setCompanies(data || []);
-      } else {
-        // For non-admin users, use the new user_companies approach
-        await fetchCompaniesForUser(profileData.user_id);
-      }
-    } catch (error) {
-      console.error('Error fetching companies:', error);
-    }
-  };
-
   const fetchCompanies = async () => {
-    console.log('fetchCompanies called, user:', user?.id);
-    if (!user?.id) {
-      console.log('No user found, returning early');
+    console.log('fetchCompanies called, user:', user?.id, user?.email);
+    if (!user?.email) {
+      console.log('No user email found, returning early');
       return;
     }
     
-    // Use the new user-based company fetching
-    await fetchCompaniesForUser(user.id);
+    // Fetch user companies using email
+    await fetchUserCompanies(user.email);
   };
 
   useEffect(() => {
@@ -271,6 +264,7 @@ export const useAuthProvider = (): AuthContextType => {
           // Clear data when user logs out
           setProfile(null);
           setCompanies([]);
+          setUserCompanies([]);
         }
       }
     );
@@ -297,13 +291,6 @@ export const useAuthProvider = (): AuthContextType => {
       subscription.unsubscribe();
     };
   }, []);
-
-  // Fetch companies when profile changes (legacy support)
-  useEffect(() => {
-    if (profile && profile.role === 'admin') {
-      fetchCompaniesForProfile(profile);
-    }
-  }, [profile]);
 
   const signUp = async (email: string, password: string, username: string, role: 'admin' | 'user' = 'user') => {
     const redirectUrl = `${window.location.origin}/`;
@@ -359,6 +346,7 @@ export const useAuthProvider = (): AuthContextType => {
       setSession(null);
       setProfile(null);
       setCompanies([]);
+      setUserCompanies([]);
       
       return { error: null };
     } catch (error) {
@@ -401,11 +389,11 @@ export const useAuthProvider = (): AuthContextType => {
     
     const { error } = await supabase
       .from('profiles')
-      .update({ company_id: companyId })
+      .update({ active_company_id: companyId })
       .eq('user_id', profile.user_id);
     
     if (!error) {
-      setProfile({ ...profile, company_id: companyId });
+      setProfile({ ...profile, active_company_id: companyId });
       // Clear session storage when switching companies to reset dashboard section states
       sessionStorage.clear();
     }
@@ -425,9 +413,10 @@ export const useAuthProvider = (): AuthContextType => {
     
     if (!error) {
       setCompanies(companies.filter(c => c.id !== companyId));
+      setUserCompanies(userCompanies.filter(uc => uc.company_id !== companyId));
       // If the deleted company was the user's selected company, clear it
-      if (profile.company_id === companyId) {
-        setProfile({ ...profile, company_id: null });
+      if (profile.active_company_id === companyId) {
+        setProfile({ ...profile, active_company_id: null });
       }
     }
     
@@ -439,6 +428,7 @@ export const useAuthProvider = (): AuthContextType => {
     session,
     profile,
     companies,
+    userCompanies,
     loading,
     signUp,
     signIn,

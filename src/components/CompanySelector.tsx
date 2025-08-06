@@ -2,44 +2,24 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Building, Users, CheckCircle } from "lucide-react";
 
-interface UserCompany {
-  id: string;
-  company_id: string;
-  team_member_id: string;
-  is_active: boolean;
-  companies: {
-    id: string;
-    name: string;
-    logo_url: string | null;
-    theme_color: string | null;
-  };
-  team_members: {
-    id: string;
-    name: string;
-    permission: 'read' | 'edit' | 'company_admin';
-  };
-}
-
 export const CompanySelector = () => {
-  const { user, refreshProfile } = useAuth();
+  const { user, userCompanies, selectCompany, refreshProfile } = useAuth();
   const { toast } = useToast();
   const { companySlug } = useParams();
   const navigate = useNavigate();
-  const [userCompanies, setUserCompanies] = useState<UserCompany[]>([]);
   const [loading, setLoading] = useState(true);
   const [selecting, setSelecting] = useState(false);
 
   useEffect(() => {
-    if (user?.id) {
-      fetchUserCompanies();
+    if (user?.id && userCompanies.length >= 0) {
+      setLoading(false);
     }
-  }, [user?.id]);
+  }, [user?.id, userCompanies]);
 
   // Auto-select company if slug is provided
   useEffect(() => {
@@ -48,25 +28,22 @@ export const CompanySelector = () => {
     if (companySlug && userCompanies.length > 0 && !loading) {
       console.log('Searching for company with slug:', companySlug);
       console.log('Available companies:', userCompanies.map(uc => ({ 
-        id: uc.companies.id, 
-        name: uc.companies.name,
-        slug: uc.companies.name.toLowerCase().replace(/\s+/g, '-')
+        id: uc.company_id, 
+        name: uc.company_name,
+        slug: uc.company_slug || uc.company_name.toLowerCase().replace(/\s+/g, '-')
       })));
       
       const targetCompany = userCompanies.find(uc => 
-        uc.companies.id === companySlug || 
-        uc.companies.name.toLowerCase().replace(/\s+/g, '-') === companySlug
+        uc.company_id === companySlug || 
+        uc.company_slug === companySlug ||
+        uc.company_name.toLowerCase().replace(/\s+/g, '-') === companySlug
       );
       
       console.log('Target company found:', targetCompany);
       
       if (targetCompany) {
-        console.log('Auto-selecting company:', targetCompany.companies.name);
-        handleSelectCompany(
-          targetCompany.id, 
-          targetCompany.company_id, 
-          targetCompany.team_member_id
-        );
+        console.log('Auto-selecting company:', targetCompany.company_name);
+        handleSelectCompany(targetCompany.company_id);
       } else {
         console.log('Company not found, redirecting to company selection');
         toast({
@@ -79,119 +56,22 @@ export const CompanySelector = () => {
     }
   }, [companySlug, userCompanies, loading]);
 
-  const fetchUserCompanies = async () => {
-    if (!user?.id) {
-      console.log('No user ID, skipping company fetch');
-      return;
-    }
-
-    console.log('Fetching user companies for:', user.id);
-    console.log('User email:', user.email);
-
-    try {
-      // First ensure user setup is complete
-      if (user.email) {
-        console.log('Ensuring user setup is complete...');
-        const { error: setupError } = await supabase.rpc('ensure_user_setup_complete', {
-          user_email: user.email
-        });
-        
-        if (setupError) {
-          console.error('Error ensuring user setup:', setupError);
-        } else {
-          console.log('User setup completed');
-        }
-      }
-
-      // Now fetch user companies with the same query structure as the auth hook
-      const { data, error } = await supabase
-        .from('user_companies')
-        .select(`
-          id,
-          company_id,
-          team_member_id,
-          is_active,
-          companies:company_id (
-            id,
-            name,
-            logo_url,
-            theme_color
-          ),
-          team_members:team_member_id (
-            id,
-            name,
-            permission
-          )
-        `)
-        .eq('user_id', user.id);
-
-      console.log('User companies query result:', { data, error });
-
-      if (error) {
-        console.error('Error fetching user companies:', error);
-        throw error;
-      }
-
-      // Filter out any records with null companies or team_members
-      const validUserCompanies = (data || []).filter(uc => 
-        uc.companies && uc.team_members
-      ) as UserCompany[];
-      
-      console.log('Valid user companies:', validUserCompanies);
-      setUserCompanies(validUserCompanies);
-      
-    } catch (error) {
-      console.error('Error in fetchUserCompanies:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load your companies. Please refresh the page.",
-        variant: "destructive"
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSelectCompany = async (userCompanyId: string, companyId: string, teamMemberId: string) => {
+  const handleSelectCompany = async (companyId: string) => {
     setSelecting(true);
     try {
-      // Set all user companies to inactive
-      await supabase
-        .from('user_companies')
-        .update({ is_active: false })
-        .eq('user_id', user!.id);
+      const { error } = await selectCompany(companyId);
 
-      // Set selected company as active
-      const { error: updateError } = await supabase
-        .from('user_companies')
-        .update({ is_active: true })
-        .eq('id', userCompanyId);
+      if (error) throw error;
 
-      if (updateError) throw updateError;
-
-      // Get team member details
-      const selectedCompany = userCompanies.find(uc => uc.id === userCompanyId);
+      const selectedCompany = userCompanies.find(uc => uc.company_id === companyId);
       if (!selectedCompany) throw new Error('Company not found');
 
-      // Update or create profile for this company
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .upsert({
-          user_id: user!.id,
-          username: selectedCompany.team_members.name,
-          permission: selectedCompany.team_members.permission,
-          team_member_id: teamMemberId,
-          company_id: companyId
-        });
-
-      if (profileError) throw profileError;
-
-      // Force refresh the profile in auth context to get updated company_id
+      // Force refresh the profile in auth context to get updated active_company_id
       refreshProfile();
 
       toast({
         title: "Company selected",
-        description: `You're now viewing ${selectedCompany.companies.name}.`
+        description: `You're now viewing ${selectedCompany.company_name}.`
       });
 
       // Navigate after a short delay to ensure auth context has updated
@@ -236,11 +116,11 @@ export const CompanySelector = () => {
           
           <div className="space-y-4">
             <Button 
-              onClick={fetchUserCompanies}
+              onClick={() => refreshProfile()}
               variant="outline"
-              disabled={loading}
+              disabled={selecting}
             >
-              {loading ? 'Checking...' : 'Refresh'}
+              {selecting ? 'Checking...' : 'Refresh'}
             </Button>
             
             <Button 
@@ -259,9 +139,7 @@ export const CompanySelector = () => {
   if (userCompanies.length === 1) {
     // Auto-select if only one company and redirect
     const singleCompany = userCompanies[0];
-    if (!singleCompany.is_active) {
-      handleSelectCompany(singleCompany.id, singleCompany.company_id, singleCompany.team_member_id);
-    }
+    handleSelectCompany(singleCompany.company_id);
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -287,58 +165,47 @@ export const CompanySelector = () => {
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {userCompanies.map((userCompany) => (
               <Card 
-                key={userCompany.id}
-                className={`cursor-pointer transition-all hover:shadow-lg ${
-                  userCompany.is_active 
-                    ? 'ring-2 ring-primary bg-primary/5' 
-                    : 'hover:bg-muted/50'
-                }`}
-                onClick={() => handleSelectCompany(
-                  userCompany.id, 
-                  userCompany.company_id, 
-                  userCompany.team_member_id
-                )}
+                key={userCompany.team_member_id}
+                className="cursor-pointer transition-all hover:shadow-lg hover:bg-muted/50"
+                onClick={() => handleSelectCompany(userCompany.company_id)}
               >
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      {userCompany.companies.logo_url ? (
+                      {userCompany.company_logo_url ? (
                         <img 
-                          src={userCompany.companies.logo_url} 
-                          alt={`${userCompany.companies.name} logo`}
+                          src={userCompany.company_logo_url} 
+                          alt={`${userCompany.company_name} logo`}
                           className="w-12 h-12 rounded-lg object-cover"
                         />
                       ) : (
                         <div 
                           className="w-12 h-12 rounded-lg flex items-center justify-center text-white font-bold"
                           style={{ 
-                            backgroundColor: userCompany.companies.theme_color || '#3b82f6' 
+                            backgroundColor: userCompany.company_theme_color || '#3b82f6' 
                           }}
                         >
-                          {userCompany.companies.name.charAt(0).toUpperCase()}
+                          {userCompany.company_name.charAt(0).toUpperCase()}
                         </div>
                       )}
                       <div>
-                        <CardTitle className="text-lg">{userCompany.companies.name}</CardTitle>
+                        <CardTitle className="text-lg">{userCompany.company_name}</CardTitle>
                         <CardDescription>
-                          {userCompany.team_members.permission === 'company_admin' 
+                          {userCompany.permission === 'company_admin' 
                             ? 'Company Admin' 
-                            : userCompany.team_members.permission === 'edit'
+                            : userCompany.permission === 'edit'
                             ? 'Editor'
                             : 'Viewer'
                           }
                         </CardDescription>
                       </div>
                     </div>
-                    {userCompany.is_active && (
-                      <CheckCircle className="h-6 w-6 text-green-500" />
-                    )}
                   </div>
                 </CardHeader>
                 <CardContent>
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Users className="h-4 w-4" />
-                    <span>Logged in as {userCompany.team_members.name}</span>
+                    <span>Logged in as {userCompany.display_name}</span>
                   </div>
                 </CardContent>
               </Card>

@@ -777,51 +777,48 @@ export type Database = {
       }
       profiles: {
         Row: {
+          active_company_id: string | null
           company_id: string | null
           created_at: string
           id: string
-          permission: Database["public"]["Enums"]["user_permission"]
           role: Database["public"]["Enums"]["user_role"]
-          team_member_id: string | null
           updated_at: string
           user_id: string
           username: string | null
         }
         Insert: {
+          active_company_id?: string | null
           company_id?: string | null
           created_at?: string
           id?: string
-          permission?: Database["public"]["Enums"]["user_permission"]
           role?: Database["public"]["Enums"]["user_role"]
-          team_member_id?: string | null
           updated_at?: string
           user_id: string
           username?: string | null
         }
         Update: {
+          active_company_id?: string | null
           company_id?: string | null
           created_at?: string
           id?: string
-          permission?: Database["public"]["Enums"]["user_permission"]
           role?: Database["public"]["Enums"]["user_role"]
-          team_member_id?: string | null
           updated_at?: string
           user_id?: string
           username?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "profiles_company_id_fkey"
-            columns: ["company_id"]
+            foreignKeyName: "profiles_active_company_id_fkey"
+            columns: ["active_company_id"]
             isOneToOne: false
             referencedRelation: "companies"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "profiles_team_member_id_fkey"
-            columns: ["team_member_id"]
+            foreignKeyName: "profiles_company_id_fkey"
+            columns: ["company_id"]
             isOneToOne: false
-            referencedRelation: "team_members"
+            referencedRelation: "companies"
             referencedColumns: ["id"]
           },
         ]
@@ -1136,88 +1133,39 @@ export type Database = {
         Row: {
           company_id: string
           created_at: string
-          email: string | null
+          display_name: string
+          email: string
           id: string
-          name: string
+          is_active: boolean
           permission: Database["public"]["Enums"]["user_permission"]
           updated_at: string
         }
         Insert: {
           company_id: string
           created_at?: string
-          email?: string | null
+          display_name: string
+          email: string
           id?: string
-          name: string
+          is_active?: boolean
           permission?: Database["public"]["Enums"]["user_permission"]
           updated_at?: string
         }
         Update: {
           company_id?: string
           created_at?: string
-          email?: string | null
+          display_name?: string
+          email?: string
           id?: string
-          name?: string
+          is_active?: boolean
           permission?: Database["public"]["Enums"]["user_permission"]
           updated_at?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "fk_team_members_company"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "team_members_company_id_fkey"
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      user_companies: {
-        Row: {
-          company_id: string
-          created_at: string
-          id: string
-          is_active: boolean
-          team_member_id: string
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          company_id: string
-          created_at?: string
-          id?: string
-          is_active?: boolean
-          team_member_id: string
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          company_id?: string
-          created_at?: string
-          id?: string
-          is_active?: boolean
-          team_member_id?: string
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "user_companies_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "user_companies_team_member_id_fkey"
-            columns: ["team_member_id"]
-            isOneToOne: false
-            referencedRelation: "team_members"
             referencedColumns: ["id"]
           },
         ]
@@ -1240,6 +1188,20 @@ export type Database = {
       generate_slug: {
         Args: { input_text: string }
         Returns: string
+      }
+      get_user_companies: {
+        Args: { user_email: string }
+        Returns: {
+          team_member_id: string
+          company_id: string
+          company_name: string
+          company_slug: string
+          company_logo_url: string
+          company_theme_color: string
+          display_name: string
+          permission: Database["public"]["Enums"]["user_permission"]
+          is_active: boolean
+        }[]
       }
       get_user_company_id: {
         Args: Record<PropertyKey, never>
