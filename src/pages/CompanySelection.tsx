@@ -9,15 +9,18 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Building2, Trash2, Search, ChevronDown, Clock } from 'lucide-react';
+import { Plus, Building2, Trash2, Search, ChevronDown, Clock, Settings } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { supabase } from '@/integrations/supabase/client';
+import { UserManagement } from '@/components/UserManagement';
+
 export const CompanySelection = () => {
   const [newCompanyName, setNewCompanyName] = useState('');
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [searchValue, setSearchValue] = useState('');
   const [actionsOpen, setActionsOpen] = useState(false);
+  const [userManagementOpen, setUserManagementOpen] = useState(false);
   const [allActions, setAllActions] = useState<any[]>([]);
   const [actionsLoading, setActionsLoading] = useState(false);
   const {
@@ -28,12 +31,14 @@ export const CompanySelection = () => {
     deleteCompany,
     signOut,
     fetchCompanies,
-    loading: authLoading
+    loading: authLoading,
+    user
   } = useAuth();
-  const {
-    toast
-  } = useToast();
+  const { toast } = useToast();
   const navigate = useNavigate();
+
+  // Check if current user is the super admin
+  const isSuperAdmin = user?.email === 'demi.irawo@care-cuddle.co.uk';
 
   // Debug logging
   console.log('CompanySelection Debug:', {
@@ -50,12 +55,13 @@ export const CompanySelection = () => {
     companies,
     companiesLength: companies.length
   });
+
   const handleRefreshCompanies = async () => {
     console.log('Manually refreshing companies...');
     await fetchCompanies();
   };
+
   const clearAllCompanyData = (companyId: string) => {
-    // Clear all localStorage data related to meetings and forms for new companies
     const keysToRemove: string[] = [];
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
@@ -64,10 +70,9 @@ export const CompanySelection = () => {
       }
     }
     keysToRemove.forEach(key => localStorage.removeItem(key));
-
-    // Also clear any persistent meeting IDs for this company
     localStorage.removeItem(`persistentMeetingId_${companyId}`);
   };
+
   const handleCreateCompany = async () => {
     if (!newCompanyName.trim()) {
       toast({
@@ -78,10 +83,7 @@ export const CompanySelection = () => {
       return;
     }
     setLoading(true);
-    const {
-      data,
-      error
-    } = await createCompany(newCompanyName);
+    const { data, error } = await createCompany(newCompanyName);
     if (error) {
       toast({
         title: 'Error',
@@ -89,7 +91,6 @@ export const CompanySelection = () => {
         variant: 'destructive'
       });
     } else if (data) {
-      // Clear all localStorage data for the new company to ensure blank inputs
       clearAllCompanyData(data.id);
       toast({
         title: 'Success',
@@ -97,17 +98,16 @@ export const CompanySelection = () => {
       });
       setNewCompanyName('');
       setCreateDialogOpen(false);
-      // Automatically select the new company
       await handleSelectCompany(data);
     }
     setLoading(false);
   };
+
   const handleSelectCompany = async (company: any) => {
     console.log('handleSelectCompany called with:', company);
     console.log('Company slug:', company.slug);
     
     try {
-      // First, select the company in the auth context
       console.log('Calling selectCompany with ID:', company.id);
       await selectCompany(company.id);
       console.log('selectCompany completed');
@@ -126,11 +126,10 @@ export const CompanySelection = () => {
       });
     }
   };
+
   const handleDeleteCompany = async (companyId: string) => {
     setLoading(true);
-    const {
-      error
-    } = await deleteCompany(companyId);
+    const { error } = await deleteCompany(companyId);
     if (error) {
       toast({
         title: 'Error',
@@ -169,7 +168,6 @@ export const CompanySelection = () => {
     }
   };
 
-  // Fetch all actions across all companies for admin
   const fetchAllActions = async () => {
     if (profile?.role !== 'admin') return;
     
@@ -210,25 +208,26 @@ export const CompanySelection = () => {
     }
   }, [actionsOpen, profile?.role]);
 
-  // Filter companies based on search - only show when searching
   const filteredCompanies = useMemo(() => {
     if (!searchValue.trim()) return [];
     return companies.filter(company => company.name.toLowerCase().includes(searchValue.toLowerCase()));
   }, [companies, searchValue]);
+
   return <div className="min-h-screen flex items-center justify-center px-4 bg-stone-50">
       <Card className="w-full max-w-2xl">
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
               <CardTitle>Welcome, {profile?.username || 'User'}!</CardTitle>
-              
             </div>
-            <Button variant="outline" onClick={handleSignOut}>
-              Sign Out
-            </Button>
-            <Button variant="outline" onClick={handleRefreshCompanies}>
-              Refresh
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" onClick={handleSignOut}>
+                Sign Out
+              </Button>
+              <Button variant="outline" onClick={handleRefreshCompanies}>
+                Refresh
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -305,6 +304,26 @@ export const CompanySelection = () => {
 
             {!searchValue.trim() && companies.length > 0}
           </div>
+
+          {/* Super Admin User Management Section */}
+          {isSuperAdmin && (
+            <div className="border-t pt-6">
+              <Collapsible open={userManagementOpen} onOpenChange={setUserManagementOpen}>
+                <CollapsibleTrigger asChild>
+                  <Button variant="outline" className="w-full justify-between bg-red-50 border-red-200 text-red-800 hover:bg-red-100">
+                    <div className="flex items-center gap-2">
+                      <Settings className="h-4 w-4" />
+                      Super Admin: User Management
+                    </div>
+                    <ChevronDown className={`h-4 w-4 transition-transform ${userManagementOpen ? 'rotate-180' : ''}`} />
+                  </Button>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="mt-4">
+                  <UserManagement />
+                </CollapsibleContent>
+              </Collapsible>
+            </div>
+          )}
 
           {profile?.role === 'admin' && (
             <div className="border-t pt-6">
