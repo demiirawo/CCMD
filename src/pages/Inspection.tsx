@@ -7,14 +7,19 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { StatusBadge, StatusType } from "@/components/StatusBadge";
 
-interface Category {
+interface Evidence {
   id: string;
-  name: string;
   evidence: string;
   evidenceExplanation: string;
   comment: string;
   status: StatusType;
   lastUpdated: string;
+}
+
+interface Category {
+  id: string;
+  name: string;
+  evidenceItems: Evidence[];
 }
 
 interface Panel {
@@ -74,11 +79,7 @@ const Inspection = () => {
     const newCategory: Category = {
       id: Date.now().toString(),
       name: "New Category",
-      evidence: "",
-      evidenceExplanation: "",
-      comment: "",
-      status: "green",
-      lastUpdated: new Date().toLocaleDateString()
+      evidenceItems: []
     };
 
     setPanels(prev => prev.map((panel, index) => 
@@ -88,14 +89,60 @@ const Inspection = () => {
     ));
   };
 
-  const updateCategory = (panelIndex: number, categoryId: string, field: keyof Category, value: string | StatusType) => {
+  const addEvidence = (panelIndex: number, categoryId: string) => {
+    const newEvidence: Evidence = {
+      id: Date.now().toString(),
+      evidence: "",
+      evidenceExplanation: "",
+      comment: "",
+      status: "green",
+      lastUpdated: new Date().toLocaleDateString()
+    };
+
     setPanels(prev => prev.map((panel, index) => 
       index === panelIndex 
         ? {
             ...panel,
             categories: panel.categories.map(cat => 
               cat.id === categoryId 
-                ? { ...cat, [field]: value, lastUpdated: field !== 'lastUpdated' ? new Date().toLocaleDateString() : cat.lastUpdated }
+                ? { ...cat, evidenceItems: [...cat.evidenceItems, newEvidence] }
+                : cat
+            )
+          }
+        : panel
+    ));
+  };
+
+  const updateCategory = (panelIndex: number, categoryId: string, field: keyof Category, value: string) => {
+    setPanels(prev => prev.map((panel, index) => 
+      index === panelIndex 
+        ? {
+            ...panel,
+            categories: panel.categories.map(cat => 
+              cat.id === categoryId 
+                ? { ...cat, [field]: value }
+                : cat
+            )
+          }
+        : panel
+    ));
+  };
+
+  const updateEvidence = (panelIndex: number, categoryId: string, evidenceId: string, field: keyof Evidence, value: string | StatusType) => {
+    setPanels(prev => prev.map((panel, index) => 
+      index === panelIndex 
+        ? {
+            ...panel,
+            categories: panel.categories.map(cat => 
+              cat.id === categoryId 
+                ? {
+                    ...cat,
+                    evidenceItems: cat.evidenceItems.map(evidence => 
+                      evidence.id === evidenceId 
+                        ? { ...evidence, [field]: value, lastUpdated: field !== 'lastUpdated' ? new Date().toLocaleDateString() : evidence.lastUpdated }
+                        : evidence
+                    )
+                  }
                 : cat
             )
           }
@@ -141,69 +188,95 @@ const Inspection = () => {
                     </div>
 
                     {panel.categories.length > 0 && (
-                      <div className="space-y-4">
-                        {/* Grid Header */}
-                        <div className="grid grid-cols-6 gap-4 font-semibold border-b pb-2">
-                          <div>Category</div>
-                          <div>Evidence</div>
-                          <div>Evidence Explanation</div>
-                          <div>Comment</div>
-                          <div>Status</div>
-                          <div>Last Updated</div>
-                        </div>
-
-                        {/* Grid Rows */}
+                      <div className="space-y-6">
                         {panel.categories.map((category) => (
                           <Card key={category.id} className="p-4">
-                            <div className="grid grid-cols-6 gap-4 items-start">
-                              <div>
+                            <div className="mb-4">
+                              <div className="flex items-center justify-between mb-2">
                                 <Input
                                   value={category.name}
                                   onChange={(e) => updateCategory(panelIndex, category.id, 'name', e.target.value)}
-                                  className="font-medium"
+                                  className="font-medium text-lg max-w-md"
+                                  placeholder="Category name..."
                                 />
-                              </div>
-                              <div>
-                                <Textarea
-                                  value={category.evidence}
-                                  onChange={(e) => updateCategory(panelIndex, category.id, 'evidence', e.target.value)}
-                                  placeholder="Enter evidence..."
-                                  rows={3}
-                                />
-                              </div>
-                              <div>
-                                <Textarea
-                                  value={category.evidenceExplanation}
-                                  onChange={(e) => updateCategory(panelIndex, category.id, 'evidenceExplanation', e.target.value)}
-                                  placeholder="Enter evidence explanation..."
-                                  rows={3}
-                                />
-                              </div>
-                              <div>
-                                <Textarea
-                                  value={category.comment}
-                                  onChange={(e) => updateCategory(panelIndex, category.id, 'comment', e.target.value)}
-                                  placeholder="Enter comment..."
-                                  rows={3}
-                                />
-                              </div>
-                              <div className="flex flex-col gap-2">
-                                <StatusBadge status={category.status} />
-                                <select
-                                  value={category.status}
-                                  onChange={(e) => updateCategory(panelIndex, category.id, 'status', e.target.value as StatusType)}
-                                  className="p-2 border rounded text-sm"
+                                <Button 
+                                  onClick={() => addEvidence(panelIndex, category.id)}
+                                  size="sm"
+                                  className="flex items-center gap-2"
                                 >
-                                  <option value="green">Green</option>
-                                  <option value="amber">Amber</option>
-                                  <option value="red">Red</option>
-                                  <option value="na">N/A</option>
-                                </select>
-                              </div>
-                              <div className="text-sm text-muted-foreground">
-                                {category.lastUpdated}
+                                  <Plus className="h-4 w-4" />
+                                  Add Evidence
+                                </Button>
                               </div>
                             </div>
+
+                            {category.evidenceItems.length > 0 && (
+                              <div className="space-y-2">
+                                {/* Grid Header */}
+                                <div className="grid grid-cols-5 gap-4 font-semibold border-b pb-2 text-sm">
+                                  <div>Evidence</div>
+                                  <div>Evidence Explanation</div>
+                                  <div>Comment</div>
+                                  <div>Status</div>
+                                  <div>Last Updated</div>
+                                </div>
+
+                                {/* Evidence Rows */}
+                                {category.evidenceItems.map((evidence) => (
+                                  <div key={evidence.id} className="grid grid-cols-5 gap-4 items-start py-2 border-b border-gray-100">
+                                    <div>
+                                      <Textarea
+                                        value={evidence.evidence}
+                                        onChange={(e) => updateEvidence(panelIndex, category.id, evidence.id, 'evidence', e.target.value)}
+                                        placeholder="Enter evidence..."
+                                        rows={3}
+                                        className="text-sm"
+                                      />
+                                    </div>
+                                    <div>
+                                      <Textarea
+                                        value={evidence.evidenceExplanation}
+                                        onChange={(e) => updateEvidence(panelIndex, category.id, evidence.id, 'evidenceExplanation', e.target.value)}
+                                        placeholder="Enter evidence explanation..."
+                                        rows={3}
+                                        className="text-sm"
+                                      />
+                                    </div>
+                                    <div>
+                                      <Textarea
+                                        value={evidence.comment}
+                                        onChange={(e) => updateEvidence(panelIndex, category.id, evidence.id, 'comment', e.target.value)}
+                                        placeholder="Enter comment..."
+                                        rows={3}
+                                        className="text-sm"
+                                      />
+                                    </div>
+                                    <div className="flex flex-col gap-2">
+                                      <StatusBadge status={evidence.status} />
+                                      <select
+                                        value={evidence.status}
+                                        onChange={(e) => updateEvidence(panelIndex, category.id, evidence.id, 'status', e.target.value as StatusType)}
+                                        className="p-2 border rounded text-sm"
+                                      >
+                                        <option value="green">Green</option>
+                                        <option value="amber">Amber</option>
+                                        <option value="red">Red</option>
+                                        <option value="na">N/A</option>
+                                      </select>
+                                    </div>
+                                    <div className="text-sm text-muted-foreground">
+                                      {evidence.lastUpdated}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+
+                            {category.evidenceItems.length === 0 && (
+                              <div className="text-center py-4 text-muted-foreground text-sm">
+                                No evidence added yet. Click "Add Evidence" to get started.
+                              </div>
+                            )}
                           </Card>
                         ))}
                       </div>
