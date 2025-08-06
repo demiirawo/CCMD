@@ -5,28 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
-import { StatusBadge, StatusType } from "@/components/StatusBadge";
+import { useInspectionData } from "@/hooks/useInspectionData";
 
-interface Evidence {
-  id: string;
-  evidence: string;
-  comment: string;
-  status: StatusType;
-}
-
-interface Category {
-  id: string;
-  name: string;
-  lastUpdated: string;
-  evidenceItems: Evidence[];
-}
-
-interface Panel {
-  name: string;
-  rating: string;
-  updated: string;
-  categories: Category[];
-}
+type StatusType = 'green' | 'amber' | 'red' | 'na';
 
 const AutoExpandTextarea = ({ value, onChange, placeholder, className }: { 
   value: string; 
@@ -56,125 +37,76 @@ const AutoExpandTextarea = ({ value, onChange, placeholder, className }: {
 };
 
 const Inspection = () => {
-  const [panels, setPanels] = useState<Panel[]>([
-    {
-      name: "SAFE",
-      rating: "G",
-      updated: "06/08/2025",
-      categories: []
-    },
-    {
-      name: "EFFECTIVE", 
-      rating: "G",
-      updated: "06/08/2025",
-      categories: []
-    },
-    {
-      name: "RESPONSIVE",
-      rating: "G", 
-      updated: "06/08/2025",
-      categories: []
-    },
-    {
-      name: "WELL LED",
-      rating: "G",
-      updated: "06/08/2025", 
-      categories: []
-    },
-    {
-      name: "CARING",
-      rating: "G",
-      updated: "06/08/2025",
-      categories: []
-    }
-  ]);
+  const { 
+    panels, 
+    categories, 
+    evidence, 
+    responses, 
+    loading, 
+    isSuperAdmin, 
+    addCategory, 
+    updateCategory, 
+    addEvidence, 
+    updateEvidence, 
+    updateResponse 
+  } = useInspectionData();
 
-  const [expandedPanels, setExpandedPanels] = useState<Set<number>>(new Set());
+  const [expandedPanels, setExpandedPanels] = useState<Set<string>>(new Set());
 
-  const togglePanel = (index: number) => {
+  const togglePanel = (panelId: string) => {
     const newExpanded = new Set(expandedPanels);
-    if (newExpanded.has(index)) {
-      newExpanded.delete(index);
+    if (newExpanded.has(panelId)) {
+      newExpanded.delete(panelId);
     } else {
-      newExpanded.add(index);
+      newExpanded.add(panelId);
     }
     setExpandedPanels(newExpanded);
   };
 
-  const addCategory = (panelIndex: number) => {
-    const newCategory: Category = {
-      id: Date.now().toString(),
-      name: "New Category",
-      lastUpdated: new Date().toLocaleDateString(),
-      evidenceItems: []
-    };
-
-    setPanels(prev => prev.map((panel, index) => 
-      index === panelIndex 
-        ? { ...panel, categories: [...panel.categories, newCategory] }
-        : panel
-    ));
+  const handleAddCategory = async (panelId: string) => {
+    await addCategory(panelId, "New Category");
   };
 
-  const addEvidence = (panelIndex: number, categoryId: string) => {
-    const newEvidence: Evidence = {
-      id: Date.now().toString(),
-      evidence: "",
-      comment: "",
-      status: "green"
-    };
-
-    setPanels(prev => prev.map((panel, index) => 
-      index === panelIndex 
-        ? {
-            ...panel,
-            categories: panel.categories.map(cat => 
-              cat.id === categoryId 
-                ? { ...cat, evidenceItems: [...cat.evidenceItems, newEvidence], lastUpdated: new Date().toLocaleDateString() }
-                : cat
-            )
-          }
-        : panel
-    ));
+  const handleAddEvidence = async (categoryId: string) => {
+    await addEvidence(categoryId, "");
   };
 
-  const updateCategory = (panelIndex: number, categoryId: string, field: keyof Category, value: string) => {
-    setPanels(prev => prev.map((panel, index) => 
-      index === panelIndex 
-        ? {
-            ...panel,
-            categories: panel.categories.map(cat => 
-              cat.id === categoryId 
-                ? { ...cat, [field]: value }
-                : cat
-            )
-          }
-        : panel
-    ));
+  const getResponseForEvidence = (evidenceId: string) => {
+    return responses.find(r => r.evidence_id === evidenceId);
   };
 
-  const updateEvidence = (panelIndex: number, categoryId: string, evidenceId: string, field: keyof Evidence, value: string | StatusType) => {
-    setPanels(prev => prev.map((panel, index) => 
-      index === panelIndex 
-        ? {
-            ...panel,
-            categories: panel.categories.map(cat => 
-              cat.id === categoryId 
-                ? {
-                    ...cat,
-                    lastUpdated: new Date().toLocaleDateString(),
-                    evidenceItems: cat.evidenceItems.map(evidence => 
-                      evidence.id === evidenceId 
-                        ? { ...evidence, [field]: value }
-                        : evidence
-                    )
-                  }
-                : cat
-            )
-          }
-        : panel
-    ));
+  const getCategoriesForPanel = (panelId: string) => {
+    return categories.filter(cat => cat.panel_id === panelId);
   };
+
+  const getEvidenceForCategory = (categoryId: string) => {
+    return evidence.filter(ev => ev.category_id === categoryId);
+  };
+
+  const getCategoryLastUpdated = (categoryId: string) => {
+    const categoryEvidence = evidence.filter(ev => ev.category_id === categoryId);
+    const categoryResponses = responses.filter(r => 
+      categoryEvidence.some(ev => ev.id === r.evidence_id)
+    );
+    
+    if (categoryResponses.length === 0) return 'No updates';
+    
+    const lastUpdate = Math.max(...categoryResponses.map(r => new Date(r.updated_at).getTime()));
+    return new Date(lastUpdate).toLocaleDateString();
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navigation />
+        <div className="pt-20 px-6">
+          <div className="max-w-7xl mx-auto">
+            <div className="text-center py-12">Loading inspection data...</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -182,18 +114,18 @@ const Inspection = () => {
       <div className="pt-20 px-6">
         <div className="max-w-7xl mx-auto">
           <div className="space-y-4">
-            {panels.map((panel, panelIndex) => (
-              <div key={panelIndex} className="bg-green-600 text-white rounded-lg overflow-hidden">
+            {panels.map((panel) => (
+              <div key={panel.id} className="bg-green-600 text-white rounded-lg overflow-hidden">
                 <div 
                   className="p-6 flex items-center justify-between hover:bg-green-700 transition-colors cursor-pointer"
-                  onClick={() => togglePanel(panelIndex)}
+                  onClick={() => togglePanel(panel.id)}
                 >
                   <div className="flex-1">
                     <h2 className="text-xl font-semibold mb-1">{panel.name}</h2>
-                    <p className="text-green-100 text-sm">Updated: {panel.updated}</p>
+                    <p className="text-green-100 text-sm">Updated: {new Date(panel.updated_at).toLocaleDateString()}</p>
                   </div>
                   <div className="flex items-center gap-4">
-                    {expandedPanels.has(panelIndex) ? (
+                    {expandedPanels.has(panel.id) ? (
                       <ChevronDown className="h-6 w-6 text-white/80" />
                     ) : (
                       <ChevronRight className="h-6 w-6 text-white/80" />
@@ -201,47 +133,55 @@ const Inspection = () => {
                   </div>
                 </div>
 
-                {expandedPanels.has(panelIndex) && (
+                {expandedPanels.has(panel.id) && (
                   <div className="bg-white text-black p-6">
-                    <div className="mb-4">
-                      <Button 
-                        onClick={() => addCategory(panelIndex)}
-                        className="flex items-center gap-2"
-                      >
-                        <Plus className="h-4 w-4" />
-                        Add Category
-                      </Button>
-                    </div>
+                    {isSuperAdmin && (
+                      <div className="mb-4">
+                        <Button 
+                          onClick={() => handleAddCategory(panel.id)}
+                          className="flex items-center gap-2"
+                        >
+                          <Plus className="h-4 w-4" />
+                          Add Category
+                        </Button>
+                      </div>
+                    )}
 
-                    {panel.categories.length > 0 && (
+                    {getCategoriesForPanel(panel.id).length > 0 && (
                       <div className="space-y-6">
-                        {panel.categories.map((category) => (
+                        {getCategoriesForPanel(panel.id).map((category) => (
                           <Card key={category.id} className="p-4">
                             <div className="mb-4">
                               <div className="flex items-center justify-between mb-2">
                                 <div className="flex items-center gap-4">
-                                  <Input
-                                    value={category.name}
-                                    onChange={(e) => updateCategory(panelIndex, category.id, 'name', e.target.value)}
-                                    className="font-medium text-lg max-w-md"
-                                    placeholder="Category name..."
-                                  />
+                                  {isSuperAdmin ? (
+                                    <Input
+                                      value={category.name}
+                                      onChange={(e) => updateCategory(category.id, e.target.value)}
+                                      className="font-medium text-lg max-w-md"
+                                      placeholder="Category name..."
+                                    />
+                                  ) : (
+                                    <h3 className="font-medium text-lg">{category.name}</h3>
+                                  )}
                                   <span className="text-sm text-muted-foreground">
-                                    Last updated: {category.lastUpdated}
+                                    Last updated: {getCategoryLastUpdated(category.id)}
                                   </span>
                                 </div>
-                                <Button 
-                                  onClick={() => addEvidence(panelIndex, category.id)}
-                                  size="sm"
-                                  className="flex items-center gap-2"
-                                >
-                                  <Plus className="h-4 w-4" />
-                                  Add Evidence
-                                </Button>
+                                {isSuperAdmin && (
+                                  <Button 
+                                    onClick={() => handleAddEvidence(category.id)}
+                                    size="sm"
+                                    className="flex items-center gap-2"
+                                  >
+                                    <Plus className="h-4 w-4" />
+                                    Add Evidence
+                                  </Button>
+                                )}
                               </div>
                             </div>
 
-                            {category.evidenceItems.length > 0 && (
+                            {getEvidenceForCategory(category.id).length > 0 && (
                               <div className="space-y-2">
                                 {/* Grid Header */}
                                 <div className="grid gap-4 font-semibold border-b pb-2 text-sm" style={{gridTemplateColumns: '2fr 2fr 150px'}}>
@@ -251,49 +191,58 @@ const Inspection = () => {
                                 </div>
 
                                 {/* Evidence Rows */}
-                                {category.evidenceItems.map((evidence) => (
-                                  <div key={evidence.id} className="grid gap-4 items-start py-2 border-b border-gray-100" style={{gridTemplateColumns: '2fr 2fr 150px'}}>
-                                    <div>
-                                      <AutoExpandTextarea
-                                        value={evidence.evidence}
-                                        onChange={(e) => updateEvidence(panelIndex, category.id, evidence.id, 'evidence', e.target.value)}
-                                        placeholder="Enter evidence..."
-                                        className="text-sm"
-                                      />
+                                {getEvidenceForCategory(category.id).map((evidenceItem) => {
+                                  const response = getResponseForEvidence(evidenceItem.id);
+                                  return (
+                                    <div key={evidenceItem.id} className="grid gap-4 items-start py-2 border-b border-gray-100" style={{gridTemplateColumns: '2fr 2fr 150px'}}>
+                                      <div>
+                                        {isSuperAdmin ? (
+                                          <AutoExpandTextarea
+                                            value={evidenceItem.evidence_text}
+                                            onChange={(e) => updateEvidence(evidenceItem.id, e.target.value)}
+                                            placeholder="Enter evidence..."
+                                            className="text-sm"
+                                          />
+                                        ) : (
+                                          <div className="text-sm p-2 bg-gray-50 rounded">
+                                            {evidenceItem.evidence_text || "No evidence provided"}
+                                          </div>
+                                        )}
+                                      </div>
+                                      <div>
+                                        <AutoExpandTextarea
+                                          value={response?.comment || ''}
+                                          onChange={(e) => updateResponse(evidenceItem.id, 'comment', e.target.value)}
+                                          placeholder="Enter comment..."
+                                          className="text-sm"
+                                        />
+                                      </div>
+                                      <div>
+                                        <select
+                                          value={response?.status || 'green'}
+                                          onChange={(e) => updateResponse(evidenceItem.id, 'status', e.target.value)}
+                                          className={`p-2 border rounded text-sm font-medium ${
+                                            (response?.status || 'green') === 'green' ? 'bg-green-100 text-green-800 border-green-300' :
+                                            (response?.status || 'green') === 'amber' ? 'bg-yellow-100 text-yellow-800 border-yellow-300' :
+                                            (response?.status || 'green') === 'red' ? 'bg-red-100 text-red-800 border-red-300' :
+                                            'bg-gray-100 text-gray-800 border-gray-300'
+                                          }`}
+                                        >
+                                          <option value="green">Green</option>
+                                          <option value="amber">Amber</option>
+                                          <option value="red">Red</option>
+                                          <option value="na">N/A</option>
+                                        </select>
+                                      </div>
                                     </div>
-                                    <div>
-                                      <AutoExpandTextarea
-                                        value={evidence.comment}
-                                        onChange={(e) => updateEvidence(panelIndex, category.id, evidence.id, 'comment', e.target.value)}
-                                        placeholder="Enter comment..."
-                                        className="text-sm"
-                                      />
-                                    </div>
-                                    <div>
-                                      <select
-                                        value={evidence.status}
-                                        onChange={(e) => updateEvidence(panelIndex, category.id, evidence.id, 'status', e.target.value as StatusType)}
-                                        className={`p-2 border rounded text-sm font-medium ${
-                                          evidence.status === 'green' ? 'bg-green-100 text-green-800 border-green-300' :
-                                          evidence.status === 'amber' ? 'bg-yellow-100 text-yellow-800 border-yellow-300' :
-                                          evidence.status === 'red' ? 'bg-red-100 text-red-800 border-red-300' :
-                                          'bg-gray-100 text-gray-800 border-gray-300'
-                                        }`}
-                                      >
-                                        <option value="green">Green</option>
-                                        <option value="amber">Amber</option>
-                                        <option value="red">Red</option>
-                                        <option value="na">N/A</option>
-                                      </select>
-                                    </div>
-                                  </div>
-                                ))}
+                                  );
+                                })}
                               </div>
                             )}
 
-                            {category.evidenceItems.length === 0 && (
+                            {getEvidenceForCategory(category.id).length === 0 && (
                               <div className="text-center py-4 text-muted-foreground text-sm">
-                                No evidence added yet. Click "Add Evidence" to get started.
+                                {isSuperAdmin ? "No evidence added yet. Click 'Add Evidence' to get started." : "No evidence available for this category."}
                               </div>
                             )}
                           </Card>
@@ -301,9 +250,9 @@ const Inspection = () => {
                       </div>
                     )}
 
-                    {panel.categories.length === 0 && (
+                    {getCategoriesForPanel(panel.id).length === 0 && (
                       <div className="text-center py-8 text-muted-foreground">
-                        No categories added yet. Click "Add Category" to get started.
+                        {isSuperAdmin ? "No categories added yet. Click 'Add Category' to get started." : "No categories available for this panel."}
                       </div>
                     )}
                   </div>

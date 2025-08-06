@@ -439,6 +439,132 @@ export type Database = {
           },
         ]
       }
+      inspection_categories: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          panel_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          panel_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          panel_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inspection_categories_panel_id_fkey"
+            columns: ["panel_id"]
+            isOneToOne: false
+            referencedRelation: "inspection_panels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inspection_company_responses: {
+        Row: {
+          comment: string | null
+          company_id: string
+          created_at: string
+          evidence_id: string
+          id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          comment?: string | null
+          company_id: string
+          created_at?: string
+          evidence_id: string
+          id?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          comment?: string | null
+          company_id?: string
+          created_at?: string
+          evidence_id?: string
+          id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inspection_company_responses_evidence_id_fkey"
+            columns: ["evidence_id"]
+            isOneToOne: false
+            referencedRelation: "inspection_evidence"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inspection_evidence: {
+        Row: {
+          category_id: string
+          created_at: string
+          evidence_text: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          category_id: string
+          created_at?: string
+          evidence_text: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          category_id?: string
+          created_at?: string
+          evidence_text?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inspection_evidence_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "inspection_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inspection_panels: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          rating: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          rating?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          rating?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       key_documents: {
         Row: {
           comment: string | null
@@ -1157,6 +1283,10 @@ export type Database = {
       generate_slug: {
         Args: { input_text: string }
         Returns: string
+      }
+      get_user_accessible_company_ids: {
+        Args: Record<PropertyKey, never>
+        Returns: string[]
       }
       get_user_company_id: {
         Args: Record<PropertyKey, never>
