@@ -231,7 +231,13 @@ const Inspection = () => {
                                         value={evidence.evidence}
                                         onChange={(e) => updateEvidence(panelIndex, category.id, evidence.id, 'evidence', e.target.value)}
                                         placeholder="Enter evidence..."
-                                        className="text-sm min-h-[100px] resize-y"
+                                        className="text-sm resize-none overflow-hidden"
+                                        style={{ height: 'auto', minHeight: '60px' }}
+                                        onInput={(e) => {
+                                          const target = e.target as HTMLTextAreaElement;
+                                          target.style.height = 'auto';
+                                          target.style.height = target.scrollHeight + 'px';
+                                        }}
                                       />
                                     </div>
                                     <div>
