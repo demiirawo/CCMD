@@ -114,6 +114,18 @@ const Inspection = () => {
     return 'green';
   };
 
+  const cycleStatus = (currentStatus: StatusType): StatusType => {
+    const statusOrder: StatusType[] = ['green', 'amber', 'red', 'na'];
+    const currentIndex = statusOrder.indexOf(currentStatus);
+    const nextIndex = (currentIndex + 1) % statusOrder.length;
+    return statusOrder[nextIndex];
+  };
+
+  const handleStatusClick = (evidenceId: string, currentStatus: StatusType) => {
+    const newStatus = cycleStatus(currentStatus);
+    updateResponse(evidenceId, 'status', newStatus);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
@@ -204,7 +216,7 @@ const Inspection = () => {
                             {getEvidenceForCategory(category.id).length > 0 && (
                               <div className="space-y-2">
                                 {/* Grid Header */}
-                                <div className="grid gap-4 font-semibold border-b pb-2 text-sm" style={{gridTemplateColumns: '2fr 2fr 150px'}}>
+                                <div className="grid gap-4 font-semibold border-b pb-2 text-sm" style={{gridTemplateColumns: '2fr 2fr 100px'}}>
                                   <div>Evidence</div>
                                   <div>Comment</div>
                                   <div>Status</div>
@@ -214,7 +226,7 @@ const Inspection = () => {
                                 {getEvidenceForCategory(category.id).map((evidenceItem) => {
                                   const response = getResponseForEvidence(evidenceItem.id);
                                   return (
-                                    <div key={evidenceItem.id} className="grid gap-4 items-start py-2 border-b border-gray-100" style={{gridTemplateColumns: '2fr 2fr 150px'}}>
+                                    <div key={evidenceItem.id} className="grid gap-4 items-start py-2 border-b border-gray-100" style={{gridTemplateColumns: '2fr 2fr 100px'}}>
                                       <div>
                                         {isSuperAdmin ? (
                                           <AutoExpandTextarea
@@ -237,23 +249,12 @@ const Inspection = () => {
                                           className="text-sm"
                                         />
                                       </div>
-                                      <div>
-                                        <select
-                                          value={response?.status || 'green'}
-                                          onChange={(e) => updateResponse(evidenceItem.id, 'status', e.target.value)}
-                                          className={`p-2 border rounded text-sm font-medium ${
-                                            (response?.status || 'green') === 'green' ? 'bg-green-100 text-green-800 border-green-300' :
-                                            (response?.status || 'green') === 'amber' ? 'bg-yellow-100 text-yellow-800 border-yellow-300' :
-                                            (response?.status || 'green') === 'red' ? 'bg-red-100 text-red-800 border-red-300' :
-                                            'bg-gray-100 text-gray-800 border-gray-300'
-                                          }`}
-                                        >
-                                          <option value="green">Green</option>
-                                          <option value="amber">Amber</option>
-                                          <option value="red">Red</option>
-                                          <option value="na">N/A</option>
-                                        </select>
-                                      </div>
+                                       <div className="flex justify-center">
+                                         <StatusBadge 
+                                           status={(response?.status || 'green') as StatusType}
+                                           onClick={() => handleStatusClick(evidenceItem.id, (response?.status || 'green') as StatusType)}
+                                         />
+                                       </div>
                                     </div>
                                   );
                                 })}

@@ -7,6 +7,8 @@ export type StatusType = "green" | "amber" | "red" | "na";
 interface StatusBadgeProps {
   status: StatusType;
   className?: string;
+  onClick?: () => void;
+  disabled?: boolean;
 }
 
 const statusConfig = {
@@ -34,7 +36,9 @@ const statusConfig = {
 
 export const StatusBadge = ({
   status,
-  className
+  className,
+  onClick,
+  disabled = false
 }: StatusBadgeProps) => {
   const config = statusConfig[status];
   const [isChanging, setIsChanging] = useState(false);
@@ -54,10 +58,13 @@ export const StatusBadge = ({
     <div
       className={cn(
         "relative inline-flex items-center justify-center transition-all duration-300",
+        onClick && !disabled && "cursor-pointer hover:scale-105",
+        disabled && "opacity-50 cursor-not-allowed",
         isChanging && "scale-110",
         className
       )}
       title={config.title}
+      onClick={onClick && !disabled ? onClick : undefined}
     >
       <Square 
         className={cn("w-12 h-12", config.className)} 
