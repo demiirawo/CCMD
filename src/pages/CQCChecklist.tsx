@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -21,6 +20,7 @@ interface CQCEvidence {
   rag_status: 'green' | 'amber' | 'red';
   comment: string;
   last_reviewed: string;
+  tags: string[];
 }
 
 export const CQCChecklist = () => {
@@ -120,6 +120,7 @@ export const CQCChecklist = () => {
           explanation: 'Click to edit explanation',
           rag_status: 'green',
           comment: '',
+          tags: [],
           company_id: profile?.company_id
         }])
         .select()

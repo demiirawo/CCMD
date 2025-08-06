@@ -12,6 +12,7 @@ interface CQCEvidence {
   rag_status: 'green' | 'amber' | 'red';
   comment: string;
   last_reviewed: string;
+  tags: string[];
 }
 
 interface CQCCategory {
@@ -29,6 +30,22 @@ interface CQCSectionProps {
   onAddEvidence: (categoryId: string) => void;
   onDeleteEvidence: (evidenceId: string) => void;
 }
+
+// Common dashboard subsection tags
+const AVAILABLE_TAGS = [
+  'Staff Documents',
+  'Staff Training',
+  'Supervision',
+  'Incidents',
+  'Feedback',
+  'Care Plans',
+  'Medication',
+  'Spot Checks',
+  'Care Notes',
+  'Service User Documents',
+  'Key Documents',
+  'Resourcing'
+];
 
 export const CQCSection = ({
   title,
@@ -57,6 +74,18 @@ export const CQCSection = ({
       default:
         return 'bg-green-50 border-green-200';
     }
+  };
+
+  const handleTagChange = (evidenceId: string, tag: string, isChecked: boolean) => {
+    const evidence = categories.flatMap(cat => cat.evidence).find(e => e.id === evidenceId);
+    if (!evidence) return;
+
+    const currentTags = evidence.tags || [];
+    const newTags = isChecked 
+      ? [...currentTags, tag]
+      : currentTags.filter(t => t !== tag);
+    
+    onEvidenceChange(evidenceId, 'tags', newTags);
   };
 
   return (
@@ -122,6 +151,35 @@ export const CQCSection = ({
                     ) : (
                       <p className="text-muted-foreground mb-3">{evidenceItem.explanation}</p>
                     )}
+
+                    {/* Tags Section */}
+                    <div className="mb-3">
+                      <label className="block text-sm font-medium mb-2">Dashboard Subsections (Tags)</label>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                        {AVAILABLE_TAGS.map(tag => (
+                          <label key={tag} className="flex items-center space-x-2 text-sm">
+                            <input
+                              type="checkbox"
+                              checked={(evidenceItem.tags || []).includes(tag)}
+                              onChange={(e) => handleTagChange(evidenceItem.id, tag, e.target.checked)}
+                              className="rounded border-gray-300 text-primary focus:ring-primary"
+                            />
+                            <span className="truncate" title={tag}>{tag}</span>
+                          </label>
+                        ))}
+                      </div>
+                      {evidenceItem.tags && evidenceItem.tags.length > 0 && (
+                        <div className="mt-2">
+                          <div className="flex flex-wrap gap-1">
+                            {evidenceItem.tags.map(tag => (
+                              <span key={tag} className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-primary/10 text-primary">
+                                {tag}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
                     
                     <div className="flex items-center justify-between gap-4">
                       <div className="flex items-center gap-4 flex-1">

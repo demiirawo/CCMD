@@ -374,6 +374,7 @@ export type Database = {
           id: string
           last_reviewed: string
           rag_status: string
+          tags: string[] | null
           title: string
           updated_at: string
         }
@@ -386,6 +387,7 @@ export type Database = {
           id?: string
           last_reviewed?: string
           rag_status?: string
+          tags?: string[] | null
           title: string
           updated_at?: string
         }
@@ -398,6 +400,7 @@ export type Database = {
           id?: string
           last_reviewed?: string
           rag_status?: string
+          tags?: string[] | null
           title?: string
           updated_at?: string
         }
