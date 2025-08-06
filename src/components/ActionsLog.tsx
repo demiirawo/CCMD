@@ -166,8 +166,8 @@ export const ActionsLog = ({
     return isNaN(diffDays) ? 0 : diffDays;
   };
 
-  // Calculate overall status for background color
-  const getOverallActionStatus = (): 'green' | 'amber' | 'red' => {
+  // Calculate overall status for background color - simplified to green/red only
+  const getOverallActionStatus = (): 'green' | 'red' => {
     const activeActions = actions.filter(action => !action.closed);
     
     // Check if any actions are overdue (red)
@@ -176,18 +176,8 @@ export const ActionsLog = ({
       return daysRemaining < 0;
     });
     
-    if (hasOverdue) return 'red';
-    
-    // Check if any actions are due soon (amber)
-    const hasDueSoon = activeActions.some(action => {
-      const daysRemaining = getDaysRemaining(action.dueDate);
-      return daysRemaining >= 0 && daysRemaining <= 5;
-    });
-    
-    if (hasDueSoon) return 'amber';
-    
-    // Default to green if no overdue or due soon actions
-    return 'green';
+    // Return red if there are overdue actions, otherwise green
+    return hasOverdue ? 'red' : 'green';
   };
 
   const overallStatus = getOverallActionStatus();
@@ -241,8 +231,6 @@ export const ActionsLog = ({
       switch (overallStatus) {
         case 'green':
           return 'bg-status-green text-white';
-        case 'amber':
-          return 'bg-status-amber text-white';
         case 'red':
           return 'bg-status-red text-white';
         default:
