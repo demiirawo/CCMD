@@ -1,137 +1,116 @@
+
+import { Toaster } from "@/components/ui/toaster";
+import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { Navigation } from "./components/Navigation";
-import { AuthProvider } from "./components/AuthProvider";
-import { ProtectedRoute } from "./components/ProtectedRoute";
-import { useAuth } from "@/hooks/useAuth";
+import { ThemeProvider } from "next-themes";
+import { AuthProvider } from "@/components/AuthProvider";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 
-import { useTheme } from "./hooks/useTheme";
-import Index from "./pages/Index";
+// Pages
 import Landing from "./pages/Landing";
-
-import { Reports } from "./pages/Reports";
-import { QuarterlyReport } from "./pages/QuarterlyReport";
-import ReportBuilder from "./pages/ReportBuilder";
-import { Settings } from "./pages/Settings";
-import { Meetings } from "./pages/Meetings";
-import { Auth } from "./pages/Auth";
-import { AdminAuth } from "./pages/AdminAuth";
-import { CompanySelection } from "./pages/CompanySelection";
-import NotFound from "./pages/NotFound";
+import Index from "./pages/Index";
+import Auth from "./pages/Auth";
+import AdminAuth from "./pages/AdminAuth";
+import CompanySelection from "./pages/CompanySelection";
 import CompanyDashboard from "./pages/CompanyDashboard";
-import Dashboard1 from "./pages/Dashboard1";
+import Meetings from "./pages/Meetings";
+import Reports from "./pages/Reports";
+import Settings from "./pages/Settings";
+import QuarterlyReport from "./pages/QuarterlyReport";
+import ReportBuilder from "./pages/ReportBuilder";
+import CQCChecklist from "./pages/CQCChecklist";
+import NotFound from "./pages/NotFound";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
-const AppContent = () => {
-  console.log('AppContent rendering, pathname:', window.location.pathname);
-  useTheme(); // Apply theme across all pages
-  console.log('About to render Routes');
-  
+function App() {
   return (
-    <Routes>
-      <Route path="/auth" element={<Auth />} />
-      <Route path="/admin" element={<AdminAuth />} />
-      
-      <Route path="/company-selection" element={
-        <ProtectedRoute>
-          <CompanySelection />
-        </ProtectedRoute>
-      } />
-      <Route path="/company/:slug" element={<CompanyDashboard />} />
-      <Route path="/" element={
-        <>
-          {console.log('Root route "/" matched, rendering Landing')}
-          {(() => {
-            console.log('Inline component executing');
-            const { user, profile, companies, loading } = useAuth();
-            console.log('Inline auth state:', { user: !!user, profile: !!profile, companies: companies.length, loading });
-            
-            if (loading) {
-              return (
-                <div className="min-h-screen flex items-center justify-center">
-                  <div className="text-center">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-                    <p>Loading...</p>
-                  </div>
-                </div>
-              );
-            }
-            
-            if (user && profile && profile.company_id && companies.length > 0) {
-              const currentCompany = companies.find(c => c.id === profile.company_id);
-              if (currentCompany) {
-                const slug = ('slug' in currentCompany && currentCompany.slug) || 
-                           currentCompany.name.toLowerCase().replace(/\s+/g, '-');
-                console.log('Redirecting to company dashboard:', slug);
-                return <Navigate to={`/company/${slug}`} replace />;
-              }
-            }
-            
-            console.log('Redirecting to company selection');
-            return <Navigate to="/company-selection" replace />;
-          })()}
-        </>
-      } />
-      <Route path="/meetings" element={
-        <ProtectedRoute requireCompany>
-          <>
-            <Navigation />
-            <Meetings />
-          </>
-        </ProtectedRoute>
-      } />
-      <Route path="/reports" element={
-        <ProtectedRoute requireCompany>
-          <>
-            <Navigation />
-            <Reports />
-          </>
-        </ProtectedRoute>
-      } />
-      <Route path="/quarterly-report" element={
-        <ProtectedRoute requireCompany>
-          <QuarterlyReport />
-        </ProtectedRoute>
-      } />
-      <Route path="/report-builder" element={
-        <ProtectedRoute requireCompany>
-          <ReportBuilder />
-        </ProtectedRoute>
-      } />
-      <Route path="/settings" element={
-        <ProtectedRoute requireCompany>
-          <>
-            <Navigation />
-            <Settings />
-          </>
-        </ProtectedRoute>
-      } />
-      <Route path="/dashboard1" element={
-        <ProtectedRoute requireCompany>
-          <>
-            <Navigation />
-            <Dashboard1 />
-          </>
-        </ProtectedRoute>
-      } />
-      {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-      <Route path="*" element={<NotFound />} />
-    </Routes>
-  );
-};
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <AuthProvider>
+              <Routes>
+                {/* Public routes */}
+                <Route path="/" element={<Landing />} />
+                <Route path="/auth" element={<Auth />} />
+                <Route path="/admin/auth" element={<AdminAuth />} />
+                
+                {/* Protected routes */}
+                <Route path="/company-selection" element={
+                  <ProtectedRoute>
+                    <CompanySelection />
+                  </ProtectedRoute>
+                } />
+                
+                <Route path="/company/:slug" element={
+                  <ProtectedRoute>
+                    <CompanyDashboard />
+                  </ProtectedRoute>
+                } />
+                
+                <Route path="/dashboard" element={
+                  <ProtectedRoute>
+                    <Index />
+                  </ProtectedRoute>
+                } />
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <AuthProvider>
-        <BrowserRouter>
-          <AppContent />
-        </BrowserRouter>
-      </AuthProvider>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+                <Route path="/cqc-checklist" element={
+                  <ProtectedRoute>
+                    <CQCChecklist />
+                  </ProtectedRoute>
+                } />
+                
+                <Route path="/meetings" element={
+                  <ProtectedRoute>
+                    <Meetings />
+                  </ProtectedRoute>
+                } />
+                
+                <Route path="/reports" element={
+                  <ProtectedRoute>
+                    <Reports />
+                  </ProtectedRoute>
+                } />
+                
+                <Route path="/settings" element={
+                  <ProtectedRoute>
+                    <Settings />
+                  </ProtectedRoute>
+                } />
+                
+                <Route path="/quarterly-report" element={
+                  <ProtectedRoute>
+                    <QuarterlyReport />
+                  </ProtectedRoute>
+                } />
+                
+                <Route path="/report-builder" element={
+                  <ProtectedRoute>
+                    <ReportBuilder />
+                  </ProtectedRoute>
+                } />
+                
+                {/* Catch all route */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </AuthProvider>
+          </BrowserRouter>
+        </TooltipProvider>
+      </ThemeProvider>
+    </QueryClientProvider>
+  );
+}
 
 export default App;
