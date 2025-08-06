@@ -77,6 +77,30 @@ export const useAuthProvider = (): AuthContextType => {
       
       if (error) {
         console.error('Error fetching profile:', error);
+        
+        // If no profile exists but user is authenticated, try to ensure setup is complete
+        if (error.code === 'PGRST116' && user?.email) {
+          console.log('No profile found, attempting to complete user setup...');
+          try {
+            const { error: setupError } = await supabase.rpc('ensure_user_setup_complete', {
+              user_email: user.email
+            });
+            
+            if (setupError) {
+              console.error('Setup function error:', setupError);
+            } else {
+              console.log('Setup function completed, retrying profile fetch...');
+              // Wait a moment then retry
+              setTimeout(() => {
+                if (user?.id) {
+                  fetchProfileData(user.id);
+                }
+              }, 1000);
+            }
+          } catch (setupError) {
+            console.error('Failed to run setup function:', setupError);
+          }
+        }
         return;
       }
       
@@ -99,6 +123,44 @@ export const useAuthProvider = (): AuthContextType => {
       
       if (error) {
         console.error('Error fetching profile:', error);
+        
+        // If no profile exists, try to get the user's email and run setup
+        if (error.code === 'PGRST116') {
+          console.log('Profile not found, checking for user email to run setup...');
+          const { data: authUser } = await supabase.auth.getUser();
+          
+          if (authUser.user?.email) {
+            console.log('Attempting to complete user setup for:', authUser.user.email);
+            try {
+              const { error: setupError } = await supabase.rpc('ensure_user_setup_complete', {
+                user_email: authUser.user.email
+              });
+              
+              if (!setupError) {
+                console.log('Setup completed, retrying profile fetch in 2 seconds...');
+                // Give it a bit more time and retry once more
+                setTimeout(async () => {
+                  try {
+                    const { data: retryData, error: retryError } = await supabase
+                      .from('profiles')
+                      .select('*')
+                      .eq('user_id', userId)
+                      .single();
+                    
+                    if (!retryError && retryData) {
+                      setProfile(retryData);
+                      await fetchCompaniesForProfile(retryData);
+                    }
+                  } catch (retryErr) {
+                    console.error('Retry profile fetch failed:', retryErr);
+                  }
+                }, 2000);
+              }
+            } catch (setupError) {
+              console.error('Setup function failed:', setupError);
+            }
+          }
+        }
         return;
       }
       
