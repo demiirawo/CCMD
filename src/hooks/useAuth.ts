@@ -1,3 +1,4 @@
+
 import { useState, useEffect, createContext, useContext } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -113,33 +114,56 @@ export const useAuthProvider = (): AuthContextType => {
   // Helper function to fetch companies for a specific profile
   const fetchCompaniesForProfile = async (profileData: Profile) => {
     try {
-      let query = supabase.from('companies').select('*');
+      console.log('Profile role:', profileData.role, 'User ID:', profileData.user_id);
       
-      console.log('Profile role:', profileData.role, 'Company ID:', profileData.company_id);
+      let companies: Company[] = [];
       
-      // If user is not admin, only show their company
-      if (profileData.role !== 'admin') {
-        if (!profileData.company_id) {
-          console.log('Non-admin user has no company_id, returning early');
+      // If user is admin, show all companies
+      if (profileData.role === 'admin') {
+        console.log('Fetching all companies for admin user');
+        const { data, error } = await supabase
+          .from('companies')
+          .select('*');
+        
+        if (error) {
+          console.error('Error fetching companies for admin:', error);
           return;
         }
-        query = query.eq('id', profileData.company_id);
-        console.log('Fetching specific company for non-admin user');
+        
+        companies = data || [];
       } else {
-        console.log('Fetching all companies for admin user');
+        // For non-admin users, fetch companies through user_companies table
+        console.log('Fetching companies for non-admin user via user_companies');
+        const { data, error } = await supabase
+          .from('user_companies')
+          .select(`
+            companies (
+              id,
+              name,
+              theme_color,
+              services,
+              logo_url,
+              created_at,
+              updated_at
+            )
+          `)
+          .eq('user_id', profileData.user_id);
+        
+        console.log('User companies fetch result:', { data, error });
+        
+        if (error) {
+          console.error('Error fetching user companies:', error);
+          return;
+        }
+        
+        // Extract companies from the joined data
+        companies = (data || [])
+          .map(uc => uc.companies)
+          .filter(company => company !== null) as Company[];
       }
       
-      const { data, error } = await query;
-      
-      console.log('Companies fetch result:', { data, error });
-      
-      if (error) {
-        console.error('Error fetching companies:', error);
-        return;
-      }
-      
-      console.log('Setting companies:', data || []);
-      setCompanies(data || []);
+      console.log('Setting companies:', companies);
+      setCompanies(companies || []);
     } catch (error) {
       console.error('Error fetching companies:', error);
     }
@@ -200,69 +224,6 @@ export const useAuthProvider = (): AuthContextType => {
         }, 0);
       }
     });
-
-    // Helper function to fetch profile data
-    const fetchProfileData = async (userId: string) => {
-      try {
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('user_id', userId)
-          .single();
-        
-        console.log('Profile fetch result:', { data, error });
-        
-        if (error) {
-          console.error('Error fetching profile:', error);
-          return;
-        }
-        
-        if (mounted) {
-          setProfile(data);
-          // After setting profile, fetch companies
-          await fetchCompaniesForProfile(data);
-        }
-      } catch (error) {
-        console.error('Error fetching profile:', error);
-      }
-    };
-
-    // Helper function to fetch companies for a specific profile
-    const fetchCompaniesForProfile = async (profileData: Profile) => {
-      try {
-        let query = supabase.from('companies').select('*');
-        
-        console.log('Profile role:', profileData.role, 'Company ID:', profileData.company_id);
-        
-        // If user is not admin, only show their company
-        if (profileData.role !== 'admin') {
-          if (!profileData.company_id) {
-            console.log('Non-admin user has no company_id, returning early');
-            return;
-          }
-          query = query.eq('id', profileData.company_id);
-          console.log('Fetching specific company for non-admin user');
-        } else {
-          console.log('Fetching all companies for admin user');
-        }
-        
-        const { data, error } = await query;
-        
-        console.log('Companies fetch result:', { data, error });
-        
-        if (error) {
-          console.error('Error fetching companies:', error);
-          return;
-        }
-        
-        if (mounted) {
-          console.log('Setting companies:', data || []);
-          setCompanies(data || []);
-        }
-      } catch (error) {
-        console.error('Error fetching companies:', error);
-      }
-    };
 
     return () => {
       mounted = false;
