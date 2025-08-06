@@ -60,10 +60,10 @@ export const StatusBadge = ({
       title={config.title}
     >
       <Square 
-        className={cn("w-8 h-8", config.className)} 
+        className={cn("w-12 h-12", config.className)} 
         fill="currentColor"
       />
-      <span className="absolute inset-0 flex items-center justify-center text-white text-xs font-bold">
+      <span className="absolute inset-0 flex items-center justify-center text-white text-sm font-bold">
         {config.label}
       </span>
     </div>
