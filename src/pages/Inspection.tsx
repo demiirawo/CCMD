@@ -238,9 +238,9 @@ const Inspection = () => {
         <div className="max-w-7xl mx-auto">
           <div className="space-y-4">
             {panels.map((panel) => (
-              <div key={panel.id} className="bg-green-600 text-white rounded-lg overflow-hidden">
+              <div key={panel.id} className="bg-primary text-white rounded-lg overflow-hidden">
                 <div 
-                  className="p-6 flex items-center justify-between hover:bg-green-700 transition-colors cursor-pointer"
+                  className="p-6 flex items-center justify-between transition-colors cursor-pointer"
                   onClick={() => togglePanel(panel.id)}
                 >
                   <div className="flex-1">
