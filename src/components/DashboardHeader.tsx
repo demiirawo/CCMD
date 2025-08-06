@@ -84,37 +84,5 @@ export const DashboardHeader = ({
             {value}
           </button>}
     </div>;
-  return <div className="bg-primary/10 pt-14 pb-8 px-14 mb-8 rounded-xl shadow-sm -mx-8 outline-none">
-      {/* Meeting Info Section */}
-      <div className="grid grid-cols-2 gap-4 mb-10 items-start">
-        <EditableField field="title" value={title} label="Meeting Title" textClass="" containerClass="h-32" />
-        <div className="p-4 pt-8 rounded-lg border border-gray-100 h-32 bg-white">
-          <h3 className="mb-2 text-stone-950 font-medium text-base">Meeting Date & Time</h3>
-          {readOnly ? <div className="w-full min-h-12 p-2 text-sm text-foreground bg-gray-50 border border-gray-200 rounded">
-              {date || "No date provided."}
-            </div> : <MeetingDateTimePicker value={date} onChange={value => onDataChange?.("date", value)} />}
-        </div>
-      </div>
-
-      {/* Office Team and Meeting Summary Section */}
-      <div className="grid grid-cols-2 gap-6 mb-6 items-start">
-        {/* Office Team - 50% width */}
-        <div className="p-4 rounded-lg border border-gray-100 min-h-24 bg-white">
-          <h3 className="mb-2 py-[8px] text-base font-medium text-stone-950">Meeting Attendees</h3>
-          <TeamAttendeesDisplay onAttendanceChange={readOnly ? undefined : onAttendeesChange} readOnly={readOnly} />
-        </div>
-        
-        
-        {/* Meeting Summary - 50% width */}
-        <RobustMeetingSummary meetingDate={date} readOnly={readOnly} meetingData={{
-        title,
-        date,
-        attendees,
-        purpose,
-        sections: sections || [],
-        actionsLog: actionsLog || [],
-        companyName: companies.find(c => c.id === profile?.company_id)?.name || "the organization"
-      }} />
-      </div>
-    </div>;
+  return;
 };

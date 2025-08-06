@@ -9,40 +9,33 @@ import { StatusType } from "@/components/StatusBadge";
 import { Users, Target, BarChart3, FileText, Heart, Shield, Calendar, UserCheck, ClipboardList, HeartHandshake, TrendingUp, Save, Download, ChevronDown, ChevronUp, Copy, Home, Loader2 } from "lucide-react";
 import { MeetingStatusSummary } from "@/components/MeetingStatusSummary";
 import { Button } from "@/components/ui/button";
-
 const Dashboard1 = () => {
   // Static data with no functionality
-  const [actionsLog] = useState<ActionLogEntry[]>([
-    {
-      id: "sample-1",
-      timestamp: new Date().toISOString(),
-      itemTitle: "Sample Action Item",
-      mentionedAttendee: "John Doe",
-      comment: "This is a sample comment",
-      action: "Review quarterly reports",
-      dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-      status: "amber" as const,
-      closed: false,
-      sourceType: "manual" as const,
-      auditTrail: []
-    }
-  ]);
-
+  const [actionsLog] = useState<ActionLogEntry[]>([{
+    id: "sample-1",
+    timestamp: new Date().toISOString(),
+    itemTitle: "Sample Action Item",
+    mentionedAttendee: "John Doe",
+    comment: "This is a sample comment",
+    action: "Review quarterly reports",
+    dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+    status: "amber" as const,
+    closed: false,
+    sourceType: "manual" as const,
+    auditTrail: []
+  }]);
   const [allSectionsExpanded] = useState<boolean | undefined>(undefined);
-  const [keyDocuments] = useState<DocumentData[]>([
-    {
-      id: "doc-1",
-      name: "Policy Manual",
-      owner: "HR Department",
-      category: "Policy",
-      lastReviewDate: "01/01/2024",
-      reviewFrequency: "12 months",
-      reviewFrequencyNumber: "12",
-      reviewFrequencyPeriod: "months",
-      nextReviewDate: "01/01/2025"
-    }
-  ]);
-
+  const [keyDocuments] = useState<DocumentData[]>([{
+    id: "doc-1",
+    name: "Policy Manual",
+    owner: "HR Department",
+    category: "Policy",
+    lastReviewDate: "01/01/2024",
+    reviewFrequency: "12 months",
+    reviewFrequencyNumber: "12",
+    reviewFrequencyPeriod: "months",
+    nextReviewDate: "01/01/2025"
+  }]);
   const [headerData] = useState({
     date: (() => {
       const now = new Date();
@@ -58,13 +51,19 @@ const Dashboard1 = () => {
       });
     })(),
     title: "Management Meeting",
-    attendees: [
-      { id: "1", name: "John Doe", email: "john@example.com", attended: true },
-      { id: "2", name: "Jane Smith", email: "jane@example.com", attended: true }
-    ] as Attendee[],
+    attendees: [{
+      id: "1",
+      name: "John Doe",
+      email: "john@example.com",
+      attended: true
+    }, {
+      id: "2",
+      name: "Jane Smith",
+      email: "jane@example.com",
+      attended: true
+    }] as Attendee[],
     purpose: "Monthly review and planning session"
   });
-
   const [dashboardData] = useState({
     date: "",
     title: "",
@@ -338,27 +337,18 @@ const Dashboard1 = () => {
   // Calculate stats from dashboard data
   const stats = dashboardData.sections.reduce((acc, section) => {
     section.items.forEach(item => {
-      if (item.status === "green") acc.green++;
-      else if (item.status === "amber") acc.amber++;
-      else if (item.status === "red") acc.red++;
+      if (item.status === "green") acc.green++;else if (item.status === "amber") acc.amber++;else if (item.status === "red") acc.red++;
     });
     return acc;
-  }, { green: 0, amber: 0, red: 0 });
-
-  return (
-    <div className="min-h-screen bg-gray-50">
+  }, {
+    green: 0,
+    amber: 0,
+    red: 0
+  });
+  return <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto p-8">
         {/* Static Header */}
-        <DashboardHeader
-          date={headerData.date}
-          title={headerData.title}
-          attendees={headerData.attendees}
-          purpose={headerData.purpose}
-          stats={stats}
-          sections={dashboardData.sections}
-          actionsLog={actionsLog}
-          readOnly={true}
-        />
+        <DashboardHeader date={headerData.date} title={headerData.title} attendees={headerData.attendees} purpose={headerData.purpose} stats={stats} sections={dashboardData.sections} actionsLog={actionsLog} readOnly={true} />
 
         {/* Meeting Status Summary */}
         <div className="mb-6">
@@ -367,18 +357,9 @@ const Dashboard1 = () => {
 
         {/* Static Action Buttons */}
         <div className="flex gap-4 mb-6">
-          <Button disabled className="bg-green-600 hover:bg-green-700 text-white">
-            <Save className="w-4 h-4 mr-2" />
-            Save Data
-          </Button>
-          <Button disabled variant="outline">
-            <Download className="w-4 h-4 mr-2" />
-            Export PDF
-          </Button>
-          <Button disabled variant="outline">
-            <Copy className="w-4 h-4 mr-2" />
-            Copy to New Meeting
-          </Button>
+          
+          
+          
           <Button disabled variant="outline">
             <Home className="w-4 h-4 mr-2" />
             Reset Actions Log
@@ -391,32 +372,16 @@ const Dashboard1 = () => {
 
         {/* Dashboard Sections */}
         <div className="space-y-6">
-          {dashboardData.sections.map((section) => (
-            <DashboardSection
-              key={section.id}
-              title={section.title}
-              icon={section.icon}
-              items={section.items}
-              readOnly={true}
-            />
-          ))}
+          {dashboardData.sections.map(section => <DashboardSection key={section.id} title={section.title} icon={section.icon} items={section.items} readOnly={true} />)}
         </div>
 
         {/* Static Components */}
         <div className="mt-8 space-y-6">
-          <ActionsLog
-            actions={actionsLog}
-            readOnly={true}
-          />
+          <ActionsLog actions={actionsLog} readOnly={true} />
           
-          <KeyDocumentTracker
-            documents={keyDocuments}
-            readOnly={true}
-          />
+          <KeyDocumentTracker documents={keyDocuments} readOnly={true} />
         </div>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default Dashboard1;
