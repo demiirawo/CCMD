@@ -256,7 +256,12 @@ const Inspection = () => {
                                       <select
                                         value={evidence.status}
                                         onChange={(e) => updateEvidence(panelIndex, category.id, evidence.id, 'status', e.target.value as StatusType)}
-                                        className="p-2 border rounded text-sm"
+                                        className={`p-2 border rounded text-sm font-medium ${
+                                          evidence.status === 'green' ? 'bg-green-100 text-green-800 border-green-300' :
+                                          evidence.status === 'amber' ? 'bg-yellow-100 text-yellow-800 border-yellow-300' :
+                                          evidence.status === 'red' ? 'bg-red-100 text-red-800 border-red-300' :
+                                          'bg-gray-100 text-gray-800 border-gray-300'
+                                        }`}
                                       >
                                         <option value="green">Green</option>
                                         <option value="amber">Amber</option>
