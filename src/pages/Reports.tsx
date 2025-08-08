@@ -71,8 +71,9 @@ export const Reports = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10); // Show 10 meetings per page
   const {
-    toast
-  } = useToast();
+     toast
+   } = useToast();
+   const [inspectionSummary, setInspectionSummary] = useState<Record<string, Array<{panelId: string; panelName: string; count: number}>>>({});
   useEffect(() => {
     if (profile?.company_id) {
       fetchMeetings();
@@ -162,9 +163,15 @@ export const Reports = () => {
     const now = new Date();
     return getQuarter(now.toISOString());
   };
-  const getCurrentYear = () => {
-    return new Date().getFullYear();
-  };
+   const getCurrentYear = () => {
+     return new Date().getFullYear();
+   };
+   const getQuarterDateRange = (year: number, quarter: string) => {
+     const startMonth = quarter === 'Q1' ? 0 : quarter === 'Q2' ? 3 : quarter === 'Q3' ? 6 : 9;
+     const start = new Date(Date.UTC(year, startMonth, 1));
+     const end = new Date(Date.UTC(startMonth === 9 ? year + 1 : year, (startMonth + 3) % 12, 1));
+     return { start: start.toISOString(), end: end.toISOString() };
+   };
   const groupMeetingsByQuarter = (meetings: ParsedMeeting[]): GroupedMeetings => {
     const grouped: GroupedMeetings = {};
     meetings.forEach(meeting => {
@@ -174,8 +181,60 @@ export const Reports = () => {
       }
       grouped[key].push(meeting);
     });
-    return grouped;
-  };
+     return grouped;
+   };
+
+   const loadInspectionSummaryForQuarter = async (quarterKey: string) => {
+     if (!profile?.company_id) return;
+     try {
+       const [yearStr, q] = quarterKey.split('-');
+       const yearNum = parseInt(yearStr);
+       const { start, end } = getQuarterDateRange(yearNum, q);
+ 
+       const [respRes, panelsRes, categoriesRes, evidenceRes] = await Promise.all([
+         supabase.from('inspection_company_responses')
+           .select('evidence_id, updated_at')
+           .eq('company_id', profile.company_id)
+           .gte('updated_at', start)
+           .lt('updated_at', end),
+         supabase.from('inspection_panels').select('id, name'),
+         supabase.from('inspection_categories').select('id, panel_id'),
+         supabase.from('inspection_evidence').select('id, category_id')
+       ]);
+ 
+       if (respRes.error || panelsRes.error || categoriesRes.error || evidenceRes.error) {
+         console.error('Error loading inspection summary', {
+           respError: respRes.error,
+           panelsError: panelsRes.error,
+           categoriesError: categoriesRes.error,
+           evidenceError: evidenceRes.error,
+         });
+         return;
+       }
+ 
+       const evidenceIds = Array.from(new Set((respRes.data || []).map((r: any) => r.evidence_id)));
+       const evToCat = new Map((evidenceRes.data || []).map((e: any) => [e.id, e.category_id]));
+       const catToPanel = new Map((categoriesRes.data || []).map((c: any) => [c.id, c.panel_id]));
+       const panelToName = new Map((panelsRes.data || []).map((p: any) => [p.id, p.name]));
+ 
+       const counts = new Map<string, number>();
+       evidenceIds.forEach((eid) => {
+         const catId = evToCat.get(eid);
+         const panelId = catToPanel.get(catId);
+         if (panelId) counts.set(panelId, (counts.get(panelId) || 0) + 1);
+       });
+ 
+       const summary = Array.from(counts.entries()).map(([panelId, count]) => ({
+         panelId,
+         panelName: (panelToName.get(panelId) as string) || 'Unknown',
+         count
+       }));
+ 
+       setInspectionSummary(prev => ({ ...prev, [quarterKey]: summary }));
+     } catch (e) {
+       console.error('Failed to load inspection summary:', e);
+     }
+   };
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-GB', {
       day: '2-digit',
@@ -492,6 +551,15 @@ export const Reports = () => {
   const paginatedMeetings = filteredMeetings.slice(startIndex, endIndex);
   const groupedMeetings = groupMeetingsByQuarter(paginatedMeetings);
 
+  // Load inspection summaries for displayed quarters
+  useEffect(() => {
+    Object.keys(groupedMeetings).forEach((k) => {
+      if (!inspectionSummary[k]) {
+        loadInspectionSummaryForQuarter(k);
+      }
+    });
+  }, [groupedMeetings]);
+
   // Reset current page when year filter changes
   useEffect(() => {
     setCurrentPage(1);
@@ -584,6 +652,21 @@ export const Reports = () => {
 
                   {/* Collapsible Quarter Content */}
                   {isExpanded && <div className="space-y-3 pt-4 border-t border-border/20">
+                      {/* Inspection activity summary for this quarter */}
+                      <div className="rounded-lg p-4 border bg-white">
+                        <h4 className="font-medium text-foreground">Inspection Updates</h4>
+                        {inspectionSummary[quarterKey]?.length ? (
+                          <div className="flex flex-wrap gap-3 mt-2">
+                            {inspectionSummary[quarterKey].map(item => (
+                              <span key={item.panelId} className="text-sm text-muted-foreground">
+                                {item.panelName}: {item.count} reviewed
+                              </span>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-sm text-muted-foreground mt-2">No inspection updates this quarter.</p>
+                        )}
+                      </div>
                       {quarterMeetings.map(meeting => <div key={meeting.id} className="rounded-lg p-4 border bg-white">
                           <div className="flex items-center justify-between w-full">
                             <div className="flex items-center gap-6 flex-1">
