@@ -253,7 +253,7 @@ const Inspection = () => {
           </header>
           <div className="space-y-4">
             {panels.map((panel) => (
-              <div key={panel.id} className="bg-status-green text-white rounded-lg overflow-hidden">
+              <div key={panel.id} className="bg-primary/10 rounded-lg overflow-hidden">
                 <div 
                   className="p-6 flex items-center justify-between transition-colors cursor-pointer"
                   onClick={() => togglePanel(panel.id)}
@@ -263,19 +263,19 @@ const Inspection = () => {
                       <DebouncedInput
                         value={panel.name}
                         onSave={(value) => updatePanel(panel.id, value)}
-                        className="text-xl font-semibold mb-1 bg-transparent border-none text-white placeholder:text-white/70 p-0 h-auto"
+                        className="text-xl font-semibold mb-1 bg-transparent border-none text-foreground placeholder:text-muted-foreground p-0 h-auto"
                         placeholder="Panel name..."
                       />
                     ) : (
                       <h2 className="text-xl font-semibold mb-1">{panel.name}</h2>
                     )}
-                    <p className="text-green-100 text-sm">Updated: {getPanelLastUpdated(panel.id)}</p>
+                    <p className="text-muted-foreground text-sm">Updated: {getPanelLastUpdated(panel.id)}</p>
                   </div>
                   <div className="flex items-center gap-4">
                     {expandedPanels.has(panel.id) ? (
-                      <ChevronDown className="h-6 w-6 text-white/80" />
+                      <ChevronDown className="h-6 w-6 text-muted-foreground" />
                     ) : (
-                      <ChevronRight className="h-6 w-6 text-white/80" />
+                      <ChevronRight className="h-6 w-6 text-muted-foreground" />
                     )}
                   </div>
                 </div>
