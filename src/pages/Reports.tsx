@@ -654,7 +654,7 @@ export const Reports = () => {
                   {isExpanded && <div className="space-y-3 pt-4 border-t border-border/20">
                       {/* Inspection activity summary for this quarter */}
                       <div className="rounded-lg p-4 border bg-white">
-                        <h4 className="font-medium text-foreground">Inspection Updates</h4>
+                        <h4 className="font-medium text-foreground">Inspection Checklist</h4>
                         {inspectionSummary[quarterKey]?.length ? (
                           <div className="flex flex-wrap gap-3 mt-2">
                             {inspectionSummary[quarterKey].map(item => (
