@@ -189,6 +189,17 @@ const Inspection = () => {
     return new Date(lastUpdate).toLocaleDateString();
   };
 
+  const getPanelLastUpdated = (panelId: string) => {
+    const panelCategories = categories.filter(cat => cat.panel_id === panelId);
+    const panelEvidence = evidence.filter(ev => panelCategories.some(cat => cat.id === ev.category_id));
+    const panelResponses = responses.filter(r => panelEvidence.some(ev => ev.id === r.evidence_id));
+
+    if (panelResponses.length === 0) return 'No updates';
+
+    const lastUpdate = Math.max(...panelResponses.map(r => new Date(r.updated_at).getTime()));
+    return new Date(lastUpdate).toLocaleDateString();
+  };
+
   const getCategoryStatus = (categoryId: string): StatusType => {
     const categoryEvidence = evidence.filter(ev => ev.category_id === categoryId);
     const categoryResponses = responses.filter(r => 
@@ -258,7 +269,7 @@ const Inspection = () => {
                     ) : (
                       <h2 className="text-xl font-semibold mb-1">{panel.name}</h2>
                     )}
-                    <p className="text-green-100 text-sm">Updated: {new Date(panel.updated_at).toLocaleDateString()}</p>
+                    <p className="text-green-100 text-sm">Updated: {getPanelLastUpdated(panel.id)}</p>
                   </div>
                   <div className="flex items-center gap-4">
                     {expandedPanels.has(panel.id) ? (
