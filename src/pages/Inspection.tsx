@@ -249,7 +249,7 @@ const Inspection = () => {
       <div className="pt-20 px-6">
         <div className="max-w-7xl mx-auto">
           <header className="mb-6">
-            <h1 className="text-2xl font-semibold text-center text-foreground">CQC Inspection</h1>
+            <h1 className="text-2xl font-semibold text-center text-transparent">CQC Inspection</h1>
           </header>
           <div className="space-y-4">
             {panels.map((panel) => (
