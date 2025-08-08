@@ -659,7 +659,7 @@ export const Reports = () => {
                           <div className="flex flex-wrap gap-3 mt-2">
                             {inspectionSummary[quarterKey].map(item => (
                               <span key={item.panelId} className="text-sm text-muted-foreground">
-                                {item.panelName}: {item.count} reviewed
+                                {item.panelName}: {item.count} {item.count === 1 ? 'Item Reviewed' : 'Items Reviewed'}
                               </span>
                             ))}
                           </div>
