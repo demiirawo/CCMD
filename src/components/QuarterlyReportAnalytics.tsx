@@ -106,46 +106,82 @@ export const QuarterlyReportAnalytics: React.FC<QuarterlyReportAnalyticsProps> =
   const loadData = async () => {
     if (!profile?.company_id) return;
     console.log(`🔍 QuarterlyReportAnalytics: Loading ${type} data for company:`, profile.company_id);
+
     try {
-      const dataType = type === 'feedback' ? 'feedback_analytics' : 'incidents_analytics';
-      const {
-        data: allData,
-        error
-      } = await supabase.from('dashboard_data').select('data_content, updated_at').eq('company_id', profile.company_id).eq('data_type', dataType);
-      if (error) {
-        console.error(`❌ Error loading ${type} analytics:`, error);
-        setMonthlyData(generateInitialData(type, quarterDate));
-        return;
+      // 1) Find latest DASHBOARD meeting in this quarter/year
+      const { data: meetingsData, error: meetingsError } = await supabase
+        .from('meetings')
+        .select('id, sections, date')
+        .eq('company_id', profile.company_id)
+        .eq('quarter', quarter)
+        .eq('year', parseInt(year))
+        .order('date', { ascending: false });
+
+      if (meetingsError) {
+        console.error('❌ Error loading meetings for quarter:', meetingsError);
       }
-      console.log(`📊 Found ${type} data records:`, allData?.length || 0);
-      if (allData && allData.length > 0) {
-        // Consolidate data from multiple records
-        const initialData = generateInitialData(type, quarterDate);
-        const consolidatedData = [...initialData];
-        console.log(`📅 Initial ${type} data structure:`, initialData[0]);
-        allData.forEach((record, recordIndex) => {
-          console.log(`📋 Processing ${type} record ${recordIndex}:`, record.data_content);
-          if (record.data_content && typeof record.data_content === 'object') {
-            const analyticsData = record.data_content as any;
-            if (analyticsData.monthlyData && Array.isArray(analyticsData.monthlyData)) {
-              console.log(`📊 Found monthlyData with ${analyticsData.monthlyData.length} months`);
-              analyticsData.monthlyData.forEach((monthData: any, index: number) => {
-                if (index < consolidatedData.length) {
-                  Object.keys(monthData).forEach(key => {
-                    if (key !== 'month' && typeof monthData[key] === 'number' && monthData[key] > 0) {
-                      console.log(`📈 Setting ${key} for month ${index}: ${monthData[key]}`);
-                      consolidatedData[index][key] = monthData[key];
-                    }
-                  });
-                }
-              });
-            }
-          }
+
+      let latestDashboardMeetingId: string | null = null;
+      if (Array.isArray(meetingsData)) {
+        const latestDash = meetingsData.find((m: any) => {
+          const sections = typeof m.sections === 'string' ? JSON.parse(m.sections) : (m.sections || []);
+          const ids = Array.isArray(sections) ? sections.map((s: any) => s.id) : [];
+          return ids.includes('meeting-overview') || ids.includes('staff') || ids.includes('care-planning') || ids.includes('safety') || ids.includes('continuous-improvement') || ids.includes('supported-housing');
         });
-        console.log(`✅ Final consolidated ${type} data:`, consolidatedData);
-        setMonthlyData(consolidatedData);
+        latestDashboardMeetingId = latestDash?.id || null;
+      }
+
+      // Helper to load analytics by meeting_id first, then fall back to latest company record
+      const loadAnalytics = async (table: 'feedback_analytics' | 'incidents_analytics') => {
+        // Try meeting-scoped first
+        if (latestDashboardMeetingId) {
+          const { data: byMeeting, error: byMeetingErr } = await supabase
+            .from(table)
+            .select('monthly_data, updated_at')
+            .eq('company_id', profile.company_id)
+            .eq('meeting_id', latestDashboardMeetingId)
+            .order('updated_at', { ascending: false });
+
+          if (!byMeetingErr && Array.isArray(byMeeting) && byMeeting.length > 0) {
+            const latest = byMeeting[0] as any;
+            const arr = latest.monthly_data as any[];
+            if (Array.isArray(arr) && arr.length > 0) {
+              console.log(`✅ Using ${table} from latest dashboard meeting`, latestDashboardMeetingId);
+              return arr;
+            }
+          } else if (byMeetingErr) {
+            console.warn(`⚠️ ${table} meeting-scoped query error:`, byMeetingErr);
+          }
+        }
+
+        // Fallback: company latest (across all meetings)
+        const { data: byCompany, error: byCompanyErr } = await supabase
+          .from(table)
+          .select('monthly_data, updated_at')
+          .eq('company_id', profile.company_id)
+          .order('updated_at', { ascending: false });
+
+        if (!byCompanyErr && Array.isArray(byCompany) && byCompany.length > 0) {
+          const latest = byCompany[0] as any;
+          const arr = latest.monthly_data as any[];
+          if (Array.isArray(arr) && arr.length > 0) {
+            console.log(`✅ Using latest company ${table} (fallback)`);
+            return arr;
+          }
+        } else if (byCompanyErr) {
+          console.warn(`⚠️ ${table} company-scoped query error:`, byCompanyErr);
+        }
+
+        return null;
+      };
+
+      const table = type === 'feedback' ? 'feedback_analytics' : 'incidents_analytics';
+      const result = await loadAnalytics(table as any);
+
+      if (result) {
+        setMonthlyData(result);
       } else {
-        console.log(`📊 No ${type} data found, using initial data`);
+        console.log(`📊 No ${type} analytics found; using generated initial data`);
         setMonthlyData(generateInitialData(type, quarterDate));
       }
     } catch (error) {
