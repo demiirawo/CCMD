@@ -53,11 +53,11 @@ export const useMeetingEmailNotification = () => {
       console.log('🔍 Action items raw data:', JSON.stringify(meetingData.actions, null, 2));
       
       // Function to get actions for current user - check if assignee matches their email or name
-      const getCurrentUserActions = (attendeeEmail: string) => {
+      const getCurrentUserActions = (attendeeEmail: string, sourceActions: any[] = meetingData.actions) => {
         const currentAttendee = meetingData.attendees.find(att => att.email === attendeeEmail);
         const currentAttendeeName = currentAttendee?.name || '';
         
-        return meetingData.actions.filter(action => {
+        return sourceActions.filter(action => {
           const assignee = action.mentionedAttendee || action.mentioned_attendee || action.assignee || action.assigned_to || action.owner || '';
           console.log(`🔍 Checking action for ${attendeeEmail}:`, { assignee, currentAttendeeName });
           
@@ -70,11 +70,11 @@ export const useMeetingEmailNotification = () => {
       };
       
       // Function to get all other actions (Office Team actions)
-      const getOfficeTeamActions = (attendeeEmail: string) => {
+      const getOfficeTeamActions = (attendeeEmail: string, sourceActions: any[] = meetingData.actions) => {
         const currentAttendee = meetingData.attendees.find(att => att.email === attendeeEmail);
         const currentAttendeeName = currentAttendee?.name || '';
         
-        return meetingData.actions.filter(action => {
+        return sourceActions.filter(action => {
           const assignee = action.mentionedAttendee || action.mentioned_attendee || action.assignee || action.assigned_to || action.owner || '';
           
           // Exclude actions assigned to current user, include all others with assignees
@@ -111,6 +111,46 @@ export const useMeetingEmailNotification = () => {
           
           // Sort by date ascending (overdue and soonest first)
           return aDueDate.getTime() - bDueDate.getTime();
+        });
+      };
+
+      // Helpers for completed actions detection and date parsing
+      const parseFlexibleDate = (dateStr?: string): Date | null => {
+        if (!dateStr || dateStr.trim() === '') return null;
+        if (dateStr.includes('/') && dateStr.split('/').length === 3) {
+          const [day, month, year] = dateStr.split('/');
+          if (year && month && day) {
+            return new Date(`${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`);
+          }
+        }
+        const d = new Date(dateStr);
+        return isNaN(d.getTime()) ? null : d;
+      };
+
+      const isActionCompleted = (action: any): boolean => {
+        const closedBool = action.closed === true || action.isClosed === true;
+        const statusStr = (action.status || '').toString().toLowerCase();
+        return closedBool || statusStr === 'closed' || statusStr === 'complete' || statusStr === 'completed' || statusStr === 'done';
+      };
+
+      const getClosedDate = (action: any): Date | null => {
+        const cd = parseFlexibleDate(action.closedDate || action.closed_date || action.completedDate || action.completed_date);
+        if (cd) return cd;
+        const updated = parseFlexibleDate(action.updated_at || action.updatedAt);
+        return isActionCompleted(action) && updated ? updated : null;
+      };
+
+      const isWithinLastNDays = (date: Date, days: number) => {
+        const now = new Date();
+        const cutoff = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
+        return date >= cutoff && date <= now;
+      };
+
+      const getRecentCompletedActions = (actions: any[], days = 30) => {
+        return actions.filter(a => {
+          if (!isActionCompleted(a)) return false;
+          const d = getClosedDate(a);
+          return d ? isWithinLastNDays(d, days) : false;
         });
       };
 
@@ -185,21 +225,26 @@ export const useMeetingEmailNotification = () => {
 
       // Function to generate personalized action items HTML for each attendee
       const generateActionItemsHtml = (attendeeEmail: string) => {
-        const myActions = getCurrentUserActions(attendeeEmail);
-        const officeTeamActions = getOfficeTeamActions(attendeeEmail);
+        const completedRecent = getRecentCompletedActions(meetingData.actions, 30);
+        const openActions = meetingData.actions.filter(a => !isActionCompleted(a));
+
+        const myActions = getCurrentUserActions(attendeeEmail, openActions);
+        const officeTeamActions = getOfficeTeamActions(attendeeEmail, openActions);
 
         console.log(`📧 Actions for ${attendeeEmail}:`, {
           myActions: myActions.length,
           officeTeamActions: officeTeamActions.length,
+          completedRecent: completedRecent.length,
           myActionsList: myActions.map(a => ({ text: a.action || a.actionText, assignee: a.mentionedAttendee || a.assignee })),
           officeActionsList: officeTeamActions.map(a => ({ text: a.action || a.actionText, assignee: a.mentionedAttendee || a.assignee }))
         });
 
         return meetingData.actions.length > 0 
           ? `
-            <h3 style="color: #374151; margin-bottom: 16px;">Action Items (${meetingData.actions.length} total):</h3>
+            <h3 style="color: #374151; margin-bottom: 16px;">Action Items (${openActions.length} total):</h3>
             ${formatActionSection(myActions, 'My Actions')}
             ${formatActionSection(officeTeamActions, 'Office Team')}
+            ${formatActionSection(completedRecent, 'Actions Completed (Last 30 Days)')}
           `
           : '<h3 style="color: #374151; margin-bottom: 16px;">Action Items:</h3><p style="color: #6B7280;">No action items recorded.</p>';
       };
