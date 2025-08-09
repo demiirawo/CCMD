@@ -75,28 +75,66 @@ const Index = () => {
 
         // Update each record with the real meeting ID
         for (const record of tempData) {
-          const {
-            id,
-            ...recordWithoutId
-          } = record;
-          const {
-            error: updateError
-          } = await (supabase as any).from('dashboard_data').update({
-            meeting_id: realId
-          }).eq('id', id);
+          const { id } = record;
+          const { error: updateError } = await (supabase as any)
+            .from('dashboard_data')
+            .update({ meeting_id: realId })
+            .eq('id', id);
           if (updateError) {
             console.error('Error updating dashboard data record:', updateError);
           }
         }
-        console.log('Successfully updated temporary analytics data with real meeting ID');
+        console.log('Successfully updated temporary dashboard_data with real meeting ID');
       } else {
-        console.log('No temporary analytics data found to update');
+        console.log('No temporary dashboard_data found to update');
       }
+
+      // Also re-link meeting-scoped analytics tables saved under the temporary ID
+      // We scope by company_id as an extra safety check
+      const companyId = profile?.company_id;
+      if (!companyId) {
+        console.warn('Skipping analytics re-link: missing company_id');
+        return;
+      }
+
+      const updates = [
+        (supabase as any)
+          .from('feedback_analytics')
+          .update({ meeting_id: realId })
+          .eq('company_id', companyId)
+          .eq('meeting_id', tempId),
+        (supabase as any)
+          .from('incidents_analytics')
+          .update({ meeting_id: realId })
+          .eq('company_id', companyId)
+          .eq('meeting_id', tempId),
+        (supabase as any)
+          .from('supervision_analytics')
+          .update({ meeting_id: realId })
+          .eq('company_id', companyId)
+          .eq('meeting_id', tempId),
+        (supabase as any)
+          .from('spot_check_analytics')
+          .update({ meeting_id: realId })
+          .eq('company_id', companyId)
+          .eq('meeting_id', tempId),
+      ];
+
+      const results = await Promise.allSettled(updates);
+      results.forEach((res, idx) => {
+        const table = ['feedback_analytics','incidents_analytics','supervision_analytics','spot_check_analytics'][idx];
+        if (res.status === 'rejected') {
+          console.error(`Error updating ${table}:`, res.reason);
+        } else if ((res as any).value?.error) {
+          console.error(`Error updating ${table}:`, (res as any).value.error);
+        } else {
+          console.log(`Re-linked ${table} records from temp ${tempId} -> real ${realId}`);
+        }
+      });
     } catch (error) {
       console.error('Error updating temporary analytics data:', error);
     }
   };
-
   // Reset actions log function
   const resetActionsLog = async () => {
     try {

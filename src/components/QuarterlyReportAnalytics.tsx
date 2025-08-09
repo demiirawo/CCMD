@@ -167,8 +167,47 @@ export const QuarterlyReportAnalytics: React.FC<QuarterlyReportAnalyticsProps> =
         console.log(`✅ Using ${table} from latest dashboard meeting`, latestDashboardMeetingId);
         setMonthlyData(arr);
       } else {
-        console.log('ℹ️ Latest dashboard meeting analytics are empty – skipping chart');
-        setMonthlyData([]);
+        console.log('ℹ️ Latest dashboard meeting analytics are empty – attempting company-wide fallback within quarter');
+        // Fallback: find most recent non-empty company-wide analytics within the same quarter window
+        const getQuarterRange = (q: string, y: string) => {
+          const yr = parseInt(y, 10);
+          switch (q) {
+            case 'Q1': return { start: `${yr}-01-01`, end: `${yr}-03-31` };
+            case 'Q2': return { start: `${yr}-04-01`, end: `${yr}-06-30` };
+            case 'Q3': return { start: `${yr}-07-01`, end: `${yr}-09-30` };
+            default: return { start: `${yr}-10-01`, end: `${yr}-12-31` };
+          }
+        };
+        const { start, end } = getQuarterRange(quarter, year);
+        const { data: fallbackRows, error: fallbackErr } = await supabase
+          .from(table)
+          .select('monthly_data, updated_at')
+          .eq('company_id', profile.company_id)
+          .gte('updated_at', `${start}T00:00:00.000Z`)
+          .lte('updated_at', `${end}T23:59:59.999Z`)
+          .order('updated_at', { ascending: false })
+          .limit(1);
+        if (fallbackErr) {
+          console.warn(`⚠️ ${table} fallback query error:`, fallbackErr);
+          setMonthlyData([]);
+          return;
+        }
+        const fb = (Array.isArray(fallbackRows) && fallbackRows[0] && Array.isArray((fallbackRows[0] as any).monthly_data))
+          ? ((fallbackRows[0] as any).monthly_data as any[])
+          : [];
+        const fbHasAny = Array.isArray(fb) && fb.some((m: any) => {
+          if (type === 'feedback') {
+            return (m.compliments || 0) + (m.complaints || 0) + (m.suggestions || 0) + (m.resolved || 0) > 0;
+          }
+          return (m.incidents || 0) + (m.accidents || 0) + (m.safeguarding || 0) + (m.resolved || 0) > 0;
+        });
+        if (fbHasAny) {
+          console.log(`✅ Using ${table} fallback company-wide record updated at`, (fallbackRows as any)[0]?.updated_at);
+          setMonthlyData(fb);
+        } else {
+          console.log('ℹ️ No non-empty fallback analytics found for this quarter – skipping chart');
+          setMonthlyData([]);
+        }
       }
     } catch (error) {
       console.error(`❌ Exception in ${type} analytics loadData:`, error);
