@@ -111,114 +111,158 @@ export const NarrativeQuarterlyReportGenerator: React.FC<NarrativeQuarterlyRepor
   const generateNarrativeReport = async () => {
     if (!profile?.company_id) return;
     setIsGenerating(true);
-    try {
-      const narratives = extractMeetingNarratives(meetings);
 
+    try {
+      // 1) Meeting narratives from Dashboard (management meetings)
+      const narratives = extractMeetingNarratives(meetings);
       // Sort meetings chronologically
       narratives.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-      const prompt = `You are an expert in care service compliance reporting for UK regulatory bodies including CQC, Ofsted, and local authorities. 
 
-Create a compelling quarterly narrative report for ${quarter} ${year} that tells the story of how this care service performed during this period.
+      // Helper to count G/A/R
+      const initCounts = () => ({ green: 0, amber: 0, red: 0 });
+      const sumCounts = (a: any, b: any) => ({
+        green: (a.green || 0) + (b.green || 0),
+        amber: (a.amber || 0) + (b.amber || 0),
+        red: (a.red || 0) + (b.red || 0),
+      });
 
-MEETING DATA TO ANALYZE:
-${JSON.stringify(narratives, null, 2)}
+      // 2) Dashboard item-level RAG (exclude meeting-overview like the top summary)
+      const dashboardItemCounts = initCounts();
+      try {
+        meetings?.forEach((m: any) => {
+          (m.sections || []).forEach((section: any) => {
+            if (section?.id === 'meeting-overview') return;
+            (section.items || []).forEach((it: any) => {
+              if (it?.status === 'green') dashboardItemCounts.green++;
+              else if (it?.status === 'amber') dashboardItemCounts.amber++;
+              else if (it?.status === 'red') dashboardItemCounts.red++;
+            });
+          });
+        });
+      } catch (e) {
+        console.warn('Failed to compute dashboard item counts', e);
+      }
 
-REPORT REQUIREMENTS:
+      // 3) Actions RAG from actions_log
+      const actionsCounts = initCounts();
+      // 4) Key Review Dates RAG from key_documents (due_date-based)
+      const keyDocsCounts = initCounts();
 
-1. AUDIENCE: Internal stakeholders, CQC, Ofsted, and local authorities
-2. STYLE: Professional, narrative-driven, regulatory compliance focused
-3. STRUCTURE: Follow the exact structure below with these headings and subheadings
-4. FORMAT: Use markdown formatting for headings only - # for major sections, ## for subsections
-5. FORMATTING: Major headings use # and minor headings use ##
+      // 5) Inspection evidence category RAG (CQC readiness checklist)
+      const inspectionTotals = initCounts();
+      let inspectionCategoriesSummary: Array<{ id: string; name: string; status: 'green' | 'amber' | 'red' } > = [];
 
-DATA INPUTS TO CONSIDER:
-- Latest Update: Current status and recent developments for each subsection
-- Trend Analysis: Historical progression data showing improvements, deterioration, or stability over time
-- Actions: Specific action items, their assignees, due dates, and completion status
-- Metadata Notes: Additional contextual information and detailed notes (metadata.description) from section details
-- Meeting Summaries: Overall meeting context and key discussion points
-- RAG Status: Current risk assessment levels (Green = satisfactory/positive, Amber = requires attention, Red = critical/concerning)
-- Document Attachments: Reference and incorporate content from any attached documents that provide additional context or evidence
+      // Fetch in parallel for efficiency
+      const [actionsRes, keyDocsRes, categoriesRes, evidenceRes, responsesRes] = await Promise.all([
+        supabase.from('actions_log').select('status').eq('company_id', profile.company_id),
+        supabase.from('key_documents').select('id, name, due_date').eq('company_id', profile.company_id),
+        supabase.from('inspection_categories').select('id, name'),
+        supabase.from('inspection_evidence').select('id, category_id'),
+        supabase.from('inspection_company_responses').select('evidence_id, status, company_id').eq('company_id', profile.company_id),
+      ]);
 
-6. ANALYSIS APPROACH: Synthesize all these data inputs to create a comprehensive narrative that shows the full picture of service performance and quality improvements
+      // Actions counts
+      if (!actionsRes.error && Array.isArray(actionsRes.data)) {
+        actionsRes.data.forEach((a: any) => {
+          if (a.status === 'green') actionsCounts.green++;
+          else if (a.status === 'amber') actionsCounts.amber++;
+          else if (a.status === 'red') actionsCounts.red++;
+        });
+      } else if (actionsRes.error) {
+        console.warn('actions_log query error:', actionsRes.error);
+      }
 
-REQUIRED REPORT STRUCTURE (in this exact order):
+      // Key document counts based on due_date proximity
+      const statusFromDueDate = (due: string | null): 'green' | 'amber' | 'red' => {
+        if (!due) return 'green';
+        const today = new Date();
+        const review = new Date(due);
+        if (isNaN(review.getTime())) return 'green';
+        // Compare by date (ignore time)
+        today.setHours(0, 0, 0, 0);
+        review.setHours(0, 0, 0, 0);
+        const diffDays = Math.round((review.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+        if (diffDays < 0) return 'red'; // overdue
+        if (diffDays <= 5) return 'amber'; // due soon
+        return 'green';
+      };
+      if (!keyDocsRes.error && Array.isArray(keyDocsRes.data)) {
+        keyDocsRes.data.forEach((doc: any) => {
+          const s = statusFromDueDate(doc?.due_date ?? null);
+          if (s === 'green') keyDocsCounts.green++;
+          else if (s === 'amber') keyDocsCounts.amber++;
+          else if (s === 'red') keyDocsCounts.red++;
+        });
+      } else if (keyDocsRes.error) {
+        console.warn('key_documents query error:', keyDocsRes.error);
+      }
 
-Executive Summary
+      // Inspection categories summary
+      if (!categoriesRes.error && !evidenceRes.error && !responsesRes.error && Array.isArray(categoriesRes.data)) {
+        const evidences: Array<{ id: string; category_id: string }> = Array.isArray(evidenceRes.data) ? evidenceRes.data as any : [];
+        const responses: Array<{ evidence_id: string; status: 'green' | 'amber' | 'red' }> = Array.isArray(responsesRes.data) ? (responsesRes.data as any).map((r: any) => ({ evidence_id: r.evidence_id, status: r.status })) : [];
+        inspectionCategoriesSummary = categoriesRes.data.map((cat: any) => {
+          const evIds = evidences.filter(ev => ev.category_id === cat.id).map(ev => ev.id);
+          const respForCat = responses.filter(r => evIds.includes(r.evidence_id));
+          let status: 'green' | 'amber' | 'red' = 'green';
+          if (respForCat.some(r => r.status === 'red')) status = 'red';
+          else if (respForCat.some(r => r.status === 'amber')) status = 'amber';
+          // else remains green
+          return { id: cat.id, name: cat.name, status };
+        });
+        // Totals
+        inspectionCategoriesSummary.forEach(c => {
+          if (c.status === 'green') inspectionTotals.green++;
+          else if (c.status === 'amber') inspectionTotals.amber++;
+          else if (c.status === 'red') inspectionTotals.red++;
+        });
+      } else {
+        if (categoriesRes.error) console.warn('inspection_categories query error:', categoriesRes.error);
+        if (evidenceRes.error) console.warn('inspection_evidence query error:', evidenceRes.error);
+        if (responsesRes.error) console.warn('inspection_company_responses query error:', responsesRes.error);
+      }
 
-Staff
-- Resourcing
-- Staff Documents  
-- Training
-- Spot Checks
-- Staff Supervisions
-- Staff Meetings
+      const combinedDashboardTotals = sumCounts(sumCounts(dashboardItemCounts, actionsCounts), keyDocsCounts);
 
-Care Planning & Delivery (Changes to "Support Planning & Delivery" for companies with only Supported Housing services)
-- Care Plans & Risk Assessments (becomes "Support Plans & Risk Assessments" for supported housing)
-- Service User Documents
-- Medication Management
-- Care Notes
-- Call Monitoring
-- Transportation
+      // Build explicit context to guide the AI
+      const context = {
+        clarification: {
+          dashboard: 'The Dashboard is a recording of our management meetings (decisions, updates, actions).',
+          inspection: 'The Inspection page is a checklist to verify our readiness for a CQC inspection (evidence categories and compliance).',
+        },
+        dashboardRAG: {
+          items: dashboardItemCounts,
+          actions: actionsCounts,
+          keyReviewDates: keyDocsCounts,
+          combinedTotals: combinedDashboardTotals,
+        },
+        inspectionRAG: {
+          totals: inspectionTotals,
+          categories: inspectionCategoriesSummary,
+        },
+      };
 
-Safety
-- Incidents, Accidents and Safeguarding
-- Risk Register
-- Infection Control
-- Information Governance
+      const prompt = `You are an expert in care service compliance reporting for UK regulatory bodies including CQC, Ofsted, and local authorities.\n\nCreate a compelling quarterly narrative report for ${quarter} ${year} that tells the story of how this care service performed during this period.\n\nSOURCE CONTEXT (do not repeat verbatim, use it to inform analysis):\\n${JSON.stringify(context, null, 2)}\n\nMEETING DATA TO ANALYZE (Dashboard = management meetings record):\n${JSON.stringify(narratives, null, 2)}\n\nREPORT REQUIREMENTS:\n\n1. AUDIENCE: Internal stakeholders, CQC, Ofsted, and local authorities\n2. STYLE: Professional, narrative-driven, regulatory compliance focused\n3. STRUCTURE: Follow the exact structure below with these headings and subheadings\n4. FORMAT: Use markdown formatting for headings only - # for major sections, ## for subsections\n5. FORMATTING: Major headings use # and minor headings use ##\n\nDATA INPUTS TO CONSIDER:\n- Latest Update, Trend Analysis, Actions, and any attached documents from meetings\n- RAG summaries from the Dashboard (items, actions, key review dates) — convert to professional language (do not say “red/amber/green”)\n- Inspection checklist (CQC readiness) category statuses to evidence preparedness\n\n6. ANALYSIS APPROACH: Synthesize all these data inputs to create a comprehensive narrative that shows the full picture of service performance and quality improvements\n\nREQUIRED REPORT STRUCTURE (in this exact order):\n\nExecutive Summary\n\nStaff\n- Resourcing\n- Staff Documents  \n- Training\n- Spot Checks\n- Staff Supervisions\n- Staff Meetings\n\nCare Planning & Delivery (Changes to \"Support Planning & Delivery\" for companies with only Supported Housing services)\n- Care Plans & Risk Assessments (becomes \"Support Plans & Risk Assessments\" for supported housing)\n- Service User Documents\n- Medication Management\n- Care Notes\n- Call Monitoring\n- Transportation\n\nSafety\n- Incidents, Accidents and Safeguarding\n- Risk Register\n- Infection Control\n- Information Governance\n\nContinuous Improvement\n- Feedback\n- Audits\n\nSuccesses and Achievements\n\nLearning Opportunities and Challenges\n\nNext Steps\n\nCRITICAL WRITING INSTRUCTIONS:\n1. Use ONLY the headings and subheadings provided above\n2. Format major section headings with # and minor headings with ##\n3. Write all content in natural paragraph format without other markdown\n4. Tell a compelling narrative about the service's overall journey through the quarter\n5. Focus on progression showing how challenges evolved and what actions were taken\n6. Frame everything through the lens of quality, safety, and person-centered care\n7. Base all content strictly on the provided data — never invent information\n8. Use professional language appropriate for regulatory and senior stakeholder audiences\n9. Show relationships between different areas and demonstrate continuous improvement\n10. Transform RAG indicators into meaningful insights — DO NOT use the words \"red\", \"amber\", or \"green\"\n11. DO NOT make specific references to individual names\n12. DO NOT mention anything related to Supported Housing unless explicitly present in the data\n13. If information is not available for a section, simply omit that section\n14. NOTE: Interactive 12-month analytics charts will be automatically included in Feedback and Incidents sections — do not reference charts explicitly.\n\nWrite approximately 1500-2500 words using only plain text.`;
 
-Continuous Improvement
-- Feedback
-- Audits
+      const reportContent = await generateResponse([
+        { role: 'system', content: 'You are an expert care service compliance report writer.' },
+        { role: 'user', content: prompt }
+      ], 'gpt-4.1-2025-04-14');
 
-Successes and Achievements
-
-Learning Opportunities and Challenges
-
-Next Steps
-
-CRITICAL WRITING INSTRUCTIONS:
-
-1. Use ONLY the headings and subheadings provided above
-2. Format major section headings with # (e.g., "# Executive Summary")
-3. Format minor headings (subheadings) with ## (e.g., "## Resourcing")
-4. Write all content in natural paragraph format without other markdown
-5. Tell a compelling narrative about the service's overall journey through the quarter
-6. Focus on progression showing how challenges evolved and what actions were taken
-7. Frame everything through the lens of quality, safety, and person-centered care
-8. Base all content strictly on the meeting data provided - never invent information
-9. Use professional language appropriate for regulatory and senior stakeholder audiences
-10. Show relationships between different areas and demonstrate continuous improvement
-11. Transform status indicators into meaningful insights about service quality
-12. DO NOT make specific references to individual names - focus on how the service overall performed
-13. DO NOT use "red", "amber", or "green" status language - instead use professional terms like "critical", "risk", "positive", "excellent", "concerning", "satisfactory"
-14. DO NOT mention anything related to Supported Housing unless explicitly present in the meeting data
-15. If information is not available for a section, simply omit that section
-16. NOTE: Interactive 12-month analytics charts will be automatically included in the "## Feedback" and "## Incidents, Accidents and Safeguarding" sections - do not reference these charts in your written content as they are added automatically
-
-Write approximately 1500-2500 words using only plain text formatting that regulatory bodies would find comprehensive and reassuring about the service's commitment to quality and continuous improvement.`;
-      const reportContent = await generateResponse([{
-        role: 'system',
-        content: 'You are an expert care service compliance report writer.'
-      }, {
-        role: 'user',
-        content: prompt
-      }], 'gpt-4.1-2025-04-14');
       if (reportContent) {
-        // Save to Supabase
-        const {
-          error: supabaseError
-        } = await supabase.from('quarterly_reports').upsert({
+        // Save to Supabase with additional analytics/context
+        const { error: supabaseError } = await supabase.from('quarterly_reports').upsert({
           company_id: profile.company_id,
           quarter,
           year: parseInt(year),
           report_content: reportContent,
           analytics_data: JSON.parse(JSON.stringify({
             narratives,
-            generatedAt: new Date().toISOString()
+            ragSummary: context,
+            generatedAt: new Date().toISOString(),
           }))
         });
+
         if (supabaseError) {
           console.error('Supabase error:', supabaseError);
           // Fallback to local storage
@@ -227,18 +271,19 @@ Write approximately 1500-2500 words using only plain text formatting that regula
             generatedAt: new Date().toISOString()
           }));
         }
+
         setHasGeneratedReport(true);
         toast({
-          title: "Report Generated Successfully",
+          title: 'Report Generated Successfully',
           description: `Your narrative quarterly report for ${quarter} ${year} has been created.`
         });
       }
     } catch (error) {
       console.error('Error generating report:', error);
       toast({
-        title: "Generation Failed",
-        description: "There was an error generating the report. Please try again.",
-        variant: "destructive"
+        title: 'Generation Failed',
+        description: 'There was an error generating the report. Please try again.',
+        variant: 'destructive'
       });
     } finally {
       setIsGenerating(false);
