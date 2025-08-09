@@ -644,6 +644,45 @@ export type Database = {
           },
         ]
       }
+      meeting_email_reminders: {
+        Row: {
+          company_id: string
+          created_at: string
+          error: string | null
+          html: string
+          id: string
+          send_at: string
+          sent_at: string | null
+          status: string
+          subject: string
+          to_email: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          error?: string | null
+          html: string
+          id?: string
+          send_at: string
+          sent_at?: string | null
+          status?: string
+          subject: string
+          to_email: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          error?: string | null
+          html?: string
+          id?: string
+          send_at?: string
+          sent_at?: string | null
+          status?: string
+          subject?: string
+          to_email?: string
+        }
+        Relationships: []
+      }
       meeting_headers: {
         Row: {
           attendees: Json
