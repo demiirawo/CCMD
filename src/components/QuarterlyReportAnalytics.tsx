@@ -99,6 +99,23 @@ export const QuarterlyReportAnalytics: React.FC<QuarterlyReportAnalyticsProps> =
     return quarterMap[quarter] || `${year}-12-31`;
   };
   const quarterDate = new Date(getQuarterDate(quarter, year));
+
+  // Ensure charts use the same 12-month window as the latest dashboard meeting
+  const alignToMeetingMonths = (data: any[], meetingDate?: Date) => {
+    try {
+      if (!meetingDate || !Array.isArray(data) || data.length === 0) return data;
+      const expectedMonths = generateInitialData(type, meetingDate).map((d: any) => d.month);
+      const len = Math.min(expectedMonths.length, data.length);
+      const result = [] as any[];
+      for (let i = 0; i < len; i++) {
+        result.push({ ...data[i], month: expectedMonths[i] });
+      }
+      return result;
+    } catch (_e) {
+      return data;
+    }
+  };
+
   useEffect(() => {
     console.log(`🔄 QuarterlyReportAnalytics useEffect triggered for ${type}`);
     loadData();
@@ -122,6 +139,7 @@ export const QuarterlyReportAnalytics: React.FC<QuarterlyReportAnalyticsProps> =
       }
 
       let latestDashboardMeetingId: string | null = null;
+      let latestDashboardMeeting: any | null = null;
       if (Array.isArray(meetingsData)) {
         const latestDash = meetingsData.find((m: any) => {
           const sections = typeof m.sections === 'string' ? JSON.parse(m.sections) : (m.sections || []);
@@ -129,6 +147,7 @@ export const QuarterlyReportAnalytics: React.FC<QuarterlyReportAnalyticsProps> =
           return ids.includes('meeting-overview') || ids.includes('staff') || ids.includes('care-planning') || ids.includes('safety') || ids.includes('continuous-improvement') || ids.includes('supported-housing');
         });
         latestDashboardMeetingId = latestDash?.id || null;
+        latestDashboardMeeting = latestDash || null;
       }
 
       // If no dashboard meeting in quarter, do not include chart
@@ -165,7 +184,8 @@ export const QuarterlyReportAnalytics: React.FC<QuarterlyReportAnalyticsProps> =
 
       if (hasAny) {
         console.log(`✅ Using ${table} from latest dashboard meeting`, latestDashboardMeetingId);
-        setMonthlyData(arr);
+        const aligned = alignToMeetingMonths(arr, latestDashboardMeeting?.date ? new Date(latestDashboardMeeting.date) : undefined);
+        setMonthlyData(aligned);
       } else {
         if (type === 'incidents') {
           console.log('ℹ️ Latest dashboard meeting incidents are empty – hiding incidents chart for this quarter');
@@ -208,7 +228,8 @@ export const QuarterlyReportAnalytics: React.FC<QuarterlyReportAnalyticsProps> =
         });
         if (fbHasAny) {
           console.log(`✅ Using ${table} fallback company-wide record updated at`, (fallbackRows as any)[0]?.updated_at);
-          setMonthlyData(fb);
+          const alignedFb = alignToMeetingMonths(fb, latestDashboardMeeting?.date ? new Date(latestDashboardMeeting.date) : undefined);
+          setMonthlyData(alignedFb);
         } else {
           console.log('ℹ️ No non-empty fallback analytics found for this quarter – skipping chart');
           setMonthlyData([]);
