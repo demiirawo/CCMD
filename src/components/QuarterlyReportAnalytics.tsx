@@ -105,12 +105,31 @@ export const QuarterlyReportAnalytics: React.FC<QuarterlyReportAnalyticsProps> =
     try {
       if (!meetingDate || !Array.isArray(data) || data.length === 0) return data;
       const expectedMonths = generateInitialData(type, meetingDate).map((d: any) => d.month);
-      const len = Math.min(expectedMonths.length, data.length);
-      const result = [] as any[];
-      for (let i = 0; i < len; i++) {
-        result.push({ ...data[i], month: expectedMonths[i] });
+
+      // Build a map from existing month label -> values and collect keys for zero object
+      const monthMap = new Map<string, any>();
+      const zeroKeys = new Set<string>();
+      data.forEach((row: any) => {
+        if (row && typeof row === 'object') {
+          const { month, ...rest } = row;
+          Object.keys(rest).forEach((k) => zeroKeys.add(k));
+          if (typeof month === 'string') monthMap.set(month, rest);
+        }
+      });
+
+      // Zero object using discovered keys or sensible defaults per type
+      const zeroObj: any = {};
+      zeroKeys.forEach((k) => (zeroObj[k] = 0));
+      if (Object.keys(zeroObj).length === 0) {
+        if (type === 'feedback') {
+          Object.assign(zeroObj, { compliments: 0, complaints: 0, suggestions: 0, resolved: 0 });
+        } else {
+          Object.assign(zeroObj, { incidents: 0, accidents: 0, safeguarding: 0, resolved: 0 });
+        }
       }
-      return result;
+
+      // Create aligned array by month label instead of by index
+      return expectedMonths.map((m: string) => ({ month: m, ...(monthMap.get(m) || zeroObj) }));
     } catch (_e) {
       return data;
     }
