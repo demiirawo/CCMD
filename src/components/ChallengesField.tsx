@@ -63,7 +63,7 @@ export const ChallengesField = ({ value, onChange, readOnly = false, itemId }: C
     }, 100);
   };
 
-  const labelText = itemId === "achievements-learning" ? "CHALLENGES" : "TREND ANALYSIS";
+  const labelText = "ROOT CAUSE ANALYSIS";
 
   if (readOnly) {
     return (
