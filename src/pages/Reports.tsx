@@ -19,6 +19,7 @@ import { NarrativeQuarterlyReportGenerator } from "@/components/NarrativeQuarter
 import { ReadOnlyDashboardView } from "@/components/ReadOnlyDashboardView";
 import { AddMeetingDialog } from "@/components/AddMeetingDialog";
 import { MeetingPreview } from "@/components/MeetingPreview";
+import { InspectionUpdatesPreview } from "@/components/InspectionUpdatesPreview";
 interface Meeting {
   id: string;
   date: string;
@@ -655,7 +656,22 @@ export const Reports = () => {
                   {isExpanded && <div className="space-y-3 pt-4 border-t border-border/20">
                       {/* Inspection activity summary for this quarter */}
                       <div className="rounded-lg p-4 border bg-white">
-                        <h4 className="font-medium text-foreground">Inspection Checklist</h4>
+                        <div className="flex items-center justify-between">
+                          <h4 className="font-medium text-foreground">Inspection Checklist</h4>
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <Button variant="outline" size="sm">View</Button>
+                            </DialogTrigger>
+                            <DialogContent className="max-w-4xl">
+                              <DialogHeader>
+                                <DialogTitle>Inspection Updates - {quarter} {year}</DialogTitle>
+                              </DialogHeader>
+                              <div className="max-h-[70vh] overflow-y-auto">
+                                <InspectionUpdatesPreview year={yearNum} quarter={quarter} />
+                              </div>
+                            </DialogContent>
+                          </Dialog>
+                        </div>
                         {inspectionSummary[quarterKey]?.length ? (
                           <div className="flex flex-wrap gap-3 mt-2">
                             {inspectionSummary[quarterKey].map(item => (
