@@ -33,6 +33,16 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
+    // DST-aware guard: run only at 09:00 Europe/London
+    const nowUkHour = new Intl.DateTimeFormat('en-GB', { hour: '2-digit', hour12: false, timeZone: 'Europe/London' }).format(new Date());
+    if (nowUkHour !== '09') {
+      console.log('Skipping send-action-reminders: current UK hour is', nowUkHour);
+      return new Response(JSON.stringify({ message: `Skipped - UK time is not 09:00 (current UK hour: ${nowUkHour})` }), {
+        status: 200,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+
     // Initialize Supabase client
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
