@@ -96,6 +96,13 @@ export const DashboardHeader = ({
         </div>
       </div>
 
+      {/* RAG Status Summary */}
+      {sections && sections.length > 0 && (
+        <div className="p-2">
+          <MeetingStatusSummary sections={sections} />
+        </div>
+      )}
+
       {/* Office Team and Meeting Summary Section */}
       <div className="grid grid-cols-2 gap-6 mb-6 items-start">
         {/* Office Team - 50% width */}
