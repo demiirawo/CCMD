@@ -224,7 +224,7 @@ export const StatusItem = memo(({
             item.title.toLowerCase().includes('infection control') ||
             item.title.toLowerCase().includes('information governance') ||
             item.title.toLowerCase().includes('audits') ||
-            item.title.toLowerCase().includes('reflection') ||
+            (item.title.toLowerCase().includes('reflection') || item.title.toLowerCase().includes('achievements & challenges')) ||
             item.title.toLowerCase().includes('staff meetings')
             ? 'hidden' : ''
           }`}
