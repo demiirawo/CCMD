@@ -18,6 +18,7 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { NarrativeQuarterlyReportGenerator } from "@/components/NarrativeQuarterlyReportGenerator";
 import { ReadOnlyDashboardView } from "@/components/ReadOnlyDashboardView";
 import { AddMeetingDialog } from "@/components/AddMeetingDialog";
+import { MeetingPreview } from "@/components/MeetingPreview";
 interface Meeting {
   id: string;
   date: string;
@@ -725,7 +726,7 @@ export const Reports = () => {
                                      {/* Close button */}
                                       <div className="sticky top-0 z-10 bg-background border-b p-4 flex justify-between items-center">
                                         <DialogTitle className="text-xl font-bold">
-                                          {meeting.title} - Dashboard View
+                                          {meeting.title} - Meeting Preview
                                         </DialogTitle>
                                           <div className="flex items-center gap-2">
                                              <Button variant="outline" size="sm" onClick={() => handleExportPDF(meeting.id, meeting.title)}>
@@ -740,10 +741,10 @@ export const Reports = () => {
                                         </div>
                                       </div>
                                      
-                                      {/* Full Dashboard View */}
-                                      <div className="p-4" data-meeting-preview={meeting.id}>
-                                        <ReadOnlyDashboardView meetingId={meeting.id} />
-                                      </div>
+                                      {/* Meetings-focused Preview */}
+                                       <div className="p-4" data-meeting-preview={meeting.id}>
+                                         <MeetingPreview meetingId={meeting.id} />
+                                       </div>
                                    </div>
                                  </DialogContent>
                                 </Dialog>}
