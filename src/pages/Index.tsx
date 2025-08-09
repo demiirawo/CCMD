@@ -1735,12 +1735,42 @@ const Index = () => {
         </div>
       </div>;
   }
+  // Compute extra statuses for RAG (Actions + Key Review Dates)
+  const parseDueDate = (dueDate: string): Date | null => {
+    if (!dueDate) return null;
+    if (dueDate.includes('/') && dueDate.split('/').length === 3) {
+      const [day, month, year] = dueDate.split('/');
+      const d = new Date(`${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`);
+      return isNaN(d.getTime()) ? null : d;
+    }
+    const d = new Date(dueDate);
+    return isNaN(d.getTime()) ? null : d;
+  };
+  const todayMid = new Date(); todayMid.setHours(0,0,0,0);
+  const isActionsPanelRed = actionsLog.some(a => {
+    if (a.closed) return false;
+    const d = parseDueDate(a.dueDate);
+    if (!d) return false;
+    d.setHours(0,0,0,0);
+    return d.getTime() < todayMid.getTime();
+  });
+  const isKeyDocsRed = keyDocuments.some(doc => {
+    if (!doc || !doc.name || !doc.lastReviewDate || !doc.nextReviewDate) return false;
+    const d = new Date(doc.nextReviewDate);
+    if (isNaN(d.getTime())) return false;
+    d.setHours(0,0,0,0);
+    return d.getTime() < todayMid.getTime();
+  });
+  const ragExtras: StatusType[] = [];
+  if (isActionsPanelRed) ragExtras.push('red');
+  if (isKeyDocsRed) ragExtras.push('red');
+
   return <div className="min-h-screen bg-gray-100 p-4 lg:p-8 pt-36">
       <div className="w-[90%] mx-auto space-y-6">
         <div className="flex items-center mb-6 mt-16">
           <div className="flex-1" />
           <div className="flex-none">
-            <MeetingStatusSummary sections={dashboardData.sections || []} />
+            <MeetingStatusSummary sections={dashboardData.sections || []} extraStatuses={ragExtras} />
           </div>
           <div className="flex-1 flex justify-end gap-4">
             <Button onClick={handleToggleAll} variant="outline" className="gap-2">

@@ -7,6 +7,7 @@ interface MeetingStatusSummaryProps {
       status: StatusType;
     }>;
   }>;
+  extraStatuses?: StatusType[]; // Optional extra panel statuses to include in counts (e.g., actions, key reviews)
 }
 const calculateSectionStatus = (items: Array<{
   status: StatusType;
@@ -30,7 +31,8 @@ const sectionConfig = {
   }
 };
 export const MeetingStatusSummary = ({
-  sections
+  sections,
+  extraStatuses
 }: MeetingStatusSummaryProps) => {
   console.log('MeetingStatusSummary: Received sections:', sections);
 
@@ -43,10 +45,19 @@ export const MeetingStatusSummary = ({
   sections.forEach(section => {
     if (section.id !== "meeting-overview") {
       section.items.forEach(item => {
-        if (item.status === "green") statusCounts.green++;else if (item.status === "amber") statusCounts.amber++;else if (item.status === "red") statusCounts.red++;
+        if (item.status === "green") statusCounts.green++;
+        else if (item.status === "amber") statusCounts.amber++;
+        else if (item.status === "red") statusCounts.red++;
       });
     }
   });
+
+  // Include extra panel statuses (only count RED as requested)
+  if (Array.isArray(extraStatuses)) {
+    extraStatuses.forEach((s) => {
+      if (s === "red") statusCounts.red++;
+    });
+  }
   console.log('MeetingStatusSummary: Status counts:', statusCounts);
   
   return (
