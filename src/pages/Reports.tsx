@@ -20,6 +20,7 @@ import { ReadOnlyDashboardView } from "@/components/ReadOnlyDashboardView";
 import { AddMeetingDialog } from "@/components/AddMeetingDialog";
 import { MeetingPreview } from "@/components/MeetingPreview";
 import { InspectionUpdatesPreview } from "@/components/InspectionUpdatesPreview";
+import { DashboardMeetingAnalyticsPreview } from "@/components/DashboardMeetingAnalyticsPreview";
 interface Meeting {
   id: string;
   date: string;
@@ -245,6 +246,10 @@ export const Reports = () => {
       hour: '2-digit',
       minute: '2-digit'
     });
+  };
+  const isDashboardMeeting = (meeting: ParsedMeeting) => {
+    const ids = (meeting.sections || []).map(s => s.id);
+    return ids.includes('meeting-overview') || ids.includes('staff') || ids.includes('care-planning') || ids.includes('safety') || ids.includes('continuous-improvement') || ids.includes('supported-housing');
   };
   const isCurrentQuarter = (quarter: string, year: number) => {
     return quarter === getCurrentQuarter() && year === getCurrentYear();
@@ -757,10 +762,17 @@ export const Reports = () => {
                                         </div>
                                       </div>
                                      
-                                      {/* Meetings-focused Preview */}
-                                       <div className="p-4" data-meeting-preview={meeting.id}>
-                                         <MeetingPreview meetingId={meeting.id} />
-                                       </div>
+                                      {/* Preview - Dashboard-saved vs Meetings-saved */}
+                                       {isDashboardMeeting(meeting) ? (
+                                         <div className="p-4" data-meeting-preview={meeting.id}>
+                                           <ReadOnlyDashboardView meetingId={meeting.id} />
+                                           <DashboardMeetingAnalyticsPreview meetingId={meeting.id} />
+                                         </div>
+                                       ) : (
+                                         <div className="p-4" data-meeting-preview={meeting.id}>
+                                           <MeetingPreview meetingId={meeting.id} />
+                                         </div>
+                                       )}
                                    </div>
                                  </DialogContent>
                                 </Dialog>}
