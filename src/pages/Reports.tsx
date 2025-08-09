@@ -667,164 +667,165 @@ export const Reports = () => {
                           <p className="text-sm text-muted-foreground mt-2">No inspection updates this quarter.</p>
                         )}
                       </div>
-                      {quarterMeetings.map((meeting) => {
-                        const facilitatorFromPurpose = typeof meeting.purpose === 'string'
-                          ? meeting.purpose.replace(/^Facilitated by:\s*/i, '').trim()
-                          : '';
-                        const allItems = (meeting.sections as any[])?.flatMap((s: any) => s.items || []) || [];
-                        const facilitatorItem = allItems.find((i: any) => i?.id === 'facilitator' || /facilitator/i.test(i?.title || ''));
-                        const facilitator: string = (facilitatorItem?.observation as string) || facilitatorFromPurpose;
-                        const agendaItem = allItems.find((i: any) => i?.id === 'agenda' || /meeting detail|agenda|summary/i.test(i?.title || ''));
-                        const summary: string | undefined = (agendaItem?.observation as string) || undefined;
-
-                        return (
-                          <div key={meeting.id} className="rounded-lg p-4 border bg-white">
-                            <div className="flex items-start justify-between w-full gap-4">
-                              <div className="flex-1">
-                                <div className="flex flex-wrap items-center gap-6">
-                                  <h4 className="font-medium text-foreground">
-                                    {meeting.title}
-                                  </h4>
-                                  <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                                    <CalendarDays className="h-4 w-4" />
-                                    {formatDate(meeting.date)}
-                                  </div>
-                                  {meeting.document_url && (
-                                    <div className="flex items-center gap-1 text-sm text-primary">
-                                      <FileText className="h-4 w-4" />
-                                      <a
-                                        href="#"
-                                        className="hover:underline flex items-center gap-1 cursor-pointer"
-                                        onClick={(e) => {
-                                          e.preventDefault();
-                                          e.stopPropagation();
-
-                                          // Create signed URL for private storage
-                                          supabase.storage
-                                            .from('meeting-documents')
-                                            .createSignedUrl(meeting.document_url!, 3600) // 1 hour expiry
-                                            .then(({ data, error }) => {
-                                              if (error) {
-                                                console.error('Error creating signed URL:', error);
-                                                toast({
-                                                  title: 'Error',
-                                                  description: 'Could not access document',
-                                                  variant: 'destructive',
-                                                });
-                                              } else if (data?.signedUrl) {
-                                                window.open(data.signedUrl, '_blank');
-                                              }
-                                            });
-                                        }}
-                                      >
-                                        View Document
-                                        <ExternalLink className="h-3 w-3" />
-                                      </a>
-                                    </div>
-                                  )}
-                                </div>
-
-                                {/* Facilitator */}
-                                {facilitator && (
-                                  <p className="mt-2 text-sm text-muted-foreground">
-                                    Facilitator: <span className="text-foreground">{facilitator}</span>
-                                  </p>
-                                )}
-
-                                {/* Attendees (from Meetings page entries) */}
-                                {Array.isArray(meeting.attendees) && meeting.attendees.length > 0 && (
-                                  <div className="mt-2 flex flex-wrap gap-2">
-                                    {meeting.attendees.map((a: any) => (
-                                      <Badge key={a.id} variant="secondary">{a.name}</Badge>
-                                    ))}
-                                  </div>
-                                )}
-
-                                {/* Meeting Summary */}
-                                <div className="mt-3">
-                                  <p className="text-sm font-medium text-foreground">Meeting Summary</p>
-                                  <p className="text-sm text-muted-foreground">
-                                    {summary ? (summary.length > 240 ? summary.slice(0, 240) + '…' : summary) : 'No summary provided.'}
-                                  </p>
-                                </div>
+                      {quarterMeetings.map(meeting => <div key={meeting.id} className="rounded-lg p-4 border bg-white">
+                          <div className="flex items-center justify-between w-full">
+                            <div className="flex items-center gap-6 flex-1">
+                              <h4 className="font-medium text-foreground">
+                                {meeting.title}
+                              </h4>
+                              <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                                <CalendarDays className="h-4 w-4" />
+                                {formatDate(meeting.date)}
                               </div>
+                              {/* Hide attendees for custom meetings (purpose is null) */}
+                              {meeting.purpose !== null && <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                                  <Users className="h-4 w-4" />
+                                  {meeting.attendees.length} attendee{meeting.attendees.length !== 1 ? 's' : ''}
+                                </div>}
+                              {meeting.document_url && <div className="flex items-center gap-1 text-sm text-primary">
+                                  <FileText className="h-4 w-4" />
+                                  <a href="#" className="hover:underline flex items-center gap-1 cursor-pointer" onClick={e => {
+                        e.preventDefault();
+                        e.stopPropagation();
 
-                              <div className="flex items-center gap-2">
+                        // Create signed URL for private storage
+                        supabase.storage.from('meeting-documents').createSignedUrl(meeting.document_url, 3600) // 1 hour expiry
+                        .then(({
+                          data,
+                          error
+                        }) => {
+                          if (error) {
+                            console.error('Error creating signed URL:', error);
+                            toast({
+                              title: "Error",
+                              description: "Could not access document",
+                              variant: "destructive"
+                            });
+                          } else if (data?.signedUrl) {
+                            window.open(data.signedUrl, '_blank');
+                          }
+                        });
+                      }}>
+                                    View Document
+                                    <ExternalLink className="h-3 w-3" />
+                                  </a>
+                                </div>}
+                              
+                            </div>
+                             <div className="flex items-center gap-2">
                                 {/* Hide View button for custom meetings (purpose is null) */}
-                                {meeting.purpose !== null && (
-                                  <Dialog>
+                                {meeting.purpose !== null && <Dialog>
                                     <DialogTrigger asChild>
-                                      <Button variant="default" size="sm">
-                                        View
-                                      </Button>
+                                         <Button variant="default" size="sm">
+                                           View
+                                         </Button>
                                     </DialogTrigger>
-                                    <DialogContent className="max-w-[95vw] max-h-[95vh] overflow-y-auto bg-background p-0">
-                                      <div className="relative">
-                                        {/* Close button */}
-                                        <div className="sticky top-0 z-10 bg-background border-b p-4 flex justify-between items-center">
-                                          <DialogTitle className="text-xl font-bold">
-                                            {meeting.title} - Dashboard View
-                                          </DialogTitle>
+                                 <DialogContent className="max-w-[95vw] max-h-[95vh] overflow-y-auto bg-background p-0">
+                                   <div className="relative">
+                                     {/* Close button */}
+                                      <div className="sticky top-0 z-10 bg-background border-b p-4 flex justify-between items-center">
+                                        <DialogTitle className="text-xl font-bold">
+                                          {meeting.title} - Dashboard View
+                                        </DialogTitle>
                                           <div className="flex items-center gap-2">
-                                            <Button variant="outline" size="sm" onClick={() => handleExportPDF(meeting.id, meeting.title)}>
-                                              Save PDF
+                                             <Button variant="outline" size="sm" onClick={() => handleExportPDF(meeting.id, meeting.title)}>
+                                               Save PDF
+                                             </Button>
+                                          <DialogTrigger asChild>
+                                            <Button variant="ghost" size="sm" className="gap-1">
+                                              <X className="h-4 w-4" />
+                                              Close
                                             </Button>
-                                            <DialogTrigger asChild>
-                                              <Button variant="ghost" size="sm" className="gap-1">
-                                                <X className="h-4 w-4" />
-                                                Close
-                                              </Button>
-                                            </DialogTrigger>
-                                          </div>
-                                        </div>
-
-                                        {/* Full Dashboard View */}
-                                        <div className="p-4" data-meeting-preview={meeting.id}>
-                                          <ReadOnlyDashboardView meetingId={meeting.id} />
+                                          </DialogTrigger>
                                         </div>
                                       </div>
-                                    </DialogContent>
-                                  </Dialog>
-                                )}
+                                     
+                                      {/* Full Dashboard View */}
+                                      <div className="p-4" data-meeting-preview={meeting.id}>
+                                        <ReadOnlyDashboardView meetingId={meeting.id} />
+                                      </div>
+                                   </div>
+                                 </DialogContent>
+                                </Dialog>}
 
-                                {/* Delete Meeting Dialog */}
-                                {canEdit && (
-                                  <AlertDialog>
-                                    <AlertDialogTrigger asChild>
+                              {/* Delete Meeting Dialog */}
+                              {canEdit && <AlertDialog>
+                                  <AlertDialogTrigger asChild>
                                       <Button variant="destructive" size="sm" className="bg-red-600 hover:bg-red-700 text-white">
                                         Delete
                                       </Button>
-                                    </AlertDialogTrigger>
-                                    <AlertDialogContent>
-                                      <AlertDialogHeader>
-                                        <AlertDialogTitle>Delete Meeting</AlertDialogTitle>
-                                        <AlertDialogDescription>
-                                          Are you sure you want to delete "{meeting.title}"? This action cannot be undone.
-                                        </AlertDialogDescription>
-                                      </AlertDialogHeader>
-                                      <AlertDialogFooter>
-                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                        <AlertDialogAction onClick={() => deleteMeeting(meeting.id)} className="bg-destructive hover:bg-destructive/90">
-                                          Delete
-                                        </AlertDialogAction>
-                                      </AlertDialogFooter>
-                                    </AlertDialogContent>
-                                  </AlertDialog>
-                                )}
-                              </div>
+                                  </AlertDialogTrigger>
+                                  <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                      <AlertDialogTitle>Delete Meeting</AlertDialogTitle>
+                                      <AlertDialogDescription>
+                                        Are you sure you want to delete "{meeting.title}"? This action cannot be undone.
+                                      </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                      <AlertDialogAction onClick={() => deleteMeeting(meeting.id)} className="bg-destructive hover:bg-destructive/90">
+                                        Delete
+                                      </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                  </AlertDialogContent>
+                                </AlertDialog>}
                             </div>
+                          </div>
 
-                            {/* Hidden print-friendly content for each meeting */}
-                            <div id={`meeting-print-${meeting.id}`} className="hidden">
+                          {/* Meeting details preview consistent with captured data */}
+                          <div className="mt-4 grid gap-4 md:grid-cols-3">
+                            {meeting.purpose !== null && (
+                              <>
+                                <div>
+                                  <div className="text-xs text-muted-foreground">Facilitator</div>
+                                  <div className="text-sm text-foreground">
+                                    {(meeting.purpose || '').replace(/^Facilitated by:\s*/i, '') || '—'}
+                                  </div>
+                                </div>
+
+                                <div className="md:col-span-2">
+                                  <div className="text-xs text-muted-foreground">Attendees</div>
+                                  <div className="flex flex-wrap gap-2 mt-1">
+                                    {meeting.attendees.length ? (
+                                      meeting.attendees.map((a) => (
+                                        <Badge key={a.id} variant="secondary">{a.name}</Badge>
+                                      ))
+                                    ) : (
+                                      <span className="text-sm text-muted-foreground">No attendees recorded</span>
+                                    )}
+                                  </div>
+                                </div>
+
+                                <div className="md:col-span-3">
+                                  <div className="text-xs text-muted-foreground">Meeting Summary</div>
+                                  <p className="text-sm text-foreground mt-1">
+                                    {(() => {
+                                      try {
+                                        const items = ((meeting.sections || []).flatMap((s: any) => s.items || [])) as any[];
+                                        const agenda = items.find((it) => it.id === 'agenda');
+                                        const text = (agenda?.observation as string) || '';
+                                        return text.length > 280 ? text.slice(0, 280) + '…' : (text || '—');
+                                      } catch {
+                                        return '—';
+                                      }
+                                    })()}
+                                  </p>
+                                </div>
+                              </>
+                            )}
+                          </div>
+
+                           {/* Hidden print-friendly content for each meeting */}
+                          <div id={`meeting-print-${meeting.id}`} className="hidden">
                               <div className="print-header">
                                 <h1 className="print-title">{meeting.title}</h1>
                                 <p className="print-subtitle">Meeting Report - {formatDate(meeting.date)}</p>
                               </div>
+                              
                               <ReadOnlyDashboardView meetingId={meeting.id} />
                             </div>
-                          </div>
-                        );
-                      })}
+                        </div>)}
                     </div>}
                 </div>;
         })}
