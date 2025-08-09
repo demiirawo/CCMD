@@ -1747,23 +1747,41 @@ const Index = () => {
     return isNaN(d.getTime()) ? null : d;
   };
   const todayMid = new Date(); todayMid.setHours(0,0,0,0);
-  const isActionsPanelRed = actionsLog.some(a => {
-    if (a.closed) return false;
+
+  // Actions overall status
+  const activeActions = actionsLog.filter(a => !a.closed);
+  const hasOverdueAction = activeActions.some(a => {
     const d = parseDueDate(a.dueDate);
     if (!d) return false;
     d.setHours(0,0,0,0);
     return d.getTime() < todayMid.getTime();
   });
-  const isKeyDocsRed = keyDocuments.some(doc => {
-    if (!doc || !doc.name || !doc.lastReviewDate || !doc.nextReviewDate) return false;
-    const d = new Date(doc.nextReviewDate);
-    if (isNaN(d.getTime())) return false;
+  const hasDueSoonAction = activeActions.some(a => {
+    const d = parseDueDate(a.dueDate);
+    if (!d) return false;
     d.setHours(0,0,0,0);
-    return d.getTime() < todayMid.getTime();
+    const diffDays = Math.ceil((d.getTime() - todayMid.getTime()) / (1000*60*60*24));
+    return diffDays >= 0 && diffDays <= 5;
   });
-  const ragExtras: StatusType[] = [];
-  if (isActionsPanelRed) ragExtras.push('red');
-  if (isKeyDocsRed) ragExtras.push('red');
+  const actionsStatus: StatusType = hasOverdueAction ? 'red' : (hasDueSoonAction ? 'amber' : 'green');
+
+  // Key documents overall status
+  const docStatus = (nextReviewDate: string | null): StatusType => {
+    if (!nextReviewDate) return 'green';
+    const d = new Date(nextReviewDate);
+    if (isNaN(d.getTime())) return 'green';
+    d.setHours(0,0,0,0);
+    const diffDays = Math.ceil((d.getTime() - todayMid.getTime()) / (1000*60*60*24));
+    if (diffDays < 0) return 'red';
+    if (diffDays <= 5) return 'amber';
+    return 'green';
+  };
+  const docStatuses = keyDocuments
+    .filter(doc => doc && doc.name && doc.lastReviewDate)
+    .map(doc => docStatus(doc.nextReviewDate));
+  const keyDocsStatus: StatusType = docStatuses.includes('red') ? 'red' : (docStatuses.includes('amber') ? 'amber' : 'green');
+
+  const ragExtras: StatusType[] = [actionsStatus, keyDocsStatus];
 
   return <div className="min-h-screen bg-gray-100 p-4 lg:p-8 pt-36">
       <div className="w-[90%] mx-auto space-y-6">

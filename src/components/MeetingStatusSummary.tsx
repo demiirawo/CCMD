@@ -52,10 +52,12 @@ export const MeetingStatusSummary = ({
     }
   });
 
-  // Include extra panel statuses (only count RED as requested)
+  // Include extra panel statuses (count all statuses provided)
   if (Array.isArray(extraStatuses)) {
     extraStatuses.forEach((s) => {
-      if (s === "red") statusCounts.red++;
+      if (s === "green") statusCounts.green++;
+      else if (s === "amber") statusCounts.amber++;
+      else if (s === "red") statusCounts.red++;
     });
   }
   console.log('MeetingStatusSummary: Status counts:', statusCounts);
