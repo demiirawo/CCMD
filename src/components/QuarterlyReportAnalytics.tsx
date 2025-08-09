@@ -167,8 +167,13 @@ export const QuarterlyReportAnalytics: React.FC<QuarterlyReportAnalyticsProps> =
         console.log(`✅ Using ${table} from latest dashboard meeting`, latestDashboardMeetingId);
         setMonthlyData(arr);
       } else {
+        if (type === 'incidents') {
+          console.log('ℹ️ Latest dashboard meeting incidents are empty – hiding incidents chart for this quarter');
+          setMonthlyData([]);
+          return;
+        }
         console.log('ℹ️ Latest dashboard meeting analytics are empty – attempting company-wide fallback within quarter');
-        // Fallback: find most recent non-empty company-wide analytics within the same quarter window
+        // Fallback: find most recent non-empty company-wide analytics within the same quarter window (feedback only)
         const getQuarterRange = (q: string, y: string) => {
           const yr = parseInt(y, 10);
           switch (q) {
