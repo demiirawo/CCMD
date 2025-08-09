@@ -7,6 +7,7 @@ interface MeetingEmailData {
   attendees: any[];
   actions: any[];
   meetingSummary?: string;
+  companyName?: string;
 }
 
 export const useMeetingEmailNotification = () => {
@@ -313,7 +314,7 @@ export const useMeetingEmailNotification = () => {
           const { data, error } = await supabase.functions.invoke('send-email', {
             body: {
               to: email,
-              subject: `${meetingData.title} - ${new Date(meetingData.date).toLocaleDateString('en-GB')}`,
+              subject: `${meetingData.companyName ? meetingData.companyName + ' - ' : ''}${meetingData.title} - ${new Date(meetingData.date).toLocaleDateString('en-GB')}`,
               html: emailHtml,
               from: 'CCMD <meetings@ccmd.co.uk>'
             }

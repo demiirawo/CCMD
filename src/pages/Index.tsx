@@ -1598,7 +1598,8 @@ const Index = () => {
           date: meetingDate.toISOString(),
           attendees: headerData.attendees,
           actions: actionsLog,
-          meetingSummary: meetingSummary
+          meetingSummary: meetingSummary,
+          companyName: companies.find(c => c.id === profile?.company_id)?.name
         });
       } catch (emailError) {
         console.error('❌ Error sending meeting emails:', emailError);
