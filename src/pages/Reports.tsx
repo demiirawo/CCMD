@@ -20,7 +20,7 @@ import { ReadOnlyDashboardView } from "@/components/ReadOnlyDashboardView";
 import { AddMeetingDialog } from "@/components/AddMeetingDialog";
 import { MeetingPreview } from "@/components/MeetingPreview";
 import { InspectionUpdatesPreview } from "@/components/InspectionUpdatesPreview";
-import { DashboardMeetingAnalyticsPreview } from "@/components/DashboardMeetingAnalyticsPreview";
+
 interface Meeting {
   id: string;
   date: string;
@@ -766,7 +766,6 @@ export const Reports = () => {
                                        {isDashboardMeeting(meeting) ? (
                                          <div className="p-4" data-meeting-preview={meeting.id}>
                                            <ReadOnlyDashboardView meetingId={meeting.id} />
-                                           <DashboardMeetingAnalyticsPreview meetingId={meeting.id} />
                                          </div>
                                        ) : (
                                          <div className="p-4" data-meeting-preview={meeting.id}>
