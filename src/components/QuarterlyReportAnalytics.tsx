@@ -131,68 +131,63 @@ export const QuarterlyReportAnalytics: React.FC<QuarterlyReportAnalyticsProps> =
         latestDashboardMeetingId = latestDash?.id || null;
       }
 
-      // Helper to load analytics by meeting_id first, then fall back to latest company record
-      const loadAnalytics = async (table: 'feedback_analytics' | 'incidents_analytics') => {
-        // Try meeting-scoped first
-        if (latestDashboardMeetingId) {
-          const { data: byMeeting, error: byMeetingErr } = await supabase
-            .from(table)
-            .select('monthly_data, updated_at')
-            .eq('company_id', profile.company_id)
-            .eq('meeting_id', latestDashboardMeetingId)
-            .order('updated_at', { ascending: false });
-
-          if (!byMeetingErr && Array.isArray(byMeeting) && byMeeting.length > 0) {
-            const latest = byMeeting[0] as any;
-            const arr = latest.monthly_data as any[];
-            if (Array.isArray(arr) && arr.length > 0) {
-              console.log(`✅ Using ${table} from latest dashboard meeting`, latestDashboardMeetingId);
-              return arr;
-            }
-          } else if (byMeetingErr) {
-            console.warn(`⚠️ ${table} meeting-scoped query error:`, byMeetingErr);
-          }
-        }
-
-        // Fallback: company latest (across all meetings)
-        const { data: byCompany, error: byCompanyErr } = await supabase
-          .from(table)
-          .select('monthly_data, updated_at')
-          .eq('company_id', profile.company_id)
-          .order('updated_at', { ascending: false });
-
-        if (!byCompanyErr && Array.isArray(byCompany) && byCompany.length > 0) {
-          const latest = byCompany[0] as any;
-          const arr = latest.monthly_data as any[];
-          if (Array.isArray(arr) && arr.length > 0) {
-            console.log(`✅ Using latest company ${table} (fallback)`);
-            return arr;
-          }
-        } else if (byCompanyErr) {
-          console.warn(`⚠️ ${table} company-scoped query error:`, byCompanyErr);
-        }
-
-        return null;
-      };
+      // If no dashboard meeting in quarter, do not include chart
+      if (!latestDashboardMeetingId) {
+        console.log('ℹ️ No dashboard meeting found for this quarter – skipping analytics chart');
+        setMonthlyData([]);
+        return;
+      }
 
       const table = type === 'feedback' ? 'feedback_analytics' : 'incidents_analytics';
-      const result = await loadAnalytics(table as any);
+      const { data: byMeeting, error: byMeetingErr } = await supabase
+        .from(table)
+        .select('monthly_data, updated_at')
+        .eq('company_id', profile.company_id)
+        .eq('meeting_id', latestDashboardMeetingId)
+        .order('updated_at', { ascending: false });
 
-      if (result) {
-        setMonthlyData(result);
+      if (byMeetingErr) {
+        console.warn(`⚠️ ${table} meeting-scoped query error:`, byMeetingErr);
+        setMonthlyData([]);
+        return;
+      }
+
+      const arr = (Array.isArray(byMeeting) && byMeeting[0] && Array.isArray((byMeeting[0] as any).monthly_data))
+        ? ((byMeeting[0] as any).monthly_data as any[])
+        : [];
+
+      const hasAny = Array.isArray(arr) && arr.some((m: any) => {
+        if (type === 'feedback') {
+          return (m.compliments || 0) + (m.complaints || 0) + (m.suggestions || 0) + (m.resolved || 0) > 0;
+        }
+        return (m.incidents || 0) + (m.accidents || 0) + (m.safeguarding || 0) + (m.resolved || 0) > 0;
+      });
+
+      if (hasAny) {
+        console.log(`✅ Using ${table} from latest dashboard meeting`, latestDashboardMeetingId);
+        setMonthlyData(arr);
       } else {
-        console.log(`📊 No ${type} analytics found; using generated initial data`);
-        setMonthlyData(generateInitialData(type, quarterDate));
+        console.log('ℹ️ Latest dashboard meeting analytics are empty – skipping chart');
+        setMonthlyData([]);
       }
     } catch (error) {
       console.error(`❌ Exception in ${type} analytics loadData:`, error);
-      setMonthlyData(generateInitialData(type, quarterDate));
+      setMonthlyData([]);
     }
   };
   const chartConfig = type === 'feedback' ? feedbackChartConfig : incidentsChartConfig;
   const chartTitle = type === 'feedback' ? 'Feedback Analytics' : 'Incidents, Accidents & Safeguarding Analytics';
   console.log(`📊 Rendering ${type} chart with data:`, monthlyData);
   console.log(`📊 Chart config:`, chartConfig);
+
+  const hasAnyRender = Array.isArray(monthlyData) && monthlyData.some((m: any) => {
+    if (type === 'feedback') {
+      return (m.compliments || 0) + (m.complaints || 0) + (m.suggestions || 0) + (m.resolved || 0) > 0;
+    }
+    return (m.incidents || 0) + (m.accidents || 0) + (m.safeguarding || 0) + (m.resolved || 0) > 0;
+  });
+  if (!hasAnyRender) return null;
+
   return <Card className="p-4 bg-white" data-chart-type={type}>
       <div className="flex items-center justify-between mb-4">
         
