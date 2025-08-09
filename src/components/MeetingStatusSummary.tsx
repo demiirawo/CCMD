@@ -51,15 +51,15 @@ export const MeetingStatusSummary = ({
   
   return (
     <div className="flex items-center gap-4 mb-4">
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2" title="Green - On Track">
         <StatusBadge status="green" />
         <span className="text-sm">{statusCounts.green}</span>
       </div>
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2" title="Amber - At Risk">
         <StatusBadge status="amber" />
         <span className="text-sm">{statusCounts.amber}</span>
       </div>
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2" title="Red - Urgent Attention">
         <StatusBadge status="red" />
         <span className="text-sm">{statusCounts.red}</span>
       </div>
