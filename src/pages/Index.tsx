@@ -1737,29 +1737,34 @@ const Index = () => {
   }
   return <div className="min-h-screen bg-gray-100 p-4 lg:p-8 pt-36">
       <div className="w-[90%] mx-auto space-y-6">
-        <div className="flex justify-end gap-4 mb-6 mt-16">
-          <Button onClick={handleToggleAll} variant="outline" className="gap-2">
-            <ChevronDown className="w-4 h-4" />
-            {getToggleButtonText()}
-          </Button>
-          <Button 
-            onClick={saveMeetingToDatabase} 
-            variant="outline" 
-            className={`gap-2 transition-all duration-500 ${saveSuccess ? 'success-glow' : ''}`}
-            disabled={isSaving}
-          >
-            {isSaving ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                Saving...
-              </>
-            ) : (
-              <>
-                Save
-              </>
-            )}
-          </Button>
-          
+        <div className="flex items-center mb-6 mt-16">
+          <div className="flex-1" />
+          <div className="flex-none">
+            <MeetingStatusSummary sections={dashboardData.sections || []} />
+          </div>
+          <div className="flex-1 flex justify-end gap-4">
+            <Button onClick={handleToggleAll} variant="outline" className="gap-2">
+              <ChevronDown className="w-4 h-4" />
+              {getToggleButtonText()}
+            </Button>
+            <Button 
+              onClick={saveMeetingToDatabase} 
+              variant="outline" 
+              className={`gap-2 transition-all duration-500 ${saveSuccess ? 'success-glow' : ''}`}
+              disabled={isSaving}
+            >
+              {isSaving ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  Save
+                </>
+              )}
+            </Button>
+          </div>
         </div>
         
         <div id="dashboard-container" className="space-y-6">

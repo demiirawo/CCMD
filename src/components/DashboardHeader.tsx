@@ -95,17 +95,10 @@ export const DashboardHeader = ({
             </div> : <MeetingDateTimePicker value={date} onChange={value => onDataChange?.("date", value)} />}
         </div>
       </div>
-
-      {/* RAG Status Summary */}
-      {sections && sections.length > 0 && (
-        <div className="p-2">
-          <MeetingStatusSummary sections={sections} />
-        </div>
-      )}
-
-      {/* Office Team and Meeting Summary Section */}
-      <div className="grid grid-cols-2 gap-6 mb-6 items-start">
-        {/* Office Team - 50% width */}
+ 
+       {/* Office Team and Meeting Summary Section */}
+       <div className="grid grid-cols-2 gap-6 mb-6 items-start">
+         {/* Office Team - 50% width */}
         <div className="p-4 rounded-lg border border-gray-100 min-h-24 bg-white">
           <h3 className="mb-2 py-[8px] text-base font-medium text-stone-950">Meeting Attendees</h3>
           <TeamAttendeesDisplay onAttendanceChange={readOnly ? undefined : onAttendeesChange} readOnly={readOnly} />
