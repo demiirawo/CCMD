@@ -773,8 +773,51 @@ export const Reports = () => {
                             </div>
                           </div>
 
-                             {/* Hidden print-friendly content for each meeting */}
-                            <div id={`meeting-print-${meeting.id}`} className="hidden">
+                          {/* Meeting details preview consistent with captured data */}
+                          <div className="mt-4 grid gap-4 md:grid-cols-3">
+                            {meeting.purpose !== null && (
+                              <>
+                                <div>
+                                  <div className="text-xs text-muted-foreground">Facilitator</div>
+                                  <div className="text-sm text-foreground">
+                                    {(meeting.purpose || '').replace(/^Facilitated by:\s*/i, '') || '—'}
+                                  </div>
+                                </div>
+
+                                <div className="md:col-span-2">
+                                  <div className="text-xs text-muted-foreground">Attendees</div>
+                                  <div className="flex flex-wrap gap-2 mt-1">
+                                    {meeting.attendees.length ? (
+                                      meeting.attendees.map((a) => (
+                                        <Badge key={a.id} variant="secondary">{a.name}</Badge>
+                                      ))
+                                    ) : (
+                                      <span className="text-sm text-muted-foreground">No attendees recorded</span>
+                                    )}
+                                  </div>
+                                </div>
+
+                                <div className="md:col-span-3">
+                                  <div className="text-xs text-muted-foreground">Meeting Summary</div>
+                                  <p className="text-sm text-foreground mt-1">
+                                    {(() => {
+                                      try {
+                                        const items = ((meeting.sections || []).flatMap((s: any) => s.items || [])) as any[];
+                                        const agenda = items.find((it) => it.id === 'agenda');
+                                        const text = (agenda?.observation as string) || '';
+                                        return text.length > 280 ? text.slice(0, 280) + '…' : (text || '—');
+                                      } catch {
+                                        return '—';
+                                      }
+                                    })()}
+                                  </p>
+                                </div>
+                              </>
+                            )}
+                          </div>
+
+                           {/* Hidden print-friendly content for each meeting */}
+                          <div id={`meeting-print-${meeting.id}`} className="hidden">
                               <div className="print-header">
                                 <h1 className="print-title">{meeting.title}</h1>
                                 <p className="print-subtitle">Meeting Report - {formatDate(meeting.date)}</p>
