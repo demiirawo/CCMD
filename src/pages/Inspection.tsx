@@ -8,6 +8,7 @@ import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { useInspectionData } from "@/hooks/useInspectionData";
 import { StatusBadge } from "@/components/StatusBadge";
 import { cn } from "@/lib/utils";
+import { MeetingStatusSummary } from "@/components/MeetingStatusSummary";
 
 type StatusType = 'green' | 'amber' | 'red' | 'na';
 
@@ -218,6 +219,15 @@ const Inspection = () => {
     return 'green';
   };
 
+  // Build sections array for RAG summary of evidence categories
+  const inspectionSections = [
+    {
+      id: 'inspection-categories',
+      title: 'Evidence Categories',
+      items: categories.map((cat) => ({ status: getCategoryStatus(cat.id) }))
+    }
+  ];
+
   const cycleStatus = (currentStatus: StatusType): StatusType => {
     const statusOrder: StatusType[] = ['green', 'amber', 'red', 'na'];
     const currentIndex = statusOrder.indexOf(currentStatus);
@@ -251,6 +261,13 @@ const Inspection = () => {
           <header className="mb-6">
             <h1 className="text-2xl font-semibold text-center text-transparent">CQC Inspection</h1>
           </header>
+          <div className="flex items-center mb-6 mt-6">
+            <div className="flex-1" />
+            <div className="flex-none">
+              <MeetingStatusSummary sections={inspectionSections} />
+            </div>
+            <div className="flex-1" />
+          </div>
           <div className="space-y-4">
             {panels.map((panel) => (
               <div key={panel.id} className="bg-primary/10 rounded-lg overflow-hidden">
