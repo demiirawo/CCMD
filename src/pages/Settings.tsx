@@ -74,18 +74,18 @@ export const Settings = () => {
     toast
   } = useToast();
   
-  // Check if user has permission to access settings
-  const canAccessSettings = profile?.permission === 'company_admin' || user?.email === 'demi.irawo@care-cuddle.co.uk';
+  // Allow all company-level users to access settings
+  const canAccessSettings = Boolean(profile?.company_id);
   
-  // If user doesn't have permission, show access denied message
+  // If no company selected, ask user to select one
   if (!canAccessSettings) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background p-4">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
-            <CardTitle className="text-destructive">Access Denied</CardTitle>
+            <CardTitle>Select a company</CardTitle>
             <CardDescription>
-              You don't have permission to access the settings page. Only company administrators can manage company settings.
+              You need to select a company to view its settings.
             </CardDescription>
           </CardHeader>
         </Card>

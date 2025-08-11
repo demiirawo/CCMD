@@ -24,8 +24,8 @@ export const Navigation = () => {
     { name: "Report", path: "/reports" }
   ];
 
-  // Only show settings for company admins and super admins
-  const canAccessSettings = profile?.permission === 'company_admin' || user?.email === 'demi.irawo@care-cuddle.co.uk';
+  // Show settings to any user with a selected company
+  const canAccessSettings = Boolean(profile?.company_id);
   
   if (canAccessSettings) {
     navItems.push({ name: "Settings", path: "/settings" });
