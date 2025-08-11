@@ -71,7 +71,7 @@ export const useAuthProvider = (): AuthContextType => {
         .from('profiles')
         .select('*')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
       
       console.log('Profile fetch result:', { data, error });
       
@@ -80,7 +80,21 @@ export const useAuthProvider = (): AuthContextType => {
         return;
       }
       
-      setProfile(data);
+      if (!data) {
+        console.warn('No profile found; creating minimal profile');
+        const { data: created, error: insertError } = await supabase
+          .from('profiles')
+          .insert({ user_id: user.id, username: user.email?.split('@')[0] ?? null })
+          .select('*')
+          .single();
+        if (insertError) {
+          console.error('Error creating profile:', insertError);
+          return;
+        }
+        setProfile(created);
+      } else {
+        setProfile(data);
+      }
     } catch (error) {
       console.error('Error fetching profile:', error);
     }
@@ -93,7 +107,7 @@ export const useAuthProvider = (): AuthContextType => {
         .from('profiles')
         .select('*')
         .eq('user_id', userId)
-        .single();
+        .maybeSingle();
       
       console.log('Profile fetch result:', { data, error });
       
@@ -102,9 +116,24 @@ export const useAuthProvider = (): AuthContextType => {
         return;
       }
       
-      setProfile(data);
-      // After setting profile, fetch companies
-      await fetchCompaniesForProfile(data);
+      if (!data) {
+        console.warn('No profile found for user; creating minimal profile');
+        const { data: created, error: insertError } = await supabase
+          .from('profiles')
+          .insert({ user_id: userId })
+          .select('*')
+          .single();
+        if (insertError) {
+          console.error('Error creating profile:', insertError);
+          return;
+        }
+        setProfile(created);
+        await fetchCompaniesForProfile(created);
+      } else {
+        setProfile(data);
+        // After setting profile, fetch companies
+        await fetchCompaniesForProfile(data);
+      }
     } catch (error) {
       console.error('Error fetching profile:', error);
     }
