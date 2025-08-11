@@ -506,9 +506,15 @@ export const ActionsLog = ({
           </div>
         )}
       
-      <ActionEditDialog isOpen={!!editingAction} onClose={() => setEditingAction(null)} action={editingAction} onSave={(actionId, updates) => {
-      onActionEdit?.(actionId, updates);
-      setEditingAction(null);
-    }} />
+      <ActionEditDialog 
+        isOpen={!!editingAction}
+        onClose={() => setEditingAction(null)}
+        action={editingAction}
+        onSave={(actionId, updates) => {
+          onActionEdit?.(actionId, updates);
+          setEditingAction(null);
+        }}
+        attendees={attendees}
+      />
     </div>;
 };
