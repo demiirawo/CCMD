@@ -138,14 +138,24 @@ export const useAuthProvider = (): AuthContextType => {
 
   const fetchCompanies = async () => {
     console.log('fetchCompanies called, profile:', profile);
-    if (!profile) {
-      console.log('No profile found, returning early');
-      return;
-    }
-    
-    await fetchCompaniesForProfile(profile);
-  };
+    try {
+      // Always attempt to fetch companies; RLS will return only accessible ones
+      const { data, error } = await supabase
+        .from('companies')
+        .select('*');
 
+      console.log('fetchCompanies result:', { data, error });
+
+      if (error) {
+        console.error('Error fetching companies:', error);
+        return;
+      }
+
+      setCompanies(data || []);
+    } catch (error) {
+      console.error('Unexpected error fetching companies:', error);
+    }
+  };
   useEffect(() => {
     let mounted = true;
     
