@@ -66,7 +66,7 @@ export const Reports = () => {
   } = useAuth();
 
   // Check if user has edit permissions
-  const canEdit = profile?.permission === 'edit' || profile?.permission === 'company_admin' || (user?.email === 'demi.irawo@care-cuddle.co.uk');
+  const canEdit = (user?.email === 'demi.irawo@care-cuddle.co.uk') || Boolean(profile?.company_id);
   useTheme(); // Apply dynamic theme
   const [meetings, setMeetings] = useState<ParsedMeeting[]>([]);
   const [loading, setLoading] = useState(true);
