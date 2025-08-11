@@ -454,7 +454,7 @@ export const useAuthProvider = (): AuthContextType => {
         // Find the team member record for this user's email within the target company
         const { data: teamMember, error: tmError } = await supabase
           .from('team_members')
-          .select('id')
+          .select('id, name, permission')
           .eq('company_id', companyId)
           .eq('email', user.email!)
           .maybeSingle();
@@ -483,14 +483,40 @@ export const useAuthProvider = (): AuthContextType => {
       }
     }
 
-    // 4) Also reflect selection in profiles for convenience and super admin flows
+    // 4) Reflect selection in profiles and sync permission/name from team_members
+    let newPermission = profile.permission;
+    let newTeamMemberId = profile.team_member_id || null;
+    let newUsername = profile.username || null;
+
+    const { data: tm, error: tmFetchError } = await supabase
+      .from('team_members')
+      .select('id, name, permission')
+      .eq('company_id', companyId)
+      .eq('email', user.email!)
+      .maybeSingle();
+
+    if (tmFetchError) {
+      console.error('Error fetching team member for profile sync:', tmFetchError);
+    }
+
+    if (tm) {
+      newPermission = tm.permission as any;
+      newTeamMemberId = tm.id;
+      newUsername = tm.name || newUsername;
+    }
+
     const { error } = await supabase
       .from('profiles')
-      .update({ company_id: companyId })
+      .update({ 
+        company_id: companyId,
+        permission: newPermission,
+        team_member_id: newTeamMemberId,
+        username: newUsername,
+      })
       .eq('user_id', profile.user_id);
     
     if (!error) {
-      setProfile({ ...profile, company_id: companyId });
+      setProfile({ ...profile, company_id: companyId, permission: newPermission, team_member_id: newTeamMemberId as any, username: newUsername || undefined });
       // Clear session storage when switching companies to reset dashboard section states
       sessionStorage.clear();
     }
