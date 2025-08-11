@@ -21,6 +21,7 @@ export const CompanySelection = () => {
   const [actionsLoading, setActionsLoading] = useState(false);
   
   const {
+    user,
     profile,
     companies,
     createCompany,
@@ -28,7 +29,8 @@ export const CompanySelection = () => {
     deleteCompany,
     signOut,
     fetchCompanies,
-    loading: authLoading
+    loading: authLoading,
+    refreshProfile
   } = useAuth();
   const {
     toast
@@ -214,6 +216,25 @@ export const CompanySelection = () => {
       fetchAllActions();
     }
   }, [actionsOpen, profile?.role]);
+
+  // Ensure user-company linkage exists for magic link sign-ins
+  useEffect(() => {
+    const ensureSetup = async () => {
+      try {
+        if (!authLoading && user?.email && companies.length === 0) {
+          console.log('No companies found. Ensuring user setup for:', user.email);
+          const { data, error } = await supabase.rpc('ensure_user_setup_complete', { user_email: user.email });
+          console.log('ensure_user_setup_complete result:', { data, error });
+          // Refresh profile and companies after ensuring setup
+          await refreshProfile();
+          await fetchCompanies();
+        }
+      } catch (e) {
+        console.error('Error ensuring user setup:', e);
+      }
+    };
+    ensureSetup();
+  }, [authLoading, user?.email]);
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 bg-stone-50">
