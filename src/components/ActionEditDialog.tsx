@@ -151,7 +151,7 @@ export const ActionEditDialog = ({
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
               placeholder="Add a comment to update this action..."
-              className="min-h-[80px]"
+              className="min-h-[80px] bg-white text-black"
             />
           </div>
 
@@ -163,7 +163,7 @@ export const ActionEditDialog = ({
               type="date"
               value={newDueDate}
               onChange={(e) => setNewDueDate(e.target.value)}
-              className="w-full"
+              className="w-full bg-white text-black"
             />
             {toDDMMYYYY(newDueDate) !== action.dueDate && (
               <p className="text-xs text-amber-600">
@@ -176,7 +176,7 @@ export const ActionEditDialog = ({
           <div className="space-y-2">
             <Label htmlFor="owner">Action Owner</Label>
             <Select value={newOwner} onValueChange={setNewOwner}>
-              <SelectTrigger>
+              <SelectTrigger className="bg-white text-black">
                 <SelectValue placeholder="Select action owner" />
               </SelectTrigger>
               <SelectContent>
