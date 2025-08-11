@@ -9,7 +9,12 @@ export const Navigation = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, profile, companies, signOut } = useAuth();
-  const displayName = (profile?.username && profile.username.trim()) || (user?.email ? user.email.split('@')[0] : '') || 'User';
+  // Preserve registered case from profile.username; otherwise derive a title-cased fallback from email
+  const emailPrefix = user?.email ? user.email.split('@')[0] : '';
+  const emailTitle = emailPrefix
+    ? emailPrefix.replace(/[._-]+/g, ' ').split(' ').map(p => p ? p[0].toUpperCase() + p.slice(1) : '').join(' ')
+    : '';
+  const displayName = (profile?.username && profile.username.trim()) || emailTitle || 'User';
 
 
   const navItems = [
