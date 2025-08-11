@@ -136,18 +136,26 @@ export const CompanySelector = () => {
       const selectedCompany = userCompanies.find(uc => uc.id === userCompanyId);
       if (!selectedCompany) throw new Error('Company not found');
 
-      // Update or create profile for this company
-      const { error: profileError } = await supabase
+      // Update or create profile for this company (conflict on user_id)
+      const { data: updatedProfile, error: profileError } = await supabase
         .from('profiles')
-        .upsert({
-          user_id: user!.id,
-          username: selectedCompany.team_members.name,
-          permission: selectedCompany.team_members.permission,
-          team_member_id: teamMemberId,
-          company_id: companyId
-        });
+        .upsert(
+          {
+            user_id: user!.id,
+            username: selectedCompany.team_members.name,
+            permission: selectedCompany.team_members.permission,
+            team_member_id: teamMemberId,
+            company_id: companyId
+          },
+          { onConflict: 'user_id' }
+        )
+        .select('*')
+        .single();
 
       if (profileError) throw profileError;
+
+      // Clear any dashboard caches when switching companies
+      sessionStorage.clear();
 
       // Force refresh the profile in auth context to get updated company_id
       refreshProfile();
