@@ -84,6 +84,17 @@ export const CompanySelection = () => {
       });
       return;
     }
+    // Prevent duplicate company names (case-insensitive)
+    const normalizedNew = newCompanyName.trim().toLowerCase();
+    const exists = companies.some(c => (c.name || '').trim().toLowerCase() === normalizedNew);
+    if (exists) {
+      toast({
+        title: 'Duplicate name',
+        description: 'A company with this name already exists.',
+        variant: 'destructive'
+      });
+      return;
+    }
     setLoading(true);
     const {
       data,
