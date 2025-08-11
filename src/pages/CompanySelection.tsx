@@ -180,9 +180,7 @@ export const CompanySelection = () => {
 
   // Fetch all actions across all companies for admin
   const fetchAllActions = async () => {
-    if (!isSuperAdmin) return;
-    
-    console.log('Fetching all actions for admin...');
+    console.log('Fetching my actions for current user...');
     setActionsLoading(true);
     try {
       const { data, error } = await supabase
@@ -192,7 +190,7 @@ export const CompanySelection = () => {
           companies!inner(name)
         `)
         .eq('closed', false)
-        .eq('mentioned_attendee', profile?.username)
+        .ilike('mentioned_attendee', profile?.username || '')
         .order('due_date', { ascending: true });
 
       console.log('Actions query result:', { data, error });
@@ -213,11 +211,11 @@ export const CompanySelection = () => {
   };
 
   useEffect(() => {
-    console.log('Actions effect triggered:', { actionsOpen, role: profile?.role });
-    if (actionsOpen && isSuperAdmin) {
+    console.log('Actions effect triggered:', { actionsOpen, username: profile?.username });
+    if (actionsOpen && profile?.username) {
       fetchAllActions();
     }
-  }, [actionsOpen, profile?.role]);
+  }, [actionsOpen, profile?.username]);
 
   // Ensure user-company linkage exists for magic link sign-ins
   useEffect(() => {
