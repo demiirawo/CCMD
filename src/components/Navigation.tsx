@@ -15,7 +15,8 @@ export const Navigation = () => {
     ? emailPrefix.replace(/[._-]+/g, ' ').split(' ').map(p => p ? p[0].toUpperCase() + p.slice(1) : '').join(' ')
     : '';
   const displayName = (profile?.username && profile.username.trim()) || emailTitle || 'User';
-
+  const isSuperAdmin = user?.email === 'demi.irawo@care-cuddle.co.uk';
+  const hasMultipleCompanies = companies.length > 1;
 
   const navItems = [
     { name: "Dashboard", path: "/" },
@@ -100,10 +101,10 @@ export const Navigation = () => {
                   </p>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                {user?.email === 'demi.irawo@care-cuddle.co.uk' && (
+                {(hasMultipleCompanies || isSuperAdmin) && (
                   <DropdownMenuItem onClick={handleChangeCompany}>
                     <Building2 className="h-4 w-4 mr-2" />
-                    Change Company
+                    Switch Profile
                   </DropdownMenuItem>
                 )}
                 <DropdownMenuItem onClick={handleSignOut}>
