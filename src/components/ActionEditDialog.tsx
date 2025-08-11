@@ -26,10 +26,46 @@ export const ActionEditDialog = ({
   const [newDueDate, setNewDueDate] = useState("");
   const [newOwner, setNewOwner] = useState("");
 
+  // Helpers to normalize date formats
+  const toISO = (dateStr: string): string => {
+    if (!dateStr) return "";
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr; // already ISO
+    if (/^\d{2}\/\d{2}\/\d{4}$/.test(dateStr)) {
+      const [dd, mm, yyyy] = dateStr.split("/");
+      return `${yyyy}-${mm}-${dd}`;
+    }
+    const d = new Date(dateStr);
+    if (!isNaN(d.getTime())) {
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const dd = String(d.getDate()).padStart(2, '0');
+      return `${yyyy}-${mm}-${dd}`;
+    }
+    return "";
+  };
+
+  const toDDMMYYYY = (iso: string): string => {
+    if (!iso) return "";
+    if (/^\d{2}\/\d{2}\/\d{4}$/.test(iso)) return iso; // already formatted
+    const m = iso.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (m) {
+      const [, yyyy, mm, dd] = m;
+      return `${dd}/${mm}/${yyyy}`;
+    }
+    const d = new Date(iso);
+    if (!isNaN(d.getTime())) {
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const dd = String(d.getDate()).padStart(2, '0');
+      return `${dd}/${mm}/${yyyy}`;
+    }
+    return iso;
+  };
+
   // Reset form when action changes or dialog opens
   useEffect(() => {
     if (action && isOpen) {
-      setNewDueDate(action.dueDate || "");
+      setNewDueDate(toISO(action.dueDate || ""));
       setNewOwner(action.mentionedAttendee || "");
       setNewComment("");
     }
@@ -45,8 +81,11 @@ export const ActionEditDialog = ({
     }
     
     // Only update due date if it's actually different and not empty
-    if (newDueDate && newDueDate !== action.dueDate) {
-      updates.dueDate = newDueDate;
+    if (newDueDate) {
+      const formatted = toDDMMYYYY(newDueDate);
+      if (formatted && formatted !== action.dueDate) {
+        updates.dueDate = formatted;
+      }
     }
 
     // Only update owner if it's actually different and not empty
@@ -57,7 +96,7 @@ export const ActionEditDialog = ({
     if (Object.keys(updates).length > 0) {
       onSave(action.id, updates);
       setNewComment("");
-      setNewDueDate(action.dueDate || "");
+      setNewDueDate(toISO(action.dueDate || ""));
       setNewOwner(action.mentionedAttendee || "");
       onClose();
     }
@@ -65,7 +104,7 @@ export const ActionEditDialog = ({
 
   const handleClose = () => {
     setNewComment("");
-    setNewDueDate(action?.dueDate || "");
+    setNewDueDate(toISO(action?.dueDate || ""));
     setNewOwner(action?.mentionedAttendee || "");
     onClose();
   };
@@ -126,9 +165,9 @@ export const ActionEditDialog = ({
               onChange={(e) => setNewDueDate(e.target.value)}
               className="w-full"
             />
-            {newDueDate !== action.dueDate && (
+            {toDDMMYYYY(newDueDate) !== action.dueDate && (
               <p className="text-xs text-amber-600">
-                Due date will be changed from {action.dueDate} to {newDueDate}
+                Due date will be changed from {action.dueDate} to {toDDMMYYYY(newDueDate)}
               </p>
             )}
           </div>
@@ -159,7 +198,7 @@ export const ActionEditDialog = ({
           <div className="flex gap-2 pt-4">
             <Button 
               onClick={handleSave} 
-              disabled={!newComment.trim() && newDueDate === action.dueDate && newOwner === action.mentionedAttendee}
+              disabled={!newComment.trim() && toDDMMYYYY(newDueDate) === action.dueDate && newOwner === action.mentionedAttendee}
               className="flex-1"
             >
               Save Changes
