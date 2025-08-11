@@ -116,7 +116,9 @@ export const useAuthProvider = (): AuthContextType => {
         return;
       }
       
-      if (!data) {
+      let effectiveProfile = data;
+
+      if (!effectiveProfile) {
         console.warn('No profile found for user; creating minimal profile');
         const { data: created, error: insertError } = await supabase
           .from('profiles')
@@ -127,18 +129,105 @@ export const useAuthProvider = (): AuthContextType => {
           console.error('Error creating profile:', insertError);
           return;
         }
-        setProfile(created);
-        await fetchCompaniesForProfile(created);
-      } else {
-        setProfile(data);
-        // After setting profile, fetch companies
-        await fetchCompaniesForProfile(data);
+        effectiveProfile = created;
       }
+
+      // Ensure user has an active company link and sync profile permission from team_members
+      try {
+        // 1) Fetch user_companies links
+        const { data: userCompanies, error: ucError } = await supabase
+          .from('user_companies')
+          .select(`
+            id, company_id, is_active, team_member_id,
+            team_members:team_member_id ( id, name, permission )
+          `)
+          .eq('user_id', userId);
+        if (ucError) {
+          console.error('Error fetching user_companies:', ucError);
+        }
+
+        let links = userCompanies || [];
+
+        // 2) If no links exist, try to create from team_members by email
+        if (links.length === 0 && user?.email) {
+          const { data: tmRows, error: tmErr } = await supabase
+            .from('team_members')
+            .select('id, company_id, name, permission, email')
+            .eq('email', user.email);
+          if (tmErr) {
+            console.error('Error fetching team_members by email:', tmErr);
+          }
+          if (tmRows && tmRows.length > 0) {
+            const insertPayload = tmRows.map(tm => ({
+              user_id: userId,
+              team_member_id: tm.id,
+              company_id: tm.company_id,
+              is_active: false,
+            }));
+            const { error: linkInsertErr } = await supabase
+              .from('user_companies')
+              .insert(insertPayload);
+            if (linkInsertErr) {
+              console.error('Error inserting user_companies links:', linkInsertErr);
+            } else {
+              // Re-fetch links
+              const { data: refetched } = await supabase
+                .from('user_companies')
+                .select(`
+                  id, company_id, is_active, team_member_id,
+                  team_members:team_member_id ( id, name, permission )
+                `)
+                .eq('user_id', userId);
+              links = refetched || [];
+            }
+          }
+        }
+
+        // 3) Activate if exactly one link exists and none active
+        let activeLink = links.find(l => l.is_active);
+        if (!activeLink && links.length === 1) {
+          const only = links[0];
+          const { error: activateErr } = await supabase
+            .from('user_companies')
+            .update({ is_active: true })
+            .eq('id', only.id);
+          if (activateErr) {
+            console.error('Error activating single company link:', activateErr);
+          } else {
+            activeLink = { ...only, is_active: true } as any;
+          }
+        }
+
+        // 4) If we have an active link, sync profile with team_member info
+        if (activeLink && (activeLink as any).team_members) {
+          const tm = (activeLink as any).team_members;
+          const { data: updatedProfile, error: upsertErr } = await supabase
+            .from('profiles')
+            .upsert({
+              user_id: userId,
+              username: tm.name ?? effectiveProfile?.username ?? null,
+              permission: tm.permission,
+              team_member_id: activeLink.team_member_id,
+              company_id: activeLink.company_id,
+            })
+            .select('*')
+            .single();
+          if (upsertErr) {
+            console.error('Error syncing profile from active company:', upsertErr);
+          } else {
+            effectiveProfile = updatedProfile;
+          }
+        }
+      } catch (syncErr) {
+        console.error('Error during company/profile sync:', syncErr);
+      }
+
+      setProfile(effectiveProfile!);
+      await fetchCompaniesForProfile(effectiveProfile!);
     } catch (error) {
       console.error('Error fetching profile:', error);
     }
   };
-
   // Helper function to fetch companies for a specific profile
   const fetchCompaniesForProfile = async (profileData: Profile) => {
     try {
