@@ -306,10 +306,29 @@ export const useAuthProvider = (): AuthContextType => {
   };
 
   const selectCompany = async (companyId: string) => {
-    if (!profile) {
-      return { error: { message: 'No profile found' } };
+    if (!profile || !user?.id) {
+      return { error: { message: 'No profile or user found' } };
     }
-    
+
+    // 1) Update active company in user_companies for regular users (RLS uses this)
+    const { error: deactivateError } = await supabase
+      .from('user_companies')
+      .update({ is_active: false })
+      .eq('user_id', profile.user_id);
+    if (deactivateError) {
+      console.error('Error deactivating companies:', deactivateError);
+    }
+
+    const { error: activateError } = await supabase
+      .from('user_companies')
+      .update({ is_active: true })
+      .eq('user_id', profile.user_id)
+      .eq('company_id', companyId);
+    if (activateError) {
+      console.error('Error activating company:', activateError);
+    }
+
+    // 2) Also reflect selection in profiles for convenience and super admin flows
     const { error } = await supabase
       .from('profiles')
       .update({ company_id: companyId })
@@ -321,7 +340,7 @@ export const useAuthProvider = (): AuthContextType => {
       sessionStorage.clear();
     }
     
-    return { error };
+    return { error: error || activateError || deactivateError };
   };
 
   const deleteCompany = async (companyId: string) => {
