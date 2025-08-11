@@ -284,9 +284,10 @@ export const useAuthProvider = (): AuthContextType => {
     console.log('Is admin?', profile?.role === 'admin');
     console.log('Session token exists?', session?.access_token ? 'Yes' : 'No');
     
-    if (!profile || profile.role !== 'admin') {
-      console.log('Permission denied - not admin');
-      return { data: null, error: { message: 'Only admins can create companies' } };
+    const isSuperAdmin = user?.email === 'demi.irawo@care-cuddle.co.uk';
+    if (!isSuperAdmin) {
+      console.log('Permission denied - not super admin');
+      return { data: null, error: { message: 'Only super admins can create companies' } };
     }
     
     const { data, error } = await supabase
@@ -324,8 +325,9 @@ export const useAuthProvider = (): AuthContextType => {
   };
 
   const deleteCompany = async (companyId: string) => {
-    if (!profile || profile.role !== 'admin') {
-      return { error: { message: 'Only admins can delete companies' } };
+    const isSuperAdmin = user?.email === 'demi.irawo@care-cuddle.co.uk';
+    if (!isSuperAdmin) {
+      return { error: { message: 'Only super admins can delete companies' } };
     }
     
     const { error } = await supabase

@@ -8,7 +8,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 export const Navigation = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { profile, companies, signOut } = useAuth();
+  const { user, profile, companies, signOut } = useAuth();
 
   const navItems = [
     { name: "Dashboard", path: "/" },
@@ -18,7 +18,7 @@ export const Navigation = () => {
   ];
 
   // Only show settings for company admins and super admins
-  const canAccessSettings = profile?.permission === 'company_admin' || profile?.role === 'admin';
+  const canAccessSettings = profile?.permission === 'company_admin' || user?.email === 'demi.irawo@care-cuddle.co.uk';
   
   if (canAccessSettings) {
     navItems.push({ name: "Settings", path: "/settings" });
@@ -89,11 +89,11 @@ export const Navigation = () => {
                 <DropdownMenuLabel className="bg-white">
                   {profile?.username || 'User'}
                   <p className="text-xs text-muted-foreground font-normal">
-                    {profile?.role === 'admin' ? 'Administrator' : 'User'}
+                    {user?.email === 'demi.irawo@care-cuddle.co.uk' ? 'Super Admin' : (profile?.permission === 'company_admin' ? 'Company Admin' : 'User')}
                   </p>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                {profile?.role === 'admin' && (
+                {user?.email === 'demi.irawo@care-cuddle.co.uk' && (
                   <DropdownMenuItem onClick={handleChangeCompany}>
                     <Building2 className="h-4 w-4 mr-2" />
                     Change Company

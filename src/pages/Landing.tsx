@@ -32,7 +32,7 @@ const Landing: React.FC = () => {
   }
 
   // If we have an admin user with companies, redirect to OICE
-  if (user && profile && profile.role === 'admin' && companies.length > 0) {
+  if (user && profile && user.email === 'demi.irawo@care-cuddle.co.uk' && companies.length > 0) {
     console.log('Landing: Admin user with companies, redirecting to /company/oice');
     return <Navigate to="/company/oice" replace />;
   }

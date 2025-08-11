@@ -21,6 +21,7 @@ import jsPDF from "jspdf";
 import { useSearchParams, useNavigate } from "react-router-dom";
 const Index = () => {
   const {
+    user,
     profile,
     companies,
     selectCompany
@@ -34,7 +35,7 @@ const Index = () => {
 
 
   // Check if user has edit permissions
-  const canEdit = profile?.permission === 'edit' || profile?.permission === 'company_admin' || profile?.role === 'admin';
+  const canEdit = profile?.permission === 'edit' || profile?.permission === 'company_admin' || (user?.email === 'demi.irawo@care-cuddle.co.uk');
   const [isDataLoaded, setIsDataLoaded] = useState(false);
   const [currentMeetingId, setCurrentMeetingId] = useState<string | null>(null);
   const [tempMeetingId, setTempMeetingId] = useState<string>(() => {

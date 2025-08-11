@@ -23,6 +23,7 @@ export const TeamMembersManager = ({
   companyId
 }: TeamMembersManagerProps) => {
   const {
+    user,
     profile
   } = useAuth();
   const {
@@ -38,7 +39,7 @@ export const TeamMembersManager = ({
     name: '',
     email: ''
   });
-  const canManageTeam = (profile as any)?.permission === 'company_admin' || profile?.role === 'admin';
+  const canManageTeam = (profile as any)?.permission === 'company_admin' || user?.email === 'demi.irawo@care-cuddle.co.uk';
   useEffect(() => {
     fetchTeamMembers();
   }, [companyId]);

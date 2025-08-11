@@ -47,8 +47,8 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requir
     return <Navigate to="/company-selection" replace />;
   }
 
-  // Admin users (legacy) can bypass company selection
-  if (profile && profile.role === 'admin') {
+  // Super admin can bypass company selection
+  if (user?.email === 'demi.irawo@care-cuddle.co.uk') {
     return <>{children}</>;
   }
 

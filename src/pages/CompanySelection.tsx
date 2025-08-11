@@ -53,6 +53,8 @@ export const CompanySelection = () => {
     companiesLength: companies.length
   });
 
+  const isSuperAdmin = user?.email === 'demi.irawo@care-cuddle.co.uk';
+
   const handleRefreshCompanies = async () => {
     console.log('Manually refreshing companies...');
     await fetchCompanies();
@@ -178,7 +180,7 @@ export const CompanySelection = () => {
 
   // Fetch all actions across all companies for admin
   const fetchAllActions = async () => {
-    if (profile?.role !== 'admin') return;
+    if (!isSuperAdmin) return;
     
     console.log('Fetching all actions for admin...');
     setActionsLoading(true);
@@ -212,7 +214,7 @@ export const CompanySelection = () => {
 
   useEffect(() => {
     console.log('Actions effect triggered:', { actionsOpen, role: profile?.role });
-    if (actionsOpen && profile?.role === 'admin') {
+    if (actionsOpen && isSuperAdmin) {
       fetchAllActions();
     }
   }, [actionsOpen, profile?.role]);
@@ -281,7 +283,7 @@ export const CompanySelection = () => {
                             >
                               Select
                             </Button>
-                            {profile?.role === 'admin' && (
+                            {isSuperAdmin && (
                               <AlertDialog>
                                 <AlertDialogTrigger asChild>
                                   <Button 
@@ -326,13 +328,13 @@ export const CompanySelection = () => {
                 <Building2 className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                 <h3 className="text-lg font-semibold mb-2">No Companies Found</h3>
                 <p className="text-muted-foreground mb-4">
-                  {profile?.role === 'admin' ? 'Create your first company to get started' : 'Contact your administrator to be assigned to a company'}
+                  {isSuperAdmin ? 'Create your first company to get started' : 'Contact your administrator to be assigned to a company'}
                 </p>
               </div>
             )}
           </div>
 
-          {profile?.role === 'admin' && (
+          {isSuperAdmin && (
             <div className="border-t pt-6">
               <Collapsible open={actionsOpen} onOpenChange={setActionsOpen}>
                 <CollapsibleTrigger asChild>
@@ -378,7 +380,7 @@ export const CompanySelection = () => {
             </div>
           )}
           
-          {profile?.role === 'admin' && (
+          {isSuperAdmin && (
             <div className="border-t pt-6">
               <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
                 <DialogTrigger asChild>

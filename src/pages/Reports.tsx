@@ -61,11 +61,12 @@ interface GroupedMeetings {
 }
 export const Reports = () => {
   const {
+    user,
     profile
   } = useAuth();
 
   // Check if user has edit permissions
-  const canEdit = profile?.permission === 'edit' || profile?.permission === 'company_admin' || profile?.role === 'admin';
+  const canEdit = profile?.permission === 'edit' || profile?.permission === 'company_admin' || (user?.email === 'demi.irawo@care-cuddle.co.uk');
   useTheme(); // Apply dynamic theme
   const [meetings, setMeetings] = useState<ParsedMeeting[]>([]);
   const [loading, setLoading] = useState(true);
