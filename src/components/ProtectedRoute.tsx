@@ -18,7 +18,8 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requir
     profileRole: profile?.role,
     loading,
     requireCompany,
-    isCompanySlugRoute: location.pathname.startsWith('/company/')
+    isCompanySlugRoute: location.pathname.startsWith('/company/'),
+    isCompanySelectionRoute: location.pathname === '/company-selection'
   });
 
   if (loading) {
@@ -38,9 +39,11 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requir
 
   // Allow access to company slug routes even without profile for auto-selection
   const isCompanySlugRoute = location.pathname.startsWith('/company/');
+  // Also allow access to the company selection page to avoid redirect loops
+  const isCompanySelectionRoute = location.pathname === '/company-selection';
   
   // If user exists but no profile, they might need to select a company
-  if (!profile && !isCompanySlugRoute) {
+  if (!profile && !isCompanySlugRoute && !isCompanySelectionRoute) {
     return <Navigate to="/company-selection" replace />;
   }
 
