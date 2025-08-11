@@ -310,7 +310,7 @@ export const useAuthProvider = (): AuthContextType => {
       return { error: { message: 'No profile or user found' } };
     }
 
-    // 1) Update active company in user_companies for regular users (RLS uses this)
+    // 1) Deactivate any currently active company links for this user
     const { error: deactivateError } = await supabase
       .from('user_companies')
       .update({ is_active: false })
@@ -319,16 +319,53 @@ export const useAuthProvider = (): AuthContextType => {
       console.error('Error deactivating companies:', deactivateError);
     }
 
-    const { error: activateError } = await supabase
+    // 2) Try to activate an existing link for this company
+    const { data: activatedRows, error: activateError } = await supabase
       .from('user_companies')
       .update({ is_active: true })
       .eq('user_id', profile.user_id)
-      .eq('company_id', companyId);
+      .eq('company_id', companyId)
+      .select('id');
     if (activateError) {
       console.error('Error activating company:', activateError);
     }
 
-    // 2) Also reflect selection in profiles for convenience and super admin flows
+    // 3) If no link existed to activate, create one using team_members mapping
+    if (!activateError && (!activatedRows || activatedRows.length === 0)) {
+      try {
+        // Find the team member record for this user's email within the target company
+        const { data: teamMember, error: tmError } = await supabase
+          .from('team_members')
+          .select('id')
+          .eq('company_id', companyId)
+          .eq('email', user.email!)
+          .maybeSingle();
+
+        if (tmError) {
+          console.error('Error finding team member:', tmError);
+        }
+
+        if (teamMember?.id) {
+          const { error: insertError } = await supabase
+            .from('user_companies')
+            .insert({
+              user_id: profile.user_id,
+              team_member_id: teamMember.id,
+              company_id: companyId,
+              is_active: true,
+            });
+          if (insertError) {
+            console.error('Error inserting user_company link:', insertError);
+          }
+        } else {
+          console.warn('No team member mapping found for user in this company; cannot create link.');
+        }
+      } catch (e) {
+        console.error('Unexpected error creating user_company link:', e);
+      }
+    }
+
+    // 4) Also reflect selection in profiles for convenience and super admin flows
     const { error } = await supabase
       .from('profiles')
       .update({ company_id: companyId })
@@ -342,7 +379,6 @@ export const useAuthProvider = (): AuthContextType => {
     
     return { error: error || activateError || deactivateError };
   };
-
   const deleteCompany = async (companyId: string) => {
     const isSuperAdmin = user?.email === 'demi.irawo@care-cuddle.co.uk';
     if (!isSuperAdmin) {
