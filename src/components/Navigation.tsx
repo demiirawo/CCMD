@@ -9,6 +9,8 @@ export const Navigation = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, profile, companies, signOut } = useAuth();
+  const displayName = (profile?.username && profile.username.trim()) || (user?.email ? user.email.split('@')[0] : '') || 'User';
+
 
   const navItems = [
     { name: "Dashboard", path: "/" },
@@ -82,12 +84,12 @@ export const Navigation = () => {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="sm" className="text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground">
                   <User className="h-4 w-4 mr-2" />
-                  {profile?.username || 'User'}
+                  {displayName}
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="bg-white z-50 border shadow-lg">
                 <DropdownMenuLabel className="bg-white">
-                  {profile?.username || 'User'}
+                  {displayName}
                   <p className="text-xs text-muted-foreground font-normal">
                     {user?.email === 'demi.irawo@care-cuddle.co.uk' ? 'Super Admin' : (profile?.permission === 'company_admin' ? 'Company Admin' : 'User')}
                   </p>
