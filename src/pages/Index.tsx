@@ -1882,7 +1882,7 @@ const Index = () => {
             </Button>
             <Button 
               onClick={saveMeetingToDatabase} 
-              variant="outline" 
+              variant="default" 
               className={`gap-2 transition-all duration-500 ${saveSuccess ? 'success-glow' : ''}`}
               disabled={isSaving}
             >
