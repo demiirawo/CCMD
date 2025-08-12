@@ -131,7 +131,10 @@ export const ActionEditDialog = ({
               <h4 className="font-medium text-sm text-blue-800 mb-2">Audit Trail:</h4>
               <div className="space-y-2 max-h-32 overflow-y-auto">
                 {action.auditTrail.map((entry, index) => <div key={index} className="text-xs bg-white p-2 rounded border-l-2 border-blue-200">
-                    <div className="font-medium text-blue-700">{entry.timestamp}</div>
+                    <div className="font-medium text-blue-700">
+                      {entry.timestamp}
+                      {entry.user ? <span className="ml-1">— by {entry.user}</span> : null}
+                    </div>
                     <div className="text-gray-700">{entry.change}</div>
                   </div>)}
               </div>

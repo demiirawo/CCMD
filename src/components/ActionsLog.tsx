@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 export interface AuditEntry {
   timestamp: string;
   change: string;
+  user?: string;
 }
 
 export interface ActionLogEntry {
@@ -350,7 +351,9 @@ export const ActionsLog = ({
                         <div className="text-xs mt-2 space-y-1">
                           {action.auditTrail.map((entry, entryIndex) => (
                             <div key={entryIndex} className="text-blue-600 bg-blue-50 p-1 rounded border-l-2 border-blue-200">
-                              <span className="font-medium">{entry.timestamp}:</span> {entry.change}
+                              <span className="font-medium">{entry.timestamp}</span>
+                              {entry.user ? <span className="ml-1">— by {entry.user}</span> : null}
+                              <span>: </span>{entry.change}
                             </div>
                           ))}
                         </div>
