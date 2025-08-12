@@ -276,7 +276,7 @@ export const ActionForm = ({
                 {action.auditTrail && action.auditTrail.length > 0 && (
                   <div className="text-xs mt-2 space-y-1">
                      {action.auditTrail.map((entry, entryIndex) => (
-                       <div key={`${action.id}-audit-${entryIndex}`} className="text-blue-200 bg-blue-900/50 p-1 rounded border-l-2 border-blue-400">
+                       <div key={`${action.id}-audit-${entryIndex}`} className="text-blue-600 bg-blue-50 p-1 rounded border-l-2 border-blue-200">
                          <span className="font-medium">{entry.change}</span>
                          <span className="ml-1"> - Updated on {entry.timestamp}</span>
                          {entry.user ? <span> by {entry.user}</span> : null}
