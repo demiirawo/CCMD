@@ -196,23 +196,37 @@ export const CompanySelection = () => {
     }
   };
 
-  // Fetch all actions across all companies for admin
+  // Fetch all actions across accessible companies for the current user
   const fetchAllActions = async () => {
     console.log('Fetching my actions for current user...');
     setActionsLoading(true);
     try {
-      const { data, error } = await supabase
+      const username = profile?.username || '';
+      const email = user?.email || '';
+
+      let query = supabase
         .from('actions_log')
         .select(`
           *,
           companies!inner(name)
         `)
         .eq('closed', false)
-        .ilike('mentioned_attendee', profile?.username || '')
         .order('due_date', { ascending: true });
 
+      if (username && email) {
+        query = query.or(`mentioned_attendee.ilike.%${username}%,mentioned_attendee.ilike.%${email}%`);
+      } else if (username) {
+        query = query.ilike('mentioned_attendee', `%${username}%`);
+      } else if (email) {
+        query = query.ilike('mentioned_attendee', `%${email}%`);
+      } else {
+        setAllActions([]);
+        setActionsLoading(false);
+        return;
+      }
+
+      const { data, error } = await query;
       console.log('Actions query result:', { data, error });
-      
       if (error) throw error;
       setAllActions(data || []);
       console.log('Set actions:', data?.length || 0, 'actions found');
@@ -229,11 +243,11 @@ export const CompanySelection = () => {
   };
 
   useEffect(() => {
-    console.log('Actions effect triggered:', { actionsOpen, username: profile?.username });
-    if (actionsOpen && profile?.username) {
+    console.log('Actions effect triggered:', { actionsOpen, username: profile?.username, email: user?.email });
+    if (actionsOpen && (profile?.username || user?.email)) {
       fetchAllActions();
     }
-  }, [actionsOpen, profile?.username]);
+  }, [actionsOpen, profile?.username, user?.email]);
 
   // Ensure user-company linkage exists for magic link sign-ins
   useEffect(() => {
@@ -359,51 +373,49 @@ export const CompanySelection = () => {
             )}
           </div>
 
-          {isSuperAdmin && (
-            <div className="border-t pt-6">
-              <Collapsible open={actionsOpen} onOpenChange={setActionsOpen}>
-                <CollapsibleTrigger asChild>
-                  <Button variant="outline" className="w-full justify-between">
-                    <div className="flex items-center gap-2">
-                      My Actions
-                    </div>
-                    <ChevronDown className={`h-4 w-4 transition-transform ${actionsOpen ? 'rotate-180' : ''}`} />
-                  </Button>
-                </CollapsibleTrigger>
-                <CollapsibleContent className="mt-4">
-                  <Card>
-                    <CardContent className="p-4">
-                      {actionsLoading ? (
-                        <div className="text-center py-4">
-                          <p className="text-sm text-muted-foreground">Loading actions...</p>
-                        </div>
-                      ) : allActions.length === 0 ? (
-                        <div className="text-center py-4">
-                          <Clock className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-                          <p className="text-sm text-muted-foreground">No actions found</p>
-                        </div>
-                      ) : (
-                        <div className="space-y-2 max-h-96 overflow-y-auto">
-                          {allActions.map((action) => (
-                            <div key={action.id} className="flex items-center justify-between p-3 bg-accent/50 rounded-lg">
-                              <div className="flex-1">
-                                <p className="text-xs text-black mb-1">
-                                  {action.action_text}
-                                </p>
-                                <p className="text-xs text-muted-foreground">
-                                  {action.companies?.name} • Due: {action.due_date}
-                                </p>
-                              </div>
+          <div className="border-t pt-6">
+            <Collapsible open={actionsOpen} onOpenChange={setActionsOpen}>
+              <CollapsibleTrigger asChild>
+                <Button variant="outline" className="w-full justify-between">
+                  <div className="flex items-center gap-2">
+                    My Actions
+                  </div>
+                  <ChevronDown className={`h-4 w-4 transition-transform ${actionsOpen ? 'rotate-180' : ''}`} />
+                </Button>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="mt-4">
+                <Card>
+                  <CardContent className="p-4">
+                    {actionsLoading ? (
+                      <div className="text-center py-4">
+                        <p className="text-sm text-muted-foreground">Loading actions...</p>
+                      </div>
+                    ) : allActions.length === 0 ? (
+                      <div className="text-center py-4">
+                        <Clock className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                        <p className="text-sm text-muted-foreground">No actions found</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-2 max-h-96 overflow-y-auto">
+                        {allActions.map((action) => (
+                          <div key={action.id} className="flex items-center justify-between p-3 bg-accent/50 rounded-lg">
+                            <div className="flex-1">
+                              <p className="text-xs text-black mb-1">
+                                {action.action_text}
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                {action.companies?.name} • Due: {action.due_date}
+                              </p>
                             </div>
-                          ))}
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                </CollapsibleContent>
-              </Collapsible>
-            </div>
-          )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </CollapsibleContent>
+            </Collapsible>
+          </div>
           
           {isSuperAdmin && (
             <div className="border-t pt-6">
