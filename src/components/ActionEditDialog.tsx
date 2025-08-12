@@ -147,7 +147,7 @@ export const ActionEditDialog = ({
 
           {/* Edit Action Text */}
           <div className="space-y-2">
-            <Label htmlFor="actionText">Action Text</Label>
+            <Label htmlFor="actionText">Edit Action Comment</Label>
             <Textarea id="actionText" value={newActionText} onChange={e => setNewActionText(e.target.value)} placeholder="Edit the original action text..." className="min-h-[80px] bg-white text-black" />
           </div>
 
