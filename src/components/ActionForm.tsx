@@ -8,6 +8,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { format, differenceInDays } from "date-fns";
 import { ActionEditDialog } from "./ActionEditDialog";
 import { AuditEntry } from "./ActionsLog";
+import { useAuth } from "../hooks/useAuth";
 export interface ActionItem {
   id: string;
   name: string;
@@ -33,6 +34,7 @@ export const ActionForm = ({
   onActionCompleted,
   onActionEdit
 }: ActionFormProps) => {
+  const { profile } = useAuth();
   const [newAction, setNewAction] = useState({
     name: "",
     description: "",
@@ -210,12 +212,14 @@ export const ActionForm = ({
         hour: '2-digit',
         minute: '2-digit'
       });
+      const currentUser = profile?.username || 'Unknown';
 
       // Add comment to audit trail
       if (updates.comment) {
         auditEntries.push({
           timestamp,
-          change: `Comment added: ${updates.comment}`
+          change: `Comment added: ${updates.comment}`,
+          user: currentUser
         });
       }
 
@@ -223,7 +227,8 @@ export const ActionForm = ({
       if (updates.action && updates.action !== action.description) {
         auditEntries.push({
           timestamp,
-          change: `Action text changed`
+          change: `Action text changed`,
+          user: currentUser
         });
         updatedAction.description = updates.action;
       }
@@ -232,7 +237,8 @@ export const ActionForm = ({
       if (updates.dueDate && updates.dueDate !== action.targetDate) {
         auditEntries.push({
           timestamp,
-          change: `Due date changed from ${action.targetDate} to ${updates.dueDate}`
+          change: `Due date changed from ${action.targetDate} to ${updates.dueDate}`,
+          user: currentUser
         });
         updatedAction.targetDate = updates.dueDate;
       }
@@ -241,7 +247,8 @@ export const ActionForm = ({
       if (updates.owner && updates.owner !== action.name) {
         auditEntries.push({
           timestamp,
-          change: `Action owner changed to ${updates.owner}`
+          change: `Action owner changed to ${updates.owner}`,
+          user: currentUser
         });
         updatedAction.name = updates.owner;
       }
@@ -270,9 +277,9 @@ export const ActionForm = ({
                   <div className="text-xs mt-2 space-y-1">
                      {action.auditTrail.map((entry, entryIndex) => (
                        <div key={`${action.id}-audit-${entryIndex}`} className="text-blue-200 bg-blue-900/50 p-1 rounded border-l-2 border-blue-400">
-                         <span className="font-medium">{entry.timestamp}</span>
-                         {entry.user ? <span className="ml-1">— by {entry.user}</span> : null}
-                         <span>: </span>{entry.change}
+                         <span className="font-medium">{entry.change}</span>
+                         <span className="ml-1"> - Updated on {entry.timestamp}</span>
+                         {entry.user ? <span> by {entry.user}</span> : null}
                        </div>
                      ))}
                   </div>
