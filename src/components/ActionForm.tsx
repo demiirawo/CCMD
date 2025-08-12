@@ -218,7 +218,7 @@ export const ActionForm = ({
       if (updates.comment) {
         auditEntries.push({
           timestamp,
-          change: `Comment added: ${updates.comment}`,
+          change: `Audit Comment Added`,
           user: currentUser
         });
       }
@@ -227,7 +227,7 @@ export const ActionForm = ({
       if (updates.action && updates.action !== action.description) {
         auditEntries.push({
           timestamp,
-          change: `Action text changed`,
+          change: `Action Description Changed`,
           user: currentUser
         });
         updatedAction.description = updates.action;
@@ -237,7 +237,7 @@ export const ActionForm = ({
       if (updates.dueDate && updates.dueDate !== action.targetDate) {
         auditEntries.push({
           timestamp,
-          change: `Due date changed from ${action.targetDate} to ${updates.dueDate}`,
+          change: `Action Due Date Changed`,
           user: currentUser
         });
         updatedAction.targetDate = updates.dueDate;
@@ -247,7 +247,7 @@ export const ActionForm = ({
       if (updates.owner && updates.owner !== action.name) {
         auditEntries.push({
           timestamp,
-          change: `Action owner changed to ${updates.owner}`,
+          change: `Action Owner Changed`,
           user: currentUser
         });
         updatedAction.name = updates.owner;

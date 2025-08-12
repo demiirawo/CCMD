@@ -1181,7 +1181,7 @@ const Index = () => {
       if (updates.comment) {
         auditEntries.push({
           timestamp,
-          change: `Comment added: ${updates.comment}`,
+          change: `Audit Comment Added`,
           user: profile?.username || "Unknown"
         });
       }
@@ -1190,7 +1190,7 @@ const Index = () => {
       if (updates.action && updates.action !== action.action) {
         auditEntries.push({
           timestamp,
-          change: `Action text changed`,
+          change: `Action Description Changed`,
           user: profile?.username || "Unknown"
         });
         updatedAction.action = updates.action;
@@ -1200,7 +1200,7 @@ const Index = () => {
       if (updates.dueDate && updates.dueDate !== action.dueDate) {
         auditEntries.push({
           timestamp,
-          change: `Due date changed from ${action.dueDate} to ${updates.dueDate}`,
+          change: `Action Due Date Changed`,
           user: profile?.username || "Unknown"
         });
         updatedAction.dueDate = updates.dueDate;
@@ -1210,7 +1210,7 @@ const Index = () => {
       if (updates.owner && updates.owner !== action.mentionedAttendee) {
         auditEntries.push({
           timestamp,
-          change: `Action owner changed to ${updates.owner}`,
+          change: `Action Owner Changed`,
           user: profile?.username || "Unknown"
         });
         updatedAction.mentionedAttendee = updates.owner;
@@ -1238,28 +1238,28 @@ const Index = () => {
         if (updates.comment) {
           newAuditTrail.push({
             timestamp,
-            change: `Comment added: ${updates.comment}`,
+            change: `Audit Comment Added`,
             user: profile?.username || "Unknown"
           });
         }
         if (updates.action && currentAction && updates.action !== currentAction.action) {
           newAuditTrail.push({
             timestamp,
-            change: `Action text changed`,
+            change: `Action Description Changed`,
             user: profile?.username || "Unknown"
           });
         }
         if (updates.dueDate && currentAction && updates.dueDate !== currentAction.dueDate) {
           newAuditTrail.push({
             timestamp,
-            change: `Due date changed from ${currentAction.dueDate} to ${updates.dueDate}`,
+            change: `Action Due Date Changed`,
             user: profile?.username || "Unknown"
           });
         }
         if (updates.owner && currentAction && updates.owner !== currentAction.mentionedAttendee) {
           newAuditTrail.push({
             timestamp,
-            change: `Action owner changed to ${updates.owner}`,
+            change: `Action Owner Changed`,
             user: profile?.username || "Unknown"
           });
         }
@@ -1293,7 +1293,7 @@ const Index = () => {
             if (updates.comment) {
               auditEntries.push({
                 timestamp,
-                change: `Comment added: ${updates.comment}`,
+                change: `Audit Comment Added`,
                 user: profile?.username || "Unknown"
               });
             }
@@ -1302,7 +1302,7 @@ const Index = () => {
             if (updates.action && updates.action !== action.description) {
               auditEntries.push({
                 timestamp,
-                change: `Action text changed`,
+                change: `Action Description Changed`,
                 user: profile?.username || "Unknown"
               });
               updatedAction.description = updates.action;
@@ -1312,7 +1312,7 @@ const Index = () => {
             if (updates.dueDate && updates.dueDate !== action.targetDate) {
               auditEntries.push({
                 timestamp,
-                change: `Due date changed from ${action.targetDate} to ${updates.dueDate}`,
+                change: `Action Due Date Changed`,
                 user: profile?.username || "Unknown"
               });
               updatedAction.targetDate = updates.dueDate;
@@ -1322,7 +1322,7 @@ const Index = () => {
             if (updates.owner && updates.owner !== action.name) {
               auditEntries.push({
                 timestamp,
-                change: `Action owner changed to ${updates.owner}`,
+                change: `Action Owner Changed`,
                 user: profile?.username || "Unknown"
               });
               updatedAction.name = updates.owner;
@@ -1368,18 +1368,18 @@ const Index = () => {
             // Add comment to audit trail
             if (updates.comment) {
               auditEntries.push({
-                timestamp,
-                change: `Comment added: ${updates.comment}`,
-                user: profile?.username || "Unknown"
+              timestamp,
+              change: `Audit Comment Added`,
+              user: profile?.username || "Unknown"
               });
             }
 
             // Update due date and add to audit trail
             if (updates.dueDate && updates.dueDate !== action.targetDate) {
               auditEntries.push({
-                timestamp,
-                change: `Due date changed from ${action.targetDate} to ${updates.dueDate}`,
-                user: profile?.username || "Unknown"
+              timestamp,
+              change: `Action Due Date Changed`,
+              user: profile?.username || "Unknown"
               });
               updatedAction.targetDate = updates.dueDate;
             }
@@ -1387,9 +1387,9 @@ const Index = () => {
             // Update owner and add to audit trail
             if (updates.owner && updates.owner !== action.name) {
               auditEntries.push({
-                timestamp,
-                change: `Action owner changed to ${updates.owner}`,
-                user: profile?.username || "Unknown"
+              timestamp,
+              change: `Action Owner Changed`,
+              user: profile?.username || "Unknown"
               });
               updatedAction.name = updates.owner;
             }
@@ -1412,7 +1412,7 @@ const Index = () => {
       if (updates.comment) {
         auditEntries.push({
           timestamp,
-          change: `Comment added: ${updates.comment}`,
+          change: `Audit Comment Added`,
           user: profile?.username || "Unknown"
         });
       }
@@ -1421,7 +1421,7 @@ const Index = () => {
       if (updates.dueDate && updates.dueDate !== action.dueDate) {
         auditEntries.push({
           timestamp,
-          change: `Due date changed from ${action.dueDate} to ${updates.dueDate}`,
+          change: `Action Due Date Changed`,
           user: profile?.username || "Unknown"
         });
         updatedAction.dueDate = updates.dueDate;
@@ -1431,7 +1431,7 @@ const Index = () => {
       if (updates.owner && updates.owner !== action.mentionedAttendee) {
         auditEntries.push({
           timestamp,
-          change: `Action owner changed to ${updates.owner}`,
+          change: `Action Owner Changed`,
           user: profile?.username || "Unknown"
         });
         updatedAction.mentionedAttendee = updates.owner;
