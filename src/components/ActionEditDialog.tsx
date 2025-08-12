@@ -149,7 +149,6 @@ export const ActionEditDialog = ({
           <div className="space-y-2">
             <Label htmlFor="actionText">Action Text</Label>
             <Textarea id="actionText" value={newActionText} onChange={e => setNewActionText(e.target.value)} placeholder="Edit the original action text..." className="min-h-[80px] bg-white text-black" />
-            {newActionText.trim() !== action.action}
           </div>
 
           {/* Add Audit Comment */}
@@ -186,7 +185,7 @@ export const ActionEditDialog = ({
 
           {/* Action Buttons */}
           <div className="flex gap-2 pt-4">
-            <Button onClick={handleSave} disabled={!newComment.trim() && toDDMMYYYY(newDueDate) === action.dueDate && newOwner === action.mentionedAttendee} className="flex-1">
+            <Button onClick={handleSave} disabled={!newComment.trim() && toDDMMYYYY(newDueDate) === action.dueDate && newOwner === action.mentionedAttendee && newActionText.trim() === action.action} className="flex-1">
               Save Changes
             </Button>
             <Button variant="outline" onClick={handleClose} className="flex-1">
