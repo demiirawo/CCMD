@@ -214,7 +214,10 @@ export const CompanySelection = () => {
         .order('due_date', { ascending: true });
 
       if (username && email) {
-        query = query.or(`mentioned_attendee.ilike.%${username}%,mentioned_attendee.ilike.%${email}%`);
+        // Use PostgREST or() syntax with wildcard * for ilike
+        query = query.or(
+          `mentioned_attendee.ilike.*${username}*,mentioned_attendee.ilike.*${email}*`
+        );
       } else if (username) {
         query = query.ilike('mentioned_attendee', `%${username}%`);
       } else if (email) {
