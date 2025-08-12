@@ -125,14 +125,6 @@ export const ActionEditDialog = ({
         </DialogHeader>
         
         <div className="space-y-4">
-          {/* Current Action Details */}
-          <div className="bg-muted/30 p-4 rounded-lg">
-            <h4 className="font-medium text-sm text-muted-foreground mb-2">Current Action:</h4>
-            <p className="text-sm font-medium">{action.action}</p>
-            <p className="text-xs text-muted-foreground mt-1">
-              Assigned to: {action.mentionedAttendee} | Due: {action.dueDate}
-            </p>
-          </div>
 
           {/* Audit Trail */}
           {action.auditTrail && action.auditTrail.length > 0 && <div className="bg-blue-50 p-4 rounded-lg">
