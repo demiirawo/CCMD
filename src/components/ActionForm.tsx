@@ -214,11 +214,11 @@ export const ActionForm = ({
       });
       const currentUser = profile?.username || 'Unknown';
 
-      // Add comment to audit trail
+      // Add comment to audit trail (include comment text)
       if (updates.comment) {
         auditEntries.push({
           timestamp,
-          change: `Audit Comment Added`,
+          change: `Audit Comment Added: "${updates.comment}"`,
           user: currentUser
         });
       }
@@ -233,21 +233,21 @@ export const ActionForm = ({
         updatedAction.description = updates.action;
       }
 
-      // Update due date and add to audit trail
+      // Update due date and add to audit trail (show old -> new)
       if (updates.dueDate && updates.dueDate !== action.targetDate) {
         auditEntries.push({
           timestamp,
-          change: `Action Due Date Changed`,
+          change: `Action Due Date Changed: from ${action.targetDate} to ${updates.dueDate}`,
           user: currentUser
         });
         updatedAction.targetDate = updates.dueDate;
       }
 
-      // Update owner and add to audit trail
+      // Update owner and add to audit trail (show old -> new)
       if (updates.owner && updates.owner !== action.name) {
         auditEntries.push({
           timestamp,
-          change: `Action Owner Changed`,
+          change: `Action Owner Changed: from ${action.name} to ${updates.owner}`,
           user: currentUser
         });
         updatedAction.name = updates.owner;
