@@ -22,7 +22,7 @@ interface ActionFormProps {
   onActionsChange: (actions: ActionItem[]) => void;
   onActionCreated?: (name: string, description: string, targetDate: string, actionId: string) => void;
   onActionCompleted?: (actionId: string) => void;
-  onActionEdit?: (actionId: string, updates: { comment?: string; dueDate?: string; owner?: string }) => void;
+  onActionEdit?: (actionId: string, updates: { comment?: string; dueDate?: string; owner?: string; action?: string }) => void;
 }
 export const ActionForm = ({
   actions,
@@ -197,7 +197,7 @@ export const ActionForm = ({
     }
   };
 
-  const handleActionEdit = (actionId: string, updates: { comment?: string; dueDate?: string; owner?: string }) => {
+  const handleActionEdit = (actionId: string, updates: { comment?: string; dueDate?: string; owner?: string; action?: string }) => {
     const updatedActions = actions.map(action => {
       if (action.id !== actionId) return action;
       
@@ -217,6 +217,15 @@ export const ActionForm = ({
           timestamp,
           change: `Comment added: ${updates.comment}`
         });
+      }
+
+      // Update action text and add to audit trail
+      if (updates.action && updates.action !== action.description) {
+        auditEntries.push({
+          timestamp,
+          change: `Action text changed`
+        });
+        updatedAction.description = updates.action;
       }
 
       // Update due date and add to audit trail

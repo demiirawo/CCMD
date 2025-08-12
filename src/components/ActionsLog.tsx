@@ -37,6 +37,7 @@ interface ActionsLogProps {
     comment?: string;
     dueDate?: string;
     owner?: string;
+    action?: string;
   }) => void;
   attendees?: string[];
   forceOpen?: boolean;

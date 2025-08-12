@@ -1159,6 +1159,7 @@ const Index = () => {
     comment?: string;
     dueDate?: string;
     owner?: string;
+    action?: string;
   }) => {
     const timestamp = new Date().toLocaleString('en-GB', {
       day: '2-digit',
@@ -1182,6 +1183,15 @@ const Index = () => {
           timestamp,
           change: `Comment added: ${updates.comment}`
         });
+      }
+
+      // Update action text and add to audit trail
+      if (updates.action && updates.action !== action.action) {
+        auditEntries.push({
+          timestamp,
+          change: `Action text changed`
+        });
+        updatedAction.action = updates.action;
       }
 
       // Update due date and add to audit trail
@@ -1215,7 +1225,9 @@ const Index = () => {
         if (updates.owner) {
           updateData.mentioned_attendee = updates.owner;
         }
-
+        if (updates.action) {
+          updateData.action_text = updates.action;
+        }
         // Add audit trail update
         const currentAction = actionsLog.find(a => a.id === actionId);
         const newAuditTrail = [...(currentAction?.auditTrail || [])];
@@ -1223,6 +1235,12 @@ const Index = () => {
           newAuditTrail.push({
             timestamp,
             change: `Comment added: ${updates.comment}`
+          });
+        }
+        if (updates.action && currentAction && updates.action !== currentAction.action) {
+          newAuditTrail.push({
+            timestamp,
+            change: `Action text changed`
           });
         }
         if (updates.dueDate && currentAction && updates.dueDate !== currentAction.dueDate) {
@@ -1269,6 +1287,15 @@ const Index = () => {
                 timestamp,
                 change: `Comment added: ${updates.comment}`
               });
+            }
+
+            // Update action text and add to audit trail
+            if (updates.action && updates.action !== action.description) {
+              auditEntries.push({
+                timestamp,
+                change: `Action text changed`
+              });
+              updatedAction.description = updates.action;
             }
 
             // Update due date and add to audit trail

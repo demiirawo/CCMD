@@ -11,7 +11,7 @@ interface ActionEditDialogProps {
   isOpen: boolean;
   onClose: () => void;
   action: ActionLogEntry | null;
-  onSave: (actionId: string, updates: { comment?: string; dueDate?: string; owner?: string }) => void;
+  onSave: (actionId: string, updates: { comment?: string; dueDate?: string; owner?: string; action?: string }) => void;
   attendees?: string[];
 }
 
@@ -25,6 +25,7 @@ export const ActionEditDialog = ({
   const [newComment, setNewComment] = useState("");
   const [newDueDate, setNewDueDate] = useState("");
   const [newOwner, setNewOwner] = useState("");
+  const [newActionText, setNewActionText] = useState("");
 
   // Helpers to normalize date formats
   const toISO = (dateStr: string): string => {
@@ -68,16 +69,21 @@ export const ActionEditDialog = ({
       setNewDueDate(toISO(action.dueDate || ""));
       setNewOwner(action.mentionedAttendee || "");
       setNewComment("");
+      setNewActionText(action.action || "");
     }
   }, [action, isOpen]);
 
   const handleSave = () => {
     if (!action) return;
 
-    const updates: { comment?: string; dueDate?: string; owner?: string } = {};
+    const updates: { comment?: string; dueDate?: string; owner?: string; action?: string } = {};
     
     if (newComment.trim()) {
       updates.comment = newComment.trim();
+    }
+
+    if (newActionText && newActionText.trim() !== action.action) {
+      updates.action = newActionText.trim();
     }
     
     // Only update due date if it's actually different and not empty
@@ -98,6 +104,7 @@ export const ActionEditDialog = ({
       setNewComment("");
       setNewDueDate(toISO(action.dueDate || ""));
       setNewOwner(action.mentionedAttendee || "");
+      setNewActionText(action.action || "");
       onClose();
     }
   };
@@ -106,6 +113,7 @@ export const ActionEditDialog = ({
     setNewComment("");
     setNewDueDate(toISO(action?.dueDate || ""));
     setNewOwner(action?.mentionedAttendee || "");
+    setNewActionText(action?.action || "");
     onClose();
   };
 
@@ -143,9 +151,26 @@ export const ActionEditDialog = ({
             </div>
           )}
 
-          {/* Add Comment */}
+          {/* Edit Action Text */}
           <div className="space-y-2">
-            <Label htmlFor="comment">Add Comment</Label>
+            <Label htmlFor="actionText">Action Text</Label>
+            <Textarea
+              id="actionText"
+              value={newActionText}
+              onChange={(e) => setNewActionText(e.target.value)}
+              placeholder="Edit the original action text..."
+              className="min-h-[80px] bg-white text-black"
+            />
+            {newActionText.trim() !== action.action && (
+              <p className="text-xs text-amber-600">
+                Action text will be changed
+              </p>
+            )}
+          </div>
+
+          {/* Add Audit Comment */}
+          <div className="space-y-2">
+            <Label htmlFor="comment">Add Audit Comment</Label>
             <Textarea
               id="comment"
               value={newComment}
@@ -154,7 +179,6 @@ export const ActionEditDialog = ({
               className="min-h-[80px] bg-white text-black"
             />
           </div>
-
           {/* Change Due Date */}
           <div className="space-y-2">
             <Label htmlFor="dueDate">Due Date</Label>
