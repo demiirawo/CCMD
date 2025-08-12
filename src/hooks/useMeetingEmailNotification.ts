@@ -217,6 +217,7 @@ export const useMeetingEmailNotification = () => {
                   </div>
                   ${assignee ? `<div style="font-size: 14px; color: #6B7280;">👤 Assigned to: ${assignee}</div>` : ''}
                   ${dueDate ? `<div style="font-size: 14px; color: #6B7280;">📅 Due: ${dueDate}</div>` : ''}
+                  ${(action.itemTitle || action.section || action.sectionTitle) ? `<div style="font-size: 14px; color: #6B7280;">📄 From: ${action.itemTitle || action.section || action.sectionTitle}</div>` : ''}
                 </li>
               `;
             }).join('')}
