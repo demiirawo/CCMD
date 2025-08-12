@@ -1876,7 +1876,7 @@ const Index = () => {
             <MeetingStatusSummary sections={dashboardData.sections || []} extraStatuses={ragExtras} />
           </div>
           <div className="flex-1 flex justify-end gap-4">
-            <Button onClick={handleToggleAll} variant="outline" className="gap-2">
+            <Button onClick={handleToggleAll} variant="default" className="gap-2">
               <ChevronDown className="w-4 h-4" />
               {getToggleButtonText()}
             </Button>
