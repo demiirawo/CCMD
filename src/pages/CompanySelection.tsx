@@ -19,7 +19,8 @@ export const CompanySelection = () => {
   const [actionsOpen, setActionsOpen] = useState(false);
   const [allActions, setAllActions] = useState<any[]>([]);
   const [actionsLoading, setActionsLoading] = useState(false);
-  
+  const [companySearch, setCompanySearch] = useState('');
+
   const {
     user,
     profile,
@@ -54,6 +55,12 @@ export const CompanySelection = () => {
   });
 
   const isSuperAdmin = user?.email === 'demi.irawo@care-cuddle.co.uk';
+
+  const filteredCompanies = React.useMemo(() => {
+    const q = companySearch.trim().toLowerCase();
+    if (!q) return companies;
+    return companies.filter(c => (c.name || '').toLowerCase().includes(q));
+  }, [companies, companySearch]);
 
   const handleRefreshCompanies = async () => {
     console.log('Manually refreshing companies...');
@@ -270,8 +277,17 @@ export const CompanySelection = () => {
             {companies.length > 0 && (
               <div className="space-y-2">
                 <h3 className="text-lg font-semibold">Your Companies</h3>
+                <div>
+                  <Label htmlFor="company-search" className="sr-only">Search companies</Label>
+                  <Input
+                    id="company-search"
+                    placeholder="Search companies..."
+                    value={companySearch}
+                    onChange={(e) => setCompanySearch(e.target.value)}
+                  />
+                </div>
                 <div className="grid gap-2 max-h-60 overflow-y-auto">
-                  {companies.map(company => (
+                  {filteredCompanies.map(company => (
                     <Card key={company.id} className="hover:bg-accent transition-colors">
                       <CardContent className="p-4">
                         <div className="flex items-center justify-between">
