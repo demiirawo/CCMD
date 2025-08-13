@@ -1,5 +1,6 @@
 import { useCallback, useRef } from 'react';
 import { useAuth } from './useAuth';
+import { useEnhancedAutoBackup } from './useEnhancedAutoBackup';
 
 interface BackupData {
   timestamp: string;
@@ -12,13 +13,15 @@ interface BackupData {
 export const useAutoBackup = () => {
   const { profile } = useAuth();
   const lastBackupRef = useRef<BackupData | null>(null);
+  const { createAutoBackup: enhancedCreateAutoBackup } = useEnhancedAutoBackup();
 
-  // Create auto backup - temporarily disabled
+  // Create auto backup - now using enhanced backup system
   const createAutoBackup = useCallback(async (
     dashboardData: any,
     actionsLog: any[],
     keyDocuments: any[],
-    meetingId: string
+    meetingId: string,
+    meetingDate?: string
   ) => {
     if (!profile?.company_id) return;
 
@@ -31,13 +34,19 @@ export const useAutoBackup = () => {
     };
 
     try {
-      // Backup functionality temporarily disabled - meeting_backups table doesn't exist
-      console.log('Auto backup would be created for meeting:', meetingId);
+      // Use enhanced backup system
+      await enhancedCreateAutoBackup(
+        dashboardData,
+        actionsLog,
+        keyDocuments,
+        meetingId,
+        meetingDate || new Date().toISOString().split('T')[0]
+      );
       lastBackupRef.current = backupData;
     } catch (error) {
       console.error('Failed to create auto backup:', error);
     }
-  }, [profile?.company_id]);
+  }, [profile?.company_id, enhancedCreateAutoBackup]);
 
   // Restore from backup - temporarily disabled
   const restoreFromBackup = useCallback(async (meetingId: string) => {

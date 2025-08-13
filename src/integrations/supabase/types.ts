@@ -369,6 +369,48 @@ export type Database = {
           },
         ]
       }
+      data_audit_trail: {
+        Row: {
+          company_id: string
+          data_size: number | null
+          error_message: string | null
+          id: string
+          meeting_id: string | null
+          metadata: Json | null
+          operation: string
+          success: boolean
+          table_name: string
+          timestamp: string
+          user_id: string | null
+        }
+        Insert: {
+          company_id: string
+          data_size?: number | null
+          error_message?: string | null
+          id?: string
+          meeting_id?: string | null
+          metadata?: Json | null
+          operation: string
+          success?: boolean
+          table_name: string
+          timestamp?: string
+          user_id?: string | null
+        }
+        Update: {
+          company_id?: string
+          data_size?: number | null
+          error_message?: string | null
+          id?: string
+          meeting_id?: string | null
+          metadata?: Json | null
+          operation?: string
+          success?: boolean
+          table_name?: string
+          timestamp?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       feedback_analytics: {
         Row: {
           company_id: string
@@ -643,6 +685,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      meeting_backups: {
+        Row: {
+          backup_data: Json
+          backup_type: string
+          company_id: string
+          created_at: string
+          created_by: string | null
+          data_type: string
+          id: string
+          meeting_date: string
+          meeting_id: string
+          metadata: Json | null
+        }
+        Insert: {
+          backup_data: Json
+          backup_type: string
+          company_id: string
+          created_at?: string
+          created_by?: string | null
+          data_type: string
+          id?: string
+          meeting_date: string
+          meeting_id: string
+          metadata?: Json | null
+        }
+        Update: {
+          backup_data?: Json
+          backup_type?: string
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          data_type?: string
+          id?: string
+          meeting_date?: string
+          meeting_id?: string
+          metadata?: Json | null
+        }
+        Relationships: []
       }
       meeting_email_reminders: {
         Row: {
