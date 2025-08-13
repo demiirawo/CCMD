@@ -1848,7 +1848,8 @@ const Index = () => {
     const diffDays = Math.ceil((d.getTime() - todayMid.getTime()) / (1000*60*60*24));
     return diffDays >= 0 && diffDays <= 5;
   });
-  const actionsStatus: StatusType = hasOverdueAction ? 'red' : (hasDueSoonAction ? 'amber' : 'green');
+  // For top count: only show RED when overdue, otherwise GREEN (amber treated as green)
+  const actionsStatus: StatusType = hasOverdueAction ? 'red' : 'green';
 
   // Key documents overall status
   const docStatus = (nextReviewDate: string | null): StatusType => {
