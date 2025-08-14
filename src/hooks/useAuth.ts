@@ -410,7 +410,7 @@ export const useAuthProvider = (): AuthContextType => {
     
     const { data, error } = await supabase
       .from('companies')
-      .insert([{ name, theme_color: '#000000' }])
+      .insert([{ name, theme_color: '#1e293b' }])
       .select()
       .single();
     
