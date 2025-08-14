@@ -647,10 +647,15 @@ export const Reports = () => {
                     </div>
                     
                     <div className="flex items-center gap-3">
-                      {canEdit && <div onClick={e => e.stopPropagation()} className="flex items-start justify-evenly w-full gap-2">
-                          <AddMeetingDialog onMeetingAdded={fetchMeetings} />
-                          <NarrativeQuarterlyReportGenerator quarter={quarter} year={year} meetings={quarterMeetings} />
-                        </div>}
+                      {/* Fixed container for consistent button positioning */}
+                      <div className="flex items-center gap-2 min-w-[300px] justify-end">
+                        {canEdit && (
+                          <div onClick={e => e.stopPropagation()} className="flex items-center gap-2">
+                            <AddMeetingDialog onMeetingAdded={fetchMeetings} />
+                            <NarrativeQuarterlyReportGenerator quarter={quarter} year={year} meetings={quarterMeetings} />
+                          </div>
+                        )}
+                      </div>
                       
                       <div className="p-1 rounded-lg hover:bg-accent/50 transition-colors">
                         {isExpanded ? <ChevronDown className="w-5 h-5 text-muted-foreground" /> : <ChevronRight className="w-5 h-5 text-muted-foreground" />}
@@ -735,7 +740,7 @@ export const Reports = () => {
                                 </div>}
                               
                             </div>
-                             <div className="flex items-center gap-2">
+                             <div className="flex items-center gap-2 min-w-[300px] justify-end">
                                 {/* Hide View button for custom meetings (purpose is null) */}
                                 {meeting.purpose !== null && <Dialog>
                                     <DialogTrigger asChild>
