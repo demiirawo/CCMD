@@ -262,7 +262,7 @@ export const Reports = () => {
     }));
   };
   const isQuarterExpanded = (quarterKey: string) => {
-    return expandedQuarters[quarterKey] ?? true; // Default to expanded
+    return expandedQuarters[quarterKey] ?? false; // Default to collapsed
   };
   const handleExportPDF = async (meetingId: string, meetingTitle: string) => {
     try {
