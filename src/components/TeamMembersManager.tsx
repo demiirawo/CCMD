@@ -236,7 +236,7 @@ export const TeamMembersManager = ({
                 <Input id="member-email" type="email" value={newMember.email} onChange={e => setNewMember(prev => ({
               ...prev,
               email: e.target.value
-            }))} className="border-gray-200" placeholder="Optional - for login access" />
+            }))} className="border-gray-200" />
               </div>
               <div className="flex items-end">
                 <Button onClick={handleAddMember} disabled={loading || !newMember.name.trim()} className="w-full">
