@@ -38,7 +38,7 @@ export const useTheme = () => {
       document.documentElement.style.setProperty('--primary', hexToHsl(currentCompany.theme_color));
     } else {
       // Apply default theme color
-      document.documentElement.style.setProperty('--primary', hexToHsl('#000000'));
+      document.documentElement.style.setProperty('--primary', hexToHsl('#1e293b'));
     }
   }, [companies, profile?.company_id]);
 };
