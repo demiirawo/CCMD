@@ -279,7 +279,7 @@ export const Settings = () => {
         <Card style={{backgroundColor: '#EAEBEC'}}>
           <CardHeader>
             <CardTitle>
-              Compliance Settings
+              Compliance
             </CardTitle>
           </CardHeader>
           <CardContent>
