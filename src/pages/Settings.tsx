@@ -253,7 +253,7 @@ export const Settings = () => {
         </div>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
+      <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-3">
         {/* Services Selection */}
         <Card style={{backgroundColor: '#EAEBEC'}}>
           <CardHeader>
