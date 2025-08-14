@@ -73,6 +73,11 @@ export const Settings = () => {
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
   const [selectedLogo, setSelectedLogo] = useState<string>("");
+  const [complianceSettings, setComplianceSettings] = useState({
+    cqc_personal_care: false,
+    home_office_cos: false,
+    ofsted_supported_accommodation: false
+  });
   
   const currentCompany = companies.find(c => c.id === profile?.company_id);
 
@@ -90,7 +95,7 @@ export const Settings = () => {
         const {
           data,
           error
-        } = await supabase.from("companies").select("services, logo_url").eq("id", currentCompany.id).maybeSingle();
+        } = await supabase.from("companies").select("services, logo_url, cqc_personal_care, home_office_cos, ofsted_supported_accommodation").eq("id", currentCompany.id).maybeSingle();
         if (error) throw error;
         if (data) {
           setSelectedServices(data.services || []);
