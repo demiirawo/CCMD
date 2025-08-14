@@ -544,7 +544,6 @@ const Inspection = () => {
                     {ofstedPanels.map(panel => (
                       <div key={panel.id}>
                         <div className="flex items-center gap-4 mb-4">
-                          <p className="text-muted-foreground text-sm">Updated: {getPanelLastUpdated(panel.id)}</p>
                         </div>
                         
                         {isSuperAdmin && <div className="mb-4">
