@@ -271,7 +271,6 @@ const Inspection = () => {
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
                       <h2 className="text-xl font-semibold mb-1">CQC Inspection</h2>
-                      <p className="text-muted-foreground text-sm">Care Quality Commission inspection data</p>
                     </div>
                     <div className="flex items-center gap-4">
                       <MeetingStatusSummary sections={inspectionSections} />
