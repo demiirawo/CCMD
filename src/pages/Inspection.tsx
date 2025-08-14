@@ -139,6 +139,7 @@ const Inspection = () => {
   const [expandedPanels, setExpandedPanels] = useState<Set<string>>(new Set());
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
   const [isCQCExpanded, setIsCQCExpanded] = useState(true);
+  const [isCOSExpanded, setIsCOSExpanded] = useState(true);
 
   const togglePanel = (panelId: string) => {
     const newExpanded = new Set(expandedPanels);
@@ -175,6 +176,10 @@ const Inspection = () => {
   const getCategoriesForPanel = (panelId: string) => {
     return categories.filter(cat => cat.panel_id === panelId);
   };
+
+  // Separate CQC panels from COS Compliance
+  const cqcPanels = panels.filter(panel => panel.name !== 'COS Compliance');
+  const cosCompliancePanel = panels.find(panel => panel.name === 'COS Compliance');
 
   const getEvidenceForCategory = (categoryId: string) => {
     return evidence.filter(ev => ev.category_id === categoryId);
@@ -221,12 +226,31 @@ const Inspection = () => {
     return 'green';
   };
 
-  // Build sections array for RAG summary of evidence categories
-  const inspectionSections = [
+  // Build sections array for RAG summary of evidence categories (CQC only)
+  const cqcSections = [
     {
-      id: 'inspection-categories',
-      title: 'Evidence Categories',
-      items: categories.map((cat) => ({ status: getCategoryStatus(cat.id) }))
+      id: 'cqc-categories',
+      title: 'CQC Evidence Categories',
+      items: categories
+        .filter(cat => {
+          const panel = panels.find(p => p.id === cat.panel_id);
+          return panel && panel.name !== 'COS Compliance';
+        })
+        .map((cat) => ({ status: getCategoryStatus(cat.id) }))
+    }
+  ];
+
+  // Build sections array for COS Compliance
+  const cosSections = [
+    {
+      id: 'cos-categories',
+      title: 'COS Compliance Categories',
+      items: categories
+        .filter(cat => {
+          const panel = panels.find(p => p.id === cat.panel_id);
+          return panel && panel.name === 'COS Compliance';
+        })
+        .map((cat) => ({ status: getCategoryStatus(cat.id) }))
     }
   ];
 
@@ -273,7 +297,7 @@ const Inspection = () => {
                       <h2 className="text-xl font-semibold mb-1">CQC Inspection</h2>
                     </div>
                     <div className="flex items-center gap-4">
-                      <MeetingStatusSummary sections={inspectionSections} />
+                      <MeetingStatusSummary sections={cqcSections} />
                       {isCQCExpanded ? (
                         <ChevronDown className="h-6 w-6 text-muted-foreground" />
                       ) : (
@@ -286,7 +310,7 @@ const Inspection = () => {
               
               <CollapsibleContent>
                 <div className="space-y-4 mt-4 pl-6">
-                  {panels.map((panel) => (
+                  {cqcPanels.map((panel) => (
                     <div key={panel.id} className="bg-primary/10 rounded-lg overflow-hidden">
                       <div 
                         className="p-6 flex items-center justify-between transition-colors cursor-pointer"
@@ -469,6 +493,212 @@ const Inspection = () => {
                 </div>
               </CollapsibleContent>
             </Collapsible>
+            
+            {/* COS Compliance Section */}
+            {cosCompliancePanel && (
+              <Collapsible open={isCOSExpanded} onOpenChange={setIsCOSExpanded}>
+                <CollapsibleTrigger asChild>
+                  <div className="bg-primary/10 rounded-lg p-6 cursor-pointer hover:bg-primary/15 transition-colors">
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <h2 className="text-xl font-semibold mb-1">COS Compliance</h2>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <MeetingStatusSummary sections={cosSections} />
+                        {isCOSExpanded ? (
+                          <ChevronDown className="h-6 w-6 text-muted-foreground" />
+                        ) : (
+                          <ChevronRight className="h-6 w-6 text-muted-foreground" />
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </CollapsibleTrigger>
+                
+                <CollapsibleContent>
+                  <div className="space-y-4 mt-4 pl-6">
+                    <div className="bg-primary/10 rounded-lg overflow-hidden">
+                      <div 
+                        className="p-6 flex items-center justify-between transition-colors cursor-pointer"
+                        onClick={() => togglePanel(cosCompliancePanel.id)}
+                      >
+                        <div className="flex-1">
+                          {isSuperAdmin ? (
+                            <DebouncedInput
+                              value={cosCompliancePanel.name}
+                              onSave={(value) => updatePanel(cosCompliancePanel.id, value)}
+                              className="text-xl font-semibold mb-1 bg-transparent border-none text-foreground placeholder:text-muted-foreground p-0 h-auto"
+                              placeholder="Panel name..."
+                            />
+                          ) : (
+                            <h2 className="text-xl font-semibold mb-1">{cosCompliancePanel.name}</h2>
+                          )}
+                          <p className="text-muted-foreground text-sm">Updated: {getPanelLastUpdated(cosCompliancePanel.id)}</p>
+                        </div>
+                        <div className="flex items-center gap-4">
+                          {expandedPanels.has(cosCompliancePanel.id) ? (
+                            <ChevronDown className="h-6 w-6 text-muted-foreground" />
+                          ) : (
+                            <ChevronRight className="h-6 w-6 text-muted-foreground" />
+                          )}
+                        </div>
+                      </div>
+
+                      {expandedPanels.has(cosCompliancePanel.id) && (
+                        <div className="bg-white text-black p-6">
+                          {isSuperAdmin && (
+                            <div className="mb-4">
+                              <Button 
+                                onClick={() => handleAddCategory(cosCompliancePanel.id)}
+                                className="flex items-center gap-2"
+                              >
+                                <Plus className="h-4 w-4" />
+                                Add Category
+                              </Button>
+                            </div>
+                          )}
+
+                          {getCategoriesForPanel(cosCompliancePanel.id).length > 0 && (
+                            <div className="space-y-6">
+                              {getCategoriesForPanel(cosCompliancePanel.id).map((category) => (
+                                 <Card key={category.id} className="p-4">
+                                   <div 
+                                     className="mb-4 cursor-pointer hover:bg-gray-50 rounded p-2 -m-2 transition-colors"
+                                     onClick={() => toggleCategory(category.id)}
+                                   >
+                                     <div className="flex items-center justify-between mb-2">
+                                       <div className="flex items-center gap-4">
+                                         <div className="flex items-center gap-2">
+                                           {expandedCategories.has(category.id) ? (
+                                             <ChevronDown className="h-5 w-5 text-gray-500" />
+                                           ) : (
+                                             <ChevronRight className="h-5 w-5 text-gray-500" />
+                                           )}
+                                           {isSuperAdmin ? (
+                                             <DebouncedInput
+                                               value={category.name}
+                                               onSave={(value) => updateCategory(category.id, value)}
+                                               className="font-medium text-lg max-w-md"
+                                               placeholder="Category name..."
+                                             />
+                                           ) : (
+                                             <h3 className="font-medium text-lg">{category.name}</h3>
+                                           )}
+                                         </div>
+                                         <StatusBadge status={getCategoryStatus(category.id)} />
+                                         <span className="text-sm text-muted-foreground">
+                                           Last updated: {getCategoryLastUpdated(category.id)}
+                                         </span>
+                                       </div>
+                                       <div className="flex items-center gap-2">
+                                         {isSuperAdmin && (
+                                           <>
+                                             <Button 
+                                               onClick={() => handleAddEvidence(category.id)}
+                                               size="sm"
+                                               className="flex items-center gap-2"
+                                             >
+                                               <Plus className="h-4 w-4" />
+                                               Add Evidence
+                                             </Button>
+                                             <Button 
+                                               onClick={() => deleteCategory(category.id)}
+                                               size="sm"
+                                               variant="destructive"
+                                               className="flex items-center gap-2"
+                                             >
+                                               <Trash2 className="h-4 w-4" />
+                                               Delete
+                                             </Button>
+                                           </>
+                                         )}
+                                       </div>
+                                    </div>
+                                  </div>
+
+                                  {expandedCategories.has(category.id) && getEvidenceForCategory(category.id).length > 0 && (
+                                    <div className="space-y-2">
+                                      {/* Grid Header */}
+                                      <div className="grid gap-4 font-semibold border-b pb-2 text-sm" style={{gridTemplateColumns: isSuperAdmin ? '2fr 2fr 100px 60px' : '2fr 2fr 100px'}}>
+                                         <div>Evidence</div>
+                                         <div>Comment</div>
+                                         <div>Status</div>
+                                         {isSuperAdmin && <div></div>}
+                                      </div>
+
+                                      {/* Evidence Rows */}
+                                      {getEvidenceForCategory(category.id).map((evidenceItem) => {
+                                        const response = getResponseForEvidence(evidenceItem.id);
+                                        return (
+                                          <div key={evidenceItem.id} className="grid gap-4 items-start py-2 border-b border-gray-100" style={{gridTemplateColumns: isSuperAdmin ? '2fr 2fr 100px 60px' : '2fr 2fr 100px'}}>
+                                             <div>
+                                               {isSuperAdmin ? (
+                                                 <DebouncedTextarea
+                                                   value={evidenceItem.evidence_text}
+                                                   onSave={(value) => updateEvidence(evidenceItem.id, value)}
+                                                   placeholder="Enter evidence..."
+                                                   className="text-sm"
+                                                 />
+                                               ) : (
+                                                 <div className="text-sm p-2 bg-gray-50 rounded">
+                                                   {evidenceItem.evidence_text || "No evidence provided"}
+                                                 </div>
+                                               )}
+                                             </div>
+                                             <div>
+                                               <DebouncedTextarea
+                                                 value={response?.comment || ''}
+                                                 onSave={(value) => updateResponse(evidenceItem.id, 'comment', value)}
+                                                 placeholder="Enter comment..."
+                                                 className="text-sm"
+                                               />
+                                             </div>
+                                             <div className="flex justify-center">
+                                               <StatusBadge 
+                                                 status={(response?.status || 'green') as StatusType}
+                                                 onClick={() => handleStatusClick(evidenceItem.id, (response?.status || 'green') as StatusType)}
+                                               />
+                                             </div>
+                                             {isSuperAdmin && (
+                                               <div className="flex justify-center">
+                                                 <Button
+                                                   onClick={() => deleteEvidence(evidenceItem.id)}
+                                                   size="sm"
+                                                   variant="destructive"
+                                                   className="h-8 w-8 p-0"
+                                                 >
+                                                   <Trash2 className="h-4 w-4" />
+                                                 </Button>
+                                               </div>
+                                             )}
+                                          </div>
+                                        );
+                                      })}
+                                    </div>
+                                  )}
+
+                                  {expandedCategories.has(category.id) && getEvidenceForCategory(category.id).length === 0 && (
+                                    <div className="text-center py-4 text-muted-foreground text-sm">
+                                      {isSuperAdmin ? "No evidence added yet. Click 'Add Evidence' to get started." : "No evidence available for this category."}
+                                    </div>
+                                  )}
+                                </Card>
+                              ))}
+                            </div>
+                          )}
+
+                          {getCategoriesForPanel(cosCompliancePanel.id).length === 0 && (
+                            <div className="text-center py-8 text-muted-foreground">
+                              {isSuperAdmin ? "No categories added yet. Click 'Add Category' to get started." : "No categories available for this panel."}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </CollapsibleContent>
+              </Collapsible>
+            )}
           </div>
         </div>
       </div>
