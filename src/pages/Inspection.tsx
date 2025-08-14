@@ -309,9 +309,9 @@ const Inspection = () => {
               </CollapsibleTrigger>
               
               <CollapsibleContent>
-                <div className="space-y-4 mt-4 pl-6">
+                <div className="space-y-0">
                   {cqcPanels.map((panel) => (
-                    <div key={panel.id} className="bg-primary/10 rounded-lg overflow-hidden">
+                    <div key={panel.id} className="bg-white border-b last:border-b-0 overflow-hidden">
                       <div 
                         className="p-6 flex items-center justify-between transition-colors cursor-pointer"
                         onClick={() => togglePanel(panel.id)}
