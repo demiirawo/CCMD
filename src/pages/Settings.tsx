@@ -258,7 +258,7 @@ export const Settings = () => {
               Company Logo
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4 bg-white p-4 rounded-lg">
             {/* Current Logo Display */}
             {selectedLogo && <div className="relative inline-block">
                 <img src={selectedLogo} alt="Company Logo" className="w-32 h-32 rounded-lg object-cover border-2 border-border" />
