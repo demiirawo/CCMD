@@ -230,9 +230,9 @@ const Inspection = () => {
   } = useInspectionData();
   const [expandedPanels, setExpandedPanels] = useState<Set<string>>(new Set());
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
-  const [isCQCExpanded, setIsCQCExpanded] = useState(true);
-  const [isCOSExpanded, setIsCOSExpanded] = useState(true);
-  const [isOfstedExpanded, setIsOfstedExpanded] = useState(true);
+  const [isCQCExpanded, setIsCQCExpanded] = useState(false);
+  const [isCOSExpanded, setIsCOSExpanded] = useState(false);
+  const [isOfstedExpanded, setIsOfstedExpanded] = useState(false);
   const [categoryOrders, setCategoryOrders] = useState<{
     [panelId: string]: string[];
   }>({});
