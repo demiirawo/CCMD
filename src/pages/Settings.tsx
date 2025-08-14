@@ -259,7 +259,7 @@ export const Settings = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               
-              Services Provided
+              Services
             </CardTitle>
             
           </CardHeader>
