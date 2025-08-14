@@ -291,7 +291,7 @@ export const TeamMembersManager = ({
                     <div className="flex-1">
                       <div className="font-medium">{member.name}</div>
                       <div className="text-sm text-muted-foreground">
-                        {member.email || "please add email address"}
+                        {member.email || "Please add email address"}
                       </div>
                     </div>
                     
