@@ -1972,20 +1972,19 @@ const Index = () => {
           // Determine if we should use "Supported" terminology
           const currentCompany = companies.find(c => c.id === profile?.company_id);
           const hasSupportedHousing = currentCompany?.services?.includes("Supported Housing") || false;
-          const hasHomeCare = currentCompany?.services?.includes("Domiciliary (Home) Care") || false;
-          const useSupportedTerminology = hasSupportedHousing && !hasHomeCare;
+          const useSupportedTerminology = hasSupportedHousing;
 
 
           // Conditionally modify section title (text only, no visual changes)
           let sectionTitle = section.title;
           if (useSupportedTerminology && section.title === "Care Planning & Delivery") {
-            sectionTitle = "Support Planning & Delivery";
+            sectionTitle = "Care/Support Planning & Delivery";
           }
 
           // Conditionally modify item titles (text only, no visual changes)
           const modifiedItems = useSupportedTerminology ? section.items.map(item => ({
             ...item,
-            title: item.title === "Care Plans & Risk Assessments" ? "Support Plans & Risk Assessments" : item.title
+            title: item.title === "Care Plans & Risk Assessments" ? "Care/Support Plans and Risk Assessments" : item.title
           })) : section.items;
           return (
             <DashboardSection 
