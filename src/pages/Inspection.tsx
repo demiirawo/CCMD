@@ -516,7 +516,7 @@ const Inspection = () => {
                 </CollapsibleTrigger>
                 
                 <CollapsibleContent>
-                  <div className="bg-white text-black p-6">
+                  <div className="bg-white text-black p-6 pb-16">
                     {isSuperAdmin && (
                       <div className="mb-4">
                         <Button 
