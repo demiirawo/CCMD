@@ -340,5 +340,6 @@ export const useInspectionData = () => {
     deleteCategory,
     deleteEvidence,
     updatePanel,
+    refreshData: fetchData,
   };
 };

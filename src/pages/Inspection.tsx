@@ -225,7 +225,8 @@ const Inspection = () => {
     updateResponse,
     deleteCategory,
     deleteEvidence,
-    updatePanel
+    updatePanel,
+    refreshData
   } = useInspectionData();
   const [expandedPanels, setExpandedPanels] = useState<Set<string>>(new Set());
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
@@ -238,6 +239,11 @@ const Inspection = () => {
   const sensors = useSensors(useSensor(PointerSensor), useSensor(KeyboardSensor, {
     coordinateGetter: sortableKeyboardCoordinates
   }));
+
+  // Refresh data when component mounts to ensure we have the latest data
+  useEffect(() => {
+    refreshData();
+  }, []);
   const togglePanel = (panelId: string) => {
     const newExpanded = new Set(expandedPanels);
     if (newExpanded.has(panelId)) {
