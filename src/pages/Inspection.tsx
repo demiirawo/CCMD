@@ -162,7 +162,7 @@ const DebouncedInput = ({
     setLocalValue(newValue);
     debouncedSave(newValue);
   };
-  return <Input value={localValue} onChange={handleChange} placeholder={placeholder} className={cn("text-lg font-bold flex items-center gap-2 text-white", className)} type={type} />;
+  return;
 };
 
 // Debounced textarea component
@@ -539,7 +539,7 @@ const Inspection = () => {
                         <div className="p-6 flex items-center justify-between transition-colors cursor-pointer" onClick={() => togglePanel(panel.id)}>
                           <div className="flex-1">
                             {isSuperAdmin ? <DebouncedInput value={panel.name} onSave={value => updatePanel(panel.id, value)} className="text-xl font-semibold mb-1 bg-transparent border-none text-foreground placeholder:text-muted-foreground p-0 h-auto" placeholder="Panel name..." /> : <h2 className="text-xl font-semibold mb-1">{panel.name}</h2>}
-                            <p className="text-muted-foreground text-sm">Updated: {getPanelLastUpdated(panel.id)}</p>
+                            
                           </div>
                           <div className="flex items-center gap-4">
                             {expandedPanels.has(panel.id) ? <ChevronDown className="h-6 w-6 text-muted-foreground" /> : <ChevronRight className="h-6 w-6 text-muted-foreground" />}
