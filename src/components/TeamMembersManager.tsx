@@ -241,7 +241,7 @@ export const TeamMembersManager = ({
               <div className="flex items-end">
                 <Button onClick={handleAddMember} disabled={loading || !newMember.name.trim()} className="w-full">
                   <Plus className="h-4 w-4 mr-2" />
-                  Add Admin
+                  Add
                 </Button>
               </div>
             </div>
