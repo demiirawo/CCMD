@@ -37,31 +37,6 @@ const hexToHsl = (hex: string): string => {
   }
   return `${Math.round(h * 360)} ${Math.round(s * 100)}% ${Math.round(l * 100)}%`;
 };
-const THEME_COLORS = [{
-  name: "Red",
-  value: "#dc2626"
-}, {
-  name: "Blue",
-  value: "#2563eb"
-}, {
-  name: "Green",
-  value: "#16a34a"
-}, {
-  name: "Yellow",
-  value: "#eab308"
-}, {
-  name: "Black",
-  value: "#1f2937"
-}, {
-  name: "Orange",
-  value: "#ea580c"
-}, {
-  name: "Purple",
-  value: "#9333ea"
-}, {
-  name: "Brown",
-  value: "#92400e"
-}];
 const SERVICES = ["Domiciliary (Home) Care", "Supported Housing", "Nursing Homes", "Mental Health Support Services", "Day Services and Community Support", "Live-in Care", "Specialist Clinical Services", "Outreach and Floating Support", "Palliative and End-of-Life Care", "Substance Misuse Support", "Reablement Services", "Short Breaks and Respite Care", "Advocacy and Independent Living Support", "Community Nursing", "Early Help and Family Support Services"];
 export const Settings = () => {
   const {
@@ -96,7 +71,6 @@ export const Settings = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(false);
   const [uploadingLogo, setUploadingLogo] = useState(false);
-  const [selectedTheme, setSelectedTheme] = useState("#3b82f6");
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
   const [selectedLogo, setSelectedLogo] = useState<string>("");
   
@@ -116,16 +90,11 @@ export const Settings = () => {
         const {
           data,
           error
-        } = await supabase.from("companies").select("theme_color, services, logo_url").eq("id", currentCompany.id).maybeSingle();
+        } = await supabase.from("companies").select("services, logo_url").eq("id", currentCompany.id).maybeSingle();
         if (error) throw error;
         if (data) {
-          const themeColor = data.theme_color || "#3b82f6";
-          setSelectedTheme(themeColor);
           setSelectedServices(data.services || []);
           setSelectedLogo(data.logo_url || "");
-
-          // Apply theme color immediately on load
-          document.documentElement.style.setProperty('--primary', hexToHsl(themeColor));
         }
       } catch (error) {
         console.error("Error loading company settings:", error);
@@ -212,7 +181,6 @@ export const Settings = () => {
       const {
         error
       } = await supabase.from("companies").update({
-        theme_color: selectedTheme,
         services: selectedServices,
         logo_url: selectedLogo
       }).eq("id", currentCompany.id);
@@ -224,23 +192,15 @@ export const Settings = () => {
       // Force reload the current company settings to ensure UI stays consistent
       const {
         data
-      } = await supabase.from("companies").select("theme_color, services, logo_url").eq("id", currentCompany.id).maybeSingle();
+      } = await supabase.from("companies").select("services, logo_url").eq("id", currentCompany.id).maybeSingle();
       if (data) {
-        const themeColor = data.theme_color || "#3b82f6";
-        setSelectedTheme(themeColor);
         setSelectedServices(data.services || []);
         setSelectedLogo(data.logo_url || "");
-
-        // Apply theme color after save
-        document.documentElement.style.setProperty('--primary', hexToHsl(themeColor));
       }
       toast({
         title: "Settings saved",
         description: "Your company settings have been updated successfully."
       });
-
-      // Apply theme color to CSS variables (converted to HSL)
-      document.documentElement.style.setProperty('--primary', hexToHsl(selectedTheme));
     } catch (error) {
       console.error("Error saving settings:", error);
       toast({
@@ -268,29 +228,7 @@ export const Settings = () => {
         </div>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3">
-        {/* Theme Color Selection */}
-        <Card style={{backgroundColor: '#EAEBEC'}}>
-          <CardHeader style={{backgroundColor: '#EAEBEC'}}>
-            <CardTitle className="flex items-center gap-2">
-              
-              Theme Color
-            </CardTitle>
-            
-          </CardHeader>
-          <CardContent className="space-y-4" style={{backgroundColor: '#EAEBEC'}}>
-            <div className="grid grid-cols-2 gap-3">
-              {THEME_COLORS.map(color => <div key={color.value} className={`h-16 rounded-lg cursor-pointer transition-all hover:scale-105 ${selectedTheme === color.value ? "ring-4 ring-primary ring-offset-2" : "hover:ring-2 hover:ring-muted-foreground"}`} style={{
-                backgroundColor: color.value
-              }} onClick={() => {
-                setSelectedTheme(color.value);
-                // Apply theme color immediately for preview
-                document.documentElement.style.setProperty('--primary', hexToHsl(color.value));
-              }} />)}
-            </div>
-          </CardContent>
-        </Card>
-
+      <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
         {/* Services Selection */}
         <Card style={{backgroundColor: '#EAEBEC'}}>
           <CardHeader>
