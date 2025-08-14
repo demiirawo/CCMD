@@ -178,8 +178,8 @@ const Inspection = () => {
   };
 
   // Separate CQC panels from COS Compliance
-  const cqcPanels = panels.filter(panel => panel.name !== 'CQC Checklist');
-  const cosCompliancePanel = panels.find(panel => panel.name === 'CQC Checklist');
+  const cqcPanels = panels.filter(panel => panel.name !== 'COS Checklist');
+  const cosCompliancePanel = panels.find(panel => panel.name === 'COS Checklist');
 
   const getEvidenceForCategory = (categoryId: string) => {
     return evidence.filter(ev => ev.category_id === categoryId);
@@ -234,7 +234,7 @@ const Inspection = () => {
       items: categories
         .filter(cat => {
           const panel = panels.find(p => p.id === cat.panel_id);
-          return panel && panel.name !== 'CQC Checklist';
+          return panel && panel.name !== 'COS Checklist';
         })
         .map((cat) => ({ status: getCategoryStatus(cat.id) }))
     }
@@ -244,11 +244,11 @@ const Inspection = () => {
   const cosSections = [
     {
       id: 'cos-categories',
-      title: 'CQC Checklist Categories',
+      title: 'COS Checklist Categories',
       items: categories
         .filter(cat => {
           const panel = panels.find(p => p.id === cat.panel_id);
-          return panel && panel.name === 'CQC Checklist';
+          return panel && panel.name === 'COS Checklist';
         })
         .map((cat) => ({ status: getCategoryStatus(cat.id) }))
     }
@@ -494,14 +494,14 @@ const Inspection = () => {
               </CollapsibleContent>
             </Collapsible>
             
-            {/* CQC Checklist Section */}
+            {/* COS Checklist Section */}
             {cosCompliancePanel && (
               <Collapsible open={isCOSExpanded} onOpenChange={setIsCOSExpanded}>
                 <CollapsibleTrigger asChild>
                   <div className="bg-primary/10 rounded-lg p-6 cursor-pointer hover:bg-primary/15 transition-colors">
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
-                        <h2 className="text-xl font-semibold mb-1">CQC Checklist</h2>
+                         <h2 className="text-xl font-semibold mb-1">COS Checklist</h2>
                       </div>
                       <div className="flex items-center gap-4">
                         <MeetingStatusSummary sections={cosSections} />
