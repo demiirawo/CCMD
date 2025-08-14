@@ -429,7 +429,7 @@ const Inspection = () => {
                 <div className="bg-primary/10 rounded-lg p-6 cursor-pointer hover:bg-primary/15 transition-colors">
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
-                      <h2 className="text-xl font-semibold mb-1">CQC (Personal Care) Checklist</h2>
+                      <h2 className="text-xl font-semibold mb-1">CQC (Personal Care) </h2>
                     </div>
                     <div className="flex items-center gap-4">
                       <MeetingStatusSummary sections={cqcSections} />
