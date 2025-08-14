@@ -291,7 +291,7 @@ export const TeamMembersManager = ({
                     <div className="flex-1">
                       <div className="font-medium">{member.name}</div>
                       <div className="text-sm text-muted-foreground">
-                        {member.email || "No email - cannot login"} • Company Admin
+                        {member.email || "No email - cannot login"}
                       </div>
                     </div>
                     
