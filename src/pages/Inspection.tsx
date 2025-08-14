@@ -540,39 +540,33 @@ const Inspection = () => {
                 </CollapsibleTrigger>
                 
                 <CollapsibleContent>
-                  <div className="space-y-0">
-                    {ofstedPanels.map(panel => <div key={panel.id} className="bg-white border-b last:border-b-0 overflow-hidden">
-                        <div className="p-6 flex items-center justify-between transition-colors cursor-pointer" onClick={() => togglePanel(panel.id)}>
-                          <div className="flex-1">
-                            {isSuperAdmin ? <DebouncedInput value={panel.name} onSave={value => updatePanel(panel.id, value)} className="text-xl font-semibold mb-1 bg-transparent border-none text-foreground placeholder:text-muted-foreground p-0 h-auto" placeholder="Panel name..." /> : <h2 className="text-xl font-semibold mb-1">{panel.name}</h2>}
-                            <p className="text-muted-foreground text-sm">Updated: {getPanelLastUpdated(panel.id)}</p>
-                          </div>
-                          <div className="flex items-center gap-4">
-                            {expandedPanels.has(panel.id) ? <ChevronDown className="h-6 w-6 text-muted-foreground" /> : <ChevronRight className="h-6 w-6 text-muted-foreground" />}
-                          </div>
+                  <div className="bg-white text-black p-6 pb-16">
+                    {ofstedPanels.map(panel => (
+                      <div key={panel.id}>
+                        <div className="flex items-center gap-4 mb-4">
+                          <p className="text-muted-foreground text-sm">Updated: {getPanelLastUpdated(panel.id)}</p>
                         </div>
-
-                        {expandedPanels.has(panel.id) && <div className="bg-white text-black p-6 pb-16">
-                            {isSuperAdmin && <div className="mb-4">
-                                <Button onClick={() => handleAddCategory(panel.id)} className="flex items-center gap-2">
-                                  <Plus className="h-4 w-4" />
-                                  Add Category
-                                </Button>
-                              </div>}
-
-                            {getOrderedCategoriesForPanel(panel.id).length > 0 && <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={event => handleDragEnd(event, panel.id)}>
-                                <SortableContext items={getOrderedCategoriesForPanel(panel.id).map(cat => cat.id)} strategy={verticalListSortingStrategy}>
-                                  <div className="space-y-6">
-                                    {getOrderedCategoriesForPanel(panel.id).map(category => <SortableCategory key={category.id} category={category} isExpanded={expandedCategories.has(category.id)} onToggle={toggleCategory} onUpdateCategory={updateCategory} onAddEvidence={handleAddEvidence} onDeleteCategory={deleteCategory} getEvidenceForCategory={getEvidenceForCategory} getResponseForEvidence={getResponseForEvidence} getCategoryStatus={getCategoryStatus} getCategoryLastUpdated={getCategoryLastUpdated} updateEvidence={updateEvidence} updateResponse={updateResponse} deleteEvidence={deleteEvidence} handleStatusClick={handleStatusClick} isSuperAdmin={isSuperAdmin} />)}
-                                  </div>
-                                </SortableContext>
-                              </DndContext>}
-
-                            {getCategoriesForPanel(panel.id).length === 0 && <div className="text-center py-8 text-muted-foreground">
-                                {isSuperAdmin ? "No categories added yet. Click 'Add Category' to get started." : "No categories available for this panel."}
-                              </div>}
+                        
+                        {isSuperAdmin && <div className="mb-4">
+                            <Button onClick={() => handleAddCategory(panel.id)} className="flex items-center gap-2">
+                              <Plus className="h-4 w-4" />
+                              Add Category
+                            </Button>
                           </div>}
-                      </div>)}
+
+                        {getOrderedCategoriesForPanel(panel.id).length > 0 && <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={event => handleDragEnd(event, panel.id)}>
+                            <SortableContext items={getOrderedCategoriesForPanel(panel.id).map(cat => cat.id)} strategy={verticalListSortingStrategy}>
+                              <div className="space-y-6">
+                                {getOrderedCategoriesForPanel(panel.id).map(category => <SortableCategory key={category.id} category={category} isExpanded={expandedCategories.has(category.id)} onToggle={toggleCategory} onUpdateCategory={updateCategory} onAddEvidence={handleAddEvidence} onDeleteCategory={deleteCategory} getEvidenceForCategory={getEvidenceForCategory} getResponseForEvidence={getResponseForEvidence} getCategoryStatus={getCategoryStatus} getCategoryLastUpdated={getCategoryLastUpdated} updateEvidence={updateEvidence} updateResponse={updateResponse} deleteEvidence={deleteEvidence} handleStatusClick={handleStatusClick} isSuperAdmin={isSuperAdmin} />)}
+                              </div>
+                            </SortableContext>
+                          </DndContext>}
+
+                        {getCategoriesForPanel(panel.id).length === 0 && <div className="text-center py-8 text-muted-foreground">
+                            {isSuperAdmin ? "No categories added yet. Click 'Add Category' to get started." : "No categories available for this panel."}
+                          </div>}
+                      </div>
+                    ))}
                   </div>
                 </CollapsibleContent>
               </Collapsible>}
