@@ -1,5 +1,5 @@
 import { Navigation } from "@/components/Navigation";
-import { ChevronRight, ChevronDown, Plus, Trash2 } from "lucide-react";
+import { ChevronRight, ChevronDown, Plus, Trash2, GripVertical } from "lucide-react";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,8 +10,205 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { cn } from "@/lib/utils";
 import { MeetingStatusSummary } from "@/components/MeetingStatusSummary";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import {
+  useSortable,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 type StatusType = 'green' | 'amber' | 'red' | 'na';
+
+// Sortable category component
+const SortableCategory = ({ 
+  category, 
+  isExpanded, 
+  onToggle, 
+  onUpdateCategory, 
+  onAddEvidence, 
+  onDeleteCategory, 
+  getEvidenceForCategory, 
+  getResponseForEvidence, 
+  getCategoryStatus, 
+  getCategoryLastUpdated, 
+  updateEvidence, 
+  updateResponse, 
+  deleteEvidence, 
+  handleStatusClick, 
+  isSuperAdmin 
+}: any) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: category.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  return (
+    <Card 
+      ref={setNodeRef} 
+      style={style} 
+      className={cn("p-4", isDragging && "opacity-50")}
+    >
+      <div 
+        className="mb-4 cursor-pointer hover:bg-gray-50 rounded p-2 -m-2 transition-colors"
+        onClick={() => onToggle(category.id)}
+      >
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              {isSuperAdmin && (
+                <div 
+                  {...attributes} 
+                  {...listeners}
+                  className="cursor-grab active:cursor-grabbing p-1 hover:bg-gray-200 rounded"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <GripVertical className="h-4 w-4 text-gray-400" />
+                </div>
+              )}
+              {isExpanded ? (
+                <ChevronDown className="h-5 w-5 text-gray-500" />
+              ) : (
+                <ChevronRight className="h-5 w-5 text-gray-500" />
+              )}
+              {isSuperAdmin ? (
+                <DebouncedInput
+                  value={category.name}
+                  onSave={(value) => onUpdateCategory(category.id, value)}
+                  className="font-medium text-lg max-w-md"
+                  placeholder="Category name..."
+                />
+              ) : (
+                <h3 className="font-medium text-lg">{category.name}</h3>
+              )}
+            </div>
+            <StatusBadge status={getCategoryStatus(category.id)} />
+            <span className="text-sm text-muted-foreground">
+              Last updated: {getCategoryLastUpdated(category.id)}
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            {isSuperAdmin && (
+              <>
+                <Button 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onAddEvidence(category.id);
+                  }}
+                  size="sm"
+                  className="flex items-center gap-2"
+                >
+                  <Plus className="h-4 w-4" />
+                  Add Evidence
+                </Button>
+                <Button 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDeleteCategory(category.id);
+                  }}
+                  size="sm"
+                  variant="destructive"
+                  className="flex items-center gap-2"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  Delete
+                </Button>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {isExpanded && getEvidenceForCategory(category.id).length > 0 && (
+        <div className="space-y-2">
+          {/* Grid Header */}
+          <div className="grid gap-4 font-semibold border-b pb-2 text-sm" style={{gridTemplateColumns: isSuperAdmin ? '2fr 2fr 100px 60px' : '2fr 2fr 100px'}}>
+             <div>Evidence</div>
+             <div>Comment</div>
+             <div>Status</div>
+             {isSuperAdmin && <div></div>}
+          </div>
+
+          {/* Evidence Rows */}
+          {getEvidenceForCategory(category.id).map((evidenceItem: any) => {
+            const response = getResponseForEvidence(evidenceItem.id);
+            return (
+              <div key={evidenceItem.id} className="grid gap-4 items-start py-2 border-b border-gray-100" style={{gridTemplateColumns: isSuperAdmin ? '2fr 2fr 100px 60px' : '2fr 2fr 100px'}}>
+                 <div>
+                   {isSuperAdmin ? (
+                     <DebouncedTextarea
+                       value={evidenceItem.evidence_text}
+                       onSave={(value) => updateEvidence(evidenceItem.id, value)}
+                       placeholder="Enter evidence..."
+                       className="text-sm"
+                     />
+                   ) : (
+                     <div className="text-sm p-2 bg-gray-50 rounded">
+                       {evidenceItem.evidence_text || "No evidence provided"}
+                     </div>
+                   )}
+                 </div>
+                 <div>
+                   <DebouncedTextarea
+                     value={response?.comment || ''}
+                     onSave={(value) => updateResponse(evidenceItem.id, 'comment', value)}
+                     placeholder="Enter comment..."
+                     className="text-sm"
+                   />
+                 </div>
+                 <div className="flex justify-center">
+                   <StatusBadge 
+                     status={(response?.status || 'green') as StatusType}
+                     onClick={() => handleStatusClick(evidenceItem.id, (response?.status || 'green') as StatusType)}
+                   />
+                 </div>
+                 {isSuperAdmin && (
+                   <div className="flex justify-center">
+                     <Button
+                       onClick={() => deleteEvidence(evidenceItem.id)}
+                       size="sm"
+                       variant="destructive"
+                       className="h-8 w-8 p-0"
+                     >
+                       <Trash2 className="h-4 w-4" />
+                     </Button>
+                   </div>
+                 )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {isExpanded && getEvidenceForCategory(category.id).length === 0 && (
+        <div className="text-center py-4 text-muted-foreground text-sm">
+          {isSuperAdmin ? "No evidence added yet. Click 'Add Evidence' to get started." : "No evidence available for this category."}
+        </div>
+      )}
+    </Card>
+  );
+};
 
 // Debounced input component
 const DebouncedInput = ({ 
@@ -140,6 +337,14 @@ const Inspection = () => {
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
   const [isCQCExpanded, setIsCQCExpanded] = useState(true);
   const [isCOSExpanded, setIsCOSExpanded] = useState(true);
+  const [categoryOrders, setCategoryOrders] = useState<{[panelId: string]: string[]}>({});
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   const togglePanel = (panelId: string) => {
     const newExpanded = new Set(expandedPanels);
@@ -274,6 +479,54 @@ const Inspection = () => {
     updateResponse(evidenceId, 'status', newStatus);
   };
 
+  // Get ordered categories for a panel
+  const getOrderedCategoriesForPanel = (panelId: string) => {
+    const panelCategories = categories.filter(cat => cat.panel_id === panelId);
+    const order = categoryOrders[panelId];
+    
+    if (!order) {
+      return panelCategories;
+    }
+    
+    // Sort categories based on the stored order
+    return panelCategories.sort((a, b) => {
+      const aIndex = order.indexOf(a.id);
+      const bIndex = order.indexOf(b.id);
+      
+      // If both are in order array, use their positions
+      if (aIndex !== -1 && bIndex !== -1) {
+        return aIndex - bIndex;
+      }
+      
+      // If only one is in order array, it comes first
+      if (aIndex !== -1) return -1;
+      if (bIndex !== -1) return 1;
+      
+      // If neither is in order array, maintain original order
+      return 0;
+    });
+  };
+
+  // Handle drag end
+  const handleDragEnd = (event: DragEndEvent, panelId: string) => {
+    const { active, over } = event;
+
+    if (over && active.id !== over.id) {
+      const panelCategories = getOrderedCategoriesForPanel(panelId);
+      const categoryIds = panelCategories.map(cat => cat.id);
+      
+      const oldIndex = categoryIds.indexOf(active.id as string);
+      const newIndex = categoryIds.indexOf(over.id as string);
+
+      const newOrder = arrayMove(categoryIds, oldIndex, newIndex);
+      
+      setCategoryOrders(prev => ({
+        ...prev,
+        [panelId]: newOrder
+      }));
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
@@ -360,133 +613,40 @@ const Inspection = () => {
                             </div>
                           )}
 
-                          {getCategoriesForPanel(panel.id).length > 0 && (
-                            <div className="space-y-6">
-                              {getCategoriesForPanel(panel.id).map((category) => (
-                                 <Card key={category.id} className="p-4">
-                                   <div 
-                                     className="mb-4 cursor-pointer hover:bg-gray-50 rounded p-2 -m-2 transition-colors"
-                                     onClick={() => toggleCategory(category.id)}
-                                   >
-                                     <div className="flex items-center justify-between mb-2">
-                                       <div className="flex items-center gap-4">
-                                         <div className="flex items-center gap-2">
-                                           {expandedCategories.has(category.id) ? (
-                                             <ChevronDown className="h-5 w-5 text-gray-500" />
-                                           ) : (
-                                             <ChevronRight className="h-5 w-5 text-gray-500" />
-                                           )}
-                                           {isSuperAdmin ? (
-                                             <DebouncedInput
-                                               value={category.name}
-                                               onSave={(value) => updateCategory(category.id, value)}
-                                               className="font-medium text-lg max-w-md"
-                                               placeholder="Category name..."
-                                             />
-                                           ) : (
-                                             <h3 className="font-medium text-lg">{category.name}</h3>
-                                           )}
-                                         </div>
-                                         <StatusBadge status={getCategoryStatus(category.id)} />
-                                         <span className="text-sm text-muted-foreground">
-                                           Last updated: {getCategoryLastUpdated(category.id)}
-                                         </span>
-                                       </div>
-                                       <div className="flex items-center gap-2">
-                                         {isSuperAdmin && (
-                                           <>
-                                             <Button 
-                                               onClick={() => handleAddEvidence(category.id)}
-                                               size="sm"
-                                               className="flex items-center gap-2"
-                                             >
-                                               <Plus className="h-4 w-4" />
-                                               Add Evidence
-                                             </Button>
-                                             <Button 
-                                               onClick={() => deleteCategory(category.id)}
-                                               size="sm"
-                                               variant="destructive"
-                                               className="flex items-center gap-2"
-                                             >
-                                               <Trash2 className="h-4 w-4" />
-                                               Delete
-                                             </Button>
-                                           </>
-                                         )}
-                                       </div>
-                                    </div>
-                                  </div>
-
-                                  {expandedCategories.has(category.id) && getEvidenceForCategory(category.id).length > 0 && (
-                                    <div className="space-y-2">
-                                      {/* Grid Header */}
-                                      <div className="grid gap-4 font-semibold border-b pb-2 text-sm" style={{gridTemplateColumns: isSuperAdmin ? '2fr 2fr 100px 60px' : '2fr 2fr 100px'}}>
-                                         <div>Evidence</div>
-                                         <div>Comment</div>
-                                         <div>Status</div>
-                                         {isSuperAdmin && <div></div>}
-                                      </div>
-
-                                      {/* Evidence Rows */}
-                                      {getEvidenceForCategory(category.id).map((evidenceItem) => {
-                                        const response = getResponseForEvidence(evidenceItem.id);
-                                        return (
-                                          <div key={evidenceItem.id} className="grid gap-4 items-start py-2 border-b border-gray-100" style={{gridTemplateColumns: isSuperAdmin ? '2fr 2fr 100px 60px' : '2fr 2fr 100px'}}>
-                                             <div>
-                                               {isSuperAdmin ? (
-                                                 <DebouncedTextarea
-                                                   value={evidenceItem.evidence_text}
-                                                   onSave={(value) => updateEvidence(evidenceItem.id, value)}
-                                                   placeholder="Enter evidence..."
-                                                   className="text-sm"
-                                                 />
-                                               ) : (
-                                                 <div className="text-sm p-2 bg-gray-50 rounded">
-                                                   {evidenceItem.evidence_text || "No evidence provided"}
-                                                 </div>
-                                               )}
-                                             </div>
-                                             <div>
-                                               <DebouncedTextarea
-                                                 value={response?.comment || ''}
-                                                 onSave={(value) => updateResponse(evidenceItem.id, 'comment', value)}
-                                                 placeholder="Enter comment..."
-                                                 className="text-sm"
-                                               />
-                                             </div>
-                                             <div className="flex justify-center">
-                                               <StatusBadge 
-                                                 status={(response?.status || 'green') as StatusType}
-                                                 onClick={() => handleStatusClick(evidenceItem.id, (response?.status || 'green') as StatusType)}
-                                               />
-                                             </div>
-                                             {isSuperAdmin && (
-                                               <div className="flex justify-center">
-                                                 <Button
-                                                   onClick={() => deleteEvidence(evidenceItem.id)}
-                                                   size="sm"
-                                                   variant="destructive"
-                                                   className="h-8 w-8 p-0"
-                                                 >
-                                                   <Trash2 className="h-4 w-4" />
-                                                 </Button>
-                                               </div>
-                                             )}
-                                          </div>
-                                        );
-                                      })}
-                                    </div>
-                                  )}
-
-                                  {expandedCategories.has(category.id) && getEvidenceForCategory(category.id).length === 0 && (
-                                    <div className="text-center py-4 text-muted-foreground text-sm">
-                                      {isSuperAdmin ? "No evidence added yet. Click 'Add Evidence' to get started." : "No evidence available for this category."}
-                                    </div>
-                                  )}
-                                </Card>
-                              ))}
-                            </div>
+                          {getOrderedCategoriesForPanel(panel.id).length > 0 && (
+                            <DndContext
+                              sensors={sensors}
+                              collisionDetection={closestCenter}
+                              onDragEnd={(event) => handleDragEnd(event, panel.id)}
+                            >
+                              <SortableContext
+                                items={getOrderedCategoriesForPanel(panel.id).map(cat => cat.id)}
+                                strategy={verticalListSortingStrategy}
+                              >
+                                <div className="space-y-6">
+                                  {getOrderedCategoriesForPanel(panel.id).map((category) => (
+                                    <SortableCategory
+                                      key={category.id}
+                                      category={category}
+                                      isExpanded={expandedCategories.has(category.id)}
+                                      onToggle={toggleCategory}
+                                      onUpdateCategory={updateCategory}
+                                      onAddEvidence={handleAddEvidence}
+                                      onDeleteCategory={deleteCategory}
+                                      getEvidenceForCategory={getEvidenceForCategory}
+                                      getResponseForEvidence={getResponseForEvidence}
+                                      getCategoryStatus={getCategoryStatus}
+                                      getCategoryLastUpdated={getCategoryLastUpdated}
+                                      updateEvidence={updateEvidence}
+                                      updateResponse={updateResponse}
+                                      deleteEvidence={deleteEvidence}
+                                      handleStatusClick={handleStatusClick}
+                                      isSuperAdmin={isSuperAdmin}
+                                    />
+                                  ))}
+                                </div>
+                              </SortableContext>
+                            </DndContext>
                           )}
 
                           {getCategoriesForPanel(panel.id).length === 0 && (
@@ -537,133 +697,40 @@ const Inspection = () => {
                       </div>
                     )}
 
-                    {getCategoriesForPanel(cosCompliancePanel.id).length > 0 && (
-                      <div className="space-y-6">
-                        {getCategoriesForPanel(cosCompliancePanel.id).map((category) => (
-                           <Card key={category.id} className="p-4">
-                             <div 
-                               className="mb-4 cursor-pointer hover:bg-gray-50 rounded p-2 -m-2 transition-colors"
-                               onClick={() => toggleCategory(category.id)}
-                             >
-                               <div className="flex items-center justify-between mb-2">
-                                 <div className="flex items-center gap-4">
-                                   <div className="flex items-center gap-2">
-                                     {expandedCategories.has(category.id) ? (
-                                       <ChevronDown className="h-5 w-5 text-gray-500" />
-                                     ) : (
-                                       <ChevronRight className="h-5 w-5 text-gray-500" />
-                                     )}
-                                     {isSuperAdmin ? (
-                                       <DebouncedInput
-                                         value={category.name}
-                                         onSave={(value) => updateCategory(category.id, value)}
-                                         className="font-medium text-lg max-w-md"
-                                         placeholder="Category name..."
-                                       />
-                                     ) : (
-                                       <h3 className="font-medium text-lg">{category.name}</h3>
-                                     )}
-                                   </div>
-                                   <StatusBadge status={getCategoryStatus(category.id)} />
-                                   <span className="text-sm text-muted-foreground">
-                                     Last updated: {getCategoryLastUpdated(category.id)}
-                                   </span>
-                                 </div>
-                                 <div className="flex items-center gap-2">
-                                   {isSuperAdmin && (
-                                     <>
-                                       <Button 
-                                         onClick={() => handleAddEvidence(category.id)}
-                                         size="sm"
-                                         className="flex items-center gap-2"
-                                       >
-                                         <Plus className="h-4 w-4" />
-                                         Add Evidence
-                                       </Button>
-                                       <Button 
-                                         onClick={() => deleteCategory(category.id)}
-                                         size="sm"
-                                         variant="destructive"
-                                         className="flex items-center gap-2"
-                                       >
-                                         <Trash2 className="h-4 w-4" />
-                                         Delete
-                                       </Button>
-                                     </>
-                                   )}
-                                 </div>
-                              </div>
-                            </div>
-
-                            {expandedCategories.has(category.id) && getEvidenceForCategory(category.id).length > 0 && (
-                              <div className="space-y-2">
-                                {/* Grid Header */}
-                                <div className="grid gap-4 font-semibold border-b pb-2 text-sm" style={{gridTemplateColumns: isSuperAdmin ? '2fr 2fr 100px 60px' : '2fr 2fr 100px'}}>
-                                   <div>Evidence</div>
-                                   <div>Comment</div>
-                                   <div>Status</div>
-                                   {isSuperAdmin && <div></div>}
-                                </div>
-
-                                {/* Evidence Rows */}
-                                {getEvidenceForCategory(category.id).map((evidenceItem) => {
-                                  const response = getResponseForEvidence(evidenceItem.id);
-                                  return (
-                                    <div key={evidenceItem.id} className="grid gap-4 items-start py-2 border-b border-gray-100" style={{gridTemplateColumns: isSuperAdmin ? '2fr 2fr 100px 60px' : '2fr 2fr 100px'}}>
-                                       <div>
-                                         {isSuperAdmin ? (
-                                           <DebouncedTextarea
-                                             value={evidenceItem.evidence_text}
-                                             onSave={(value) => updateEvidence(evidenceItem.id, value)}
-                                             placeholder="Enter evidence..."
-                                             className="text-sm"
-                                           />
-                                         ) : (
-                                           <div className="text-sm p-2 bg-gray-50 rounded">
-                                             {evidenceItem.evidence_text || "No evidence provided"}
-                                           </div>
-                                         )}
-                                       </div>
-                                       <div>
-                                         <DebouncedTextarea
-                                           value={response?.comment || ''}
-                                           onSave={(value) => updateResponse(evidenceItem.id, 'comment', value)}
-                                           placeholder="Enter comment..."
-                                           className="text-sm"
-                                         />
-                                       </div>
-                                       <div className="flex justify-center">
-                                         <StatusBadge 
-                                           status={(response?.status || 'green') as StatusType}
-                                           onClick={() => handleStatusClick(evidenceItem.id, (response?.status || 'green') as StatusType)}
-                                         />
-                                       </div>
-                                       {isSuperAdmin && (
-                                         <div className="flex justify-center">
-                                           <Button
-                                             onClick={() => deleteEvidence(evidenceItem.id)}
-                                             size="sm"
-                                             variant="destructive"
-                                             className="h-8 w-8 p-0"
-                                           >
-                                             <Trash2 className="h-4 w-4" />
-                                           </Button>
-                                         </div>
-                                       )}
-                                    </div>
-                                  );
-                                })}
-                              </div>
-                            )}
-
-                            {expandedCategories.has(category.id) && getEvidenceForCategory(category.id).length === 0 && (
-                              <div className="text-center py-4 text-muted-foreground text-sm">
-                                {isSuperAdmin ? "No evidence added yet. Click 'Add Evidence' to get started." : "No evidence available for this category."}
-                              </div>
-                            )}
-                          </Card>
-                        ))}
-                      </div>
+                    {getOrderedCategoriesForPanel(cosCompliancePanel.id).length > 0 && (
+                      <DndContext
+                        sensors={sensors}
+                        collisionDetection={closestCenter}
+                        onDragEnd={(event) => handleDragEnd(event, cosCompliancePanel.id)}
+                      >
+                        <SortableContext
+                          items={getOrderedCategoriesForPanel(cosCompliancePanel.id).map(cat => cat.id)}
+                          strategy={verticalListSortingStrategy}
+                        >
+                          <div className="space-y-6">
+                            {getOrderedCategoriesForPanel(cosCompliancePanel.id).map((category) => (
+                              <SortableCategory
+                                key={category.id}
+                                category={category}
+                                isExpanded={expandedCategories.has(category.id)}
+                                onToggle={toggleCategory}
+                                onUpdateCategory={updateCategory}
+                                onAddEvidence={handleAddEvidence}
+                                onDeleteCategory={deleteCategory}
+                                getEvidenceForCategory={getEvidenceForCategory}
+                                getResponseForEvidence={getResponseForEvidence}
+                                getCategoryStatus={getCategoryStatus}
+                                getCategoryLastUpdated={getCategoryLastUpdated}
+                                updateEvidence={updateEvidence}
+                                updateResponse={updateResponse}
+                                deleteEvidence={deleteEvidence}
+                                handleStatusClick={handleStatusClick}
+                                isSuperAdmin={isSuperAdmin}
+                              />
+                            ))}
+                          </div>
+                        </SortableContext>
+                      </DndContext>
                     )}
 
                     {getCategoriesForPanel(cosCompliancePanel.id).length === 0 && (
