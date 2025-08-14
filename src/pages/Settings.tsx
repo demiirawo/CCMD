@@ -100,6 +100,11 @@ export const Settings = () => {
         if (data) {
           setSelectedServices(data.services || []);
           setSelectedLogo(data.logo_url || "");
+          setComplianceSettings({
+            cqc_personal_care: data.cqc_personal_care || false,
+            home_office_cos: data.home_office_cos || false,
+            ofsted_supported_accommodation: data.ofsted_supported_accommodation || false
+          });
         }
       } catch (error) {
         console.error("Error loading company settings:", error);
@@ -109,6 +114,13 @@ export const Settings = () => {
   }, [currentCompany]);
   const handleServiceChange = (service: string, checked: boolean) => {
     setSelectedServices(prev => checked ? [...prev, service] : prev.filter(s => s !== service));
+  };
+  
+  const handleComplianceChange = (setting: keyof typeof complianceSettings, checked: boolean) => {
+    setComplianceSettings(prev => ({
+      ...prev,
+      [setting]: checked
+    }));
   };
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -187,7 +199,10 @@ export const Settings = () => {
         error
       } = await supabase.from("companies").update({
         services: selectedServices,
-        logo_url: selectedLogo
+        logo_url: selectedLogo,
+        cqc_personal_care: complianceSettings.cqc_personal_care,
+        home_office_cos: complianceSettings.home_office_cos,
+        ofsted_supported_accommodation: complianceSettings.ofsted_supported_accommodation
       }).eq("id", currentCompany.id);
       if (error) throw error;
 
@@ -197,10 +212,15 @@ export const Settings = () => {
       // Force reload the current company settings to ensure UI stays consistent
       const {
         data
-      } = await supabase.from("companies").select("services, logo_url").eq("id", currentCompany.id).maybeSingle();
+      } = await supabase.from("companies").select("services, logo_url, cqc_personal_care, home_office_cos, ofsted_supported_accommodation").eq("id", currentCompany.id).maybeSingle();
       if (data) {
         setSelectedServices(data.services || []);
         setSelectedLogo(data.logo_url || "");
+        setComplianceSettings({
+          cqc_personal_care: data.cqc_personal_care || false,
+          home_office_cos: data.home_office_cos || false,
+          ofsted_supported_accommodation: data.ofsted_supported_accommodation || false
+        });
       }
       toast({
         title: "Settings saved",
@@ -255,6 +275,49 @@ export const Settings = () => {
           </CardContent>
         </Card>
 
+        {/* Compliance Settings */}
+        <Card style={{backgroundColor: '#EAEBEC'}}>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Building className="h-5 w-5" />
+              Compliance Settings
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3 bg-white p-4 rounded-lg w-full">
+              <div className="flex items-center space-x-2">
+                <Checkbox 
+                  id="cqc_personal_care" 
+                  checked={complianceSettings.cqc_personal_care} 
+                  onCheckedChange={checked => handleComplianceChange('cqc_personal_care', checked as boolean)} 
+                />
+                <Label htmlFor="cqc_personal_care" className="text-sm font-normal cursor-pointer">
+                  CQC (Personal Care)
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Checkbox 
+                  id="home_office_cos" 
+                  checked={complianceSettings.home_office_cos} 
+                  onCheckedChange={checked => handleComplianceChange('home_office_cos', checked as boolean)} 
+                />
+                <Label htmlFor="home_office_cos" className="text-sm font-normal cursor-pointer">
+                  Home Office (Certificate of Sponsorship)
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Checkbox 
+                  id="ofsted_supported_accommodation" 
+                  checked={complianceSettings.ofsted_supported_accommodation} 
+                  onCheckedChange={checked => handleComplianceChange('ofsted_supported_accommodation', checked as boolean)} 
+                />
+                <Label htmlFor="ofsted_supported_accommodation" className="text-sm font-normal cursor-pointer">
+                  Ofsted (Supported Accomodation For Age 16-17)
+                </Label>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Logo Upload */}
         <Card style={{backgroundColor: '#EAEBEC'}}>

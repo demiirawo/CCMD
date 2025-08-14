@@ -297,33 +297,42 @@ export type Database = {
       }
       companies: {
         Row: {
+          cqc_personal_care: boolean | null
           created_at: string
           dynamic_panel_colour: boolean | null
+          home_office_cos: boolean | null
           id: string
           logo_url: string | null
           name: string
+          ofsted_supported_accommodation: boolean | null
           services: string[] | null
           slug: string | null
           theme_color: string | null
           updated_at: string
         }
         Insert: {
+          cqc_personal_care?: boolean | null
           created_at?: string
           dynamic_panel_colour?: boolean | null
+          home_office_cos?: boolean | null
           id?: string
           logo_url?: string | null
           name: string
+          ofsted_supported_accommodation?: boolean | null
           services?: string[] | null
           slug?: string | null
           theme_color?: string | null
           updated_at?: string
         }
         Update: {
+          cqc_personal_care?: boolean | null
           created_at?: string
           dynamic_panel_colour?: boolean | null
+          home_office_cos?: boolean | null
           id?: string
           logo_url?: string | null
           name?: string
+          ofsted_supported_accommodation?: boolean | null
           services?: string[] | null
           slug?: string | null
           theme_color?: string | null
