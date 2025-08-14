@@ -278,8 +278,7 @@ export const Settings = () => {
         {/* Compliance Settings */}
         <Card style={{backgroundColor: '#EAEBEC'}}>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Building className="h-5 w-5" />
+            <CardTitle>
               Compliance Settings
             </CardTitle>
           </CardHeader>
