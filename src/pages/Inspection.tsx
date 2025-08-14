@@ -226,31 +226,39 @@ const Inspection = () => {
     return 'green';
   };
 
-  // Build sections array for RAG summary of evidence categories (CQC only)
+  // Build sections array for RAG summary of evidence status (CQC only)
   const cqcSections = [
     {
-      id: 'cqc-categories',
-      title: 'CQC Evidence Categories',
+      id: 'cqc-evidence',
+      title: 'CQC Evidence Status',
       items: categories
         .filter(cat => {
           const panel = panels.find(p => p.id === cat.panel_id);
           return panel && panel.name !== 'COS Checklist';
         })
-        .map((cat) => ({ status: getCategoryStatus(cat.id) }))
+        .flatMap(cat => getEvidenceForCategory(cat.id))
+        .map(evidenceItem => {
+          const response = getResponseForEvidence(evidenceItem.id);
+          return { status: (response?.status || 'green') as StatusType };
+        })
     }
   ];
 
-  // Build sections array for COS Compliance
+  // Build sections array for COS Checklist evidence status
   const cosSections = [
     {
-      id: 'cos-categories',
-      title: 'COS Checklist Categories',
+      id: 'cos-evidence',
+      title: 'COS Checklist Evidence Status',
       items: categories
         .filter(cat => {
           const panel = panels.find(p => p.id === cat.panel_id);
           return panel && panel.name === 'COS Checklist';
         })
-        .map((cat) => ({ status: getCategoryStatus(cat.id) }))
+        .flatMap(cat => getEvidenceForCategory(cat.id))
+        .map(evidenceItem => {
+          const response = getResponseForEvidence(evidenceItem.id);
+          return { status: (response?.status || 'green') as StatusType };
+        })
     }
   ];
 
