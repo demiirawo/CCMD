@@ -14,6 +14,7 @@ import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, us
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { useAuth } from "@/hooks/useAuth";
 type StatusType = 'green' | 'amber' | 'red' | 'na';
 
 // Sortable category component
@@ -211,6 +212,7 @@ const DebouncedTextarea = ({
   }} />;
 };
 const Inspection = () => {
+  const { profile, companies } = useAuth();
   const {
     panels,
     categories,
@@ -239,6 +241,34 @@ const Inspection = () => {
   const sensors = useSensors(useSensor(PointerSensor), useSensor(KeyboardSensor, {
     coordinateGetter: sortableKeyboardCoordinates
   }));
+
+  // Get current company and its compliance settings
+  const currentCompany = companies.find(c => c.id === profile?.company_id);
+  const complianceSettings = {
+    cqc_personal_care: currentCompany?.cqc_personal_care || false,
+    home_office_cos: currentCompany?.home_office_cos || false,
+    ofsted_supported_accommodation: currentCompany?.ofsted_supported_accommodation || false
+  };
+
+  // Check if any compliance options are enabled
+  const hasAnyCompliance = Object.values(complianceSettings).some(enabled => enabled);
+
+  // If no compliance options are enabled, show a message instead of the compliance interface
+  if (!hasAnyCompliance) {
+    return <div className="min-h-screen bg-background">
+        <Navigation />
+        <div className="pt-20 px-6">
+          <div className="max-w-7xl mx-auto">
+            <div className="text-center py-12">
+              <h1 className="text-2xl font-semibold mb-4">Compliance Page</h1>
+              <p className="text-muted-foreground">
+                No compliance options are currently enabled. Please go to Settings to enable the compliance options you need.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>;
+  }
 
   // Refresh data when component mounts to ensure we have the latest data
   useEffect(() => {
@@ -430,7 +460,8 @@ const Inspection = () => {
           </header>
           
           <div className="space-y-4">
-            <Collapsible open={isCQCExpanded} onOpenChange={setIsCQCExpanded}>
+            {/* CQC Section - Only show if CQC compliance is enabled */}
+            {complianceSettings.cqc_personal_care && <Collapsible open={isCQCExpanded} onOpenChange={setIsCQCExpanded}>
               <CollapsibleTrigger asChild>
                 <div className="bg-primary/10 rounded-lg p-6 cursor-pointer hover:bg-primary/15 transition-colors">
                   <div className="flex items-center justify-between">
@@ -481,10 +512,10 @@ const Inspection = () => {
                     </div>)}
                 </div>
               </CollapsibleContent>
-            </Collapsible>
+            </Collapsible>}
             
-            {/* COS Checklist Section */}
-            {cosCompliancePanel && <Collapsible open={isCOSExpanded} onOpenChange={setIsCOSExpanded}>
+            {/* COS Checklist Section - Only show if Home Office compliance is enabled */}
+            {complianceSettings.home_office_cos && cosCompliancePanel && <Collapsible open={isCOSExpanded} onOpenChange={setIsCOSExpanded}>
                 <CollapsibleTrigger asChild>
                   <div className="bg-primary/10 rounded-lg p-6 cursor-pointer hover:bg-primary/15 transition-colors">
                     <div className="flex items-center justify-between">
@@ -523,8 +554,8 @@ const Inspection = () => {
                 </CollapsibleContent>
               </Collapsible>}
             
-            {/* Ofsted Section */}
-            {ofstedPanels.length > 0 && <Collapsible open={isOfstedExpanded} onOpenChange={setIsOfstedExpanded}>
+            {/* Ofsted Section - Only show if Ofsted compliance is enabled */}
+            {complianceSettings.ofsted_supported_accommodation && ofstedPanels.length > 0 && <Collapsible open={isOfstedExpanded} onOpenChange={setIsOfstedExpanded}>
                 <CollapsibleTrigger asChild>
                   <div className="bg-primary/10 rounded-lg p-6 cursor-pointer hover:bg-primary/15 transition-colors">
                     <div className="flex items-center justify-between">

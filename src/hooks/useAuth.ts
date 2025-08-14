@@ -20,6 +20,9 @@ interface Company {
   theme_color?: string;
   services?: string[];
   logo_url?: string;
+  cqc_personal_care?: boolean;
+  home_office_cos?: boolean;
+  ofsted_supported_accommodation?: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -238,7 +241,7 @@ export const useAuthProvider = (): AuthContextType => {
       
       const { data, error } = await supabase
         .from('companies')
-        .select('*');
+        .select('*, cqc_personal_care, home_office_cos, ofsted_supported_accommodation');
       
       console.log('Companies fetch result:', { data, error });
       
@@ -260,7 +263,7 @@ export const useAuthProvider = (): AuthContextType => {
       // Always attempt to fetch companies; RLS will return only accessible ones
       const { data, error } = await supabase
         .from('companies')
-        .select('*');
+        .select('*, cqc_personal_care, home_office_cos, ofsted_supported_accommodation');
 
       console.log('fetchCompanies result:', { data, error });
 
