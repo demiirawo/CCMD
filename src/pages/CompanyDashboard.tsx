@@ -30,11 +30,13 @@ const CompanyDashboard: React.FC = () => {
       return;
     }
 
-    // Automatically select the company if it's not already selected
-    if (profile?.company_id !== company.id) {
+    // Only select company if it's different AND we have a stable profile
+    // This prevents rapid switching when profile is being updated
+    if (profile?.company_id !== company.id && profile?.user_id === user.id) {
+      console.log('Auto-selecting company:', company.name, 'for user:', user.id);
       selectCompany(company.id);
     }
-  }, [slug, user, companies, profile, selectCompany, loading, toast]);
+  }, [slug, user?.id, companies, profile?.company_id, profile?.user_id, selectCompany, loading, toast]);
 
   // Show loading while we're getting initial data
   if (loading || !user || !companies.length) {

@@ -279,6 +279,21 @@ export const useAuthProvider = (): AuthContextType => {
   };
   useEffect(() => {
     let mounted = true;
+    let profileFetchInProgress = false;
+    
+    const fetchProfileOnce = async (userId: string) => {
+      if (profileFetchInProgress) {
+        console.log('Profile fetch already in progress, skipping...');
+        return;
+      }
+      
+      profileFetchInProgress = true;
+      try {
+        await fetchProfileData(userId);
+      } finally {
+        profileFetchInProgress = false;
+      }
+    };
     
     // Set up auth state listener FIRST (before checking existing session)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -296,7 +311,7 @@ export const useAuthProvider = (): AuthContextType => {
           // Use setTimeout(0) to defer Supabase calls and prevent auth context deadlocks
           setTimeout(() => {
             if (!mounted) return;
-            fetchProfileData(session.user.id);
+            fetchProfileOnce(session.user.id);
           }, 0);
         } else {
           // Clear data when user logs out
@@ -306,20 +321,26 @@ export const useAuthProvider = (): AuthContextType => {
       }
     );
 
-    // THEN check for existing session
+    // THEN check for existing session - but only if we haven't already got one
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!mounted) return;
       
       console.log('Initial session check:', session?.user?.id);
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
       
-      if (session?.user) {
-        setTimeout(() => {
-          if (!mounted) return;
-          fetchProfileData(session.user.id);
-        }, 0);
+      // Only update state if we don't already have this session
+      if (!user || user.id !== session?.user?.id) {
+        setSession(session);
+        setUser(session?.user ?? null);
+        setLoading(false);
+        
+        if (session?.user) {
+          setTimeout(() => {
+            if (!mounted) return;
+            fetchProfileOnce(session.user.id);
+          }, 0);
+        }
+      } else {
+        setLoading(false);
       }
     });
 
