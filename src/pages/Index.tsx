@@ -1975,11 +1975,8 @@ const Index = () => {
           const useSupportedTerminology = hasSupportedHousing;
 
 
-          // Conditionally modify section title (text only, no visual changes)
+          // Use section title as is (no conditional modification needed)
           let sectionTitle = section.title;
-          if (useSupportedTerminology && section.title === "Care Planning & Delivery") {
-            sectionTitle = "Care & Support";
-          }
 
           // Conditionally modify item titles (text only, no visual changes)
           const modifiedItems = useSupportedTerminology ? section.items.map(item => ({
