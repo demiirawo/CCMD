@@ -533,15 +533,6 @@ const Index = () => {
         actions: [],
         details: "",
         metadata: {}
-      }, {
-        id: "transportation",
-        title: "Transportation",
-        status: "green" as StatusType,
-        lastReviewed: "",
-        observation: "",
-        actions: [],
-        details: "",
-        metadata: {}
       }]
     }, {
       id: "safety",
@@ -577,6 +568,15 @@ const Index = () => {
       }, {
         id: "information-governance",
         title: "Information Governance",
+        status: "green" as StatusType,
+        lastReviewed: "",
+        observation: "",
+        actions: [],
+        details: "",
+        metadata: {}
+      }, {
+        id: "transportation",
+        title: "Transportation",
         status: "green" as StatusType,
         lastReviewed: "",
         observation: "",
