@@ -517,7 +517,7 @@ const Index = () => {
         metadata: {}
       }, {
         id: "care-notes",
-        title: "Care Notes",
+        title: "Care & Support Notes",
         status: "green" as StatusType,
         lastReviewed: "",
         observation: "",
