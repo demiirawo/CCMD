@@ -490,7 +490,7 @@ const Index = () => {
       icon: <HeartHandshake className="w-6 h-6 text-green-600" />,
       items: [{
         id: "care-plans",
-        title: "Care Plans & Risk Assessments",
+        title: "Planning & Risk Assessment",
         status: "green" as StatusType,
         lastReviewed: "",
         observation: "",
@@ -1981,7 +1981,7 @@ const Index = () => {
           // Conditionally modify item titles (text only, no visual changes)
           const modifiedItems = useSupportedTerminology ? section.items.map(item => ({
             ...item,
-            title: item.title === "Care Plans & Risk Assessments" ? "Care/Support Plans and Risk Assessments" : item.title
+            title: item.title === "Planning & Risk Assessment" ? "Planning & Risk Assessment" : item.title
           })) : section.items;
           return (
             <DashboardSection 
