@@ -486,7 +486,7 @@ const Index = () => {
       }]
     }, {
       id: "care-planning",
-      title: "Care/Support Planning & Delivery",
+      title: "Care & Support",
       icon: <HeartHandshake className="w-6 h-6 text-green-600" />,
       items: [{
         id: "care-plans",
@@ -1978,7 +1978,7 @@ const Index = () => {
           // Conditionally modify section title (text only, no visual changes)
           let sectionTitle = section.title;
           if (useSupportedTerminology && section.title === "Care Planning & Delivery") {
-            sectionTitle = "Care/Support Planning & Delivery";
+            sectionTitle = "Care & Support";
           }
 
           // Conditionally modify item titles (text only, no visual changes)
