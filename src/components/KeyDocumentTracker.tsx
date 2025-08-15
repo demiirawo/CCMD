@@ -274,7 +274,7 @@ export const KeyDocumentTracker = ({
                 {/* Second line: Date, Frequency, Due */}
                 <div className="grid grid-cols-12 gap-3 items-start">
                   <div className="col-span-3">
-                    <label className="text-xs text-gray-700 mb-1 block">Date</label>
+                    <label className="text-xs text-gray-700 mb-1 block">Last Review Date</label>
                     <div className="flex items-center gap-2">
                       <Popover>
                         <PopoverTrigger asChild>
@@ -321,7 +321,7 @@ export const KeyDocumentTracker = ({
                   </div>
                   
                   <div className="col-span-4">
-                    <label className="text-xs text-gray-700 mb-1 block">Due</label>
+                    <label className="text-xs text-gray-700 mb-1 block">Next Review Date</label>
                     <div className={`text-sm p-2 rounded border text-center h-9 flex items-center justify-center ${doc.nextReviewDate ? getDocumentStatus(doc.nextReviewDate) === 'red' ? 'bg-red-100 border-red-200 text-red-800' : getDocumentStatus(doc.nextReviewDate) === 'amber' ? 'bg-amber-100 border-amber-200 text-amber-800' : 'bg-green-100 border-green-200 text-green-800' : 'bg-white/20 border-white/30 text-gray-700'}`}>
                       {doc.nextReviewDate ? <>
                           {new Date(doc.nextReviewDate).toLocaleDateString('en-GB')}
