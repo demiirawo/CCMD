@@ -452,6 +452,8 @@ export const useAuthProvider = (): AuthContextType => {
       return { error: { message: 'No profile or user found' } };
     }
 
+    console.log('🔄 SelectCompany: Starting company selection', { companyId, currentCompany: profile.company_id });
+
     // 1) Deactivate any currently active company links for this user
     const { error: deactivateError } = await supabase
       .from('user_companies')
@@ -540,9 +542,12 @@ export const useAuthProvider = (): AuthContextType => {
       .eq('user_id', profile.user_id);
     
     if (!error) {
+      console.log('✅ SelectCompany: Profile updated successfully', { companyId, newPermission });
       setProfile({ ...profile, company_id: companyId, permission: newPermission, team_member_id: newTeamMemberId as any, username: newUsername || undefined });
       // Clear session storage when switching companies to reset dashboard section states
       sessionStorage.clear();
+      // Clear any cached data that might be specific to the previous company
+      localStorage.removeItem('cachedDashboardData');
     }
     
     return { error: error || activateError || deactivateError };
