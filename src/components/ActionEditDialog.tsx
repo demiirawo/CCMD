@@ -169,7 +169,7 @@ export const ActionEditDialog = ({
 
           {/* Action Buttons */}
           <div className="flex gap-2 pt-4">
-            <Button onClick={handleSave} disabled={!newComment.trim() && toDDMMYYYY(newDueDate) === action.dueDate && newOwner === action.mentionedAttendee && newActionText.trim() === action.action} className="flex-1">
+            <Button variant="default" onClick={handleSave} disabled={!newComment.trim() && toDDMMYYYY(newDueDate) === action.dueDate && newOwner === action.mentionedAttendee && newActionText.trim() === action.action} className="flex-1">
               Save Changes
             </Button>
             <Button variant="outline" onClick={handleClose} className="flex-1">
