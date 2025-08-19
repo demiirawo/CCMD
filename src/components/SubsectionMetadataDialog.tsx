@@ -5,13 +5,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 
 export interface SubsectionMetadata {
   accountableOwner?: string;
   link?: string;
   linkText?: string;
+  linkIsIframe?: boolean;
   link2?: string;
   link2Text?: string;
+  link2IsIframe?: boolean;
   description?: string;
   updated?: string;
 }
@@ -35,8 +38,10 @@ export const SubsectionMetadataDialog = ({
   const [accountableOwner, setAccountableOwner] = useState(metadata.accountableOwner || "");
   const [link, setLink] = useState(metadata.link || "");
   const [linkText, setLinkText] = useState(metadata.linkText || "");
+  const [linkIsIframe, setLinkIsIframe] = useState(metadata.linkIsIframe || false);
   const [link2, setLink2] = useState(metadata.link2 || "");
   const [link2Text, setLink2Text] = useState(metadata.link2Text || "");
+  const [link2IsIframe, setLink2IsIframe] = useState(metadata.link2IsIframe || false);
   const [description, setDescription] = useState(metadata.description || "");
 
   const handleSave = () => {
@@ -44,8 +49,10 @@ export const SubsectionMetadataDialog = ({
       accountableOwner: accountableOwner || undefined,
       link: link || undefined,
       linkText: linkText || undefined,
+      linkIsIframe: linkIsIframe || undefined,
       link2: link2 || undefined,
       link2Text: link2Text || undefined,
+      link2IsIframe: link2IsIframe || undefined,
       description: description || undefined,
       updated: new Date().toLocaleDateString('en-GB')
     };
@@ -95,6 +102,14 @@ export const SubsectionMetadataDialog = ({
                 className="flex-1"
               />
             </div>
+            <div className="flex items-center space-x-2">
+              <Checkbox 
+                id="link-iframe"
+                checked={linkIsIframe}
+                onCheckedChange={(checked) => setLinkIsIframe(checked === true)}
+              />
+              <Label htmlFor="link-iframe" className="text-sm">Display as iframe popup</Label>
+            </div>
           </div>
           
           <div className="space-y-2">
@@ -112,6 +127,14 @@ export const SubsectionMetadataDialog = ({
                 placeholder="Link text (optional)"
                 className="flex-1"
               />
+            </div>
+            <div className="flex items-center space-x-2">
+              <Checkbox 
+                id="link2-iframe"
+                checked={link2IsIframe}
+                onCheckedChange={(checked) => setLink2IsIframe(checked === true)}
+              />
+              <Label htmlFor="link2-iframe" className="text-sm">Display as iframe popup</Label>
             </div>
           </div>
           

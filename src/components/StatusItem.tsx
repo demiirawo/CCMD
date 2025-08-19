@@ -20,6 +20,7 @@ import { format, addDays, addWeeks, addMonths, addYears } from "date-fns";
 import { cn } from "@/lib/utils";
 import { AccountableManager } from "./AccountableManager";
 import { SubsectionMetadataDialog, SubsectionMetadata } from "./SubsectionMetadataDialog";
+import { IframeDialog } from "./IframeDialog";
 
 export interface DocumentData {
   documentName: string;
@@ -100,6 +101,11 @@ export const StatusItem = memo(({
 }: StatusItemProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isEditingObservation, setIsEditingObservation] = useState(false);
+  const [iframeDialog, setIframeDialog] = useState<{ isOpen: boolean; url: string; title: string }>({
+    isOpen: false,
+    url: '',
+    title: ''
+  });
 
   const handleObservationSubmit = useCallback((observation: string) => {
     onObservationChange?.(item.id, observation);
@@ -300,28 +306,54 @@ export const StatusItem = memo(({
             {item.metadata?.link && (
               <div className="flex items-center gap-1 mt-1">
                 <ExternalLink className="w-3 h-3 text-muted-foreground" />
-                <a 
-                  href={item.metadata.link} 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
-                  className="text-xs text-primary hover:underline truncate"
-                >
-                  {item.metadata.linkText || item.metadata.link}
-                </a>
+                {item.metadata.linkIsIframe ? (
+                  <button
+                    onClick={() => setIframeDialog({
+                      isOpen: true,
+                      url: item.metadata.link!,
+                      title: item.metadata.linkText || 'Link Content'
+                    })}
+                    className="text-xs text-primary hover:underline truncate"
+                  >
+                    {item.metadata.linkText || item.metadata.link}
+                  </button>
+                ) : (
+                  <a 
+                    href={item.metadata.link} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="text-xs text-primary hover:underline truncate"
+                  >
+                    {item.metadata.linkText || item.metadata.link}
+                  </a>
+                )}
               </div>
             )}
             
             {item.metadata?.link2 && (
               <div className="flex items-center gap-1 mt-1">
                 <ExternalLink className="w-3 h-3 text-muted-foreground" />
-                <a 
-                  href={item.metadata.link2} 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
-                  className="text-xs text-primary hover:underline truncate"
-                >
-                  {item.metadata.link2Text || item.metadata.link2}
-                </a>
+                {item.metadata.link2IsIframe ? (
+                  <button
+                    onClick={() => setIframeDialog({
+                      isOpen: true,
+                      url: item.metadata.link2!,
+                      title: item.metadata.link2Text || 'Link Content'
+                    })}
+                    className="text-xs text-primary hover:underline truncate"
+                  >
+                    {item.metadata.link2Text || item.metadata.link2}
+                  </button>
+                ) : (
+                  <a 
+                    href={item.metadata.link2} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="text-xs text-primary hover:underline truncate"
+                  >
+                    {item.metadata.link2Text || item.metadata.link2}
+                  </a>
+                )}
               </div>
             )}
             
@@ -514,6 +546,13 @@ export const StatusItem = memo(({
           )}
         </div>
       )}
+      
+      <IframeDialog
+        isOpen={iframeDialog.isOpen}
+        onClose={() => setIframeDialog({ isOpen: false, url: '', title: '' })}
+        url={iframeDialog.url}
+        title={iframeDialog.title}
+      />
     </div>
   );
 });
