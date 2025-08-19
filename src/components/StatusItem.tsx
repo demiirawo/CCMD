@@ -345,7 +345,7 @@ export const StatusItem = memo(({
                   </button>
                 </div>
                 <div className="relative">
-                  <iframe src={item.metadata.link} className="w-full h-96 border border-border rounded-lg" title={item.metadata.linkText || 'External Content'} sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-top-navigation" loading="lazy" onError={() => {
+                  <iframe src={item.metadata.link} className="w-full h-[800px] border border-border rounded-lg" title={item.metadata.linkText || 'External Content'} sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-top-navigation" loading="lazy" onError={() => {
               console.log('Iframe failed to load, likely blocked by X-Frame-Options');
             }} />
                   <div className="absolute inset-0 bg-gray-100 rounded-lg flex items-center justify-center text-sm text-gray-500 pointer-events-none opacity-0 iframe-fallback">
@@ -360,7 +360,7 @@ export const StatusItem = memo(({
             {item.metadata?.link2IsIframe && item.metadata.link2 && <div className="bg-white/50 rounded-lg p-4">
                 
                 <div className="relative">
-                  <iframe src={item.metadata.link2} className="w-full h-96 border border-border rounded-lg" title={item.metadata.link2Text || 'External Content'} sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-top-navigation" loading="lazy" onError={() => {
+                  <iframe src={item.metadata.link2} className="w-full h-[800px] border border-border rounded-lg" title={item.metadata.link2Text || 'External Content'} sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-top-navigation" loading="lazy" onError={() => {
               console.log('Iframe failed to load, likely blocked by X-Frame-Options');
             }} />
                   <div className="absolute inset-0 bg-gray-100 rounded-lg flex items-center justify-center text-sm text-gray-500 pointer-events-none opacity-0 iframe-fallback">
