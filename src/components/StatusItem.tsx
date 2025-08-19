@@ -107,6 +107,9 @@ export const StatusItem = memo(({
     title: ''
   });
 
+  // Check if any iframe links are available
+  const hasIframeLinks = item.metadata?.linkIsIframe || item.metadata?.link2IsIframe;
+
   const handleObservationSubmit = useCallback((observation: string) => {
     onObservationChange?.(item.id, observation);
     setIsEditingObservation(false);
@@ -216,31 +219,15 @@ export const StatusItem = memo(({
   return (
     <div className={cn("relative w-full rounded-xl p-8 mb-3 shadow-md hover:scale-[1.01] transition-transform duration-300 min-h-[140px]", getStatusBackgroundClass(item.status))}>
       <div className="flex items-start gap-4 w-full outline-none">
-        <button 
-          onClick={() => setIsExpanded(!isExpanded)} 
-          className={`flex-shrink-0 p-1 rounded-lg hover:bg-accent/50 transition-colors bg-transparent ${
-            item.title.toLowerCase().includes('care plan') ||
-            item.title.toLowerCase().includes('risk assessment') ||
-            item.title.toLowerCase().includes('risk') ||
-            item.title.toLowerCase().includes('service user documents') ||
-            item.title.toLowerCase().includes('medication management') ||
-            item.title.toLowerCase().includes('care notes') ||
-            item.title.toLowerCase().includes('call monitoring') ||
-            item.title.toLowerCase().includes('transportation') ||
-            item.title.toLowerCase().includes('infection control') ||
-            item.title.toLowerCase().includes('information governance') ||
-            item.title.toLowerCase().includes('audits') ||
-            (item.title.toLowerCase().includes('reflection') || item.title.toLowerCase().includes('achievements & challenges')) ||
-            item.title.toLowerCase().includes('staff meetings')
-            ? 'hidden' : ''
-          }`}
-        >
-          {isExpanded ? (
-            <ChevronDown className="w-4 h-4 text-muted-foreground" />
-          ) : (
-            <ChevronRight className="w-4 h-4 text-muted-foreground" />
-          )}
-        </button>
+        {hasIframeLinks && (
+          <button 
+            onClick={() => setIsExpanded(!isExpanded)} 
+            className="flex-shrink-0 p-1 hover:bg-white/50 rounded transition-colors"
+            aria-label={isExpanded ? "Collapse details" : "Expand details"}
+          >
+            <ChevronDown className={cn("w-4 h-4 text-gray-600 transition-transform", isExpanded && "rotate-180")} />
+          </button>
+        )}
         
         {readOnly ? (
           <div className="flex-shrink-0">
@@ -504,46 +491,40 @@ export const StatusItem = memo(({
         </div>
       </div>
       
-      {isExpanded && (
-        <div className="mt-4 pt-4 space-y-4">
-          {item.details && (
-            <div className="space-y-2">
-              {/* Details content */}
-            </div>
-          )}
-          
-          <div className="space-y-2">
-            {/* Additional content */}
+      {isExpanded && hasIframeLinks && (
+        <div className="mt-6 pt-6 border-t border-border/30">
+          <div className="space-y-4">
+            {/* Display iframe links */}
+            {item.metadata?.linkIsIframe && item.metadata.link && (
+              <div className="bg-white/50 rounded-lg p-4">
+                <h4 className="text-sm font-medium mb-3 text-foreground">
+                  {item.metadata.linkText || 'External Content'}
+                </h4>
+                <iframe
+                  src={item.metadata.link}
+                  className="w-full h-96 border border-border rounded-lg"
+                  title={item.metadata.linkText || 'External Content'}
+                  sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-top-navigation"
+                  loading="lazy"
+                />
+              </div>
+            )}
+            
+            {item.metadata?.link2IsIframe && item.metadata.link2 && (
+              <div className="bg-white/50 rounded-lg p-4">
+                <h4 className="text-sm font-medium mb-3 text-foreground">
+                  {item.metadata.link2Text || 'External Content'}
+                </h4>
+                <iframe
+                  src={item.metadata.link2}
+                  className="w-full h-96 border border-border rounded-lg"
+                  title={item.metadata.link2Text || 'External Content'}
+                  sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-top-navigation"
+                  loading="lazy"
+                />
+              </div>
+            )}
           </div>
-          
-          {item.title.toLowerCase().includes('resourcing') && (
-            <ResourcingOverview meetingDate={meetingDate} meetingId={meetingId} />
-          )}
-          
-          {item.title.toLowerCase().includes('training') && (
-            <StaffTrainingAnalytics meetingDate={meetingDate} meetingId={meetingId} />
-          )}
-          
-          {item.title.toLowerCase().includes('staff documents') && (
-            <StaffDocumentsAnalytics meetingDate={meetingDate} meetingId={meetingId} />
-          )}
-          
-          {item.title.toLowerCase().includes('spot check') && (
-            <SpotCheckAnalytics meetingDate={meetingDate} meetingId={meetingId} />
-          )}
-          
-          {item.title.toLowerCase().includes('supervision') && (
-            <SupervisionAnalytics meetingDate={meetingDate} meetingId={meetingId} />
-          )}
-          
-          
-          {item.title.toLowerCase().includes('incidents') && (
-            <IncidentsAnalytics meetingDate={meetingDate} meetingId={meetingId} />
-          )}
-          
-          {item.title.toLowerCase().includes('feedback') && (
-            <FeedbackAnalytics meetingDate={meetingDate} meetingId={meetingId} />
-          )}
         </div>
       )}
       
