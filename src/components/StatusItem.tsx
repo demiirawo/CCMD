@@ -511,13 +511,13 @@ export const StatusItem = memo(({
                 </div>
                 <div className="relative">
                   <iframe
-                    src={item.metadata.link}
+                    src={`https://gwywpkhxpbokmbhwsnod.supabase.co/functions/v1/iframe-proxy?url=${encodeURIComponent(item.metadata.link)}`}
                     className="w-full h-96 border border-border rounded-lg"
                     title={item.metadata.linkText || 'External Content'}
                     sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-top-navigation"
                     loading="lazy"
                     onError={() => {
-                      console.log('Iframe failed to load, likely blocked by X-Frame-Options');
+                      console.log('Iframe failed to load through proxy');
                     }}
                   />
                   <div className="absolute inset-0 bg-gray-100 rounded-lg flex items-center justify-center text-sm text-gray-500 pointer-events-none opacity-0 iframe-fallback">
@@ -546,13 +546,13 @@ export const StatusItem = memo(({
                 </div>
                 <div className="relative">
                   <iframe
-                    src={item.metadata.link2}
+                    src={`https://gwywpkhxpbokmbhwsnod.supabase.co/functions/v1/iframe-proxy?url=${encodeURIComponent(item.metadata.link2)}`}
                     className="w-full h-96 border border-border rounded-lg"
                     title={item.metadata.link2Text || 'External Content'}
                     sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-top-navigation"
                     loading="lazy"
                     onError={() => {
-                      console.log('Iframe failed to load, likely blocked by X-Frame-Options');
+                      console.log('Iframe failed to load through proxy');
                     }}
                   />
                   <div className="absolute inset-0 bg-gray-100 rounded-lg flex items-center justify-center text-sm text-gray-500 pointer-events-none opacity-0 iframe-fallback">
