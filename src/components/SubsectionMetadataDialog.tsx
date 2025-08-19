@@ -91,7 +91,7 @@ export const SubsectionMetadataDialog = ({
           <div className="space-y-2">
             <Label htmlFor="accountable-owner">Accountable Owner</Label>
             <Select value={accountableOwner} onValueChange={setAccountableOwner}>
-              <SelectTrigger>
+              <SelectTrigger className="bg-white">
                 <SelectValue placeholder="Select from meeting attendees..." />
               </SelectTrigger>
               <SelectContent>
@@ -111,13 +111,13 @@ export const SubsectionMetadataDialog = ({
                 value={link}
                 onChange={(e) => setLink(e.target.value)}
                 placeholder="Enter link URL..."
-                className="flex-1"
+                className="flex-1 bg-white"
               />
               <Input
                 value={linkText}
                 onChange={(e) => setLinkText(e.target.value)}
                 placeholder="Link text (optional)"
-                className="flex-1"
+                className="flex-1 bg-white"
               />
             </div>
           </div>
@@ -129,13 +129,13 @@ export const SubsectionMetadataDialog = ({
                 value={link2}
                 onChange={(e) => setLink2(e.target.value)}
                 placeholder="Enter link URL..."
-                className="flex-1"
+                className="flex-1 bg-white"
               />
               <Input
                 value={link2Text}
                 onChange={(e) => setLink2Text(e.target.value)}
                 placeholder="Link text (optional)"
-                className="flex-1"
+                className="flex-1 bg-white"
               />
             </div>
           </div>
@@ -148,14 +148,15 @@ export const SubsectionMetadataDialog = ({
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Enter description..."
               rows={3}
+              className="bg-white"
             />
           </div>
           
           <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={() => setIsOpen(false)}>
+            <Button variant="outline" onClick={() => setIsOpen(false)} className="border-primary text-primary hover:bg-primary hover:text-primary-foreground">
               Cancel
             </Button>
-            <Button onClick={handleSave}>
+            <Button onClick={handleSave} className="bg-primary hover:bg-primary/90 text-primary-foreground">
               Save
             </Button>
           </div>
