@@ -497,71 +497,31 @@ export const StatusItem = memo(({
             {/* Display iframe links */}
             {item.metadata?.linkIsIframe && item.metadata.link && (
               <div className="bg-white/50 rounded-lg p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <h4 className="text-sm font-medium text-foreground">
-                    {item.metadata.linkText || 'External Content'}
-                  </h4>
-                  <button
-                    onClick={() => window.open(item.metadata.link, '_blank')}
-                    className="text-xs text-primary hover:underline flex items-center gap-1"
-                  >
-                    <ExternalLink className="w-3 h-3" />
-                    Open in new tab
-                  </button>
-                </div>
-                <div className="relative">
-                  <iframe
-                    src={`https://gwywpkhxpbokmbhwsnod.supabase.co/functions/v1/iframe-proxy?url=${encodeURIComponent(item.metadata.link)}`}
-                    className="w-full h-96 border border-border rounded-lg"
-                    title={item.metadata.linkText || 'External Content'}
-                    sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-top-navigation"
-                    loading="lazy"
-                    onError={() => {
-                      console.log('Iframe failed to load through proxy');
-                    }}
-                  />
-                  <div className="absolute inset-0 bg-gray-100 rounded-lg flex items-center justify-center text-sm text-gray-500 pointer-events-none opacity-0 iframe-fallback">
-                    <div className="text-center">
-                      <p>Content cannot be displayed in iframe</p>
-                      <p className="text-xs">Click "Open in new tab" above</p>
-                    </div>
-                  </div>
-                </div>
+                <h4 className="text-sm font-medium mb-3 text-foreground">
+                  {item.metadata.linkText || 'External Content'}
+                </h4>
+                <iframe
+                  src={item.metadata.link}
+                  className="w-full h-96 border border-border rounded-lg"
+                  title={item.metadata.linkText || 'External Content'}
+                  sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-top-navigation"
+                  loading="lazy"
+                />
               </div>
             )}
             
             {item.metadata?.link2IsIframe && item.metadata.link2 && (
               <div className="bg-white/50 rounded-lg p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <h4 className="text-sm font-medium text-foreground">
-                    {item.metadata.link2Text || 'External Content'}
-                  </h4>
-                  <button
-                    onClick={() => window.open(item.metadata.link2, '_blank')}
-                    className="text-xs text-primary hover:underline flex items-center gap-1"
-                  >
-                    <ExternalLink className="w-3 h-3" />
-                    Open in new tab
-                  </button>
-                </div>
-                <div className="relative">
-                  <iframe
-                    src={`https://gwywpkhxpbokmbhwsnod.supabase.co/functions/v1/iframe-proxy?url=${encodeURIComponent(item.metadata.link2)}`}
-                    className="w-full h-96 border border-border rounded-lg"
-                    title={item.metadata.link2Text || 'External Content'}
-                    sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-top-navigation"
-                    loading="lazy"
-                    onError={() => {
-                      console.log('Iframe failed to load through proxy');
-                    }}
-                  />
-                  <div className="absolute inset-0 bg-gray-100 rounded-lg flex items-center justify-center text-sm text-gray-500 pointer-events-none opacity-0 iframe-fallback">
-                    <div className="text-center">
-                      <p>Content cannot be displayed in iframe</p>
-                      <p className="text-xs">Click "Open in new tab" above</p>
-                    </div>
-                  </div>
-                </div>
+                <h4 className="text-sm font-medium mb-3 text-foreground">
+                  {item.metadata.link2Text || 'External Content'}
+                </h4>
+                <iframe
+                  src={item.metadata.link2}
+                  className="w-full h-96 border border-border rounded-lg"
+                  title={item.metadata.link2Text || 'External Content'}
+                  sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-top-navigation"
+                  loading="lazy"
+                />
               </div>
             )}
           </div>
