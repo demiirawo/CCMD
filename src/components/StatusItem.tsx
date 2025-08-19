@@ -505,7 +505,6 @@ export const StatusItem = memo(({
                   className="w-full h-96 border border-border rounded-lg"
                   title={item.metadata.linkText || 'External Content'}
                   sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-top-navigation"
-                  loading="lazy"
                 />
               </div>
             )}
@@ -520,7 +519,6 @@ export const StatusItem = memo(({
                   className="w-full h-96 border border-border rounded-lg"
                   title={item.metadata.link2Text || 'External Content'}
                   sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-top-navigation"
-                  loading="lazy"
                 />
               </div>
             )}
