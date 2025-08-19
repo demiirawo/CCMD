@@ -153,7 +153,7 @@ export const SubsectionMetadataDialog = ({
           </div>
           
           <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={() => setIsOpen(false)} className="border-primary text-primary hover:bg-primary hover:text-primary-foreground">
+            <Button onClick={() => setIsOpen(false)} className="bg-primary text-primary-foreground">
               Cancel
             </Button>
             <Button onClick={handleSave} className="bg-primary hover:bg-primary/90 text-primary-foreground">
