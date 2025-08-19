@@ -108,7 +108,7 @@ export const StatusItem = memo(({
   });
 
   // Check if any iframe links are available
-  const hasIframeLinks = item.metadata?.linkIsIframe || item.metadata?.link2IsIframe;
+  const hasIframeLinks = false;
 
   const handleObservationSubmit = useCallback((observation: string) => {
     onObservationChange?.(item.id, observation);
@@ -293,54 +293,28 @@ export const StatusItem = memo(({
             {item.metadata?.link && (
               <div className="flex items-center gap-1 mt-1">
                 <ExternalLink className="w-3 h-3 text-muted-foreground" />
-                {item.metadata.linkIsIframe ? (
-                  <button
-                    onClick={() => setIframeDialog({
-                      isOpen: true,
-                      url: item.metadata.link!,
-                      title: item.metadata.linkText || 'Link Content'
-                    })}
-                    className="text-xs text-primary hover:underline truncate"
-                  >
-                    {item.metadata.linkText || item.metadata.link}
-                  </button>
-                ) : (
-                  <a 
-                    href={item.metadata.link} 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
-                    className="text-xs text-primary hover:underline truncate"
-                  >
-                    {item.metadata.linkText || item.metadata.link}
-                  </a>
-                )}
+                <a 
+                  href={item.metadata.link} 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="text-xs text-primary hover:underline truncate"
+                >
+                  {item.metadata.linkText || item.metadata.link}
+                </a>
               </div>
             )}
             
             {item.metadata?.link2 && (
               <div className="flex items-center gap-1 mt-1">
                 <ExternalLink className="w-3 h-3 text-muted-foreground" />
-                {item.metadata.link2IsIframe ? (
-                  <button
-                    onClick={() => setIframeDialog({
-                      isOpen: true,
-                      url: item.metadata.link2!,
-                      title: item.metadata.link2Text || 'Link Content'
-                    })}
-                    className="text-xs text-primary hover:underline truncate"
-                  >
-                    {item.metadata.link2Text || item.metadata.link2}
-                  </button>
-                ) : (
-                  <a 
-                    href={item.metadata.link2} 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
-                    className="text-xs text-primary hover:underline truncate"
-                  >
-                    {item.metadata.link2Text || item.metadata.link2}
-                  </a>
-                )}
+                <a 
+                  href={item.metadata.link2} 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="text-xs text-primary hover:underline truncate"
+                >
+                  {item.metadata.link2Text || item.metadata.link2}
+                </a>
               </div>
             )}
             

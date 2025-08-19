@@ -70,10 +70,8 @@ export const SubsectionMetadataDialog = ({
       accountableOwner: accountableOwner || undefined,
       link: extractUrl(link) || undefined,
       linkText: linkText || undefined,
-      linkIsIframe: linkIsIframe || undefined,
       link2: extractUrl(link2) || undefined,
       link2Text: link2Text || undefined,
-      link2IsIframe: link2IsIframe || undefined,
       description: description || undefined,
       updated: new Date().toLocaleDateString('en-GB')
     };
@@ -123,14 +121,6 @@ export const SubsectionMetadataDialog = ({
                 className="flex-1"
               />
             </div>
-            <div className="flex items-center space-x-2">
-              <Checkbox 
-                id="link-iframe"
-                checked={linkIsIframe}
-                onCheckedChange={(checked) => setLinkIsIframe(checked === true)}
-              />
-              <Label htmlFor="link-iframe" className="text-sm">Display as iframe popup</Label>
-            </div>
           </div>
           
           <div className="space-y-2">
@@ -148,14 +138,6 @@ export const SubsectionMetadataDialog = ({
                 placeholder="Link text (optional)"
                 className="flex-1"
               />
-            </div>
-            <div className="flex items-center space-x-2">
-              <Checkbox 
-                id="link2-iframe"
-                checked={link2IsIframe}
-                onCheckedChange={(checked) => setLink2IsIframe(checked === true)}
-              />
-              <Label htmlFor="link2-iframe" className="text-sm">Display as iframe popup</Label>
             </div>
           </div>
           
