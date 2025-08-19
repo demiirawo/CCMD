@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
+import { processUrl } from "@/utils/urlProcessor";
 
 export interface SubsectionMetadata {
   accountableOwner?: string;
@@ -44,36 +44,33 @@ export const SubsectionMetadataDialog = ({
   const [link2IsIframe, setLink2IsIframe] = useState(metadata.link2IsIframe || false);
   const [description, setDescription] = useState(metadata.description || "");
 
-  const extractUrl = (input: string): string => {
-    if (!input) return '';
+  const processAndDetectIframe = (input: string): { url: string; isIframe: boolean } => {
+    if (!input) return { url: '', isIframe: false };
     
-    // If input looks like iframe HTML, extract src URL
-    const iframeMatch = input.match(/src="([^"]+)"/);
-    if (iframeMatch) {
-      console.log('🔧 SubsectionMetadata: Extracted URL from iframe HTML:', iframeMatch[1]);
-      return iframeMatch[1];
-    }
+    const processed = processUrl(input);
+    const shouldBeIframe = processed.type === 'airtable' || 
+                          input.includes('embed') || 
+                          input.includes('iframe') ||
+                          processed.processed.includes('embed');
     
-    // Clean the URL and add protocol if missing
-    let url = input.trim();
-    if (url && !url.startsWith('http://') && !url.startsWith('https://')) {
-      url = 'https://' + url;
-      console.log('🔧 SubsectionMetadata: Added https:// to URL:', url);
-    }
-    
-    console.log('🔧 SubsectionMetadata: Final processed URL:', url);
-    return url;
+    return {
+      url: processed.processed,
+      isIframe: processed.isValid && shouldBeIframe
+    };
   };
 
   const handleSave = () => {
+    const link1Result = processAndDetectIframe(link);
+    const link2Result = processAndDetectIframe(link2);
+    
     const newMetadata: SubsectionMetadata = {
       accountableOwner: accountableOwner || undefined,
-      link: extractUrl(link) || undefined,
+      link: link1Result.url || undefined,
       linkText: linkText || undefined,
-      linkIsIframe: linkIsIframe || undefined,
-      link2: extractUrl(link2) || undefined,
+      linkIsIframe: link1Result.isIframe || undefined,
+      link2: link2Result.url || undefined,
       link2Text: link2Text || undefined,
-      link2IsIframe: link2IsIframe || undefined,
+      link2IsIframe: link2Result.isIframe || undefined,
       description: description || undefined,
       updated: new Date().toLocaleDateString('en-GB')
     };
@@ -123,14 +120,6 @@ export const SubsectionMetadataDialog = ({
                 className="flex-1"
               />
             </div>
-            <div className="flex items-center space-x-2">
-              <Checkbox 
-                id="link-iframe"
-                checked={linkIsIframe}
-                onCheckedChange={(checked) => setLinkIsIframe(checked === true)}
-              />
-              <Label htmlFor="link-iframe" className="text-sm">Display as iframe popup</Label>
-            </div>
           </div>
           
           <div className="space-y-2">
@@ -148,14 +137,6 @@ export const SubsectionMetadataDialog = ({
                 placeholder="Link text (optional)"
                 className="flex-1"
               />
-            </div>
-            <div className="flex items-center space-x-2">
-              <Checkbox 
-                id="link2-iframe"
-                checked={link2IsIframe}
-                onCheckedChange={(checked) => setLink2IsIframe(checked === true)}
-              />
-              <Label htmlFor="link2-iframe" className="text-sm">Display as iframe popup</Label>
             </div>
           </div>
           
