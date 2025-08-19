@@ -1,4 +1,5 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { EnhancedIframe } from "./EnhancedIframe";
 
 interface IframeDialogProps {
   isOpen: boolean;
@@ -14,16 +15,15 @@ export const IframeDialog = ({ isOpen, onClose, url, title }: IframeDialogProps)
         <DialogHeader className="p-6 pb-4 flex-shrink-0">
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>
-            External content displayed in iframe
+            External content with enhanced loading and fallback options
           </DialogDescription>
         </DialogHeader>
         <div className="flex-1 px-6 pb-6 min-h-0">
-          <iframe
-            src={url}
-            className="w-full h-full border border-border rounded-lg"
-            title={title}
-            sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-top-navigation"
-            loading="lazy"
+          <EnhancedIframe 
+            url={url} 
+            title={title} 
+            height="100%" 
+            allowUserToggle={true}
           />
         </div>
       </DialogContent>

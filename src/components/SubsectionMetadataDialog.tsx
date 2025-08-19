@@ -50,6 +50,7 @@ export const SubsectionMetadataDialog = ({
     // If input looks like iframe HTML, extract src URL
     const iframeMatch = input.match(/src="([^"]+)"/);
     if (iframeMatch) {
+      console.log('🔧 SubsectionMetadata: Extracted URL from iframe HTML:', iframeMatch[1]);
       return iframeMatch[1];
     }
     
@@ -57,8 +58,10 @@ export const SubsectionMetadataDialog = ({
     let url = input.trim();
     if (url && !url.startsWith('http://') && !url.startsWith('https://')) {
       url = 'https://' + url;
+      console.log('🔧 SubsectionMetadata: Added https:// to URL:', url);
     }
     
+    console.log('🔧 SubsectionMetadata: Final processed URL:', url);
     return url;
   };
 
