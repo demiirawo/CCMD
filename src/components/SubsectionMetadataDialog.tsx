@@ -44,13 +44,31 @@ export const SubsectionMetadataDialog = ({
   const [link2IsIframe, setLink2IsIframe] = useState(metadata.link2IsIframe || false);
   const [description, setDescription] = useState(metadata.description || "");
 
+  const extractUrl = (input: string): string => {
+    if (!input) return '';
+    
+    // If input looks like iframe HTML, extract src URL
+    const iframeMatch = input.match(/src="([^"]+)"/);
+    if (iframeMatch) {
+      return iframeMatch[1];
+    }
+    
+    // Clean the URL and add protocol if missing
+    let url = input.trim();
+    if (url && !url.startsWith('http://') && !url.startsWith('https://')) {
+      url = 'https://' + url;
+    }
+    
+    return url;
+  };
+
   const handleSave = () => {
     const newMetadata: SubsectionMetadata = {
       accountableOwner: accountableOwner || undefined,
-      link: link || undefined,
+      link: extractUrl(link) || undefined,
       linkText: linkText || undefined,
       linkIsIframe: linkIsIframe || undefined,
-      link2: link2 || undefined,
+      link2: extractUrl(link2) || undefined,
       link2Text: link2Text || undefined,
       link2IsIframe: link2IsIframe || undefined,
       description: description || undefined,
