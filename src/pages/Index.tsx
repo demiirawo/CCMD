@@ -649,25 +649,42 @@ const Index = () => {
         setIsDataLoaded(true); // Set as loaded even if no company_id
         return;
       }
+      
+      // Store the company_id we're loading for to prevent race conditions
+      const currentCompanyId = profile.company_id;
+      console.log('🔍 Loading subsection data for company:', currentCompanyId);
+      
       try {
         const {
           data,
           error
-        } = await supabase.from('subsection_data').select('*').eq('company_id', profile.company_id);
+        } = await supabase.from('subsection_data').select('*').eq('company_id', currentCompanyId);
         if (error) {
           console.error('Error loading subsection data:', error);
           setIsDataLoaded(true); // Mark as loaded even on error to prevent infinite loading
           return;
         }
+        
+        // Check if company hasn't changed during async operation (race condition protection)
+        if (profile?.company_id !== currentCompanyId) {
+          console.log('🚫 Company changed during data load, skipping update. Current:', profile?.company_id, 'Expected:', currentCompanyId);
+          return;
+        }
+        
         if (data && data.length > 0) {
+          console.log('✅ Loading subsection data for company:', currentCompanyId, 'Found records:', data.length);
           // Update dashboard data with loaded information
           setDashboardData(prev => ({
             ...prev,
             sections: prev.sections.map(section => ({
               ...section,
               items: section.items.map(item => {
-                const savedData = data.find(d => d.section_id === section.id && d.item_id === item.id);
+                const savedData = data.find(d => d.section_id === section.id && d.item_id === item.id && d.company_id === currentCompanyId);
                 if (savedData) {
+                  console.log(`📋 Loading data for ${section.id}/${item.id}, company: ${currentCompanyId}`, {
+                    trends_themes: (savedData as any).trends_themes,
+                    observation: savedData.observation
+                  });
                   return {
                     ...item,
                     status: savedData.status as StatusType || item.status,

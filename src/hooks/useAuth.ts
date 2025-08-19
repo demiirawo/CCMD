@@ -546,8 +546,22 @@ export const useAuthProvider = (): AuthContextType => {
       setProfile({ ...profile, company_id: companyId, permission: newPermission, team_member_id: newTeamMemberId as any, username: newUsername || undefined });
       // Clear session storage when switching companies to reset dashboard section states
       sessionStorage.clear();
+      
       // Clear any cached data that might be specific to the previous company
       localStorage.removeItem('cachedDashboardData');
+      
+      // Force clear all localStorage backup data to prevent cross-company data leakage
+      // This ensures no residual data from the previous company appears in the new company
+      const keysToRemove = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && (key.includes('_backup_') || key.includes('persistentMeetingId_'))) {
+          keysToRemove.push(key);
+        }
+      }
+      keysToRemove.forEach(key => localStorage.removeItem(key));
+      
+      console.log('🧹 Cleared localStorage backups when switching companies:', keysToRemove);
     }
     
     return { error: error || activateError || deactivateError };

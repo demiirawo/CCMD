@@ -156,6 +156,18 @@ export const CompanySelector = () => {
 
       // Clear any dashboard caches when switching companies
       sessionStorage.clear();
+      
+      // Force clear all localStorage backup data to prevent cross-company data leakage
+      const keysToRemove = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && (key.includes('_backup_') || key.includes('persistentMeetingId_'))) {
+          keysToRemove.push(key);
+        }
+      }
+      keysToRemove.forEach(key => localStorage.removeItem(key));
+      
+      console.log('🧹 CompanySelector: Cleared localStorage backups when switching companies:', keysToRemove);
 
       // Force refresh the profile in auth context to get updated company_id
       refreshProfile();

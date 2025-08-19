@@ -111,14 +111,16 @@ export const SupervisionAnalytics = ({
   const loadSupervisionData = async () => {
     if (!profile?.company_id) return;
 
-    console.log('🔍 SupervisionAnalytics: Loading supervision data for company_id:', profile.company_id);
+    // Store the company_id we're loading for to prevent race conditions
+    const currentCompanyId = profile.company_id;
+    console.log('🔍 SupervisionAnalytics: Loading supervision data for company_id:', currentCompanyId);
     
     try {
       // Strategy: Load ALL supervision analytics for this company and consolidate the most recent data
       const { data: allData, error } = await supabase
         .from('supervision_analytics')
         .select('*')
-        .eq('company_id', profile.company_id)
+        .eq('company_id', currentCompanyId)
         .order('updated_at', { ascending: false });
 
       console.log('🔍 SupervisionAnalytics: Found all company supervision data:', allData?.length || 0, 'records');
@@ -128,8 +130,14 @@ export const SupervisionAnalytics = ({
         return;
       }
 
+      // Check if company hasn't changed during async operation (race condition protection)
+      if (profile?.company_id !== currentCompanyId) {
+        console.log('🚫 SupervisionAnalytics: Company changed during data load, skipping update. Current:', profile?.company_id, 'Expected:', currentCompanyId);
+        return;
+      }
+
       if (allData && allData.length > 0) {
-        console.log('🔍 SupervisionAnalytics: Consolidating supervision data from', allData.length, 'records');
+        console.log('🔍 SupervisionAnalytics: Consolidating supervision data from', allData.length, 'records for company:', currentCompanyId);
         
         // Use the most recent non-zero values
         let consolidatedData = {
@@ -153,9 +161,9 @@ export const SupervisionAnalytics = ({
         setSupervisionData(consolidatedData);
         console.log('✅ SupervisionAnalytics: Set consolidated supervision data to state');
       } else {
-        console.log('🔍 SupervisionAnalytics: No database supervision data found, trying localStorage backup');
+        console.log('🔍 SupervisionAnalytics: No database supervision data found, trying localStorage backup for company:', currentCompanyId);
         // Try localStorage backup
-        const backupKey = `supervision_backup_${profile.company_id}`;
+        const backupKey = `supervision_backup_${currentCompanyId}`;
         const backupData = localStorage.getItem(backupKey);
         if (backupData) {
           try {
@@ -170,7 +178,7 @@ export const SupervisionAnalytics = ({
     } catch (error) {
       console.error('Error loading supervision data:', error);
       // Try localStorage backup
-      const backupKey = `supervision_backup_${profile.company_id}`;
+      const backupKey = `supervision_backup_${currentCompanyId}`;
       const backupData = localStorage.getItem(backupKey);
       if (backupData) {
         try {
