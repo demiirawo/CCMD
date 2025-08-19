@@ -17,7 +17,7 @@ export const EnhancedIframe = ({
   url, 
   title, 
   className, 
-  height = "400px",
+  height = "800px",
   allowUserToggle = true 
 }: EnhancedIframeProps) => {
   const [loading, setLoading] = useState(true);
