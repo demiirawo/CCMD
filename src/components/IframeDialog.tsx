@@ -11,12 +11,9 @@ interface IframeDialogProps {
 export const IframeDialog = ({ isOpen, onClose, url, title }: IframeDialogProps) => {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-6xl w-[95vw] h-[90vh] flex flex-col p-0">
+      <DialogContent className="max-w-6xl w-[95vw] h-[95vh] flex flex-col p-0">
         <DialogHeader className="p-6 pb-4 flex-shrink-0">
           <DialogTitle>{title}</DialogTitle>
-          <DialogDescription>
-            External content with enhanced loading and fallback options
-          </DialogDescription>
         </DialogHeader>
         <div className="flex-1 px-6 pb-6 min-h-0">
           <EnhancedIframe 
