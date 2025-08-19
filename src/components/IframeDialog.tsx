@@ -15,11 +15,11 @@ export const IframeDialog = ({ isOpen, onClose, url, title }: IframeDialogProps)
         <DialogHeader className="p-6 pb-4 flex-shrink-0">
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
-        <div className="flex-1 px-6 pb-6 min-h-0">
+        <div className="flex-1 px-6 pb-6 min-h-0 h-full">
           <EnhancedIframe 
             url={url} 
             title={title} 
-            height="100%" 
+            height="calc(98vh - 120px)" 
             allowUserToggle={true}
           />
         </div>
