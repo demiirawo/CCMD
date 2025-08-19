@@ -108,7 +108,7 @@ export const StatusItem = memo(({
   });
 
   // Check if any iframe links are available
-  const hasIframeLinks = false;
+  const hasIframeLinks = item.metadata?.linkIsIframe || item.metadata?.link2IsIframe;
 
   const handleObservationSubmit = useCallback((observation: string) => {
     onObservationChange?.(item.id, observation);
