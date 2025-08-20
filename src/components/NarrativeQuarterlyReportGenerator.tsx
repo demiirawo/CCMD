@@ -109,7 +109,31 @@ export const NarrativeQuarterlyReportGenerator: React.FC<NarrativeQuarterlyRepor
     });
   };
   const generateNarrativeReport = async () => {
-    if (!profile?.company_id) return;
+    console.log('🚀 Generate report button clicked');
+    console.log('📋 Profile:', profile);
+    console.log('🏢 Company ID:', profile?.company_id);
+    console.log('📊 Meetings count:', meetings.length);
+    
+    if (!profile?.company_id) {
+      console.error('❌ No company_id found in profile');
+      toast({
+        title: "Authentication Error",
+        description: "Please ensure you're logged in and have a company selected.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    if (meetings.length === 0) {
+      console.warn('⚠️ No meetings found for this quarter');
+      toast({
+        title: "No Data Available",
+        description: "No meetings found for this quarter to generate a report from.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     setIsGenerating(true);
 
     try {
