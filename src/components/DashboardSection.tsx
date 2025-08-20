@@ -94,6 +94,20 @@ export const DashboardSection = ({
       return acc;
     }, {} as Record<StatusType, number>);
     
+    // Special logic for major sections
+    const majorSections = ["Staff", "Care & Support", "Safety", "Continuous Improvement"];
+    if (majorSections.includes(title)) {
+      // If any subsection is red -> make major section red
+      if (applicableCounts.red > 0) return 'red';
+      
+      // If more than one subsection is amber -> make major section amber
+      if ((applicableCounts.amber || 0) > 1) return 'amber';
+      
+      // If only one subsection is amber but others are green -> keep major section green
+      return 'green';
+    }
+    
+    // Default logic for other sections
     if (applicableCounts.red > 0) return 'red';
     if (applicableCounts.amber > 0) return 'amber';
     return 'green';
