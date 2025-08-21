@@ -71,7 +71,7 @@ export const ChallengesField = ({ value, onChange, readOnly = false, itemId }: C
         <label className="text-xs font-medium text-muted-foreground mb-0.5 block">
           {labelText}
         </label>
-        <div className="w-full p-3 rounded-lg text-sm min-h-[80px] flex items-start border border-border/30 bg-muted/20">
+        <div className="w-full p-3 rounded-lg text-sm min-h-[60px] flex items-start border border-border/30 bg-muted/20">
           <span className="break-words w-full whitespace-pre-wrap">
             {value || `No ${labelText.toLowerCase()}`}
           </span>
@@ -92,7 +92,7 @@ export const ChallengesField = ({ value, onChange, readOnly = false, itemId }: C
           onChange={(e) => setLocalValue(e.target.value)}
           onBlur={handleBlur}
           onKeyDown={handleKeyDown}
-          className="w-full p-3 rounded-lg border border-border bg-background resize-none min-h-[80px] text-sm text-black"
+          className="w-full p-3 rounded-lg border border-border bg-background resize-none min-h-[60px] text-sm text-black"
           placeholder=""
           autoFocus
         />
@@ -107,7 +107,7 @@ export const ChallengesField = ({ value, onChange, readOnly = false, itemId }: C
       </label>
       <button 
         onClick={handleEdit}
-        className="w-full text-left p-3 rounded-lg transition-colors text-sm min-h-[80px] flex items-start border border-border/30 break-words overflow-hidden bg-white text-black hover:border-border/40 focus:outline-none focus:ring-2 focus:ring-border/30"
+        className="w-full text-left p-3 rounded-lg transition-colors text-sm min-h-[60px] flex items-start border border-border/30 break-words overflow-hidden bg-white text-black hover:border-border/40 focus:outline-none focus:ring-2 focus:ring-border/30"
       >
         <span className="break-words w-full whitespace-pre-wrap">
           {value || ""}
