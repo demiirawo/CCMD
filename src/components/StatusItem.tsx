@@ -275,11 +275,11 @@ export const StatusItem = memo(({
             <label className="text-xs font-medium text-muted-foreground mb-1 block">
               {item.id === "achievements-learning" ? "ACHIEVEMENTS" : "LATEST UPDATE"}
             </label>
-            {readOnly ? <div className="w-full p-3 rounded-lg text-sm min-h-[120px] flex items-start border border-border/30 bg-muted/20">
+            {readOnly ? <div className="w-full p-3 rounded-lg text-sm min-h-[160px] flex items-start border border-border/30 bg-muted/20">
                 <span className="break-words w-full whitespace-pre-wrap">
                   {item.observation || "No observation"}
                 </span>
-              </div> : isEditingObservation ? <CommentEditor initialValue={item.observation} onSubmit={handleObservationSubmit} onCancel={() => setIsEditingObservation(false)} placeholder="" autoSave={true} onAutoSave={value => onObservationChange?.(item.id, value)} /> : <button onClick={() => setIsEditingObservation(true)} className="w-full text-left p-3 rounded-lg transition-colors text-sm min-h-[120px] flex items-start border border-border/30 break-words overflow-hidden bg-white text-black hover:border-border/40 focus:outline-none focus:ring-2 focus:ring-border/30">
+              </div> : isEditingObservation ? <CommentEditor initialValue={item.observation} onSubmit={handleObservationSubmit} onCancel={() => setIsEditingObservation(false)} placeholder="" autoSave={true} onAutoSave={value => onObservationChange?.(item.id, value)} /> : <button onClick={() => setIsEditingObservation(true)} className="w-full text-left p-3 rounded-lg transition-colors text-sm min-h-[160px] flex items-start border border-border/30 break-words overflow-hidden bg-white text-black hover:border-border/40 focus:outline-none focus:ring-2 focus:ring-border/30">
                 <span className="break-words w-full whitespace-pre-wrap">
                   {item.observation}
                 </span>
