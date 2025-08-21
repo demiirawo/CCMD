@@ -12,7 +12,7 @@ import { StatusItemData } from "@/components/StatusItem";
 import { ActionItem } from "@/components/ActionForm";
 import { SubsectionMetadata } from "@/components/SubsectionMetadataDialog";
 import { StatusType } from "@/components/StatusBadge";
-import { Users, Target, BarChart3, FileText, Heart, Shield, Calendar, UserCheck, ClipboardList, HeartHandshake, TrendingUp, Save, Download, ChevronDown, ChevronUp, Copy, Home, Loader2 } from "lucide-react";
+import { Users, Target, BarChart3, FileText, Heart, Shield, Calendar, UserCheck, ClipboardList, HeartHandshake, TrendingUp, Save, Download, ChevronDown, ChevronUp, Copy, Home, Loader2, Send } from "lucide-react";
 import { MeetingStatusSummary } from "@/components/MeetingStatusSummary";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -57,6 +57,7 @@ const Index = () => {
   const [allSectionsExpanded, setAllSectionsExpanded] = useState<boolean | undefined>(undefined);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isSending, setIsSending] = useState(false);
   const [panelStateTracker, setPanelStateTracker] = useState<number>(0); // Force re-render when panels change
 
   // Function to update temporary analytics data with real meeting ID
@@ -1622,57 +1623,6 @@ const Index = () => {
         description: `Meeting saved successfully under ${quarter} ${year}. Check the Reports page to view it.`
       });
       console.log('Meeting saved successfully:', data);
-
-      // Send email notifications to attendees
-      try {
-        console.log('🔄 Preparing to send meeting emails...');
-        console.log('📧 Attendees data:', headerData.attendees);
-
-        // Generate a meeting summary from the dashboard data
-        const sectionSummaries = cleanSections.map(section => {
-          const items = section.items;
-          const redCount = items.filter(item => item.status === 'red').length;
-          const amberCount = items.filter(item => item.status === 'amber').length;
-          const greenCount = items.filter(item => item.status === 'green').length;
-          return `${section.title}: ${greenCount} Green, ${amberCount} Amber, ${redCount} Red items`;
-        }).join('. ');
-
-        // Fetch the meeting summary from the database
-        let meetingSummary = '';
-        try {
-          const normalizedDate = meetingDate.toISOString();
-          const { data: summaryData } = await supabase
-            .from('meeting_summaries')
-            .select('summary_text')
-            .eq('company_id', profile?.company_id)
-            .eq('meeting_date', normalizedDate)
-            .maybeSingle();
-          
-          meetingSummary = summaryData?.summary_text || '';
-          console.log('📋 Using meeting summary from database:', meetingSummary || 'No summary provided');
-        } catch (summaryError) {
-          console.warn('⚠️ Could not fetch meeting summary:', summaryError);
-          // Fallback to purpose if summary fetch fails
-          meetingSummary = (headerData.purpose && headerData.purpose.trim() !== '') ? headerData.purpose : '';
-        }
-        
-        await sendMeetingEmails({
-          title: headerData.title,
-          date: meetingDate.toISOString(),
-          attendees: headerData.attendees,
-          actions: actionsLog,
-          meetingSummary: meetingSummary,
-          companyName: companies.find(c => c.id === profile?.company_id)?.name
-        });
-      } catch (emailError) {
-        console.error('❌ Error sending meeting emails:', emailError);
-        // Don't fail the entire save operation if emails fail
-        toast({
-          title: "Meeting Saved",
-          description: "Meeting saved successfully, but some email notifications may have failed to send.",
-          variant: "default"
-        });
-      }
     } catch (error) {
       console.error('Error saving meeting:', error);
       toast({
@@ -1684,6 +1634,78 @@ const Index = () => {
       setIsSaving(false);
     }
   };
+
+  const sendEmails = async () => {
+    try {
+      setIsSending(true);
+      
+      // Parse the date from the date-time picker format (dd/MM/yyyy HH:mm)
+      const parseDateString = (dateString: string) => {
+        try {
+          const parts = dateString.match(/(\d{2})\/(\d{2})\/(\d{4})\s+(\d{2}):(\d{2})/);
+          if (parts) {
+            const [, day, month, year, hour, minute] = parts;
+            return new Date(parseInt(year), parseInt(month) - 1, parseInt(day), parseInt(hour), parseInt(minute));
+          }
+          const directParse = new Date(dateString);
+          if (!isNaN(directParse.getTime())) {
+            return directParse;
+          }
+          return new Date();
+        } catch (error) {
+          console.error('Error parsing date:', dateString, error);
+          return new Date();
+        }
+      };
+      const meetingDate = parseDateString(headerData.date);
+
+      console.log('🔄 Preparing to send meeting emails...');
+      console.log('📧 Attendees data:', headerData.attendees);
+
+      // Fetch the meeting summary from the database
+      let meetingSummary = '';
+      try {
+        const normalizedDate = meetingDate.toISOString();
+        const { data: summaryData } = await supabase
+          .from('meeting_summaries')
+          .select('summary_text')
+          .eq('company_id', profile?.company_id)
+          .eq('meeting_date', normalizedDate)
+          .maybeSingle();
+        
+        meetingSummary = summaryData?.summary_text || '';
+        console.log('📋 Using meeting summary from database:', meetingSummary || 'No summary provided');
+      } catch (summaryError) {
+        console.warn('⚠️ Could not fetch meeting summary:', summaryError);
+        // Fallback to purpose if summary fetch fails
+        meetingSummary = (headerData.purpose && headerData.purpose.trim() !== '') ? headerData.purpose : '';
+      }
+      
+      await sendMeetingEmails({
+        title: headerData.title,
+        date: meetingDate.toISOString(),
+        attendees: headerData.attendees,
+        actions: actionsLog,
+        meetingSummary: meetingSummary,
+        companyName: companies.find(c => c.id === profile?.company_id)?.name
+      });
+
+      toast({
+        title: "Emails Sent",
+        description: "Meeting summary emails have been sent to all attendees."
+      });
+    } catch (error) {
+      console.error('❌ Error sending meeting emails:', error);
+      toast({
+        title: "Send Failed",
+        description: "Failed to send meeting emails. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSending(false);
+    }
+  };
+
   const handleExportPDF = async () => {
     try {
       // Force expand all sections first
@@ -1911,7 +1933,26 @@ const Index = () => {
                 </>
               ) : (
                 <>
+                  <Save className="w-4 h-4" />
                   Save
+                </>
+              )}
+            </Button>
+            <Button 
+              onClick={sendEmails} 
+              variant="outline" 
+              className="gap-2"
+              disabled={isSending}
+            >
+              {isSending ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Sending...
+                </>
+              ) : (
+                <>
+                  <Send className="w-4 h-4" />
+                  Send
                 </>
               )}
             </Button>
