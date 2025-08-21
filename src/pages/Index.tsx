@@ -1940,7 +1940,7 @@ const Index = () => {
             </Button>
             <Button 
               onClick={sendEmails} 
-              variant="outline" 
+              variant="default" 
               className="gap-2"
               disabled={isSending}
             >
