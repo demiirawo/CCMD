@@ -148,9 +148,9 @@ export const Meetings = () => {
         <div className="flex justify-between items-center mb-6">
           <div className="flex gap-2 ml-auto">
             <Button 
-              variant="outline" 
+              variant="default" 
               size="sm" 
-              className="gap-2 bg-primary/5" 
+              className="gap-2" 
               onClick={() => {
                 console.log("Button clicked - calling handleSave");
                 handleSave();
