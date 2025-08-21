@@ -1950,7 +1950,6 @@ const Index = () => {
                 </>
               ) : (
                 <>
-                  <Send className="w-4 h-4" />
                   Send
                 </>
               )}
