@@ -318,21 +318,100 @@ export const Reports = () => {
         previewElement = dialogContent;
       }
 
-      // Wait a moment for the component to fully render and apply styles
+      // Wait longer for the component to fully render and apply styles
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
+      // Create a temporary container to ensure proper text rendering
+      const tempContainer = document.createElement('div');
+      tempContainer.style.position = 'absolute';
+      tempContainer.style.left = '-9999px';
+      tempContainer.style.top = '0';
+      tempContainer.style.width = '1200px';
+      tempContainer.style.backgroundColor = 'white';
+      tempContainer.style.padding = '20px';
+      tempContainer.style.boxSizing = 'border-box';
+      tempContainer.style.overflow = 'visible';
+      tempContainer.style.minHeight = 'max-content';
+      
+      // Clone the preview content properly
+      const clonedContent = (previewElement as HTMLElement).cloneNode(true) as HTMLElement;
+      tempContainer.appendChild(clonedContent);
+      
+      // Apply PDF-specific styles to prevent text cutoff
+      const style = document.createElement('style');
+      style.textContent = `
+        #${tempContainer.id} {
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+          background: white !important;
+          color: #000 !important;
+          line-height: 1.5 !important;
+          overflow: visible !important;
+        }
+        #${tempContainer.id} * { 
+          box-sizing: border-box !important;
+          overflow: visible !important;
+          text-overflow: visible !important;
+          white-space: normal !important;
+        }
+        #${tempContainer.id} h1, #${tempContainer.id} h2, #${tempContainer.id} h3, #${tempContainer.id} h4, #${tempContainer.id} h5, #${tempContainer.id} h6 { 
+          margin-bottom: 12px !important; 
+          margin-top: 20px !important; 
+          line-height: 1.3 !important;
+          padding: 4px 0 !important;
+          overflow: visible !important;
+          word-wrap: break-word !important;
+        }
+        #${tempContainer.id} .text-2xl { font-size: 24px !important; line-height: 1.4 !important; padding: 6px 0 !important; }
+        #${tempContainer.id} .text-xl { font-size: 20px !important; line-height: 1.4 !important; padding: 4px 0 !important; }
+        #${tempContainer.id} .text-lg { font-size: 18px !important; line-height: 1.4 !important; padding: 4px 0 !important; }
+        #${tempContainer.id} .text-base { font-size: 16px !important; line-height: 1.4 !important; padding: 2px 0 !important; }
+        #${tempContainer.id} .text-sm { font-size: 14px !important; line-height: 1.4 !important; padding: 2px 0 !important; }
+        #${tempContainer.id} .text-xs { font-size: 12px !important; line-height: 1.4 !important; padding: 2px 0 !important; }
+        #${tempContainer.id} .font-bold { font-weight: 700 !important; }
+        #${tempContainer.id} .font-semibold { font-weight: 600 !important; }
+        #${tempContainer.id} .font-medium { font-weight: 500 !important; }
+        #${tempContainer.id} p { 
+          margin-bottom: 8px !important; 
+          line-height: 1.5 !important; 
+          word-wrap: break-word !important;
+          overflow: visible !important;
+        }
+        #${tempContainer.id} button { display: none !important; }
+        #${tempContainer.id} [data-state] { display: block !important; }
+        #${tempContainer.id} .collapsible { display: block !important; }
+      `;
+      tempContainer.id = `pdf-export-${Date.now()}`;
+      document.head.appendChild(style);
+      document.body.appendChild(tempContainer);
+
+      // Wait for styles to apply and content to settle
       await new Promise(resolve => setTimeout(resolve, 1000));
 
-      // Generate canvas directly from the preview element to maintain consistency
-      const canvas = await html2canvas(previewElement as HTMLElement, {
-        scale: 1.2, // Better quality for 2-4MB files
+      // Generate canvas with better text handling
+      const canvas = await html2canvas(tempContainer, {
+        scale: 1.2,
         useCORS: true,
         allowTaint: true,
         backgroundColor: '#ffffff',
-        width: (previewElement as HTMLElement).scrollWidth,
-        height: (previewElement as HTMLElement).scrollHeight,
-        removeContainer: true,
+        width: tempContainer.scrollWidth,
+        height: tempContainer.scrollHeight,
+        removeContainer: false,
         foreignObjectRendering: false,
-        logging: false
+        logging: false,
+        onclone: (clonedDoc) => {
+          // Ensure all text elements are visible in the cloned document
+          const allTextElements = clonedDoc.querySelectorAll('h1, h2, h3, h4, h5, h6, p, span, div');
+          allTextElements.forEach(el => {
+            (el as HTMLElement).style.overflow = 'visible';
+            (el as HTMLElement).style.textOverflow = 'visible';
+            (el as HTMLElement).style.whiteSpace = 'normal';
+          });
+        }
       });
+
+      // Clean up temporary elements
+      document.head.removeChild(style);
+      document.body.removeChild(tempContainer);
 
       // Clean up temporary modal if we created one
       const tempModal = document.querySelector('[style*="position: fixed"][style*="z-index: 9999"]');
