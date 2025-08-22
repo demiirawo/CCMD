@@ -1730,9 +1730,9 @@ const Index = () => {
       // Wait for all expansions to complete
       await new Promise(resolve => setTimeout(resolve, 500));
 
-      // Capture the expanded dashboard with optimized settings
+      // Capture the expanded dashboard with balanced settings for 2-4MB files
       const canvas = await html2canvas(element, {
-        scale: 0.8, // Reduced scale for smaller file size
+        scale: 1.2, // Better quality than 0.8 but smaller than 2.0
         useCORS: true,
         allowTaint: true,
         backgroundColor: '#ffffff',
@@ -1742,8 +1742,8 @@ const Index = () => {
         removeContainer: true,
         foreignObjectRendering: false
       });
-      // Use JPEG with compression for much smaller file size
-      const imgData = canvas.toDataURL('image/jpeg', 0.7);
+      // Use JPEG with balanced compression for 2-4MB files
+      const imgData = canvas.toDataURL('image/jpeg', 0.85);
 
       // Create PDF with 10mm margins
       const pdf = new jsPDF('p', 'mm', 'a4');
