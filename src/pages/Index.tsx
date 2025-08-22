@@ -1730,18 +1730,20 @@ const Index = () => {
       // Wait for all expansions to complete
       await new Promise(resolve => setTimeout(resolve, 500));
 
-      // Capture the expanded dashboard
+      // Capture the expanded dashboard with optimized settings
       const canvas = await html2canvas(element, {
-        scale: 2,
+        scale: 0.8, // Reduced scale for smaller file size
         useCORS: true,
         allowTaint: true,
-        backgroundColor: '#f3f4f6',
-        // gray-100 background
+        backgroundColor: '#ffffff',
         width: element.scrollWidth,
         height: element.scrollHeight,
-        logging: false
+        logging: false,
+        removeContainer: true,
+        foreignObjectRendering: false
       });
-      const imgData = canvas.toDataURL('image/png');
+      // Use JPEG with compression for much smaller file size
+      const imgData = canvas.toDataURL('image/jpeg', 0.7);
 
       // Create PDF with 10mm margins
       const pdf = new jsPDF('p', 'mm', 'a4');
@@ -1759,14 +1761,14 @@ const Index = () => {
       let yPosition = 0;
 
       // Add first page
-      pdf.addImage(imgData, 'PNG', margin, margin, imgWidth, imgHeight);
+      pdf.addImage(imgData, 'JPEG', margin, margin, imgWidth, imgHeight);
       heightLeft -= contentHeight;
 
       // Add additional pages if needed
       while (heightLeft > 0) {
         yPosition = -(imgHeight - heightLeft);
         pdf.addPage();
-        pdf.addImage(imgData, 'PNG', margin, margin + yPosition, imgWidth, imgHeight);
+        pdf.addImage(imgData, 'JPEG', margin, margin + yPosition, imgWidth, imgHeight);
         heightLeft -= contentHeight;
       }
 

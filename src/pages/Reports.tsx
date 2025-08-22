@@ -331,13 +331,14 @@ export const Reports = () => {
       // Clone the preview content
       tempContainer.innerHTML = previewElement.innerHTML;
 
-      // Apply PDF-specific styles that preserve the design
+      // Apply PDF-specific styles for better formatting
       const style = document.createElement('style');
       style.textContent = `
         #${tempContainer.id} {
           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
           background: white !important;
           color: #000 !important;
+          line-height: 1.4 !important;
         }
         #${tempContainer.id} * { 
           box-sizing: border-box !important; 
@@ -373,12 +374,21 @@ export const Reports = () => {
         #${tempContainer.id} .mb-4 { margin-bottom: 16px !important; }
         #${tempContainer.id} .mb-3 { margin-bottom: 12px !important; }
         #${tempContainer.id} .mb-2 { margin-bottom: 8px !important; }
-        #${tempContainer.id} .text-2xl { font-size: 24px !important; line-height: 32px !important; }
-        #${tempContainer.id} .text-xl { font-size: 20px !important; line-height: 28px !important; }
-        #${tempContainer.id} .text-lg { font-size: 18px !important; line-height: 28px !important; }
-        #${tempContainer.id} .text-base { font-size: 16px !important; line-height: 24px !important; }
-        #${tempContainer.id} .text-sm { font-size: 14px !important; line-height: 20px !important; }
-        #${tempContainer.id} .text-xs { font-size: 12px !important; line-height: 16px !important; }
+        #${tempContainer.id} .text-2xl { font-size: 24px !important; line-height: 1.4 !important; }
+        #${tempContainer.id} .text-xl { font-size: 20px !important; line-height: 1.4 !important; }
+        #${tempContainer.id} .text-lg { font-size: 18px !important; line-height: 1.4 !important; }
+        #${tempContainer.id} .text-base { font-size: 16px !important; line-height: 1.4 !important; }
+        #${tempContainer.id} .text-sm { font-size: 14px !important; line-height: 1.4 !important; }
+        #${tempContainer.id} .text-xs { font-size: 12px !important; line-height: 1.4 !important; }
+        #${tempContainer.id} p { margin-bottom: 8px !important; line-height: 1.4 !important; }
+        #${tempContainer.id} h1, #${tempContainer.id} h2, #${tempContainer.id} h3, #${tempContainer.id} h4 { 
+          margin-bottom: 8px !important; 
+          margin-top: 16px !important; 
+          line-height: 1.3 !important; 
+        }
+        #${tempContainer.id} ul, #${tempContainer.id} ol { margin-bottom: 8px !important; }
+        #${tempContainer.id} li { margin-bottom: 4px !important; line-height: 1.4 !important; }
+        #${tempContainer.id} .whitespace-pre-wrap { white-space: normal !important; word-wrap: break-word !important; }
         #${tempContainer.id} .font-bold { font-weight: 700 !important; }
         #${tempContainer.id} .font-semibold { font-weight: 600 !important; }
         #${tempContainer.id} .font-medium { font-weight: 500 !important; }
@@ -405,15 +415,16 @@ export const Reports = () => {
       // Wait a moment for styles to apply
       await new Promise(resolve => setTimeout(resolve, 500));
 
-      // Generate high-quality canvas with dashboard proportions
+      // Generate optimized canvas for smaller file size
       const canvas = await html2canvas(tempContainer, {
-        scale: 1.5,
+        scale: 0.8, // Reduced scale for smaller file size
         useCORS: true,
         allowTaint: true,
         backgroundColor: '#ffffff',
         width: 1200,
-        // Match dashboard width
-        height: tempContainer.scrollHeight
+        height: tempContainer.scrollHeight,
+        removeContainer: true,
+        foreignObjectRendering: false
       });
 
       // Clean up temporary elements
@@ -437,17 +448,18 @@ export const Reports = () => {
       const imgHeight = canvas.height * imgWidth / canvas.width;
       let heightLeft = imgHeight;
       let position = 0;
-      const imgData = canvas.toDataURL('image/png');
+      // Use JPEG with compression for much smaller file size
+      const imgData = canvas.toDataURL('image/jpeg', 0.7);
 
       // Add first page
-      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+      pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
       heightLeft -= pageHeight;
 
       // Add additional pages if content is longer than one page
       while (heightLeft >= 0) {
         position = heightLeft - imgHeight;
         pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
         heightLeft -= pageHeight;
       }
       pdf.save(`${meetingTitle.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_meeting_report.pdf`);
