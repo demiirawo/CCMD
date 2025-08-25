@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Building2, Trash2, ChevronDown, Clock } from 'lucide-react';
+import { Plus, Building2, Trash2, ChevronDown, Clock, Check, X } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -191,6 +191,64 @@ export const CompanySelection = () => {
       toast({
         title: 'Error', 
         description: 'Failed to sign out. Please try again.',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  // Complete an action
+  const handleCompleteAction = async (actionId: string) => {
+    try {
+      const { error } = await supabase
+        .from('actions_log')
+        .update({ 
+          closed: true, 
+          closed_date: new Date().toISOString(),
+          status: 'completed'
+        })
+        .eq('id', actionId);
+
+      if (error) throw error;
+
+      toast({
+        title: 'Success',
+        description: 'Action marked as complete',
+      });
+
+      // Refresh actions list
+      fetchAllActions();
+    } catch (error) {
+      console.error('Error completing action:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to complete action',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  // Delete an action
+  const handleDeleteAction = async (actionId: string) => {
+    try {
+      const { error } = await supabase
+        .from('actions_log')
+        .delete()
+        .eq('id', actionId);
+
+      if (error) throw error;
+
+      toast({
+        title: 'Success',
+        description: 'Action deleted successfully',
+      });
+
+      // Refresh actions list
+      fetchAllActions();
+    } catch (error) {
+      console.error('Error deleting action:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to delete action',
         variant: 'destructive'
       });
     }
@@ -409,6 +467,46 @@ export const CompanySelection = () => {
                               <p className="text-xs text-muted-foreground">
                                 {action.companies?.name} • Due: {action.due_date}
                               </p>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleCompleteAction(action.id)}
+                                className="h-8 w-8 p-0 text-green-600 hover:text-green-700 hover:bg-green-50"
+                                title="Mark as complete"
+                              >
+                                <Check className="h-4 w-4" />
+                              </Button>
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                                    title="Delete action"
+                                  >
+                                    <X className="h-4 w-4" />
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>Delete Action</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      Are you sure you want to delete this action? This action cannot be undone.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction 
+                                      onClick={() => handleDeleteAction(action.id)}
+                                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                    >
+                                      Delete Action
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
                             </div>
                           </div>
                         ))}
