@@ -3,6 +3,7 @@ import { DashboardHeader } from "@/components/DashboardHeader";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useAutoSave } from "@/hooks/useAutoSave";
+
 import { useMeetingEmailNotification } from "@/hooks/useMeetingEmailNotification";
 import { Attendee } from "@/components/TeamAttendeesDisplay";
 import { DashboardSection } from "@/components/DashboardSection";
@@ -39,17 +40,24 @@ const Index = () => {
   const [isDataLoaded, setIsDataLoaded] = useState(false);
   const [currentMeetingId, setCurrentMeetingId] = useState<string | null>(null);
   const [tempMeetingId, setTempMeetingId] = useState<string>(() => {
-    // Use a company-specific persistent ID for continuous data storage
+    // Use a company-specific AND tab-specific persistent ID for continuous data storage
     if (!profile?.company_id) return crypto.randomUUID();
     const companyId = profile.company_id;
-    const persistentId = localStorage.getItem(`persistentMeetingId_${companyId}`);
+    const tabId = sessionStorage.getItem('__tab_id') || `tab_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    
+    // Ensure tab ID is stored
+    if (!sessionStorage.getItem('__tab_id')) {
+      sessionStorage.setItem('__tab_id', tabId);
+    }
+    
+    const persistentId = localStorage.getItem(`persistentMeetingId_${companyId}_${tabId}`);
     if (persistentId) {
-      console.log('Index: Using persistent meeting ID:', persistentId);
+      console.log('Index: Using persistent meeting ID:', persistentId, 'for tab:', tabId);
       return persistentId;
     } else {
       const newId = crypto.randomUUID();
-      localStorage.setItem(`persistentMeetingId_${companyId}`, newId);
-      console.log('Index: Generated persistent meeting ID:', newId);
+      localStorage.setItem(`persistentMeetingId_${companyId}_${tabId}`, newId);
+      console.log('Index: Generated persistent meeting ID:', newId, 'for tab:', tabId);
       return newId;
     }
   });
@@ -248,16 +256,18 @@ const Index = () => {
         throw result.error;
       } else {
         console.log('✅ MeetingHeaders: Successfully saved to database:', result.data);
-        // Save to localStorage as backup
-        const backupKey = currentMeetingId ? `headers_backup_${profile.company_id}_${currentMeetingId}` : `headers_backup_${profile.company_id}`;
+        // Save to localStorage as backup with tab isolation
+        const tabId = sessionStorage.getItem('__tab_id') || `tab_${Date.now()}`;
+        const backupKey = currentMeetingId ? `headers_backup_${profile.company_id}_${currentMeetingId}_${tabId}` : `headers_backup_${profile.company_id}_${tabId}`;
         localStorage.setItem(backupKey, JSON.stringify(newHeaderData));
         console.log('💾 MeetingHeaders: Also saved backup to localStorage:', backupKey);
       }
     } catch (error) {
       console.error('❌ MeetingHeaders: Exception in saveHeaderData:', error);
-      // Save to localStorage as fallback
+      // Save to localStorage as fallback with tab isolation
       if (profile?.company_id) {
-        const backupKey = currentMeetingId ? `headers_backup_${profile.company_id}_${currentMeetingId}` : `headers_backup_${profile.company_id}`;
+        const tabId = sessionStorage.getItem('__tab_id') || `tab_${Date.now()}`;
+        const backupKey = currentMeetingId ? `headers_backup_${profile.company_id}_${currentMeetingId}_${tabId}` : `headers_backup_${profile.company_id}_${tabId}`;
         localStorage.setItem(backupKey, JSON.stringify(newHeaderData));
         console.log('💾 MeetingHeaders: Exception fallback to localStorage:', backupKey);
       }
@@ -1910,7 +1920,8 @@ const Index = () => {
 
   const ragExtras: StatusType[] = [actionsStatus, keyDocsStatus];
 
-  return <div className="min-h-screen bg-gray-100 p-4 lg:p-8 pt-36">
+  return (
+    <div className="min-h-screen bg-gray-100 p-4 lg:p-8 pt-36">
       <div className="w-[90%] mx-auto space-y-6">
         <div className="flex items-center mb-6 mt-16">
           <div className="flex-1" />
@@ -2041,7 +2052,8 @@ const Index = () => {
             ...item,
             title: item.title === "Planning & Risk Assessment" ? "Planning & Risk Assessment" : item.title
           })) : section.items;
-          return (
+  return (
+    <DataIsolationWrapper enableLogging={true}>
             <DashboardSection 
               key={section.id} 
               title={sectionTitle} 
@@ -2066,8 +2078,9 @@ const Index = () => {
             />
           );
         })}
-        </div>
       </div>
-    </div>;
+    </div>
+  );
 };
+
 export default Index;

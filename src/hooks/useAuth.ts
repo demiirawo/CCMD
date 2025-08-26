@@ -454,6 +454,34 @@ export const useAuthProvider = (): AuthContextType => {
 
     console.log('🔄 SelectCompany: Starting company selection', { companyId, currentCompany: profile.company_id });
 
+    // IMMEDIATE DATA ISOLATION: Clear all company-specific data before switching
+    const currentCompanyId = profile.company_id;
+    if (currentCompanyId && currentCompanyId !== companyId) {
+      console.log('🧹 SelectCompany: Immediate data isolation - clearing previous company data');
+      
+      // Clear localStorage items for previous company
+      const keysToRemove: string[] = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.includes(currentCompanyId)) {
+          keysToRemove.push(key);
+        }
+      }
+      keysToRemove.forEach(key => localStorage.removeItem(key));
+      
+      // Clear sessionStorage items for previous company
+      const sessionKeysToRemove: string[] = [];
+      for (let i = 0; i < sessionStorage.length; i++) {
+        const key = sessionStorage.key(i);
+        if (key && key.includes(currentCompanyId) && key !== '__tab_id') {
+          sessionKeysToRemove.push(key);
+        }
+      }
+      sessionKeysToRemove.forEach(key => sessionStorage.removeItem(key));
+      
+      console.log('🧹 SelectCompany: Cleared storage keys:', { localStorage: keysToRemove, sessionStorage: sessionKeysToRemove });
+    }
+
     // 1) Deactivate any currently active company links for this user
     const { error: deactivateError } = await supabase
       .from('user_companies')

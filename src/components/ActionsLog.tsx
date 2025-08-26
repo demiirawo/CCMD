@@ -441,7 +441,9 @@ export const ActionsLog = ({
       <div className="flex items-center justify-between cursor-pointer mb-6 outline-none" onClick={() => {
         const newState = !isExpanded;
         setIsExpanded(newState);
-        sessionStorage.setItem('actions_log_expanded', JSON.stringify(newState));
+        const tabId = sessionStorage.getItem('__tab_id') || `tab_${Date.now()}`;
+        const isolatedStorageKey = `actions_log_expanded_${tabId}`;
+        sessionStorage.setItem(isolatedStorageKey, JSON.stringify(newState));
         onPanelStateChange?.();
       }}>
         <div className="flex items-center gap-3">

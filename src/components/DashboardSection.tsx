@@ -63,13 +63,17 @@ export const DashboardSection = ({
   const isDynamicPanelColourEnabled = true;
   const storageKey = `section_${title.replace(/\s+/g, '_').toLowerCase()}_open`;
   const [isOpen, setIsOpen] = useState(() => {
-    const saved = sessionStorage.getItem(storageKey);
+    const tabId = sessionStorage.getItem('__tab_id') || `tab_${Date.now()}`;
+    const isolatedStorageKey = `${storageKey}_${tabId}`;
+    const saved = sessionStorage.getItem(isolatedStorageKey);
     return saved !== null ? JSON.parse(saved) : defaultOpen;
   });
   
   // Listen for panel state changes to sync with sessionStorage
   useEffect(() => {
-    const saved = sessionStorage.getItem(storageKey);
+    const tabId = sessionStorage.getItem('__tab_id') || `tab_${Date.now()}`;
+    const isolatedStorageKey = `${storageKey}_${tabId}`;
+    const saved = sessionStorage.getItem(isolatedStorageKey);
     const savedState = saved !== null ? JSON.parse(saved) : defaultOpen;
     if (savedState !== isOpen) {
       setIsOpen(savedState);
@@ -249,7 +253,9 @@ export const DashboardSection = ({
           const newState = !isOpen;
           setIsOpen(newState);
           const storageKey = `section_${title.replace(/\s+/g, '_').toLowerCase()}_open`;
-          sessionStorage.setItem(storageKey, JSON.stringify(newState));
+          const tabId = sessionStorage.getItem('__tab_id') || `tab_${Date.now()}`;
+          const isolatedStorageKey = `${storageKey}_${tabId}`;
+          sessionStorage.setItem(isolatedStorageKey, JSON.stringify(newState));
           onPanelStateChange?.();
         }}
       >

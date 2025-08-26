@@ -77,24 +77,27 @@ export const useAutoSave = ({
         console.error(`Auto-save error for ${table}:`, error);
         onError?.(error);
         
-        // Save to localStorage as fallback
-        const backupKey = `${table}_backup_${profile.company_id}`;
+        // Save to localStorage as fallback with tab isolation
+        const tabId = sessionStorage.getItem('__tab_id') || `tab_${Date.now()}`;
+        const backupKey = `${table}_backup_${profile.company_id}_${tabId}`;
         localStorage.setItem(backupKey, dataString);
       } else {
         lastSavedRef.current = dataString;
         onSuccess?.();
         
-        // Also save to localStorage as backup
-        const backupKey = `${table}_backup_${profile.company_id}`;
+        // Also save to localStorage as backup with tab isolation
+        const tabId = sessionStorage.getItem('__tab_id') || `tab_${Date.now()}`;
+        const backupKey = `${table}_backup_${profile.company_id}_${tabId}`;
         localStorage.setItem(backupKey, dataString);
       }
     } catch (error) {
       console.error(`Auto-save error for ${table}:`, error);
       onError?.(error);
       
-      // Save to localStorage as fallback
+      // Save to localStorage as fallback with tab isolation
       if (profile?.company_id) {
-        const backupKey = `${table}_backup_${profile.company_id}`;
+        const tabId = sessionStorage.getItem('__tab_id') || `tab_${Date.now()}`;
+        const backupKey = `${table}_backup_${profile.company_id}_${tabId}`;
         localStorage.setItem(backupKey, JSON.stringify(data));
       }
     }
@@ -127,9 +130,10 @@ export const useAutoSave = ({
         clearTimeout(timeoutRef.current);
       }
       
-      // Use sendBeacon for reliable save on page unload
+      // Use sendBeacon for reliable save on page unload with tab isolation
       if (navigator.sendBeacon && profile?.company_id && data) {
-        const backupKey = `${table}_backup_${profile.company_id}`;
+        const tabId = sessionStorage.getItem('__tab_id') || `tab_${Date.now()}`;
+        const backupKey = `${table}_backup_${profile.company_id}_${tabId}`;
         localStorage.setItem(backupKey, JSON.stringify(data));
       }
     };
