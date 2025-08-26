@@ -104,7 +104,7 @@ export const SubsectionMetadataDialog = ({
       <DialogTrigger asChild>
         {children}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-4xl">
         <DialogHeader>
           <DialogTitle>Edit {title} Details</DialogTitle>
         </DialogHeader>
