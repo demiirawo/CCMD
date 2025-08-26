@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { processUrl } from "@/utils/urlProcessor";
 
 export interface SubsectionMetadata {
@@ -81,16 +82,16 @@ export const SubsectionMetadataDialog = ({
       accountableOwner: accountableOwner || undefined,
       link: link1Result.url || undefined,
       linkText: linkText || undefined,
-      linkIsIframe: link1Result.isIframe || undefined,
+      linkIsIframe: linkIsIframe,
       link2: link2Result.url || undefined,
       link2Text: link2Text || undefined,
-      link2IsIframe: link2Result.isIframe || undefined,
+      link2IsIframe: link2IsIframe,
       link3: link3Result.url || undefined,
       link3Text: link3Text || undefined,
-      link3IsIframe: link3Result.isIframe || undefined,
+      link3IsIframe: link3IsIframe,
       link4: link4Result.url || undefined,
       link4Text: link4Text || undefined,
-      link4IsIframe: link4Result.isIframe || undefined,
+      link4IsIframe: link4IsIframe,
       description: description || undefined,
       updated: new Date().toLocaleDateString('en-GB')
     };
@@ -140,6 +141,14 @@ export const SubsectionMetadataDialog = ({
                 className="flex-1 bg-white"
               />
             </div>
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="link1-iframe"
+                checked={linkIsIframe}
+                onCheckedChange={(checked) => setLinkIsIframe(!!checked)}
+              />
+              <Label htmlFor="link1-iframe" className="text-sm">Display as iframe</Label>
+            </div>
           </div>
           
           <div className="space-y-2">
@@ -157,6 +166,14 @@ export const SubsectionMetadataDialog = ({
                 placeholder="Enter link URL..."
                 className="flex-1 bg-white"
               />
+            </div>
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="link2-iframe"
+                checked={link2IsIframe}
+                onCheckedChange={(checked) => setLink2IsIframe(!!checked)}
+              />
+              <Label htmlFor="link2-iframe" className="text-sm">Display as iframe</Label>
             </div>
           </div>
 
@@ -176,6 +193,14 @@ export const SubsectionMetadataDialog = ({
                 className="flex-1 bg-white"
               />
             </div>
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="link3-iframe"
+                checked={link3IsIframe}
+                onCheckedChange={(checked) => setLink3IsIframe(!!checked)}
+              />
+              <Label htmlFor="link3-iframe" className="text-sm">Display as iframe</Label>
+            </div>
           </div>
 
           <div className="space-y-2">
@@ -193,6 +218,14 @@ export const SubsectionMetadataDialog = ({
                 placeholder="Enter link URL..."
                 className="flex-1 bg-white"
               />
+            </div>
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="link4-iframe"
+                checked={link4IsIframe}
+                onCheckedChange={(checked) => setLink4IsIframe(!!checked)}
+              />
+              <Label htmlFor="link4-iframe" className="text-sm">Display as iframe</Label>
             </div>
           </div>
           
