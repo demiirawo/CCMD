@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useAutoSave } from "@/hooks/useAutoSave";
 
-import { useMeetingEmailNotification } from "@/hooks/useMeetingEmailNotification";
+import { clearCompanyData, getTabId } from "@/utils/dataIsolationUtils";
 import { Attendee } from "@/components/TeamAttendeesDisplay";
 import { DashboardSection } from "@/components/DashboardSection";
 import { ActionsLog, ActionLogEntry } from "@/components/ActionsLog";
@@ -40,15 +40,12 @@ const Index = () => {
   const [isDataLoaded, setIsDataLoaded] = useState(false);
   const [currentMeetingId, setCurrentMeetingId] = useState<string | null>(null);
   const [tempMeetingId, setTempMeetingId] = useState<string>(() => {
+    // Initialize tab isolation
+    const tabId = getTabId();
+    
     // Use a company-specific AND tab-specific persistent ID for continuous data storage
     if (!profile?.company_id) return crypto.randomUUID();
     const companyId = profile.company_id;
-    const tabId = sessionStorage.getItem('__tab_id') || `tab_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    
-    // Ensure tab ID is stored
-    if (!sessionStorage.getItem('__tab_id')) {
-      sessionStorage.setItem('__tab_id', tabId);
-    }
     
     const persistentId = localStorage.getItem(`persistentMeetingId_${companyId}_${tabId}`);
     if (persistentId) {
@@ -1918,6 +1915,9 @@ const Index = () => {
     .map(doc => docStatus(doc.nextReviewDate));
   const keyDocsStatus: StatusType = docStatuses.includes('red') ? 'red' : (docStatuses.includes('amber') ? 'amber' : 'green');
 
+  
+  console.log('🔍 Rendering Index component with JSX structure debug');
+  
   const ragExtras: StatusType[] = [actionsStatus, keyDocsStatus];
 
   return (
@@ -2006,9 +2006,15 @@ const Index = () => {
               console.error('Failed to save key documents to database:', error);
             }
           }
-        } : undefined} attendees={getAttendeesList()} onPanelStateChange={triggerPanelStateUpdate} panelStateTracker={panelStateTracker} readOnly={!canEdit} />
-          
-          {dashboardData.sections.filter(section => {
+        } : undefined} 
+        attendees={getAttendeesList()} 
+        onPanelStateChange={triggerPanelStateUpdate} 
+        panelStateTracker={panelStateTracker} 
+        readOnly={!canEdit} 
+      />
+      
+      <div className="space-y-6">
+        {dashboardData.sections.filter(section => {
           // Always show non-meeting-overview sections except for conditional ones
           if (section.id === "meeting-overview") return false;
 
@@ -2052,9 +2058,8 @@ const Index = () => {
             ...item,
             title: item.title === "Planning & Risk Assessment" ? "Planning & Risk Assessment" : item.title
           })) : section.items;
-  return (
-    <DataIsolationWrapper enableLogging={true}>
-            <DashboardSection 
+          return (
+            <DashboardSection
               key={section.id} 
               title={sectionTitle} 
               items={modifiedItems} 
@@ -2080,6 +2085,7 @@ const Index = () => {
         })}
       </div>
     </div>
+  </div>
   );
 };
 
