@@ -127,7 +127,7 @@ export const SubsectionMetadataDialog = ({
           
           <div className="space-y-2">
             <Label>Link 1</Label>
-            <div className="flex gap-2">
+            <div className="flex gap-2 items-center">
               <Input
                 value={linkText}
                 onChange={(e) => setLinkText(e.target.value)}
@@ -140,20 +140,20 @@ export const SubsectionMetadataDialog = ({
                 placeholder="Enter link URL..."
                 className="flex-1 bg-white"
               />
-            </div>
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="link1-iframe"
-                checked={linkIsIframe}
-                onCheckedChange={(checked) => setLinkIsIframe(!!checked)}
-              />
-              <Label htmlFor="link1-iframe" className="text-sm">Display as iframe</Label>
+              <div className="flex items-center space-x-2 whitespace-nowrap">
+                <Checkbox
+                  id="link1-iframe"
+                  checked={linkIsIframe}
+                  onCheckedChange={(checked) => setLinkIsIframe(!!checked)}
+                />
+                <Label htmlFor="link1-iframe" className="text-sm">Display as iframe</Label>
+              </div>
             </div>
           </div>
           
           <div className="space-y-2">
             <Label>Link 2</Label>
-            <div className="flex gap-2">
+            <div className="flex gap-2 items-center">
               <Input
                 value={link2Text}
                 onChange={(e) => setLink2Text(e.target.value)}
@@ -166,20 +166,20 @@ export const SubsectionMetadataDialog = ({
                 placeholder="Enter link URL..."
                 className="flex-1 bg-white"
               />
-            </div>
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="link2-iframe"
-                checked={link2IsIframe}
-                onCheckedChange={(checked) => setLink2IsIframe(!!checked)}
-              />
-              <Label htmlFor="link2-iframe" className="text-sm">Display as iframe</Label>
+              <div className="flex items-center space-x-2 whitespace-nowrap">
+                <Checkbox
+                  id="link2-iframe"
+                  checked={link2IsIframe}
+                  onCheckedChange={(checked) => setLink2IsIframe(!!checked)}
+                />
+                <Label htmlFor="link2-iframe" className="text-sm">Display as iframe</Label>
+              </div>
             </div>
           </div>
 
           <div className="space-y-2">
             <Label>Link 3</Label>
-            <div className="flex gap-2">
+            <div className="flex gap-2 items-center">
               <Input
                 value={link3Text}
                 onChange={(e) => setLink3Text(e.target.value)}
@@ -192,20 +192,20 @@ export const SubsectionMetadataDialog = ({
                 placeholder="Enter link URL..."
                 className="flex-1 bg-white"
               />
-            </div>
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="link3-iframe"
-                checked={link3IsIframe}
-                onCheckedChange={(checked) => setLink3IsIframe(!!checked)}
-              />
-              <Label htmlFor="link3-iframe" className="text-sm">Display as iframe</Label>
+              <div className="flex items-center space-x-2 whitespace-nowrap">
+                <Checkbox
+                  id="link3-iframe"
+                  checked={link3IsIframe}
+                  onCheckedChange={(checked) => setLink3IsIframe(!!checked)}
+                />
+                <Label htmlFor="link3-iframe" className="text-sm">Display as iframe</Label>
+              </div>
             </div>
           </div>
 
           <div className="space-y-2">
             <Label>Link 4</Label>
-            <div className="flex gap-2">
+            <div className="flex gap-2 items-center">
               <Input
                 value={link4Text}
                 onChange={(e) => setLink4Text(e.target.value)}
@@ -218,14 +218,14 @@ export const SubsectionMetadataDialog = ({
                 placeholder="Enter link URL..."
                 className="flex-1 bg-white"
               />
-            </div>
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="link4-iframe"
-                checked={link4IsIframe}
-                onCheckedChange={(checked) => setLink4IsIframe(!!checked)}
-              />
-              <Label htmlFor="link4-iframe" className="text-sm">Display as iframe</Label>
+              <div className="flex items-center space-x-2 whitespace-nowrap">
+                <Checkbox
+                  id="link4-iframe"
+                  checked={link4IsIframe}
+                  onCheckedChange={(checked) => setLink4IsIframe(!!checked)}
+                />
+                <Label htmlFor="link4-iframe" className="text-sm">Display as iframe</Label>
+              </div>
             </div>
           </div>
           
