@@ -15,6 +15,12 @@ export interface SubsectionMetadata {
   link2?: string;
   link2Text?: string;
   link2IsIframe?: boolean;
+  link3?: string;
+  link3Text?: string;
+  link3IsIframe?: boolean;
+  link4?: string;
+  link4Text?: string;
+  link4IsIframe?: boolean;
   description?: string;
   updated?: string;
 }
@@ -42,6 +48,12 @@ export const SubsectionMetadataDialog = ({
   const [link2, setLink2] = useState(metadata.link2 || "");
   const [link2Text, setLink2Text] = useState(metadata.link2Text || "");
   const [link2IsIframe, setLink2IsIframe] = useState(metadata.link2IsIframe || false);
+  const [link3, setLink3] = useState(metadata.link3 || "");
+  const [link3Text, setLink3Text] = useState(metadata.link3Text || "");
+  const [link3IsIframe, setLink3IsIframe] = useState(metadata.link3IsIframe || false);
+  const [link4, setLink4] = useState(metadata.link4 || "");
+  const [link4Text, setLink4Text] = useState(metadata.link4Text || "");
+  const [link4IsIframe, setLink4IsIframe] = useState(metadata.link4IsIframe || false);
   const [description, setDescription] = useState(metadata.description || "");
 
   const processAndDetectIframe = (input: string): { url: string; isIframe: boolean } => {
@@ -62,6 +74,8 @@ export const SubsectionMetadataDialog = ({
   const handleSave = () => {
     const link1Result = processAndDetectIframe(link);
     const link2Result = processAndDetectIframe(link2);
+    const link3Result = processAndDetectIframe(link3);
+    const link4Result = processAndDetectIframe(link4);
     
     const newMetadata: SubsectionMetadata = {
       accountableOwner: accountableOwner || undefined,
@@ -71,6 +85,12 @@ export const SubsectionMetadataDialog = ({
       link2: link2Result.url || undefined,
       link2Text: link2Text || undefined,
       link2IsIframe: link2Result.isIframe || undefined,
+      link3: link3Result.url || undefined,
+      link3Text: link3Text || undefined,
+      link3IsIframe: link3Result.isIframe || undefined,
+      link4: link4Result.url || undefined,
+      link4Text: link4Text || undefined,
+      link4IsIframe: link4Result.isIframe || undefined,
       description: description || undefined,
       updated: new Date().toLocaleDateString('en-GB')
     };
@@ -108,15 +128,15 @@ export const SubsectionMetadataDialog = ({
             <Label>Link 1</Label>
             <div className="flex gap-2">
               <Input
-                value={link}
-                onChange={(e) => setLink(e.target.value)}
-                placeholder="Enter link URL..."
+                value={linkText}
+                onChange={(e) => setLinkText(e.target.value)}
+                placeholder="Link description (optional)"
                 className="flex-1 bg-white"
               />
               <Input
-                value={linkText}
-                onChange={(e) => setLinkText(e.target.value)}
-                placeholder="Link text (optional)"
+                value={link}
+                onChange={(e) => setLink(e.target.value)}
+                placeholder="Enter link URL..."
                 className="flex-1 bg-white"
               />
             </div>
@@ -126,15 +146,51 @@ export const SubsectionMetadataDialog = ({
             <Label>Link 2</Label>
             <div className="flex gap-2">
               <Input
+                value={link2Text}
+                onChange={(e) => setLink2Text(e.target.value)}
+                placeholder="Link description (optional)"
+                className="flex-1 bg-white"
+              />
+              <Input
                 value={link2}
                 onChange={(e) => setLink2(e.target.value)}
                 placeholder="Enter link URL..."
                 className="flex-1 bg-white"
               />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Link 3</Label>
+            <div className="flex gap-2">
               <Input
-                value={link2Text}
-                onChange={(e) => setLink2Text(e.target.value)}
-                placeholder="Link text (optional)"
+                value={link3Text}
+                onChange={(e) => setLink3Text(e.target.value)}
+                placeholder="Link description (optional)"
+                className="flex-1 bg-white"
+              />
+              <Input
+                value={link3}
+                onChange={(e) => setLink3(e.target.value)}
+                placeholder="Enter link URL..."
+                className="flex-1 bg-white"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Link 4</Label>
+            <div className="flex gap-2">
+              <Input
+                value={link4Text}
+                onChange={(e) => setLink4Text(e.target.value)}
+                placeholder="Link description (optional)"
+                className="flex-1 bg-white"
+              />
+              <Input
+                value={link4}
+                onChange={(e) => setLink4(e.target.value)}
+                placeholder="Enter link URL..."
                 className="flex-1 bg-white"
               />
             </div>
