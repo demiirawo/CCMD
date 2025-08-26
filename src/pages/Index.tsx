@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useAutoSave } from "@/hooks/useAutoSave";
 
+import { useMeetingEmailNotification } from "@/hooks/useMeetingEmailNotification";
 import { clearCompanyData, getTabId } from "@/utils/dataIsolationUtils";
 import { Attendee } from "@/components/TeamAttendeesDisplay";
 import { DashboardSection } from "@/components/DashboardSection";
@@ -2013,8 +2014,7 @@ const Index = () => {
         readOnly={!canEdit} 
       />
       
-      <div className="space-y-6">
-        {dashboardData.sections.filter(section => {
+      {dashboardData.sections.filter(section => {
           // Always show non-meeting-overview sections except for conditional ones
           if (section.id === "meeting-overview") return false;
 
@@ -2083,9 +2083,9 @@ const Index = () => {
             />
           );
         })}
+        </div>
       </div>
     </div>
-  </div>
   );
 };
 
