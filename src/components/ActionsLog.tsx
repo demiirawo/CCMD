@@ -67,13 +67,17 @@ export const ActionsLog = ({
   const isDynamicPanelColourEnabled = true;
   
   const [isExpanded, setIsExpanded] = useState(() => {
-    const saved = sessionStorage.getItem('actions_log_expanded');
+    const tabId = sessionStorage.getItem('__tab_id') || `tab_${Date.now()}`;
+    const isolatedStorageKey = `actions_log_expanded_${tabId}`;
+    const saved = sessionStorage.getItem(isolatedStorageKey);
     return saved !== null ? JSON.parse(saved) : false;
   });
   
   // Listen for panel state changes to sync with sessionStorage
   useEffect(() => {
-    const saved = sessionStorage.getItem('actions_log_expanded');
+    const tabId = sessionStorage.getItem('__tab_id') || `tab_${Date.now()}`;
+    const isolatedStorageKey = `actions_log_expanded_${tabId}`;
+    const saved = sessionStorage.getItem(isolatedStorageKey);
     const savedState = saved !== null ? JSON.parse(saved) : false;
     if (savedState !== isExpanded) {
       setIsExpanded(savedState);
