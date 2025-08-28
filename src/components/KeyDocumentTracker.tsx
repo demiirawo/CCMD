@@ -53,13 +53,17 @@ export const KeyDocumentTracker = ({
   const currentCompany = companies.find(c => c.id === profile?.company_id);
   const isDynamicPanelColourEnabled = true;
   const [isExpanded, setIsExpanded] = useState(() => {
-    const saved = sessionStorage.getItem('key_documents_expanded');
+    const tabId = sessionStorage.getItem('__tab_id') || `tab_${Date.now()}`;
+    const isolatedStorageKey = `key_documents_expanded_${tabId}`;
+    const saved = sessionStorage.getItem(isolatedStorageKey);
     return saved !== null ? JSON.parse(saved) : false;
   });
 
   // Listen for panel state changes to sync with sessionStorage
   useEffect(() => {
-    const saved = sessionStorage.getItem('key_documents_expanded');
+    const tabId = sessionStorage.getItem('__tab_id') || `tab_${Date.now()}`;
+    const isolatedStorageKey = `key_documents_expanded_${tabId}`;
+    const saved = sessionStorage.getItem(isolatedStorageKey);
     const savedState = saved !== null ? JSON.parse(saved) : false;
     if (savedState !== isExpanded) {
       setIsExpanded(savedState);

@@ -1834,10 +1834,11 @@ const Index = () => {
     const shouldExpand = areAllPanelsClosed();
 
     // Update Actions Log state
-    sessionStorage.setItem('actions_log_expanded', JSON.stringify(shouldExpand));
+    const tabId = sessionStorage.getItem('__tab_id') || `tab_${Date.now()}`;
+    sessionStorage.setItem(`actions_log_expanded_${tabId}`, JSON.stringify(shouldExpand));
 
     // Update Key Documents state
-    sessionStorage.setItem('key_documents_expanded', JSON.stringify(shouldExpand));
+    sessionStorage.setItem(`key_documents_expanded_${tabId}`, JSON.stringify(shouldExpand));
 
     // Update all dashboard section states
     const sectionKeys = dashboardData.sections.filter(section => section.id !== "meeting-overview").map(section => `section_${section.title.replace(/\s+/g, '_').toLowerCase()}_open`);
