@@ -1805,8 +1805,9 @@ const Index = () => {
 
   // Check if any individual panels are open
   const areAnyPanelsOpen = () => {
-    const actionsLogExpanded = JSON.parse(sessionStorage.getItem('actions_log_expanded') || 'false');
-    const keyDocsExpanded = JSON.parse(sessionStorage.getItem('key_documents_expanded') || 'false');
+    const tabId = sessionStorage.getItem('__tab_id') || `tab_${Date.now()}`;
+    const actionsLogExpanded = JSON.parse(sessionStorage.getItem(`actions_log_expanded_${tabId}`) || 'false');
+    const keyDocsExpanded = JSON.parse(sessionStorage.getItem(`key_documents_expanded_${tabId}`) || 'false');
 
     // Check if any dashboard sections are open - they default to TRUE when no storage value exists
     const sectionKeys = dashboardData.sections.filter(section => section.id !== "meeting-overview").map(section => `section_${section.title.replace(/\s+/g, '_').toLowerCase()}_open`);
@@ -1818,8 +1819,9 @@ const Index = () => {
     return actionsLogExpanded || keyDocsExpanded || anySectionOpen;
   };
   const areAllPanelsClosed = () => {
-    const actionsLogExpanded = JSON.parse(sessionStorage.getItem('actions_log_expanded') || 'false');
-    const keyDocsExpanded = JSON.parse(sessionStorage.getItem('key_documents_expanded') || 'false');
+    const tabId = sessionStorage.getItem('__tab_id') || `tab_${Date.now()}`;
+    const actionsLogExpanded = JSON.parse(sessionStorage.getItem(`actions_log_expanded_${tabId}`) || 'false');
+    const keyDocsExpanded = JSON.parse(sessionStorage.getItem(`key_documents_expanded_${tabId}`) || 'false');
 
     // Check if all dashboard sections are closed
     const sectionKeys = dashboardData.sections.filter(section => section.id !== "meeting-overview").map(section => `section_${section.title.replace(/\s+/g, '_').toLowerCase()}_open`);
