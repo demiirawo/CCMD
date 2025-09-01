@@ -1810,7 +1810,7 @@ const Index = () => {
     const keyDocsExpanded = JSON.parse(sessionStorage.getItem(`key_documents_expanded_${tabId}`) || 'false');
 
     // Check if any dashboard sections are open - they default to TRUE when no storage value exists
-    const sectionKeys = dashboardData.sections.filter(section => section.id !== "meeting-overview").map(section => `section_${section.title.replace(/\s+/g, '_').toLowerCase()}_open`);
+    const sectionKeys = dashboardData.sections.filter(section => section.id !== "meeting-overview").map(section => `section_${section.title.replace(/\s+/g, '_').toLowerCase()}_open_${tabId}`);
     const anySectionOpen = sectionKeys.some(key => {
       const stored = sessionStorage.getItem(key);
       // If no value stored, it defaults to true (open), otherwise use stored value
@@ -1824,7 +1824,7 @@ const Index = () => {
     const keyDocsExpanded = JSON.parse(sessionStorage.getItem(`key_documents_expanded_${tabId}`) || 'false');
 
     // Check if all dashboard sections are closed
-    const sectionKeys = dashboardData.sections.filter(section => section.id !== "meeting-overview").map(section => `section_${section.title.replace(/\s+/g, '_').toLowerCase()}_open`);
+    const sectionKeys = dashboardData.sections.filter(section => section.id !== "meeting-overview").map(section => `section_${section.title.replace(/\s+/g, '_').toLowerCase()}_open_${tabId}`);
     const allSectionsClosed = sectionKeys.every(key => {
       const stored = sessionStorage.getItem(key);
       // If no value stored, it defaults to true (open), otherwise use stored value
@@ -1843,7 +1843,7 @@ const Index = () => {
     sessionStorage.setItem(`key_documents_expanded_${tabId}`, JSON.stringify(shouldExpand));
 
     // Update all dashboard section states
-    const sectionKeys = dashboardData.sections.filter(section => section.id !== "meeting-overview").map(section => `section_${section.title.replace(/\s+/g, '_').toLowerCase()}_open`);
+    const sectionKeys = dashboardData.sections.filter(section => section.id !== "meeting-overview").map(section => `section_${section.title.replace(/\s+/g, '_').toLowerCase()}_open_${tabId}`);
     sectionKeys.forEach(key => {
       sessionStorage.setItem(key, JSON.stringify(shouldExpand));
     });
