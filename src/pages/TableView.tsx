@@ -75,6 +75,9 @@ const FIELD_TYPES = [{
 }, {
   value: 'rating',
   label: 'Rating'
+}, {
+  value: 'attachment',
+  label: 'Attachment'
 }];
 export const TableView = () => {
   const {
@@ -180,6 +183,8 @@ export const TableView = () => {
           defaultData[field.id] = 0;
         } else if (field.field_type === 'rating') {
           defaultData[field.id] = 0;
+        } else if (field.field_type === 'attachment') {
+          defaultData[field.id] = [];
         } else {
           defaultData[field.id] = '';
         }
@@ -397,9 +402,51 @@ export const TableView = () => {
     setEditingField(null);
     setEditFieldName('');
   };
+  const handleFileUpload = async (files: FileList, recordId: string, fieldId: string) => {
+    try {
+      const fileUrls: string[] = [];
+      
+      for (const file of Array.from(files)) {
+        const fileName = `${Date.now()}-${file.name}`;
+        const filePath = `${profile?.company_id}/${fileName}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('base-attachments')
+          .upload(filePath, file);
+        
+        if (uploadError) throw uploadError;
+        
+        const { data: { publicUrl } } = supabase.storage
+          .from('base-attachments')
+          .getPublicUrl(filePath);
+        
+        fileUrls.push(publicUrl);
+      }
+      
+      const currentValue = records.find(r => r.id === recordId)?.data[fieldId] || [];
+      const newValue = [...currentValue, ...fileUrls];
+      
+      await updateCellValue(recordId, fieldId, newValue);
+      setEditingCell(null);
+      
+      toast({
+        title: "Success",
+        description: `${files.length} file(s) uploaded successfully`
+      });
+    } catch (error) {
+      console.error('Error uploading files:', error);
+      toast({
+        title: "Error",
+        description: "Failed to upload files",
+        variant: "destructive"
+      });
+    }
+  };
+
   const renderEditableCell = (record: BaseRecord, field: BaseField) => {
     const isEditing = editingCell?.recordId === record.id && editingCell?.fieldId === field.id;
     const value = record.data[field.id];
+    
     if (isEditing) {
       if (field.field_type === 'checkbox') {
         return <Checkbox checked={editValue} onCheckedChange={checked => {
@@ -425,12 +472,53 @@ export const TableView = () => {
                 </SelectItem>)}
             </SelectContent>
           </Select>;
+      } else if (field.field_type === 'attachment') {
+        return <div className="w-full h-full relative">
+            <input
+              type="file"
+              multiple
+              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+              onChange={(e) => {
+                if (e.target.files && e.target.files.length > 0) {
+                  handleFileUpload(e.target.files, record.id, field.id);
+                }
+              }}
+            />
+            <div className="flex items-center justify-center h-full border-2 border-dashed border-muted-foreground/30 rounded text-sm text-muted-foreground">
+              Drop files or click to upload
+            </div>
+          </div>;
       } else if (field.field_type === 'long_text') {
         return <Textarea ref={editTextareaRef} value={editValue} onChange={e => setEditValue(e.target.value)} onKeyDown={handleCellKeyDown} onBlur={saveCellEdit} className="min-h-[60px] w-full resize-none" />;
       } else {
         return <Input ref={editInputRef} value={editValue} onChange={e => setEditValue(e.target.value)} onKeyDown={handleCellKeyDown} onBlur={saveCellEdit} type={field.field_type === 'number' || field.field_type === 'currency' || field.field_type === 'percent' ? 'number' : 'text'} className="w-full h-8 border-0 bg-transparent p-1" />;
       }
     }
+
+    // Handle drag and drop for attachment fields
+    if (field.field_type === 'attachment') {
+      return <div 
+        className="w-full h-full p-2 cursor-pointer hover:bg-muted/30 rounded relative"
+        onDoubleClick={() => handleCellDoubleClick(record.id, field.id, value)}
+        onDragOver={(e) => {
+          e.preventDefault();
+          e.currentTarget.classList.add('bg-primary/10', 'border-primary');
+        }}
+        onDragLeave={(e) => {
+          e.currentTarget.classList.remove('bg-primary/10', 'border-primary');
+        }}
+        onDrop={(e) => {
+          e.preventDefault();
+          e.currentTarget.classList.remove('bg-primary/10', 'border-primary');
+          if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+            handleFileUpload(e.dataTransfer.files, record.id, field.id);
+          }
+        }}
+      >
+        {renderCellValue(field, value)}
+      </div>;
+    }
+    
     return <div className="w-full h-full p-2 cursor-pointer hover:bg-muted/30 rounded" onDoubleClick={() => handleCellDoubleClick(record.id, field.id, value)}>
         {renderCellValue(field, value)}
       </div>;
@@ -450,6 +538,26 @@ export const TableView = () => {
         return value ? `${Number(value)}%` : '';
       case 'rating':
         return value ? '★'.repeat(Number(value)) + '☆'.repeat(5 - Number(value)) : '';
+      case 'attachment':
+        if (value && Array.isArray(value) && value.length > 0) {
+          return <div className="flex gap-1 flex-wrap">
+            {value.slice(0, 3).map((url: string, index: number) => {
+              const fileName = url.split('/').pop() || 'file';
+              const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(fileName);
+              
+              return <div key={index} className="flex items-center gap-1 bg-muted px-2 py-1 rounded text-xs max-w-[80px]">
+                {isImage ? (
+                  <img src={url} alt="attachment" className="w-4 h-4 object-cover rounded" />
+                ) : (
+                  <div className="w-4 h-4 bg-primary/20 rounded flex items-center justify-center text-[8px]">📎</div>
+                )}
+                <span className="truncate">{fileName.length > 8 ? fileName.substring(0, 8) + '...' : fileName}</span>
+              </div>;
+            })}
+            {value.length > 3 && <span className="text-xs text-muted-foreground">+{value.length - 3}</span>}
+          </div>;
+        }
+        return <span className="text-muted-foreground text-xs">No files</span>;
       case 'single_select':
         if (value && field.field_config?.options) {
           const option = field.field_config.options.find((opt: any) => opt.id === value);
