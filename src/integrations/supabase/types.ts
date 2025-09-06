@@ -176,6 +176,186 @@ export type Database = {
           },
         ]
       }
+      base_fields: {
+        Row: {
+          created_at: string
+          field_config: Json | null
+          field_type: string
+          id: string
+          is_required: boolean | null
+          name: string
+          position: number | null
+          table_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          field_config?: Json | null
+          field_type: string
+          id?: string
+          is_required?: boolean | null
+          name: string
+          position?: number | null
+          table_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          field_config?: Json | null
+          field_type?: string
+          id?: string
+          is_required?: boolean | null
+          name?: string
+          position?: number | null
+          table_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "base_fields_table_id_fkey"
+            columns: ["table_id"]
+            isOneToOne: false
+            referencedRelation: "base_tables"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      base_records: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          data: Json
+          deleted_at: string | null
+          id: string
+          position: number | null
+          table_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          data?: Json
+          deleted_at?: string | null
+          id?: string
+          position?: number | null
+          table_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          data?: Json
+          deleted_at?: string | null
+          id?: string
+          position?: number | null
+          table_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "base_records_table_id_fkey"
+            columns: ["table_id"]
+            isOneToOne: false
+            referencedRelation: "base_tables"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      base_tables: {
+        Row: {
+          color: string | null
+          company_id: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          icon: string | null
+          id: string
+          name: string
+          settings: Json | null
+          updated_at: string
+        }
+        Insert: {
+          color?: string | null
+          company_id: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          name: string
+          settings?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          color?: string | null
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          name?: string
+          settings?: Json | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      base_views: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          filters: Json | null
+          groups: Json | null
+          id: string
+          is_default: boolean | null
+          name: string
+          settings: Json | null
+          sorts: Json | null
+          table_id: string
+          updated_at: string
+          view_type: string | null
+          visible_fields: Json | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          filters?: Json | null
+          groups?: Json | null
+          id?: string
+          is_default?: boolean | null
+          name: string
+          settings?: Json | null
+          sorts?: Json | null
+          table_id: string
+          updated_at?: string
+          view_type?: string | null
+          visible_fields?: Json | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          filters?: Json | null
+          groups?: Json | null
+          id?: string
+          is_default?: boolean | null
+          name?: string
+          settings?: Json | null
+          sorts?: Json | null
+          table_id?: string
+          updated_at?: string
+          view_type?: string | null
+          visible_fields?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "base_views_table_id_fkey"
+            columns: ["table_id"]
+            isOneToOne: false
+            referencedRelation: "base_tables"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       care_notes_analytics: {
         Row: {
           company_id: string

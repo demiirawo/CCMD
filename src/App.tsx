@@ -21,6 +21,7 @@ import { AdminAuth } from "./pages/AdminAuth";
 import { CompanySelection } from "./pages/CompanySelection";
 import NotFound from "./pages/NotFound";
 import CompanyDashboard from "./pages/CompanyDashboard";
+import { Base } from "./pages/Base";
 
 const queryClient = new QueryClient();
 
@@ -73,6 +74,14 @@ const AppContent = () => {
             return <Navigate to="/company-selection" replace />;
           })()}
         </>
+      } />
+      <Route path="/base" element={
+        <ProtectedRoute requireCompany>
+          <>
+            <Navigation />
+            <Base />
+          </>
+        </ProtectedRoute>
       } />
       <Route path="/meetings" element={
         <ProtectedRoute requireCompany>
