@@ -9,9 +9,10 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ArrowLeft, Plus, Filter, ArrowUpDown as Sort, Search, MoreHorizontal, Settings, Type } from "lucide-react";
-import { toast } from "@/hooks/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { AttachmentPreviewDialog } from "@/components/AttachmentPreviewDialog";
 interface BaseField {
   id: string;
   name: string;
@@ -101,9 +102,16 @@ export const TableView = () => {
   const [editingField, setEditingField] = useState<string | null>(null);
   const [editValue, setEditValue] = useState<any>('');
   const [editFieldName, setEditFieldName] = useState('');
+  const [previewAttachments, setPreviewAttachments] = useState<{
+    recordId: string;
+    fieldId: string;
+    fieldName: string;
+    attachments: string[];
+  } | null>(null);
   const editInputRef = useRef<HTMLInputElement>(null);
   const editTextareaRef = useRef<HTMLTextAreaElement>(null);
   const fieldEditRef = useRef<HTMLInputElement>(null);
+  const { toast } = useToast();
   useEffect(() => {
     if (tableId && profile?.company_id) {
       loadTableData();
@@ -356,11 +364,24 @@ export const TableView = () => {
     }
   };
   const handleCellDoubleClick = (recordId: string, fieldId: string, currentValue: any) => {
-    setEditingCell({
-      recordId,
-      fieldId
-    });
-    setEditValue(currentValue || '');
+    const field = fields.find(f => f.id === fieldId);
+    
+    if (field?.field_type === 'attachment') {
+      // Open attachment preview dialog
+      setPreviewAttachments({
+        recordId,
+        fieldId,
+        fieldName: field.name,
+        attachments: currentValue || []
+      });
+    } else {
+      // Normal edit mode for other field types
+      setEditingCell({
+        recordId,
+        fieldId
+      });
+      setEditValue(currentValue || '');
+    }
   };
   const handleFieldDoubleClick = (fieldId: string, currentName: string) => {
     setEditingField(fieldId);
@@ -606,8 +627,25 @@ export const TableView = () => {
             <div className="h-8 bg-muted rounded w-1/3 mb-6"></div>
             <div className="h-96 bg-muted rounded"></div>
           </div>
-        </div>
-      </div>;
+      </div>
+
+      {/* Attachment Preview Dialog */}
+      {previewAttachments && (
+        <AttachmentPreviewDialog
+          isOpen={!!previewAttachments}
+          onClose={() => setPreviewAttachments(null)}
+          attachments={previewAttachments.attachments}
+          fieldName={previewAttachments.fieldName}
+          onUpdate={(newAttachments) => {
+            updateCellValue(previewAttachments.recordId, previewAttachments.fieldId, newAttachments);
+            setPreviewAttachments({
+              ...previewAttachments,
+              attachments: newAttachments
+            });
+          }}
+        />
+      )}
+    </div>;
   }
   if (!table) {
     return <div className="min-h-screen bg-background p-6 pt-20">
