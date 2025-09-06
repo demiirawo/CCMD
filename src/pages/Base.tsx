@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -26,6 +27,7 @@ interface BaseTable {
 
 export const Base = () => {
   const { profile } = useAuth();
+  const navigate = useNavigate();
   const [tables, setTables] = useState<BaseTable[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -137,6 +139,10 @@ export const Base = () => {
     }
   };
 
+  const openTable = (tableId: string) => {
+    navigate(`/base/table/${tableId}`);
+  };
+
   const filteredTables = tables.filter(table =>
     table.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     table.description?.toLowerCase().includes(searchQuery.toLowerCase())
@@ -221,7 +227,11 @@ export const Base = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {filteredTables.map((table) => (
-              <Card key={table.id} className="hover:shadow-md transition-shadow cursor-pointer group">
+              <Card 
+                key={table.id} 
+                className="hover:shadow-md transition-shadow cursor-pointer group"
+                onClick={() => openTable(table.id)}
+              >
                 <CardHeader className="pb-2">
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3">
@@ -248,7 +258,10 @@ export const Base = () => {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem>Open</DropdownMenuItem>
+                        <DropdownMenuItem onClick={(e) => {
+                          e.stopPropagation();
+                          openTable(table.id);
+                        }}>Open</DropdownMenuItem>
                         <DropdownMenuItem>Rename</DropdownMenuItem>
                         <DropdownMenuItem>Duplicate</DropdownMenuItem>
                         <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>

@@ -22,6 +22,7 @@ import { CompanySelection } from "./pages/CompanySelection";
 import NotFound from "./pages/NotFound";
 import CompanyDashboard from "./pages/CompanyDashboard";
 import { Base } from "./pages/Base";
+import { TableView } from "./pages/TableView";
 
 const queryClient = new QueryClient();
 
@@ -80,6 +81,14 @@ const AppContent = () => {
           <>
             <Navigation />
             <Base />
+          </>
+        </ProtectedRoute>
+      } />
+      <Route path="/base/table/:tableId" element={
+        <ProtectedRoute requireCompany>
+          <>
+            <Navigation />
+            <TableView />
           </>
         </ProtectedRoute>
       } />
