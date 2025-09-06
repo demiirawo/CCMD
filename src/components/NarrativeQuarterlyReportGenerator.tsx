@@ -360,20 +360,30 @@ export const NarrativeQuarterlyReportGenerator: React.FC<NarrativeQuarterlyRepor
         </CardContent>
       </Card>;
   }
+  
+  const navigateToReportBuilder = () => {
+    navigate(`/report-builder?quarter=${quarter}&year=${year}`);
+  };
+
   return <Card className="bg-transparent border-0 shadow-none">
       
       <CardContent className="p-0">
         
-        
-        <Button onClick={generateNarrativeReport} disabled={isGenerating || isLoading} className="w-full">
-          {isGenerating || isLoading ? <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Generating Report...
-            </> : <>
-              <FileText className="mr-2 h-4 w-4" />
-              Generate Report
-            </>}
-        </Button>
+        <div className="flex gap-2 w-full">
+          <Button onClick={generateNarrativeReport} disabled={isGenerating || isLoading} className="flex-1">
+            {isGenerating || isLoading ? <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Generating Report...
+              </> : <>
+                <FileText className="mr-2 h-4 w-4" />
+                Generate Report
+              </>}
+          </Button>
+          <Button variant="outline" onClick={navigateToReportBuilder} className="flex items-center gap-2">
+            <FileText className="h-4 w-4" />
+            Build Report
+          </Button>
+        </div>
       </CardContent>
     </Card>;
 };
