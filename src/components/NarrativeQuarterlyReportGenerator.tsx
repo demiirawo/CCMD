@@ -271,7 +271,7 @@ export const NarrativeQuarterlyReportGenerator: React.FC<NarrativeQuarterlyRepor
       const reportContent = await generateResponse([
         { role: 'system', content: 'You are an expert care service compliance report writer.' },
         { role: 'user', content: prompt }
-      ], 'gpt-4.1-2025-04-14');
+      ], 'gpt-5-mini-2025-08-07');
 
       if (reportContent) {
         // Save to Supabase with additional analytics/context
