@@ -6,47 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from "@/components/ui/select";
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from "@/components/ui/table";
-import { 
-  ArrowLeft, 
-  Plus, 
-  Filter, 
-  ArrowUpDown as Sort, 
-  Search,
-  MoreHorizontal,
-  Settings,
-  Type
-} from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { ArrowLeft, Plus, Filter, ArrowUpDown as Sort, Search, MoreHorizontal, Settings, Type } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-} from "@/components/ui/dropdown-menu";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 interface BaseField {
   id: string;
   name: string;
@@ -55,14 +20,12 @@ interface BaseField {
   is_required: boolean;
   position: number;
 }
-
 interface BaseRecord {
   id: string;
   data: any;
   created_at: string;
   updated_at: string;
 }
-
 interface BaseTableData {
   id: string;
   name: string;
@@ -70,72 +33,97 @@ interface BaseTableData {
   icon: string;
   color: string;
 }
-
-const FIELD_TYPES = [
-  { value: 'single_line', label: 'Single line text' },
-  { value: 'long_text', label: 'Long text' },
-  { value: 'single_select', label: 'Single select' },
-  { value: 'multi_select', label: 'Multi select' },
-  { value: 'checkbox', label: 'Checkbox' },
-  { value: 'number', label: 'Number' },
-  { value: 'currency', label: 'Currency (GBP)' },
-  { value: 'percent', label: 'Percent' },
-  { value: 'date', label: 'Date' },
-  { value: 'datetime', label: 'Date & Time' },
-  { value: 'email', label: 'Email' },
-  { value: 'url', label: 'URL' },
-  { value: 'phone', label: 'Phone' },
-  { value: 'rating', label: 'Rating' },
-];
-
+const FIELD_TYPES = [{
+  value: 'single_line',
+  label: 'Single line text'
+}, {
+  value: 'long_text',
+  label: 'Long text'
+}, {
+  value: 'single_select',
+  label: 'Single select'
+}, {
+  value: 'multi_select',
+  label: 'Multi select'
+}, {
+  value: 'checkbox',
+  label: 'Checkbox'
+}, {
+  value: 'number',
+  label: 'Number'
+}, {
+  value: 'currency',
+  label: 'Currency (GBP)'
+}, {
+  value: 'percent',
+  label: 'Percent'
+}, {
+  value: 'date',
+  label: 'Date'
+}, {
+  value: 'datetime',
+  label: 'Date & Time'
+}, {
+  value: 'email',
+  label: 'Email'
+}, {
+  value: 'url',
+  label: 'URL'
+}, {
+  value: 'phone',
+  label: 'Phone'
+}, {
+  value: 'rating',
+  label: 'Rating'
+}];
 export const TableView = () => {
-  const { tableId } = useParams<{ tableId: string }>();
+  const {
+    tableId
+  } = useParams<{
+    tableId: string;
+  }>();
   const navigate = useNavigate();
-  const { profile } = useAuth();
-  
+  const {
+    profile
+  } = useAuth();
   const [table, setTable] = useState<BaseTableData | null>(null);
   const [fields, setFields] = useState<BaseField[]>([]);
   const [records, setRecords] = useState<BaseRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [editingCell, setEditingCell] = useState<{recordId: string, fieldId: string} | null>(null);
+  const [editingCell, setEditingCell] = useState<{
+    recordId: string;
+    fieldId: string;
+  } | null>(null);
   const [editingField, setEditingField] = useState<string | null>(null);
   const [editValue, setEditValue] = useState<any>('');
   const [editFieldName, setEditFieldName] = useState('');
-  
   const editInputRef = useRef<HTMLInputElement>(null);
   const editTextareaRef = useRef<HTMLTextAreaElement>(null);
   const fieldEditRef = useRef<HTMLInputElement>(null);
-
   useEffect(() => {
     if (tableId && profile?.company_id) {
       loadTableData();
     }
   }, [tableId, profile?.company_id]);
-
   useEffect(() => {
     if (editingCell && editInputRef.current) {
       editInputRef.current.focus();
     }
   }, [editingCell]);
-
   useEffect(() => {
     if (editingField && fieldEditRef.current) {
       fieldEditRef.current.focus();
       fieldEditRef.current.select();
     }
   }, [editingField]);
-
   const loadTableData = async () => {
     try {
       // Load table info
-      const { data: tableData, error: tableError } = await supabase
-        .from('base_tables')
-        .select('*')
-        .eq('id', tableId)
-        .eq('company_id', profile?.company_id)
-        .single();
-
+      const {
+        data: tableData,
+        error: tableError
+      } = await supabase.from('base_tables').select('*').eq('id', tableId).eq('company_id', profile?.company_id).single();
       if (tableError) {
         if (tableError.code === 'PGRST116') {
           toast({
@@ -148,30 +136,25 @@ export const TableView = () => {
         }
         throw tableError;
       }
-
       setTable(tableData);
 
       // Load fields
-      const { data: fieldsData, error: fieldsError } = await supabase
-        .from('base_fields')
-        .select('*')
-        .eq('table_id', tableId)
-        .order('position');
-
+      const {
+        data: fieldsData,
+        error: fieldsError
+      } = await supabase.from('base_fields').select('*').eq('table_id', tableId).order('position');
       if (fieldsError) throw fieldsError;
       setFields(fieldsData || []);
 
       // Load records
-      const { data: recordsData, error: recordsError } = await supabase
-        .from('base_records')
-        .select('*')
-        .eq('table_id', tableId)
-        .is('deleted_at', null)
-        .order('created_at', { ascending: false });
-
+      const {
+        data: recordsData,
+        error: recordsError
+      } = await supabase.from('base_records').select('*').eq('table_id', tableId).is('deleted_at', null).order('created_at', {
+        ascending: false
+      });
       if (recordsError) throw recordsError;
       setRecords(recordsData || []);
-
     } catch (error) {
       console.error('Error loading table data:', error);
       toast({
@@ -183,10 +166,8 @@ export const TableView = () => {
       setLoading(false);
     }
   };
-
   const addRecord = async () => {
     if (!tableId || !profile?.company_id) return;
-
     try {
       // Create a new empty record with default values
       const defaultData: Record<string, any> = {};
@@ -203,20 +184,15 @@ export const TableView = () => {
           defaultData[field.id] = '';
         }
       });
-
-      const { data, error } = await supabase
-        .from('base_records')
-        .insert({
-          table_id: tableId,
-          data: defaultData
-        })
-        .select()
-        .single();
-
+      const {
+        data,
+        error
+      } = await supabase.from('base_records').insert({
+        table_id: tableId,
+        data: defaultData
+      }).select().single();
       if (error) throw error;
-
       setRecords([data, ...records]);
-      
       toast({
         title: "Success",
         description: "New record added"
@@ -230,10 +206,8 @@ export const TableView = () => {
       });
     }
   };
-
   const addField = async () => {
     if (!tableId) return;
-
     try {
       const newField = {
         table_id: tableId,
@@ -243,17 +217,13 @@ export const TableView = () => {
         is_required: false,
         field_config: {}
       };
-
-      const { data, error } = await supabase
-        .from('base_fields')
-        .insert(newField)
-        .select()
-        .single();
-
+      const {
+        data,
+        error
+      } = await supabase.from('base_fields').insert(newField).select().single();
       if (error) throw error;
-
       setFields([...fields, data]);
-      
+
       // Update all existing records to include the new field
       const updatedRecords = records.map(record => ({
         ...record,
@@ -262,16 +232,12 @@ export const TableView = () => {
           [data.id]: ''
         }
       }));
-
       for (const record of updatedRecords) {
-        await supabase
-          .from('base_records')
-          .update({ data: record.data })
-          .eq('id', record.id);
+        await supabase.from('base_records').update({
+          data: record.data
+        }).eq('id', record.id);
       }
-
       setRecords(updatedRecords);
-
       toast({
         title: "Success",
         description: "New field added"
@@ -285,30 +251,24 @@ export const TableView = () => {
       });
     }
   };
-
   const updateCellValue = async (recordId: string, fieldId: string, value: any) => {
     try {
       const record = records.find(r => r.id === recordId);
       if (!record) return;
-
       const updatedData = {
         ...record.data,
         [fieldId]: value
       };
-
-      const { error } = await supabase
-        .from('base_records')
-        .update({ data: updatedData })
-        .eq('id', recordId);
-
+      const {
+        error
+      } = await supabase.from('base_records').update({
+        data: updatedData
+      }).eq('id', recordId);
       if (error) throw error;
-
-      setRecords(records.map(r => 
-        r.id === recordId 
-          ? { ...r, data: updatedData }
-          : r
-      ));
-
+      setRecords(records.map(r => r.id === recordId ? {
+        ...r,
+        data: updatedData
+      } : r));
     } catch (error) {
       console.error('Error updating cell:', error);
       toast({
@@ -318,22 +278,18 @@ export const TableView = () => {
       });
     }
   };
-
   const updateFieldName = async (fieldId: string, newName: string) => {
     try {
-      const { error } = await supabase
-        .from('base_fields')
-        .update({ name: newName })
-        .eq('id', fieldId);
-
+      const {
+        error
+      } = await supabase.from('base_fields').update({
+        name: newName
+      }).eq('id', fieldId);
       if (error) throw error;
-
-      setFields(fields.map(f => 
-        f.id === fieldId 
-          ? { ...f, name: newName }
-          : f
-      ));
-
+      setFields(fields.map(f => f.id === fieldId ? {
+        ...f,
+        name: newName
+      } : f));
       toast({
         title: "Success",
         description: "Field name updated"
@@ -347,39 +303,40 @@ export const TableView = () => {
       });
     }
   };
-
   const updateFieldType = async (fieldId: string, newType: string) => {
     try {
       let fieldConfig = {};
-      
+
       // Set default config for certain field types
       if (newType === 'single_select' || newType === 'multi_select') {
         fieldConfig = {
-          options: [
-            { id: '1', name: 'Option 1', color: '#10b981' },
-            { id: '2', name: 'Option 2', color: '#3b82f6' }
-          ]
+          options: [{
+            id: '1',
+            name: 'Option 1',
+            color: '#10b981'
+          }, {
+            id: '2',
+            name: 'Option 2',
+            color: '#3b82f6'
+          }]
         };
       } else if (newType === 'rating') {
-        fieldConfig = { max: 5 };
+        fieldConfig = {
+          max: 5
+        };
       }
-
-      const { error } = await supabase
-        .from('base_fields')
-        .update({ 
-          field_type: newType,
-          field_config: fieldConfig
-        })
-        .eq('id', fieldId);
-
+      const {
+        error
+      } = await supabase.from('base_fields').update({
+        field_type: newType,
+        field_config: fieldConfig
+      }).eq('id', fieldId);
       if (error) throw error;
-
-      setFields(fields.map(f => 
-        f.id === fieldId 
-          ? { ...f, field_type: newType, field_config: fieldConfig }
-          : f
-      ));
-
+      setFields(fields.map(f => f.id === fieldId ? {
+        ...f,
+        field_type: newType,
+        field_config: fieldConfig
+      } : f));
       toast({
         title: "Success",
         description: "Field type updated"
@@ -393,17 +350,17 @@ export const TableView = () => {
       });
     }
   };
-
   const handleCellDoubleClick = (recordId: string, fieldId: string, currentValue: any) => {
-    setEditingCell({ recordId, fieldId });
+    setEditingCell({
+      recordId,
+      fieldId
+    });
     setEditValue(currentValue || '');
   };
-
   const handleFieldDoubleClick = (fieldId: string, currentName: string) => {
     setEditingField(fieldId);
     setEditFieldName(currentName);
   };
-
   const handleCellKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' || e.key === 'Tab') {
       e.preventDefault();
@@ -412,7 +369,6 @@ export const TableView = () => {
       cancelCellEdit();
     }
   };
-
   const handleFieldKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       e.preventDefault();
@@ -421,111 +377,64 @@ export const TableView = () => {
       cancelFieldEdit();
     }
   };
-
   const saveCellEdit = () => {
     if (!editingCell) return;
-    
     updateCellValue(editingCell.recordId, editingCell.fieldId, editValue);
     setEditingCell(null);
     setEditValue('');
   };
-
   const saveFieldEdit = () => {
     if (!editingField) return;
-    
     updateFieldName(editingField, editFieldName);
     setEditingField(null);
     setEditFieldName('');
   };
-
   const cancelCellEdit = () => {
     setEditingCell(null);
     setEditValue('');
   };
-
   const cancelFieldEdit = () => {
     setEditingField(null);
     setEditFieldName('');
   };
-
   const renderEditableCell = (record: BaseRecord, field: BaseField) => {
     const isEditing = editingCell?.recordId === record.id && editingCell?.fieldId === field.id;
     const value = record.data[field.id];
-
     if (isEditing) {
       if (field.field_type === 'checkbox') {
-        return (
-          <Checkbox
-            checked={editValue}
-            onCheckedChange={(checked) => {
-              setEditValue(checked);
-              updateCellValue(record.id, field.id, checked);
-              setEditingCell(null);
-            }}
-          />
-        );
+        return <Checkbox checked={editValue} onCheckedChange={checked => {
+          setEditValue(checked);
+          updateCellValue(record.id, field.id, checked);
+          setEditingCell(null);
+        }} />;
       } else if (field.field_type === 'single_select') {
-        return (
-          <Select
-            value={editValue || ''}
-            onValueChange={(newValue) => {
-              setEditValue(newValue);
-              updateCellValue(record.id, field.id, newValue);
-              setEditingCell(null);
-            }}
-          >
+        return <Select value={editValue || ''} onValueChange={newValue => {
+          setEditValue(newValue);
+          updateCellValue(record.id, field.id, newValue);
+          setEditingCell(null);
+        }}>
             <SelectTrigger className="w-full h-8">
               <SelectValue />
             </SelectTrigger>
             <SelectContent className="bg-background border shadow-md z-50">
-              {field.field_config?.options?.map((option: any) => (
-                <SelectItem key={option.id} value={option.id}>
-                  <span 
-                    className="inline-block w-3 h-3 rounded mr-2"
-                    style={{ backgroundColor: option.color }}
-                  ></span>
+              {field.field_config?.options?.map((option: any) => <SelectItem key={option.id} value={option.id}>
+                  <span className="inline-block w-3 h-3 rounded mr-2" style={{
+                backgroundColor: option.color
+              }}></span>
                   {option.name}
-                </SelectItem>
-              ))}
+                </SelectItem>)}
             </SelectContent>
-          </Select>
-        );
+          </Select>;
       } else if (field.field_type === 'long_text') {
-        return (
-          <Textarea
-            ref={editTextareaRef}
-            value={editValue}
-            onChange={(e) => setEditValue(e.target.value)}
-            onKeyDown={handleCellKeyDown}
-            onBlur={saveCellEdit}
-            className="min-h-[60px] w-full resize-none"
-          />
-        );
+        return <Textarea ref={editTextareaRef} value={editValue} onChange={e => setEditValue(e.target.value)} onKeyDown={handleCellKeyDown} onBlur={saveCellEdit} className="min-h-[60px] w-full resize-none" />;
       } else {
-        return (
-          <Input
-            ref={editInputRef}
-            value={editValue}
-            onChange={(e) => setEditValue(e.target.value)}
-            onKeyDown={handleCellKeyDown}
-            onBlur={saveCellEdit}
-            type={field.field_type === 'number' || field.field_type === 'currency' || field.field_type === 'percent' ? 'number' : 'text'}
-            className="w-full h-8 border-0 bg-transparent p-1"
-          />
-        );
+        return <Input ref={editInputRef} value={editValue} onChange={e => setEditValue(e.target.value)} onKeyDown={handleCellKeyDown} onBlur={saveCellEdit} type={field.field_type === 'number' || field.field_type === 'currency' || field.field_type === 'percent' ? 'number' : 'text'} className="w-full h-8 border-0 bg-transparent p-1" />;
       }
     }
-
-    return (
-      <div
-        className="w-full h-full p-2 cursor-pointer hover:bg-muted/30 rounded"
-        onDoubleClick={() => handleCellDoubleClick(record.id, field.id, value)}
-      >
+    return <div className="w-full h-full p-2 cursor-pointer hover:bg-muted/30 rounded" onDoubleClick={() => handleCellDoubleClick(record.id, field.id, value)}>
         {renderCellValue(field, value)}
-      </div>
-    );
+      </div>;
   };
-
   const renderCellValue = (field: BaseField, value: any) => {
     switch (field.field_type) {
       case 'single_line':
@@ -544,52 +453,28 @@ export const TableView = () => {
       case 'single_select':
         if (value && field.field_config?.options) {
           const option = field.field_config.options.find((opt: any) => opt.id === value);
-          return option ? (
-            <span 
-              className="px-2 py-1 rounded text-xs text-white"
-              style={{ backgroundColor: option.color }}
-            >
+          return option ? <span className="px-2 py-1 rounded text-xs text-white" style={{
+            backgroundColor: option.color
+          }}>
               {option.name}
-            </span>
-          ) : '';
+            </span> : '';
         }
         return '';
       default:
         return value ? String(value) : '';
     }
   };
-
   const renderEditableFieldHeader = (field: BaseField) => {
     const isEditing = editingField === field.id;
-
-    return (
-      <div className="flex items-center justify-between group">
-        {isEditing ? (
-          <Input
-            ref={fieldEditRef}
-            value={editFieldName}
-            onChange={(e) => setEditFieldName(e.target.value)}
-            onKeyDown={handleFieldKeyDown}
-            onBlur={saveFieldEdit}
-            className="h-8 border-0 bg-transparent p-0 font-medium"
-          />
-        ) : (
-          <span
-            className="cursor-pointer font-medium"
-            onDoubleClick={() => handleFieldDoubleClick(field.id, field.name)}
-          >
+    return <div className="flex items-center justify-between group">
+        {isEditing ? <Input ref={fieldEditRef} value={editFieldName} onChange={e => setEditFieldName(e.target.value)} onKeyDown={handleFieldKeyDown} onBlur={saveFieldEdit} className="h-8 border-0 bg-transparent p-0 font-medium" /> : <span className="cursor-pointer font-medium" onDoubleClick={() => handleFieldDoubleClick(field.id, field.name)}>
             {field.name}
             {field.is_required && <span className="text-destructive ml-1">*</span>}
-          </span>
-        )}
+          </span>}
         
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-            >
+            <Button variant="ghost" size="sm" className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity">
               <Settings className="h-3 w-3" />
             </Button>
           </DropdownMenuTrigger>
@@ -599,37 +484,25 @@ export const TableView = () => {
               Rename
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            {FIELD_TYPES.map((type) => (
-              <DropdownMenuItem 
-                key={type.value}
-                onClick={() => updateFieldType(field.id, type.value)}
-                className={field.field_type === type.value ? 'bg-muted' : ''}
-              >
+            {FIELD_TYPES.map(type => <DropdownMenuItem key={type.value} onClick={() => updateFieldType(field.id, type.value)} className={field.field_type === type.value ? 'bg-muted' : ''}>
                 {type.label}
-              </DropdownMenuItem>
-            ))}
+              </DropdownMenuItem>)}
           </DropdownMenuContent>
         </DropdownMenu>
-      </div>
-    );
+      </div>;
   };
-
   if (loading) {
-    return (
-      <div className="min-h-screen bg-background p-6 pt-20">
+    return <div className="min-h-screen bg-background p-6 pt-20">
         <div className="max-w-7xl mx-auto">
           <div className="animate-pulse">
             <div className="h-8 bg-muted rounded w-1/3 mb-6"></div>
             <div className="h-96 bg-muted rounded"></div>
           </div>
         </div>
-      </div>
-    );
+      </div>;
   }
-
   if (!table) {
-    return (
-      <div className="min-h-screen bg-background p-6 pt-20">
+    return <div className="min-h-screen bg-background p-6 pt-20">
         <div className="max-w-7xl mx-auto text-center">
           <h1 className="text-2xl font-semibold mb-4">Table not found</h1>
           <Button onClick={() => navigate('/base')}>
@@ -637,33 +510,20 @@ export const TableView = () => {
             Back to Base
           </Button>
         </div>
-      </div>
-    );
+      </div>;
   }
-
-  return (
-    <div className="min-h-screen bg-background">
+  return <div className="min-h-screen bg-background">
       {/* Header */}
       <div className="border-b bg-card">
         <div className="max-w-7xl mx-auto px-6 py-4 pt-20">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={() => navigate('/base')}
-                className="gap-2"
-              >
+              <Button variant="ghost" size="sm" onClick={() => navigate('/base')} className="gap-2">
                 <ArrowLeft className="h-4 w-4" />
                 Back
               </Button>
               <div className="flex items-center gap-3">
-                <div 
-                  className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-lg"
-                  style={{ backgroundColor: table.color }}
-                >
-                  {table.icon}
-                </div>
+                
                 <div>
                   <h1 className="text-xl font-semibold text-foreground">{table.name}</h1>
                   <p className="text-sm text-muted-foreground">{records.length} records</p>
@@ -698,12 +558,7 @@ export const TableView = () => {
         <div className="flex items-center gap-4 mb-6">
           <div className="relative flex-1 max-w-sm">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search records..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
-            />
+            <Input placeholder="Search records..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-10" />
           </div>
         </div>
 
@@ -713,13 +568,11 @@ export const TableView = () => {
             <Table>
               <TableHeader>
                 <TableRow className="hover:bg-transparent">
-                  {fields.map((field) => (
-                    <TableHead key={field.id} className="font-medium border-r min-w-[150px] p-0">
+                  {fields.map(field => <TableHead key={field.id} className="font-medium border-r min-w-[150px] p-0">
                       <div className="p-3">
                         {renderEditableFieldHeader(field)}
                       </div>
-                    </TableHead>
-                  ))}
+                    </TableHead>)}
                   <TableHead className="w-12 p-3">
                     <Button onClick={addField} variant="ghost" size="sm" className="h-6 w-6 p-0">
                       <Plus className="h-3 w-3" />
@@ -728,23 +581,14 @@ export const TableView = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {records.length === 0 ? (
-                  <TableRow>
-                    <TableCell 
-                      colSpan={fields.length + 1} 
-                      className="text-center py-12 text-muted-foreground"
-                    >
+                {records.length === 0 ? <TableRow>
+                    <TableCell colSpan={fields.length + 1} className="text-center py-12 text-muted-foreground">
                       No records yet. Click "Add Record" to get started.
                     </TableCell>
-                  </TableRow>
-                ) : (
-                  records.map((record) => (
-                    <TableRow key={record.id} className="hover:bg-muted/30">
-                      {fields.map((field) => (
-                        <TableCell key={field.id} className="border-r p-0 h-12">
+                  </TableRow> : records.map(record => <TableRow key={record.id} className="hover:bg-muted/30">
+                      {fields.map(field => <TableCell key={field.id} className="border-r p-0 h-12">
                           {renderEditableCell(record, field)}
-                        </TableCell>
-                      ))}
+                        </TableCell>)}
                       <TableCell className="p-2">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
@@ -758,14 +602,11 @@ export const TableView = () => {
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </TableCell>
-                    </TableRow>
-                  ))
-                )}
+                    </TableRow>)}
               </TableBody>
             </Table>
           </div>
         </div>
       </div>
-    </div>
-  );
+    </div>;
 };
