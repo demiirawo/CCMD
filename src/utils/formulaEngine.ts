@@ -700,7 +700,25 @@ class FormulaEvaluator {
   private toDate(value: FormulaValue): Date {
     if (value instanceof Date) return value;
     if (typeof value === 'string') {
-      // Strict European date parsing - only DD/MM/YYYY and DD/MM/YYYY HH:mm[:ss]
+      // Handle ISO format dates from database (YYYY-MM-DD)
+      const isoDateMatch = value.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+      if (isoDateMatch) {
+        const [, year, month, day] = isoDateMatch;
+        const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+        if (isValid(date)) {
+          return date;
+        }
+      }
+      
+      // Handle ISO datetime format (YYYY-MM-DDTHH:mm:ss.sssZ)
+      if (value.includes('T') && (value.includes('Z') || value.includes('+'))) {
+        const date = new Date(value);
+        if (isValid(date)) {
+          return date;
+        }
+      }
+      
+      // Strict European date parsing - DD/MM/YYYY and DD/MM/YYYY HH:mm[:ss]
       
       // Check for DD/MM/YYYY HH:mm:ss format
       const fullDateTimeMatch = value.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2}):(\d{2})$/);
@@ -735,8 +753,8 @@ class FormulaEvaluator {
         return date;
       }
       
-      // Reject all other formats including ISO dates, US dates, etc.
-      throw new Error('Date must be in DD/MM/YYYY format');
+      // Reject all other formats
+      throw new Error('Date must be in DD/MM/YYYY format or valid ISO format');
     }
     if (typeof value === 'number') return new Date(value);
     throw new Error('Cannot convert to date');
