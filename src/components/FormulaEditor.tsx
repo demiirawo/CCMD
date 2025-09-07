@@ -119,7 +119,7 @@ export const FormulaEditor = ({ isOpen, onClose, onSave, initialFormula = '', fi
                 value={formula}
                 onChange={(e) => setFormula(e.target.value)}
                 placeholder="Enter your formula here..."
-                className="min-h-32 font-mono text-sm"
+                className="min-h-32 font-mono text-sm bg-white"
               />
             </div>
             
