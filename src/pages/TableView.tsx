@@ -729,11 +729,11 @@ export const TableView = () => {
           handleFileUpload(e.dataTransfer.files, record.id, field.id);
         }
       }}>
-        {renderCellValue(field, value)}
+        {renderCellValue(field, value, record)}
       </div>;
     }
     return <div className="w-full h-full p-2 cursor-pointer hover:bg-muted/30 rounded" onDoubleClick={() => handleCellDoubleClick(record.id, field.id, value)}>
-        {renderCellValue(field, value)}
+        {renderCellValue(field, value, record)}
       </div>;
   };
   const renderCellValue = (field: BaseField, value: any, record?: BaseRecord) => {
