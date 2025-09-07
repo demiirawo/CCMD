@@ -69,7 +69,7 @@ export const MeetingDateTimePicker = ({
             {date ? format(date, "dd/MM/yyyy") : <span>Pick a date (DD/MM/YYYY)</span>}
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-auto p-0" align="start">
+        <PopoverContent className="w-auto p-0 bg-white" align="start">
           <Calendar mode="single" selected={date} onSelect={handleDateSelect} initialFocus className={cn("p-3 pointer-events-auto bg-white")} />
         </PopoverContent>
       </Popover>

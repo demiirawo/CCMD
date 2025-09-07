@@ -160,7 +160,7 @@ export const AddMeetingDialog = ({
                   {formData.date ? format(formData.date, "PPP") : "Pick a date"}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0">
+              <PopoverContent className="w-auto p-0 bg-white">
                 <Calendar mode="single" selected={formData.date} onSelect={date => setFormData({
                 ...formData,
                 date

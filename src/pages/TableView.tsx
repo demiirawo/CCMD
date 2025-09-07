@@ -1692,7 +1692,7 @@ export const TableView = () => {
                 {dateValue ? format(dateValue, "dd/MM/yyyy") : <span>Pick a date</span>}
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
+            <PopoverContent className="w-auto p-0 bg-white" align="start">
               <CalendarComponent mode="single" selected={dateValue} onSelect={date => {
               if (date) {
                 const isoString = field.field_type === 'datetime' ? date.toISOString() : date.toISOString().split('T')[0];
