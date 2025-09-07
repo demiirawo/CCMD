@@ -21,6 +21,7 @@ import { FormulaEditor } from "@/components/FormulaEditor";
 import { FormulaCell } from "@/components/FormulaCell";
 import { FieldConfigDialog } from "@/components/FieldConfigDialog";
 import { ShareDialog } from "@/components/ShareDialog";
+import { TableHistoryDialog } from "@/components/TableHistoryDialog";
 interface BaseField {
   id: string;
   name: string;
@@ -972,6 +973,11 @@ export const TableView = () => {
                 <Plus className="h-4 w-4" />
                 Add Record
               </Button>
+              <TableHistoryDialog 
+                tableId={tableId || ''} 
+                tableName={table?.name || 'Table'} 
+                onRestoreCallback={loadTableData}
+              />
               <ShareDialog tableId={tableId} tableName={table?.name || 'Table'} />
             </div>
           </div>
