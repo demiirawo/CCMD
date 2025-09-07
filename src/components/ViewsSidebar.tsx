@@ -287,7 +287,7 @@ export const ViewsSidebar: React.FC<ViewsSidebarProps> = ({
       </div>
 
       <ScrollArea className="flex-1">
-        <div className="p-2">
+        <div className="p-2 bg-white">
           {/* All Views option */}
           <div
             className={`flex items-center gap-2 px-3 py-2 text-sm rounded-md cursor-pointer hover:bg-accent/50 mb-4 ${
