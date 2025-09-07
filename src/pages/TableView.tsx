@@ -996,13 +996,17 @@ export const TableView = () => {
 
   const handleCellRightClick = (e: React.MouseEvent, recordId: string, fieldId: string) => {
     e.preventDefault();
+    e.stopPropagation();
+    console.log('Right click detected on cell:', recordId, fieldId);
     const cellId = getCellId(recordId, fieldId);
     
     // If right-clicking on an unselected cell, select only that cell
     if (!selectedCells.has(cellId)) {
+      console.log('Selecting cell:', cellId);
       setSelectedCells(new Set([cellId]));
     }
     
+    console.log('Opening context menu at:', e.clientX, e.clientY);
     setMultiSelectContextMenu({
       isOpen: true,
       x: e.clientX,
@@ -1013,9 +1017,10 @@ export const TableView = () => {
   // Multi-selection actions
   const deleteSelectedCells = async () => {
     try {
-      console.log('deleteSelectedCells called, selectedCells:', selectedCells);
+      console.log('deleteSelectedCells called with', selectedCells.size, 'cells selected');
       
       if (selectedCells.size === 0) {
+        console.log('No cells selected for clearing');
         toast({
           title: "No cells selected",
           description: "Please select cells to clear",
@@ -1088,9 +1093,10 @@ export const TableView = () => {
 
   const deleteSelectedRows = async () => {
     try {
-      console.log('deleteSelectedRows called, selectedCells:', selectedCells);
+      console.log('deleteSelectedRows called with', selectedCells.size, 'cells selected');
       
       if (selectedCells.size === 0) {
+        console.log('No cells selected for row deletion');
         toast({
           title: "No cells selected",
           description: "Please select cells in the rows you want to delete",
@@ -1108,6 +1114,7 @@ export const TableView = () => {
       console.log('Records to delete:', Array.from(recordIds));
       
       if (recordIds.size === 0) {
+        console.log('No valid record IDs found');
         toast({
           title: "No rows selected",
           description: "Please select cells in the rows you want to delete",
@@ -1116,7 +1123,15 @@ export const TableView = () => {
         return;
       }
       
-      // Delete records in parallel using the existing deleteRecord function
+      // Confirm deletion
+      const confirmMessage = `Are you sure you want to delete ${recordIds.size} row${recordIds.size !== 1 ? 's' : ''}?\n\nThis action cannot be undone.`;
+      if (!window.confirm(confirmMessage)) {
+        console.log('User cancelled row deletion');
+        setMultiSelectContextMenu({ isOpen: false, x: 0, y: 0 });
+        return;
+      }
+      
+      // Delete records in parallel
       const deletePromises = Array.from(recordIds).map(async (recordId) => {
         console.log('Deleting record:', recordId);
         const { error } = await supabase
@@ -1156,15 +1171,29 @@ export const TableView = () => {
   const deleteSelectedColumns = async () => {
     try {
       console.log('deleteSelectedColumns called, selectedCells:', selectedCells);
+      
+      if (selectedCells.size === 0) {
+        console.log('No cells selected for column deletion');
+        toast({
+          title: "No columns selected",
+          description: "Please select cells in the columns you want to delete",
+          variant: "destructive"
+        });
+        return;
+      }
+      
       const fieldIds = new Set<string>();
       selectedCells.forEach(cellId => {
         const [, fieldId] = cellId.split('-');
-        fieldIds.add(fieldId);
+        if (fieldId) {
+          fieldIds.add(fieldId);
+        }
       });
       
       console.log('Fields to delete:', Array.from(fieldIds));
       
       if (fieldIds.size === 0) {
+        console.log('No valid field IDs found');
         toast({
           title: "No columns selected",
           description: "Please select cells in the columns you want to delete",
@@ -1178,20 +1207,25 @@ export const TableView = () => {
         return field ? field.name : 'Unknown';
       }).join(', ');
       
-      // Single confirmation dialog for all columns
+      // Single confirmation using window.confirm to avoid multiple dialogs
       const confirmMessage = `Are you sure you want to delete ${fieldIds.size} column${fieldIds.size !== 1 ? 's' : ''} (${fieldNames})?\n\nThis action cannot be undone and will remove all data in these columns.`;
       
-      if (!confirm(confirmMessage)) {
+      if (!window.confirm(confirmMessage)) {
+        console.log('User cancelled column deletion');
+        setMultiSelectContextMenu({ isOpen: false, x: 0, y: 0 });
         return;
       }
       
       console.log('User confirmed deletion, proceeding...');
       
-      // Delete all fields from database (no individual confirmations)
+      // Delete all fields from database in parallel
       const deleteFieldPromises = Array.from(fieldIds).map(async (fieldId) => {
         console.log('Deleting field:', fieldId);
         const { error } = await supabase.from('base_fields').delete().eq('id', fieldId);
-        if (error) throw error;
+        if (error) {
+          console.error('Error deleting field:', fieldId, error);
+          throw error;
+        }
         return fieldId;
       });
       
