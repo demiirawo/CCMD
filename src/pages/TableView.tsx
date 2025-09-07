@@ -995,7 +995,11 @@ export const TableView = () => {
         mode: 'conditions',
         conditions: []
       };
-      console.log('🎨 Loading color settings:', viewColorSettings);
+      console.log('🎨 Loading color settings from database:', {
+        rawViewSettings: viewSettings,
+        extractedColorSettings: viewColorSettings,
+        currentColorSettings: colorSettings
+      });
       setColorSettings(viewColorSettings);
       
       // Small delay to ensure state is applied and validate
@@ -1015,14 +1019,29 @@ export const TableView = () => {
           colorSettings: colorSettings
         };
         
-        console.log('🔍 Current actual state:', currentState);
+        console.log('🔍 Current actual state after timeout:', currentState);
+        console.log('🎯 Expected color settings:', viewColorSettings);
+        console.log('🎯 Actual color settings:', colorSettings);
         
-        // Check if color settings match
-        if (JSON.stringify(currentState.colorSettings) !== JSON.stringify(viewColorSettings)) {
+        // More robust color settings comparison
+        const expectedColorJson = JSON.stringify(viewColorSettings);
+        const actualColorJson = JSON.stringify(colorSettings);
+        
+        console.log('📊 Color settings comparison:', {
+          expected: expectedColorJson,
+          actual: actualColorJson,
+          match: expectedColorJson === actualColorJson
+        });
+        
+        // Only re-apply if there's a significant difference (not just reference differences)
+        if (expectedColorJson !== actualColorJson) {
           console.warn('⚠️ Color settings mismatch detected, re-applying...');
+          console.log('🔧 Re-applying color settings:', viewColorSettings);
           setColorSettings(viewColorSettings);
+        } else {
+          console.log('✅ Color settings match perfectly');
         }
-      }, 100);
+      }, 200); // Increased timeout to allow for state settling
       
       console.log('✅ Switched to view:', view.name, 'with filters:', viewFilters, 'sorts:', viewSorts, 'groupBy:', viewGroupBy, 'colorSettings:', viewColorSettings);
     } else {
@@ -1090,25 +1109,35 @@ export const TableView = () => {
   // Helper function to update view filters, sorts, etc.
   const updateViewData = async (viewId: string, updates: Partial<BaseView>, updateCurrentView: boolean = true) => {
     try {
+      console.log('💿 Updating database for view:', viewId);
+      console.log('📤 Data being sent to database:', updates);
+      
       const {
         error
       } = await supabase.from('base_views').update(updates).eq('id', viewId);
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Database update error:', error);
+        throw error;
+      }
+
+      console.log('✅ Database updated successfully');
 
       // Update current view state only if requested (not during view switches)
       if (updateCurrentView && currentView && currentView.id === viewId) {
+        console.log('🔄 Updating local view state');
         setCurrentView({
           ...currentView,
           ...updates
         });
       }
     } catch (error) {
-      console.error('Error updating view data:', error);
+      console.error('❌ Error updating view data:', error);
       toast({
         title: "Error",
         description: "Failed to update view",
         variant: "destructive"
       });
+      throw error;
     }
   };
 
@@ -1121,12 +1150,12 @@ export const TableView = () => {
     
     try {
       console.log('💾 Saving view state for:', currentView.name);
-      console.log('📝 Current state being saved:', {
-        filters: overrides.filters || filters.conditions,
-        sorts: overrides.sorts || sorts,
-        groups: overrides.groups || filters.groups,
-        groupBy: overrides.groupBy !== undefined ? overrides.groupBy : groupByField,
-        colorSettings: overrides.colorSettings || colorSettings
+      
+      const currentColorSettings = overrides.colorSettings || colorSettings;
+      console.log('🎨 Color settings being saved:', {
+        provided: overrides.colorSettings,
+        current: colorSettings,
+        final: currentColorSettings
       });
       
       const updates = {
@@ -1136,9 +1165,12 @@ export const TableView = () => {
         settings: {
           ...currentView.settings,
           groupBy: overrides.groupBy !== undefined ? overrides.groupBy : groupByField,
-          colorSettings: overrides.colorSettings || colorSettings
+          colorSettings: currentColorSettings
         }
       };
+      
+      console.log('📝 Complete updates being saved:', updates);
+      console.log('🎯 Color settings in final update:', updates.settings.colorSettings);
       
       // Don't update current view state when saving during a view switch
       await updateViewData(currentView.id, updates, !duringViewSwitch);
