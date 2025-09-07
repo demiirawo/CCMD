@@ -362,16 +362,27 @@ class FormulaEvaluator {
   }
 
   private getFieldValue(fieldName: string): FormulaValue {
+    console.log('getFieldValue called with:', { 
+      fieldName, 
+      fieldNames: this.context.fieldNames,
+      recordData: this.context.recordData 
+    });
+    
     // Find field ID by name
     const fieldId = Object.keys(this.context.fieldNames).find(
       id => this.context.fieldNames[id] === fieldName
     );
     
+    console.log('Field lookup result:', { fieldName, fieldId });
+    
     if (!fieldId) {
+      console.error(`Field not found: ${fieldName}. Available fields:`, this.context.fieldNames);
       throw new Error(`Field not found: ${fieldName}`);
     }
     
-    return this.context.recordData[fieldId];
+    const value = this.context.recordData[fieldId];
+    console.log('Field value retrieved:', { fieldName, fieldId, value });
+    return value;
   }
 
   private evaluateBinary(node: FormulaNode): FormulaValue {
@@ -684,23 +695,38 @@ class FormulaEvaluator {
   }
 
   private dateAdd(date: any, quantity: any, unit: any): Date | null {
-    if (this.isBlank(date) || this.isBlank(quantity) || this.isBlank(unit)) return null;
+    console.log('dateAdd called with:', { date, quantity, unit });
+    
+    if (this.isBlank(date) || this.isBlank(quantity) || this.isBlank(unit)) {
+      console.log('dateAdd: One or more parameters is blank');
+      return null;
+    }
+    
     try {
       const dateObj = this.toDate(date);
       const qty = this.toNumber(quantity);
       const unitStr = this.toString(unit).toLowerCase();
       
+      console.log('dateAdd processing:', { dateObj, qty, unitStr });
+      
+      let result;
       switch (unitStr) {
-        case 'years': return addYears(dateObj, qty);
-        case 'months': return addMonths(dateObj, qty);
-        case 'weeks': return addWeeks(dateObj, qty);
-        case 'days': return addDays(dateObj, qty);
-        case 'hours': return addHours(dateObj, qty);
-        case 'minutes': return addMinutes(dateObj, qty);
-        case 'seconds': return addSeconds(dateObj, qty);
-        default: throw new Error(`Unknown unit: ${unitStr}`);
+        case 'years': result = addYears(dateObj, qty); break;
+        case 'months': result = addMonths(dateObj, qty); break;
+        case 'weeks': result = addWeeks(dateObj, qty); break;
+        case 'days': result = addDays(dateObj, qty); break;
+        case 'hours': result = addHours(dateObj, qty); break;
+        case 'minutes': result = addMinutes(dateObj, qty); break;
+        case 'seconds': result = addSeconds(dateObj, qty); break;
+        default: 
+          console.error(`Unknown unit: ${unitStr}`);
+          throw new Error(`Unknown unit: ${unitStr}`);
       }
-    } catch {
+      
+      console.log('dateAdd result:', result);
+      return result;
+    } catch (error) {
+      console.error('dateAdd error:', error);
       return null;
     }
   }
@@ -906,14 +932,22 @@ class FormulaEvaluator {
 
 // Main evaluation function
 export function evaluateFormula(
-  formula: string,
-  recordData: Record<string, any>,
-  allRecords: Array<Record<string, any>>,
+  formula: string, 
+  recordData: Record<string, any>, 
+  allRecords: Array<Record<string, any>>, 
   fieldNames: Record<string, string>
 ): FormulaValue {
   try {
+    console.log('evaluateFormula called with:', {
+      formula,
+      recordData,
+      fieldNames,
+      allRecordsLength: allRecords.length
+    });
+    
     const parser = new FormulaParser();
     const ast = parser.parse(formula);
+    console.log('Parsed AST:', ast);
     
     const evaluator = new FormulaEvaluator({
       recordData,
@@ -921,7 +955,9 @@ export function evaluateFormula(
       fieldNames
     });
     
-    return evaluator.evaluate(ast);
+    const result = evaluator.evaluate(ast);
+    console.log('Final evaluation result:', result);
+    return result;
   } catch (error) {
     console.error('Formula evaluation error:', error);
     return '#ERROR!';
