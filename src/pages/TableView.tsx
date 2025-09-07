@@ -1589,6 +1589,8 @@ export const TableView = () => {
   const applySorting = (recordsToSort: BaseRecord[]) => {
     if (sorts.length === 0) return recordsToSort;
     
+    console.log('Applying sorts:', sorts);
+    
     return [...recordsToSort].sort((a, b) => {
       for (const sort of sorts) {
         const field = fields.find(f => f.id === sort.fieldId);
@@ -1597,18 +1599,14 @@ export const TableView = () => {
         const aValue = a.data[sort.fieldId];
         const bValue = b.data[sort.fieldId];
         
+        console.log(`Sorting ${field.name}: "${aValue}" vs "${bValue}" (${sort.direction})`);
+        
         // Handle null/undefined values
         if (aValue == null && bValue == null) continue;
         
-        // For date fields, always put empty values at the bottom
-        if (field.field_type === 'date' || field.field_type === 'datetime') {
-          if (aValue == null) return 1; // Put null values at bottom
-          if (bValue == null) return -1; // Put non-null values at top
-        } else {
-          // For other field types, use original logic
-          if (aValue == null) return sort.direction === 'asc' ? 1 : -1;
-          if (bValue == null) return sort.direction === 'asc' ? -1 : 1;
-        }
+        // Always put empty values at the bottom regardless of sort direction
+        if (aValue == null || aValue === '' || (typeof aValue === 'string' && aValue.trim() === '')) return 1; 
+        if (bValue == null || bValue === '' || (typeof bValue === 'string' && bValue.trim() === '')) return -1;
         
         let comparison = 0;
         
@@ -1623,6 +1621,10 @@ export const TableView = () => {
           case 'datetime':
             const aDate = new Date(aValue);
             const bDate = new Date(bValue);
+            // Check for invalid dates
+            if (isNaN(aDate.getTime()) && isNaN(bDate.getTime())) continue;
+            if (isNaN(aDate.getTime())) return 1; // Put invalid dates at bottom
+            if (isNaN(bDate.getTime())) return -1; // Put valid dates at top
             comparison = aDate.getTime() - bDate.getTime();
             break;
           case 'checkbox':
