@@ -147,9 +147,9 @@ export const ViewsSidebar: React.FC<ViewsSidebarProps> = ({
   const handleViewUpdated = (updatedView: BaseView) => {
     setViews(views.map(v => v.id === updatedView.id ? updatedView : v));
     setEditingView(null);
-    if (currentView?.id === updatedView.id) {
-      onViewChange(updatedView);
-    }
+    // Don't automatically switch to updated views - this causes unwanted view switching
+    // when saving state of the previous view
+    
     // Notify parent component
     if (onViewUpdated) {
       onViewUpdated(updatedView);

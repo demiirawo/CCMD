@@ -1987,7 +1987,7 @@ export const TableView = () => {
   return <div className="min-h-screen bg-background flex">
       {/* Views Sidebar */}
       <ViewsSidebar tableId={tableId || ''} currentView={currentView} onViewChange={handleViewChange} onCreateView={handleCreateView} currentTableState={getCurrentTableState()} onViewUpdated={updatedView => {
-      // Update current view if it's the one that was updated
+      // Just update the current view state if it matches, but don't trigger view switching
       if (currentView && currentView.id === updatedView.id) {
         setCurrentView(updatedView);
       }
