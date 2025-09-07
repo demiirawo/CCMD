@@ -28,7 +28,7 @@ import { TableFilterDialog } from "@/components/TableFilterDialog";
 import { ViewsSidebar } from "@/components/ViewsSidebar";
 import { GroupByDialog } from "@/components/GroupByDialog";
 import { TableSortDialog, type SortCondition } from "@/components/TableSortDialog";
-import { RowColorDialog, type ColorCondition } from "@/components/RowColorDialog";
+import { RowColorDialog, type ColorCondition, type ColorSettings } from "@/components/RowColorDialog";
 interface BaseField {
   id: string;
   name: string;
@@ -62,7 +62,7 @@ interface BaseView {
   view_type: string;
   is_default: boolean;
   folder?: string;
-  colorConditions?: ColorCondition[];
+  colorSettings?: ColorSettings;
 }
 const FIELD_TYPES = [{
   value: 'single_line',
@@ -243,7 +243,7 @@ export const TableView = () => {
   const [sortDialog, setSortDialog] = useState(false);
   
   // Row coloring state
-  const [colorConditions, setColorConditions] = useState<ColorCondition[]>([]);
+  const [colorSettings, setColorSettings] = useState<ColorSettings>({ mode: 'conditions', conditions: [] });
   const [colorDialog, setColorDialog] = useState(false);
   
   // Multi-select state
@@ -1579,15 +1579,34 @@ export const TableView = () => {
     }
   };
   
-  // Get row color based on color conditions
+  // Get row color based on color settings
   const getRowColor = (record: BaseRecord) => {
-    for (const colorCondition of colorConditions) {
-      const field = fields.find(f => f.id === colorCondition.fieldId);
-      if (!field) continue;
-      
-      const value = record.data[colorCondition.fieldId];
-      if (evaluateCondition(value, colorCondition.operator, colorCondition.value, field)) {
-        return colorCondition.color;
+    if (colorSettings.mode === 'field' && colorSettings.fieldId) {
+      const field = fields.find(f => f.id === colorSettings.fieldId);
+      if (field && field.field_type === 'single_select') {
+        const value = record.data[colorSettings.fieldId];
+        if (value) {
+          // Generate consistent colors for field values
+          const fieldValues = [...new Set(records.map(r => r.data[colorSettings.fieldId]).filter(Boolean))];
+          const colorIndex = fieldValues.indexOf(value);
+          if (colorIndex >= 0) {
+            const pastelColors = [
+              '#FFD1DC', '#AEC6CF', '#77DD77', '#FDFD96', '#FFB347', 
+              '#DDA0DD', '#98FB98', '#FFCBA4', '#E6E6FA', '#F88379'
+            ];
+            return pastelColors[colorIndex % pastelColors.length];
+          }
+        }
+      }
+    } else if (colorSettings.mode === 'conditions' && colorSettings.conditions) {
+      for (const colorCondition of colorSettings.conditions) {
+        const field = fields.find(f => f.id === colorCondition.fieldId);
+        if (!field) continue;
+        
+        const value = record.data[colorCondition.fieldId];
+        if (evaluateCondition(value, colorCondition.operator, colorCondition.value, field)) {
+          return colorCondition.color;
+        }
       }
     }
     return null;
@@ -2141,7 +2160,7 @@ export const TableView = () => {
                 )}
               </Button>
               <Button
-                variant={colorConditions.length > 0 ? "default" : "outline"}
+                variant={colorSettings.mode !== 'conditions' || (colorSettings.conditions && colorSettings.conditions.length > 0) ? "default" : "outline"}
                 size="sm"
                 className="gap-2"
                 style={{ backgroundColor: '#24333E', color: 'white' }}
@@ -2149,9 +2168,9 @@ export const TableView = () => {
               >
                 <Palette className="h-4 w-4" />
                 Colour beside
-                {colorConditions.length > 0 && (
+                {((colorSettings.mode === 'field' && colorSettings.fieldId) || (colorSettings.mode === 'conditions' && colorSettings.conditions && colorSettings.conditions.length > 0)) && (
                   <span className="ml-1 px-1.5 py-0.5 text-xs bg-primary-foreground text-primary rounded-full">
-                    {colorConditions.length}
+                    {colorSettings.mode === 'field' ? '1' : (colorSettings.conditions?.length || 0)}
                   </span>
                 )}
               </Button>
@@ -2556,12 +2575,12 @@ export const TableView = () => {
           isOpen={colorDialog}
           onClose={() => setColorDialog(false)}
           fields={fields}
-          currentColors={colorConditions}
-          onApplyColors={(newColors) => {
-            setColorConditions(newColors);
+          currentSettings={colorSettings}
+          onApplyColors={(newSettings) => {
+            setColorSettings(newSettings);
             // Update current view if one is selected
             if (currentView) {
-              updateViewData(currentView.id, { colorConditions: newColors });
+              updateViewData(currentView.id, { colorSettings: newSettings });
             }
           }}
         />
