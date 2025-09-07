@@ -33,6 +33,7 @@ interface ViewCreateDialogProps {
     sorts: any[];
     settings: any;
   };
+  preSelectedFolder?: string;
 }
 
 export const ViewCreateDialog: React.FC<ViewCreateDialogProps> = ({
@@ -41,14 +42,20 @@ export const ViewCreateDialog: React.FC<ViewCreateDialogProps> = ({
   tableId,
   onViewCreated,
   availableFolders,
-  currentTableState
+  currentTableState,
+  preSelectedFolder = ''
 }) => {
   const [name, setName] = useState('');
-  const [folder, setFolder] = useState('');
+  const [folder, setFolder] = useState(preSelectedFolder);
   const [viewType, setViewType] = useState('grid');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
+
+  // Update folder when preSelectedFolder changes
+  React.useEffect(() => {
+    setFolder(preSelectedFolder);
+  }, [preSelectedFolder]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -134,7 +141,13 @@ export const ViewCreateDialog: React.FC<ViewCreateDialogProps> = ({
               onChange={(e) => setName(e.target.value)}
               placeholder="Enter view name..."
               required
+              autoFocus
             />
+            {currentTableState && (
+              <p className="text-xs text-muted-foreground">
+                This view will save your current filters, sorts, and grouping
+              </p>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -143,7 +156,8 @@ export const ViewCreateDialog: React.FC<ViewCreateDialogProps> = ({
               <SelectTrigger>
                 <SelectValue placeholder="Select or create folder" />
               </SelectTrigger>
-              <SelectContent>
+               <SelectContent>
+                <SelectItem value="">No folder</SelectItem>
                 {availableFolders.map((folderName) => (
                   <SelectItem key={folderName} value={folderName}>
                     {folderName}

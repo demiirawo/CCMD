@@ -21,6 +21,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { ViewCreateDialog } from './ViewCreateDialog';
 import { ViewEditDialog } from './ViewEditDialog';
+import { FolderCreateDialog } from './FolderCreateDialog';
 
 interface BaseView {
   id: string;
@@ -69,7 +70,9 @@ export const ViewsSidebar: React.FC<ViewsSidebarProps> = ({
   const [loading, setLoading] = useState(true);
   const [editingView, setEditingView] = useState<BaseView | null>(null);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [showFolderDialog, setShowFolderDialog] = useState(false);
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set(['General']));
+  const [preSelectedFolder, setPreSelectedFolder] = useState<string>('');
   const { toast } = useToast();
 
   const loadViews = async () => {
@@ -148,6 +151,18 @@ export const ViewsSidebar: React.FC<ViewsSidebarProps> = ({
     if (onViewUpdated) {
       onViewUpdated(updatedView);
     }
+  };
+
+  const handleFolderCreated = (folderName: string) => {
+    toast({
+      title: "Success",
+      description: `Folder "${folderName}" created successfully`,
+    });
+    // Expand the new folder
+    setExpandedGroups(prev => new Set([...prev, folderName]));
+    // Pre-select the folder for creating a new view
+    setPreSelectedFolder(folderName);
+    setShowCreateDialog(true);
   };
 
   const toggleGroup = (groupName: string) => {
@@ -281,7 +296,7 @@ export const ViewsSidebar: React.FC<ViewsSidebarProps> = ({
               open={group.isOpen}
               onOpenChange={() => toggleGroup(group.name)}
             >
-              <CollapsibleTrigger className="flex items-center justify-between w-full px-2 py-1 text-sm font-medium hover:bg-accent/50 rounded-md">
+              <CollapsibleTrigger className="flex items-center justify-between w-full px-2 py-1 text-sm font-medium hover:bg-accent/50 rounded-md group">
                 <div className="flex items-center gap-2">
                   {group.isOpen ? (
                     <ChevronDown className="w-4 h-4" />
@@ -291,9 +306,23 @@ export const ViewsSidebar: React.FC<ViewsSidebarProps> = ({
                   <Folder className="w-4 h-4" />
                   <span>{group.name}</span>
                 </div>
-                <span className="text-xs text-muted-foreground">
-                  {group.views.length}
-                </span>
+                <div className="flex items-center gap-1">
+                  <span className="text-xs text-muted-foreground">
+                    {group.views.length}
+                  </span>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowCreateDialog(true);
+                      setPreSelectedFolder(group.name); // Pre-fill folder in create dialog
+                    }}
+                  >
+                    <Plus className="w-3 h-3" />
+                  </Button>
+                </div>
               </CollapsibleTrigger>
               <CollapsibleContent className="ml-4 space-y-1">
                 {group.views.map(renderViewItem)}
@@ -313,11 +342,15 @@ export const ViewsSidebar: React.FC<ViewsSidebarProps> = ({
       {/* Dialogs */}
       <ViewCreateDialog
         isOpen={showCreateDialog}
-        onClose={() => setShowCreateDialog(false)}
+        onClose={() => {
+          setShowCreateDialog(false);
+          setPreSelectedFolder('');
+        }}
         tableId={tableId}
         onViewCreated={handleViewCreated}
         availableFolders={availableFolders}
         currentTableState={currentTableState}
+        preSelectedFolder={preSelectedFolder}
       />
 
       {editingView && (
@@ -329,6 +362,13 @@ export const ViewsSidebar: React.FC<ViewsSidebarProps> = ({
           availableFolders={availableFolders}
         />
       )}
+
+      <FolderCreateDialog
+        isOpen={showFolderDialog}
+        onClose={() => setShowFolderDialog(false)}
+        onFolderCreated={handleFolderCreated}
+        existingFolders={availableFolders}
+      />
     </div>
   );
 };
