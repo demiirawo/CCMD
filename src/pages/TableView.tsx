@@ -319,7 +319,7 @@ export const TableView = () => {
       setLoading(false);
     }
   };
-  const addRecord = async () => {
+  const addRecord = async (initialData?: Record<string, any>) => {
     if (!tableId || !profile?.company_id) return;
     try {
       // Create a new empty record with default values
@@ -341,12 +341,16 @@ export const TableView = () => {
           defaultData[field.id] = '';
         }
       });
+
+      // Merge with any initial data provided (for group records)
+      const finalData = { ...defaultData, ...initialData };
+
       const {
         data,
         error
       } = await supabase.from('base_records').insert({
         table_id: tableId,
-        data: defaultData
+        data: finalData
       }).select().single();
       if (error) throw error;
       setRecords([data, ...records]);
@@ -1375,64 +1379,78 @@ export const TableView = () => {
                     {Object.entries(groupedRecords).map(([groupValue, groupRecords]) => (
                       <React.Fragment key={groupValue}>
                         {/* Group Header Row */}
-                        <TableRow className="bg-muted/50 hover:bg-muted/70">
-                          <TableCell colSpan={fields.length + 1} className="p-0">
-                            <Collapsible 
-                              open={expandedGroups.has(groupValue)}
-                              onOpenChange={() => toggleGroupExpansion(groupValue)}
-                            >
-                              <CollapsibleTrigger asChild>
-                                <Button 
-                                  variant="ghost" 
-                                  className="w-full h-12 justify-start gap-3 rounded-none font-medium text-foreground"
-                                >
-                                  <div className={cn(
-                                    "transition-transform duration-200",
-                                    expandedGroups.has(groupValue) ? "rotate-90" : "rotate-0"
-                                  )}>
-                                    ▶
-                                  </div>
-                                  <span className="font-semibold">{groupValue}</span>
-                                  <span className="ml-auto text-sm text-muted-foreground">
-                                    {groupRecords.length} record{groupRecords.length !== 1 ? 's' : ''}
-                                  </span>
-                                </Button>
-                              </CollapsibleTrigger>
-                              <CollapsibleContent>
-                                {/* Group Records */}
-                                {groupRecords.map(record => (
-                                  <TableRow key={record.id} className="hover:bg-muted/30 border-l-4 border-l-primary/20">
-                                    {fields.map(field => (
-                                      <TableCell key={field.id} className="border-r p-0 h-12">
-                                        {renderEditableCell(record, field)}
-                                      </TableCell>
-                                    ))}
-                                    <TableCell className="p-2">
-                                      <DropdownMenu>
-                                        <DropdownMenuTrigger asChild>
-                                          <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-                                            <MoreHorizontal className="h-3 w-3" />
-                                          </Button>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent align="end" className="bg-background border shadow-md z-50">
-                                          <DropdownMenuItem onClick={() => duplicateRecord(record.id)}>
-                                            Duplicate
-                                          </DropdownMenuItem>
-                                          <DropdownMenuItem 
-                                            className="text-destructive" 
-                                            onClick={() => deleteRecord(record.id)}
-                                          >
-                                            Delete
-                                          </DropdownMenuItem>
-                                        </DropdownMenuContent>
-                                      </DropdownMenu>
-                                    </TableCell>
-                                  </TableRow>
-                                ))}
-                              </CollapsibleContent>
-                            </Collapsible>
+                        <TableRow className="bg-muted/50 hover:bg-muted/70 border-b-2 border-primary/20">
+                          <TableCell colSpan={fields.length + 1} className="p-2">
+                            <div className="flex items-center justify-between">
+                              <Button 
+                                variant="ghost" 
+                                className="h-8 justify-start gap-2 font-semibold text-foreground p-0"
+                                onClick={() => toggleGroupExpansion(groupValue)}
+                              >
+                                <div className={cn(
+                                  "transition-transform duration-200 text-xs",
+                                  expandedGroups.has(groupValue) ? "rotate-90" : "rotate-0"
+                                )}>
+                                  ▶
+                                </div>
+                                <span className="font-semibold">{groupValue}</span>
+                                <span className="ml-2 text-sm text-muted-foreground">
+                                  ({groupRecords.length})
+                                </span>
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground"
+                                onClick={() => {
+                                  // Add a new record to this group
+                                  const groupField = fields.find(f => f.id === groupByField);
+                                  if (groupField) {
+                                    // Create new record with the group value pre-filled
+                                    const newRecord = {
+                                      [groupByField!]: groupValue === '(Empty)' ? '' : groupValue
+                                    };
+                                    // Use the existing addRecord function but with pre-filled data
+                                    addRecord(newRecord);
+                                  }
+                                }}
+                              >
+                                <Plus className="h-3 w-3" />
+                              </Button>
+                            </div>
                           </TableCell>
                         </TableRow>
+                        
+                        {/* Group Records - only show if expanded */}
+                        {expandedGroups.has(groupValue) && groupRecords.map(record => (
+                          <TableRow key={record.id} className="hover:bg-muted/30 border-l-4 border-l-primary/30">
+                            {fields.map(field => (
+                              <TableCell key={field.id} className="border-r p-0 h-12">
+                                {renderEditableCell(record, field)}
+                              </TableCell>
+                            ))}
+                            <TableCell className="p-2">
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                                    <MoreHorizontal className="h-3 w-3" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="bg-background border shadow-md z-50">
+                                  <DropdownMenuItem onClick={() => duplicateRecord(record.id)}>
+                                    Duplicate
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem 
+                                    className="text-destructive" 
+                                    onClick={() => deleteRecord(record.id)}
+                                  >
+                                    Delete
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </TableCell>
+                          </TableRow>
+                        ))}
                       </React.Fragment>
                     ))}
                   </>
@@ -1469,21 +1487,23 @@ export const TableView = () => {
                   ))
                 )}
                 
-                {/* Add Record Button Row */}
-                <TableRow className="hover:bg-muted/20 border-t-2 border-dashed border-muted">
-                  <TableCell colSpan={fields.length + 1} className="p-0">
-                    <Button 
-                      onClick={addRecord} 
-                      variant="ghost" 
-                      className="w-full h-12 justify-start gap-3 rounded-none text-muted-foreground hover:text-foreground hover:bg-muted/30 transition-colors"
-                    >
-                      <div className="flex items-center justify-center w-6 h-6 rounded-full bg-primary/10 border border-primary/20">
-                        <Plus className="h-4 w-4 text-primary" />
-                      </div>
-                      <span className="font-medium">Add new record</span>
-                    </Button>
-                  </TableCell>
-                </TableRow>
+                {/* Add Record Button Row - only show when not grouped or at bottom */}
+                {!groupedRecords && (
+                  <TableRow className="hover:bg-muted/20 border-t-2 border-dashed border-muted">
+                    <TableCell colSpan={fields.length + 1} className="p-0">
+                      <Button 
+                        onClick={() => addRecord()} 
+                        variant="ghost" 
+                        className="w-full h-12 justify-start gap-3 rounded-none text-muted-foreground hover:text-foreground hover:bg-muted/30 transition-colors"
+                      >
+                        <div className="flex items-center justify-center w-6 h-6 rounded-full bg-primary/10 border border-primary/20">
+                          <Plus className="h-4 w-4 text-primary" />
+                        </div>
+                        <span className="font-medium">Add new record</span>
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                )}
               </TableBody>
             </Table>
           </div>
