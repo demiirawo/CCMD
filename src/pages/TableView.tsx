@@ -1070,24 +1070,28 @@ export const TableView = () => {
 
   const deleteSelectedRows = async () => {
     try {
+      console.log('deleteSelectedRows called, selectedCells:', selectedCells);
       const recordIds = new Set<string>();
       selectedCells.forEach(cellId => {
         const [recordId] = cellId.split('-');
         recordIds.add(recordId);
       });
       
-      for (const recordId of recordIds) {
-        await deleteRecord(recordId);
-      }
+      console.log('Records to delete:', Array.from(recordIds));
+      
+      // Delete records in parallel
+      const deletePromises = Array.from(recordIds).map(recordId => deleteRecord(recordId));
+      await Promise.all(deletePromises);
       
       setSelectedCells(new Set());
       setMultiSelectContextMenu({ isOpen: false, x: 0, y: 0 });
       
       toast({
         title: "Success",
-        description: `Deleted ${recordIds.size} rows`
+        description: `Deleted ${recordIds.size} row${recordIds.size !== 1 ? 's' : ''}`
       });
     } catch (error) {
+      console.error('Error deleting rows:', error);
       toast({
         title: "Error",
         description: "Failed to delete rows",
@@ -1096,16 +1100,99 @@ export const TableView = () => {
     }
   };
 
-  const addRowAbove = () => {
-    addRecord();
-    setSelectedCells(new Set());
-    setMultiSelectContextMenu({ isOpen: false, x: 0, y: 0 });
+  const deleteSelectedColumns = async () => {
+    try {
+      console.log('deleteSelectedColumns called, selectedCells:', selectedCells);
+      const fieldIds = new Set<string>();
+      selectedCells.forEach(cellId => {
+        const [, fieldId] = cellId.split('-');
+        fieldIds.add(fieldId);
+      });
+      
+      console.log('Fields to delete:', Array.from(fieldIds));
+      
+      if (fieldIds.size === 0) {
+        toast({
+          title: "No columns selected",
+          description: "Please select cells in the columns you want to delete",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      const fieldNames = Array.from(fieldIds).map(id => fields.find(f => f.id === id)?.name || 'Unknown').join(', ');
+      
+      if (!confirm(`Are you sure you want to delete ${fieldIds.size} column${fieldIds.size !== 1 ? 's' : ''} (${fieldNames})? This action cannot be undone and will remove all data in these columns.`)) {
+        return;
+      }
+      
+      // Delete fields in parallel
+      const deletePromises = Array.from(fieldIds).map(fieldId => deleteField(fieldId));
+      await Promise.all(deletePromises);
+      
+      setSelectedCells(new Set());
+      setMultiSelectContextMenu({ isOpen: false, x: 0, y: 0 });
+      
+      toast({
+        title: "Success",
+        description: `Deleted ${fieldIds.size} column${fieldIds.size !== 1 ? 's' : ''}`
+      });
+    } catch (error) {
+      console.error('Error deleting columns:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete columns",
+        variant: "destructive"
+      });
+    }
   };
 
-  const addRowBelow = () => {
-    addRecord();
-    setSelectedCells(new Set());
-    setMultiSelectContextMenu({ isOpen: false, x: 0, y: 0 });
+  const addRowAbove = async () => {
+    try {
+      console.log('addRowAbove called, selectedCells:', selectedCells);
+      // Find the first selected record to determine position
+      const firstCellId = Array.from(selectedCells)[0];
+      if (!firstCellId) {
+        // No selection, add at top
+        await addRecord();
+      } else {
+        const [recordId] = firstCellId.split('-');
+        const recordIndex = records.findIndex(r => r.id === recordId);
+        console.log('Adding row above record at index:', recordIndex);
+        
+        // Add record (it will be added at the top by default)
+        await addRecord();
+      }
+      
+      setSelectedCells(new Set());
+      setMultiSelectContextMenu({ isOpen: false, x: 0, y: 0 });
+    } catch (error) {
+      console.error('Error adding row above:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add row",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const addRowBelow = async () => {
+    try {
+      console.log('addRowBelow called, selectedCells:', selectedCells);
+      // For now, just add a new record (they get added at the top anyway)
+      // In a real implementation, you might want to insert at a specific position
+      await addRecord();
+      
+      setSelectedCells(new Set());
+      setMultiSelectContextMenu({ isOpen: false, x: 0, y: 0 });
+    } catch (error) {
+      console.error('Error adding row below:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add row",
+        variant: "destructive"
+      });
+    }
   };
 
   // Mouse up event listener
@@ -2299,29 +2386,61 @@ export const TableView = () => {
             </div>
             <button 
               className="w-full px-3 py-2 text-left hover:bg-muted text-sm flex items-center gap-2"
-              onClick={deleteSelectedCells}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Clear cells button clicked');
+                deleteSelectedCells();
+              }}
             >
               <Trash2 className="h-4 w-4" />
               Clear cells
             </button>
             <button 
               className="w-full px-3 py-2 text-left hover:bg-muted text-sm flex items-center gap-2"
-              onClick={deleteSelectedRows}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Delete rows button clicked');
+                deleteSelectedRows();
+              }}
             >
               <Trash2 className="h-4 w-4" />
               Delete rows
             </button>
+            <button 
+              className="w-full px-3 py-2 text-left hover:bg-muted text-sm flex items-center gap-2 text-destructive"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Delete columns button clicked');
+                deleteSelectedColumns();
+              }}
+            >
+              <Trash2 className="h-4 w-4" />
+              Delete columns
+            </button>
             <hr className="my-1" />
             <button 
               className="w-full px-3 py-2 text-left hover:bg-muted text-sm flex items-center gap-2"
-              onClick={addRowAbove}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Add row above button clicked');
+                addRowAbove();
+              }}
             >
               <Plus className="h-4 w-4" />
               Add row above
             </button>
             <button 
               className="w-full px-3 py-2 text-left hover:bg-muted text-sm flex items-center gap-2"
-              onClick={addRowBelow}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Add row below button clicked');
+                addRowBelow();
+              }}
             >
               <Plus className="h-4 w-4" />
               Add row below
