@@ -8,12 +8,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ArrowLeft, Plus, Filter, ArrowUpDown as Sort, Search, MoreHorizontal, Settings, Type, Hash, FileText, List, ListChecks, CheckSquare, PoundSterling, Percent, Calendar, Clock, Mail, Link, Phone, Star, Paperclip, Calculator, CalendarIcon } from "lucide-react";
+import { ArrowLeft, Plus, Filter, ArrowUpDown as Sort, Search, MoreHorizontal, Settings, Type, Hash, FileText, List, ListChecks, CheckSquare, PoundSterling, Percent, Calendar, Clock, Mail, Link, Phone, Star, Paperclip, Calculator, CalendarIcon, Group } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
 import { format, parse, isValid } from "date-fns";
 import { AttachmentPreviewDialog } from "@/components/AttachmentPreviewDialog";
@@ -24,6 +25,7 @@ import { ShareDialog } from "@/components/ShareDialog";
 import { TableHistoryDialog } from "@/components/TableHistoryDialog";
 import { TableFilterDialog } from "@/components/TableFilterDialog";
 import { ViewsSidebar } from "@/components/ViewsSidebar";
+import { GroupByDialog } from "@/components/GroupByDialog";
 interface BaseField {
   id: string;
   name: string;
@@ -226,6 +228,11 @@ export const TableView = () => {
   
   // View state
   const [currentView, setCurrentView] = useState<BaseView | null>(null);
+  
+  // Group by state
+  const [groupByField, setGroupByField] = useState<string | null>(null);
+  const [groupByDialog, setGroupByDialog] = useState(false);
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
   
   const editInputRef = useRef<HTMLInputElement>(null);
   const editTextareaRef = useRef<HTMLTextAreaElement>(null);
@@ -765,6 +772,86 @@ export const TableView = () => {
     // This will be handled by the ViewsSidebar component
     console.log('Create view clicked');
   };
+
+  // Group handling functions
+  const handleGroupByApply = (fieldId: string | null) => {
+    setGroupByField(fieldId);
+    if (fieldId) {
+      // Auto-expand all groups when grouping is applied
+      const field = fields.find(f => f.id === fieldId);
+      if (field) {
+        const uniqueValues = new Set(records.map(record => {
+          const value = record.data[fieldId];
+          return formatGroupValue(value, field);
+        }));
+        setExpandedGroups(new Set(Array.from(uniqueValues)));
+      }
+    } else {
+      setExpandedGroups(new Set());
+    }
+  };
+
+  const toggleGroupExpansion = (groupValue: string) => {
+    const newExpanded = new Set(expandedGroups);
+    if (newExpanded.has(groupValue)) {
+      newExpanded.delete(groupValue);
+    } else {
+      newExpanded.add(groupValue);
+    }
+    setExpandedGroups(newExpanded);
+  };
+
+  const formatGroupValue = (value: any, field: BaseField): string => {
+    if (value === null || value === undefined || value === '') {
+      return '(Empty)';
+    }
+    
+    if (field.field_type === 'date' || field.field_type === 'datetime') {
+      try {
+        return format(new Date(value), field.field_type === 'date' ? 'dd/MM/yyyy' : 'dd/MM/yyyy HH:mm');
+      } catch {
+        return String(value);
+      }
+    }
+    
+    if (field.field_type === 'single_select' && field.field_config?.options) {
+      const option = field.field_config.options.find((opt: any) => opt.id === value);
+      return option ? option.name : String(value);
+    }
+    
+    return String(value);
+  };
+
+  const groupRecordsByField = (records: BaseRecord[], fieldId: string) => {
+    const field = fields.find(f => f.id === fieldId);
+    if (!field) return {};
+
+    const grouped: Record<string, BaseRecord[]> = {};
+    
+    records.forEach(record => {
+      const value = record.data[fieldId];
+      const groupValue = formatGroupValue(value, field);
+      
+      if (!grouped[groupValue]) {
+        grouped[groupValue] = [];
+      }
+      grouped[groupValue].push(record);
+    });
+
+    // Sort groups: (Empty) first, then alphabetically
+    const sortedGroups: Record<string, BaseRecord[]> = {};
+    const groupKeys = Object.keys(grouped).sort((a, b) => {
+      if (a === '(Empty)') return -1;
+      if (b === '(Empty)') return 1;
+      return a.localeCompare(b);
+    });
+
+    groupKeys.forEach(key => {
+      sortedGroups[key] = grouped[key];
+    });
+
+    return sortedGroups;
+  };
   
   // Apply filters to records
   const applyFilters = (records: BaseRecord[]) => {
@@ -887,6 +974,11 @@ export const TableView = () => {
       return String(value).toLowerCase().includes(searchQuery.toLowerCase());
     });
   });
+
+  // Group records if grouping is active
+  const groupedRecords = groupByField 
+    ? groupRecordsByField(filteredRecords, groupByField)
+    : null;
 
   // Debug logging (only when a view is selected)
   if (currentView) {
@@ -1453,6 +1545,15 @@ export const TableView = () => {
         });
       }
     }} field={fieldConfigDialog.field} />
+
+        {/* Group By Dialog */}
+        <GroupByDialog
+          isOpen={groupByDialog}
+          onClose={() => setGroupByDialog(false)}
+          fields={fields}
+          currentGroupBy={groupByField}
+          onApplyGroupBy={handleGroupByApply}
+        />
 
         {/* Filter Dialog */}
         <TableFilterDialog
