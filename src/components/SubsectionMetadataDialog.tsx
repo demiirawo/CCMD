@@ -77,9 +77,10 @@ export const SubsectionMetadataDialog = ({
     const link1Result = processAndDetectIframe(link);
     const link2Result = processAndDetectIframe(link2);
     
-    // For link3 and link4, if they are table IDs, convert to public table URLs
-    const link3Url = link3 ? `/public/${link3}?embed=true` : '';
-    const link4Url = link4 ? `/public/${link4}?embed=true` : '';
+    // For link3 and link4, if they are table IDs, convert to full public table URLs
+    const baseUrl = window.location.origin;
+    const link3Url = link3 ? `${baseUrl}/public/${link3}?embed=true` : '';
+    const link4Url = link4 ? `${baseUrl}/public/${link4}?embed=true` : '';
     
     const newMetadata: SubsectionMetadata = {
       accountableOwner: accountableOwner || undefined,

@@ -108,7 +108,7 @@ export const StatusItem = memo(({
   });
 
   // Check if any iframe links are available
-  const hasIframeLinks = item.metadata?.linkIsIframe || item.metadata?.link2IsIframe;
+  const hasIframeLinks = item.metadata?.linkIsIframe || item.metadata?.link2IsIframe || item.metadata?.link3IsIframe || item.metadata?.link4IsIframe;
   const handleObservationSubmit = useCallback((observation: string) => {
     onObservationChange?.(item.id, observation);
     setIsEditingObservation(false);
@@ -358,9 +358,65 @@ export const StatusItem = memo(({
               </div>}
             
             {item.metadata?.link2IsIframe && item.metadata.link2 && <div className="bg-white/50 rounded-lg p-4">
-                
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="text-sm font-medium text-foreground">
+                    {item.metadata.link2Text || 'External Content'}
+                  </h4>
+                  <button onClick={() => window.open(item.metadata.link2, '_blank')} className="text-xs text-primary hover:underline flex items-center gap-1">
+                    <ExternalLink className="w-3 h-3" />
+                    Open in new tab
+                  </button>
+                </div>
                 <div className="relative">
                   <iframe src={item.metadata.link2} className="w-full h-[800px] border border-border rounded-lg" title={item.metadata.link2Text || 'External Content'} sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-top-navigation" loading="lazy" onError={() => {
+              console.log('Iframe failed to load, likely blocked by X-Frame-Options');
+            }} />
+                  <div className="absolute inset-0 bg-gray-100 rounded-lg flex items-center justify-center text-sm text-gray-500 pointer-events-none opacity-0 iframe-fallback">
+                    <div className="text-center">
+                      <p>Content cannot be displayed in iframe</p>
+                      <p className="text-xs">Click "Open in new tab" above</p>
+                    </div>
+                  </div>
+                </div>
+              </div>}
+
+            {/* Base 1 (Link 3) */}
+            {item.metadata?.link3IsIframe && item.metadata.link3 && <div className="bg-white/50 rounded-lg p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="text-sm font-medium text-foreground">
+                    {item.metadata.link3Text || 'Base 1'}
+                  </h4>
+                  <button onClick={() => window.open(item.metadata.link3, '_blank')} className="text-xs text-primary hover:underline flex items-center gap-1">
+                    <ExternalLink className="w-3 h-3" />
+                    Open in new tab
+                  </button>
+                </div>
+                <div className="relative">
+                  <iframe src={item.metadata.link3} className="w-full h-[800px] border border-border rounded-lg" title={item.metadata.link3Text || 'Base 1'} sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-top-navigation" loading="lazy" onError={() => {
+              console.log('Iframe failed to load, likely blocked by X-Frame-Options');
+            }} />
+                  <div className="absolute inset-0 bg-gray-100 rounded-lg flex items-center justify-center text-sm text-gray-500 pointer-events-none opacity-0 iframe-fallback">
+                    <div className="text-center">
+                      <p>Content cannot be displayed in iframe</p>
+                      <p className="text-xs">Click "Open in new tab" above</p>
+                    </div>
+                  </div>
+                </div>
+              </div>}
+
+            {/* Base 2 (Link 4) */}
+            {item.metadata?.link4IsIframe && item.metadata.link4 && <div className="bg-white/50 rounded-lg p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="text-sm font-medium text-foreground">
+                    {item.metadata.link4Text || 'Base 2'}
+                  </h4>
+                  <button onClick={() => window.open(item.metadata.link4, '_blank')} className="text-xs text-primary hover:underline flex items-center gap-1">
+                    <ExternalLink className="w-3 h-3" />
+                    Open in new tab
+                  </button>
+                </div>
+                <div className="relative">
+                  <iframe src={item.metadata.link4} className="w-full h-[800px] border border-border rounded-lg" title={item.metadata.link4Text || 'Base 2'} sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-top-navigation" loading="lazy" onError={() => {
               console.log('Iframe failed to load, likely blocked by X-Frame-Options');
             }} />
                   <div className="absolute inset-0 bg-gray-100 rounded-lg flex items-center justify-center text-sm text-gray-500 pointer-events-none opacity-0 iframe-fallback">
