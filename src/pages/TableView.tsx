@@ -156,6 +156,16 @@ export const TableView = () => {
     fieldId: string;
     initialFormula: string;
   } | null>(null);
+
+  const [formulaTypeChangeDialog, setFormulaTypeChangeDialog] = useState<{
+    isOpen: boolean;
+    fieldId: string | null;
+    pendingType: string;
+  }>({
+    isOpen: false,
+    fieldId: null,
+    pendingType: '',
+  });
   const editInputRef = useRef<HTMLInputElement>(null);
   const editTextareaRef = useRef<HTMLTextAreaElement>(null);
   const fieldEditRef = useRef<HTMLInputElement>(null);
@@ -365,6 +375,16 @@ export const TableView = () => {
     }
   };
   const updateFieldType = async (fieldId: string, newType: string) => {
+    // If changing to formula type, show confirmation dialog
+    if (newType === 'formula') {
+      setFormulaTypeChangeDialog({
+        isOpen: true,
+        fieldId,
+        pendingType: newType,
+      });
+      return;
+    }
+
     try {
       let fieldConfig = {};
 
@@ -384,6 +404,10 @@ export const TableView = () => {
       } else if (newType === 'rating') {
         fieldConfig = {
           max: 5
+        };
+      } else if (newType === 'formula') {
+        fieldConfig = {
+          formula: ''
         };
       }
       const {
@@ -935,5 +959,84 @@ export const TableView = () => {
           sampleRecord={records[0]?.data || {}}
         />
       )}
+
+      {/* Formula Type Change Confirmation Dialog */}
+      <Dialog open={formulaTypeChangeDialog.isOpen} onOpenChange={(open) => 
+        !open && setFormulaTypeChangeDialog({ isOpen: false, fieldId: null, pendingType: '' })
+      }>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Convert to Formula Field</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              You're about to convert this field to a formula field. Please enter a valid formula to proceed.
+              Formula fields automatically calculate values based on other fields in your table.
+            </p>
+            
+            <div className="bg-muted/50 p-4 rounded-lg space-y-3">
+              <h4 className="font-medium text-sm">Formula Help:</h4>
+              <ul className="text-sm text-muted-foreground space-y-1">
+                <li>• Reference fields using curly braces: <code className="bg-background px-1 rounded">{`{Field Name}`}</code></li>
+                <li>• Use functions like: <code className="bg-background px-1 rounded">IF(condition, true_value, false_value)</code></li>
+                <li>• Combine text with: <code className="bg-background px-1 rounded">{`{First Name} & " " & {Last Name}`}</code></li>
+                <li>• Work with dates: <code className="bg-background px-1 rounded">{`DATETIME_DIFF({End Date}, {Start Date}, 'days')`}</code></li>
+              </ul>
+            </div>
+
+            <FormulaEditor
+              isOpen={true}
+              onClose={() => setFormulaTypeChangeDialog({ isOpen: false, fieldId: null, pendingType: '' })}
+              onSave={async (formula) => {
+                if (!formula.trim()) {
+                  toast({
+                    title: "Error",
+                    description: "Please enter a valid formula",
+                    variant: "destructive"
+                  });
+                  return;
+                }
+
+                try {
+                  const fieldConfig = { formula };
+                  
+                  const { error } = await supabase
+                    .from('base_fields')
+                    .update({
+                      field_type: 'formula',
+                      field_config: fieldConfig
+                    })
+                    .eq('id', formulaTypeChangeDialog.fieldId);
+                  
+                  if (error) throw error;
+                  
+                  setFields(fields.map(f => 
+                    f.id === formulaTypeChangeDialog.fieldId 
+                      ? { ...f, field_type: 'formula', field_config: fieldConfig }
+                      : f
+                  ));
+                  
+                  toast({
+                    title: "Success",
+                    description: "Field converted to formula successfully"
+                  });
+                  
+                  setFormulaTypeChangeDialog({ isOpen: false, fieldId: null, pendingType: '' });
+                } catch (error) {
+                  console.error('Error converting to formula field:', error);
+                  toast({
+                    title: "Error",
+                    description: "Failed to convert field to formula",
+                    variant: "destructive"
+                  });
+                }
+              }}
+              initialFormula=""
+              fields={fields}
+              sampleRecord={records[0]?.data || {}}
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>;
 };
