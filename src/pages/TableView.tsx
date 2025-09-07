@@ -1599,8 +1599,16 @@ export const TableView = () => {
         
         // Handle null/undefined values
         if (aValue == null && bValue == null) continue;
-        if (aValue == null) return sort.direction === 'asc' ? -1 : 1;
-        if (bValue == null) return sort.direction === 'asc' ? 1 : -1;
+        
+        // For date fields, always put empty values at the bottom
+        if (field.field_type === 'date' || field.field_type === 'datetime') {
+          if (aValue == null) return 1; // Put null values at bottom
+          if (bValue == null) return -1; // Put non-null values at top
+        } else {
+          // For other field types, use original logic
+          if (aValue == null) return sort.direction === 'asc' ? 1 : -1;
+          if (bValue == null) return sort.direction === 'asc' ? -1 : 1;
+        }
         
         let comparison = 0;
         
