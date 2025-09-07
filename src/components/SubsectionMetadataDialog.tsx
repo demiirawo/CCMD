@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { processUrl } from "@/utils/urlProcessor";
+import { TableSelector } from "./TableSelector";
 
 export interface SubsectionMetadata {
   accountableOwner?: string;
@@ -75,8 +76,10 @@ export const SubsectionMetadataDialog = ({
   const handleSave = () => {
     const link1Result = processAndDetectIframe(link);
     const link2Result = processAndDetectIframe(link2);
-    const link3Result = processAndDetectIframe(link3);
-    const link4Result = processAndDetectIframe(link4);
+    
+    // For link3 and link4, if they are table IDs, convert to public table URLs
+    const link3Url = link3 ? `/public/${link3}?embed=true` : '';
+    const link4Url = link4 ? `/public/${link4}?embed=true` : '';
     
     const newMetadata: SubsectionMetadata = {
       accountableOwner: accountableOwner || undefined,
@@ -86,12 +89,12 @@ export const SubsectionMetadataDialog = ({
       link2: link2Result.url || undefined,
       link2Text: link2Text || undefined,
       link2IsIframe: link2IsIframe,
-      link3: link3Result.url || undefined,
+      link3: link3Url || undefined,
       link3Text: link3Text || undefined,
-      link3IsIframe: link3IsIframe,
-      link4: link4Result.url || undefined,
+      link3IsIframe: !!link3, // Always true if table is selected
+      link4: link4Url || undefined,
       link4Text: link4Text || undefined,
-      link4IsIframe: link4IsIframe,
+      link4IsIframe: !!link4, // Always true if table is selected
       description: description || undefined,
       updated: new Date().toLocaleDateString('en-GB')
     };
@@ -177,57 +180,27 @@ export const SubsectionMetadataDialog = ({
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label>Link 3</Label>
-            <div className="flex gap-2 items-center">
-              <Input
-                value={link3Text}
-                onChange={(e) => setLink3Text(e.target.value)}
-                placeholder="Link description (optional)"
-                className="flex-1 bg-white"
-              />
-              <Input
-                value={link3}
-                onChange={(e) => setLink3(e.target.value)}
-                placeholder="Enter link URL..."
-                className="flex-1 bg-white"
-              />
-              <div className="flex items-center space-x-2 whitespace-nowrap">
-                <Checkbox
-                  id="link3-iframe"
-                  checked={link3IsIframe}
-                  onCheckedChange={(checked) => setLink3IsIframe(!!checked)}
-                />
-                <Label htmlFor="link3-iframe" className="text-sm">Display as iframe</Label>
-              </div>
-            </div>
-          </div>
+          <TableSelector
+            label="Base 1"
+            value={link3}
+            displayName={link3Text}
+            onTableChange={(tableId) => {
+              setLink3(tableId);
+              setLink3IsIframe(true); // Always display as iframe for tables
+            }}
+            onDisplayNameChange={setLink3Text}
+          />
 
-          <div className="space-y-2">
-            <Label>Link 4</Label>
-            <div className="flex gap-2 items-center">
-              <Input
-                value={link4Text}
-                onChange={(e) => setLink4Text(e.target.value)}
-                placeholder="Link description (optional)"
-                className="flex-1 bg-white"
-              />
-              <Input
-                value={link4}
-                onChange={(e) => setLink4(e.target.value)}
-                placeholder="Enter link URL..."
-                className="flex-1 bg-white"
-              />
-              <div className="flex items-center space-x-2 whitespace-nowrap">
-                <Checkbox
-                  id="link4-iframe"
-                  checked={link4IsIframe}
-                  onCheckedChange={(checked) => setLink4IsIframe(!!checked)}
-                />
-                <Label htmlFor="link4-iframe" className="text-sm">Display as iframe</Label>
-              </div>
-            </div>
-          </div>
+          <TableSelector
+            label="Base 2"
+            value={link4}
+            displayName={link4Text}
+            onTableChange={(tableId) => {
+              setLink4(tableId);
+              setLink4IsIframe(true); // Always display as iframe for tables
+            }}
+            onDisplayNameChange={setLink4Text}
+          />
           
           <div className="space-y-2">
             <Label htmlFor="description">Note</Label>
