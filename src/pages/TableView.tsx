@@ -894,12 +894,17 @@ export const TableView = () => {
       const viewGroupBy = viewSettings.groupBy || null;
       setGroupByField(viewGroupBy);
       
-      console.log('Switched to view:', view.name, 'with filters:', viewFilters, 'sorts:', viewSorts, 'groupBy:', viewGroupBy);
+      // Apply view's color settings
+      const viewColorSettings = viewSettings.colorSettings || { mode: 'conditions', conditions: [] };
+      setColorSettings(viewColorSettings);
+      
+      console.log('Switched to view:', view.name, 'with filters:', viewFilters, 'sorts:', viewSorts, 'groupBy:', viewGroupBy, 'colorSettings:', viewColorSettings);
     } else {
       // Clear all view-specific settings when switching to "All Records"
       setFilters({ conditions: [], groups: [] });
       setSorts([]);
       setGroupByField(null);
+      setColorSettings({ mode: 'conditions', conditions: [] });
       console.log('Switched to All Records - cleared all view settings');
     }
   };
@@ -915,7 +920,8 @@ export const TableView = () => {
     groups: filters.groups,
     sorts: sorts,
     settings: {
-      groupBy: groupByField
+      groupBy: groupByField,
+      colorSettings: colorSettings
     }
   });
 
@@ -2172,7 +2178,7 @@ export const TableView = () => {
                 onClick={() => setColorDialog(true)}
               >
                 <Palette className="h-4 w-4" />
-                Colour beside
+                Colour
                 {((colorSettings.mode === 'field' && colorSettings.fieldId) || (colorSettings.mode === 'conditions' && colorSettings.conditions && colorSettings.conditions.length > 0)) && (
                   <span className="ml-1 px-1.5 py-0.5 text-xs bg-primary-foreground text-primary rounded-full">
                     {colorSettings.mode === 'field' ? '1' : (colorSettings.conditions?.length || 0)}
