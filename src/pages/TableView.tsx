@@ -316,6 +316,63 @@ export const TableView = () => {
       });
     }
   };
+  
+  const duplicateRecord = async (recordId: string) => {
+    if (!tableId || !profile?.company_id) return;
+    try {
+      const originalRecord = records.find(r => r.id === recordId);
+      if (!originalRecord) return;
+
+      const { data, error } = await supabase
+        .from('base_records')
+        .insert({
+          table_id: tableId,
+          data: originalRecord.data
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setRecords([data, ...records]);
+      toast({
+        title: "Success",
+        description: "Record duplicated"
+      });
+    } catch (error) {
+      console.error('Error duplicating record:', error);
+      toast({
+        title: "Error",
+        description: "Failed to duplicate record",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const deleteRecord = async (recordId: string) => {
+    try {
+      const { error } = await supabase
+        .from('base_records')
+        .delete()
+        .eq('id', recordId);
+
+      if (error) throw error;
+
+      setRecords(records.filter(r => r.id !== recordId));
+      toast({
+        title: "Success",
+        description: "Record deleted"
+      });
+    } catch (error) {
+      console.error('Error deleting record:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete record",
+        variant: "destructive"
+      });
+    }
+  };
+  
   const addField = async () => {
     if (!tableId) return;
     try {
@@ -964,8 +1021,15 @@ export const TableView = () => {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end" className="bg-background border shadow-md z-50">
-                            <DropdownMenuItem>Duplicate</DropdownMenuItem>
-                            <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => duplicateRecord(record.id)}>
+                              Duplicate
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
+                              className="text-destructive" 
+                              onClick={() => deleteRecord(record.id)}
+                            >
+                              Delete
+                            </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </TableCell>
