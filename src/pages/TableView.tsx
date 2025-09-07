@@ -303,6 +303,13 @@ export const TableView = () => {
       fieldEditRef.current.select();
     }
   }, [editingField]);
+
+  // Debug filters changes
+  useEffect(() => {
+    console.log('🔍 Filters state changed:', filters);
+    console.log('📊 Current filter conditions:', filters.conditions.length);
+    console.log('📊 Current filter groups:', filters.groups.length);
+  }, [filters]);
   const loadTableData = async () => {
     try {
       // Load table info
@@ -982,6 +989,7 @@ export const TableView = () => {
         conditions: Array.isArray(view.filters) ? view.filters : [],
         groups: Array.isArray(view.groups) ? view.groups : []
       };
+      console.log('🔍 Setting filters from view:', viewFilters);
       setFilters(viewFilters);
 
       // Apply view's sorting
@@ -1643,7 +1651,15 @@ export const TableView = () => {
 
   // Apply filters to records
   const applyFilters = (records: BaseRecord[]) => {
+    console.log('🔍 applyFilters called with:', {
+      filterConditions: filters.conditions.length,
+      filterGroups: filters.groups.length, 
+      filters: filters,
+      totalRecords: records.length
+    });
+    
     if (filters.conditions.length === 0 && filters.groups.length === 0) {
+      console.log('📋 No filters applied, returning all records');
       return records;
     }
     const filtered = records.filter(record => {
@@ -1676,6 +1692,13 @@ export const TableView = () => {
       });
       return conditionsMatch && groupsMatch;
     });
+    
+    console.log('✅ Filters applied:', {
+      originalCount: records.length,
+      filteredCount: filtered.length,
+      filtersUsed: filters
+    });
+    
     return filtered;
   };
   const evaluateCondition = (fieldValue: any, operator: string, filterValue: any, field: BaseField) => {
@@ -1791,6 +1814,14 @@ export const TableView = () => {
       if (value === null || value === undefined) return false;
       return String(value).toLowerCase().includes(searchQuery.toLowerCase());
     });
+  });
+
+  console.log('📈 Final filtered records calculation:', {
+    totalRecords: records.length,
+    afterFilters: applyFilters(records).length, 
+    afterSearch: filteredRecords.length,
+    searchQuery,
+    currentFilters: filters
   });
 
   // Apply sorting function
