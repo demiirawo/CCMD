@@ -37,6 +37,30 @@ export const TableSortDialog: React.FC<TableSortDialogProps> = ({
 }) => {
   const [localSorts, setLocalSorts] = useState<SortCondition[]>(currentSorts.length > 0 ? currentSorts : []);
 
+  // Define which field types can be sorted
+  const isSortableFieldType = (fieldType: string) => {
+    const sortableTypes = [
+      'single_line', 'single_select', 'checkbox', 'number', 
+      'currency', 'percent', 'date', 'datetime', 'email', 
+      'url', 'phone', 'rating'
+    ];
+    return sortableTypes.includes(fieldType);
+  };
+
+  // Get sort direction labels based on field type
+  const getSortDirectionLabels = (fieldType: string) => {
+    if (fieldType === 'date' || fieldType === 'datetime') {
+      return {
+        asc: 'Earliest to Latest',
+        desc: 'Latest to Earliest'
+      };
+    }
+    return {
+      asc: 'A → Z',
+      desc: 'Z → A'
+    };
+  };
+
   const addSort = () => {
     setLocalSorts(prev => [...prev, { fieldId: '', direction: 'asc' }]);
   };
@@ -63,7 +87,9 @@ export const TableSortDialog: React.FC<TableSortDialogProps> = ({
     onClose();
   };
 
-  const availableFields = fields.filter(field => 
+  // Filter to only show sortable fields
+  const sortableFields = fields.filter(field => isSortableFieldType(field.field_type));
+  const availableFields = sortableFields.filter(field => 
     !localSorts.some(sort => sort.fieldId === field.id)
   );
 
@@ -97,7 +123,7 @@ export const TableSortDialog: React.FC<TableSortDialogProps> = ({
                   </SelectTrigger>
                   <SelectContent>
                     {availableFields.concat(
-                      sort.fieldId ? [fields.find(f => f.id === sort.fieldId)!] : []
+                      sort.fieldId ? [sortableFields.find(f => f.id === sort.fieldId)!] : []
                     ).filter(Boolean).map((field) => (
                       <SelectItem key={field.id} value={field.id}>
                         {field.name}
@@ -110,22 +136,30 @@ export const TableSortDialog: React.FC<TableSortDialogProps> = ({
                   value={sort.direction}
                   onValueChange={(direction: 'asc' | 'desc') => updateSort(index, { direction })}
                 >
-                  <SelectTrigger className="w-32">
+                  <SelectTrigger className="w-40">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="asc">
-                      <div className="flex items-center gap-2">
-                        <ArrowUp className="h-3 w-3" />
-                        A → Z
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="desc">
-                      <div className="flex items-center gap-2">
-                        <ArrowDown className="h-3 w-3" />
-                        Z → A
-                      </div>
-                    </SelectItem>
+                    {(() => {
+                      const selectedField = sortableFields.find(f => f.id === sort.fieldId);
+                      const labels = getSortDirectionLabels(selectedField?.field_type || '');
+                      return (
+                        <>
+                          <SelectItem value="asc">
+                            <div className="flex items-center gap-2">
+                              <ArrowUp className="h-3 w-3" />
+                              {labels.asc}
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="desc">
+                            <div className="flex items-center gap-2">
+                              <ArrowDown className="h-3 w-3" />
+                              {labels.desc}
+                            </div>
+                          </SelectItem>
+                        </>
+                      );
+                    })()}
                   </SelectContent>
                 </Select>
                 
