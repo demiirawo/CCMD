@@ -1,6 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.52.1";
-import { createHash } from "https://deno.land/std@0.168.0/hash/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -67,9 +66,11 @@ serve(async (req) => {
 
     // Hash password if provided
     if (share_type === 'password' && password) {
-      const hasher = createHash('sha256');
-      hasher.update(password);
-      shareData.password_hash = hasher.toString();
+      const encoder = new TextEncoder();
+      const data = encoder.encode(password);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      shareData.password_hash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
     }
 
     // Create share link
