@@ -161,7 +161,7 @@ export const TableHistoryDialog = ({ tableId, tableName, onRestoreCallback }: Ta
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="sm" className="gap-2">
+        <Button variant="ghost" size="sm" className="gap-2" style={{ backgroundColor: '#24333E', color: 'white' }}>
           <Clock className="h-4 w-4" />
           History
         </Button>
