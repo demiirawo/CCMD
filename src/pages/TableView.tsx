@@ -875,6 +875,11 @@ export const TableView = () => {
 
   // View handling functions
   const handleViewChange = (view: BaseView | null) => {
+    // Save current view state before switching if a view is currently selected
+    if (currentView) {
+      saveCurrentViewState();
+    }
+
     setCurrentView(view);
     if (view) {
       // Apply view's filters
@@ -987,16 +992,36 @@ export const TableView = () => {
     }
   };
 
+  // Helper function to save current view state
+  const saveCurrentViewState = async (overrides: any = {}) => {
+    if (!currentView) return;
+    
+    try {
+      const updates = {
+        filters: overrides.filters || filters.conditions,
+        sorts: overrides.sorts || sorts,
+        groups: overrides.groups || filters.groups,
+        settings: {
+          ...currentView.settings,
+          groupBy: overrides.groupBy !== undefined ? overrides.groupBy : groupByField,
+          colorSettings: overrides.colorSettings || colorSettings
+        }
+      };
+      
+      await updateViewData(currentView.id, updates);
+    } catch (error) {
+      console.error('Error saving view state:', error);
+    }
+  };
+
   // Group handling functions
   const handleGroupByApply = (fieldId: string | null) => {
     console.log('handleGroupByApply called with:', fieldId);
     setGroupByField(fieldId);
 
-    // Update current view if one is selected
+    // Save the current view state with new groupBy
     if (currentView) {
-      updateViewSettings(currentView.id, {
-        groupBy: fieldId
-      });
+      saveCurrentViewState({ groupBy: fieldId });
     }
     if (fieldId) {
       // Auto-expand all groups when grouping is applied
@@ -2432,33 +2457,29 @@ export const TableView = () => {
         {/* Row Color Dialog */}
         <RowColorDialog isOpen={colorDialog} onClose={() => setColorDialog(false)} fields={fields} currentSettings={colorSettings} onApplyColors={newSettings => {
         setColorSettings(newSettings);
-        // Update current view if one is selected
+        // Save the current view state with new color settings
         if (currentView) {
-          updateViewData(currentView.id, {
-            colorSettings: newSettings
-          });
+          saveCurrentViewState({ colorSettings: newSettings });
         }
       }} />
 
         {/* Sort Dialog */}
         <TableSortDialog isOpen={sortDialog} onClose={() => setSortDialog(false)} fields={fields} currentSorts={sorts} onApplySorts={newSorts => {
         setSorts(newSorts);
-        // Update current view if one is selected
+        // Save the current view state with new sorts
         if (currentView) {
-          updateViewData(currentView.id, {
-            sorts: newSorts
-          });
+          saveCurrentViewState({ sorts: newSorts });
         }
       }} groupByField={groupByField} />
 
         {/* Filter Dialog */}
         <TableFilterDialog isOpen={filterDialog} onClose={() => setFilterDialog(false)} fields={fields} onApplyFilters={newFilters => {
         setFilters(newFilters);
-        // Update current view if one is selected
+        // Save the current view state with new filters
         if (currentView) {
-          updateViewData(currentView.id, {
-            filters: newFilters.conditions as any,
-            groups: newFilters.groups as any
+          saveCurrentViewState({ 
+            filters: newFilters.conditions, 
+            groups: newFilters.groups 
           });
         }
       }} initialFilters={filters} />
