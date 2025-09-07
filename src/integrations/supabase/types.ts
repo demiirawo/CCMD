@@ -1285,6 +1285,50 @@ export type Database = {
         }
         Relationships: []
       }
+      shared_tables: {
+        Row: {
+          created_at: string
+          created_by: string
+          expires_at: string | null
+          id: string
+          is_active: boolean
+          password_hash: string | null
+          share_token: string
+          share_type: string
+          table_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          password_hash?: string | null
+          share_token?: string
+          share_type: string
+          table_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          password_hash?: string | null
+          share_token?: string
+          share_type?: string
+          table_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shared_tables_table_id_fkey"
+            columns: ["table_id"]
+            isOneToOne: false
+            referencedRelation: "base_tables"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       spot_check_analytics: {
         Row: {
           company_id: string
