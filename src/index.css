@@ -77,6 +77,7 @@ All colors MUST be HSL.
     /* Custom background colors */
     --meetings-bg: 210 6% 87%;
     --filter-button-bg: 208 27% 18%;
+    --group-button-bg: 208 27% 22%;
 
     /* Success glow effect */
     --success-glow: 0 0 20px hsl(142 76% 36% / 0.6), 0 0 40px hsl(142 76% 36% / 0.3);

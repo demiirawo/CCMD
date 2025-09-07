@@ -1522,6 +1522,7 @@ export const TableView = () => {
                 variant={groupByField ? "default" : "outline"}
                 size="sm" 
                 className="gap-2"
+                style={{ backgroundColor: '#24333E', color: 'white' }}
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
