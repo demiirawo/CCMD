@@ -1432,6 +1432,73 @@ export const TableView = () => {
                       <span className="text-muted-foreground/70"> of {records.length} total</span>
                     )}
                   </p>
+                  
+                  {/* Active Filters Display */}
+                  {(filters.conditions.length > 0 || filters.groups.length > 0) && (
+                    <div className="flex flex-wrap gap-1 mt-2">
+                      {filters.conditions.map((condition, index) => {
+                        const field = fields.find(f => f.id === condition.field);
+                        if (!field) return null;
+                        
+                        const operatorText = {
+                          'equals': '=',
+                          'not_equals': '≠',
+                          'contains': 'contains',
+                          'not_contains': 'does not contain',
+                          'starts_with': 'starts with',
+                          'ends_with': 'ends with',
+                          'greater_than': '>',
+                          'less_than': '<',
+                          'greater_than_or_equal': '≥',
+                          'less_than_or_equal': '≤',
+                          'is_empty': 'is empty',
+                          'is_not_empty': 'is not empty'
+                        }[condition.operator] || condition.operator;
+                        
+                        return (
+                          <div key={index} className="inline-flex items-center gap-1 px-2 py-1 bg-primary/10 text-primary text-xs rounded-md">
+                            <span className="font-medium">{field.name}</span>
+                            <span className="text-primary/70">{operatorText}</span>
+                            {!['is_empty', 'is_not_empty'].includes(condition.operator) && (
+                              <span className="font-medium">"{condition.value}"</span>
+                            )}
+                          </div>
+                        );
+                      })}
+                      
+                      {filters.groups.map((group, groupIndex) => 
+                        group.conditions.map((condition, index) => {
+                          const field = fields.find(f => f.id === condition.field);
+                          if (!field) return null;
+                          
+                          const operatorText = {
+                            'equals': '=',
+                            'not_equals': '≠',
+                            'contains': 'contains',
+                            'not_contains': 'does not contain',
+                            'starts_with': 'starts with',
+                            'ends_with': 'ends with',
+                            'greater_than': '>',
+                            'less_than': '<',
+                            'greater_than_or_equal': '≥',
+                            'less_than_or_equal': '≤',
+                            'is_empty': 'is empty',
+                            'is_not_empty': 'is not empty'
+                          }[condition.operator] || condition.operator;
+                          
+                          return (
+                            <div key={`${groupIndex}-${index}`} className="inline-flex items-center gap-1 px-2 py-1 bg-primary/10 text-primary text-xs rounded-md">
+                              <span className="font-medium">{field.name}</span>
+                              <span className="text-primary/70">{operatorText}</span>
+                              {!['is_empty', 'is_not_empty'].includes(condition.operator) && (
+                                <span className="font-medium">"{condition.value}"</span>
+                              )}
+                            </div>
+                          );
+                        })
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
