@@ -234,8 +234,9 @@ export const TableFilterDialog = ({
             </SelectTrigger>
             <SelectContent className="bg-background border shadow-md z-50">
               {options.map((option: any) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
+                <SelectItem key={option.id} value={option.id}>
+                  <span className="inline-block w-3 h-3 rounded mr-2" style={{ backgroundColor: option.color }}></span>
+                  {option.name}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -290,6 +291,26 @@ export const TableFilterDialog = ({
               updateGroupCondition(groupId, condition.id, { value: checked })
             }
           />
+        );
+      case 'single_select':
+        const options = field.field_config?.options || [];
+        return (
+          <Select
+            value={condition.value}
+            onValueChange={(value) => updateGroupCondition(groupId, condition.id, { value })}
+          >
+            <SelectTrigger className="h-8">
+              <SelectValue placeholder="Select value" />
+            </SelectTrigger>
+            <SelectContent className="bg-background border shadow-md z-50">
+              {options.map((option: any) => (
+                <SelectItem key={option.id} value={option.id}>
+                  <span className="inline-block w-3 h-3 rounded mr-2" style={{ backgroundColor: option.color }}></span>
+                  {option.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         );
       default:
         return (
