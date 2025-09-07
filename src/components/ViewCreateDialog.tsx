@@ -46,7 +46,7 @@ export const ViewCreateDialog: React.FC<ViewCreateDialogProps> = ({
   preSelectedFolder = ''
 }) => {
   const [name, setName] = useState('');
-  const [folder, setFolder] = useState(preSelectedFolder);
+  const [folder, setFolder] = useState(preSelectedFolder === "" ? "none" : preSelectedFolder);
   const [viewType, setViewType] = useState('grid');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
@@ -54,7 +54,7 @@ export const ViewCreateDialog: React.FC<ViewCreateDialogProps> = ({
 
   // Update folder when preSelectedFolder changes
   React.useEffect(() => {
-    setFolder(preSelectedFolder);
+    setFolder(preSelectedFolder === "" ? "none" : preSelectedFolder);
   }, [preSelectedFolder]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -74,7 +74,7 @@ export const ViewCreateDialog: React.FC<ViewCreateDialogProps> = ({
           groups: currentTableState?.groups || [],
           visible_fields: [],
           settings: { 
-            folder,
+            folder: folder === "none" ? "" : folder,
             ...currentTableState?.settings
           },
           is_default: false,
@@ -100,7 +100,7 @@ export const ViewCreateDialog: React.FC<ViewCreateDialogProps> = ({
 
       onViewCreated(newView);
     setName('');
-    setFolder('');
+    setFolder('none');
     setViewType('grid');
       
       toast({
@@ -121,7 +121,7 @@ export const ViewCreateDialog: React.FC<ViewCreateDialogProps> = ({
 
   const handleClose = () => {
     setName('');
-    setFolder('');
+    setFolder('none');
     setViewType('grid');
     onClose();
   };
@@ -157,7 +157,7 @@ export const ViewCreateDialog: React.FC<ViewCreateDialogProps> = ({
                 <SelectValue placeholder="Select or create folder" />
               </SelectTrigger>
                <SelectContent>
-                <SelectItem value="">No folder</SelectItem>
+                <SelectItem value="none">No folder</SelectItem>
                 {availableFolders.map((folderName) => (
                   <SelectItem key={folderName} value={folderName}>
                     {folderName}
@@ -165,12 +165,12 @@ export const ViewCreateDialog: React.FC<ViewCreateDialogProps> = ({
                 ))}
               </SelectContent>
             </Select>
-            <Input
-              placeholder="Or enter new folder name..."
-              value={folder}
-              onChange={(e) => setFolder(e.target.value)}
-              className="mt-1"
-            />
+             <Input
+               placeholder="Or enter new folder name..."
+               value={folder === "none" ? "" : folder}
+               onChange={(e) => setFolder(e.target.value)}
+               className="mt-1"
+             />
           </div>
 
           <div className="space-y-2">
