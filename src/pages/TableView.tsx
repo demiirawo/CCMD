@@ -781,13 +781,9 @@ export const TableView = () => {
   };
 
   const evaluateCondition = (fieldValue: any, operator: string, filterValue: any, field: BaseField) => {
-    console.log('Evaluating condition:', { fieldValue, operator, filterValue, fieldType: field.field_type });
-    
     switch (operator) {
       case 'equals':
-        const equalsResult = fieldValue == filterValue;
-        console.log('Equals result:', equalsResult);
-        return equalsResult;
+        return fieldValue == filterValue;
       case 'not_equals':
         return fieldValue != filterValue;
       case 'contains':
@@ -811,8 +807,35 @@ export const TableView = () => {
       case 'less_equal':
         return Number(fieldValue) <= Number(filterValue);
       case 'before':
+        if (field.field_type === 'date') {
+          // Handle null, undefined, or empty string field values
+          if (!fieldValue || fieldValue === '') {
+            return false; // Exclude empty dates from "before" filters
+          }
+          try {
+            const fieldDate = new Date(fieldValue);
+            const filterDate = new Date(filterValue);
+            if (isNaN(fieldDate.getTime()) || isNaN(filterDate.getTime())) return false;
+            return fieldDate < filterDate;
+          } catch (e) {
+            console.error('Date comparison error:', e);
+            return false;
+          }
+        }
         return new Date(fieldValue) < new Date(filterValue);
       case 'after':
+        if (field.field_type === 'date') {
+          if (!fieldValue || fieldValue === '') return false;
+          try {
+            const fieldDate = new Date(fieldValue);
+            const filterDate = new Date(filterValue);
+            if (isNaN(fieldDate.getTime()) || isNaN(filterDate.getTime())) return false;
+            return fieldDate > filterDate;
+          } catch (e) {
+            console.error('Date comparison error:', e);
+            return false;
+          }
+        }
         return new Date(fieldValue) > new Date(filterValue);
       case 'is_checked':
         return fieldValue === true;
@@ -822,7 +845,6 @@ export const TableView = () => {
         return true;
     }
   };
-
   // Apply search and filters
   const filteredRecords = applyFilters(records).filter(record => {
     if (!searchQuery) return true;
