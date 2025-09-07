@@ -1558,7 +1558,7 @@ export const TableView = () => {
                   </span>
                 )}
               </Button>
-              <Button onClick={addField} variant="outline" size="sm" className="gap-2">
+              <Button onClick={addField} variant="outline" size="sm" className="gap-2" style={{ backgroundColor: '#24333E', color: 'white' }}>
                 <Plus className="h-4 w-4" />
                 Add Field
               </Button>
