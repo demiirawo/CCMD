@@ -664,7 +664,14 @@ export const TableView = () => {
           setEditingCell(null);
         }} />;
       } else if (field.field_type === 'date' || field.field_type === 'datetime') {
-        const dateValue = editValue ? new Date(editValue) : undefined;
+        let dateValue: Date | undefined = undefined;
+        
+        if (editValue) {
+          const parsedDate = new Date(editValue);
+          if (isValid(parsedDate)) {
+            dateValue = parsedDate;
+          }
+        }
         
         return (
           <Popover>
