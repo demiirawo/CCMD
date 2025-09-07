@@ -1007,7 +1007,7 @@ export const TableView = () => {
               <TableBody>
                 {records.length === 0 ? <TableRow>
                     <TableCell colSpan={fields.length + 1} className="text-center py-12 text-muted-foreground">
-                      No records yet. Click "Add Record" to get started.
+                      No records yet. Click the button below to get started.
                     </TableCell>
                   </TableRow> : records.map(record => <TableRow key={record.id} className="hover:bg-muted/30">
                       {fields.map(field => <TableCell key={field.id} className="border-r p-0 h-12">
@@ -1034,6 +1034,22 @@ export const TableView = () => {
                         </DropdownMenu>
                       </TableCell>
                     </TableRow>)}
+                
+                {/* Add Record Button Row */}
+                <TableRow className="hover:bg-muted/20 border-t-2 border-dashed border-muted">
+                  <TableCell colSpan={fields.length + 1} className="p-0">
+                    <Button 
+                      onClick={addRecord} 
+                      variant="ghost" 
+                      className="w-full h-12 justify-start gap-3 rounded-none text-muted-foreground hover:text-foreground hover:bg-muted/30 transition-colors"
+                    >
+                      <div className="flex items-center justify-center w-6 h-6 rounded-full bg-primary/10 border border-primary/20">
+                        <Plus className="h-4 w-4 text-primary" />
+                      </div>
+                      <span className="font-medium">Add new record</span>
+                    </Button>
+                  </TableCell>
+                </TableRow>
               </TableBody>
             </Table>
           </div>
