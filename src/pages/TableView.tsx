@@ -1547,6 +1547,7 @@ export const TableView = () => {
                 variant={sorts.length > 0 ? "default" : "outline"}
                 size="sm"
                 className="gap-2"
+                style={{ backgroundColor: '#24333E', color: 'white' }}
                 onClick={() => setSortDialog(true)}
               >
                 <Sort className="h-4 w-4" />
