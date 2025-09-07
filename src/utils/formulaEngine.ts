@@ -619,7 +619,16 @@ class FormulaEvaluator {
 
   private toDate(value: FormulaValue): Date {
     if (value instanceof Date) return value;
-    if (typeof value === 'string') return new Date(value);
+    if (typeof value === 'string') {
+      // Try to parse DD/MM/YYYY format first
+      const ukDateMatch = value.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+      if (ukDateMatch) {
+        const [, day, month, year] = ukDateMatch;
+        return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+      }
+      // Fallback to default Date parsing (handles YYYY-MM-DD and other formats)
+      return new Date(value);
+    }
     if (typeof value === 'number') return new Date(value);
     throw new Error('Cannot convert to date');
   }
