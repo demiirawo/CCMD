@@ -22,6 +22,7 @@ import { FormulaCell } from "@/components/FormulaCell";
 import { FieldConfigDialog } from "@/components/FieldConfigDialog";
 import { ShareDialog } from "@/components/ShareDialog";
 import { TableHistoryDialog } from "@/components/TableHistoryDialog";
+import { TableFilterDialog } from "@/components/TableFilterDialog";
 interface BaseField {
   id: string;
   name: string;
@@ -189,6 +190,25 @@ export const TableView = () => {
     y: 0,
     fieldId: null
   });
+  const [filterDialog, setFilterDialog] = useState(false);
+  const [filters, setFilters] = useState<{
+    conditions: Array<{
+      id: string;
+      field: string;
+      operator: string;
+      value: any;
+    }>;
+    groups: Array<{
+      id: string;
+      operator: 'AND' | 'OR';
+      conditions: Array<{
+        id: string;
+        field: string;
+        operator: string;
+        value: any;
+      }>;
+    }>;
+  }>({ conditions: [], groups: [] });
   const editInputRef = useRef<HTMLInputElement>(null);
   const editTextareaRef = useRef<HTMLTextAreaElement>(null);
   const fieldEditRef = useRef<HTMLInputElement>(null);
@@ -700,6 +720,100 @@ export const TableView = () => {
       });
     }
   };
+  // Apply filters to records
+  const applyFilters = (records: BaseRecord[]) => {
+    if (filters.conditions.length === 0 && filters.groups.length === 0) {
+      return records;
+    }
+
+    return records.filter(record => {
+      // Check individual conditions (all must be true - AND logic)
+      const conditionsMatch = filters.conditions.length === 0 || filters.conditions.every(condition => {
+        const field = fields.find(f => f.id === condition.field);
+        if (!field) return false;
+        
+        const value = record.data[condition.field];
+        return evaluateCondition(value, condition.operator, condition.value, field);
+      });
+
+      // Check groups (all must be true - AND logic between groups)
+      const groupsMatch = filters.groups.length === 0 || filters.groups.every(group => {
+        // Within a group, use the group's operator (AND/OR)
+        if (group.operator === 'AND') {
+          return group.conditions.every(condition => {
+            const field = fields.find(f => f.id === condition.field);
+            if (!field) return false;
+            
+            const value = record.data[condition.field];
+            return evaluateCondition(value, condition.operator, condition.value, field);
+          });
+        } else {
+          return group.conditions.some(condition => {
+            const field = fields.find(f => f.id === condition.field);
+            if (!field) return false;
+            
+            const value = record.data[condition.field];
+            return evaluateCondition(value, condition.operator, condition.value, field);
+          });
+        }
+      });
+
+      return conditionsMatch && groupsMatch;
+    });
+  };
+
+  const evaluateCondition = (fieldValue: any, operator: string, filterValue: any, field: BaseField) => {
+    switch (operator) {
+      case 'equals':
+        return fieldValue == filterValue;
+      case 'not_equals':
+        return fieldValue != filterValue;
+      case 'contains':
+        return String(fieldValue || '').toLowerCase().includes(String(filterValue || '').toLowerCase());
+      case 'not_contains':
+        return !String(fieldValue || '').toLowerCase().includes(String(filterValue || '').toLowerCase());
+      case 'starts_with':
+        return String(fieldValue || '').toLowerCase().startsWith(String(filterValue || '').toLowerCase());
+      case 'ends_with':
+        return String(fieldValue || '').toLowerCase().endsWith(String(filterValue || '').toLowerCase());
+      case 'is_empty':
+        return !fieldValue || fieldValue === '' || (Array.isArray(fieldValue) && fieldValue.length === 0);
+      case 'is_not_empty':
+        return fieldValue && fieldValue !== '' && (!Array.isArray(fieldValue) || fieldValue.length > 0);
+      case 'greater_than':
+        return Number(fieldValue) > Number(filterValue);
+      case 'less_than':
+        return Number(fieldValue) < Number(filterValue);
+      case 'greater_equal':
+        return Number(fieldValue) >= Number(filterValue);
+      case 'less_equal':
+        return Number(fieldValue) <= Number(filterValue);
+      case 'before':
+        return new Date(fieldValue) < new Date(filterValue);
+      case 'after':
+        return new Date(fieldValue) > new Date(filterValue);
+      case 'is_checked':
+        return fieldValue === true;
+      case 'is_unchecked':
+        return fieldValue === false;
+      default:
+        return true;
+    }
+  };
+
+  // Apply search and filters
+  const filteredRecords = applyFilters(records).filter(record => {
+    if (!searchQuery) return true;
+    
+    // Search across all field values
+    return fields.some(field => {
+      const value = record.data[field.id];
+      if (value === null || value === undefined) return false;
+      
+      return String(value).toLowerCase().includes(searchQuery.toLowerCase());
+    });
+  });
+
   const renderEditableCell = (record: BaseRecord, field: BaseField) => {
     const isEditing = editingCell?.recordId === record.id && editingCell?.fieldId === field.id;
     const value = record.data[field.id];
@@ -952,14 +1066,24 @@ export const TableView = () => {
                 
                 <div>
                   <h1 className="text-xl font-semibold text-foreground">{table.name}</h1>
-                  <p className="text-sm text-muted-foreground">{records.length} records</p>
+                  <p className="text-sm text-muted-foreground">{filteredRecords.length} records</p>
                 </div>
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" className="gap-2">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="gap-2"
+                onClick={() => setFilterDialog(true)}
+              >
                 <Filter className="h-4 w-4" />
                 Filter
+                {(filters.conditions.length > 0 || filters.groups.length > 0) && (
+                  <span className="ml-1 px-1.5 py-0.5 text-xs bg-primary text-primary-foreground rounded-full">
+                    {filters.conditions.length + filters.groups.reduce((acc, g) => acc + g.conditions.length, 0)}
+                  </span>
+                )}
               </Button>
               <Button variant="outline" size="sm" className="gap-2">
                 <Sort className="h-4 w-4" />
@@ -1017,7 +1141,11 @@ export const TableView = () => {
                     <TableCell colSpan={fields.length + 1} className="text-center py-12 text-muted-foreground">
                       No records yet. Click the button below to get started.
                     </TableCell>
-                  </TableRow> : records.map(record => <TableRow key={record.id} className="hover:bg-muted/30">
+                  </TableRow> : filteredRecords.length === 0 ? <TableRow>
+                    <TableCell colSpan={fields.length + 1} className="text-center py-12 text-muted-foreground">
+                      No records match the current filters.
+                    </TableCell>
+                  </TableRow> : filteredRecords.map(record => <TableRow key={record.id} className="hover:bg-muted/30">
                       {fields.map(field => <TableCell key={field.id} className="border-r p-0 h-12">
                           {renderEditableCell(record, field)}
                         </TableCell>)}
@@ -1216,7 +1344,16 @@ export const TableView = () => {
       }
     }} field={fieldConfigDialog.field} />
 
-      {/* Context Menu */}
+        {/* Filter Dialog */}
+        <TableFilterDialog
+          isOpen={filterDialog}
+          onClose={() => setFilterDialog(false)}
+          fields={fields}
+          onApplyFilters={setFilters}
+          initialFilters={filters}
+        />
+
+        {/* Context Menu */}
       {contextMenu.isOpen && <div className="fixed bg-background border shadow-lg rounded-md py-1 z-50 min-w-48" style={{
       left: contextMenu.x,
       top: contextMenu.y
