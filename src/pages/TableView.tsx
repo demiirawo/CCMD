@@ -1626,7 +1626,8 @@ export const TableView = () => {
         </div>
       </div>;
   }
-  return <div className="min-h-screen bg-background flex">
+  return (
+    <div className="min-h-screen bg-background flex">
       {/* Views Sidebar */}
       <ViewsSidebar
         tableId={tableId || ''}
