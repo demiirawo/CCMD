@@ -273,6 +273,7 @@ export type Database = {
           name: string
           settings: Json | null
           updated_at: string
+          workspace_id: string | null
         }
         Insert: {
           color?: string | null
@@ -285,6 +286,7 @@ export type Database = {
           name: string
           settings?: Json | null
           updated_at?: string
+          workspace_id?: string | null
         }
         Update: {
           color?: string | null
@@ -297,8 +299,17 @@ export type Database = {
           name?: string
           settings?: Json | null
           updated_at?: string
+          workspace_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "base_tables_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       base_views: {
         Row: {
@@ -1617,6 +1628,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      workspaces: {
+        Row: {
+          color: string | null
+          company_id: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          icon: string | null
+          id: string
+          name: string
+          position: number | null
+          updated_at: string
+        }
+        Insert: {
+          color?: string | null
+          company_id: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          name: string
+          position?: number | null
+          updated_at?: string
+        }
+        Update: {
+          color?: string | null
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          name?: string
+          position?: number | null
+          updated_at?: string
+        }
+        Relationships: []
       }
     }
     Views: {
