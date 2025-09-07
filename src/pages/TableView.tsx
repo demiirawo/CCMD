@@ -13,6 +13,8 @@ import { useToast } from "@/hooks/use-toast";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AttachmentPreviewDialog } from "@/components/AttachmentPreviewDialog";
+import { FormulaEditor } from "@/components/FormulaEditor";
+import { FormulaCell } from "@/components/FormulaCell";
 interface BaseField {
   id: string;
   name: string;
@@ -79,6 +81,9 @@ const FIELD_TYPES = [{
 }, {
   value: 'attachment',
   label: 'Attachment'
+}, {
+  value: 'formula',
+  label: 'Formula'
 }];
 export const TableView = () => {
   const {
@@ -107,6 +112,10 @@ export const TableView = () => {
     fieldId: string;
     fieldName: string;
     attachments: string[];
+  } | null>(null);
+  const [formulaEditor, setFormulaEditor] = useState<{
+    fieldId: string;
+    initialFormula: string;
   } | null>(null);
   const editInputRef = useRef<HTMLInputElement>(null);
   const editTextareaRef = useRef<HTMLTextAreaElement>(null);
@@ -591,7 +600,7 @@ export const TableView = () => {
         {renderCellValue(field, value)}
       </div>;
   };
-  const renderCellValue = (field: BaseField, value: any) => {
+  const renderCellValue = (field: BaseField, value: any, record?: BaseRecord) => {
     switch (field.field_type) {
       case 'single_line':
       case 'long_text':
@@ -636,6 +645,19 @@ export const TableView = () => {
             </span> : '';
         }
         return '';
+      case 'formula':
+        if (!record) return '';
+        const fieldNames = fields.reduce((acc, f) => {
+          acc[f.id] = f.name;
+          return acc;
+        }, {} as Record<string, string>);
+        return <FormulaCell 
+          formula={field.field_config?.formula || ''} 
+          recordData={record.data}
+          allRecords={records.map(r => r.data)}
+          fieldNames={fieldNames}
+          format={field.field_config?.format}
+        />;
       default:
         return value ? String(value) : '';
     }
@@ -659,6 +681,14 @@ export const TableView = () => {
               <Type className="h-4 w-4 mr-2" />
               Rename
             </DropdownMenuItem>
+            {field.field_type === 'formula' && (
+              <DropdownMenuItem onClick={() => setFormulaEditor({ 
+                fieldId: field.id, 
+                initialFormula: field.field_config?.formula || '' 
+              })}>
+                Edit Formula
+              </DropdownMenuItem>
+            )}
             <DropdownMenuSeparator />
             {FIELD_TYPES.map(type => <DropdownMenuItem key={type.value} onClick={() => updateFieldType(field.id, type.value)} className={field.field_type === type.value ? 'bg-muted' : ''}>
                 {type.label}
@@ -804,6 +834,51 @@ export const TableView = () => {
               attachments: newAttachments
             });
           }}
+        />
+      )}
+
+      {/* Formula Editor Dialog */}
+      {formulaEditor && (
+        <FormulaEditor
+          isOpen={!!formulaEditor}
+          onClose={() => setFormulaEditor(null)}
+          onSave={async (formula) => {
+            try {
+              const { error } = await supabase
+                .from('base_fields')
+                .update({ 
+                  field_config: { 
+                    ...fields.find(f => f.id === formulaEditor.fieldId)?.field_config,
+                    formula 
+                  } 
+                })
+                .eq('id', formulaEditor.fieldId);
+              
+              if (error) throw error;
+              
+              // Update local state
+              setFields(fields.map(f => 
+                f.id === formulaEditor.fieldId 
+                  ? { ...f, field_config: { ...f.field_config, formula } }
+                  : f
+              ));
+              
+              toast({
+                title: "Success",
+                description: "Formula updated successfully"
+              });
+            } catch (error) {
+              console.error('Error updating formula:', error);
+              toast({
+                title: "Error",
+                description: "Failed to update formula",
+                variant: "destructive"
+              });
+            }
+          }}
+          initialFormula={formulaEditor.initialFormula}
+          fields={fields}
+          sampleRecord={records[0]?.data || {}}
         />
       )}
     </div>;
