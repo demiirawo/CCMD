@@ -1436,55 +1436,51 @@ export const TableView = () => {
     // Handle drag and drop for attachment fields
     if (field.field_type === 'attachment') {
       return (
-        <ContextMenuTrigger>
-          <div 
-            className={cn(
-              "w-full h-full p-2 cursor-pointer hover:bg-muted/30 rounded relative user-select-none",
-              isSelected && "bg-primary/20 ring-2 ring-primary/40"
-            )}
-            onDoubleClick={() => handleCellDoubleClick(record.id, field.id, value)}
-            onMouseDown={(e) => handleCellMouseDown(record.id, field.id, e)}
-            onMouseEnter={() => handleCellMouseEnter(record.id, field.id)}
-            onContextMenu={(e) => handleCellRightClick(e, record.id, field.id)}
-            onDragOver={e => {
-              e.preventDefault();
-              e.currentTarget.classList.add('bg-primary/10', 'border-primary');
-            }} 
-            onDragLeave={e => {
-              e.currentTarget.classList.remove('bg-primary/10', 'border-primary');
-            }} 
-            onDrop={e => {
-              e.preventDefault();
-              e.currentTarget.classList.remove('bg-primary/10', 'border-primary');
-              if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-                handleFileUpload(e.dataTransfer.files, record.id, field.id);
-              }
-            }}
-          >
-            {renderCellValue(field, value, record)}
-          </div>
-        </ContextMenuTrigger>
-      );
-    }
-    
-    return (
-      <ContextMenuTrigger>
         <div 
           className={cn(
-            "w-full h-full p-2 cursor-pointer hover:bg-muted/30 rounded user-select-none",
+            "w-full h-full p-2 cursor-pointer hover:bg-muted/30 rounded relative user-select-none",
             isSelected && "bg-primary/20 ring-2 ring-primary/40"
           )}
           onDoubleClick={() => handleCellDoubleClick(record.id, field.id, value)}
           onMouseDown={(e) => handleCellMouseDown(record.id, field.id, e)}
           onMouseEnter={() => handleCellMouseEnter(record.id, field.id)}
           onContextMenu={(e) => handleCellRightClick(e, record.id, field.id)}
+          onDragOver={e => {
+            e.preventDefault();
+            e.currentTarget.classList.add('bg-primary/10', 'border-primary');
+          }} 
+          onDragLeave={e => {
+            e.currentTarget.classList.remove('bg-primary/10', 'border-primary');
+          }} 
+          onDrop={e => {
+            e.preventDefault();
+            e.currentTarget.classList.remove('bg-primary/10', 'border-primary');
+            if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+              handleFileUpload(e.dataTransfer.files, record.id, field.id);
+            }
+          }}
         >
           {renderCellValue(field, value, record)}
         </div>
-      </ContextMenuTrigger>
+      );
+    }
+    
+    return (
+      <div 
+        className={cn(
+          "w-full h-full p-2 cursor-pointer hover:bg-muted/30 rounded user-select-none",
+          isSelected && "bg-primary/20 ring-2 ring-primary/40"
+        )}
+        onDoubleClick={() => handleCellDoubleClick(record.id, field.id, value)}
+        onMouseDown={(e) => handleCellMouseDown(record.id, field.id, e)}
+        onMouseEnter={() => handleCellMouseEnter(record.id, field.id)}
+        onContextMenu={(e) => handleCellRightClick(e, record.id, field.id)}
+      >
+        {renderCellValue(field, value, record)}
+      </div>
     );
   };
-  };
+  
   const renderCellValue = (field: BaseField, value: any, record?: BaseRecord) => {
     switch (field.field_type) {
       case 'single_line':
