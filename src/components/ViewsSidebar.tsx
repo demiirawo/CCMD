@@ -89,6 +89,9 @@ export const ViewsSidebar: React.FC<ViewsSidebarProps> = ({
         folder: (view.settings as any)?.folder || 'Uncategorized'
       }));
       setViews(viewsWithFolders);
+      
+      console.log('Views loaded:', viewsWithFolders.length, 'views');
+      console.log('Current view before loading:', currentView?.name);
     } catch (error) {
       console.error('Error loading views:', error);
       toast({
@@ -201,7 +204,11 @@ export const ViewsSidebar: React.FC<ViewsSidebarProps> = ({
       className={`flex items-center justify-between px-3 py-2 text-sm rounded-md cursor-pointer hover:bg-accent/50 ${
         currentView?.id === view.id ? 'bg-accent text-accent-foreground' : ''
       }`}
-      onClick={() => onViewChange(view)}
+      onClick={() => {
+        console.log('View clicked:', view.name);
+        console.log('Current view before click:', currentView?.name || 'All Records');
+        onViewChange(view);
+      }}
     >
       <div className="flex items-center gap-2 flex-1 min-w-0">
         <Eye className="w-4 h-4 flex-shrink-0" />
@@ -275,7 +282,11 @@ export const ViewsSidebar: React.FC<ViewsSidebarProps> = ({
             className={`flex items-center gap-2 px-3 py-2 text-sm rounded-md cursor-pointer hover:bg-accent/50 mb-4 ${
               !currentView ? 'bg-accent text-accent-foreground' : ''
             }`}
-            onClick={() => onViewChange(null)}
+            onClick={() => {
+              console.log('All Records clicked');
+              console.log('Current view before All Records click:', currentView?.name || 'All Records');
+              onViewChange(null);
+            }}
           >
             <Eye className="w-4 h-4" />
             <span>All Records</span>

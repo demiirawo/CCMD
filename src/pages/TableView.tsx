@@ -875,6 +875,9 @@ export const TableView = () => {
 
   // View handling functions
   const handleViewChange = (view: BaseView | null) => {
+    console.log('handleViewChange called with:', view?.name || 'All Records');
+    console.log('Current view before change:', currentView?.name || 'All Records');
+    
     // Save current view state before switching if a view is currently selected
     if (currentView) {
       saveCurrentViewState();
