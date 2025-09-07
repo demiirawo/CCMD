@@ -1,4 +1,35 @@
-import { format, parse, addDays, addWeeks, addMonths, addYears, addHours, addMinutes, addSeconds, differenceInDays, differenceInHours, differenceInMinutes, differenceInSeconds, differenceInMonths, differenceInYears, differenceInWeeks, getYear, getMonth, getDate, getHours, getMinutes, getSeconds, getWeek, getDay, isWeekend, nextMonday, previousFriday } from 'date-fns';
+import { 
+  format, 
+  parse, 
+  addDays, 
+  addWeeks, 
+  addMonths, 
+  addYears, 
+  addHours, 
+  addMinutes, 
+  addSeconds, 
+  differenceInDays, 
+  differenceInHours, 
+  differenceInMinutes, 
+  differenceInSeconds, 
+  differenceInMonths, 
+  differenceInYears, 
+  differenceInWeeks, 
+  getYear, 
+  getMonth, 
+  getDate, 
+  getHours, 
+  getMinutes, 
+  getSeconds, 
+  getWeek, 
+  getDay, 
+  isWeekend,
+  startOfDay,
+  endOfDay,
+  isValid,
+  getUnixTime,
+  fromUnixTime
+} from 'date-fns';
 import { fromZonedTime, toZonedTime, format as formatTz } from 'date-fns-tz';
 
 export type FormulaValue = string | number | boolean | Date | null | undefined | FormulaValue[];
@@ -478,9 +509,33 @@ class FormulaEvaluator {
       case 'BLANK':
         return null;
         
+      // Type checking functions
+      case 'IS_NUMBER':
+        if (args.length !== 1) throw new Error('IS_NUMBER requires 1 argument');
+        return typeof args[0] === 'number' && !isNaN(args[0]);
+        
+      case 'IS_STRING':
+        if (args.length !== 1) throw new Error('IS_STRING requires 1 argument');
+        return typeof args[0] === 'string';
+        
+      case 'IS_LOGICAL':
+        if (args.length !== 1) throw new Error('IS_LOGICAL requires 1 argument');
+        return typeof args[0] === 'boolean';
+        
+      case 'IS_ERROR':
+        if (args.length !== 1) throw new Error('IS_ERROR requires 1 argument');
+        return args[0] === '#ERROR!' || (typeof args[0] === 'string' && args[0].startsWith('#'));
+        
+        
       // Date functions
       case 'TODAY':
-        return this.getVolatileValue('TODAY', () => new Date());
+        return this.getVolatileValue('TODAY', () => {
+          // Get current date in Europe/London timezone at midnight
+          const now = new Date();
+          const londonTime = toZonedTime(now, 'Europe/London');
+          const todayMidnight = startOfDay(londonTime);
+          return fromZonedTime(todayMidnight, 'Europe/London');
+        });
         
       case 'NOW':
         return this.getVolatileValue('NOW', () => new Date());
@@ -515,7 +570,7 @@ class FormulaEvaluator {
       case 'WEEKNUM':
         return this.isBlank(args[0]) ? null : getWeek(this.toDate(args[0]));
       case 'WEEKDAY':
-        return this.isBlank(args[0]) ? null : getDay(this.toDate(args[0])) + 1;
+        return this.isBlank(args[0]) ? null : ((getDay(this.toDate(args[0])) + 6) % 7) + 1; // Monday = 1
         
       case 'WORKDAY':
         return this.workday(args[0], args[1]);
@@ -550,6 +605,16 @@ class FormulaEvaluator {
         return this.regexExtract(args[0], args[1]);
       case 'REGEX_REPLACE':
         return this.regexReplace(args[0], args[1], args[2]);
+      
+      case 'CONCATENATE':
+        return args.map(arg => this.toString(arg)).join('');
+        
+      case 'REPT':
+        if (args.length !== 2) throw new Error('REPT requires 2 arguments');
+        const text = this.toString(args[0]);
+        const times = this.toNumber(args[1]);
+        return text.repeat(Math.max(0, Math.floor(times)));
+        
         
       // Number functions
       case 'ROUND':
@@ -572,6 +637,21 @@ class FormulaEvaluator {
         return this.value(args[0]);
       case 'MOD':
         return this.mod(args[0], args[1]);
+        
+      // Aggregate functions
+      case 'SUM':
+        return this.sum(args);
+      case 'MAX':
+        return this.max(args);
+      case 'MIN':
+        return this.min(args);
+      case 'AVERAGE':
+        return this.average(args);
+      case 'COUNT':
+        return this.count(args);
+      case 'COUNTA':
+        return this.countA(args);
+        
         
       // Array functions
       case 'ARRAYJOIN':
@@ -620,14 +700,43 @@ class FormulaEvaluator {
   private toDate(value: FormulaValue): Date {
     if (value instanceof Date) return value;
     if (typeof value === 'string') {
-      // Try to parse DD/MM/YYYY format first
-      const ukDateMatch = value.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-      if (ukDateMatch) {
-        const [, day, month, year] = ukDateMatch;
-        return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+      // Strict European date parsing - only DD/MM/YYYY and DD/MM/YYYY HH:mm[:ss]
+      
+      // Check for DD/MM/YYYY HH:mm:ss format
+      const fullDateTimeMatch = value.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2}):(\d{2})$/);
+      if (fullDateTimeMatch) {
+        const [, day, month, year, hour, minute, second] = fullDateTimeMatch;
+        const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day), parseInt(hour), parseInt(minute), parseInt(second));
+        if (!isValid(date) || date.getDate() !== parseInt(day) || date.getMonth() !== parseInt(month) - 1) {
+          throw new Error('Invalid European date');
+        }
+        return date;
       }
-      // Fallback to default Date parsing (handles YYYY-MM-DD and other formats)
-      return new Date(value);
+      
+      // Check for DD/MM/YYYY HH:mm format
+      const dateTimeMatch = value.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2})$/);
+      if (dateTimeMatch) {
+        const [, day, month, year, hour, minute] = dateTimeMatch;
+        const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day), parseInt(hour), parseInt(minute));
+        if (!isValid(date) || date.getDate() !== parseInt(day) || date.getMonth() !== parseInt(month) - 1) {
+          throw new Error('Invalid European date');
+        }
+        return date;
+      }
+      
+      // Check for DD/MM/YYYY format
+      const dateMatch = value.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+      if (dateMatch) {
+        const [, day, month, year] = dateMatch;
+        const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+        if (!isValid(date) || date.getDate() !== parseInt(day) || date.getMonth() !== parseInt(month) - 1) {
+          throw new Error('Invalid European date');
+        }
+        return date;
+      }
+      
+      // Reject all other formats including ISO dates, US dates, etc.
+      throw new Error('Date must be in DD/MM/YYYY format');
     }
     if (typeof value === 'number') return new Date(value);
     throw new Error('Cannot convert to date');
@@ -665,10 +774,54 @@ class FormulaEvaluator {
     if (this.isBlank(text)) return null;
     try {
       const textStr = this.toString(text);
+      const tz = timezone ? this.toString(timezone) : 'Europe/London';
+      
       if (formatStr) {
-        return parse(textStr, this.toString(formatStr), new Date());
+        // Use provided format string
+        const format = this.toString(formatStr);
+        const parsedDate = parse(textStr, format, new Date());
+        if (!isValid(parsedDate)) {
+          throw new Error('Invalid date format');
+        }
+        return fromZonedTime(parsedDate, tz);
       }
-      return new Date(textStr);
+      
+      // Default parsing - strict European formats only
+      // Check for DD/MM/YYYY HH:mm:ss format
+      const fullDateTimeMatch = textStr.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2}):(\d{2})$/);
+      if (fullDateTimeMatch) {
+        const [, day, month, year, hour, minute, second] = fullDateTimeMatch;
+        const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day), parseInt(hour), parseInt(minute), parseInt(second));
+        if (!isValid(date) || date.getDate() !== parseInt(day) || date.getMonth() !== parseInt(month) - 1) {
+          throw new Error('Invalid European date');
+        }
+        return fromZonedTime(date, tz);
+      }
+      
+      // Check for DD/MM/YYYY HH:mm format
+      const dateTimeMatch = textStr.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2})$/);
+      if (dateTimeMatch) {
+        const [, day, month, year, hour, minute] = dateTimeMatch;
+        const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day), parseInt(hour), parseInt(minute));
+        if (!isValid(date) || date.getDate() !== parseInt(day) || date.getMonth() !== parseInt(month) - 1) {
+          throw new Error('Invalid European date');
+        }
+        return fromZonedTime(date, tz);
+      }
+      
+      // Check for DD/MM/YYYY format
+      const dateMatch = textStr.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+      if (dateMatch) {
+        const [, day, month, year] = dateMatch;
+        const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+        if (!isValid(date) || date.getDate() !== parseInt(day) || date.getMonth() !== parseInt(month) - 1) {
+          throw new Error('Invalid European date');
+        }
+        return fromZonedTime(date, tz);
+      }
+      
+      // Reject all other formats
+      throw new Error('Date must be in DD/MM/YYYY format');
     } catch {
       return null;
     }
@@ -936,6 +1089,35 @@ class FormulaEvaluator {
     if (this.isBlank(array)) return null;
     if (!Array.isArray(array)) return this.isBlank(array) ? [] : [array];
     return array.filter(item => !this.isBlank(item));
+  }
+
+  // Aggregate function implementations
+  private sum(args: FormulaValue[]): number | null {
+    const numbers = args.filter(arg => !this.isBlank(arg)).map(arg => this.toNumber(arg));
+    return numbers.length === 0 ? null : numbers.reduce((sum, n) => sum + n, 0);
+  }
+
+  private max(args: FormulaValue[]): number | null {
+    const numbers = args.filter(arg => !this.isBlank(arg) && typeof arg === 'number');
+    return numbers.length === 0 ? null : Math.max(...numbers as number[]);
+  }
+
+  private min(args: FormulaValue[]): number | null {
+    const numbers = args.filter(arg => !this.isBlank(arg) && typeof arg === 'number');
+    return numbers.length === 0 ? null : Math.min(...numbers as number[]);
+  }
+
+  private average(args: FormulaValue[]): number | null {
+    const numbers = args.filter(arg => !this.isBlank(arg)).map(arg => this.toNumber(arg));
+    return numbers.length === 0 ? null : numbers.reduce((sum, n) => sum + n, 0) / numbers.length;
+  }
+
+  private count(args: FormulaValue[]): number {
+    return args.filter(arg => !this.isBlank(arg) && typeof arg === 'number').length;
+  }
+
+  private countA(args: FormulaValue[]): number {
+    return args.filter(arg => !this.isBlank(arg)).length;
   }
 }
 
