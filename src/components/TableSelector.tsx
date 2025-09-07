@@ -66,22 +66,16 @@ export const TableSelector = ({
           placeholder="Display name (optional)"
           className="flex-1 bg-white"
         />
-        <Select value={value || ''} onValueChange={onTableChange} disabled={loading}>
+        <Select value={value || ''} onValueChange={onTableChange} disabled={loading || tables.length === 0}>
           <SelectTrigger className="flex-1 bg-white">
-            <SelectValue placeholder={loading ? "Loading tables..." : "Select a table..."} />
+            <SelectValue placeholder={loading ? "Loading tables..." : tables.length === 0 ? "No tables available" : "Select a table..."} />
           </SelectTrigger>
           <SelectContent className="bg-white border border-border shadow-md max-h-60 z-50">
-            {tables.length === 0 ? (
-              <SelectItem value="" disabled>
-                No tables available
+            {tables.map((table) => (
+              <SelectItem key={table.id} value={table.id}>
+                {table.name}
               </SelectItem>
-            ) : (
-              tables.map((table) => (
-                <SelectItem key={table.id} value={table.id}>
-                  {table.name}
-                </SelectItem>
-              ))
-            )}
+            ))}
           </SelectContent>
         </Select>
       </div>
