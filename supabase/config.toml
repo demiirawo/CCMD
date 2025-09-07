@@ -70,3 +70,9 @@ verify_jwt = true
 
 [functions.send-action-reminders]
 verify_jwt = false
+
+[functions.create-share-link]
+verify_jwt = true
+
+[functions.validate-share-access]
+verify_jwt = false

@@ -23,6 +23,7 @@ import NotFound from "./pages/NotFound";
 import CompanyDashboard from "./pages/CompanyDashboard";
 import { Base } from "./pages/Base";
 import { TableView } from "./pages/TableView";
+import { SharedTable } from "./pages/SharedTable";
 
 const queryClient = new QueryClient();
 
@@ -92,6 +93,7 @@ const AppContent = () => {
           </>
         </ProtectedRoute>
       } />
+      <Route path="/shared/:token" element={<SharedTable />} />
       <Route path="/meetings" element={
         <ProtectedRoute requireCompany>
           <>
