@@ -23,6 +23,7 @@ import { FieldConfigDialog } from "@/components/FieldConfigDialog";
 import { ShareDialog } from "@/components/ShareDialog";
 import { TableHistoryDialog } from "@/components/TableHistoryDialog";
 import { TableFilterDialog } from "@/components/TableFilterDialog";
+import { ViewsSidebar } from "@/components/ViewsSidebar";
 interface BaseField {
   id: string;
   name: string;
@@ -43,6 +44,19 @@ interface BaseTableData {
   description?: string;
   icon: string;
   color: string;
+}
+
+interface BaseView {
+  id: string;
+  name: string;
+  filters: any;
+  sorts: any;
+  groups: any;
+  visible_fields: any;
+  settings: any;
+  view_type: string;
+  is_default: boolean;
+  folder?: string;
 }
 const FIELD_TYPES = [{
   value: 'single_line',
@@ -209,6 +223,10 @@ export const TableView = () => {
       }>;
     }>;
   }>({ conditions: [], groups: [] });
+  
+  // View state
+  const [currentView, setCurrentView] = useState<BaseView | null>(null);
+  
   const editInputRef = useRef<HTMLInputElement>(null);
   const editTextareaRef = useRef<HTMLTextAreaElement>(null);
   const fieldEditRef = useRef<HTMLInputElement>(null);
@@ -720,17 +738,31 @@ export const TableView = () => {
       });
     }
   };
+  
+  // View handling functions
+  const handleViewChange = (view: BaseView | null) => {
+    setCurrentView(view);
+    if (view) {
+      // Apply view's filters
+      const viewFilters = {
+        conditions: Array.isArray(view.filters) ? view.filters : [],
+        groups: Array.isArray(view.groups) ? view.groups : []
+      };
+      setFilters(viewFilters);
+    } else {
+      // Clear filters when switching to "All Records"
+      setFilters({ conditions: [], groups: [] });
+    }
+  };
+
+  const handleCreateView = () => {
+    // This will be handled by the ViewsSidebar component
+    console.log('Create view clicked');
+  };
+  
   // Apply filters to records
   const applyFilters = (records: BaseRecord[]) => {
-    console.log('applyFilters called with:', { 
-      recordsCount: records.length, 
-      filtersConditions: filters.conditions.length,
-      filtersGroups: filters.groups.length,
-      fieldsCount: fields.length 
-    });
-    
     if (filters.conditions.length === 0 && filters.groups.length === 0) {
-      console.log('No filters applied, returning all records');
       return records;
     }
 
@@ -738,15 +770,10 @@ export const TableView = () => {
       // Check individual conditions (all must be true - AND logic)
       const conditionsMatch = filters.conditions.length === 0 || filters.conditions.every(condition => {
         const field = fields.find(f => f.id === condition.field);
-        if (!field) {
-          console.log('Field not found for condition:', condition);
-          return false;
-        }
+        if (!field) return false;
         
         const value = record.data[condition.field];
-        const result = evaluateCondition(value, condition.operator, condition.value, field);
-        console.log('Condition result:', { fieldName: field.name, result });
-        return result;
+        return evaluateCondition(value, condition.operator, condition.value, field);
       });
 
       // Check groups (all must be true - AND logic between groups)
@@ -771,12 +798,9 @@ export const TableView = () => {
         }
       });
 
-      const finalResult = conditionsMatch && groupsMatch;
-      console.log('Record filter result:', { recordId: record.id, conditionsMatch, groupsMatch, finalResult });
-      return finalResult;
+      return conditionsMatch && groupsMatch;
     });
     
-    console.log('Filtered records:', filtered.length);
     return filtered;
   };
 
@@ -859,6 +883,9 @@ export const TableView = () => {
   });
 
   // Debug logging
+  console.log('Current filters:', filters);
+  console.log('Records before filtering:', records.length);
+  console.log('Records after filtering:', filteredRecords.length);
   console.log('Current filters:', filters);
   console.log('Records before filtering:', records.length);
   console.log('Records after filtering:', filteredRecords.length);
@@ -1101,10 +1128,20 @@ export const TableView = () => {
         </div>
       </div>;
   }
-  return <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="border-b bg-card">
-        <div className="max-w-full mx-auto px-6 py-4 pt-20">
+  return <div className="min-h-screen bg-background flex">
+      {/* Views Sidebar */}
+      <ViewsSidebar
+        tableId={tableId || ''}
+        currentView={currentView}
+        onViewChange={handleViewChange}
+        onCreateView={handleCreateView}
+      />
+      
+      {/* Main Content */}
+      <div className="flex-1 min-w-0">
+        {/* Header */}
+        <div className="border-b bg-card">
+          <div className="max-w-full mx-auto px-6 py-4 pt-20">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <Button variant="ghost" size="sm" onClick={() => navigate('/base')} className="gap-2">
@@ -1473,6 +1510,7 @@ export const TableView = () => {
       }}>
             Delete Field
           </button>
-        </div>}
-    </div>;
+         </div>}
+     </div>
+   </div>;
 };
