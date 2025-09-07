@@ -15,16 +15,8 @@ export const FormulaCell = ({ formula, recordData, allRecords, fieldNames, forma
   const result = useMemo(() => {
     if (!formula) return '';
     
-    console.log('FormulaCell evaluation:', {
-      formula,
-      recordData,
-      fieldNames,
-      allRecords: allRecords.length
-    });
-    
     try {
       const value = evaluateFormula(formula, recordData, allRecords, fieldNames);
-      console.log('Formula result:', value);
       return formatFormulaResult(value, format);
     } catch (error) {
       console.error('Formula evaluation error:', error);
@@ -39,7 +31,7 @@ export const FormulaCell = ({ formula, recordData, allRecords, fieldNames, forma
           type="text"
           value={formula}
           readOnly
-          className="w-full bg-muted/50 border rounded px-2 py-1 text-sm font-mono"
+          className="w-full bg-white border rounded px-2 py-1 text-sm font-mono"
           onClick={onEdit}
           placeholder="Click to edit formula"
         />
@@ -49,11 +41,18 @@ export const FormulaCell = ({ formula, recordData, allRecords, fieldNames, forma
 
   return (
     <div 
-      className={`px-3 py-2 cursor-pointer hover:bg-muted/30 ${result === '#ERROR!' ? 'text-destructive' : ''}`}
+      className={`px-3 py-2 cursor-pointer hover:bg-muted/30 min-h-[40px] flex items-center ${
+        result === '#ERROR!' ? 'text-destructive font-medium' : 
+        result ? 'text-foreground' : 'text-muted-foreground'
+      }`}
       onClick={onEdit}
-      title="Click to edit formula"
+      title={`Click to edit formula: ${formula}`}
     >
-      {result || <span className="text-muted-foreground italic">No result</span>}
+      {result ? (
+        <span className="font-medium">{result}</span>
+      ) : (
+        <span className="italic text-muted-foreground">No result</span>
+      )}
     </div>
   );
 };
