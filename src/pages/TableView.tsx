@@ -722,18 +722,31 @@ export const TableView = () => {
   };
   // Apply filters to records
   const applyFilters = (records: BaseRecord[]) => {
+    console.log('applyFilters called with:', { 
+      recordsCount: records.length, 
+      filtersConditions: filters.conditions.length,
+      filtersGroups: filters.groups.length,
+      fieldsCount: fields.length 
+    });
+    
     if (filters.conditions.length === 0 && filters.groups.length === 0) {
+      console.log('No filters applied, returning all records');
       return records;
     }
 
-    return records.filter(record => {
+    const filtered = records.filter(record => {
       // Check individual conditions (all must be true - AND logic)
       const conditionsMatch = filters.conditions.length === 0 || filters.conditions.every(condition => {
         const field = fields.find(f => f.id === condition.field);
-        if (!field) return false;
+        if (!field) {
+          console.log('Field not found for condition:', condition);
+          return false;
+        }
         
         const value = record.data[condition.field];
-        return evaluateCondition(value, condition.operator, condition.value, field);
+        const result = evaluateCondition(value, condition.operator, condition.value, field);
+        console.log('Condition result:', { fieldName: field.name, result });
+        return result;
       });
 
       // Check groups (all must be true - AND logic between groups)
@@ -758,14 +771,23 @@ export const TableView = () => {
         }
       });
 
-      return conditionsMatch && groupsMatch;
+      const finalResult = conditionsMatch && groupsMatch;
+      console.log('Record filter result:', { recordId: record.id, conditionsMatch, groupsMatch, finalResult });
+      return finalResult;
     });
+    
+    console.log('Filtered records:', filtered.length);
+    return filtered;
   };
 
   const evaluateCondition = (fieldValue: any, operator: string, filterValue: any, field: BaseField) => {
+    console.log('Evaluating condition:', { fieldValue, operator, filterValue, fieldType: field.field_type });
+    
     switch (operator) {
       case 'equals':
-        return fieldValue == filterValue;
+        const equalsResult = fieldValue == filterValue;
+        console.log('Equals result:', equalsResult);
+        return equalsResult;
       case 'not_equals':
         return fieldValue != filterValue;
       case 'contains':
@@ -813,6 +835,11 @@ export const TableView = () => {
       return String(value).toLowerCase().includes(searchQuery.toLowerCase());
     });
   });
+
+  // Debug logging
+  console.log('Current filters:', filters);
+  console.log('Records before filtering:', records.length);
+  console.log('Records after filtering:', filteredRecords.length);
 
   const renderEditableCell = (record: BaseRecord, field: BaseField) => {
     const isEditing = editingCell?.recordId === record.id && editingCell?.fieldId === field.id;
