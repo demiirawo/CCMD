@@ -47,13 +47,22 @@ interface ViewsSidebarProps {
   currentView: BaseView | null;
   onViewChange: (view: BaseView | null) => void;
   onCreateView: () => void;
+  currentTableState?: {
+    filters: any[];
+    groups: any[];
+    sorts: any[];
+    settings: any;
+  };
+  onViewUpdated?: (view: BaseView) => void;
 }
 
 export const ViewsSidebar: React.FC<ViewsSidebarProps> = ({
   tableId,
   currentView,
   onViewChange,
-  onCreateView
+  onCreateView,
+  currentTableState,
+  onViewUpdated
 }) => {
   const [views, setViews] = useState<BaseView[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -134,6 +143,10 @@ export const ViewsSidebar: React.FC<ViewsSidebarProps> = ({
     setEditingView(null);
     if (currentView?.id === updatedView.id) {
       onViewChange(updatedView);
+    }
+    // Notify parent component
+    if (onViewUpdated) {
+      onViewUpdated(updatedView);
     }
   };
 
@@ -304,6 +317,7 @@ export const ViewsSidebar: React.FC<ViewsSidebarProps> = ({
         tableId={tableId}
         onViewCreated={handleViewCreated}
         availableFolders={availableFolders}
+        currentTableState={currentTableState}
       />
 
       {editingView && (

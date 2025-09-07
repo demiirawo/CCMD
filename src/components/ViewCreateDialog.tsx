@@ -27,6 +27,12 @@ interface ViewCreateDialogProps {
   tableId: string;
   onViewCreated: (view: BaseView) => void;
   availableFolders: string[];
+  currentTableState?: {
+    filters: any[];
+    groups: any[];
+    sorts: any[];
+    settings: any;
+  };
 }
 
 export const ViewCreateDialog: React.FC<ViewCreateDialogProps> = ({
@@ -34,7 +40,8 @@ export const ViewCreateDialog: React.FC<ViewCreateDialogProps> = ({
   onClose,
   tableId,
   onViewCreated,
-  availableFolders
+  availableFolders,
+  currentTableState
 }) => {
   const [name, setName] = useState('');
   const [folder, setFolder] = useState('');
@@ -55,11 +62,14 @@ export const ViewCreateDialog: React.FC<ViewCreateDialogProps> = ({
           name: name.trim(),
           table_id: tableId,
           view_type: viewType,
-          filters: [],
-          sorts: [],
-          groups: [],
+          filters: currentTableState?.filters || [],
+          sorts: currentTableState?.sorts || [],
+          groups: currentTableState?.groups || [],
           visible_fields: [],
-          settings: { folder },
+          settings: { 
+            folder,
+            ...currentTableState?.settings
+          },
           is_default: false,
           created_by: user?.id
         })

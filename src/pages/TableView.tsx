@@ -767,14 +767,26 @@ export const TableView = () => {
       };
       setFilters(viewFilters);
       
-      // TODO: Apply view's sorting when implemented
-      // TODO: Apply view's visible fields when implemented
+      // Apply view's sorting
+      const viewSorts = Array.isArray(view.sorts) ? view.sorts : [];
+      setSorts(viewSorts);
       
-      console.log('Switched to view:', view.name, 'with filters:', viewFilters);
+      // Apply view's grouping
+      const viewSettings = view.settings || {};
+      const viewGroupBy = viewSettings.groupBy || null;
+      setGroupByField(viewGroupBy);
+      
+      // Apply automatic sort setting
+      setAutomaticSort(viewSettings.automaticSort || false);
+      
+      console.log('Switched to view:', view.name, 'with filters:', viewFilters, 'sorts:', viewSorts, 'groupBy:', viewGroupBy);
     } else {
-      // Clear filters when switching to "All Records"
+      // Clear all view-specific settings when switching to "All Records"
       setFilters({ conditions: [], groups: [] });
-      console.log('Switched to All Records - cleared filters');
+      setSorts([]);
+      setGroupByField(null);
+      setAutomaticSort(false);
+      console.log('Switched to All Records - cleared all view settings');
     }
   };
 
@@ -783,10 +795,84 @@ export const TableView = () => {
     console.log('Create view clicked');
   };
 
+  // Get current table state to pass to new views
+  const getCurrentTableState = () => ({
+    filters: filters.conditions,
+    groups: filters.groups,
+    sorts: sorts,
+    settings: {
+      groupBy: groupByField,
+      automaticSort: automaticSort
+    }
+  });
+
+  // Helper function to update view settings
+  const updateViewSettings = async (viewId: string, newSettings: any) => {
+    try {
+      const currentViewData = currentView;
+      if (!currentViewData) return;
+
+      const updatedSettings = { ...currentViewData.settings, ...newSettings };
+      
+      const { error } = await supabase
+        .from('base_views')
+        .update({ settings: updatedSettings })
+        .eq('id', viewId);
+
+      if (error) throw error;
+
+      // Update current view state
+      setCurrentView({
+        ...currentViewData,
+        settings: updatedSettings
+      });
+    } catch (error) {
+      console.error('Error updating view settings:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update view settings",
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Helper function to update view filters, sorts, etc.
+  const updateViewData = async (viewId: string, updates: Partial<BaseView>) => {
+    try {
+      const { error } = await supabase
+        .from('base_views')
+        .update(updates)
+        .eq('id', viewId);
+
+      if (error) throw error;
+
+      // Update current view state
+      if (currentView && currentView.id === viewId) {
+        setCurrentView({
+          ...currentView,
+          ...updates
+        });
+      }
+    } catch (error) {
+      console.error('Error updating view data:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update view",
+        variant: "destructive"
+      });
+    }
+  };
+
   // Group handling functions
   const handleGroupByApply = (fieldId: string | null) => {
     console.log('handleGroupByApply called with:', fieldId);
     setGroupByField(fieldId);
+    
+    // Update current view if one is selected
+    if (currentView) {
+      updateViewSettings(currentView.id, { groupBy: fieldId });
+    }
+    
     if (fieldId) {
       // Auto-expand all groups when grouping is applied
       const field = fields.find(f => f.id === fieldId);
@@ -1309,6 +1395,13 @@ export const TableView = () => {
         currentView={currentView}
         onViewChange={handleViewChange}
         onCreateView={handleCreateView}
+        currentTableState={getCurrentTableState()}
+        onViewUpdated={(updatedView) => {
+          // Update current view if it's the one that was updated
+          if (currentView && currentView.id === updatedView.id) {
+            setCurrentView(updatedView);
+          }
+        }}
       />
       
       {/* Main Content */}
@@ -1771,10 +1864,22 @@ export const TableView = () => {
           onClose={() => setSortDialog(false)}
           fields={fields}
           currentSorts={sorts}
-          onApplySorts={setSorts}
+          onApplySorts={(newSorts) => {
+            setSorts(newSorts);
+            // Update current view if one is selected
+            if (currentView) {
+              updateViewData(currentView.id, { sorts: newSorts });
+            }
+          }}
           groupByField={groupByField}
           automaticSort={automaticSort}
-          onAutomaticSortChange={setAutomaticSort}
+          onAutomaticSortChange={(enabled) => {
+            setAutomaticSort(enabled);
+            // Update current view if one is selected
+            if (currentView) {
+              updateViewSettings(currentView.id, { automaticSort: enabled });
+            }
+          }}
         />
 
         {/* Filter Dialog */}
@@ -1784,24 +1889,12 @@ export const TableView = () => {
           fields={fields}
           onApplyFilters={(newFilters) => {
             setFilters(newFilters);
-            // If we're currently viewing a specific view, update that view's filters
+            // Update current view if one is selected
             if (currentView) {
-              // Update the view in the database with the new filters
-              supabase
-                .from('base_views')
-                .update({
-                  filters: newFilters.conditions as any,
-                  groups: newFilters.groups as any
-                })
-                .eq('id', currentView.id)
-                .then(() => {
-                  // Update the current view state
-                  setCurrentView({
-                    ...currentView,
-                    filters: newFilters.conditions as any,
-                    groups: newFilters.groups as any
-                  });
-                });
+              updateViewData(currentView.id, {
+                filters: newFilters.conditions as any,
+                groups: newFilters.groups as any
+              });
             }
           }}
           initialFilters={filters}
