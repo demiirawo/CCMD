@@ -1152,16 +1152,7 @@ export const TableView = () => {
         return '';
       case 'formula':
         if (!record) return '';
-        const fieldNames = fields.reduce((acc, f) => {
-          acc[f.id] = f.name;
-          return acc;
-        }, {} as Record<string, string>);
-        return <FormulaCell formula={field.field_config?.formula || ''} recordData={record.data} allRecords={records.map(r => r.data)} fieldNames={fieldNames} format={field.field_config?.format} isEditing={editingCell?.recordId === record.id && editingCell?.fieldId === field.id} onEdit={() => {
-          setFormulaEditor({
-            fieldId: field.id,
-            initialFormula: field.field_config?.formula || ''
-          });
-        }} />;
+        return <div className="bg-yellow-200 p-1 text-red-600 text-xs">Formula disabled for debugging</div>;
       default:
         return value ? String(value) : '';
     }
