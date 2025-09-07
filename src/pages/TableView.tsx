@@ -9,7 +9,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger } from "@/components/ui/context-menu";
-import { ArrowLeft, Plus, Filter, ArrowUpDown as Sort, Search, MoreHorizontal, Settings, Type, Hash, FileText, List, ListChecks, CheckSquare, PoundSterling, Percent, Calendar, Clock, Mail, Link, Phone, Star, Paperclip, Calculator, CalendarIcon, Group, Trash2 } from "lucide-react";
+import { ArrowLeft, Plus, Filter, ArrowUpDown as Sort, Search, MoreHorizontal, Settings, Type, Hash, FileText, List, ListChecks, CheckSquare, PoundSterling, Percent, Calendar, Clock, Mail, Link, Phone, Star, Paperclip, Calculator, CalendarIcon, Group, Trash2, Palette } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -28,6 +28,7 @@ import { TableFilterDialog } from "@/components/TableFilterDialog";
 import { ViewsSidebar } from "@/components/ViewsSidebar";
 import { GroupByDialog } from "@/components/GroupByDialog";
 import { TableSortDialog, type SortCondition } from "@/components/TableSortDialog";
+import { RowColorDialog, type ColorCondition } from "@/components/RowColorDialog";
 interface BaseField {
   id: string;
   name: string;
@@ -61,6 +62,7 @@ interface BaseView {
   view_type: string;
   is_default: boolean;
   folder?: string;
+  colorConditions?: ColorCondition[];
 }
 const FIELD_TYPES = [{
   value: 'single_line',
@@ -239,6 +241,10 @@ export const TableView = () => {
   // Sorting state
   const [sorts, setSorts] = useState<SortCondition[]>([]);
   const [sortDialog, setSortDialog] = useState(false);
+  
+  // Row coloring state
+  const [colorConditions, setColorConditions] = useState<ColorCondition[]>([]);
+  const [colorDialog, setColorDialog] = useState(false);
   
   // Multi-select state
   const [selectedCells, setSelectedCells] = useState<Set<string>>(new Set());
@@ -1572,6 +1578,21 @@ export const TableView = () => {
         return true;
     }
   };
+  
+  // Get row color based on color conditions
+  const getRowColor = (record: BaseRecord) => {
+    for (const colorCondition of colorConditions) {
+      const field = fields.find(f => f.id === colorCondition.fieldId);
+      if (!field) continue;
+      
+      const value = record.data[colorCondition.fieldId];
+      if (evaluateCondition(value, colorCondition.operator, colorCondition.value, field)) {
+        return colorCondition.color;
+      }
+    }
+    return null;
+  };
+  
   // Apply search and filters
   const filteredRecords = applyFilters(records).filter(record => {
     if (!searchQuery) return true;
@@ -2119,6 +2140,21 @@ export const TableView = () => {
                   </span>
                 )}
               </Button>
+              <Button
+                variant={colorConditions.length > 0 ? "default" : "outline"}
+                size="sm"
+                className="gap-2"
+                style={{ backgroundColor: '#24333E', color: 'white' }}
+                onClick={() => setColorDialog(true)}
+              >
+                <Palette className="h-4 w-4" />
+                Colour beside
+                {colorConditions.length > 0 && (
+                  <span className="ml-1 px-1.5 py-0.5 text-xs bg-primary-foreground text-primary rounded-full">
+                    {colorConditions.length}
+                  </span>
+                )}
+              </Button>
               <Button onClick={addField} variant="outline" size="sm" className="gap-2" style={{ backgroundColor: '#24333E', color: 'white' }}>
                 <Plus className="h-4 w-4" />
                 Add Field
@@ -2235,83 +2271,97 @@ export const TableView = () => {
                         </TableRow>
                         
                         {/* Group Records - only show if expanded */}
-                        {expandedGroups.has(groupValue) && groupRecords.map(record => (
-                          <TableRow key={record.id} className="hover:bg-muted/30 border-l-4 border-l-primary/30">
-                            {fields.map(field => (
-                              <TableCell key={field.id} className="border-r p-0 h-12">
-                                {renderEditableCell(record, field)}
+                        {expandedGroups.has(groupValue) && groupRecords.map(record => {
+                          const rowColor = getRowColor(record);
+                          return (
+                            <TableRow 
+                              key={record.id} 
+                              className="hover:bg-muted/30 border-l-4 border-l-primary/30"
+                              style={rowColor ? { backgroundColor: rowColor } : {}}
+                            >
+                              {fields.map(field => (
+                                <TableCell key={field.id} className="border-r p-0 h-12">
+                                  {renderEditableCell(record, field)}
+                                </TableCell>
+                              ))}
+                              <TableCell className="p-2">
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                                      <MoreHorizontal className="h-3 w-3" />
+                                    </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="end" className="bg-background border shadow-md z-50">
+                                    <DropdownMenuItem onClick={() => addRecordAbove(record.id)}>
+                                      Add row above
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => addRecordBelow(record.id)}>
+                                      Add row below
+                                    </DropdownMenuItem>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem onClick={() => duplicateRecord(record.id)}>
+                                      Duplicate
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem 
+                                      className="text-destructive" 
+                                      onClick={() => deleteRecord(record.id)}
+                                    >
+                                      Delete
+                                    </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
                               </TableCell>
-                            ))}
-                            <TableCell className="p-2">
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                  <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-                                    <MoreHorizontal className="h-3 w-3" />
-                                  </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end" className="bg-background border shadow-md z-50">
-                                  <DropdownMenuItem onClick={() => addRecordAbove(record.id)}>
-                                    Add row above
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem onClick={() => addRecordBelow(record.id)}>
-                                    Add row below
-                                  </DropdownMenuItem>
-                                  <DropdownMenuSeparator />
-                                  <DropdownMenuItem onClick={() => duplicateRecord(record.id)}>
-                                    Duplicate
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem 
-                                    className="text-destructive" 
-                                    onClick={() => deleteRecord(record.id)}
-                                  >
-                                    Delete
-                                  </DropdownMenuItem>
-                                </DropdownMenuContent>
-                              </DropdownMenu>
-                            </TableCell>
-                          </TableRow>
-                        ))}
+                            </TableRow>
+                          );
+                        })}
                       </React.Fragment>
                     ))}
                   </>
                 ) : (
                   // Render regular (ungrouped) records
-                  sortedRecords.map(record => (
-                    <TableRow key={record.id} className="hover:bg-muted/30">
-                      {fields.map(field => (
-                        <TableCell key={field.id} className="border-r p-0 h-12">
-                          {renderEditableCell(record, field)}
+                  sortedRecords.map(record => {
+                    const rowColor = getRowColor(record);
+                    return (
+                      <TableRow 
+                        key={record.id} 
+                        className="hover:bg-muted/30"
+                        style={rowColor ? { backgroundColor: rowColor } : {}}
+                      >
+                        {fields.map(field => (
+                          <TableCell key={field.id} className="border-r p-0 h-12">
+                            {renderEditableCell(record, field)}
+                          </TableCell>
+                        ))}
+                        <TableCell className="p-2">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                                <MoreHorizontal className="h-3 w-3" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="bg-background border shadow-md z-50">
+                              <DropdownMenuItem onClick={() => addRecordAbove(record.id)}>
+                                Add row above
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => addRecordBelow(record.id)}>
+                                Add row below
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem onClick={() => duplicateRecord(record.id)}>
+                                Duplicate
+                              </DropdownMenuItem>
+                              <DropdownMenuItem 
+                                className="text-destructive" 
+                                onClick={() => deleteRecord(record.id)}
+                              >
+                                Delete
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </TableCell>
-                      ))}
-                      <TableCell className="p-2">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-                              <MoreHorizontal className="h-3 w-3" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="bg-background border shadow-md z-50">
-                            <DropdownMenuItem onClick={() => addRecordAbove(record.id)}>
-                              Add row above
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => addRecordBelow(record.id)}>
-                              Add row below
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={() => duplicateRecord(record.id)}>
-                              Duplicate
-                            </DropdownMenuItem>
-                            <DropdownMenuItem 
-                              className="text-destructive" 
-                              onClick={() => deleteRecord(record.id)}
-                            >
-                              Delete
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
-                  ))
+                      </TableRow>
+                    );
+                  })
                 )}
                 
                 {/* Add Record Button Row - only show when not grouped or at bottom */}
@@ -2499,6 +2549,21 @@ export const TableView = () => {
           fields={fields}
           currentGroupBy={groupByField}
           onApplyGroupBy={handleGroupByApply}
+        />
+
+        {/* Row Color Dialog */}
+        <RowColorDialog
+          isOpen={colorDialog}
+          onClose={() => setColorDialog(false)}
+          fields={fields}
+          currentColors={colorConditions}
+          onApplyColors={(newColors) => {
+            setColorConditions(newColors);
+            // Update current view if one is selected
+            if (currentView) {
+              updateViewData(currentView.id, { colorConditions: newColors });
+            }
+          }}
         />
 
         {/* Sort Dialog */}
