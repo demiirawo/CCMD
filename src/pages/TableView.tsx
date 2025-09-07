@@ -749,9 +749,15 @@ export const TableView = () => {
         groups: Array.isArray(view.groups) ? view.groups : []
       };
       setFilters(viewFilters);
+      
+      // TODO: Apply view's sorting when implemented
+      // TODO: Apply view's visible fields when implemented
+      
+      console.log('Switched to view:', view.name, 'with filters:', viewFilters);
     } else {
       // Clear filters when switching to "All Records"
       setFilters({ conditions: [], groups: [] });
+      console.log('Switched to All Records - cleared filters');
     }
   };
 
@@ -882,10 +888,14 @@ export const TableView = () => {
     });
   });
 
-  // Debug logging
-  console.log('Current filters:', filters);
-  console.log('Records before filtering:', records.length);
-  console.log('Records after filtering:', filteredRecords.length);
+  // Debug logging (only when a view is selected)
+  if (currentView) {
+    console.log('Current view:', currentView.name);
+    console.log('View filters:', currentView.filters);
+    console.log('Applied filters:', filters);
+    console.log('Records before filtering:', records.length);
+    console.log('Records after filtering:', filteredRecords.length);
+  }
   console.log('Current filters:', filters);
   console.log('Records before filtering:', records.length);
   console.log('Records after filtering:', filteredRecords.length);
@@ -1149,10 +1159,21 @@ export const TableView = () => {
                 Back
               </Button>
               <div className="flex items-center gap-3">
-                
                 <div>
-                  <h1 className="text-xl font-semibold text-foreground">{table.name}</h1>
-                  <p className="text-sm text-muted-foreground">{filteredRecords.length} records</p>
+                  <div className="flex items-center gap-2">
+                    <h1 className="text-xl font-semibold text-foreground">{table.name}</h1>
+                    {currentView && (
+                      <span className="text-sm text-muted-foreground">
+                        • {currentView.name}
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    {filteredRecords.length} {currentView ? 'filtered' : ''} records
+                    {currentView && records.length !== filteredRecords.length && (
+                      <span className="text-muted-foreground/70"> of {records.length} total</span>
+                    )}
+                  </p>
                 </div>
               </div>
             </div>
@@ -1169,6 +1190,9 @@ export const TableView = () => {
                   <span className="ml-1 px-1.5 py-0.5 text-xs bg-primary text-primary-foreground rounded-full">
                     {filters.conditions.length + filters.groups.reduce((acc, g) => acc + g.conditions.length, 0)}
                   </span>
+                )}
+                {currentView && (
+                  <span className="ml-1 text-xs text-muted-foreground">(from view)</span>
                 )}
               </Button>
               <Button variant="outline" size="sm" className="gap-2">
@@ -1435,7 +1459,28 @@ export const TableView = () => {
           isOpen={filterDialog}
           onClose={() => setFilterDialog(false)}
           fields={fields}
-          onApplyFilters={setFilters}
+          onApplyFilters={(newFilters) => {
+            setFilters(newFilters);
+            // If we're currently viewing a specific view, update that view's filters
+            if (currentView) {
+              // Update the view in the database with the new filters
+              supabase
+                .from('base_views')
+                .update({
+                  filters: newFilters.conditions as any,
+                  groups: newFilters.groups as any
+                })
+                .eq('id', currentView.id)
+                .then(() => {
+                  // Update the current view state
+                  setCurrentView({
+                    ...currentView,
+                    filters: newFilters.conditions as any,
+                    groups: newFilters.groups as any
+                  });
+                });
+            }
+          }}
           initialFilters={filters}
         />
 
