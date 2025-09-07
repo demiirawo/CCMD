@@ -1665,7 +1665,6 @@ export const TableView = () => {
           onDoubleClick={() => handleCellDoubleClick(record.id, field.id, value)}
           onMouseDown={(e) => handleCellMouseDown(record.id, field.id, e)}
           onMouseEnter={() => handleCellMouseEnter(record.id, field.id)}
-          onContextMenu={(e) => handleCellRightClick(e, record.id, field.id)}
           onDragOver={e => {
             e.preventDefault();
             e.currentTarget.classList.add('bg-primary/10', 'border-primary');
@@ -1695,7 +1694,7 @@ export const TableView = () => {
         onDoubleClick={() => handleCellDoubleClick(record.id, field.id, value)}
         onMouseDown={(e) => handleCellMouseDown(record.id, field.id, e)}
         onMouseEnter={() => handleCellMouseEnter(record.id, field.id)}
-        onContextMenu={(e) => handleCellRightClick(e, record.id, field.id)}
+        
       >
         {renderCellValue(field, value, record)}
       </div>
@@ -2433,6 +2432,32 @@ export const TableView = () => {
       left: contextMenu.x,
       top: contextMenu.y
     }} onClick={e => e.stopPropagation()}>
+          <button className="w-full px-3 py-2 text-left hover:bg-muted text-sm" onClick={() => {
+            addRecord();
+            setContextMenu({
+              isOpen: false,
+              x: 0,
+              y: 0,
+              fieldId: null
+            });
+          }}>
+            Add row above
+          </button>
+          
+          <button className="w-full px-3 py-2 text-left hover:bg-muted text-sm" onClick={() => {
+            addRecord();
+            setContextMenu({
+              isOpen: false,
+              x: 0,
+              y: 0,
+              fieldId: null
+            });
+          }}>
+            Add row below
+          </button>
+
+          <hr className="my-1" />
+
           <button className="w-full px-3 py-2 text-left hover:bg-muted text-sm" onClick={() => {
         const field = fields.find(f => f.id === contextMenu.fieldId);
         if (field) {
