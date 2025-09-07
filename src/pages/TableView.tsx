@@ -862,7 +862,7 @@ export const TableView = () => {
   return <div className="min-h-screen bg-background">
       {/* Header */}
       <div className="border-b bg-card">
-        <div className="max-w-7xl mx-auto px-6 py-4 pt-20">
+        <div className="max-w-full mx-auto px-6 py-4 pt-20">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <Button variant="ghost" size="sm" onClick={() => navigate('/base')} className="gap-2">
@@ -900,7 +900,7 @@ export const TableView = () => {
       </div>
 
       {/* Content */}
-      <div className="max-w-7xl mx-auto p-6">
+      <div className="max-w-full mx-auto p-6">
         {/* Search */}
         <div className="flex items-center gap-4 mb-6">
           <div className="relative flex-1 max-w-sm">
@@ -910,12 +910,12 @@ export const TableView = () => {
         </div>
 
         {/* Grid Table */}
-        <div className="border rounded-lg bg-card overflow-hidden">
-          <div className="overflow-auto">
+        <div className="border rounded-lg bg-card overflow-hidden w-full">
+          <div className="overflow-auto max-w-full">
             <Table>
               <TableHeader>
                 <TableRow className="hover:bg-transparent">
-                  {fields.map(field => <TableHead key={field.id} className="font-medium border-r min-w-[150px] p-0">
+                  {fields.map(field => <TableHead key={field.id} className="font-medium border-r min-w-[200px] p-0">
                       <div className="p-3">
                         {renderEditableFieldHeader(field)}
                       </div>
