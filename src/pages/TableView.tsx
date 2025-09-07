@@ -1030,20 +1030,26 @@ export const TableView = () => {
         }
       });
       
-      // Update all affected records
-      for (const [recordId, data] of updates) {
+      // Update all affected records in database
+      const updatePromises = Array.from(updates.entries()).map(async ([recordId, data]) => {
         const { error } = await supabase
           .from('base_records')
           .update({ data })
           .eq('id', recordId);
         
         if (error) throw error;
-        
-        // Update local state
-        setRecords(prevRecords => 
-          prevRecords.map(r => r.id === recordId ? { ...r, data } : r)
-        );
-      }
+        return { recordId, data };
+      });
+      
+      const results = await Promise.all(updatePromises);
+      
+      // Update local state once after all database updates are complete
+      setRecords(prevRecords => 
+        prevRecords.map(record => {
+          const update = results.find(result => result.recordId === record.id);
+          return update ? { ...record, data: update.data } : record;
+        })
+      );
       
       setSelectedCells(new Set());
       setMultiSelectContextMenu({ isOpen: false, x: 0, y: 0 });
@@ -1053,6 +1059,7 @@ export const TableView = () => {
         description: `Cleared ${selectedCells.size} cells`
       });
     } catch (error) {
+      console.error('Error clearing cells:', error);
       toast({
         title: "Error",
         description: "Failed to clear cells",
@@ -2283,7 +2290,7 @@ export const TableView = () => {
         {/* Multi-select context menu */}
         {multiSelectContextMenu.isOpen && (
           <div 
-            className="fixed bg-background border shadow-lg rounded-md py-1 z-50 min-w-48" 
+            className="fixed bg-background border shadow-lg rounded-md py-1 z-[9999] min-w-48" 
             style={{ left: multiSelectContextMenu.x, top: multiSelectContextMenu.y }}
             onClick={e => e.stopPropagation()}
           >
