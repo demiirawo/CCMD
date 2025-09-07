@@ -1287,6 +1287,20 @@ export const TableView = () => {
                   <span className="ml-1 text-xs text-muted-foreground">(from view)</span>
                 )}
               </Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="gap-2"
+                onClick={() => setGroupByDialog(true)}
+              >
+                <Group className="h-4 w-4" />
+                Group
+                {groupByField && (
+                  <span className="ml-1 px-1.5 py-0.5 text-xs bg-primary text-primary-foreground rounded-full">
+                    1
+                  </span>
+                )}
+              </Button>
               <Button variant="outline" size="sm" className="gap-2">
                 <Sort className="h-4 w-4" />
                 Sort
