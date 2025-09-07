@@ -1586,9 +1586,16 @@ export const TableView = () => {
       if (field && field.field_type === 'single_select') {
         const value = record.data[colorSettings.fieldId];
         if (value && field.field_config?.options) {
-          // Find the option that matches the value and use its color
+          // Find the option that matches the value and use its color with 50% opacity
           const option = field.field_config.options.find((opt: any) => opt.id === value);
-          return option?.color || null;
+          if (option?.color) {
+            // Convert hex to rgba with 50% opacity
+            const hex = option.color.replace('#', '');
+            const r = parseInt(hex.substr(0, 2), 16);
+            const g = parseInt(hex.substr(2, 2), 16);
+            const b = parseInt(hex.substr(4, 2), 16);
+            return `rgba(${r}, ${g}, ${b}, 0.5)`;
+          }
         }
       }
     } else if (colorSettings.mode === 'conditions' && colorSettings.conditions) {
@@ -1598,7 +1605,12 @@ export const TableView = () => {
         
         const value = record.data[colorCondition.fieldId];
         if (evaluateCondition(value, colorCondition.operator, colorCondition.value, field)) {
-          return colorCondition.color;
+          // Convert hex to rgba with 50% opacity
+          const hex = colorCondition.color.replace('#', '');
+          const r = parseInt(hex.substr(0, 2), 16);
+          const g = parseInt(hex.substr(2, 2), 16);
+          const b = parseInt(hex.substr(4, 2), 16);
+          return `rgba(${r}, ${g}, ${b}, 0.5)`;
         }
       }
     }
