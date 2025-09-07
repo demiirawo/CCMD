@@ -1585,17 +1585,10 @@ export const TableView = () => {
       const field = fields.find(f => f.id === colorSettings.fieldId);
       if (field && field.field_type === 'single_select') {
         const value = record.data[colorSettings.fieldId];
-        if (value) {
-          // Generate consistent colors for field values
-          const fieldValues = [...new Set(records.map(r => r.data[colorSettings.fieldId]).filter(Boolean))];
-          const colorIndex = fieldValues.indexOf(value);
-          if (colorIndex >= 0) {
-            const pastelColors = [
-              '#FFD1DC', '#AEC6CF', '#77DD77', '#FDFD96', '#FFB347', 
-              '#DDA0DD', '#98FB98', '#FFCBA4', '#E6E6FA', '#F88379'
-            ];
-            return pastelColors[colorIndex % pastelColors.length];
-          }
+        if (value && field.field_config?.options) {
+          // Find the option that matches the value and use its color
+          const option = field.field_config.options.find((opt: any) => opt.id === value);
+          return option?.color || null;
         }
       }
     } else if (colorSettings.mode === 'conditions' && colorSettings.conditions) {
