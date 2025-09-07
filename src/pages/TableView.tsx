@@ -1407,25 +1407,32 @@ export const TableView = () => {
                                   ({groupRecords.length})
                                 </span>
                               </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground"
-                                onClick={() => {
-                                  // Add a new record to this group
-                                  const groupField = fields.find(f => f.id === groupByField);
-                                  if (groupField) {
-                                    // Create new record with the group value pre-filled
-                                    const newRecord = {
-                                      [groupByField!]: groupValue === '(Empty)' ? '' : groupValue
-                                    };
-                                    // Use the existing addRecord function but with pre-filled data
-                                    addRecord(newRecord);
-                                  }
-                                }}
-                              >
-                                <Plus className="h-3 w-3" />
-                              </Button>
+                              <div className="flex items-center gap-2">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground hover:bg-primary/10 rounded-md"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    // Add a new record to this group
+                                    const groupField = fields.find(f => f.id === groupByField);
+                                    if (groupField && groupByField) {
+                                      console.log('Adding record to group:', groupValue, 'for field:', groupField.name);
+                                      // Create new record with the group value pre-filled
+                                      const initialData = {
+                                        [groupByField]: groupValue === '(Empty)' ? '' : groupValue
+                                      };
+                                      addRecord(initialData);
+                                    }
+                                  }}
+                                  title={`Add new record to ${groupValue} group`}
+                                >
+                                  <Plus className="h-4 w-4" />
+                                </Button>
+                                <span className="text-xs text-muted-foreground">
+                                  Add to group
+                                </span>
+                              </div>
                             </div>
                           </TableCell>
                         </TableRow>
