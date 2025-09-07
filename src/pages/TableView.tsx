@@ -1507,6 +1507,7 @@ export const TableView = () => {
                 variant={filters.conditions.length > 0 || filters.groups.length > 0 ? "default" : "outline"}
                 size="sm" 
                 className="gap-2"
+                style={{ backgroundColor: 'hsl(var(--filter-button-bg))', color: 'white' }}
                 onClick={() => setFilterDialog(true)}
               >
                 <Filter className="h-4 w-4" />
