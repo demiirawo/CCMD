@@ -8,7 +8,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ArrowLeft, Plus, Filter, ArrowUpDown as Sort, Search, MoreHorizontal, Settings, Type, Hash, FileText, List, ListChecks, CheckSquare, PoundSterling, Percent, Calendar, Clock, Mail, Link, Phone, Star, Paperclip, Calculator, CalendarIcon, Group } from "lucide-react";
+import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger } from "@/components/ui/context-menu";
+import { ArrowLeft, Plus, Filter, ArrowUpDown as Sort, Search, MoreHorizontal, Settings, Type, Hash, FileText, List, ListChecks, CheckSquare, PoundSterling, Percent, Calendar, Clock, Mail, Link, Phone, Star, Paperclip, Calculator, CalendarIcon, Group, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -239,6 +240,20 @@ export const TableView = () => {
   const [sorts, setSorts] = useState<SortCondition[]>([]);
   const [sortDialog, setSortDialog] = useState(false);
   const [automaticSort, setAutomaticSort] = useState(false);
+  
+  // Multi-select state
+  const [selectedCells, setSelectedCells] = useState<Set<string>>(new Set());
+  const [selectionStart, setSelectionStart] = useState<{recordId: string, fieldId: string} | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [multiSelectContextMenu, setMultiSelectContextMenu] = useState<{
+    isOpen: boolean;
+    x: number;
+    y: number;
+  }>({
+    isOpen: false,
+    x: 0,
+    y: 0,
+  });
   
   const editInputRef = useRef<HTMLInputElement>(null);
   const editTextareaRef = useRef<HTMLTextAreaElement>(null);
@@ -921,6 +936,189 @@ export const TableView = () => {
     return String(value);
   };
 
+  // Multi-selection handlers
+  const getCellId = (recordId: string, fieldId: string) => `${recordId}-${fieldId}`;
+  
+  const handleCellMouseDown = (recordId: string, fieldId: string, e: React.MouseEvent) => {
+    // Don't start selection if we're editing or right-clicking
+    if (editingCell || e.button !== 0) return;
+    
+    e.preventDefault();
+    setSelectionStart({ recordId, fieldId });
+    setIsDragging(true);
+    
+    // Clear existing selection unless Ctrl/Cmd is held
+    if (!e.ctrlKey && !e.metaKey) {
+      setSelectedCells(new Set([getCellId(recordId, fieldId)]));
+    } else {
+      // Add/remove from selection
+      const cellId = getCellId(recordId, fieldId);
+      const newSelection = new Set(selectedCells);
+      if (newSelection.has(cellId)) {
+        newSelection.delete(cellId);
+      } else {
+        newSelection.add(cellId);
+      }
+      setSelectedCells(newSelection);
+    }
+  };
+
+  const handleCellMouseEnter = (recordId: string, fieldId: string) => {
+    if (!isDragging || !selectionStart) return;
+    
+    // Calculate selection range
+    const startRecordIndex = sortedRecords.findIndex(r => r.id === selectionStart.recordId);
+    const endRecordIndex = sortedRecords.findIndex(r => r.id === recordId);
+    const startFieldIndex = fields.findIndex(f => f.id === selectionStart.fieldId);
+    const endFieldIndex = fields.findIndex(f => f.id === fieldId);
+    
+    const minRecordIndex = Math.min(startRecordIndex, endRecordIndex);
+    const maxRecordIndex = Math.max(startRecordIndex, endRecordIndex);
+    const minFieldIndex = Math.min(startFieldIndex, endFieldIndex);
+    const maxFieldIndex = Math.max(startFieldIndex, endFieldIndex);
+    
+    const newSelection = new Set<string>();
+    for (let r = minRecordIndex; r <= maxRecordIndex; r++) {
+      for (let f = minFieldIndex; f <= maxFieldIndex; f++) {
+        if (sortedRecords[r] && fields[f]) {
+          newSelection.add(getCellId(sortedRecords[r].id, fields[f].id));
+        }
+      }
+    }
+    
+    setSelectedCells(newSelection);
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+    setSelectionStart(null);
+  };
+
+  const handleCellRightClick = (e: React.MouseEvent, recordId: string, fieldId: string) => {
+    e.preventDefault();
+    const cellId = getCellId(recordId, fieldId);
+    
+    // If right-clicking on an unselected cell, select only that cell
+    if (!selectedCells.has(cellId)) {
+      setSelectedCells(new Set([cellId]));
+    }
+    
+    setMultiSelectContextMenu({
+      isOpen: true,
+      x: e.clientX,
+      y: e.clientY,
+    });
+  };
+
+  // Multi-selection actions
+  const deleteSelectedCells = async () => {
+    try {
+      const updates = new Map<string, any>();
+      
+      selectedCells.forEach(cellId => {
+        const [recordId, fieldId] = cellId.split('-');
+        if (!updates.has(recordId)) {
+          const record = records.find(r => r.id === recordId);
+          if (record) {
+            updates.set(recordId, { ...record.data });
+          }
+        }
+        
+        const recordData = updates.get(recordId);
+        if (recordData) {
+          recordData[fieldId] = null;
+        }
+      });
+      
+      // Update all affected records
+      for (const [recordId, data] of updates) {
+        const { error } = await supabase
+          .from('base_records')
+          .update({ data })
+          .eq('id', recordId);
+        
+        if (error) throw error;
+        
+        // Update local state
+        setRecords(prevRecords => 
+          prevRecords.map(r => r.id === recordId ? { ...r, data } : r)
+        );
+      }
+      
+      setSelectedCells(new Set());
+      setMultiSelectContextMenu({ isOpen: false, x: 0, y: 0 });
+      
+      toast({
+        title: "Success",
+        description: `Cleared ${selectedCells.size} cells`
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to clear cells",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const deleteSelectedRows = async () => {
+    try {
+      const recordIds = new Set<string>();
+      selectedCells.forEach(cellId => {
+        const [recordId] = cellId.split('-');
+        recordIds.add(recordId);
+      });
+      
+      for (const recordId of recordIds) {
+        await deleteRecord(recordId);
+      }
+      
+      setSelectedCells(new Set());
+      setMultiSelectContextMenu({ isOpen: false, x: 0, y: 0 });
+      
+      toast({
+        title: "Success",
+        description: `Deleted ${recordIds.size} rows`
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete rows",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const addRowAbove = () => {
+    addRecord();
+    setSelectedCells(new Set());
+    setMultiSelectContextMenu({ isOpen: false, x: 0, y: 0 });
+  };
+
+  const addRowBelow = () => {
+    addRecord();
+    setSelectedCells(new Set());
+    setMultiSelectContextMenu({ isOpen: false, x: 0, y: 0 });
+  };
+
+  // Mouse up event listener
+  useEffect(() => {
+    document.addEventListener('mouseup', handleMouseUp);
+    return () => document.removeEventListener('mouseup', handleMouseUp);
+  }, []);
+
+  // Close context menu on outside click
+  useEffect(() => {
+    const handleClickOutside = () => {
+      setMultiSelectContextMenu({ isOpen: false, x: 0, y: 0 });
+    };
+    
+    if (multiSelectContextMenu.isOpen) {
+      document.addEventListener('click', handleClickOutside);
+      return () => document.removeEventListener('click', handleClickOutside);
+    }
+  }, [multiSelectContextMenu.isOpen]);
+
   const groupRecordsByField = (records: BaseRecord[], fieldId: string) => {
     const field = fields.find(f => f.id === fieldId);
     if (!field) return {};
@@ -1152,14 +1350,19 @@ export const TableView = () => {
 
   const renderEditableCell = (record: BaseRecord, field: BaseField) => {
     const isEditing = editingCell?.recordId === record.id && editingCell?.fieldId === field.id;
+    const cellId = getCellId(record.id, field.id);
+    const isSelected = selectedCells.has(cellId);
     const value = record.data[field.id];
+    
     if (isEditing) {
       if (field.field_type === 'checkbox') {
-        return <Checkbox checked={editValue} onCheckedChange={checked => {
-          setEditValue(checked);
-          updateCellValue(record.id, field.id, checked);
-          setEditingCell(null);
-        }} />;
+        return <div className={cn("w-full h-full flex items-center justify-center", isSelected && "bg-primary/20")}>
+          <Checkbox checked={editValue} onCheckedChange={checked => {
+            setEditValue(checked);
+            updateCellValue(record.id, field.id, checked);
+            setEditingCell(null);
+          }} />
+        </div>;
       } else if (field.field_type === 'date' || field.field_type === 'datetime') {
         let dateValue: Date | undefined = undefined;
         if (editValue) {
@@ -1168,7 +1371,8 @@ export const TableView = () => {
             dateValue = parsedDate;
           }
         }
-        return <Popover>
+        return <div className={cn("w-full h-full", isSelected && "bg-primary/20")}>
+          <Popover>
             <PopoverTrigger asChild>
               <Button variant="outline" className={cn("w-full h-8 justify-start text-left font-normal border-0 bg-transparent p-1", !dateValue && "text-muted-foreground")}>
                 <CalendarIcon className="mr-2 h-4 w-4" />
@@ -1185,13 +1389,15 @@ export const TableView = () => {
               }
             }} initialFocus className={cn("p-3 pointer-events-auto")} />
             </PopoverContent>
-          </Popover>;
+          </Popover>
+        </div>;
       } else if (field.field_type === 'single_select') {
-        return <Select value={editValue || ''} onValueChange={newValue => {
-          setEditValue(newValue);
-          updateCellValue(record.id, field.id, newValue);
-          setEditingCell(null);
-        }}>
+        return <div className={cn("w-full h-full", isSelected && "bg-primary/20")}>
+          <Select value={editValue || ''} onValueChange={newValue => {
+            setEditValue(newValue);
+            updateCellValue(record.id, field.id, newValue);
+            setEditingCell(null);
+          }}>
             <SelectTrigger className="w-full h-8">
               <SelectValue />
             </SelectTrigger>
@@ -1203,9 +1409,10 @@ export const TableView = () => {
                   {option.name}
                 </SelectItem>)}
             </SelectContent>
-          </Select>;
+          </Select>
+        </div>;
       } else if (field.field_type === 'attachment') {
-        return <div className="w-full h-full relative">
+        return <div className={cn("w-full h-full relative", isSelected && "bg-primary/20")}>
             <input type="file" multiple className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" onChange={e => {
             if (e.target.files && e.target.files.length > 0) {
               handleFileUpload(e.target.files, record.id, field.id);
@@ -1216,34 +1423,67 @@ export const TableView = () => {
             </div>
           </div>;
       } else if (field.field_type === 'long_text') {
-        return <Textarea ref={editTextareaRef} value={editValue} onChange={e => setEditValue(e.target.value)} onKeyDown={handleCellKeyDown} onBlur={saveCellEdit} className="min-h-[60px] w-full resize-none" />;
+        return <div className={cn("w-full h-full", isSelected && "bg-primary/20")}>
+          <Textarea ref={editTextareaRef} value={editValue} onChange={e => setEditValue(e.target.value)} onKeyDown={handleCellKeyDown} onBlur={saveCellEdit} className="min-h-[60px] w-full resize-none" />
+        </div>;
       } else {
-        return <Input ref={editInputRef} value={editValue} onChange={e => setEditValue(e.target.value)} onKeyDown={handleCellKeyDown} onBlur={saveCellEdit} type={field.field_type === 'number' || field.field_type === 'currency' || field.field_type === 'percent' ? 'number' : 'text'} className="w-full h-8 border-0 bg-transparent p-1" />;
+        return <div className={cn("w-full h-full", isSelected && "bg-primary/20")}>
+          <Input ref={editInputRef} value={editValue} onChange={e => setEditValue(e.target.value)} onKeyDown={handleCellKeyDown} onBlur={saveCellEdit} type={field.field_type === 'number' || field.field_type === 'currency' || field.field_type === 'percent' ? 'number' : 'text'} className="w-full h-8 border-0 bg-transparent p-1" />
+        </div>;
       }
     }
 
     // Handle drag and drop for attachment fields
-
-    // Handle drag and drop for attachment fields
     if (field.field_type === 'attachment') {
-      return <div className="w-full h-full p-2 cursor-pointer hover:bg-muted/30 rounded relative" onDoubleClick={() => handleCellDoubleClick(record.id, field.id, value)} onDragOver={e => {
-        e.preventDefault();
-        e.currentTarget.classList.add('bg-primary/10', 'border-primary');
-      }} onDragLeave={e => {
-        e.currentTarget.classList.remove('bg-primary/10', 'border-primary');
-      }} onDrop={e => {
-        e.preventDefault();
-        e.currentTarget.classList.remove('bg-primary/10', 'border-primary');
-        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-          handleFileUpload(e.dataTransfer.files, record.id, field.id);
-        }
-      }}>
-        {renderCellValue(field, value, record)}
-      </div>;
+      return (
+        <ContextMenuTrigger>
+          <div 
+            className={cn(
+              "w-full h-full p-2 cursor-pointer hover:bg-muted/30 rounded relative user-select-none",
+              isSelected && "bg-primary/20 ring-2 ring-primary/40"
+            )}
+            onDoubleClick={() => handleCellDoubleClick(record.id, field.id, value)}
+            onMouseDown={(e) => handleCellMouseDown(record.id, field.id, e)}
+            onMouseEnter={() => handleCellMouseEnter(record.id, field.id)}
+            onContextMenu={(e) => handleCellRightClick(e, record.id, field.id)}
+            onDragOver={e => {
+              e.preventDefault();
+              e.currentTarget.classList.add('bg-primary/10', 'border-primary');
+            }} 
+            onDragLeave={e => {
+              e.currentTarget.classList.remove('bg-primary/10', 'border-primary');
+            }} 
+            onDrop={e => {
+              e.preventDefault();
+              e.currentTarget.classList.remove('bg-primary/10', 'border-primary');
+              if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                handleFileUpload(e.dataTransfer.files, record.id, field.id);
+              }
+            }}
+          >
+            {renderCellValue(field, value, record)}
+          </div>
+        </ContextMenuTrigger>
+      );
     }
-    return <div className="w-full h-full p-2 cursor-pointer hover:bg-muted/30 rounded" onDoubleClick={() => handleCellDoubleClick(record.id, field.id, value)}>
-        {renderCellValue(field, value, record)}
-      </div>;
+    
+    return (
+      <ContextMenuTrigger>
+        <div 
+          className={cn(
+            "w-full h-full p-2 cursor-pointer hover:bg-muted/30 rounded user-select-none",
+            isSelected && "bg-primary/20 ring-2 ring-primary/40"
+          )}
+          onDoubleClick={() => handleCellDoubleClick(record.id, field.id, value)}
+          onMouseDown={(e) => handleCellMouseDown(record.id, field.id, e)}
+          onMouseEnter={() => handleCellMouseEnter(record.id, field.id)}
+          onContextMenu={(e) => handleCellRightClick(e, record.id, field.id)}
+        >
+          {renderCellValue(field, value, record)}
+        </div>
+      </ContextMenuTrigger>
+    );
+  };
   };
   const renderCellValue = (field: BaseField, value: any, record?: BaseRecord) => {
     switch (field.field_type) {
@@ -2042,6 +2282,49 @@ export const TableView = () => {
             Delete Field
           </button>
          </div>}
-     </div>
-   </div>;
+
+        {/* Multi-select context menu */}
+        {multiSelectContextMenu.isOpen && (
+          <div 
+            className="fixed bg-background border shadow-lg rounded-md py-1 z-50 min-w-48" 
+            style={{ left: multiSelectContextMenu.x, top: multiSelectContextMenu.y }}
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="px-3 py-2 text-xs text-muted-foreground border-b">
+              {selectedCells.size} cell{selectedCells.size !== 1 ? 's' : ''} selected
+            </div>
+            <button 
+              className="w-full px-3 py-2 text-left hover:bg-muted text-sm flex items-center gap-2"
+              onClick={deleteSelectedCells}
+            >
+              <Trash2 className="h-4 w-4" />
+              Clear cells
+            </button>
+            <button 
+              className="w-full px-3 py-2 text-left hover:bg-muted text-sm flex items-center gap-2"
+              onClick={deleteSelectedRows}
+            >
+              <Trash2 className="h-4 w-4" />
+              Delete rows
+            </button>
+            <hr className="my-1" />
+            <button 
+              className="w-full px-3 py-2 text-left hover:bg-muted text-sm flex items-center gap-2"
+              onClick={addRowAbove}
+            >
+              <Plus className="h-4 w-4" />
+              Add row above
+            </button>
+            <button 
+              className="w-full px-3 py-2 text-left hover:bg-muted text-sm flex items-center gap-2"
+              onClick={addRowBelow}
+            >
+              <Plus className="h-4 w-4" />
+              Add row below
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
 };
