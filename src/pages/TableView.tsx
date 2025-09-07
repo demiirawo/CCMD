@@ -90,7 +90,6 @@ const FIELD_TYPES = [{
   value: 'formula',
   label: 'Formula'
 }];
-
 const getFieldTypeIcon = (fieldType: string) => {
   switch (fieldType) {
     case 'single_line':
@@ -161,7 +160,6 @@ export const TableView = () => {
     fieldId: string;
     initialFormula: string;
   } | null>(null);
-
   const [formulaTypeChangeDialog, setFormulaTypeChangeDialog] = useState<{
     isOpen: boolean;
     fieldId: string | null;
@@ -169,17 +167,15 @@ export const TableView = () => {
   }>({
     isOpen: false,
     fieldId: null,
-    pendingType: '',
+    pendingType: ''
   });
-
   const [fieldConfigDialog, setFieldConfigDialog] = useState<{
     isOpen: boolean;
     field: BaseField | null;
   }>({
     isOpen: false,
-    field: null,
+    field: null
   });
-
   const [contextMenu, setContextMenu] = useState<{
     isOpen: boolean;
     x: number;
@@ -189,23 +185,28 @@ export const TableView = () => {
     isOpen: false,
     x: 0,
     y: 0,
-    fieldId: null,
+    fieldId: null
   });
   const editInputRef = useRef<HTMLInputElement>(null);
   const editTextareaRef = useRef<HTMLTextAreaElement>(null);
   const fieldEditRef = useRef<HTMLInputElement>(null);
-  const { toast } = useToast();
+  const {
+    toast
+  } = useToast();
   useEffect(() => {
     if (tableId && profile?.company_id) {
       loadTableData();
     }
   }, [tableId, profile?.company_id]);
-
   useEffect(() => {
     const handleClickOutside = () => {
-      setContextMenu({ isOpen: false, x: 0, y: 0, fieldId: null });
+      setContextMenu({
+        isOpen: false,
+        x: 0,
+        y: 0,
+        fieldId: null
+      });
     };
-    
     if (contextMenu.isOpen) {
       document.addEventListener('click', handleClickOutside);
       return () => document.removeEventListener('click', handleClickOutside);
@@ -347,7 +348,6 @@ export const TableView = () => {
         } else if (data.field_type === 'date' || data.field_type === 'datetime') {
           defaultValue = null;
         }
-        
         return {
           ...record,
           data: {
@@ -433,11 +433,10 @@ export const TableView = () => {
       setFormulaTypeChangeDialog({
         isOpen: true,
         fieldId,
-        pendingType: newType,
+        pendingType: newType
       });
       return;
     }
-
     try {
       let fieldConfig = {};
 
@@ -488,40 +487,39 @@ export const TableView = () => {
       });
     }
   };
-
   const deleteField = async (fieldId: string) => {
     if (!confirm('Are you sure you want to delete this field? This action cannot be undone and will remove all data in this field.')) {
       return;
     }
-    
     try {
       // Delete the field from database
-      const { error } = await supabase
-        .from('base_fields')
-        .delete()
-        .eq('id', fieldId);
-      
+      const {
+        error
+      } = await supabase.from('base_fields').delete().eq('id', fieldId);
       if (error) throw error;
-      
+
       // Update all records to remove data for this field
       const updatedRecords = records.map(record => {
-        const newData = { ...record.data };
+        const newData = {
+          ...record.data
+        };
         delete newData[fieldId];
-        return { ...record, data: newData };
+        return {
+          ...record,
+          data: newData
+        };
       });
-      
+
       // Update records in database
       for (const record of updatedRecords) {
-        await supabase
-          .from('base_records')
-          .update({ data: record.data })
-          .eq('id', record.id);
+        await supabase.from('base_records').update({
+          data: record.data
+        }).eq('id', record.id);
       }
-      
+
       // Update local state
       setFields(fields.filter(f => f.id !== fieldId));
       setRecords(updatedRecords);
-      
       toast({
         title: "Success",
         description: "Field deleted successfully"
@@ -537,7 +535,6 @@ export const TableView = () => {
   };
   const handleCellDoubleClick = (recordId: string, fieldId: string, currentValue: any) => {
     const field = fields.find(f => f.id === fieldId);
-    
     if (field?.field_type === 'attachment') {
       // Open attachment preview dialog
       setPreviewAttachments({
@@ -565,14 +562,13 @@ export const TableView = () => {
     setEditingField(fieldId);
     setEditFieldName(currentName);
   };
-
   const handleFieldRightClick = (e: React.MouseEvent, fieldId: string) => {
     e.preventDefault();
     setContextMenu({
       isOpen: true,
       x: e.clientX,
       y: e.clientY,
-      fieldId,
+      fieldId
     });
   };
   const handleCellKeyDown = (e: React.KeyboardEvent) => {
@@ -614,30 +610,24 @@ export const TableView = () => {
   const handleFileUpload = async (files: FileList, recordId: string, fieldId: string) => {
     try {
       const fileUrls: string[] = [];
-      
       for (const file of Array.from(files)) {
         const fileName = `${Date.now()}-${file.name}`;
         const filePath = `${profile?.company_id}/${fileName}`;
-        
-        const { error: uploadError } = await supabase.storage
-          .from('base-attachments')
-          .upload(filePath, file);
-        
+        const {
+          error: uploadError
+        } = await supabase.storage.from('base-attachments').upload(filePath, file);
         if (uploadError) throw uploadError;
-        
-        const { data: { publicUrl } } = supabase.storage
-          .from('base-attachments')
-          .getPublicUrl(filePath);
-        
+        const {
+          data: {
+            publicUrl
+          }
+        } = supabase.storage.from('base-attachments').getPublicUrl(filePath);
         fileUrls.push(publicUrl);
       }
-      
       const currentValue = records.find(r => r.id === recordId)?.data[fieldId] || [];
       const newValue = [...currentValue, ...fileUrls];
-      
       await updateCellValue(recordId, fieldId, newValue);
       setEditingCell(null);
-      
       toast({
         title: "Success",
         description: `${files.length} file(s) uploaded successfully`
@@ -651,11 +641,9 @@ export const TableView = () => {
       });
     }
   };
-
   const renderEditableCell = (record: BaseRecord, field: BaseField) => {
     const isEditing = editingCell?.recordId === record.id && editingCell?.fieldId === field.id;
     const value = record.data[field.id];
-    
     if (isEditing) {
       if (field.field_type === 'checkbox') {
         return <Checkbox checked={editValue} onCheckedChange={checked => {
@@ -665,48 +653,30 @@ export const TableView = () => {
         }} />;
       } else if (field.field_type === 'date' || field.field_type === 'datetime') {
         let dateValue: Date | undefined = undefined;
-        
         if (editValue) {
           const parsedDate = new Date(editValue);
           if (isValid(parsedDate)) {
             dateValue = parsedDate;
           }
         }
-        
-        return (
-          <Popover>
+        return <Popover>
             <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                className={cn(
-                  "w-full h-8 justify-start text-left font-normal border-0 bg-transparent p-1",
-                  !dateValue && "text-muted-foreground"
-                )}
-              >
+              <Button variant="outline" className={cn("w-full h-8 justify-start text-left font-normal border-0 bg-transparent p-1", !dateValue && "text-muted-foreground")}>
                 <CalendarIcon className="mr-2 h-4 w-4" />
                 {dateValue ? format(dateValue, "dd/MM/yyyy") : <span>Pick a date</span>}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="start">
-              <CalendarComponent
-                mode="single"
-                selected={dateValue}
-                onSelect={(date) => {
-                  if (date) {
-                    const isoString = field.field_type === 'datetime' 
-                      ? date.toISOString() 
-                      : date.toISOString().split('T')[0];
-                    setEditValue(isoString);
-                    updateCellValue(record.id, field.id, isoString);
-                    setEditingCell(null);
-                  }
-                }}
-                initialFocus
-                className={cn("p-3 pointer-events-auto")}
-              />
+              <CalendarComponent mode="single" selected={dateValue} onSelect={date => {
+              if (date) {
+                const isoString = field.field_type === 'datetime' ? date.toISOString() : date.toISOString().split('T')[0];
+                setEditValue(isoString);
+                updateCellValue(record.id, field.id, isoString);
+                setEditingCell(null);
+              }
+            }} initialFocus className={cn("p-3 pointer-events-auto")} />
             </PopoverContent>
-          </Popover>
-        );
+          </Popover>;
       } else if (field.field_type === 'single_select') {
         return <Select value={editValue || ''} onValueChange={newValue => {
           setEditValue(newValue);
@@ -727,16 +697,11 @@ export const TableView = () => {
           </Select>;
       } else if (field.field_type === 'attachment') {
         return <div className="w-full h-full relative">
-            <input
-              type="file"
-              multiple
-              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-              onChange={(e) => {
-                if (e.target.files && e.target.files.length > 0) {
-                  handleFileUpload(e.target.files, record.id, field.id);
-                }
-              }}
-            />
+            <input type="file" multiple className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" onChange={e => {
+            if (e.target.files && e.target.files.length > 0) {
+              handleFileUpload(e.target.files, record.id, field.id);
+            }
+          }} />
             <div className="flex items-center justify-center h-full border-2 border-dashed border-muted-foreground/30 rounded text-sm text-muted-foreground">
               Drop files or click to upload
             </div>
@@ -752,28 +717,21 @@ export const TableView = () => {
 
     // Handle drag and drop for attachment fields
     if (field.field_type === 'attachment') {
-      return <div 
-        className="w-full h-full p-2 cursor-pointer hover:bg-muted/30 rounded relative"
-        onDoubleClick={() => handleCellDoubleClick(record.id, field.id, value)}
-        onDragOver={(e) => {
-          e.preventDefault();
-          e.currentTarget.classList.add('bg-primary/10', 'border-primary');
-        }}
-        onDragLeave={(e) => {
-          e.currentTarget.classList.remove('bg-primary/10', 'border-primary');
-        }}
-        onDrop={(e) => {
-          e.preventDefault();
-          e.currentTarget.classList.remove('bg-primary/10', 'border-primary');
-          if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-            handleFileUpload(e.dataTransfer.files, record.id, field.id);
-          }
-        }}
-      >
+      return <div className="w-full h-full p-2 cursor-pointer hover:bg-muted/30 rounded relative" onDoubleClick={() => handleCellDoubleClick(record.id, field.id, value)} onDragOver={e => {
+        e.preventDefault();
+        e.currentTarget.classList.add('bg-primary/10', 'border-primary');
+      }} onDragLeave={e => {
+        e.currentTarget.classList.remove('bg-primary/10', 'border-primary');
+      }} onDrop={e => {
+        e.preventDefault();
+        e.currentTarget.classList.remove('bg-primary/10', 'border-primary');
+        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+          handleFileUpload(e.dataTransfer.files, record.id, field.id);
+        }
+      }}>
         {renderCellValue(field, value)}
       </div>;
     }
-    
     return <div className="w-full h-full p-2 cursor-pointer hover:bg-muted/30 rounded" onDoubleClick={() => handleCellDoubleClick(record.id, field.id, value)}>
         {renderCellValue(field, value)}
       </div>;
@@ -819,13 +777,8 @@ export const TableView = () => {
             {value.slice(0, 3).map((url: string, index: number) => {
               const fileName = url.split('/').pop() || 'file';
               const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(fileName);
-              
               return <div key={index} className="flex items-center gap-1 bg-muted px-2 py-1 rounded text-xs max-w-[80px]">
-                {isImage ? (
-                  <img src={url} alt="attachment" className="w-4 h-4 object-cover rounded" />
-                ) : (
-                  <div className="w-4 h-4 bg-primary/20 rounded flex items-center justify-center text-[8px]">📎</div>
-                )}
+                {isImage ? <img src={url} alt="attachment" className="w-4 h-4 object-cover rounded" /> : <div className="w-4 h-4 bg-primary/20 rounded flex items-center justify-center text-[8px]">📎</div>}
                 <span className="truncate">{fileName.length > 8 ? fileName.substring(0, 8) + '...' : fileName}</span>
               </div>;
             })}
@@ -849,20 +802,12 @@ export const TableView = () => {
           acc[f.id] = f.name;
           return acc;
         }, {} as Record<string, string>);
-        return <FormulaCell 
-          formula={field.field_config?.formula || ''} 
-          recordData={record.data}
-          allRecords={records.map(r => r.data)}
-          fieldNames={fieldNames}
-          format={field.field_config?.format}
-          isEditing={editingCell?.recordId === record.id && editingCell?.fieldId === field.id}
-          onEdit={() => {
-            setFormulaEditor({
-              fieldId: field.id,
-              initialFormula: field.field_config?.formula || ''
-            });
-          }}
-        />;
+        return <FormulaCell formula={field.field_config?.formula || ''} recordData={record.data} allRecords={records.map(r => r.data)} fieldNames={fieldNames} format={field.field_config?.format} isEditing={editingCell?.recordId === record.id && editingCell?.fieldId === field.id} onEdit={() => {
+          setFormulaEditor({
+            fieldId: field.id,
+            initialFormula: field.field_config?.formula || ''
+          });
+        }} />;
       default:
         return value ? String(value) : '';
     }
@@ -870,11 +815,7 @@ export const TableView = () => {
   const renderEditableFieldHeader = (field: BaseField) => {
     const isEditing = editingField === field.id;
     const IconComponent = getFieldTypeIcon(field.field_type);
-    
-    return <div 
-        className="flex items-center justify-between group"
-        onContextMenu={(e) => handleFieldRightClick(e, field.id)}
-      >
+    return <div className="flex items-center justify-between group" onContextMenu={e => handleFieldRightClick(e, field.id)}>
         <div className="flex items-center gap-2 flex-1">
           <IconComponent className="h-4 w-4 text-muted-foreground flex-shrink-0" />
           {isEditing ? <Input ref={fieldEditRef} value={editFieldName} onChange={e => setEditFieldName(e.target.value)} onKeyDown={handleFieldKeyDown} onBlur={saveFieldEdit} className="h-8 border-0 bg-transparent p-0 font-medium flex-1" /> : <span className="cursor-pointer font-medium truncate" onDoubleClick={() => handleFieldDoubleClick(field.id, field.name)}>
@@ -894,28 +835,20 @@ export const TableView = () => {
               <Type className="h-4 w-4 mr-2" />
               Rename
             </DropdownMenuItem>
-            {field.field_type === 'formula' && (
-              <DropdownMenuItem onClick={() => setFormulaEditor({ 
-                fieldId: field.id, 
-                initialFormula: field.field_config?.formula || '' 
-              })}>
+            {field.field_type === 'formula' && <DropdownMenuItem onClick={() => setFormulaEditor({
+            fieldId: field.id,
+            initialFormula: field.field_config?.formula || ''
+          })}>
                 Edit Formula
-              </DropdownMenuItem>
-            )}
+              </DropdownMenuItem>}
             <DropdownMenuSeparator />
             {FIELD_TYPES.map(type => {
-              const TypeIcon = getFieldTypeIcon(type.value);
-              return (
-                <DropdownMenuItem 
-                  key={type.value} 
-                  onClick={() => updateFieldType(field.id, type.value)} 
-                  className={field.field_type === type.value ? 'bg-muted' : ''}
-                >
+            const TypeIcon = getFieldTypeIcon(type.value);
+            return <DropdownMenuItem key={type.value} onClick={() => updateFieldType(field.id, type.value)} className={field.field_type === type.value ? 'bg-muted' : ''}>
                   <TypeIcon className="h-4 w-4 mr-2" />
                   {type.label}
-                </DropdownMenuItem>
-              );
-            })}
+                </DropdownMenuItem>;
+          })}
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => deleteField(field.id)} className="text-destructive">
               Delete Field
@@ -991,8 +924,8 @@ export const TableView = () => {
         {/* Search */}
         <div className="flex items-center gap-4 mb-6">
           <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input placeholder="Search records..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-10" />
+            
+            
           </div>
         </div>
 
@@ -1044,71 +977,55 @@ export const TableView = () => {
       </div>
 
       {/* Attachment Preview Dialog */}
-      {previewAttachments && (
-        <AttachmentPreviewDialog
-          isOpen={!!previewAttachments}
-          onClose={() => setPreviewAttachments(null)}
-          attachments={previewAttachments.attachments}
-          fieldName={previewAttachments.fieldName}
-          onUpdate={(newAttachments) => {
-            updateCellValue(previewAttachments.recordId, previewAttachments.fieldId, newAttachments);
-            setPreviewAttachments({
-              ...previewAttachments,
-              attachments: newAttachments
-            });
-          }}
-        />
-      )}
+      {previewAttachments && <AttachmentPreviewDialog isOpen={!!previewAttachments} onClose={() => setPreviewAttachments(null)} attachments={previewAttachments.attachments} fieldName={previewAttachments.fieldName} onUpdate={newAttachments => {
+      updateCellValue(previewAttachments.recordId, previewAttachments.fieldId, newAttachments);
+      setPreviewAttachments({
+        ...previewAttachments,
+        attachments: newAttachments
+      });
+    }} />}
 
       {/* Formula Editor Dialog */}
-      {formulaEditor && (
-        <FormulaEditor
-          isOpen={!!formulaEditor}
-          onClose={() => setFormulaEditor(null)}
-          onSave={async (formula) => {
-            try {
-              const { error } = await supabase
-                .from('base_fields')
-                .update({ 
-                  field_config: { 
-                    ...fields.find(f => f.id === formulaEditor.fieldId)?.field_config,
-                    formula 
-                  } 
-                })
-                .eq('id', formulaEditor.fieldId);
-              
-              if (error) throw error;
-              
-              // Update local state
-              setFields(fields.map(f => 
-                f.id === formulaEditor.fieldId 
-                  ? { ...f, field_config: { ...f.field_config, formula } }
-                  : f
-              ));
-              
-              toast({
-                title: "Success",
-                description: "Formula updated successfully"
-              });
-            } catch (error) {
-              console.error('Error updating formula:', error);
-              toast({
-                title: "Error",
-                description: "Failed to update formula",
-                variant: "destructive"
-              });
-            }
-          }}
-          initialFormula={formulaEditor.initialFormula}
-          fields={fields}
-          sampleRecord={records[0]?.data || {}}
-        />
-      )}
+      {formulaEditor && <FormulaEditor isOpen={!!formulaEditor} onClose={() => setFormulaEditor(null)} onSave={async formula => {
+      try {
+        const {
+          error
+        } = await supabase.from('base_fields').update({
+          field_config: {
+            ...fields.find(f => f.id === formulaEditor.fieldId)?.field_config,
+            formula
+          }
+        }).eq('id', formulaEditor.fieldId);
+        if (error) throw error;
+
+        // Update local state
+        setFields(fields.map(f => f.id === formulaEditor.fieldId ? {
+          ...f,
+          field_config: {
+            ...f.field_config,
+            formula
+          }
+        } : f));
+        toast({
+          title: "Success",
+          description: "Formula updated successfully"
+        });
+      } catch (error) {
+        console.error('Error updating formula:', error);
+        toast({
+          title: "Error",
+          description: "Failed to update formula",
+          variant: "destructive"
+        });
+      }
+    }} initialFormula={formulaEditor.initialFormula} fields={fields} sampleRecord={records[0]?.data || {}} />}
 
       {/* Formula Type Change Confirmation Dialog */}
-      <Dialog open={formulaTypeChangeDialog.isOpen} onOpenChange={(open) => 
-        !open && setFormulaTypeChangeDialog({ isOpen: false, fieldId: null, pendingType: '' })
-      }>
+      <Dialog open={formulaTypeChangeDialog.isOpen} onOpenChange={open => !open && setFormulaTypeChangeDialog({
+      isOpen: false,
+      fieldId: null,
+      pendingType: ''
+    })}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Convert to Formula Field</DialogTitle>
@@ -1129,167 +1046,159 @@ export const TableView = () => {
               </ul>
             </div>
 
-            <FormulaEditor
-              isOpen={true}
-              onClose={() => setFormulaTypeChangeDialog({ isOpen: false, fieldId: null, pendingType: '' })}
-              onSave={async (formula) => {
-                if (!formula.trim()) {
-                  toast({
-                    title: "Error",
-                    description: "Please enter a valid formula",
-                    variant: "destructive"
-                  });
-                  return;
-                }
-
-                try {
-                  const fieldConfig = { formula };
-                  
-                  const { error } = await supabase
-                    .from('base_fields')
-                    .update({
-                      field_type: 'formula',
-                      field_config: fieldConfig
-                    })
-                    .eq('id', formulaTypeChangeDialog.fieldId);
-                  
-                  if (error) throw error;
-                  
-                  setFields(fields.map(f => 
-                    f.id === formulaTypeChangeDialog.fieldId 
-                      ? { ...f, field_type: 'formula', field_config: fieldConfig }
-                      : f
-                  ));
-                  
-                  toast({
-                    title: "Success",
-                    description: "Field converted to formula successfully"
-                  });
-                  
-                  setFormulaTypeChangeDialog({ isOpen: false, fieldId: null, pendingType: '' });
-                } catch (error) {
-                  console.error('Error converting to formula field:', error);
-                  toast({
-                    title: "Error",
-                    description: "Failed to convert field to formula",
-                    variant: "destructive"
-                  });
-                }
-              }}
-              initialFormula=""
-              fields={fields}
-              sampleRecord={records[0]?.data || {}}
-            />
+            <FormulaEditor isOpen={true} onClose={() => setFormulaTypeChangeDialog({
+            isOpen: false,
+            fieldId: null,
+            pendingType: ''
+          })} onSave={async formula => {
+            if (!formula.trim()) {
+              toast({
+                title: "Error",
+                description: "Please enter a valid formula",
+                variant: "destructive"
+              });
+              return;
+            }
+            try {
+              const fieldConfig = {
+                formula
+              };
+              const {
+                error
+              } = await supabase.from('base_fields').update({
+                field_type: 'formula',
+                field_config: fieldConfig
+              }).eq('id', formulaTypeChangeDialog.fieldId);
+              if (error) throw error;
+              setFields(fields.map(f => f.id === formulaTypeChangeDialog.fieldId ? {
+                ...f,
+                field_type: 'formula',
+                field_config: fieldConfig
+              } : f));
+              toast({
+                title: "Success",
+                description: "Field converted to formula successfully"
+              });
+              setFormulaTypeChangeDialog({
+                isOpen: false,
+                fieldId: null,
+                pendingType: ''
+              });
+            } catch (error) {
+              console.error('Error converting to formula field:', error);
+              toast({
+                title: "Error",
+                description: "Failed to convert field to formula",
+                variant: "destructive"
+              });
+            }
+          }} initialFormula="" fields={fields} sampleRecord={records[0]?.data || {}} />
           </div>
         </DialogContent>
       </Dialog>
 
       {/* Field Configuration Dialog */}
-      <FieldConfigDialog
-        isOpen={fieldConfigDialog.isOpen}
-        onClose={() => setFieldConfigDialog({ isOpen: false, field: null })}
-        onSave={async (config) => {
-          if (!fieldConfigDialog.field) return;
-          
-          try {
-            const { error } = await supabase
-              .from('base_fields')
-              .update({ field_config: config })
-              .eq('id', fieldConfigDialog.field.id);
-            
-            if (error) throw error;
-            
-            setFields(fields.map(f => 
-              f.id === fieldConfigDialog.field!.id 
-                ? { ...f, field_config: config }
-                : f
-            ));
-            
-            toast({
-              title: "Success",
-              description: "Field configuration updated"
-            });
-          } catch (error) {
-            console.error('Error updating field config:', error);
-            toast({
-              title: "Error",
-              description: "Failed to update field configuration",
-              variant: "destructive"
-            });
-          }
-        }}
-        field={fieldConfigDialog.field}
-      />
+      <FieldConfigDialog isOpen={fieldConfigDialog.isOpen} onClose={() => setFieldConfigDialog({
+      isOpen: false,
+      field: null
+    })} onSave={async config => {
+      if (!fieldConfigDialog.field) return;
+      try {
+        const {
+          error
+        } = await supabase.from('base_fields').update({
+          field_config: config
+        }).eq('id', fieldConfigDialog.field.id);
+        if (error) throw error;
+        setFields(fields.map(f => f.id === fieldConfigDialog.field!.id ? {
+          ...f,
+          field_config: config
+        } : f));
+        toast({
+          title: "Success",
+          description: "Field configuration updated"
+        });
+      } catch (error) {
+        console.error('Error updating field config:', error);
+        toast({
+          title: "Error",
+          description: "Failed to update field configuration",
+          variant: "destructive"
+        });
+      }
+    }} field={fieldConfigDialog.field} />
 
       {/* Context Menu */}
-      {contextMenu.isOpen && (
-        <div
-          className="fixed bg-background border shadow-lg rounded-md py-1 z-50 min-w-48"
-          style={{ left: contextMenu.x, top: contextMenu.y }}
-          onClick={(e) => e.stopPropagation()}
-        >
-          <button
-            className="w-full px-3 py-2 text-left hover:bg-muted text-sm"
-            onClick={() => {
-              const field = fields.find(f => f.id === contextMenu.fieldId);
-              if (field) {
-                handleFieldDoubleClick(field.id, field.name);
-              }
-              setContextMenu({ isOpen: false, x: 0, y: 0, fieldId: null });
-            }}
-          >
+      {contextMenu.isOpen && <div className="fixed bg-background border shadow-lg rounded-md py-1 z-50 min-w-48" style={{
+      left: contextMenu.x,
+      top: contextMenu.y
+    }} onClick={e => e.stopPropagation()}>
+          <button className="w-full px-3 py-2 text-left hover:bg-muted text-sm" onClick={() => {
+        const field = fields.find(f => f.id === contextMenu.fieldId);
+        if (field) {
+          handleFieldDoubleClick(field.id, field.name);
+        }
+        setContextMenu({
+          isOpen: false,
+          x: 0,
+          y: 0,
+          fieldId: null
+        });
+      }}>
             Rename Field
           </button>
           
-          {(['single_select', 'multi_select', 'rating', 'currency', 'number', 'percent'].includes(
-            fields.find(f => f.id === contextMenu.fieldId)?.field_type || ''
-          )) && (
-            <button
-              className="w-full px-3 py-2 text-left hover:bg-muted text-sm"
-              onClick={() => {
-                const field = fields.find(f => f.id === contextMenu.fieldId);
-                if (field) {
-                  setFieldConfigDialog({ isOpen: true, field });
-                }
-                setContextMenu({ isOpen: false, x: 0, y: 0, fieldId: null });
-              }}
-            >
+          {['single_select', 'multi_select', 'rating', 'currency', 'number', 'percent'].includes(fields.find(f => f.id === contextMenu.fieldId)?.field_type || '') && <button className="w-full px-3 py-2 text-left hover:bg-muted text-sm" onClick={() => {
+        const field = fields.find(f => f.id === contextMenu.fieldId);
+        if (field) {
+          setFieldConfigDialog({
+            isOpen: true,
+            field
+          });
+        }
+        setContextMenu({
+          isOpen: false,
+          x: 0,
+          y: 0,
+          fieldId: null
+        });
+      }}>
               Configure Options
-            </button>
-          )}
+            </button>}
           
-          {fields.find(f => f.id === contextMenu.fieldId)?.field_type === 'formula' && (
-            <button
-              className="w-full px-3 py-2 text-left hover:bg-muted text-sm"
-              onClick={() => {
-                const field = fields.find(f => f.id === contextMenu.fieldId);
-                if (field) {
-                  setFormulaEditor({
-                    fieldId: field.id,
-                    initialFormula: field.field_config?.formula || ''
-                  });
-                }
-                setContextMenu({ isOpen: false, x: 0, y: 0, fieldId: null });
-              }}
-            >
+          {fields.find(f => f.id === contextMenu.fieldId)?.field_type === 'formula' && <button className="w-full px-3 py-2 text-left hover:bg-muted text-sm" onClick={() => {
+        const field = fields.find(f => f.id === contextMenu.fieldId);
+        if (field) {
+          setFormulaEditor({
+            fieldId: field.id,
+            initialFormula: field.field_config?.formula || ''
+          });
+        }
+        setContextMenu({
+          isOpen: false,
+          x: 0,
+          y: 0,
+          fieldId: null
+        });
+      }}>
               Edit Formula
-            </button>
-          )}
+            </button>}
           
           <hr className="my-1" />
           
-          <button
-            className="w-full px-3 py-2 text-left hover:bg-muted text-sm text-destructive"
-            onClick={() => {
-              if (contextMenu.fieldId) {
-                deleteField(contextMenu.fieldId);
-              }
-              setContextMenu({ isOpen: false, x: 0, y: 0, fieldId: null });
-            }}
-          >
+          <button className="w-full px-3 py-2 text-left hover:bg-muted text-sm text-destructive" onClick={() => {
+        if (contextMenu.fieldId) {
+          deleteField(contextMenu.fieldId);
+        }
+        setContextMenu({
+          isOpen: false,
+          x: 0,
+          y: 0,
+          fieldId: null
+        });
+      }}>
             Delete Field
           </button>
-        </div>
-      )}
+        </div>}
     </div>;
 };
