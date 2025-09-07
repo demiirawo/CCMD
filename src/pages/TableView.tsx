@@ -50,7 +50,6 @@ interface BaseTableData {
   icon: string;
   color: string;
 }
-
 interface BaseView {
   id: string;
   name: string;
@@ -228,27 +227,36 @@ export const TableView = () => {
         value: any;
       }>;
     }>;
-  }>({ conditions: [], groups: [] });
-  
+  }>({
+    conditions: [],
+    groups: []
+  });
+
   // View state
   const [currentView, setCurrentView] = useState<BaseView | null>(null);
-  
+
   // Group by state
   const [groupByField, setGroupByField] = useState<string | null>(null);
   const [groupByDialog, setGroupByDialog] = useState(false);
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
-  
+
   // Sorting state
   const [sorts, setSorts] = useState<SortCondition[]>([]);
   const [sortDialog, setSortDialog] = useState(false);
-  
+
   // Row coloring state
-  const [colorSettings, setColorSettings] = useState<ColorSettings>({ mode: 'conditions', conditions: [] });
+  const [colorSettings, setColorSettings] = useState<ColorSettings>({
+    mode: 'conditions',
+    conditions: []
+  });
   const [colorDialog, setColorDialog] = useState(false);
-  
+
   // Multi-select state
   const [selectedCells, setSelectedCells] = useState<Set<string>>(new Set());
-  const [selectionStart, setSelectionStart] = useState<{recordId: string, fieldId: string} | null>(null);
+  const [selectionStart, setSelectionStart] = useState<{
+    recordId: string;
+    fieldId: string;
+  } | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [multiSelectContextMenu, setMultiSelectContextMenu] = useState<{
     isOpen: boolean;
@@ -257,9 +265,8 @@ export const TableView = () => {
   }>({
     isOpen: false,
     x: 0,
-    y: 0,
+    y: 0
   });
-  
   const editInputRef = useRef<HTMLInputElement>(null);
   const editTextareaRef = useRef<HTMLTextAreaElement>(null);
   const fieldEditRef = useRef<HTMLInputElement>(null);
@@ -369,8 +376,10 @@ export const TableView = () => {
       });
 
       // Merge with any initial data provided (for group records)
-      const finalData = { ...defaultData, ...initialData };
-
+      const finalData = {
+        ...defaultData,
+        ...initialData
+      };
       const {
         data,
         error
@@ -393,7 +402,6 @@ export const TableView = () => {
       });
     }
   };
-  
   const addRecordAbove = async (recordId: string) => {
     if (!tableId || !profile?.company_id) return;
     try {
@@ -416,8 +424,10 @@ export const TableView = () => {
           defaultData[field.id] = '';
         }
       });
-
-      const { data, error } = await supabase.from('base_records').insert({
+      const {
+        data,
+        error
+      } = await supabase.from('base_records').insert({
         table_id: tableId,
         data: defaultData
       }).select().single();
@@ -428,7 +438,6 @@ export const TableView = () => {
       const newRecords = [...records];
       newRecords.splice(targetIndex, 0, data);
       setRecords(newRecords);
-
       toast({
         title: "Success",
         description: "New record added above"
@@ -442,7 +451,6 @@ export const TableView = () => {
       });
     }
   };
-
   const addRecordBelow = async (recordId: string) => {
     if (!tableId || !profile?.company_id) return;
     try {
@@ -465,8 +473,10 @@ export const TableView = () => {
           defaultData[field.id] = '';
         }
       });
-
-      const { data, error } = await supabase.from('base_records').insert({
+      const {
+        data,
+        error
+      } = await supabase.from('base_records').insert({
         table_id: tableId,
         data: defaultData
       }).select().single();
@@ -477,7 +487,6 @@ export const TableView = () => {
       const newRecords = [...records];
       newRecords.splice(targetIndex + 1, 0, data);
       setRecords(newRecords);
-
       toast({
         title: "Success",
         description: "New record added below"
@@ -491,24 +500,19 @@ export const TableView = () => {
       });
     }
   };
-  
   const duplicateRecord = async (recordId: string) => {
     if (!tableId || !profile?.company_id) return;
     try {
       const originalRecord = records.find(r => r.id === recordId);
       if (!originalRecord) return;
-
-      const { data, error } = await supabase
-        .from('base_records')
-        .insert({
-          table_id: tableId,
-          data: originalRecord.data
-        })
-        .select()
-        .single();
-
+      const {
+        data,
+        error
+      } = await supabase.from('base_records').insert({
+        table_id: tableId,
+        data: originalRecord.data
+      }).select().single();
       if (error) throw error;
-
       setRecords([data, ...records]);
       toast({
         title: "Success",
@@ -523,16 +527,12 @@ export const TableView = () => {
       });
     }
   };
-
   const deleteRecord = async (recordId: string) => {
     try {
-      const { error } = await supabase
-        .from('base_records')
-        .delete()
-        .eq('id', recordId);
-
+      const {
+        error
+      } = await supabase.from('base_records').delete().eq('id', recordId);
       if (error) throw error;
-
       setRecords(records.filter(r => r.id !== recordId));
       toast({
         title: "Success",
@@ -547,7 +547,6 @@ export const TableView = () => {
       });
     }
   };
-  
   const addField = async () => {
     if (!tableId) return;
     try {
@@ -873,7 +872,7 @@ export const TableView = () => {
       });
     }
   };
-  
+
   // View handling functions
   const handleViewChange = (view: BaseView | null) => {
     setCurrentView(view);
@@ -884,31 +883,38 @@ export const TableView = () => {
         groups: Array.isArray(view.groups) ? view.groups : []
       };
       setFilters(viewFilters);
-      
+
       // Apply view's sorting
       const viewSorts = Array.isArray(view.sorts) ? view.sorts : [];
       setSorts(viewSorts);
-      
+
       // Apply view's grouping
       const viewSettings = view.settings || {};
       const viewGroupBy = viewSettings.groupBy || null;
       setGroupByField(viewGroupBy);
-      
+
       // Apply view's color settings
-      const viewColorSettings = viewSettings.colorSettings || { mode: 'conditions', conditions: [] };
+      const viewColorSettings = viewSettings.colorSettings || {
+        mode: 'conditions',
+        conditions: []
+      };
       setColorSettings(viewColorSettings);
-      
       console.log('Switched to view:', view.name, 'with filters:', viewFilters, 'sorts:', viewSorts, 'groupBy:', viewGroupBy, 'colorSettings:', viewColorSettings);
     } else {
       // Clear all view-specific settings when switching to "All Records"
-      setFilters({ conditions: [], groups: [] });
+      setFilters({
+        conditions: [],
+        groups: []
+      });
       setSorts([]);
       setGroupByField(null);
-      setColorSettings({ mode: 'conditions', conditions: [] });
+      setColorSettings({
+        mode: 'conditions',
+        conditions: []
+      });
       console.log('Switched to All Records - cleared all view settings');
     }
   };
-
   const handleCreateView = () => {
     // This will be handled by the ViewsSidebar component
     console.log('Create view clicked');
@@ -930,14 +936,15 @@ export const TableView = () => {
     try {
       const currentViewData = currentView;
       if (!currentViewData) return;
-
-      const updatedSettings = { ...currentViewData.settings, ...newSettings };
-      
-      const { error } = await supabase
-        .from('base_views')
-        .update({ settings: updatedSettings })
-        .eq('id', viewId);
-
+      const updatedSettings = {
+        ...currentViewData.settings,
+        ...newSettings
+      };
+      const {
+        error
+      } = await supabase.from('base_views').update({
+        settings: updatedSettings
+      }).eq('id', viewId);
       if (error) throw error;
 
       // Update current view state
@@ -958,11 +965,9 @@ export const TableView = () => {
   // Helper function to update view filters, sorts, etc.
   const updateViewData = async (viewId: string, updates: Partial<BaseView>) => {
     try {
-      const { error } = await supabase
-        .from('base_views')
-        .update(updates)
-        .eq('id', viewId);
-
+      const {
+        error
+      } = await supabase.from('base_views').update(updates).eq('id', viewId);
       if (error) throw error;
 
       // Update current view state
@@ -986,12 +991,13 @@ export const TableView = () => {
   const handleGroupByApply = (fieldId: string | null) => {
     console.log('handleGroupByApply called with:', fieldId);
     setGroupByField(fieldId);
-    
+
     // Update current view if one is selected
     if (currentView) {
-      updateViewSettings(currentView.id, { groupBy: fieldId });
+      updateViewSettings(currentView.id, {
+        groupBy: fieldId
+      });
     }
-    
     if (fieldId) {
       // Auto-expand all groups when grouping is applied
       const field = fields.find(f => f.id === fieldId);
@@ -1008,7 +1014,6 @@ export const TableView = () => {
       setExpandedGroups(new Set());
     }
   };
-
   const toggleGroupExpansion = (groupValue: string) => {
     const newExpanded = new Set(expandedGroups);
     if (newExpanded.has(groupValue)) {
@@ -1018,12 +1023,10 @@ export const TableView = () => {
     }
     setExpandedGroups(newExpanded);
   };
-
   const formatGroupValue = (value: any, field: BaseField): string => {
     if (value === null || value === undefined || value === '') {
       return '(Empty)';
     }
-    
     if (field.field_type === 'date' || field.field_type === 'datetime') {
       try {
         return format(new Date(value), field.field_type === 'date' ? 'dd/MM/yyyy' : 'dd/MM/yyyy HH:mm');
@@ -1031,26 +1034,25 @@ export const TableView = () => {
         return String(value);
       }
     }
-    
     if (field.field_type === 'single_select' && field.field_config?.options) {
       const option = field.field_config.options.find((opt: any) => opt.id === value);
       return option ? option.name : String(value);
     }
-    
     return String(value);
   };
 
   // Multi-selection handlers
   const getCellId = (recordId: string, fieldId: string) => `${recordId}-${fieldId}`;
-  
   const handleCellMouseDown = (recordId: string, fieldId: string, e: React.MouseEvent) => {
     // Don't start selection if we're editing or right-clicking
     if (editingCell || e.button !== 0) return;
-    
     e.preventDefault();
-    setSelectionStart({ recordId, fieldId });
+    setSelectionStart({
+      recordId,
+      fieldId
+    });
     setIsDragging(true);
-    
+
     // Clear existing selection unless Ctrl/Cmd is held
     if (!e.ctrlKey && !e.metaKey) {
       setSelectedCells(new Set([getCellId(recordId, fieldId)]));
@@ -1066,21 +1068,18 @@ export const TableView = () => {
       setSelectedCells(newSelection);
     }
   };
-
   const handleCellMouseEnter = (recordId: string, fieldId: string) => {
     if (!isDragging || !selectionStart) return;
-    
+
     // Calculate selection range
     const startRecordIndex = sortedRecords.findIndex(r => r.id === selectionStart.recordId);
     const endRecordIndex = sortedRecords.findIndex(r => r.id === recordId);
     const startFieldIndex = fields.findIndex(f => f.id === selectionStart.fieldId);
     const endFieldIndex = fields.findIndex(f => f.id === fieldId);
-    
     const minRecordIndex = Math.min(startRecordIndex, endRecordIndex);
     const maxRecordIndex = Math.max(startRecordIndex, endRecordIndex);
     const minFieldIndex = Math.min(startFieldIndex, endFieldIndex);
     const maxFieldIndex = Math.max(startFieldIndex, endFieldIndex);
-    
     const newSelection = new Set<string>();
     for (let r = minRecordIndex; r <= maxRecordIndex; r++) {
       for (let f = minFieldIndex; f <= maxFieldIndex; f++) {
@@ -1089,32 +1088,28 @@ export const TableView = () => {
         }
       }
     }
-    
     setSelectedCells(newSelection);
   };
-
   const handleMouseUp = () => {
     setIsDragging(false);
     setSelectionStart(null);
   };
-
   const handleCellRightClick = (e: React.MouseEvent, recordId: string, fieldId: string) => {
     e.preventDefault();
     e.stopPropagation();
     console.log('Right click detected on cell:', recordId, fieldId);
     const cellId = getCellId(recordId, fieldId);
-    
+
     // If right-clicking on an unselected cell, select only that cell
     if (!selectedCells.has(cellId)) {
       console.log('Selecting cell:', cellId);
       setSelectedCells(new Set([cellId]));
     }
-    
     console.log('Opening context menu at:', e.clientX, e.clientY);
     setMultiSelectContextMenu({
       isOpen: true,
       x: e.clientX,
-      y: e.clientY,
+      y: e.clientY
     });
   };
 
@@ -1122,7 +1117,6 @@ export const TableView = () => {
   const deleteSelectedCells = async () => {
     try {
       console.log('deleteSelectedCells called with', selectedCells.size, 'cells selected');
-      
       if (selectedCells.size === 0) {
         console.log('No cells selected for clearing');
         toast({
@@ -1132,55 +1126,58 @@ export const TableView = () => {
         });
         return;
       }
-      
       const updates = new Map<string, any>();
-      
       selectedCells.forEach(cellId => {
         const [recordId, fieldId] = cellId.split('-');
         if (!updates.has(recordId)) {
           const record = records.find(r => r.id === recordId);
           if (record) {
-            updates.set(recordId, { ...record.data });
+            updates.set(recordId, {
+              ...record.data
+            });
           }
         }
-        
         const recordData = updates.get(recordId);
         if (recordData) {
           recordData[fieldId] = null;
         }
       });
-      
       console.log('Records to update:', Array.from(updates.keys()));
-      
+
       // Update all affected records in database in parallel
       const updatePromises = Array.from(updates.entries()).map(async ([recordId, data]) => {
         console.log('Updating record:', recordId, 'with data:', data);
-        const { error } = await supabase
-          .from('base_records')
-          .update({ data })
-          .eq('id', recordId);
-        
+        const {
+          error
+        } = await supabase.from('base_records').update({
+          data
+        }).eq('id', recordId);
         if (error) {
           console.error('Error updating record:', recordId, error);
           throw error;
         }
-        return { recordId, data };
+        return {
+          recordId,
+          data
+        };
       });
-      
       const results = await Promise.all(updatePromises);
       console.log('Successfully updated records:', results.length);
-      
+
       // Update local state once after all database updates are complete
-      setRecords(prevRecords => 
-        prevRecords.map(record => {
-          const update = results.find(result => result.recordId === record.id);
-          return update ? { ...record, data: update.data } : record;
-        })
-      );
-      
+      setRecords(prevRecords => prevRecords.map(record => {
+        const update = results.find(result => result.recordId === record.id);
+        return update ? {
+          ...record,
+          data: update.data
+        } : record;
+      }));
       setSelectedCells(new Set());
-      setMultiSelectContextMenu({ isOpen: false, x: 0, y: 0 });
-      
+      setMultiSelectContextMenu({
+        isOpen: false,
+        x: 0,
+        y: 0
+      });
       toast({
         title: "Success",
         description: `Cleared ${selectedCells.size} cell${selectedCells.size !== 1 ? 's' : ''}`
@@ -1194,11 +1191,9 @@ export const TableView = () => {
       });
     }
   };
-
   const deleteSelectedRows = async () => {
     try {
       console.log('deleteSelectedRows called with', selectedCells.size, 'cells selected');
-      
       if (selectedCells.size === 0) {
         console.log('No cells selected for row deletion');
         toast({
@@ -1208,15 +1203,12 @@ export const TableView = () => {
         });
         return;
       }
-      
       const recordIds = new Set<string>();
       selectedCells.forEach(cellId => {
         const [recordId] = cellId.split('-');
         recordIds.add(recordId);
       });
-      
       console.log('Records to delete:', Array.from(recordIds));
-      
       if (recordIds.size === 0) {
         console.log('No valid record IDs found');
         toast({
@@ -1226,38 +1218,42 @@ export const TableView = () => {
         });
         return;
       }
-      
+
       // Confirm deletion
       const confirmMessage = `Are you sure you want to delete ${recordIds.size} row${recordIds.size !== 1 ? 's' : ''}?\n\nThis action cannot be undone.`;
       if (!window.confirm(confirmMessage)) {
         console.log('User cancelled row deletion');
-        setMultiSelectContextMenu({ isOpen: false, x: 0, y: 0 });
+        setMultiSelectContextMenu({
+          isOpen: false,
+          x: 0,
+          y: 0
+        });
         return;
       }
-      
-      // Delete records in parallel
-      const deletePromises = Array.from(recordIds).map(async (recordId) => {
-        console.log('Deleting record:', recordId);
-        const { error } = await supabase
-          .from('base_records')
-          .delete()
-          .eq('id', recordId);
 
+      // Delete records in parallel
+      const deletePromises = Array.from(recordIds).map(async recordId => {
+        console.log('Deleting record:', recordId);
+        const {
+          error
+        } = await supabase.from('base_records').delete().eq('id', recordId);
         if (error) {
           console.error('Error deleting record:', recordId, error);
           throw error;
         }
         return recordId;
       });
-      
       const deletedRecordIds = await Promise.all(deletePromises);
       console.log('Successfully deleted records:', deletedRecordIds);
-      
+
       // Update local state
       setRecords(prevRecords => prevRecords.filter(r => !recordIds.has(r.id)));
       setSelectedCells(new Set());
-      setMultiSelectContextMenu({ isOpen: false, x: 0, y: 0 });
-      
+      setMultiSelectContextMenu({
+        isOpen: false,
+        x: 0,
+        y: 0
+      });
       toast({
         title: "Success",
         description: `Deleted ${recordIds.size} row${recordIds.size !== 1 ? 's' : ''}`
@@ -1271,11 +1267,9 @@ export const TableView = () => {
       });
     }
   };
-
   const deleteSelectedColumns = async () => {
     try {
       console.log('deleteSelectedColumns called, selectedCells:', selectedCells);
-      
       if (selectedCells.size === 0) {
         console.log('No cells selected for column deletion');
         toast({
@@ -1285,7 +1279,6 @@ export const TableView = () => {
         });
         return;
       }
-      
       const fieldIds = new Set<string>();
       selectedCells.forEach(cellId => {
         const [, fieldId] = cellId.split('-');
@@ -1293,9 +1286,7 @@ export const TableView = () => {
           fieldIds.add(fieldId);
         }
       });
-      
       console.log('Fields to delete:', Array.from(fieldIds));
-      
       if (fieldIds.size === 0) {
         console.log('No valid field IDs found');
         toast({
@@ -1305,65 +1296,75 @@ export const TableView = () => {
         });
         return;
       }
-      
       const fieldNames = Array.from(fieldIds).map(id => {
         const field = fields.find(f => f.id === id);
         return field ? field.name : 'Unknown';
       }).join(', ');
-      
+
       // Single confirmation using window.confirm to avoid multiple dialogs
       const confirmMessage = `Are you sure you want to delete ${fieldIds.size} column${fieldIds.size !== 1 ? 's' : ''} (${fieldNames})?\n\nThis action cannot be undone and will remove all data in these columns.`;
-      
       if (!window.confirm(confirmMessage)) {
         console.log('User cancelled column deletion');
-        setMultiSelectContextMenu({ isOpen: false, x: 0, y: 0 });
+        setMultiSelectContextMenu({
+          isOpen: false,
+          x: 0,
+          y: 0
+        });
         return;
       }
-      
       console.log('User confirmed deletion, proceeding...');
-      
+
       // Delete all fields from database in parallel
-      const deleteFieldPromises = Array.from(fieldIds).map(async (fieldId) => {
+      const deleteFieldPromises = Array.from(fieldIds).map(async fieldId => {
         console.log('Deleting field:', fieldId);
-        const { error } = await supabase.from('base_fields').delete().eq('id', fieldId);
+        const {
+          error
+        } = await supabase.from('base_fields').delete().eq('id', fieldId);
         if (error) {
           console.error('Error deleting field:', fieldId, error);
           throw error;
         }
         return fieldId;
       });
-      
       const deletedFieldIds = await Promise.all(deleteFieldPromises);
       console.log('Successfully deleted fields:', deletedFieldIds);
-      
+
       // Update all records to remove data for deleted fields
       const updatedRecords = records.map(record => {
-        const newData = { ...record.data };
+        const newData = {
+          ...record.data
+        };
         deletedFieldIds.forEach(fieldId => {
           delete newData[fieldId];
         });
-        return { ...record, data: newData };
+        return {
+          ...record,
+          data: newData
+        };
       });
-      
+
       // Update records in database
-      const updateRecordPromises = updatedRecords.map(async (record) => {
-        const { error } = await supabase
-          .from('base_records')
-          .update({ data: record.data })
-          .eq('id', record.id);
+      const updateRecordPromises = updatedRecords.map(async record => {
+        const {
+          error
+        } = await supabase.from('base_records').update({
+          data: record.data
+        }).eq('id', record.id);
         if (error) throw error;
         return record;
       });
-      
       await Promise.all(updateRecordPromises);
       console.log('Successfully updated all records');
-      
+
       // Update local state
       setFields(fields.filter(f => !fieldIds.has(f.id)));
       setRecords(updatedRecords);
       setSelectedCells(new Set());
-      setMultiSelectContextMenu({ isOpen: false, x: 0, y: 0 });
-      
+      setMultiSelectContextMenu({
+        isOpen: false,
+        x: 0,
+        y: 0
+      });
       toast({
         title: "Success",
         description: `Deleted ${fieldIds.size} column${fieldIds.size !== 1 ? 's' : ''} successfully`
@@ -1377,7 +1378,6 @@ export const TableView = () => {
       });
     }
   };
-
   const addRowAbove = async () => {
     try {
       console.log('addRowAbove called, selectedCells:', selectedCells);
@@ -1390,13 +1390,16 @@ export const TableView = () => {
         const [recordId] = firstCellId.split('-');
         const recordIndex = records.findIndex(r => r.id === recordId);
         console.log('Adding row above record at index:', recordIndex);
-        
+
         // Add record (it will be added at the top by default)
         await addRecord();
       }
-      
       setSelectedCells(new Set());
-      setMultiSelectContextMenu({ isOpen: false, x: 0, y: 0 });
+      setMultiSelectContextMenu({
+        isOpen: false,
+        x: 0,
+        y: 0
+      });
     } catch (error) {
       console.error('Error adding row above:', error);
       toast({
@@ -1406,16 +1409,18 @@ export const TableView = () => {
       });
     }
   };
-
   const addRowBelow = async () => {
     try {
       console.log('addRowBelow called, selectedCells:', selectedCells);
       // For now, just add a new record (they get added at the top anyway)
       // In a real implementation, you might want to insert at a specific position
       await addRecord();
-      
       setSelectedCells(new Set());
-      setMultiSelectContextMenu({ isOpen: false, x: 0, y: 0 });
+      setMultiSelectContextMenu({
+        isOpen: false,
+        x: 0,
+        y: 0
+      });
     } catch (error) {
       console.error('Error adding row below:', error);
       toast({
@@ -1435,25 +1440,24 @@ export const TableView = () => {
   // Close context menu on outside click
   useEffect(() => {
     const handleClickOutside = () => {
-      setMultiSelectContextMenu({ isOpen: false, x: 0, y: 0 });
+      setMultiSelectContextMenu({
+        isOpen: false,
+        x: 0,
+        y: 0
+      });
     };
-    
     if (multiSelectContextMenu.isOpen) {
       document.addEventListener('click', handleClickOutside);
       return () => document.removeEventListener('click', handleClickOutside);
     }
   }, [multiSelectContextMenu.isOpen]);
-
   const groupRecordsByField = (records: BaseRecord[], fieldId: string) => {
     const field = fields.find(f => f.id === fieldId);
     if (!field) return {};
-
     const grouped: Record<string, BaseRecord[]> = {};
-    
     records.forEach(record => {
       const value = record.data[fieldId];
       const groupValue = formatGroupValue(value, field);
-      
       if (!grouped[groupValue]) {
         grouped[groupValue] = [];
       }
@@ -1467,26 +1471,22 @@ export const TableView = () => {
       if (b === '(Empty)') return 1;
       return a.localeCompare(b);
     });
-
     groupKeys.forEach(key => {
       sortedGroups[key] = grouped[key];
     });
-
     return sortedGroups;
   };
-  
+
   // Apply filters to records
   const applyFilters = (records: BaseRecord[]) => {
     if (filters.conditions.length === 0 && filters.groups.length === 0) {
       return records;
     }
-
     const filtered = records.filter(record => {
       // Check individual conditions (all must be true - AND logic)
       const conditionsMatch = filters.conditions.length === 0 || filters.conditions.every(condition => {
         const field = fields.find(f => f.id === condition.field);
         if (!field) return false;
-        
         const value = record.data[condition.field];
         return evaluateCondition(value, condition.operator, condition.value, field);
       });
@@ -1498,7 +1498,6 @@ export const TableView = () => {
           return group.conditions.every(condition => {
             const field = fields.find(f => f.id === condition.field);
             if (!field) return false;
-            
             const value = record.data[condition.field];
             return evaluateCondition(value, condition.operator, condition.value, field);
           });
@@ -1506,19 +1505,15 @@ export const TableView = () => {
           return group.conditions.some(condition => {
             const field = fields.find(f => f.id === condition.field);
             if (!field) return false;
-            
             const value = record.data[condition.field];
             return evaluateCondition(value, condition.operator, condition.value, field);
           });
         }
       });
-
       return conditionsMatch && groupsMatch;
     });
-    
     return filtered;
   };
-
   const evaluateCondition = (fieldValue: any, operator: string, filterValue: any, field: BaseField) => {
     switch (operator) {
       case 'equals':
@@ -1534,7 +1529,7 @@ export const TableView = () => {
       case 'ends_with':
         return String(fieldValue || '').toLowerCase().endsWith(String(filterValue || '').toLowerCase());
       case 'is_empty':
-        return !fieldValue || fieldValue === '' || (Array.isArray(fieldValue) && fieldValue.length === 0);
+        return !fieldValue || fieldValue === '' || Array.isArray(fieldValue) && fieldValue.length === 0;
       case 'is_not_empty':
         return fieldValue && fieldValue !== '' && (!Array.isArray(fieldValue) || fieldValue.length > 0);
       case 'greater_than':
@@ -1584,7 +1579,7 @@ export const TableView = () => {
         return true;
     }
   };
-  
+
   // Get row color based on color settings
   const getRowColor = (record: BaseRecord) => {
     if (colorSettings.mode === 'field' && colorSettings.fieldId) {
@@ -1608,7 +1603,6 @@ export const TableView = () => {
       for (const colorCondition of colorSettings.conditions) {
         const field = fields.find(f => f.id === colorCondition.fieldId);
         if (!field) continue;
-        
         const value = record.data[colorCondition.fieldId];
         if (evaluateCondition(value, colorCondition.operator, colorCondition.value, field)) {
           // Convert hex to rgba with 50% opacity
@@ -1622,16 +1616,15 @@ export const TableView = () => {
     }
     return null;
   };
-  
+
   // Apply search and filters
   const filteredRecords = applyFilters(records).filter(record => {
     if (!searchQuery) return true;
-    
+
     // Search across all field values
     return fields.some(field => {
       const value = record.data[field.id];
       if (value === null || value === undefined) return false;
-      
       return String(value).toLowerCase().includes(searchQuery.toLowerCase());
     });
   });
@@ -1639,28 +1632,23 @@ export const TableView = () => {
   // Apply sorting function
   const applySorting = (recordsToSort: BaseRecord[]) => {
     if (sorts.length === 0) return recordsToSort;
-    
     console.log('Applying sorts:', sorts);
-    
     return [...recordsToSort].sort((a, b) => {
       for (const sort of sorts) {
         const field = fields.find(f => f.id === sort.fieldId);
         if (!field) continue;
-        
         const aValue = a.data[sort.fieldId];
         const bValue = b.data[sort.fieldId];
-        
         console.log(`Sorting ${field.name}: "${aValue}" vs "${bValue}" (${sort.direction})`);
-        
+
         // Handle null/undefined values
         if (aValue == null && bValue == null) continue;
-        
+
         // Always put empty values at the bottom regardless of sort direction
-        if (aValue == null || aValue === '' || (typeof aValue === 'string' && aValue.trim() === '')) return 1; 
-        if (bValue == null || bValue === '' || (typeof bValue === 'string' && bValue.trim() === '')) return -1;
-        
+        if (aValue == null || aValue === '' || typeof aValue === 'string' && aValue.trim() === '') return 1;
+        if (bValue == null || bValue === '' || typeof bValue === 'string' && bValue.trim() === '') return -1;
         let comparison = 0;
-        
+
         // Sort based on field type
         switch (field.field_type) {
           case 'number':
@@ -1685,7 +1673,6 @@ export const TableView = () => {
             // String comparison for text fields
             comparison = String(aValue || '').localeCompare(String(bValue || ''));
         }
-        
         if (comparison !== 0) {
           return sort.direction === 'desc' ? -comparison : comparison;
         }
@@ -1698,17 +1685,15 @@ export const TableView = () => {
   const sortedRecords = applySorting(filteredRecords);
 
   // Group records if grouping is active, and sort within groups
-  const groupedRecords = groupByField 
-    ? (() => {
-        const grouped = groupRecordsByField(sortedRecords, groupByField);
-        // Apply sorting within each group
-        const sortedGrouped: Record<string, BaseRecord[]> = {};
-        Object.entries(grouped).forEach(([groupValue, groupRecords]) => {
-          sortedGrouped[groupValue] = applySorting(groupRecords);
-        });
-        return sortedGrouped;
-      })()
-    : null;
+  const groupedRecords = groupByField ? (() => {
+    const grouped = groupRecordsByField(sortedRecords, groupByField);
+    // Apply sorting within each group
+    const sortedGrouped: Record<string, BaseRecord[]> = {};
+    Object.entries(grouped).forEach(([groupValue, groupRecords]) => {
+      sortedGrouped[groupValue] = applySorting(groupRecords);
+    });
+    return sortedGrouped;
+  })() : null;
 
   // Debug logging (only when a view is selected)
   if (currentView) {
@@ -1721,13 +1706,11 @@ export const TableView = () => {
   console.log('Current filters:', filters);
   console.log('Records before filtering:', records.length);
   console.log('Records after filtering:', sortedRecords.length);
-
   const renderEditableCell = (record: BaseRecord, field: BaseField) => {
     const isEditing = editingCell?.recordId === record.id && editingCell?.fieldId === field.id;
     const cellId = getCellId(record.id, field.id);
     const isSelected = selectedCells.has(cellId);
     const value = record.data[field.id];
-    
     if (isEditing) {
       if (field.field_type === 'checkbox') {
         return <div className={cn("w-full h-full flex items-center justify-center", isSelected && "bg-primary/20")}>
@@ -1755,13 +1738,13 @@ export const TableView = () => {
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0 bg-white" align="start">
               <CalendarComponent mode="single" selected={dateValue} onSelect={date => {
-              if (date) {
-                const isoString = field.field_type === 'datetime' ? date.toISOString() : date.toISOString().split('T')[0];
-                setEditValue(isoString);
-                updateCellValue(record.id, field.id, isoString);
-                setEditingCell(null);
-              }
-            }} initialFocus className={cn("p-3 pointer-events-auto")} />
+                if (date) {
+                  const isoString = field.field_type === 'datetime' ? date.toISOString() : date.toISOString().split('T')[0];
+                  setEditValue(isoString);
+                  updateCellValue(record.id, field.id, isoString);
+                  setEditingCell(null);
+                }
+              }} initialFocus className={cn("p-3 pointer-events-auto")} />
             </PopoverContent>
           </Popover>
         </div>;
@@ -1778,8 +1761,8 @@ export const TableView = () => {
             <SelectContent className="bg-background border shadow-md z-50">
               {field.field_config?.options?.map((option: any) => <SelectItem key={option.id} value={option.id}>
                   <span className="inline-block w-3 h-3 rounded mr-2" style={{
-                backgroundColor: option.color
-              }}></span>
+                  backgroundColor: option.color
+                }}></span>
                   {option.name}
                 </SelectItem>)}
             </SelectContent>
@@ -1809,51 +1792,25 @@ export const TableView = () => {
 
     // Handle drag and drop for attachment fields
     if (field.field_type === 'attachment') {
-      return (
-        <div 
-          className={cn(
-            "w-full h-full p-2 cursor-pointer hover:bg-muted/30 rounded relative user-select-none",
-            isSelected && "bg-primary/20 ring-2 ring-primary/40"
-          )}
-          onDoubleClick={() => handleCellDoubleClick(record.id, field.id, value)}
-          onMouseDown={(e) => handleCellMouseDown(record.id, field.id, e)}
-          onMouseEnter={() => handleCellMouseEnter(record.id, field.id)}
-          onDragOver={e => {
-            e.preventDefault();
-            e.currentTarget.classList.add('bg-primary/10', 'border-primary');
-          }} 
-          onDragLeave={e => {
-            e.currentTarget.classList.remove('bg-primary/10', 'border-primary');
-          }} 
-          onDrop={e => {
-            e.preventDefault();
-            e.currentTarget.classList.remove('bg-primary/10', 'border-primary');
-            if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-              handleFileUpload(e.dataTransfer.files, record.id, field.id);
-            }
-          }}
-        >
+      return <div className={cn("w-full h-full p-2 cursor-pointer hover:bg-muted/30 rounded relative user-select-none", isSelected && "bg-primary/20 ring-2 ring-primary/40")} onDoubleClick={() => handleCellDoubleClick(record.id, field.id, value)} onMouseDown={e => handleCellMouseDown(record.id, field.id, e)} onMouseEnter={() => handleCellMouseEnter(record.id, field.id)} onDragOver={e => {
+        e.preventDefault();
+        e.currentTarget.classList.add('bg-primary/10', 'border-primary');
+      }} onDragLeave={e => {
+        e.currentTarget.classList.remove('bg-primary/10', 'border-primary');
+      }} onDrop={e => {
+        e.preventDefault();
+        e.currentTarget.classList.remove('bg-primary/10', 'border-primary');
+        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+          handleFileUpload(e.dataTransfer.files, record.id, field.id);
+        }
+      }}>
           {renderCellValue(field, value, record)}
-        </div>
-      );
+        </div>;
     }
-    
-    return (
-      <div 
-        className={cn(
-          "w-full h-full p-2 cursor-pointer hover:bg-muted/30 rounded user-select-none",
-          isSelected && "bg-primary/20 ring-2 ring-primary/40"
-        )}
-        onDoubleClick={() => handleCellDoubleClick(record.id, field.id, value)}
-        onMouseDown={(e) => handleCellMouseDown(record.id, field.id, e)}
-        onMouseEnter={() => handleCellMouseEnter(record.id, field.id)}
-        
-      >
+    return <div className={cn("w-full h-full p-2 cursor-pointer hover:bg-muted/30 rounded user-select-none", isSelected && "bg-primary/20 ring-2 ring-primary/40")} onDoubleClick={() => handleCellDoubleClick(record.id, field.id, value)} onMouseDown={e => handleCellMouseDown(record.id, field.id, e)} onMouseEnter={() => handleCellMouseEnter(record.id, field.id)}>
         {renderCellValue(field, value, record)}
-      </div>
-    );
+      </div>;
   };
-  
   const renderCellValue = (field: BaseField, value: any, record?: BaseRecord) => {
     switch (field.field_type) {
       case 'single_line':
@@ -1999,22 +1956,14 @@ export const TableView = () => {
         </div>
       </div>;
   }
-  return (
-    <div className="min-h-screen bg-background flex">
+  return <div className="min-h-screen bg-background flex">
       {/* Views Sidebar */}
-      <ViewsSidebar
-        tableId={tableId || ''}
-        currentView={currentView}
-        onViewChange={handleViewChange}
-        onCreateView={handleCreateView}
-        currentTableState={getCurrentTableState()}
-        onViewUpdated={(updatedView) => {
-          // Update current view if it's the one that was updated
-          if (currentView && currentView.id === updatedView.id) {
-            setCurrentView(updatedView);
-          }
-        }}
-      />
+      <ViewsSidebar tableId={tableId || ''} currentView={currentView} onViewChange={handleViewChange} onCreateView={handleCreateView} currentTableState={getCurrentTableState()} onViewUpdated={updatedView => {
+      // Update current view if it's the one that was updated
+      if (currentView && currentView.id === updatedView.id) {
+        setCurrentView(updatedView);
+      }
+    }} />
       
       {/* Main Content */}
       <div className="flex-1 min-w-0">
@@ -2031,173 +1980,123 @@ export const TableView = () => {
                 <div>
                   <div className="flex items-center gap-2">
                     <h1 className="text-xl font-semibold text-foreground">{table.name}</h1>
-                    {currentView && (
-                      <span className="text-sm text-muted-foreground">
+                    {currentView && <span className="text-sm text-muted-foreground">
                         • {currentView.name}
-                      </span>
-                    )}
+                      </span>}
                   </div>
                   <p className="text-sm text-muted-foreground">
                     {sortedRecords.length} 
                     {(filters.conditions.length > 0 || filters.groups.length > 0 || sorts.length > 0 || groupByField) && ' filtered'} records
-                    {(filters.conditions.length > 0 || filters.groups.length > 0 || sorts.length > 0 || groupByField) && records.length !== sortedRecords.length && (
-                      <span className="text-muted-foreground/70"> of {records.length} total</span>
-                    )}
+                    {(filters.conditions.length > 0 || filters.groups.length > 0 || sorts.length > 0 || groupByField) && records.length !== sortedRecords.length && <span className="text-muted-foreground/70"> of {records.length} total</span>}
                   </p>
                   
                   {/* Active Filters Display */}
-                  {(filters.conditions.length > 0 || filters.groups.length > 0) && (
-                    <div className="flex flex-wrap gap-1 mt-2">
+                  {(filters.conditions.length > 0 || filters.groups.length > 0) && <div className="flex flex-wrap gap-1 mt-2">
                       {filters.conditions.map((condition, index) => {
-                        const field = fields.find(f => f.id === condition.field);
-                        if (!field) return null;
-                        
-                        const operatorText = {
-                          'equals': '=',
-                          'not_equals': '≠',
-                          'contains': 'contains',
-                          'not_contains': 'does not contain',
-                          'starts_with': 'starts with',
-                          'ends_with': 'ends with',
-                          'greater_than': '>',
-                          'less_than': '<',
-                          'greater_than_or_equal': '≥',
-                          'less_than_or_equal': '≤',
-                          'is_empty': 'is empty',
-                          'is_not_empty': 'is not empty'
-                        }[condition.operator] || condition.operator;
-                        
-                        return (
-                          <div key={index} className="inline-flex items-center gap-1 px-2 py-1 bg-primary/10 text-primary text-xs rounded-md">
+                      const field = fields.find(f => f.id === condition.field);
+                      if (!field) return null;
+                      const operatorText = {
+                        'equals': '=',
+                        'not_equals': '≠',
+                        'contains': 'contains',
+                        'not_contains': 'does not contain',
+                        'starts_with': 'starts with',
+                        'ends_with': 'ends with',
+                        'greater_than': '>',
+                        'less_than': '<',
+                        'greater_than_or_equal': '≥',
+                        'less_than_or_equal': '≤',
+                        'is_empty': 'is empty',
+                        'is_not_empty': 'is not empty'
+                      }[condition.operator] || condition.operator;
+                      return <div key={index} className="inline-flex items-center gap-1 px-2 py-1 bg-primary/10 text-primary text-xs rounded-md">
                             <span className="font-medium">{field.name}</span>
                             <span className="text-primary/70">{operatorText}</span>
-                            {!['is_empty', 'is_not_empty'].includes(condition.operator) && (
-                              <span className="font-medium">"{condition.value}"</span>
-                            )}
-                          </div>
-                        );
-                      })}
+                            {!['is_empty', 'is_not_empty'].includes(condition.operator) && <span className="font-medium">"{condition.value}"</span>}
+                          </div>;
+                    })}
                       
-                      {filters.groups.map((group, groupIndex) => 
-                        group.conditions.map((condition, index) => {
-                          const field = fields.find(f => f.id === condition.field);
-                          if (!field) return null;
-                          
-                          const operatorText = {
-                            'equals': '=',
-                            'not_equals': '≠',
-                            'contains': 'contains',
-                            'not_contains': 'does not contain',
-                            'starts_with': 'starts with',
-                            'ends_with': 'ends with',
-                            'greater_than': '>',
-                            'less_than': '<',
-                            'greater_than_or_equal': '≥',
-                            'less_than_or_equal': '≤',
-                            'is_empty': 'is empty',
-                            'is_not_empty': 'is not empty'
-                          }[condition.operator] || condition.operator;
-                          
-                          return (
-                            <div key={`${groupIndex}-${index}`} className="inline-flex items-center gap-1 px-2 py-1 bg-primary/10 text-primary text-xs rounded-md">
+                      {filters.groups.map((group, groupIndex) => group.conditions.map((condition, index) => {
+                      const field = fields.find(f => f.id === condition.field);
+                      if (!field) return null;
+                      const operatorText = {
+                        'equals': '=',
+                        'not_equals': '≠',
+                        'contains': 'contains',
+                        'not_contains': 'does not contain',
+                        'starts_with': 'starts with',
+                        'ends_with': 'ends with',
+                        'greater_than': '>',
+                        'less_than': '<',
+                        'greater_than_or_equal': '≥',
+                        'less_than_or_equal': '≤',
+                        'is_empty': 'is empty',
+                        'is_not_empty': 'is not empty'
+                      }[condition.operator] || condition.operator;
+                      return <div key={`${groupIndex}-${index}`} className="inline-flex items-center gap-1 px-2 py-1 bg-primary/10 text-primary text-xs rounded-md">
                               <span className="font-medium">{field.name}</span>
                               <span className="text-primary/70">{operatorText}</span>
-                              {!['is_empty', 'is_not_empty'].includes(condition.operator) && (
-                                <span className="font-medium">"{condition.value}"</span>
-                              )}
-                            </div>
-                          );
-                        })
-                      )}
-                    </div>
-                  )}
+                              {!['is_empty', 'is_not_empty'].includes(condition.operator) && <span className="font-medium">"{condition.value}"</span>}
+                            </div>;
+                    }))}
+                    </div>}
                 </div>
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <Button 
-                variant={filters.conditions.length > 0 || filters.groups.length > 0 ? "default" : "outline"}
-                size="sm" 
-                className="gap-2"
-                style={{ backgroundColor: 'hsl(var(--filter-button-bg))', color: 'white' }}
-                onClick={() => setFilterDialog(true)}
-              >
+              <Button variant={filters.conditions.length > 0 || filters.groups.length > 0 ? "default" : "outline"} size="sm" className="gap-2" style={{
+                backgroundColor: 'hsl(var(--filter-button-bg))',
+                color: 'white'
+              }} onClick={() => setFilterDialog(true)}>
                 <Filter className="h-4 w-4" />
                 Filter
-                {(filters.conditions.length > 0 || filters.groups.length > 0) && (
-                  <span className="ml-1 px-1.5 py-0.5 text-xs bg-primary-foreground text-primary rounded-full">
+                {(filters.conditions.length > 0 || filters.groups.length > 0) && <span className="ml-1 px-1.5 py-0.5 text-xs bg-primary-foreground text-primary rounded-full">
                     {filters.conditions.length + filters.groups.reduce((acc, g) => acc + g.conditions.length, 0)}
-                  </span>
-                )}
+                  </span>}
               </Button>
-              <Button 
-                variant={groupByField ? "default" : "outline"}
-                size="sm" 
-                className="gap-2"
-                style={{ backgroundColor: '#24333E', color: 'white' }}
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  console.log('Group button clicked - event triggered');
-                  try {
-                    setGroupByDialog(true);
-                    console.log('Group dialog state set to true');
-                  } catch (error) {
-                    console.error('Error setting group dialog:', error);
-                  }
-                }}
-              >
+              <Button variant={groupByField ? "default" : "outline"} size="sm" className="gap-2" style={{
+                backgroundColor: '#24333E',
+                color: 'white'
+              }} onClick={e => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Group button clicked - event triggered');
+                try {
+                  setGroupByDialog(true);
+                  console.log('Group dialog state set to true');
+                } catch (error) {
+                  console.error('Error setting group dialog:', error);
+                }
+              }}>
                 <Group className="h-4 w-4" />
                 Group
-                {groupByField && (
-                  <span className="ml-1 px-1.5 py-0.5 text-xs bg-primary-foreground text-primary rounded-full">
+                {groupByField && <span className="ml-1 px-1.5 py-0.5 text-xs bg-primary-foreground text-primary rounded-full">
                     1
-                  </span>
-                )}
+                  </span>}
               </Button>
-              <Button
-                variant={sorts.length > 0 ? "default" : "outline"}
-                size="sm"
-                className="gap-2"
-                style={{ backgroundColor: '#24333E', color: 'white' }}
-                onClick={() => setSortDialog(true)}
-              >
+              <Button variant={sorts.length > 0 ? "default" : "outline"} size="sm" className="gap-2" style={{
+                backgroundColor: '#24333E',
+                color: 'white'
+              }} onClick={() => setSortDialog(true)}>
                 <Sort className="h-4 w-4" />
                 Sort
-                {sorts.length > 0 && (
-                  <span className="ml-1 px-1.5 py-0.5 text-xs bg-primary-foreground text-primary rounded-full">
+                {sorts.length > 0 && <span className="ml-1 px-1.5 py-0.5 text-xs bg-primary-foreground text-primary rounded-full">
                     {sorts.length}
-                  </span>
-                )}
+                  </span>}
               </Button>
-              <Button
-                variant={colorSettings.mode !== 'conditions' || (colorSettings.conditions && colorSettings.conditions.length > 0) ? "default" : "outline"}
-                size="sm"
-                className="gap-2"
-                style={{ backgroundColor: '#24333E', color: 'white' }}
-                onClick={() => setColorDialog(true)}
-              >
+              <Button variant={colorSettings.mode !== 'conditions' || colorSettings.conditions && colorSettings.conditions.length > 0 ? "default" : "outline"} size="sm" className="gap-2" style={{
+                backgroundColor: '#24333E',
+                color: 'white'
+              }} onClick={() => setColorDialog(true)}>
                 <Palette className="h-4 w-4" />
                 Colour
-                {((colorSettings.mode === 'field' && colorSettings.fieldId) || (colorSettings.mode === 'conditions' && colorSettings.conditions && colorSettings.conditions.length > 0)) && (
-                  <span className="ml-1 px-1.5 py-0.5 text-xs bg-primary-foreground text-primary rounded-full">
-                    {colorSettings.mode === 'field' ? '1' : (colorSettings.conditions?.length || 0)}
-                  </span>
-                )}
+                {(colorSettings.mode === 'field' && colorSettings.fieldId || colorSettings.mode === 'conditions' && colorSettings.conditions && colorSettings.conditions.length > 0) && <span className="ml-1 px-1.5 py-0.5 text-xs bg-primary-foreground text-primary rounded-full">
+                    {colorSettings.mode === 'field' ? '1' : colorSettings.conditions?.length || 0}
+                  </span>}
               </Button>
-              <Button onClick={addField} variant="outline" size="sm" className="gap-2" style={{ backgroundColor: '#24333E', color: 'white' }}>
-                <Plus className="h-4 w-4" />
-                Add Field
-              </Button>
-              <Button onClick={addRecord} size="sm" className="gap-2">
-                <Plus className="h-4 w-4" />
-                Add Record
-              </Button>
-              <TableHistoryDialog 
-                tableId={tableId || ''} 
-                tableName={table?.name || 'Table'} 
-                onRestoreCallback={loadTableData}
-              />
+              
+              
+              <TableHistoryDialog tableId={tableId || ''} tableName={table?.name || 'Table'} onRestoreCallback={loadTableData} />
               <ShareDialog tableId={tableId} tableName={table?.name || 'Table'} />
             </div>
           </div>
@@ -2233,36 +2132,24 @@ export const TableView = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {records.length === 0 ? (
-                  <TableRow>
+                {records.length === 0 ? <TableRow>
                     <TableCell colSpan={fields.length + 1} className="text-center py-12 text-muted-foreground">
                       No records yet. Click the button below to get started.
                     </TableCell>
-                  </TableRow>
-                ) : sortedRecords.length === 0 ? (
-                  <TableRow>
+                  </TableRow> : sortedRecords.length === 0 ? <TableRow>
                     <TableCell colSpan={fields.length + 1} className="text-center py-12 text-muted-foreground">
                       No records match the current filters.
                     </TableCell>
-                  </TableRow>
-                ) : groupedRecords ? (
-                  // Render grouped records
-                  <>
-                    {Object.entries(groupedRecords).map(([groupValue, groupRecords]) => (
-                      <React.Fragment key={groupValue}>
+                  </TableRow> : groupedRecords ?
+                // Render grouped records
+                <>
+                    {Object.entries(groupedRecords).map(([groupValue, groupRecords]) => <React.Fragment key={groupValue}>
                         {/* Group Header Row */}
                         <TableRow className="bg-muted/50 hover:bg-muted/70 border-b-2 border-primary/20">
                           <TableCell colSpan={fields.length + 1} className="p-2">
                             <div className="flex items-center justify-between">
-                              <Button 
-                                variant="ghost" 
-                                className="h-8 justify-start gap-2 font-semibold text-foreground p-0"
-                                onClick={() => toggleGroupExpansion(groupValue)}
-                              >
-                                <div className={cn(
-                                  "transition-transform duration-200 text-xs",
-                                  expandedGroups.has(groupValue) ? "rotate-90" : "rotate-0"
-                                )}>
+                              <Button variant="ghost" className="h-8 justify-start gap-2 font-semibold text-foreground p-0" onClick={() => toggleGroupExpansion(groupValue)}>
+                                <div className={cn("transition-transform duration-200 text-xs", expandedGroups.has(groupValue) ? "rotate-90" : "rotate-0")}>
                                   ▶
                                 </div>
                                 <span className="font-semibold">{groupValue}</span>
@@ -2271,25 +2158,19 @@ export const TableView = () => {
                                 </span>
                               </Button>
                               <div className="flex items-center gap-2">
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground hover:bg-primary/10 rounded-md"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    // Add a new record to this group
-                                    const groupField = fields.find(f => f.id === groupByField);
-                                    if (groupField && groupByField) {
-                                      console.log('Adding record to group:', groupValue, 'for field:', groupField.name);
-                                      // Create new record with the group value pre-filled
-                                      const initialData = {
-                                        [groupByField]: groupValue === '(Empty)' ? '' : groupValue
-                                      };
-                                      addRecord(initialData);
-                                    }
-                                  }}
-                                  title={`Add new record to ${groupValue} group`}
-                                >
+                                <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground hover:bg-primary/10 rounded-md" onClick={e => {
+                              e.stopPropagation();
+                              // Add a new record to this group
+                              const groupField = fields.find(f => f.id === groupByField);
+                              if (groupField && groupByField) {
+                                console.log('Adding record to group:', groupValue, 'for field:', groupField.name);
+                                // Create new record with the group value pre-filled
+                                const initialData = {
+                                  [groupByField]: groupValue === '(Empty)' ? '' : groupValue
+                                };
+                                addRecord(initialData);
+                              }
+                            }} title={`Add new record to ${groupValue} group`}>
                                   <Plus className="h-4 w-4" />
                                 </Button>
                                 <span className="text-xs text-muted-foreground">
@@ -2302,18 +2183,13 @@ export const TableView = () => {
                         
                         {/* Group Records - only show if expanded */}
                         {expandedGroups.has(groupValue) && groupRecords.map(record => {
-                          const rowColor = getRowColor(record);
-                          return (
-                            <TableRow 
-                              key={record.id} 
-                              className="hover:bg-muted/30 border-l-4 border-l-primary/30"
-                              style={rowColor ? { backgroundColor: rowColor } : {}}
-                            >
-                              {fields.map(field => (
-                                <TableCell key={field.id} className="border-r p-0 h-12">
+                      const rowColor = getRowColor(record);
+                      return <TableRow key={record.id} className="hover:bg-muted/30 border-l-4 border-l-primary/30" style={rowColor ? {
+                        backgroundColor: rowColor
+                      } : {}}>
+                              {fields.map(field => <TableCell key={field.id} className="border-r p-0 h-12">
                                   {renderEditableCell(record, field)}
-                                </TableCell>
-                              ))}
+                                </TableCell>)}
                               <TableCell className="p-2">
                                 <DropdownMenu>
                                   <DropdownMenuTrigger asChild>
@@ -2332,36 +2208,25 @@ export const TableView = () => {
                                     <DropdownMenuItem onClick={() => duplicateRecord(record.id)}>
                                       Duplicate
                                     </DropdownMenuItem>
-                                    <DropdownMenuItem 
-                                      className="text-destructive" 
-                                      onClick={() => deleteRecord(record.id)}
-                                    >
+                                    <DropdownMenuItem className="text-destructive" onClick={() => deleteRecord(record.id)}>
                                       Delete
                                     </DropdownMenuItem>
                                   </DropdownMenuContent>
                                 </DropdownMenu>
                               </TableCell>
-                            </TableRow>
-                          );
-                        })}
-                      </React.Fragment>
-                    ))}
-                  </>
-                ) : (
-                  // Render regular (ungrouped) records
-                  sortedRecords.map(record => {
-                    const rowColor = getRowColor(record);
-                    return (
-                      <TableRow 
-                        key={record.id} 
-                        className="hover:bg-muted/30"
-                        style={rowColor ? { backgroundColor: rowColor } : {}}
-                      >
-                        {fields.map(field => (
-                          <TableCell key={field.id} className="border-r p-0 h-12">
+                            </TableRow>;
+                    })}
+                      </React.Fragment>)}
+                  </> :
+                // Render regular (ungrouped) records
+                sortedRecords.map(record => {
+                  const rowColor = getRowColor(record);
+                  return <TableRow key={record.id} className="hover:bg-muted/30" style={rowColor ? {
+                    backgroundColor: rowColor
+                  } : {}}>
+                        {fields.map(field => <TableCell key={field.id} className="border-r p-0 h-12">
                             {renderEditableCell(record, field)}
-                          </TableCell>
-                        ))}
+                          </TableCell>)}
                         <TableCell className="p-2">
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
@@ -2380,37 +2245,26 @@ export const TableView = () => {
                               <DropdownMenuItem onClick={() => duplicateRecord(record.id)}>
                                 Duplicate
                               </DropdownMenuItem>
-                              <DropdownMenuItem 
-                                className="text-destructive" 
-                                onClick={() => deleteRecord(record.id)}
-                              >
+                              <DropdownMenuItem className="text-destructive" onClick={() => deleteRecord(record.id)}>
                                 Delete
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
                         </TableCell>
-                      </TableRow>
-                    );
-                  })
-                )}
+                      </TableRow>;
+                })}
                 
                 {/* Add Record Button Row - only show when not grouped or at bottom */}
-                {!groupedRecords && (
-                  <TableRow className="hover:bg-muted/20 border-t-2 border-dashed border-muted">
+                {!groupedRecords && <TableRow className="hover:bg-muted/20 border-t-2 border-dashed border-muted">
                     <TableCell colSpan={fields.length + 1} className="p-0">
-                      <Button 
-                        onClick={() => addRecord()} 
-                        variant="ghost" 
-                        className="w-full h-12 justify-start gap-3 rounded-none text-muted-foreground hover:text-foreground hover:bg-muted/30 transition-colors"
-                      >
+                      <Button onClick={() => addRecord()} variant="ghost" className="w-full h-12 justify-start gap-3 rounded-none text-muted-foreground hover:text-foreground hover:bg-muted/30 transition-colors">
                         <div className="flex items-center justify-center w-6 h-6 rounded-full bg-primary/10 border border-primary/20">
                           <Plus className="h-4 w-4 text-primary" />
                         </div>
                         <span className="font-medium">Add new record</span>
                       </Button>
                     </TableCell>
-                  </TableRow>
-                )}
+                  </TableRow>}
               </TableBody>
             </Table>
           </div>
@@ -2419,54 +2273,54 @@ export const TableView = () => {
 
       {/* Attachment Preview Dialog */}
       {previewAttachments && <AttachmentPreviewDialog isOpen={!!previewAttachments} onClose={() => setPreviewAttachments(null)} attachments={previewAttachments.attachments} fieldName={previewAttachments.fieldName} onUpdate={newAttachments => {
-      updateCellValue(previewAttachments.recordId, previewAttachments.fieldId, newAttachments);
-      setPreviewAttachments({
-        ...previewAttachments,
-        attachments: newAttachments
-      });
-    }} />}
+        updateCellValue(previewAttachments.recordId, previewAttachments.fieldId, newAttachments);
+        setPreviewAttachments({
+          ...previewAttachments,
+          attachments: newAttachments
+        });
+      }} />}
 
       {/* Formula Editor Dialog */}
       {formulaEditor && <FormulaEditor isOpen={!!formulaEditor} onClose={() => setFormulaEditor(null)} onSave={async formula => {
-      try {
-        const {
-          error
-        } = await supabase.from('base_fields').update({
-          field_config: {
-            ...fields.find(f => f.id === formulaEditor.fieldId)?.field_config,
-            formula
-          }
-        }).eq('id', formulaEditor.fieldId);
-        if (error) throw error;
+        try {
+          const {
+            error
+          } = await supabase.from('base_fields').update({
+            field_config: {
+              ...fields.find(f => f.id === formulaEditor.fieldId)?.field_config,
+              formula
+            }
+          }).eq('id', formulaEditor.fieldId);
+          if (error) throw error;
 
-        // Update local state
-        setFields(fields.map(f => f.id === formulaEditor.fieldId ? {
-          ...f,
-          field_config: {
-            ...f.field_config,
-            formula
-          }
-        } : f));
-        toast({
-          title: "Success",
-          description: "Formula updated successfully"
-        });
-      } catch (error) {
-        console.error('Error updating formula:', error);
-        toast({
-          title: "Error",
-          description: "Failed to update formula",
-          variant: "destructive"
-        });
-      }
-    }} initialFormula={formulaEditor.initialFormula} fields={fields} sampleRecord={records[0]?.data || {}} />}
+          // Update local state
+          setFields(fields.map(f => f.id === formulaEditor.fieldId ? {
+            ...f,
+            field_config: {
+              ...f.field_config,
+              formula
+            }
+          } : f));
+          toast({
+            title: "Success",
+            description: "Formula updated successfully"
+          });
+        } catch (error) {
+          console.error('Error updating formula:', error);
+          toast({
+            title: "Error",
+            description: "Failed to update formula",
+            variant: "destructive"
+          });
+        }
+      }} initialFormula={formulaEditor.initialFormula} fields={fields} sampleRecord={records[0]?.data || {}} />}
 
       {/* Formula Type Change Confirmation Dialog */}
       <Dialog open={formulaTypeChangeDialog.isOpen} onOpenChange={open => !open && setFormulaTypeChangeDialog({
-      isOpen: false,
-      fieldId: null,
-      pendingType: ''
-    })}>
+        isOpen: false,
+        fieldId: null,
+        pendingType: ''
+      })}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Convert to Formula Field</DialogTitle>
@@ -2488,295 +2342,255 @@ export const TableView = () => {
             </div>
 
             <FormulaEditor isOpen={true} onClose={() => setFormulaTypeChangeDialog({
-            isOpen: false,
-            fieldId: null,
-            pendingType: ''
-          })} onSave={async formula => {
-            if (!formula.trim()) {
-              toast({
-                title: "Error",
-                description: "Please enter a valid formula",
-                variant: "destructive"
-              });
-              return;
-            }
-            try {
-              const fieldConfig = {
-                formula
-              };
-              const {
-                error
-              } = await supabase.from('base_fields').update({
-                field_type: 'formula',
-                field_config: fieldConfig
-              }).eq('id', formulaTypeChangeDialog.fieldId);
-              if (error) throw error;
-              setFields(fields.map(f => f.id === formulaTypeChangeDialog.fieldId ? {
-                ...f,
-                field_type: 'formula',
-                field_config: fieldConfig
-              } : f));
-              toast({
-                title: "Success",
-                description: "Field converted to formula successfully"
-              });
-              setFormulaTypeChangeDialog({
-                isOpen: false,
-                fieldId: null,
-                pendingType: ''
-              });
-            } catch (error) {
-              console.error('Error converting to formula field:', error);
-              toast({
-                title: "Error",
-                description: "Failed to convert field to formula",
-                variant: "destructive"
-              });
-            }
-          }} initialFormula="" fields={fields} sampleRecord={records[0]?.data || {}} />
+              isOpen: false,
+              fieldId: null,
+              pendingType: ''
+            })} onSave={async formula => {
+              if (!formula.trim()) {
+                toast({
+                  title: "Error",
+                  description: "Please enter a valid formula",
+                  variant: "destructive"
+                });
+                return;
+              }
+              try {
+                const fieldConfig = {
+                  formula
+                };
+                const {
+                  error
+                } = await supabase.from('base_fields').update({
+                  field_type: 'formula',
+                  field_config: fieldConfig
+                }).eq('id', formulaTypeChangeDialog.fieldId);
+                if (error) throw error;
+                setFields(fields.map(f => f.id === formulaTypeChangeDialog.fieldId ? {
+                  ...f,
+                  field_type: 'formula',
+                  field_config: fieldConfig
+                } : f));
+                toast({
+                  title: "Success",
+                  description: "Field converted to formula successfully"
+                });
+                setFormulaTypeChangeDialog({
+                  isOpen: false,
+                  fieldId: null,
+                  pendingType: ''
+                });
+              } catch (error) {
+                console.error('Error converting to formula field:', error);
+                toast({
+                  title: "Error",
+                  description: "Failed to convert field to formula",
+                  variant: "destructive"
+                });
+              }
+            }} initialFormula="" fields={fields} sampleRecord={records[0]?.data || {}} />
           </div>
         </DialogContent>
       </Dialog>
 
       {/* Field Configuration Dialog */}
       <FieldConfigDialog isOpen={fieldConfigDialog.isOpen} onClose={() => setFieldConfigDialog({
-      isOpen: false,
-      field: null
-    })} onSave={async config => {
-      if (!fieldConfigDialog.field) return;
-      try {
-        const {
-          error
-        } = await supabase.from('base_fields').update({
-          field_config: config
-        }).eq('id', fieldConfigDialog.field.id);
-        if (error) throw error;
-        setFields(fields.map(f => f.id === fieldConfigDialog.field!.id ? {
-          ...f,
-          field_config: config
-        } : f));
-        toast({
-          title: "Success",
-          description: "Field configuration updated"
-        });
-      } catch (error) {
-        console.error('Error updating field config:', error);
-        toast({
-          title: "Error",
-          description: "Failed to update field configuration",
-          variant: "destructive"
-        });
-      }
-    }} field={fieldConfigDialog.field} />
+        isOpen: false,
+        field: null
+      })} onSave={async config => {
+        if (!fieldConfigDialog.field) return;
+        try {
+          const {
+            error
+          } = await supabase.from('base_fields').update({
+            field_config: config
+          }).eq('id', fieldConfigDialog.field.id);
+          if (error) throw error;
+          setFields(fields.map(f => f.id === fieldConfigDialog.field!.id ? {
+            ...f,
+            field_config: config
+          } : f));
+          toast({
+            title: "Success",
+            description: "Field configuration updated"
+          });
+        } catch (error) {
+          console.error('Error updating field config:', error);
+          toast({
+            title: "Error",
+            description: "Failed to update field configuration",
+            variant: "destructive"
+          });
+        }
+      }} field={fieldConfigDialog.field} />
 
         {/* Group By Dialog */}
-        <GroupByDialog
-          isOpen={groupByDialog}
-          onClose={() => {
-            console.log('GroupByDialog closed');
-            setGroupByDialog(false);
-          }}
-          fields={fields}
-          currentGroupBy={groupByField}
-          onApplyGroupBy={handleGroupByApply}
-        />
+        <GroupByDialog isOpen={groupByDialog} onClose={() => {
+        console.log('GroupByDialog closed');
+        setGroupByDialog(false);
+      }} fields={fields} currentGroupBy={groupByField} onApplyGroupBy={handleGroupByApply} />
 
         {/* Row Color Dialog */}
-        <RowColorDialog
-          isOpen={colorDialog}
-          onClose={() => setColorDialog(false)}
-          fields={fields}
-          currentSettings={colorSettings}
-          onApplyColors={(newSettings) => {
-            setColorSettings(newSettings);
-            // Update current view if one is selected
-            if (currentView) {
-              updateViewData(currentView.id, { colorSettings: newSettings });
-            }
-          }}
-        />
+        <RowColorDialog isOpen={colorDialog} onClose={() => setColorDialog(false)} fields={fields} currentSettings={colorSettings} onApplyColors={newSettings => {
+        setColorSettings(newSettings);
+        // Update current view if one is selected
+        if (currentView) {
+          updateViewData(currentView.id, {
+            colorSettings: newSettings
+          });
+        }
+      }} />
 
         {/* Sort Dialog */}
-        <TableSortDialog
-          isOpen={sortDialog}
-          onClose={() => setSortDialog(false)}
-          fields={fields}
-          currentSorts={sorts}
-          onApplySorts={(newSorts) => {
-            setSorts(newSorts);
-            // Update current view if one is selected
-            if (currentView) {
-              updateViewData(currentView.id, { sorts: newSorts });
-            }
-          }}
-          groupByField={groupByField}
-        />
+        <TableSortDialog isOpen={sortDialog} onClose={() => setSortDialog(false)} fields={fields} currentSorts={sorts} onApplySorts={newSorts => {
+        setSorts(newSorts);
+        // Update current view if one is selected
+        if (currentView) {
+          updateViewData(currentView.id, {
+            sorts: newSorts
+          });
+        }
+      }} groupByField={groupByField} />
 
         {/* Filter Dialog */}
-        <TableFilterDialog
-          isOpen={filterDialog}
-          onClose={() => setFilterDialog(false)}
-          fields={fields}
-          onApplyFilters={(newFilters) => {
-            setFilters(newFilters);
-            // Update current view if one is selected
-            if (currentView) {
-              updateViewData(currentView.id, {
-                filters: newFilters.conditions as any,
-                groups: newFilters.groups as any
-              });
-            }
-          }}
-          initialFilters={filters}
-        />
+        <TableFilterDialog isOpen={filterDialog} onClose={() => setFilterDialog(false)} fields={fields} onApplyFilters={newFilters => {
+        setFilters(newFilters);
+        // Update current view if one is selected
+        if (currentView) {
+          updateViewData(currentView.id, {
+            filters: newFilters.conditions as any,
+            groups: newFilters.groups as any
+          });
+        }
+      }} initialFilters={filters} />
 
         {/* Context Menu */}
       {contextMenu.isOpen && <div className="fixed bg-background border shadow-lg rounded-md py-1 z-50 min-w-48" style={{
-      left: contextMenu.x,
-      top: contextMenu.y
-    }} onClick={e => e.stopPropagation()}>
+        left: contextMenu.x,
+        top: contextMenu.y
+      }} onClick={e => e.stopPropagation()}>
           <button className="w-full px-3 py-2 text-left hover:bg-muted text-sm" onClick={() => {
-        const field = fields.find(f => f.id === contextMenu.fieldId);
-        if (field) {
-          handleFieldDoubleClick(field.id, field.name);
-        }
-        setContextMenu({
-          isOpen: false,
-          x: 0,
-          y: 0,
-          fieldId: null
-        });
-      }}>
+          const field = fields.find(f => f.id === contextMenu.fieldId);
+          if (field) {
+            handleFieldDoubleClick(field.id, field.name);
+          }
+          setContextMenu({
+            isOpen: false,
+            x: 0,
+            y: 0,
+            fieldId: null
+          });
+        }}>
             Rename Field
           </button>
           
           {['single_select', 'multi_select', 'rating', 'currency', 'number', 'percent'].includes(fields.find(f => f.id === contextMenu.fieldId)?.field_type || '') && <button className="w-full px-3 py-2 text-left hover:bg-muted text-sm" onClick={() => {
-        const field = fields.find(f => f.id === contextMenu.fieldId);
-        if (field) {
-          setFieldConfigDialog({
-            isOpen: true,
-            field
+          const field = fields.find(f => f.id === contextMenu.fieldId);
+          if (field) {
+            setFieldConfigDialog({
+              isOpen: true,
+              field
+            });
+          }
+          setContextMenu({
+            isOpen: false,
+            x: 0,
+            y: 0,
+            fieldId: null
           });
-        }
-        setContextMenu({
-          isOpen: false,
-          x: 0,
-          y: 0,
-          fieldId: null
-        });
-      }}>
+        }}>
               Configure Options
             </button>}
           
           {fields.find(f => f.id === contextMenu.fieldId)?.field_type === 'formula' && <button className="w-full px-3 py-2 text-left hover:bg-muted text-sm" onClick={() => {
-        const field = fields.find(f => f.id === contextMenu.fieldId);
-        if (field) {
-          setFormulaEditor({
-            fieldId: field.id,
-            initialFormula: field.field_config?.formula || ''
+          const field = fields.find(f => f.id === contextMenu.fieldId);
+          if (field) {
+            setFormulaEditor({
+              fieldId: field.id,
+              initialFormula: field.field_config?.formula || ''
+            });
+          }
+          setContextMenu({
+            isOpen: false,
+            x: 0,
+            y: 0,
+            fieldId: null
           });
-        }
-        setContextMenu({
-          isOpen: false,
-          x: 0,
-          y: 0,
-          fieldId: null
-        });
-      }}>
+        }}>
               Edit Formula
             </button>}
           
           <hr className="my-1" />
           
           <button className="w-full px-3 py-2 text-left hover:bg-muted text-sm text-destructive" onClick={() => {
-        if (contextMenu.fieldId) {
-          deleteField(contextMenu.fieldId);
-        }
-        setContextMenu({
-          isOpen: false,
-          x: 0,
-          y: 0,
-          fieldId: null
-        });
-      }}>
+          if (contextMenu.fieldId) {
+            deleteField(contextMenu.fieldId);
+          }
+          setContextMenu({
+            isOpen: false,
+            x: 0,
+            y: 0,
+            fieldId: null
+          });
+        }}>
             Delete Field
           </button>
          </div>}
 
         {/* Multi-select context menu */}
-        {multiSelectContextMenu.isOpen && (
-          <div 
-            className="fixed bg-background border shadow-lg rounded-md py-1 z-[9999] min-w-48" 
-            style={{ left: multiSelectContextMenu.x, top: multiSelectContextMenu.y }}
-            onClick={e => e.stopPropagation()}
-          >
+        {multiSelectContextMenu.isOpen && <div className="fixed bg-background border shadow-lg rounded-md py-1 z-[9999] min-w-48" style={{
+        left: multiSelectContextMenu.x,
+        top: multiSelectContextMenu.y
+      }} onClick={e => e.stopPropagation()}>
             <div className="px-3 py-2 text-xs text-muted-foreground border-b">
               {selectedCells.size} cell{selectedCells.size !== 1 ? 's' : ''} selected
             </div>
-            <button 
-              className="w-full px-3 py-2 text-left hover:bg-muted text-sm flex items-center gap-2"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                console.log('Clear cells button clicked');
-                deleteSelectedCells();
-              }}
-            >
+            <button className="w-full px-3 py-2 text-left hover:bg-muted text-sm flex items-center gap-2" onClick={e => {
+          e.preventDefault();
+          e.stopPropagation();
+          console.log('Clear cells button clicked');
+          deleteSelectedCells();
+        }}>
               <Trash2 className="h-4 w-4" />
               Clear cells
             </button>
-            <button 
-              className="w-full px-3 py-2 text-left hover:bg-muted text-sm flex items-center gap-2"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                console.log('Delete rows button clicked');
-                deleteSelectedRows();
-              }}
-            >
+            <button className="w-full px-3 py-2 text-left hover:bg-muted text-sm flex items-center gap-2" onClick={e => {
+          e.preventDefault();
+          e.stopPropagation();
+          console.log('Delete rows button clicked');
+          deleteSelectedRows();
+        }}>
               <Trash2 className="h-4 w-4" />
               Delete rows
             </button>
-            <button 
-              className="w-full px-3 py-2 text-left hover:bg-muted text-sm flex items-center gap-2 text-destructive"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                console.log('Delete columns button clicked');
-                deleteSelectedColumns();
-              }}
-            >
+            <button className="w-full px-3 py-2 text-left hover:bg-muted text-sm flex items-center gap-2 text-destructive" onClick={e => {
+          e.preventDefault();
+          e.stopPropagation();
+          console.log('Delete columns button clicked');
+          deleteSelectedColumns();
+        }}>
               <Trash2 className="h-4 w-4" />
               Delete columns
             </button>
             <hr className="my-1" />
-            <button 
-              className="w-full px-3 py-2 text-left hover:bg-muted text-sm flex items-center gap-2"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                console.log('Add row above button clicked');
-                addRowAbove();
-              }}
-            >
+            <button className="w-full px-3 py-2 text-left hover:bg-muted text-sm flex items-center gap-2" onClick={e => {
+          e.preventDefault();
+          e.stopPropagation();
+          console.log('Add row above button clicked');
+          addRowAbove();
+        }}>
               <Plus className="h-4 w-4" />
               Add row above
             </button>
-            <button 
-              className="w-full px-3 py-2 text-left hover:bg-muted text-sm flex items-center gap-2"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                console.log('Add row below button clicked');
-                addRowBelow();
-              }}
-            >
+            <button className="w-full px-3 py-2 text-left hover:bg-muted text-sm flex items-center gap-2" onClick={e => {
+          e.preventDefault();
+          e.stopPropagation();
+          console.log('Add row below button clicked');
+          addRowBelow();
+        }}>
               <Plus className="h-4 w-4" />
               Add row below
             </button>
-          </div>
-        )}
+          </div>}
       </div>
-    </div>
-  );
+    </div>;
 };
