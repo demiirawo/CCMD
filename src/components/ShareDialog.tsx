@@ -208,65 +208,48 @@ export const ShareDialog = ({ tableId, tableName }: ShareDialogProps) => {
           </TabsContent>
           
           <TabsContent value="embed" className="space-y-4">
-            <div className="space-y-2">
-              <Label>Embed Settings</Label>
-              <div className="flex gap-2 items-end">
-                <div className="flex-1">
-                  <Label htmlFor="embed-expiry" className="text-sm">Expires in (hours)</Label>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label>Embed URL</Label>
+                <div className="flex gap-2">
                   <Input 
-                    id="embed-expiry"
-                    type="number" 
-                    value={expiryHours} 
-                    onChange={(e) => setExpiryHours(parseInt(e.target.value) || 24)}
-                    min="1"
-                    max="8760"
+                    value={`${window.location.origin}/shared/${tableId}?embed=true`}
+                    readOnly 
+                    className="flex-1" 
                   />
+                  <Button 
+                    variant="outline" 
+                    size="icon" 
+                    onClick={() => copyToClipboard(`${window.location.origin}/shared/${tableId}?embed=true`, 'Embed URL')}
+                  >
+                    <Copy className="h-4 w-4" />
+                  </Button>
                 </div>
-                <Button 
-                  onClick={() => generateShareLink('embed')} 
-                  disabled={isGenerating}
-                >
-                  Generate Embed
-                </Button>
               </div>
+              
+              <div className="space-y-2">
+                <Label>Embed Code</Label>
+                <div className="relative">
+                  <textarea 
+                    className="w-full h-20 p-3 text-sm font-mono bg-muted rounded-md resize-none"
+                    value={generateEmbedCode(`${window.location.origin}/shared/${tableId}?embed=true`)}
+                    readOnly
+                  />
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="absolute top-2 right-2"
+                    onClick={() => copyToClipboard(generateEmbedCode(`${window.location.origin}/shared/${tableId}?embed=true`), 'Embed code')}
+                  >
+                    <Copy className="h-3 w-3" />
+                  </Button>
+                </div>
+              </div>
+              
+              <p className="text-sm text-muted-foreground">
+                This iframe will always show the latest version of your table. No expiration.
+              </p>
             </div>
-            
-            {shareLinks.embed && (
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label>Embed URL</Label>
-                  <div className="flex gap-2">
-                    <Input value={shareLinks.embed} readOnly className="flex-1" />
-                    <Button 
-                      variant="outline" 
-                      size="icon" 
-                      onClick={() => copyToClipboard(shareLinks.embed, 'Embed URL')}
-                    >
-                      <Copy className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label>Embed Code</Label>
-                  <div className="relative">
-                    <textarea 
-                      className="w-full h-20 p-3 text-sm font-mono bg-muted rounded-md resize-none"
-                      value={generateEmbedCode(shareLinks.embed)}
-                      readOnly
-                    />
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="absolute top-2 right-2"
-                      onClick={() => copyToClipboard(generateEmbedCode(shareLinks.embed), 'Embed code')}
-                    >
-                      <Copy className="h-3 w-3" />
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            )}
           </TabsContent>
         </Tabs>
       </DialogContent>

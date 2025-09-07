@@ -972,6 +972,7 @@ export const TableView = () => {
                 <Plus className="h-4 w-4" />
                 Add Record
               </Button>
+              <ShareDialog tableId={tableId} tableName={table?.name || 'Table'} />
             </div>
           </div>
         </div>
@@ -1038,20 +1039,17 @@ export const TableView = () => {
                 
                 {/* Add Record Button Row */}
                 <TableRow className="hover:bg-muted/20 border-t-2 border-dashed border-muted">
-                  <TableCell colSpan={fields.length + 1} className="p-0 flex">
+                  <TableCell colSpan={fields.length + 1} className="p-0">
                     <Button 
                       onClick={addRecord} 
                       variant="ghost" 
-                      className="flex-1 h-12 justify-start gap-3 rounded-none text-muted-foreground hover:text-foreground hover:bg-muted/30 transition-colors"
+                      className="w-full h-12 justify-start gap-3 rounded-none text-muted-foreground hover:text-foreground hover:bg-muted/30 transition-colors"
                     >
                       <div className="flex items-center justify-center w-6 h-6 rounded-full bg-primary/10 border border-primary/20">
                         <Plus className="h-4 w-4 text-primary" />
                       </div>
                       <span className="font-medium">Add new record</span>
                     </Button>
-                    <div className="border-l border-muted">
-                      <ShareDialog tableId={tableId} tableName={table?.name || 'Table'} />
-                    </div>
                   </TableCell>
                 </TableRow>
               </TableBody>
