@@ -4,7 +4,6 @@ import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
-import { createClient } from '@supabase/supabase-js';
 
 interface TableData {
   table: {
@@ -45,65 +44,29 @@ export const PublicTable = () => {
     setError(null);
 
     try {
-      // Create anonymous supabase client for public access
-      const anonClient = createClient(
-        'https://gwywpkhxpbokmbhwsnod.supabase.co',
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd3eXdwa2h4cGJva21iaHdzbm9kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMzNjEyODcsImV4cCI6MjA2ODkzNzI4N30.ZpFRdjvGv75scJBqwnnMdClJSKTOgwM0A9rJaUbyHoU'
-      );
-
       console.log('Loading table data for ID:', tableId);
 
-      // Load table info (using anonymous client)
-      const { data: tableInfo, error: tableError } = await anonClient
-        .from('base_tables')
-        .select('id, name, description, icon, color')
-        .eq('id', tableId)
-        .maybeSingle();
+      // Use edge function to get public table data (bypasses RLS)
+      const response = await fetch(`https://gwywpkhxpbokmbhwsnod.supabase.co/functions/v1/get-public-table/${tableId}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd3eXdwa2h4cGJva21iaHdzbm9kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMzNjEyODcsImV4cCI6MjA2ODkzNzI4N30.ZpFRdjvGv75scJBqwnnMdClJSKTOgwM0A9rJaUbyHoU`,
+          'Content-Type': 'application/json'
+        }
+      });
 
-      console.log('Table query result:', { tableInfo, tableError });
-
-      if (tableError) {
-        console.error('Table error:', tableError);
-        throw new Error(`Database error: ${tableError.message}`);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to load table');
       }
 
-      if (!tableInfo) {
-        throw new Error('Table not found');
-      }
-
-      // Load fields
-      const { data: fields, error: fieldsError } = await anonClient
-        .from('base_fields')
-        .select('*')
-        .eq('table_id', tableId)
-        .order('position');
-
-      console.log('Fields query result:', { fields, fieldsError });
-
-      if (fieldsError) {
-        console.error('Fields error:', fieldsError);
-        throw fieldsError;
-      }
-
-      // Load records
-      const { data: records, error: recordsError } = await anonClient
-        .from('base_records')
-        .select('*')
-        .eq('table_id', tableId)
-        .is('deleted_at', null)
-        .order('position');
-
-      console.log('Records query result:', { records, recordsError });
-
-      if (recordsError) {
-        console.error('Records error:', recordsError);
-        throw recordsError;
-      }
+      const responseData = await response.json();
+      console.log('Received table data:', responseData);
 
       setTableData({
-        table: tableInfo,
-        fields: fields || [],
-        records: (records || []).map(record => ({
+        table: responseData.table,
+        fields: responseData.fields || [],
+        records: (responseData.records || []).map((record: any) => ({
           id: record.id,
           data: record.data as Record<string, any>
         }))

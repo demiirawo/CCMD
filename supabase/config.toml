@@ -74,5 +74,5 @@ verify_jwt = false
 [functions.create-share-link]
 verify_jwt = true
 
-[functions.validate-share-access]
+[functions.get-public-table]
 verify_jwt = false
