@@ -668,7 +668,13 @@ export const TableView = () => {
       });
       return;
     }
+    
     try {
+      // Get the current field to know the old type
+      const currentField = fields.find(f => f.id === fieldId);
+      if (!currentField) return;
+      
+      const oldType = currentField.field_type;
       let fieldConfig = {};
 
       // Set default config for certain field types
@@ -693,22 +699,93 @@ export const TableView = () => {
           formula: ''
         };
       }
-      const {
-        error
-      } = await supabase.from('base_fields').update({
+
+      // Update the field type in the database
+      const { error: fieldError } = await supabase.from('base_fields').update({
         field_type: newType,
         field_config: fieldConfig
       }).eq('id', fieldId);
-      if (error) throw error;
+      
+      if (fieldError) throw fieldError;
+
+      // Convert existing data if the field type changed
+      if (oldType !== newType) {
+        const { convertRecordsForFieldTypeChange } = await import('../utils/dataTypeConverter');
+        const { updatedRecords, conversionLog } = convertRecordsForFieldTypeChange(
+          records,
+          fieldId,
+          oldType,
+          newType,
+          fieldConfig
+        );
+
+        // Update all records that have data for this field
+        const recordsToUpdate = updatedRecords.filter(record => 
+          record.data[fieldId] !== undefined && record.data[fieldId] !== null
+        );
+
+        if (recordsToUpdate.length > 0) {
+          const { error: recordsError } = await supabase
+            .from('base_records')
+            .upsert(recordsToUpdate.map(record => ({
+              id: record.id,
+              table_id: record.table_id,
+              data: record.data,
+              updated_at: new Date().toISOString()
+            })));
+
+          if (recordsError) {
+            console.error('Error updating records:', recordsError);
+            // Continue even if record updates fail - at least the field type is updated
+          } else {
+            // Update local state with converted records
+            setRecords(updatedRecords);
+            
+            // Show conversion summary
+            const convertedCount = conversionLog.filter(log => log.converted).length;
+            const clearedCount = conversionLog.filter(log => !log.converted && log.oldValue !== null && log.oldValue !== '').length;
+            
+            if (convertedCount > 0 || clearedCount > 0) {
+              let description = '';
+              if (convertedCount > 0) {
+                description += `${convertedCount} value(s) converted to new type`;
+              }
+              if (clearedCount > 0) {
+                if (description) description += ', ';
+                description += `${clearedCount} value(s) cleared (incompatible)`;
+              }
+              
+              toast({
+                title: "Field type updated",
+                description: description
+              });
+            } else {
+              toast({
+                title: "Success",
+                description: "Field type updated"
+              });
+            }
+          }
+        } else {
+          toast({
+            title: "Success",
+            description: "Field type updated"
+          });
+        }
+      } else {
+        toast({
+          title: "Success",
+          description: "Field type updated"
+        });
+      }
+
+      // Update local field state
       setFields(fields.map(f => f.id === fieldId ? {
         ...f,
         field_type: newType,
         field_config: fieldConfig
       } : f));
-      toast({
-        title: "Success",
-        description: "Field type updated"
-      });
+
     } catch (error) {
       console.error('Error updating field type:', error);
       toast({
