@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ArrowLeft, Plus, Filter, ArrowUpDown as Sort, Search, MoreHorizontal, Settings, Type } from "lucide-react";
+import { ArrowLeft, Plus, Filter, ArrowUpDown as Sort, Search, MoreHorizontal, Settings, Type, Hash, FileText, List, ListChecks, CheckSquare, PoundSterling, Percent, Calendar, Clock, Mail, Link, Phone, Star, Paperclip, Calculator } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -85,6 +85,45 @@ const FIELD_TYPES = [{
   value: 'formula',
   label: 'Formula'
 }];
+
+const getFieldTypeIcon = (fieldType: string) => {
+  switch (fieldType) {
+    case 'single_line':
+      return Type;
+    case 'long_text':
+      return FileText;
+    case 'single_select':
+      return List;
+    case 'multi_select':
+      return ListChecks;
+    case 'checkbox':
+      return CheckSquare;
+    case 'number':
+      return Hash;
+    case 'currency':
+      return PoundSterling;
+    case 'percent':
+      return Percent;
+    case 'date':
+      return Calendar;
+    case 'datetime':
+      return Clock;
+    case 'email':
+      return Mail;
+    case 'url':
+      return Link;
+    case 'phone':
+      return Phone;
+    case 'rating':
+      return Star;
+    case 'attachment':
+      return Paperclip;
+    case 'formula':
+      return Calculator;
+    default:
+      return Type;
+  }
+};
 export const TableView = () => {
   const {
     tableId
@@ -664,11 +703,16 @@ export const TableView = () => {
   };
   const renderEditableFieldHeader = (field: BaseField) => {
     const isEditing = editingField === field.id;
+    const IconComponent = getFieldTypeIcon(field.field_type);
+    
     return <div className="flex items-center justify-between group">
-        {isEditing ? <Input ref={fieldEditRef} value={editFieldName} onChange={e => setEditFieldName(e.target.value)} onKeyDown={handleFieldKeyDown} onBlur={saveFieldEdit} className="h-8 border-0 bg-transparent p-0 font-medium" /> : <span className="cursor-pointer font-medium" onDoubleClick={() => handleFieldDoubleClick(field.id, field.name)}>
-            {field.name}
-            {field.is_required && <span className="text-destructive ml-1">*</span>}
-          </span>}
+        <div className="flex items-center gap-2 flex-1">
+          <IconComponent className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+          {isEditing ? <Input ref={fieldEditRef} value={editFieldName} onChange={e => setEditFieldName(e.target.value)} onKeyDown={handleFieldKeyDown} onBlur={saveFieldEdit} className="h-8 border-0 bg-transparent p-0 font-medium flex-1" /> : <span className="cursor-pointer font-medium truncate" onDoubleClick={() => handleFieldDoubleClick(field.id, field.name)}>
+              {field.name}
+              {field.is_required && <span className="text-destructive ml-1">*</span>}
+            </span>}
+        </div>
         
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -676,7 +720,7 @@ export const TableView = () => {
               <Settings className="h-3 w-3" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="bg-background border shadow-md z-50">
+          <DropdownMenuContent align="end" className="bg-background border shadow-md z-50 min-w-48">
             <DropdownMenuItem onClick={() => handleFieldDoubleClick(field.id, field.name)}>
               <Type className="h-4 w-4 mr-2" />
               Rename
@@ -690,9 +734,19 @@ export const TableView = () => {
               </DropdownMenuItem>
             )}
             <DropdownMenuSeparator />
-            {FIELD_TYPES.map(type => <DropdownMenuItem key={type.value} onClick={() => updateFieldType(field.id, type.value)} className={field.field_type === type.value ? 'bg-muted' : ''}>
-                {type.label}
-              </DropdownMenuItem>)}
+            {FIELD_TYPES.map(type => {
+              const TypeIcon = getFieldTypeIcon(type.value);
+              return (
+                <DropdownMenuItem 
+                  key={type.value} 
+                  onClick={() => updateFieldType(field.id, type.value)} 
+                  className={field.field_type === type.value ? 'bg-muted' : ''}
+                >
+                  <TypeIcon className="h-4 w-4 mr-2" />
+                  {type.label}
+                </DropdownMenuItem>
+              );
+            })}
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => deleteField(field.id)} className="text-destructive">
               Delete Field
