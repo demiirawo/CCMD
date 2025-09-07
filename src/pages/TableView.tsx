@@ -1013,6 +1013,17 @@ export const TableView = () => {
   // Multi-selection actions
   const deleteSelectedCells = async () => {
     try {
+      console.log('deleteSelectedCells called, selectedCells:', selectedCells);
+      
+      if (selectedCells.size === 0) {
+        toast({
+          title: "No cells selected",
+          description: "Please select cells to clear",
+          variant: "destructive"
+        });
+        return;
+      }
+      
       const updates = new Map<string, any>();
       
       selectedCells.forEach(cellId => {
@@ -1030,18 +1041,25 @@ export const TableView = () => {
         }
       });
       
-      // Update all affected records in database
+      console.log('Records to update:', Array.from(updates.keys()));
+      
+      // Update all affected records in database in parallel
       const updatePromises = Array.from(updates.entries()).map(async ([recordId, data]) => {
+        console.log('Updating record:', recordId, 'with data:', data);
         const { error } = await supabase
           .from('base_records')
           .update({ data })
           .eq('id', recordId);
         
-        if (error) throw error;
+        if (error) {
+          console.error('Error updating record:', recordId, error);
+          throw error;
+        }
         return { recordId, data };
       });
       
       const results = await Promise.all(updatePromises);
+      console.log('Successfully updated records:', results.length);
       
       // Update local state once after all database updates are complete
       setRecords(prevRecords => 
@@ -1056,13 +1074,13 @@ export const TableView = () => {
       
       toast({
         title: "Success",
-        description: `Cleared ${selectedCells.size} cells`
+        description: `Cleared ${selectedCells.size} cell${selectedCells.size !== 1 ? 's' : ''}`
       });
     } catch (error) {
       console.error('Error clearing cells:', error);
       toast({
         title: "Error",
-        description: "Failed to clear cells",
+        description: "Failed to clear cells. Please try again.",
         variant: "destructive"
       });
     }
@@ -1071,6 +1089,16 @@ export const TableView = () => {
   const deleteSelectedRows = async () => {
     try {
       console.log('deleteSelectedRows called, selectedCells:', selectedCells);
+      
+      if (selectedCells.size === 0) {
+        toast({
+          title: "No cells selected",
+          description: "Please select cells in the rows you want to delete",
+          variant: "destructive"
+        });
+        return;
+      }
+      
       const recordIds = new Set<string>();
       selectedCells.forEach(cellId => {
         const [recordId] = cellId.split('-');
@@ -1079,10 +1107,35 @@ export const TableView = () => {
       
       console.log('Records to delete:', Array.from(recordIds));
       
-      // Delete records in parallel
-      const deletePromises = Array.from(recordIds).map(recordId => deleteRecord(recordId));
-      await Promise.all(deletePromises);
+      if (recordIds.size === 0) {
+        toast({
+          title: "No rows selected",
+          description: "Please select cells in the rows you want to delete",
+          variant: "destructive"
+        });
+        return;
+      }
       
+      // Delete records in parallel using the existing deleteRecord function
+      const deletePromises = Array.from(recordIds).map(async (recordId) => {
+        console.log('Deleting record:', recordId);
+        const { error } = await supabase
+          .from('base_records')
+          .delete()
+          .eq('id', recordId);
+
+        if (error) {
+          console.error('Error deleting record:', recordId, error);
+          throw error;
+        }
+        return recordId;
+      });
+      
+      const deletedRecordIds = await Promise.all(deletePromises);
+      console.log('Successfully deleted records:', deletedRecordIds);
+      
+      // Update local state
+      setRecords(prevRecords => prevRecords.filter(r => !recordIds.has(r.id)));
       setSelectedCells(new Set());
       setMultiSelectContextMenu({ isOpen: false, x: 0, y: 0 });
       
@@ -1094,7 +1147,7 @@ export const TableView = () => {
       console.error('Error deleting rows:', error);
       toast({
         title: "Error",
-        description: "Failed to delete rows",
+        description: "Failed to delete rows. Please try again.",
         variant: "destructive"
       });
     }
@@ -1120,28 +1173,68 @@ export const TableView = () => {
         return;
       }
       
-      const fieldNames = Array.from(fieldIds).map(id => fields.find(f => f.id === id)?.name || 'Unknown').join(', ');
+      const fieldNames = Array.from(fieldIds).map(id => {
+        const field = fields.find(f => f.id === id);
+        return field ? field.name : 'Unknown';
+      }).join(', ');
       
-      if (!confirm(`Are you sure you want to delete ${fieldIds.size} column${fieldIds.size !== 1 ? 's' : ''} (${fieldNames})? This action cannot be undone and will remove all data in these columns.`)) {
+      // Single confirmation dialog for all columns
+      const confirmMessage = `Are you sure you want to delete ${fieldIds.size} column${fieldIds.size !== 1 ? 's' : ''} (${fieldNames})?\n\nThis action cannot be undone and will remove all data in these columns.`;
+      
+      if (!confirm(confirmMessage)) {
         return;
       }
       
-      // Delete fields in parallel
-      const deletePromises = Array.from(fieldIds).map(fieldId => deleteField(fieldId));
-      await Promise.all(deletePromises);
+      console.log('User confirmed deletion, proceeding...');
       
+      // Delete all fields from database (no individual confirmations)
+      const deleteFieldPromises = Array.from(fieldIds).map(async (fieldId) => {
+        console.log('Deleting field:', fieldId);
+        const { error } = await supabase.from('base_fields').delete().eq('id', fieldId);
+        if (error) throw error;
+        return fieldId;
+      });
+      
+      const deletedFieldIds = await Promise.all(deleteFieldPromises);
+      console.log('Successfully deleted fields:', deletedFieldIds);
+      
+      // Update all records to remove data for deleted fields
+      const updatedRecords = records.map(record => {
+        const newData = { ...record.data };
+        deletedFieldIds.forEach(fieldId => {
+          delete newData[fieldId];
+        });
+        return { ...record, data: newData };
+      });
+      
+      // Update records in database
+      const updateRecordPromises = updatedRecords.map(async (record) => {
+        const { error } = await supabase
+          .from('base_records')
+          .update({ data: record.data })
+          .eq('id', record.id);
+        if (error) throw error;
+        return record;
+      });
+      
+      await Promise.all(updateRecordPromises);
+      console.log('Successfully updated all records');
+      
+      // Update local state
+      setFields(fields.filter(f => !fieldIds.has(f.id)));
+      setRecords(updatedRecords);
       setSelectedCells(new Set());
       setMultiSelectContextMenu({ isOpen: false, x: 0, y: 0 });
       
       toast({
         title: "Success",
-        description: `Deleted ${fieldIds.size} column${fieldIds.size !== 1 ? 's' : ''}`
+        description: `Deleted ${fieldIds.size} column${fieldIds.size !== 1 ? 's' : ''} successfully`
       });
     } catch (error) {
       console.error('Error deleting columns:', error);
       toast({
         title: "Error",
-        description: "Failed to delete columns",
+        description: "Failed to delete columns. Please try again.",
         variant: "destructive"
       });
     }
