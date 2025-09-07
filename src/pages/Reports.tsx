@@ -15,7 +15,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useTheme } from "@/hooks/useTheme";
 import { MeetingStatusSummary } from "@/components/MeetingStatusSummary";
 import { StatusBadge } from "@/components/StatusBadge";
-import { SimpleQuarterlyReportGenerator } from "@/components/SimpleQuarterlyReportGenerator";
+import { NarrativeQuarterlyReportGenerator } from "@/components/NarrativeQuarterlyReportGenerator";
 import { ReadOnlyDashboardView } from "@/components/ReadOnlyDashboardView";
 import { AddMeetingDialog } from "@/components/AddMeetingDialog";
 import { MeetingPreview } from "@/components/MeetingPreview";
@@ -646,7 +646,7 @@ export const Reports = () => {
                         {canEdit && (
                           <div onClick={e => e.stopPropagation()} className="flex items-center gap-2">
                             <AddMeetingDialog onMeetingAdded={fetchMeetings} />
-                            <SimpleQuarterlyReportGenerator quarter={quarter} year={year} meetings={quarterMeetings} />
+                            <NarrativeQuarterlyReportGenerator quarter={quarter} year={year} meetings={quarterMeetings} />
                           </div>
                         )}
                       </div>

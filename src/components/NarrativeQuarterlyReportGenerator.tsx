@@ -271,7 +271,7 @@ export const NarrativeQuarterlyReportGenerator: React.FC<NarrativeQuarterlyRepor
       const reportContent = await generateResponse([
         { role: 'system', content: 'You are an expert care service compliance report writer.' },
         { role: 'user', content: prompt }
-      ], 'gpt-5-mini-2025-08-07');
+      ], 'gpt-4.1-2025-04-14');
 
       if (reportContent) {
         // Save to Supabase with additional analytics/context
@@ -363,6 +363,7 @@ export const NarrativeQuarterlyReportGenerator: React.FC<NarrativeQuarterlyRepor
   return <Card className="bg-transparent border-0 shadow-none">
       
       <CardContent className="p-0">
+        
         
         <Button onClick={generateNarrativeReport} disabled={isGenerating || isLoading} className="w-full">
           {isGenerating || isLoading ? <>

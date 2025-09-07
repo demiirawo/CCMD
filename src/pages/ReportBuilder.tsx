@@ -35,19 +35,6 @@ export const ReportBuilder: React.FC = () => {
     console.log('🚀 Generate Report with AI button clicked!');
     console.log('📝 Additional context:', additionalContext);
     console.log('📎 Attachments:', attachments.length);
-    console.log('📅 Quarter:', quarter);
-    console.log('📅 Year:', year);
-
-    // Validate that we have quarter and year
-    if (!quarter || !year) {
-      console.error('❌ Missing quarter or year parameters');
-      toast({
-        title: "Missing Information",
-        description: "Quarter and year are required to generate a report",
-        variant: "destructive"
-      });
-      return;
-    }
 
     // Navigate to generation process with additional context
     const contextData = {

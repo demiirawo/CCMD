@@ -39,10 +39,8 @@ serve(async (req) => {
       body: JSON.stringify({
         model,
         messages,
-        ...(model.startsWith('gpt-5') || model.startsWith('gpt-4.1') || model.startsWith('o3') || model.startsWith('o4') 
-          ? { max_completion_tokens: 16000 }
-          : { max_tokens: 16000, temperature: 0.7 }
-        ),
+        temperature: 0.7,
+        max_tokens: 16000,
       }),
     });
 
