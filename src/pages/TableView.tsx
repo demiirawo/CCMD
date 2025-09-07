@@ -1279,7 +1279,9 @@ export const TableView = () => {
         }
         return '';
       case 'rating':
-        return value ? '★'.repeat(Number(value)) + '☆'.repeat(5 - Number(value)) : '';
+        if (!value) return '';
+        const rating = Math.max(0, Math.min(5, Number(value)));
+        return '★'.repeat(rating) + '☆'.repeat(5 - rating);
       case 'attachment':
         if (value && Array.isArray(value) && value.length > 0) {
           return <div className="flex gap-1 flex-wrap">

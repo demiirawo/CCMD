@@ -699,6 +699,9 @@ class FormulaEvaluator {
 
   private toDate(value: FormulaValue): Date {
     if (value instanceof Date) return value;
+    if (typeof value === 'boolean') {
+      throw new Error('Cannot convert boolean to date');
+    }
     if (typeof value === 'string') {
       // Handle ISO format dates from database (YYYY-MM-DD)
       const isoDateMatch = value.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
