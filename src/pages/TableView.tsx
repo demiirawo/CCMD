@@ -951,17 +951,29 @@ export const TableView = () => {
   };
 
   // View handling functions
-  const handleViewChange = (view: BaseView | null) => {
-    console.log('handleViewChange called with:', view?.name || 'All Records');
-    console.log('Current view before change:', currentView?.name || 'All Records');
+  const handleViewChange = async (view: BaseView | null) => {
+    console.log('🔄 handleViewChange called with:', view?.name || 'All Records');
+    console.log('📊 Current view before change:', currentView?.name || 'All Records');
+    console.log('💾 Current state before change:', {
+      filters: filters.conditions.length,
+      sorts: sorts.length,
+      groupBy: groupByField,
+      colorSettings: colorSettings
+    });
     
     // Save current view state before switching if a view is currently selected
     if (currentView) {
-      saveCurrentViewState({}, true); // Pass true to indicate this is during a view switch
+      console.log('💾 Saving current view state before switching...');
+      await saveCurrentViewState({}, true); // Pass true to indicate this is during a view switch
+      console.log('✅ Current view state saved');
     }
 
     setCurrentView(view);
+    
     if (view) {
+      console.log('📝 Loading view data for:', view.name);
+      console.log('🔍 Raw view data:', view);
+      
       // Apply view's filters
       const viewFilters = {
         conditions: Array.isArray(view.filters) ? view.filters : [],
@@ -978,13 +990,41 @@ export const TableView = () => {
       const viewGroupBy = viewSettings.groupBy || null;
       setGroupByField(viewGroupBy);
 
-      // Apply view's color settings
+      // Apply view's color settings with validation
       const viewColorSettings = viewSettings.colorSettings || {
         mode: 'conditions',
         conditions: []
       };
+      console.log('🎨 Loading color settings:', viewColorSettings);
       setColorSettings(viewColorSettings);
-      console.log('Switched to view:', view.name, 'with filters:', viewFilters, 'sorts:', viewSorts, 'groupBy:', viewGroupBy, 'colorSettings:', viewColorSettings);
+      
+      // Small delay to ensure state is applied and validate
+      setTimeout(() => {
+        console.log('✅ View state applied:', {
+          filters: viewFilters,
+          sorts: viewSorts,
+          groupBy: viewGroupBy,
+          colorSettings: viewColorSettings
+        });
+        
+        // Validate that settings were properly applied
+        const currentState = {
+          filters: filters.conditions,
+          sorts: sorts,
+          groupBy: groupByField,
+          colorSettings: colorSettings
+        };
+        
+        console.log('🔍 Current actual state:', currentState);
+        
+        // Check if color settings match
+        if (JSON.stringify(currentState.colorSettings) !== JSON.stringify(viewColorSettings)) {
+          console.warn('⚠️ Color settings mismatch detected, re-applying...');
+          setColorSettings(viewColorSettings);
+        }
+      }, 100);
+      
+      console.log('✅ Switched to view:', view.name, 'with filters:', viewFilters, 'sorts:', viewSorts, 'groupBy:', viewGroupBy, 'colorSettings:', viewColorSettings);
     } else {
       // Clear all view-specific settings when switching to "All Records"
       setFilters({
@@ -997,7 +1037,7 @@ export const TableView = () => {
         mode: 'conditions',
         conditions: []
       });
-      console.log('Switched to All Records - cleared all view settings');
+      console.log('🧹 Switched to All Records - cleared all view settings');
     }
   };
   const handleCreateView = () => {
@@ -1074,9 +1114,21 @@ export const TableView = () => {
 
   // Helper function to save current view state
   const saveCurrentViewState = async (overrides: any = {}, duringViewSwitch: boolean = false) => {
-    if (!currentView) return;
+    if (!currentView) {
+      console.log('⚠️ No current view to save');
+      return;
+    }
     
     try {
+      console.log('💾 Saving view state for:', currentView.name);
+      console.log('📝 Current state being saved:', {
+        filters: overrides.filters || filters.conditions,
+        sorts: overrides.sorts || sorts,
+        groups: overrides.groups || filters.groups,
+        groupBy: overrides.groupBy !== undefined ? overrides.groupBy : groupByField,
+        colorSettings: overrides.colorSettings || colorSettings
+      });
+      
       const updates = {
         filters: overrides.filters || filters.conditions,
         sorts: overrides.sorts || sorts,
@@ -1090,19 +1142,31 @@ export const TableView = () => {
       
       // Don't update current view state when saving during a view switch
       await updateViewData(currentView.id, updates, !duringViewSwitch);
+      console.log('✅ View state saved successfully');
     } catch (error) {
-      console.error('Error saving view state:', error);
+      console.error('❌ Error saving view state:', error);
+      throw error; // Re-throw to handle in calling code
     }
   };
 
   // Group handling functions
-  const handleGroupByApply = (fieldId: string | null) => {
-    console.log('handleGroupByApply called with:', fieldId);
+  const handleGroupByApply = async (fieldId: string | null) => {
+    console.log('🔗 handleGroupByApply called with:', fieldId);
     setGroupByField(fieldId);
 
     // Save the current view state with new groupBy
     if (currentView) {
-      saveCurrentViewState({ groupBy: fieldId });
+      try {
+        await saveCurrentViewState({ groupBy: fieldId });
+        console.log('✅ Group settings saved to view');
+      } catch (error) {
+        console.error('❌ Failed to save group settings:', error);
+        toast({
+          title: "Warning",
+          description: "Group settings applied but failed to save to view",
+          variant: "destructive"
+        });
+      }
     }
     if (fieldId) {
       // Auto-expand all groups when grouping is applied
@@ -2067,6 +2131,7 @@ export const TableView = () => {
       <ViewsSidebar tableId={tableId || ''} currentView={currentView} onViewChange={handleViewChange} onCreateView={handleCreateView} currentTableState={getCurrentTableState()} onViewUpdated={updatedView => {
       // Just update the current view state if it matches, but don't trigger view switching
       if (currentView && currentView.id === updatedView.id) {
+        console.log('📝 Updating current view from sidebar:', updatedView.name);
         setCurrentView(updatedView);
       }
     }} />
@@ -2536,32 +2601,65 @@ export const TableView = () => {
       }} fields={fields} currentGroupBy={groupByField} onApplyGroupBy={handleGroupByApply} />
 
         {/* Row Color Dialog */}
-        <RowColorDialog isOpen={colorDialog} onClose={() => setColorDialog(false)} fields={fields} currentSettings={colorSettings} onApplyColors={newSettings => {
+        <RowColorDialog isOpen={colorDialog} onClose={() => setColorDialog(false)} fields={fields} currentSettings={colorSettings} onApplyColors={async (newSettings) => {
+        console.log('🎨 Applying new color settings:', newSettings);
         setColorSettings(newSettings);
         // Save the current view state with new color settings
         if (currentView) {
-          saveCurrentViewState({ colorSettings: newSettings });
+          try {
+            await saveCurrentViewState({ colorSettings: newSettings });
+            console.log('✅ Color settings saved to view');
+          } catch (error) {
+            console.error('❌ Failed to save color settings:', error);
+            toast({
+              title: "Warning",
+              description: "Color settings applied but failed to save to view",
+              variant: "destructive"
+            });
+          }
         }
       }} />
 
         {/* Sort Dialog */}
-        <TableSortDialog isOpen={sortDialog} onClose={() => setSortDialog(false)} fields={fields} currentSorts={sorts} onApplySorts={newSorts => {
+        <TableSortDialog isOpen={sortDialog} onClose={() => setSortDialog(false)} fields={fields} currentSorts={sorts} onApplySorts={async (newSorts) => {
+        console.log('🔄 Applying new sorts:', newSorts);
         setSorts(newSorts);
         // Save the current view state with new sorts
         if (currentView) {
-          saveCurrentViewState({ sorts: newSorts });
+          try {
+            await saveCurrentViewState({ sorts: newSorts });
+            console.log('✅ Sort settings saved to view');
+          } catch (error) {
+            console.error('❌ Failed to save sort settings:', error);
+            toast({
+              title: "Warning",
+              description: "Sort settings applied but failed to save to view",
+              variant: "destructive"
+            });
+          }
         }
       }} groupByField={groupByField} />
 
         {/* Filter Dialog */}
-        <TableFilterDialog isOpen={filterDialog} onClose={() => setFilterDialog(false)} fields={fields} onApplyFilters={newFilters => {
+        <TableFilterDialog isOpen={filterDialog} onClose={() => setFilterDialog(false)} fields={fields} onApplyFilters={async (newFilters) => {
+        console.log('🔍 Applying new filters:', newFilters);
         setFilters(newFilters);
         // Save the current view state with new filters
         if (currentView) {
-          saveCurrentViewState({ 
-            filters: newFilters.conditions, 
-            groups: newFilters.groups 
-          });
+          try {
+            await saveCurrentViewState({ 
+              filters: newFilters.conditions, 
+              groups: newFilters.groups 
+            });
+            console.log('✅ Filter settings saved to view');
+          } catch (error) {
+            console.error('❌ Failed to save filter settings:', error);
+            toast({
+              title: "Warning",
+              description: "Filter settings applied but failed to save to view",
+              variant: "destructive"
+            });
+          }
         }
       }} initialFilters={filters} />
 
