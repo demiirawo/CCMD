@@ -239,7 +239,6 @@ export const TableView = () => {
   // Sorting state
   const [sorts, setSorts] = useState<SortCondition[]>([]);
   const [sortDialog, setSortDialog] = useState(false);
-  const [automaticSort, setAutomaticSort] = useState(false);
   
   // Multi-select state
   const [selectedCells, setSelectedCells] = useState<Set<string>>(new Set());
@@ -889,16 +888,12 @@ export const TableView = () => {
       const viewGroupBy = viewSettings.groupBy || null;
       setGroupByField(viewGroupBy);
       
-      // Apply automatic sort setting
-      setAutomaticSort(viewSettings.automaticSort || false);
-      
       console.log('Switched to view:', view.name, 'with filters:', viewFilters, 'sorts:', viewSorts, 'groupBy:', viewGroupBy);
     } else {
       // Clear all view-specific settings when switching to "All Records"
       setFilters({ conditions: [], groups: [] });
       setSorts([]);
       setGroupByField(null);
-      setAutomaticSort(false);
       console.log('Switched to All Records - cleared all view settings');
     }
   };
@@ -914,8 +909,7 @@ export const TableView = () => {
     groups: filters.groups,
     sorts: sorts,
     settings: {
-      groupBy: groupByField,
-      automaticSort: automaticSort
+      groupBy: groupByField
     }
   });
 
@@ -2511,14 +2505,6 @@ export const TableView = () => {
             }
           }}
           groupByField={groupByField}
-          automaticSort={automaticSort}
-          onAutomaticSortChange={(enabled) => {
-            setAutomaticSort(enabled);
-            // Update current view if one is selected
-            if (currentView) {
-              updateViewSettings(currentView.id, { automaticSort: enabled });
-            }
-          }}
         />
 
         {/* Filter Dialog */}

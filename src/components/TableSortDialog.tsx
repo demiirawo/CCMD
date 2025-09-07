@@ -2,8 +2,6 @@ import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
 import { ArrowUp, ArrowDown, Plus, X } from 'lucide-react';
 
 interface BaseField {
@@ -27,8 +25,6 @@ interface TableSortDialogProps {
   currentSorts: SortCondition[];
   onApplySorts: (sorts: SortCondition[]) => void;
   groupByField?: string | null;
-  automaticSort: boolean;
-  onAutomaticSortChange: (enabled: boolean) => void;
 }
 
 export const TableSortDialog: React.FC<TableSortDialogProps> = ({
@@ -37,12 +33,9 @@ export const TableSortDialog: React.FC<TableSortDialogProps> = ({
   fields,
   currentSorts,
   onApplySorts,
-  groupByField,
-  automaticSort,
-  onAutomaticSortChange
+  groupByField
 }) => {
   const [localSorts, setLocalSorts] = useState<SortCondition[]>(currentSorts.length > 0 ? currentSorts : []);
-  const [localAutomaticSort, setLocalAutomaticSort] = useState(automaticSort);
 
   const addSort = () => {
     setLocalSorts(prev => [...prev, { fieldId: '', direction: 'asc' }]);
@@ -61,14 +54,12 @@ export const TableSortDialog: React.FC<TableSortDialogProps> = ({
   const handleApply = () => {
     const validSorts = localSorts.filter(sort => sort.fieldId);
     onApplySorts(validSorts);
-    onAutomaticSortChange(localAutomaticSort);
     onClose();
   };
 
   const handleClear = () => {
     setLocalSorts([]);
     onApplySorts([]);
-    onAutomaticSortChange(false);
     onClose();
   };
 
@@ -86,23 +77,6 @@ export const TableSortDialog: React.FC<TableSortDialogProps> = ({
         </DialogHeader>
         
         <div className="space-y-4">
-          {/* Automatic sort toggle */}
-          <div className="flex items-center justify-between p-3 border rounded-lg">
-            <div className="space-y-1">
-              <Label className="text-sm font-medium">Automatically sort records</Label>
-              <p className="text-xs text-muted-foreground">
-                {groupByField 
-                  ? 'Records within each group will be sorted automatically'
-                  : 'Records will be sorted automatically as they are added or modified'
-                }
-              </p>
-            </div>
-            <Switch
-              checked={localAutomaticSort}
-              onCheckedChange={setLocalAutomaticSort}
-            />
-          </div>
-
           {/* Sort conditions */}
           <div className="space-y-3">
             <div className="text-sm font-medium text-muted-foreground">
