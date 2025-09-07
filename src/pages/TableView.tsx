@@ -880,7 +880,7 @@ export const TableView = () => {
     
     // Save current view state before switching if a view is currently selected
     if (currentView) {
-      saveCurrentViewState();
+      saveCurrentViewState({}, true); // Pass true to indicate this is during a view switch
     }
 
     setCurrentView(view);
@@ -971,15 +971,15 @@ export const TableView = () => {
   };
 
   // Helper function to update view filters, sorts, etc.
-  const updateViewData = async (viewId: string, updates: Partial<BaseView>) => {
+  const updateViewData = async (viewId: string, updates: Partial<BaseView>, updateCurrentView: boolean = true) => {
     try {
       const {
         error
       } = await supabase.from('base_views').update(updates).eq('id', viewId);
       if (error) throw error;
 
-      // Update current view state
-      if (currentView && currentView.id === viewId) {
+      // Update current view state only if requested (not during view switches)
+      if (updateCurrentView && currentView && currentView.id === viewId) {
         setCurrentView({
           ...currentView,
           ...updates
@@ -996,7 +996,7 @@ export const TableView = () => {
   };
 
   // Helper function to save current view state
-  const saveCurrentViewState = async (overrides: any = {}) => {
+  const saveCurrentViewState = async (overrides: any = {}, duringViewSwitch: boolean = false) => {
     if (!currentView) return;
     
     try {
@@ -1011,7 +1011,8 @@ export const TableView = () => {
         }
       };
       
-      await updateViewData(currentView.id, updates);
+      // Don't update current view state when saving during a view switch
+      await updateViewData(currentView.id, updates, !duringViewSwitch);
     } catch (error) {
       console.error('Error saving view state:', error);
     }
