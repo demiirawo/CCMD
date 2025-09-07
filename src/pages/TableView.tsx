@@ -775,6 +775,7 @@ export const TableView = () => {
 
   // Group handling functions
   const handleGroupByApply = (fieldId: string | null) => {
+    console.log('handleGroupByApply called with:', fieldId);
     setGroupByField(fieldId);
     if (fieldId) {
       // Auto-expand all groups when grouping is applied
@@ -784,9 +785,11 @@ export const TableView = () => {
           const value = record.data[fieldId];
           return formatGroupValue(value, field);
         }));
+        console.log('Unique group values:', Array.from(uniqueValues));
         setExpandedGroups(new Set(Array.from(uniqueValues)));
       }
     } else {
+      console.log('Clearing grouping');
       setExpandedGroups(new Set());
     }
   };
@@ -1291,7 +1294,10 @@ export const TableView = () => {
                 variant="outline" 
                 size="sm" 
                 className="gap-2"
-                onClick={() => setGroupByDialog(true)}
+                onClick={() => {
+                  console.log('Group button clicked');
+                  setGroupByDialog(true);
+                }}
               >
                 <Group className="h-4 w-4" />
                 Group
@@ -1563,7 +1569,10 @@ export const TableView = () => {
         {/* Group By Dialog */}
         <GroupByDialog
           isOpen={groupByDialog}
-          onClose={() => setGroupByDialog(false)}
+          onClose={() => {
+            console.log('GroupByDialog closed');
+            setGroupByDialog(false);
+          }}
           fields={fields}
           currentGroupBy={groupByField}
           onApplyGroupBy={handleGroupByApply}
