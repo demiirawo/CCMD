@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -1296,7 +1296,6 @@ export const TableView = () => {
                     console.error('Error setting group dialog:', error);
                   }
                 }}
-                style={{ backgroundColor: 'red', color: 'white' }}
               >
                 <Group className="h-4 w-4" />
                 Group
@@ -1358,18 +1357,94 @@ export const TableView = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {records.length === 0 ? <TableRow>
+                {records.length === 0 ? (
+                  <TableRow>
                     <TableCell colSpan={fields.length + 1} className="text-center py-12 text-muted-foreground">
                       No records yet. Click the button below to get started.
                     </TableCell>
-                  </TableRow> : filteredRecords.length === 0 ? <TableRow>
+                  </TableRow>
+                ) : filteredRecords.length === 0 ? (
+                  <TableRow>
                     <TableCell colSpan={fields.length + 1} className="text-center py-12 text-muted-foreground">
                       No records match the current filters.
                     </TableCell>
-                  </TableRow> : filteredRecords.map(record => <TableRow key={record.id} className="hover:bg-muted/30">
-                      {fields.map(field => <TableCell key={field.id} className="border-r p-0 h-12">
+                  </TableRow>
+                ) : groupedRecords ? (
+                  // Render grouped records
+                  <>
+                    {Object.entries(groupedRecords).map(([groupValue, groupRecords]) => (
+                      <React.Fragment key={groupValue}>
+                        {/* Group Header Row */}
+                        <TableRow className="bg-muted/50 hover:bg-muted/70">
+                          <TableCell colSpan={fields.length + 1} className="p-0">
+                            <Collapsible 
+                              open={expandedGroups.has(groupValue)}
+                              onOpenChange={() => toggleGroupExpansion(groupValue)}
+                            >
+                              <CollapsibleTrigger asChild>
+                                <Button 
+                                  variant="ghost" 
+                                  className="w-full h-12 justify-start gap-3 rounded-none font-medium text-foreground"
+                                >
+                                  <div className={cn(
+                                    "transition-transform duration-200",
+                                    expandedGroups.has(groupValue) ? "rotate-90" : "rotate-0"
+                                  )}>
+                                    ▶
+                                  </div>
+                                  <span className="font-semibold">{groupValue}</span>
+                                  <span className="ml-auto text-sm text-muted-foreground">
+                                    {groupRecords.length} record{groupRecords.length !== 1 ? 's' : ''}
+                                  </span>
+                                </Button>
+                              </CollapsibleTrigger>
+                              <CollapsibleContent>
+                                {/* Group Records */}
+                                {groupRecords.map(record => (
+                                  <TableRow key={record.id} className="hover:bg-muted/30 border-l-4 border-l-primary/20">
+                                    {fields.map(field => (
+                                      <TableCell key={field.id} className="border-r p-0 h-12">
+                                        {renderEditableCell(record, field)}
+                                      </TableCell>
+                                    ))}
+                                    <TableCell className="p-2">
+                                      <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                          <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                                            <MoreHorizontal className="h-3 w-3" />
+                                          </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent align="end" className="bg-background border shadow-md z-50">
+                                          <DropdownMenuItem onClick={() => duplicateRecord(record.id)}>
+                                            Duplicate
+                                          </DropdownMenuItem>
+                                          <DropdownMenuItem 
+                                            className="text-destructive" 
+                                            onClick={() => deleteRecord(record.id)}
+                                          >
+                                            Delete
+                                          </DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                      </DropdownMenu>
+                                    </TableCell>
+                                  </TableRow>
+                                ))}
+                              </CollapsibleContent>
+                            </Collapsible>
+                          </TableCell>
+                        </TableRow>
+                      </React.Fragment>
+                    ))}
+                  </>
+                ) : (
+                  // Render regular (ungrouped) records
+                  filteredRecords.map(record => (
+                    <TableRow key={record.id} className="hover:bg-muted/30">
+                      {fields.map(field => (
+                        <TableCell key={field.id} className="border-r p-0 h-12">
                           {renderEditableCell(record, field)}
-                        </TableCell>)}
+                        </TableCell>
+                      ))}
                       <TableCell className="p-2">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
@@ -1390,7 +1465,9 @@ export const TableView = () => {
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </TableCell>
-                    </TableRow>)}
+                    </TableRow>
+                  ))
+                )}
                 
                 {/* Add Record Button Row */}
                 <TableRow className="hover:bg-muted/20 border-t-2 border-dashed border-muted">
