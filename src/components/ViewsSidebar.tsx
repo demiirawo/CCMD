@@ -63,15 +63,6 @@ export const ViewsSidebar: React.FC<ViewsSidebarProps> = ({
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set(['General']));
   const { toast } = useToast();
 
-  // Default view groups structure
-  const defaultGroups = [
-    { name: 'General', icon: <Eye className="w-4 h-4" /> },
-    { name: 'Performance', icon: <Eye className="w-4 h-4" /> },
-    { name: 'Training', icon: <Eye className="w-4 h-4" /> },
-    { name: 'Compliance', icon: <Eye className="w-4 h-4" /> },
-    { name: 'More collaborative views', icon: <Eye className="w-4 h-4" /> }
-  ];
-
   const loadViews = async () => {
     try {
       const { data, error } = await supabase
@@ -83,7 +74,7 @@ export const ViewsSidebar: React.FC<ViewsSidebarProps> = ({
       if (error) throw error;
       const viewsWithFolders = (data || []).map(view => ({
         ...view,
-        folder: (view.settings as any)?.folder || 'General'
+        folder: (view.settings as any)?.folder || 'Uncategorized'
       }));
       setViews(viewsWithFolders);
     } catch (error) {
@@ -156,11 +147,16 @@ export const ViewsSidebar: React.FC<ViewsSidebarProps> = ({
     setExpandedGroups(newExpanded);
   };
 
+  // Get unique folders from existing views
+  const uniqueFolders = Array.from(new Set(views.map(view => view.folder || 'Uncategorized')));
+  const availableFolders = uniqueFolders.length > 0 ? uniqueFolders : ['General'];
+
   // Group views by folder
-  const groupedViews: ViewGroup[] = defaultGroups.map(group => ({
-    ...group,
-    views: views.filter(view => (view.folder || 'General') === group.name),
-    isOpen: expandedGroups.has(group.name)
+  const groupedViews: ViewGroup[] = uniqueFolders.map(folderName => ({
+    name: folderName,
+    icon: <Folder className="w-4 h-4" />,
+    views: views.filter(view => (view.folder || 'Uncategorized') === folderName),
+    isOpen: expandedGroups.has(folderName)
   }));
 
   // Filter views based on search
@@ -169,7 +165,7 @@ export const ViewsSidebar: React.FC<ViewsSidebarProps> = ({
     views: group.views.filter(view => 
       view.name.toLowerCase().includes(searchQuery.toLowerCase())
     )
-  })).filter(group => group.views.length > 0 || searchQuery === '');
+  })).filter(group => group.views.length > 0);
 
   const renderViewItem = (view: BaseView) => (
     <div
@@ -248,7 +244,7 @@ export const ViewsSidebar: React.FC<ViewsSidebarProps> = ({
         <div className="p-2">
           {/* All Views option */}
           <div
-            className={`flex items-center gap-2 px-3 py-2 text-sm rounded-md cursor-pointer hover:bg-accent/50 mb-2 ${
+            className={`flex items-center gap-2 px-3 py-2 text-sm rounded-md cursor-pointer hover:bg-accent/50 mb-4 ${
               !currentView ? 'bg-accent text-accent-foreground' : ''
             }`}
             onClick={() => onViewChange(null)}
@@ -257,6 +253,15 @@ export const ViewsSidebar: React.FC<ViewsSidebarProps> = ({
             <span>All Records</span>
           </div>
 
+          {/* Show message if no views exist */}
+          {views.length === 0 && !searchQuery && (
+            <div className="text-center py-8">
+              <p className="text-sm text-muted-foreground mb-2">No views yet</p>
+              <p className="text-xs text-muted-foreground">Create your first view to get started</p>
+            </div>
+          )}
+
+          {/* Grouped Views */}
           {filteredGroups.map((group) => (
             <Collapsible
               key={group.name}
@@ -279,14 +284,16 @@ export const ViewsSidebar: React.FC<ViewsSidebarProps> = ({
               </CollapsibleTrigger>
               <CollapsibleContent className="ml-4 space-y-1">
                 {group.views.map(renderViewItem)}
-                {group.views.length === 0 && searchQuery && (
-                  <p className="text-xs text-muted-foreground px-3 py-2">
-                    No views found
-                  </p>
-                )}
               </CollapsibleContent>
             </Collapsible>
           ))}
+
+          {/* Show no results message when searching */}
+          {searchQuery && filteredGroups.length === 0 && (
+            <div className="text-center py-4">
+              <p className="text-sm text-muted-foreground">No views found</p>
+            </div>
+          )}
         </div>
       </ScrollArea>
 
@@ -296,7 +303,7 @@ export const ViewsSidebar: React.FC<ViewsSidebarProps> = ({
         onClose={() => setShowCreateDialog(false)}
         tableId={tableId}
         onViewCreated={handleViewCreated}
-        availableFolders={defaultGroups.map(g => g.name)}
+        availableFolders={availableFolders}
       />
 
       {editingView && (
@@ -305,7 +312,7 @@ export const ViewsSidebar: React.FC<ViewsSidebarProps> = ({
           onClose={() => setEditingView(null)}
           view={editingView}
           onViewUpdated={handleViewUpdated}
-          availableFolders={defaultGroups.map(g => g.name)}
+          availableFolders={availableFolders}
         />
       )}
     </div>

@@ -36,7 +36,7 @@ export const ViewEditDialog: React.FC<ViewEditDialogProps> = ({
   availableFolders
 }) => {
   const [name, setName] = useState('');
-  const [folder, setFolder] = useState('General');
+  const [folder, setFolder] = useState('');
   const [viewType, setViewType] = useState('grid');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
@@ -44,7 +44,7 @@ export const ViewEditDialog: React.FC<ViewEditDialogProps> = ({
   useEffect(() => {
     if (view) {
       setName(view.name);
-      setFolder((view.settings as any)?.folder || 'General');
+      setFolder((view.settings as any)?.folder || '');
       setViewType(view.view_type);
     }
   }, [view]);
@@ -113,10 +113,10 @@ export const ViewEditDialog: React.FC<ViewEditDialogProps> = ({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="folder">Folder</Label>
+            <Label htmlFor="folder">Folder (Optional)</Label>
             <Select value={folder} onValueChange={setFolder}>
               <SelectTrigger>
-                <SelectValue />
+                <SelectValue placeholder="Select or create folder" />
               </SelectTrigger>
               <SelectContent>
                 {availableFolders.map((folderName) => (
@@ -126,6 +126,12 @@ export const ViewEditDialog: React.FC<ViewEditDialogProps> = ({
                 ))}
               </SelectContent>
             </Select>
+            <Input
+              placeholder="Or enter new folder name..."
+              value={folder}
+              onChange={(e) => setFolder(e.target.value)}
+              className="mt-1"
+            />
           </div>
 
           <div className="space-y-2">

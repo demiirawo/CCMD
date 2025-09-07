@@ -37,7 +37,7 @@ export const ViewCreateDialog: React.FC<ViewCreateDialogProps> = ({
   availableFolders
 }) => {
   const [name, setName] = useState('');
-  const [folder, setFolder] = useState('General');
+  const [folder, setFolder] = useState('');
   const [viewType, setViewType] = useState('grid');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
@@ -82,9 +82,9 @@ export const ViewCreateDialog: React.FC<ViewCreateDialogProps> = ({
       };
 
       onViewCreated(newView);
-      setName('');
-      setFolder('General');
-      setViewType('grid');
+    setName('');
+    setFolder('');
+    setViewType('grid');
       
       toast({
         title: "Success",
@@ -104,7 +104,7 @@ export const ViewCreateDialog: React.FC<ViewCreateDialogProps> = ({
 
   const handleClose = () => {
     setName('');
-    setFolder('General');
+    setFolder('');
     setViewType('grid');
     onClose();
   };
@@ -128,10 +128,10 @@ export const ViewCreateDialog: React.FC<ViewCreateDialogProps> = ({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="folder">Folder</Label>
+            <Label htmlFor="folder">Folder (Optional)</Label>
             <Select value={folder} onValueChange={setFolder}>
               <SelectTrigger>
-                <SelectValue />
+                <SelectValue placeholder="Select or create folder" />
               </SelectTrigger>
               <SelectContent>
                 {availableFolders.map((folderName) => (
@@ -141,6 +141,12 @@ export const ViewCreateDialog: React.FC<ViewCreateDialogProps> = ({
                 ))}
               </SelectContent>
             </Select>
+            <Input
+              placeholder="Or enter new folder name..."
+              value={folder}
+              onChange={(e) => setFolder(e.target.value)}
+              className="mt-1"
+            />
           </div>
 
           <div className="space-y-2">
