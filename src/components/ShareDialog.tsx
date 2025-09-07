@@ -77,7 +77,7 @@ export const ShareDialog = ({ tableId, tableName }: ShareDialogProps) => {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="sm" className="gap-2">
+        <Button variant="ghost" size="sm" className="gap-2" style={{ backgroundColor: '#24333E', color: 'white' }}>
           <Share2 className="h-4 w-4" />
           Share
         </Button>
