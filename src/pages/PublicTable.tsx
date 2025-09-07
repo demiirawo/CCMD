@@ -4,6 +4,7 @@ import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
+import { createClient } from '@supabase/supabase-js';
 
 interface TableData {
   table: {
@@ -44,37 +45,58 @@ export const PublicTable = () => {
     setError(null);
 
     try {
-      // Load table info (using anon access, so no RLS restrictions)
-      const { data: tableInfo, error: tableError } = await supabase
+      // Create anonymous supabase client for public access
+      const anonClient = createClient(
+        'https://gwywpkhxpbokmbhwsnod.supabase.co',
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd3eXdwa2h4cGJva21iaHdzbm9kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMzNjEyODcsImV4cCI6MjA2ODkzNzI4N30.ZpFRdjvGv75scJBqwnnMdClJSKTOgwM0A9rJaUbyHoU'
+      );
+
+      console.log('Loading table data for ID:', tableId);
+
+      // Load table info (using anonymous client)
+      const { data: tableInfo, error: tableError } = await anonClient
         .from('base_tables')
         .select('id, name, description, icon, color')
         .eq('id', tableId)
-        .single();
+        .maybeSingle();
+
+      console.log('Table query result:', { tableInfo, tableError });
 
       if (tableError) {
-        throw new Error('Table not found or not accessible');
+        console.error('Table error:', tableError);
+        throw new Error(`Database error: ${tableError.message}`);
+      }
+
+      if (!tableInfo) {
+        throw new Error('Table not found');
       }
 
       // Load fields
-      const { data: fields, error: fieldsError } = await supabase
+      const { data: fields, error: fieldsError } = await anonClient
         .from('base_fields')
         .select('*')
         .eq('table_id', tableId)
         .order('position');
 
+      console.log('Fields query result:', { fields, fieldsError });
+
       if (fieldsError) {
+        console.error('Fields error:', fieldsError);
         throw fieldsError;
       }
 
       // Load records
-      const { data: records, error: recordsError } = await supabase
+      const { data: records, error: recordsError } = await anonClient
         .from('base_records')
         .select('*')
         .eq('table_id', tableId)
         .is('deleted_at', null)
         .order('position');
 
+      console.log('Records query result:', { records, recordsError });
+
       if (recordsError) {
+        console.error('Records error:', recordsError);
         throw recordsError;
       }
 
@@ -89,7 +111,7 @@ export const PublicTable = () => {
 
     } catch (error: any) {
       console.error('Error loading public table:', error);
-      setError("Failed to load table. It may not exist or may not be publicly accessible.");
+      setError(error.message || "Failed to load table. It may not exist or may not be publicly accessible.");
     } finally {
       setIsLoading(false);
     }
