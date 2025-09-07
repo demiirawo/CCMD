@@ -1426,8 +1426,9 @@ export const TableView = () => {
                     )}
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    {sortedRecords.length} {currentView ? 'filtered' : ''} records
-                    {currentView && records.length !== sortedRecords.length && (
+                    {sortedRecords.length} 
+                    {(filters.conditions.length > 0 || filters.groups.length > 0 || sorts.length > 0 || groupByField) && ' filtered'} records
+                    {(filters.conditions.length > 0 || filters.groups.length > 0 || sorts.length > 0 || groupByField) && records.length !== sortedRecords.length && (
                       <span className="text-muted-foreground/70"> of {records.length} total</span>
                     )}
                   </p>
@@ -1436,7 +1437,7 @@ export const TableView = () => {
             </div>
             <div className="flex items-center gap-2">
               <Button 
-                variant="outline" 
+                variant={filters.conditions.length > 0 || filters.groups.length > 0 ? "default" : "outline"}
                 size="sm" 
                 className="gap-2"
                 onClick={() => setFilterDialog(true)}
@@ -1444,16 +1445,13 @@ export const TableView = () => {
                 <Filter className="h-4 w-4" />
                 Filter
                 {(filters.conditions.length > 0 || filters.groups.length > 0) && (
-                  <span className="ml-1 px-1.5 py-0.5 text-xs bg-primary text-primary-foreground rounded-full">
+                  <span className="ml-1 px-1.5 py-0.5 text-xs bg-primary-foreground text-primary rounded-full">
                     {filters.conditions.length + filters.groups.reduce((acc, g) => acc + g.conditions.length, 0)}
                   </span>
                 )}
-                {currentView && (
-                  <span className="ml-1 text-xs text-muted-foreground">(from view)</span>
-                )}
               </Button>
               <Button 
-                variant="outline" 
+                variant={groupByField ? "default" : "outline"}
                 size="sm" 
                 className="gap-2"
                 onClick={(e) => {
@@ -1471,13 +1469,13 @@ export const TableView = () => {
                 <Group className="h-4 w-4" />
                 Group
                 {groupByField && (
-                  <span className="ml-1 px-1.5 py-0.5 text-xs bg-primary text-primary-foreground rounded-full">
+                  <span className="ml-1 px-1.5 py-0.5 text-xs bg-primary-foreground text-primary rounded-full">
                     1
                   </span>
                 )}
               </Button>
               <Button
-                variant="outline"
+                variant={sorts.length > 0 ? "default" : "outline"}
                 size="sm"
                 className="gap-2"
                 onClick={() => setSortDialog(true)}
@@ -1485,7 +1483,7 @@ export const TableView = () => {
                 <Sort className="h-4 w-4" />
                 Sort
                 {sorts.length > 0 && (
-                  <span className="ml-1 px-1.5 py-0.5 text-xs bg-primary text-primary-foreground rounded-full">
+                  <span className="ml-1 px-1.5 py-0.5 text-xs bg-primary-foreground text-primary rounded-full">
                     {sorts.length}
                   </span>
                 )}
