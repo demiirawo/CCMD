@@ -26,6 +26,7 @@ import { TableHistoryDialog } from "@/components/TableHistoryDialog";
 import { TableFilterDialog } from "@/components/TableFilterDialog";
 import { ViewsSidebar } from "@/components/ViewsSidebar";
 import { GroupByDialog } from "@/components/GroupByDialog";
+import { TableSortDialog, type SortCondition } from "@/components/TableSortDialog";
 interface BaseField {
   id: string;
   name: string;
@@ -233,6 +234,11 @@ export const TableView = () => {
   const [groupByField, setGroupByField] = useState<string | null>(null);
   const [groupByDialog, setGroupByDialog] = useState(false);
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
+  
+  // Sorting state
+  const [sorts, setSorts] = useState<SortCondition[]>([]);
+  const [sortDialog, setSortDialog] = useState(false);
+  const [automaticSort, setAutomaticSort] = useState(false);
   
   const editInputRef = useRef<HTMLInputElement>(null);
   const editTextareaRef = useRef<HTMLTextAreaElement>(null);
@@ -982,9 +988,68 @@ export const TableView = () => {
     });
   });
 
-  // Group records if grouping is active
+  // Apply sorting function
+  const applySorting = (recordsToSort: BaseRecord[]) => {
+    if (sorts.length === 0) return recordsToSort;
+    
+    return [...recordsToSort].sort((a, b) => {
+      for (const sort of sorts) {
+        const field = fields.find(f => f.id === sort.fieldId);
+        if (!field) continue;
+        
+        const aValue = a.data[sort.fieldId];
+        const bValue = b.data[sort.fieldId];
+        
+        // Handle null/undefined values
+        if (aValue == null && bValue == null) continue;
+        if (aValue == null) return sort.direction === 'asc' ? -1 : 1;
+        if (bValue == null) return sort.direction === 'asc' ? 1 : -1;
+        
+        let comparison = 0;
+        
+        // Sort based on field type
+        switch (field.field_type) {
+          case 'number':
+          case 'currency':
+          case 'percent':
+            comparison = Number(aValue || 0) - Number(bValue || 0);
+            break;
+          case 'date':
+          case 'datetime':
+            const aDate = new Date(aValue);
+            const bDate = new Date(bValue);
+            comparison = aDate.getTime() - bDate.getTime();
+            break;
+          case 'checkbox':
+            comparison = (bValue ? 1 : 0) - (aValue ? 1 : 0);
+            break;
+          default:
+            // String comparison for text fields
+            comparison = String(aValue || '').localeCompare(String(bValue || ''));
+        }
+        
+        if (comparison !== 0) {
+          return sort.direction === 'desc' ? -comparison : comparison;
+        }
+      }
+      return 0;
+    });
+  };
+
+  // Apply sorting to filtered records
+  const sortedRecords = applySorting(filteredRecords);
+
+  // Group records if grouping is active, and sort within groups
   const groupedRecords = groupByField 
-    ? groupRecordsByField(filteredRecords, groupByField)
+    ? (() => {
+        const grouped = groupRecordsByField(sortedRecords, groupByField);
+        // Apply sorting within each group
+        const sortedGrouped: Record<string, BaseRecord[]> = {};
+        Object.entries(grouped).forEach(([groupValue, groupRecords]) => {
+          sortedGrouped[groupValue] = applySorting(groupRecords);
+        });
+        return sortedGrouped;
+      })()
     : null;
 
   // Debug logging (only when a view is selected)
@@ -993,11 +1058,11 @@ export const TableView = () => {
     console.log('View filters:', currentView.filters);
     console.log('Applied filters:', filters);
     console.log('Records before filtering:', records.length);
-    console.log('Records after filtering:', filteredRecords.length);
+    console.log('Records after filtering:', sortedRecords.length);
   }
   console.log('Current filters:', filters);
   console.log('Records before filtering:', records.length);
-  console.log('Records after filtering:', filteredRecords.length);
+  console.log('Records after filtering:', sortedRecords.length);
 
   const renderEditableCell = (record: BaseRecord, field: BaseField) => {
     const isEditing = editingCell?.recordId === record.id && editingCell?.fieldId === field.id;
@@ -1268,8 +1333,8 @@ export const TableView = () => {
                     )}
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    {filteredRecords.length} {currentView ? 'filtered' : ''} records
-                    {currentView && records.length !== filteredRecords.length && (
+                    {sortedRecords.length} {currentView ? 'filtered' : ''} records
+                    {currentView && records.length !== sortedRecords.length && (
                       <span className="text-muted-foreground/70"> of {records.length} total</span>
                     )}
                   </p>
@@ -1318,9 +1383,19 @@ export const TableView = () => {
                   </span>
                 )}
               </Button>
-              <Button variant="outline" size="sm" className="gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2"
+                onClick={() => setSortDialog(true)}
+              >
                 <Sort className="h-4 w-4" />
                 Sort
+                {sorts.length > 0 && (
+                  <span className="ml-1 px-1.5 py-0.5 text-xs bg-primary text-primary-foreground rounded-full">
+                    {sorts.length}
+                  </span>
+                )}
               </Button>
               <Button onClick={addField} variant="outline" size="sm" className="gap-2">
                 <Plus className="h-4 w-4" />
@@ -1376,7 +1451,7 @@ export const TableView = () => {
                       No records yet. Click the button below to get started.
                     </TableCell>
                   </TableRow>
-                ) : filteredRecords.length === 0 ? (
+                ) : sortedRecords.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={fields.length + 1} className="text-center py-12 text-muted-foreground">
                       No records match the current filters.
@@ -1472,7 +1547,7 @@ export const TableView = () => {
                   </>
                 ) : (
                   // Render regular (ungrouped) records
-                  filteredRecords.map(record => (
+                  sortedRecords.map(record => (
                     <TableRow key={record.id} className="hover:bg-muted/30">
                       {fields.map(field => (
                         <TableCell key={field.id} className="border-r p-0 h-12">
@@ -1688,6 +1763,18 @@ export const TableView = () => {
           fields={fields}
           currentGroupBy={groupByField}
           onApplyGroupBy={handleGroupByApply}
+        />
+
+        {/* Sort Dialog */}
+        <TableSortDialog
+          isOpen={sortDialog}
+          onClose={() => setSortDialog(false)}
+          fields={fields}
+          currentSorts={sorts}
+          onApplySorts={setSorts}
+          groupByField={groupByField}
+          automaticSort={automaticSort}
+          onAutomaticSortChange={setAutomaticSort}
         />
 
         {/* Filter Dialog */}
