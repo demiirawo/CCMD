@@ -90,7 +90,18 @@ export const ViewsSidebar: React.FC<ViewsSidebarProps> = ({
       }));
       setViews(viewsWithFolders);
       
-      console.log('Views loaded:', viewsWithFolders.length, 'views');
+      console.log('📂 Views loaded from database:', viewsWithFolders.length, 'views');
+      console.log('🗃️ Full view data from DB:', data);
+      data?.forEach((view, index) => {
+        console.log(`📄 View ${index + 1} (${view.name}):`, {
+          id: view.id,
+          filters: view.filters,
+          sorts: view.sorts,
+          groups: view.groups,
+          settings: view.settings,
+          colorSettings: (view.settings as any)?.colorSettings
+        });
+      });
       console.log('Current view before loading:', currentView?.name);
     } catch (error) {
       console.error('Error loading views:', error);

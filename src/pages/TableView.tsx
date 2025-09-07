@@ -973,6 +973,9 @@ export const TableView = () => {
     if (view) {
       console.log('📝 Loading view data for:', view.name);
       console.log('🔍 Raw view data:', view);
+      console.log('🎯 View settings field:', view.settings);
+      console.log('🎯 View filters field:', view.filters);
+      console.log('🎯 View sorts field:', view.sorts);
       
       // Apply view's filters
       const viewFilters = {
@@ -1001,47 +1004,6 @@ export const TableView = () => {
         currentColorSettings: colorSettings
       });
       setColorSettings(viewColorSettings);
-      
-      // Small delay to ensure state is applied and validate
-      setTimeout(() => {
-        console.log('✅ View state applied:', {
-          filters: viewFilters,
-          sorts: viewSorts,
-          groupBy: viewGroupBy,
-          colorSettings: viewColorSettings
-        });
-        
-        // Validate that settings were properly applied
-        const currentState = {
-          filters: filters.conditions,
-          sorts: sorts,
-          groupBy: groupByField,
-          colorSettings: colorSettings
-        };
-        
-        console.log('🔍 Current actual state after timeout:', currentState);
-        console.log('🎯 Expected color settings:', viewColorSettings);
-        console.log('🎯 Actual color settings:', colorSettings);
-        
-        // More robust color settings comparison
-        const expectedColorJson = JSON.stringify(viewColorSettings);
-        const actualColorJson = JSON.stringify(colorSettings);
-        
-        console.log('📊 Color settings comparison:', {
-          expected: expectedColorJson,
-          actual: actualColorJson,
-          match: expectedColorJson === actualColorJson
-        });
-        
-        // Only re-apply if there's a significant difference (not just reference differences)
-        if (expectedColorJson !== actualColorJson) {
-          console.warn('⚠️ Color settings mismatch detected, re-applying...');
-          console.log('🔧 Re-applying color settings:', viewColorSettings);
-          setColorSettings(viewColorSettings);
-        } else {
-          console.log('✅ Color settings match perfectly');
-        }
-      }, 200); // Increased timeout to allow for state settling
       
       console.log('✅ Switched to view:', view.name, 'with filters:', viewFilters, 'sorts:', viewSorts, 'groupBy:', viewGroupBy, 'colorSettings:', viewColorSettings);
     } else {
