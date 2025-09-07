@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Table, Search, Filter, MoreHorizontal } from "lucide-react";
+import { Plus, Table, Search, Filter, MoreHorizontal, Edit2, Check, X } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { 
   DropdownMenu, 
@@ -13,6 +13,14 @@ import {
   DropdownMenuItem, 
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 
 interface BaseTable {
   id: string;
@@ -31,6 +39,15 @@ export const Base = () => {
   const [tables, setTables] = useState<BaseTable[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [renameDialog, setRenameDialog] = useState<{
+    isOpen: boolean;
+    table: BaseTable | null;
+    newName: string;
+  }>({
+    isOpen: false,
+    table: null,
+    newName: ""
+  });
 
   useEffect(() => {
     if (profile?.company_id) {
@@ -141,6 +158,46 @@ export const Base = () => {
 
   const openTable = (tableId: string) => {
     navigate(`/base/table/${tableId}`);
+  };
+
+  const handleRenameTable = (table: BaseTable) => {
+    setRenameDialog({
+      isOpen: true,
+      table: table,
+      newName: table.name
+    });
+  };
+
+  const submitRename = async () => {
+    if (!renameDialog.table || !renameDialog.newName.trim()) return;
+
+    try {
+      const { error } = await supabase
+        .from('base_tables')
+        .update({ name: renameDialog.newName.trim() })
+        .eq('id', renameDialog.table.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Table renamed successfully"
+      });
+
+      setRenameDialog({ isOpen: false, table: null, newName: "" });
+      fetchTables();
+    } catch (error) {
+      console.error('Error renaming table:', error);
+      toast({
+        title: "Error",
+        description: "Failed to rename table",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const cancelRename = () => {
+    setRenameDialog({ isOpen: false, table: null, newName: "" });
   };
 
   const filteredTables = tables.filter(table =>
@@ -262,7 +319,13 @@ export const Base = () => {
                           e.stopPropagation();
                           openTable(table.id);
                         }}>Open</DropdownMenuItem>
-                        <DropdownMenuItem>Rename</DropdownMenuItem>
+                        <DropdownMenuItem onClick={(e) => {
+                          e.stopPropagation();
+                          handleRenameTable(table);
+                        }}>
+                          <Edit2 className="h-4 w-4 mr-2" />
+                          Rename
+                        </DropdownMenuItem>
                         <DropdownMenuItem>Duplicate</DropdownMenuItem>
                         <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
                       </DropdownMenuContent>
@@ -285,6 +348,50 @@ export const Base = () => {
           </div>
         )}
       </div>
+
+      {/* Rename Dialog */}
+      <Dialog open={renameDialog.isOpen} onOpenChange={(open) => !open && cancelRename()}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Rename Table</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="table-name">Table Name</Label>
+              <Input
+                id="table-name"
+                value={renameDialog.newName}
+                onChange={(e) => setRenameDialog(prev => ({ ...prev, newName: e.target.value }))}
+                placeholder="Enter table name"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    submitRename();
+                  }
+                  if (e.key === 'Escape') {
+                    e.preventDefault();
+                    cancelRename();
+                  }
+                }}
+                autoFocus
+              />
+            </div>
+          </div>
+          <DialogFooter className="flex gap-2">
+            <Button variant="outline" onClick={cancelRename}>
+              <X className="h-4 w-4 mr-2" />
+              Cancel
+            </Button>
+            <Button 
+              onClick={submitRename}
+              disabled={!renameDialog.newName.trim() || renameDialog.newName === renameDialog.table?.name}
+            >
+              <Check className="h-4 w-4 mr-2" />
+              Rename
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
