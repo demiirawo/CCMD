@@ -389,6 +389,104 @@ export const TableView = () => {
     }
   };
   
+  const addRecordAbove = async (recordId: string) => {
+    if (!tableId || !profile?.company_id) return;
+    try {
+      // Create a new empty record with default values
+      const defaultData: Record<string, any> = {};
+      fields.forEach(field => {
+        if (field.field_type === 'single_line') {
+          defaultData[field.id] = '';
+        } else if (field.field_type === 'checkbox') {
+          defaultData[field.id] = false;
+        } else if (field.field_type === 'number' || field.field_type === 'currency' || field.field_type === 'percent') {
+          defaultData[field.id] = 0;
+        } else if (field.field_type === 'rating') {
+          defaultData[field.id] = 0;
+        } else if (field.field_type === 'attachment') {
+          defaultData[field.id] = [];
+        } else if (field.field_type === 'date' || field.field_type === 'datetime') {
+          defaultData[field.id] = null;
+        } else {
+          defaultData[field.id] = '';
+        }
+      });
+
+      const { data, error } = await supabase.from('base_records').insert({
+        table_id: tableId,
+        data: defaultData
+      }).select().single();
+      if (error) throw error;
+
+      // Find the index of the target record and insert above it
+      const targetIndex = records.findIndex(r => r.id === recordId);
+      const newRecords = [...records];
+      newRecords.splice(targetIndex, 0, data);
+      setRecords(newRecords);
+
+      toast({
+        title: "Success",
+        description: "New record added above"
+      });
+    } catch (error) {
+      console.error('Error adding record:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add record",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const addRecordBelow = async (recordId: string) => {
+    if (!tableId || !profile?.company_id) return;
+    try {
+      // Create a new empty record with default values
+      const defaultData: Record<string, any> = {};
+      fields.forEach(field => {
+        if (field.field_type === 'single_line') {
+          defaultData[field.id] = '';
+        } else if (field.field_type === 'checkbox') {
+          defaultData[field.id] = false;
+        } else if (field.field_type === 'number' || field.field_type === 'currency' || field.field_type === 'percent') {
+          defaultData[field.id] = 0;
+        } else if (field.field_type === 'rating') {
+          defaultData[field.id] = 0;
+        } else if (field.field_type === 'attachment') {
+          defaultData[field.id] = [];
+        } else if (field.field_type === 'date' || field.field_type === 'datetime') {
+          defaultData[field.id] = null;
+        } else {
+          defaultData[field.id] = '';
+        }
+      });
+
+      const { data, error } = await supabase.from('base_records').insert({
+        table_id: tableId,
+        data: defaultData
+      }).select().single();
+      if (error) throw error;
+
+      // Find the index of the target record and insert below it
+      const targetIndex = records.findIndex(r => r.id === recordId);
+      const newRecords = [...records];
+      newRecords.splice(targetIndex + 1, 0, data);
+      setRecords(newRecords);
+
+      toast({
+        title: "Success",
+        description: "New record added below"
+      });
+    } catch (error) {
+      console.error('Error adding record:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add record",
+        variant: "destructive"
+      });
+    }
+  };
+  
   const duplicateRecord = async (recordId: string) => {
     if (!tableId || !profile?.company_id) return;
     try {
@@ -2148,6 +2246,13 @@ export const TableView = () => {
                                   </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end" className="bg-background border shadow-md z-50">
+                                  <DropdownMenuItem onClick={() => addRecordAbove(record.id)}>
+                                    Add row above
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem onClick={() => addRecordBelow(record.id)}>
+                                    Add row below
+                                  </DropdownMenuItem>
+                                  <DropdownMenuSeparator />
                                   <DropdownMenuItem onClick={() => duplicateRecord(record.id)}>
                                     Duplicate
                                   </DropdownMenuItem>
@@ -2182,6 +2287,13 @@ export const TableView = () => {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end" className="bg-background border shadow-md z-50">
+                            <DropdownMenuItem onClick={() => addRecordAbove(record.id)}>
+                              Add row above
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => addRecordBelow(record.id)}>
+                              Add row below
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
                             <DropdownMenuItem onClick={() => duplicateRecord(record.id)}>
                               Duplicate
                             </DropdownMenuItem>
@@ -2432,32 +2544,6 @@ export const TableView = () => {
       left: contextMenu.x,
       top: contextMenu.y
     }} onClick={e => e.stopPropagation()}>
-          <button className="w-full px-3 py-2 text-left hover:bg-muted text-sm" onClick={() => {
-            addRecord();
-            setContextMenu({
-              isOpen: false,
-              x: 0,
-              y: 0,
-              fieldId: null
-            });
-          }}>
-            Add row above
-          </button>
-          
-          <button className="w-full px-3 py-2 text-left hover:bg-muted text-sm" onClick={() => {
-            addRecord();
-            setContextMenu({
-              isOpen: false,
-              x: 0,
-              y: 0,
-              fieldId: null
-            });
-          }}>
-            Add row below
-          </button>
-
-          <hr className="my-1" />
-
           <button className="w-full px-3 py-2 text-left hover:bg-muted text-sm" onClick={() => {
         const field = fields.find(f => f.id === contextMenu.fieldId);
         if (field) {
