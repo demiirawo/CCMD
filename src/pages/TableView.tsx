@@ -1294,10 +1294,18 @@ export const TableView = () => {
                 variant="outline" 
                 size="sm" 
                 className="gap-2"
-                onClick={() => {
-                  console.log('Group button clicked');
-                  setGroupByDialog(true);
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  console.log('Group button clicked - event triggered');
+                  try {
+                    setGroupByDialog(true);
+                    console.log('Group dialog state set to true');
+                  } catch (error) {
+                    console.error('Error setting group dialog:', error);
+                  }
                 }}
+                style={{ backgroundColor: 'red', color: 'white' }}
               >
                 <Group className="h-4 w-4" />
                 Group
