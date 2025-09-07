@@ -15,6 +15,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { AttachmentPreviewDialog } from "@/components/AttachmentPreviewDialog";
 import { FormulaEditor } from "@/components/FormulaEditor";
 import { FormulaCell } from "@/components/FormulaCell";
+import { FieldConfigDialog } from "@/components/FieldConfigDialog";
 interface BaseField {
   id: string;
   name: string;
@@ -166,6 +167,26 @@ export const TableView = () => {
     fieldId: null,
     pendingType: '',
   });
+
+  const [fieldConfigDialog, setFieldConfigDialog] = useState<{
+    isOpen: boolean;
+    field: BaseField | null;
+  }>({
+    isOpen: false,
+    field: null,
+  });
+
+  const [contextMenu, setContextMenu] = useState<{
+    isOpen: boolean;
+    x: number;
+    y: number;
+    fieldId: string | null;
+  }>({
+    isOpen: false,
+    x: 0,
+    y: 0,
+    fieldId: null,
+  });
   const editInputRef = useRef<HTMLInputElement>(null);
   const editTextareaRef = useRef<HTMLTextAreaElement>(null);
   const fieldEditRef = useRef<HTMLInputElement>(null);
@@ -175,6 +196,17 @@ export const TableView = () => {
       loadTableData();
     }
   }, [tableId, profile?.company_id]);
+
+  useEffect(() => {
+    const handleClickOutside = () => {
+      setContextMenu({ isOpen: false, x: 0, y: 0, fieldId: null });
+    };
+    
+    if (contextMenu.isOpen) {
+      document.addEventListener('click', handleClickOutside);
+      return () => document.removeEventListener('click', handleClickOutside);
+    }
+  }, [contextMenu.isOpen]);
   useEffect(() => {
     if (editingCell && editInputRef.current) {
       editInputRef.current.focus();
@@ -493,6 +525,12 @@ export const TableView = () => {
         fieldName: field.name,
         attachments: currentValue || []
       });
+    } else if (field?.field_type === 'formula') {
+      // Open formula editor for formula fields
+      setFormulaEditor({
+        fieldId,
+        initialFormula: field.field_config?.formula || ''
+      });
     } else {
       // Normal edit mode for other field types
       setEditingCell({
@@ -505,6 +543,16 @@ export const TableView = () => {
   const handleFieldDoubleClick = (fieldId: string, currentName: string) => {
     setEditingField(fieldId);
     setEditFieldName(currentName);
+  };
+
+  const handleFieldRightClick = (e: React.MouseEvent, fieldId: string) => {
+    e.preventDefault();
+    setContextMenu({
+      isOpen: true,
+      x: e.clientX,
+      y: e.clientY,
+      fieldId,
+    });
   };
   const handleCellKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' || e.key === 'Tab') {
@@ -720,6 +768,13 @@ export const TableView = () => {
           allRecords={records.map(r => r.data)}
           fieldNames={fieldNames}
           format={field.field_config?.format}
+          isEditing={editingCell?.recordId === record.id && editingCell?.fieldId === field.id}
+          onEdit={() => {
+            setFormulaEditor({
+              fieldId: field.id,
+              initialFormula: field.field_config?.formula || ''
+            });
+          }}
         />;
       default:
         return value ? String(value) : '';
@@ -729,7 +784,10 @@ export const TableView = () => {
     const isEditing = editingField === field.id;
     const IconComponent = getFieldTypeIcon(field.field_type);
     
-    return <div className="flex items-center justify-between group">
+    return <div 
+        className="flex items-center justify-between group"
+        onContextMenu={(e) => handleFieldRightClick(e, field.id)}
+      >
         <div className="flex items-center gap-2 flex-1">
           <IconComponent className="h-4 w-4 text-muted-foreground flex-shrink-0" />
           {isEditing ? <Input ref={fieldEditRef} value={editFieldName} onChange={e => setEditFieldName(e.target.value)} onKeyDown={handleFieldKeyDown} onBlur={saveFieldEdit} className="h-8 border-0 bg-transparent p-0 font-medium flex-1" /> : <span className="cursor-pointer font-medium truncate" onDoubleClick={() => handleFieldDoubleClick(field.id, field.name)}>
@@ -1038,5 +1096,113 @@ export const TableView = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Field Configuration Dialog */}
+      <FieldConfigDialog
+        isOpen={fieldConfigDialog.isOpen}
+        onClose={() => setFieldConfigDialog({ isOpen: false, field: null })}
+        onSave={async (config) => {
+          if (!fieldConfigDialog.field) return;
+          
+          try {
+            const { error } = await supabase
+              .from('base_fields')
+              .update({ field_config: config })
+              .eq('id', fieldConfigDialog.field.id);
+            
+            if (error) throw error;
+            
+            setFields(fields.map(f => 
+              f.id === fieldConfigDialog.field!.id 
+                ? { ...f, field_config: config }
+                : f
+            ));
+            
+            toast({
+              title: "Success",
+              description: "Field configuration updated"
+            });
+          } catch (error) {
+            console.error('Error updating field config:', error);
+            toast({
+              title: "Error",
+              description: "Failed to update field configuration",
+              variant: "destructive"
+            });
+          }
+        }}
+        field={fieldConfigDialog.field}
+      />
+
+      {/* Context Menu */}
+      {contextMenu.isOpen && (
+        <div
+          className="fixed bg-background border shadow-lg rounded-md py-1 z-50 min-w-48"
+          style={{ left: contextMenu.x, top: contextMenu.y }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <button
+            className="w-full px-3 py-2 text-left hover:bg-muted text-sm"
+            onClick={() => {
+              const field = fields.find(f => f.id === contextMenu.fieldId);
+              if (field) {
+                handleFieldDoubleClick(field.id, field.name);
+              }
+              setContextMenu({ isOpen: false, x: 0, y: 0, fieldId: null });
+            }}
+          >
+            Rename Field
+          </button>
+          
+          {(['single_select', 'multi_select', 'rating', 'currency', 'number', 'percent'].includes(
+            fields.find(f => f.id === contextMenu.fieldId)?.field_type || ''
+          )) && (
+            <button
+              className="w-full px-3 py-2 text-left hover:bg-muted text-sm"
+              onClick={() => {
+                const field = fields.find(f => f.id === contextMenu.fieldId);
+                if (field) {
+                  setFieldConfigDialog({ isOpen: true, field });
+                }
+                setContextMenu({ isOpen: false, x: 0, y: 0, fieldId: null });
+              }}
+            >
+              Configure Options
+            </button>
+          )}
+          
+          {fields.find(f => f.id === contextMenu.fieldId)?.field_type === 'formula' && (
+            <button
+              className="w-full px-3 py-2 text-left hover:bg-muted text-sm"
+              onClick={() => {
+                const field = fields.find(f => f.id === contextMenu.fieldId);
+                if (field) {
+                  setFormulaEditor({
+                    fieldId: field.id,
+                    initialFormula: field.field_config?.formula || ''
+                  });
+                }
+                setContextMenu({ isOpen: false, x: 0, y: 0, fieldId: null });
+              }}
+            >
+              Edit Formula
+            </button>
+          )}
+          
+          <hr className="my-1" />
+          
+          <button
+            className="w-full px-3 py-2 text-left hover:bg-muted text-sm text-destructive"
+            onClick={() => {
+              if (contextMenu.fieldId) {
+                deleteField(contextMenu.fieldId);
+              }
+              setContextMenu({ isOpen: false, x: 0, y: 0, fieldId: null });
+            }}
+          >
+            Delete Field
+          </button>
+        </div>
+      )}
     </div>;
 };
