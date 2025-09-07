@@ -363,6 +363,53 @@ export const TableView = () => {
       });
     }
   };
+
+  const deleteField = async (fieldId: string) => {
+    if (!confirm('Are you sure you want to delete this field? This action cannot be undone and will remove all data in this field.')) {
+      return;
+    }
+    
+    try {
+      // Delete the field from database
+      const { error } = await supabase
+        .from('base_fields')
+        .delete()
+        .eq('id', fieldId);
+      
+      if (error) throw error;
+      
+      // Update all records to remove data for this field
+      const updatedRecords = records.map(record => {
+        const newData = { ...record.data };
+        delete newData[fieldId];
+        return { ...record, data: newData };
+      });
+      
+      // Update records in database
+      for (const record of updatedRecords) {
+        await supabase
+          .from('base_records')
+          .update({ data: record.data })
+          .eq('id', record.id);
+      }
+      
+      // Update local state
+      setFields(fields.filter(f => f.id !== fieldId));
+      setRecords(updatedRecords);
+      
+      toast({
+        title: "Success",
+        description: "Field deleted successfully"
+      });
+    } catch (error) {
+      console.error('Error deleting field:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete field",
+        variant: "destructive"
+      });
+    }
+  };
   const handleCellDoubleClick = (recordId: string, fieldId: string, currentValue: any) => {
     const field = fields.find(f => f.id === fieldId);
     
@@ -616,6 +663,10 @@ export const TableView = () => {
             {FIELD_TYPES.map(type => <DropdownMenuItem key={type.value} onClick={() => updateFieldType(field.id, type.value)} className={field.field_type === type.value ? 'bg-muted' : ''}>
                 {type.label}
               </DropdownMenuItem>)}
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => deleteField(field.id)} className="text-destructive">
+              Delete Field
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>;
@@ -629,22 +680,6 @@ export const TableView = () => {
           </div>
       </div>
 
-      {/* Attachment Preview Dialog */}
-      {previewAttachments && (
-        <AttachmentPreviewDialog
-          isOpen={!!previewAttachments}
-          onClose={() => setPreviewAttachments(null)}
-          attachments={previewAttachments.attachments}
-          fieldName={previewAttachments.fieldName}
-          onUpdate={(newAttachments) => {
-            updateCellValue(previewAttachments.recordId, previewAttachments.fieldId, newAttachments);
-            setPreviewAttachments({
-              ...previewAttachments,
-              attachments: newAttachments
-            });
-          }}
-        />
-      )}
     </div>;
   }
   if (!table) {
@@ -754,5 +789,22 @@ export const TableView = () => {
           </div>
         </div>
       </div>
+
+      {/* Attachment Preview Dialog */}
+      {previewAttachments && (
+        <AttachmentPreviewDialog
+          isOpen={!!previewAttachments}
+          onClose={() => setPreviewAttachments(null)}
+          attachments={previewAttachments.attachments}
+          fieldName={previewAttachments.fieldName}
+          onUpdate={(newAttachments) => {
+            updateCellValue(previewAttachments.recordId, previewAttachments.fieldId, newAttachments);
+            setPreviewAttachments({
+              ...previewAttachments,
+              attachments: newAttachments
+            });
+          }}
+        />
+      )}
     </div>;
 };
