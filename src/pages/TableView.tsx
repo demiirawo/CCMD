@@ -8,10 +8,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ArrowLeft, Plus, Filter, ArrowUpDown as Sort, Search, MoreHorizontal, Settings, Type, Hash, FileText, List, ListChecks, CheckSquare, PoundSterling, Percent, Calendar, Clock, Mail, Link, Phone, Star, Paperclip, Calculator } from "lucide-react";
+import { ArrowLeft, Plus, Filter, ArrowUpDown as Sort, Search, MoreHorizontal, Settings, Type, Hash, FileText, List, ListChecks, CheckSquare, PoundSterling, Percent, Calendar, Clock, Mail, Link, Phone, Star, Paperclip, Calculator, CalendarIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { cn } from "@/lib/utils";
+import { format, parse, isValid } from "date-fns";
 import { AttachmentPreviewDialog } from "@/components/AttachmentPreviewDialog";
 import { FormulaEditor } from "@/components/FormulaEditor";
 import { FormulaCell } from "@/components/FormulaCell";
@@ -283,6 +287,8 @@ export const TableView = () => {
           defaultData[field.id] = 0;
         } else if (field.field_type === 'attachment') {
           defaultData[field.id] = [];
+        } else if (field.field_type === 'date' || field.field_type === 'datetime') {
+          defaultData[field.id] = null;
         } else {
           defaultData[field.id] = '';
         }
@@ -328,13 +334,28 @@ export const TableView = () => {
       setFields([...fields, data]);
 
       // Update all existing records to include the new field
-      const updatedRecords = records.map(record => ({
-        ...record,
-        data: {
-          ...record.data,
-          [data.id]: ''
+      const updatedRecords = records.map(record => {
+        let defaultValue: any = '';
+        if (data.field_type === 'checkbox') {
+          defaultValue = false;
+        } else if (data.field_type === 'number' || data.field_type === 'currency' || data.field_type === 'percent') {
+          defaultValue = 0;
+        } else if (data.field_type === 'rating') {
+          defaultValue = 0;
+        } else if (data.field_type === 'attachment') {
+          defaultValue = [];
+        } else if (data.field_type === 'date' || data.field_type === 'datetime') {
+          defaultValue = null;
         }
-      }));
+        
+        return {
+          ...record,
+          data: {
+            ...record.data,
+            [data.id]: defaultValue
+          }
+        };
+      });
       for (const record of updatedRecords) {
         await supabase.from('base_records').update({
           data: record.data
@@ -642,6 +663,43 @@ export const TableView = () => {
           updateCellValue(record.id, field.id, checked);
           setEditingCell(null);
         }} />;
+      } else if (field.field_type === 'date' || field.field_type === 'datetime') {
+        const dateValue = editValue ? new Date(editValue) : undefined;
+        
+        return (
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className={cn(
+                  "w-full h-8 justify-start text-left font-normal border-0 bg-transparent p-1",
+                  !dateValue && "text-muted-foreground"
+                )}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {dateValue ? format(dateValue, "dd/MM/yyyy") : <span>Pick a date</span>}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <CalendarComponent
+                mode="single"
+                selected={dateValue}
+                onSelect={(date) => {
+                  if (date) {
+                    const isoString = field.field_type === 'datetime' 
+                      ? date.toISOString() 
+                      : date.toISOString().split('T')[0];
+                    setEditValue(isoString);
+                    updateCellValue(record.id, field.id, isoString);
+                    setEditingCell(null);
+                  }
+                }}
+                initialFocus
+                className={cn("p-3 pointer-events-auto")}
+              />
+            </PopoverContent>
+          </Popover>
+        );
       } else if (field.field_type === 'single_select') {
         return <Select value={editValue || ''} onValueChange={newValue => {
           setEditValue(newValue);
@@ -684,6 +742,8 @@ export const TableView = () => {
     }
 
     // Handle drag and drop for attachment fields
+
+    // Handle drag and drop for attachment fields
     if (field.field_type === 'attachment') {
       return <div 
         className="w-full h-full p-2 cursor-pointer hover:bg-muted/30 rounded relative"
@@ -724,6 +784,26 @@ export const TableView = () => {
         return value ? `£${Number(value).toFixed(2)}` : '';
       case 'percent':
         return value ? `${Number(value)}%` : '';
+      case 'date':
+        if (value) {
+          try {
+            const date = new Date(value);
+            return isValid(date) ? format(date, 'dd/MM/yyyy') : value;
+          } catch {
+            return value;
+          }
+        }
+        return '';
+      case 'datetime':
+        if (value) {
+          try {
+            const date = new Date(value);
+            return isValid(date) ? format(date, 'dd/MM/yyyy HH:mm') : value;
+          } catch {
+            return value;
+          }
+        }
+        return '';
       case 'rating':
         return value ? '★'.repeat(Number(value)) + '☆'.repeat(5 - Number(value)) : '';
       case 'attachment':
