@@ -24,6 +24,7 @@ import CompanyDashboard from "./pages/CompanyDashboard";
 import { Base } from "./pages/Base";
 import { TableView } from "./pages/TableView";
 import { SharedTable } from "./pages/SharedTable";
+import { PublicTable } from "./pages/PublicTable";
 
 const queryClient = new QueryClient();
 
@@ -94,6 +95,7 @@ const AppContent = () => {
         </ProtectedRoute>
       } />
       <Route path="/shared/:token" element={<SharedTable />} />
+      <Route path="/public/:tableId" element={<PublicTable />} />
       <Route path="/meetings" element={
         <ProtectedRoute requireCompany>
           <>

@@ -213,14 +213,14 @@ export const ShareDialog = ({ tableId, tableName }: ShareDialogProps) => {
                 <Label>Embed URL</Label>
                 <div className="flex gap-2">
                   <Input 
-                    value={`${window.location.origin}/shared/${tableId}?embed=true`}
+                    value={`${window.location.origin}/public/${tableId}?embed=true`}
                     readOnly 
                     className="flex-1" 
                   />
                   <Button 
                     variant="outline" 
                     size="icon" 
-                    onClick={() => copyToClipboard(`${window.location.origin}/shared/${tableId}?embed=true`, 'Embed URL')}
+                    onClick={() => copyToClipboard(`${window.location.origin}/public/${tableId}?embed=true`, 'Embed URL')}
                   >
                     <Copy className="h-4 w-4" />
                   </Button>
@@ -232,14 +232,14 @@ export const ShareDialog = ({ tableId, tableName }: ShareDialogProps) => {
                 <div className="relative">
                   <textarea 
                     className="w-full h-20 p-3 text-sm font-mono bg-muted rounded-md resize-none"
-                    value={generateEmbedCode(`${window.location.origin}/shared/${tableId}?embed=true`)}
+                    value={generateEmbedCode(`${window.location.origin}/public/${tableId}?embed=true`)}
                     readOnly
                   />
                   <Button 
                     variant="outline" 
                     size="sm" 
                     className="absolute top-2 right-2"
-                    onClick={() => copyToClipboard(generateEmbedCode(`${window.location.origin}/shared/${tableId}?embed=true`), 'Embed code')}
+                    onClick={() => copyToClipboard(generateEmbedCode(`${window.location.origin}/public/${tableId}?embed=true`), 'Embed code')}
                   >
                     <Copy className="h-3 w-3" />
                   </Button>
