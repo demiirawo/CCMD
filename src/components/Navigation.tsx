@@ -18,9 +18,11 @@ export const Navigation = () => {
   const isSuperAdmin = user?.email === 'demi.irawo@care-cuddle.co.uk';
   const hasMultipleCompanies = companies.length > 1;
 
+  const currentCompany = companies.find(c => c.id === profile?.company_id);
+
   const navItems = [
     { name: "Dashboard", path: "/" },
-    { name: "Base", path: "/base" },
+    ...((currentCompany as any)?.base_enabled !== false ? [{ name: "Base", path: "/base" }] : []),
     { name: "Compliance", path: "/inspection" },
     { name: "Report", path: "/reports" }
   ];
@@ -31,8 +33,6 @@ export const Navigation = () => {
   if (canAccessSettings) {
     navItems.push({ name: "Settings", path: "/settings" });
   }
-
-  const currentCompany = companies.find(c => c.id === profile?.company_id);
 
   const handleSignOut = async () => {
     await signOut();

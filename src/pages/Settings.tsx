@@ -76,7 +76,8 @@ export const Settings = () => {
   const [complianceSettings, setComplianceSettings] = useState({
     cqc_personal_care: false,
     home_office_cos: false,
-    ofsted_supported_accommodation: false
+    ofsted_supported_accommodation: false,
+    base_enabled: true
   });
   
   const currentCompany = companies.find(c => c.id === profile?.company_id);
@@ -95,7 +96,7 @@ export const Settings = () => {
         const {
           data,
           error
-        } = await supabase.from("companies").select("services, logo_url, cqc_personal_care, home_office_cos, ofsted_supported_accommodation").eq("id", currentCompany.id).maybeSingle();
+        } = await supabase.from("companies").select("services, logo_url, cqc_personal_care, home_office_cos, ofsted_supported_accommodation, base_enabled").eq("id", currentCompany.id).maybeSingle();
         if (error) throw error;
         if (data) {
           setSelectedServices(data.services || []);
@@ -103,7 +104,8 @@ export const Settings = () => {
           setComplianceSettings({
             cqc_personal_care: data.cqc_personal_care || false,
             home_office_cos: data.home_office_cos || false,
-            ofsted_supported_accommodation: data.ofsted_supported_accommodation || false
+            ofsted_supported_accommodation: data.ofsted_supported_accommodation || false,
+            base_enabled: data.base_enabled !== false
           });
         }
       } catch (error) {
@@ -202,7 +204,8 @@ export const Settings = () => {
         logo_url: selectedLogo,
         cqc_personal_care: complianceSettings.cqc_personal_care,
         home_office_cos: complianceSettings.home_office_cos,
-        ofsted_supported_accommodation: complianceSettings.ofsted_supported_accommodation
+        ofsted_supported_accommodation: complianceSettings.ofsted_supported_accommodation,
+        base_enabled: complianceSettings.base_enabled
       }).eq("id", currentCompany.id);
       if (error) throw error;
 
@@ -212,14 +215,15 @@ export const Settings = () => {
       // Force reload the current company settings to ensure UI stays consistent
       const {
         data
-      } = await supabase.from("companies").select("services, logo_url, cqc_personal_care, home_office_cos, ofsted_supported_accommodation").eq("id", currentCompany.id).maybeSingle();
+      } = await supabase.from("companies").select("services, logo_url, cqc_personal_care, home_office_cos, ofsted_supported_accommodation, base_enabled").eq("id", currentCompany.id).maybeSingle();
       if (data) {
         setSelectedServices(data.services || []);
         setSelectedLogo(data.logo_url || "");
         setComplianceSettings({
           cqc_personal_care: data.cqc_personal_care || false,
           home_office_cos: data.home_office_cos || false,
-          ofsted_supported_accommodation: data.ofsted_supported_accommodation || false
+          ofsted_supported_accommodation: data.ofsted_supported_accommodation || false,
+          base_enabled: data.base_enabled !== false
         });
       }
       toast({
@@ -312,6 +316,16 @@ export const Settings = () => {
                 />
                 <Label htmlFor="ofsted_supported_accommodation" className="text-sm font-normal cursor-pointer">
                   Ofsted (Supported Accomodation For Age 16-17)
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Checkbox 
+                  id="base_enabled" 
+                  checked={complianceSettings.base_enabled} 
+                  onCheckedChange={checked => handleComplianceChange('base_enabled', checked as boolean)} 
+                />
+                <Label htmlFor="base_enabled" className="text-sm font-normal cursor-pointer">
+                  Base
                 </Label>
               </div>
             </div>

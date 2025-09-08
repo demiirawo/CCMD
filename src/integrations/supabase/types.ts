@@ -488,6 +488,7 @@ export type Database = {
       }
       companies: {
         Row: {
+          base_enabled: boolean | null
           cqc_personal_care: boolean | null
           created_at: string
           dynamic_panel_colour: boolean | null
@@ -502,6 +503,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          base_enabled?: boolean | null
           cqc_personal_care?: boolean | null
           created_at?: string
           dynamic_panel_colour?: boolean | null
@@ -516,6 +518,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          base_enabled?: boolean | null
           cqc_personal_care?: boolean | null
           created_at?: string
           dynamic_panel_colour?: boolean | null
