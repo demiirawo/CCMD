@@ -1689,13 +1689,15 @@ const Index = () => {
         meetingSummary = (headerData.purpose && headerData.purpose.trim() !== '') ? headerData.purpose : '';
       }
       
+      const currentCompany = companies.find(c => c.id === profile?.company_id);
       await sendMeetingEmails({
         title: headerData.title,
         date: meetingDate.toISOString(),
         attendees: headerData.attendees,
         actions: actionsLog,
         meetingSummary: meetingSummary,
-        companyName: companies.find(c => c.id === profile?.company_id)?.name,
+        companyName: currentCompany?.name,
+        companyServices: currentCompany?.services || [],
         dashboardData: dashboardData,
         keyDocuments: keyDocuments
       });

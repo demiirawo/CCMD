@@ -8,6 +8,7 @@ interface MeetingEmailData {
   actions: any[];
   meetingSummary?: string;
   companyName?: string;
+  companyServices?: string[];
   dashboardData?: {
     sections: Array<{
       id: string;
@@ -63,6 +64,12 @@ export const useMeetingEmailNotification = () => {
         meetingData.dashboardData.sections.forEach(section => {
           if (section.id === 'meeting-overview') return;
           
+          // Skip Supported Housing section if not enabled in company services
+          if (section.id === 'supported-housing') {
+            const hasSupported = meetingData.companyServices?.includes('Supported Housing') || false;
+            if (!hasSupported) return;
+          }
+          
           // Calculate overall section status (red takes priority, then amber, then green)
           let sectionStatus: 'green' | 'amber' | 'red' = 'green';
           if (section.items.some(item => item.status === 'red')) {
@@ -78,6 +85,7 @@ export const useMeetingEmailNotification = () => {
           let displayTitle = section.title;
           if (section.id === 'care-planning') displayTitle = 'Care & Support';
           if (section.id === 'continuous-improvement') displayTitle = 'Continuous Improvement';
+          if (section.id === 'supported-housing') displayTitle = 'Supported Housing';
           
           sectionStatusSummary.push({
             title: displayTitle,
@@ -418,7 +426,7 @@ export const useMeetingEmailNotification = () => {
           const { data, error } = await supabase.functions.invoke('send-email', {
             body: {
               to: email,
-              subject: `${meetingData.companyName ? meetingData.companyName + ' - ' : ''}${meetingData.title} - ${new Date(meetingData.date).toLocaleDateString('en-GB')}`,
+              subject: `${meetingData.companyName ? meetingData.companyName + ' - ' : ''}${meetingData.title} - ${new Date(meetingData.date).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}`,
               html: emailHtml,
               from: 'CCMD <noreply@ccmd.co.uk>'
             }
