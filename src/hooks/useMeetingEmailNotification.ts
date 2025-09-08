@@ -116,9 +116,9 @@ export const useMeetingEmailNotification = () => {
             <h3 style="color: #374151; margin-bottom: 16px;">Status Overview:</h3>
             <div style="background-color: #F9FAFB; padding: 16px; border-radius: 8px; border-left: 4px solid #3B82F6;">
               ${sectionStatusSummary.map(item => `
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; padding: 8px; background-color: white; border-radius: 4px;">
-                  <span style="color: #374151; font-weight: 500;">${item.title}</span>
-                  <div style="display: flex; align-items: center; gap: 8px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding: 12px; background-color: white; border-radius: 4px;">
+                  <span style="color: #374151; font-weight: 500; margin-right: 16px;">${item.title}</span>
+                  <div style="display: flex; align-items: center; gap: 16px;">
                     <span style="
                       display: inline-block;
                       width: 20px;
@@ -131,7 +131,7 @@ export const useMeetingEmailNotification = () => {
                       line-height: 20px;
                       background-color: ${item.status === 'G' ? '#10B981' : item.status === 'A' ? '#F59E0B' : '#EF4444'};
                     ">${item.status}</span>
-                    <span style="color: #6B7280; font-size: 12px;">Updated: ${item.updated}</span>
+                    <span style="color: #6B7280; font-size: 12px; margin-left: 8px;">Updated: ${item.updated}</span>
                   </div>
                 </div>
               `).join('')}
