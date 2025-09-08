@@ -9,6 +9,7 @@ export const Navigation = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, profile, companies, signOut } = useAuth();
+  
   // Preserve registered case from profile.username; otherwise derive a title-cased fallback from email
   const emailPrefix = user?.email ? user.email.split('@')[0] : '';
   const emailTitle = emailPrefix
