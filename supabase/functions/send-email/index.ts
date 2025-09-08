@@ -23,12 +23,12 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { to, subject, html, from = "onboarding@resend.dev" }: EmailRequest = await req.json();
+    const { to, subject, html, from = "CCMD <noreply@ccmd.co.uk>" }: EmailRequest = await req.json();
 
     console.log("Sending email to:", to);
 
     const emailResponse = await resend.emails.send({
-      from: from || "onboarding@resend.dev", // Use default Resend domain if custom domain fails
+      from,
       to: [to],
       subject,
       html,
