@@ -1695,7 +1695,9 @@ const Index = () => {
         attendees: headerData.attendees,
         actions: actionsLog,
         meetingSummary: meetingSummary,
-        companyName: companies.find(c => c.id === profile?.company_id)?.name
+        companyName: companies.find(c => c.id === profile?.company_id)?.name,
+        dashboardData: dashboardData,
+        keyDocuments: keyDocuments
       });
 
       toast({

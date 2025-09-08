@@ -8,6 +8,19 @@ interface MeetingEmailData {
   actions: any[];
   meetingSummary?: string;
   companyName?: string;
+  dashboardData?: {
+    sections: Array<{
+      id: string;
+      title: string;
+      items: Array<{
+        status: 'green' | 'amber' | 'red' | 'na';
+        [key: string]: any;
+      }>;
+      [key: string]: any;
+    }>;
+    [key: string]: any;
+  };
+  keyDocuments?: any[];
 }
 
 export const useMeetingEmailNotification = () => {
@@ -38,6 +51,94 @@ export const useMeetingEmailNotification = () => {
         });
         return;
       }
+
+      // Generate high-level status summary
+      const generateStatusSummary = () => {
+        if (!meetingData.dashboardData?.sections) return '';
+        
+        const statusMapping = { green: 'G', amber: 'A', red: 'R' };
+        const sectionStatusSummary: Array<{title: string, status: string, updated: string}> = [];
+        
+        // Calculate status for each major section (excluding meeting-overview)
+        meetingData.dashboardData.sections.forEach(section => {
+          if (section.id === 'meeting-overview') return;
+          
+          // Calculate overall section status (red takes priority, then amber, then green)
+          let sectionStatus: 'green' | 'amber' | 'red' = 'green';
+          if (section.items.some(item => item.status === 'red')) {
+            sectionStatus = 'red';
+          } else if (section.items.some(item => item.status === 'amber')) {
+            sectionStatus = 'amber';
+          } else if (section.items.some(item => item.status === 'na')) {
+            // Treat 'na' status as amber for visibility
+            sectionStatus = 'amber';
+          }
+          
+          // Map section titles for display
+          let displayTitle = section.title;
+          if (section.id === 'care-planning') displayTitle = 'Care & Support';
+          if (section.id === 'continuous-improvement') displayTitle = 'Continuous Improvement';
+          
+          sectionStatusSummary.push({
+            title: displayTitle,
+            status: statusMapping[sectionStatus],
+            updated: new Date().toLocaleDateString('en-GB')
+          });
+        });
+        
+        // Add Key Review Dates status if we have key documents
+        if (meetingData.keyDocuments && meetingData.keyDocuments.length > 0) {
+          // Calculate key documents status based on due dates
+          const now = new Date();
+          let keyDocsStatus: 'green' | 'amber' | 'red' = 'green';
+          
+          meetingData.keyDocuments.forEach((doc: any) => {
+            if (doc.nextReviewDate) {
+              const dueDate = new Date(doc.nextReviewDate);
+              const daysUntilDue = Math.ceil((dueDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+              
+              if (daysUntilDue < 0) keyDocsStatus = 'red'; // Overdue
+              else if (daysUntilDue <= 30 && keyDocsStatus !== 'red') keyDocsStatus = 'amber'; // Due soon
+            }
+          });
+          
+          sectionStatusSummary.unshift({
+            title: 'Key Review Dates',
+            status: statusMapping[keyDocsStatus],
+            updated: new Date().toLocaleDateString('en-GB')
+          });
+        }
+        
+        if (sectionStatusSummary.length === 0) return '';
+        
+        return `
+          <div style="margin-bottom: 30px;">
+            <h3 style="color: #374151; margin-bottom: 16px;">Status Overview:</h3>
+            <div style="background-color: #F9FAFB; padding: 16px; border-radius: 8px; border-left: 4px solid #3B82F6;">
+              ${sectionStatusSummary.map(item => `
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; padding: 8px; background-color: white; border-radius: 4px;">
+                  <span style="color: #374151; font-weight: 500;">${item.title}</span>
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="
+                      display: inline-block;
+                      width: 20px;
+                      height: 20px;
+                      border-radius: 3px;
+                      text-align: center;
+                      font-size: 12px;
+                      font-weight: bold;
+                      color: white;
+                      line-height: 20px;
+                      background-color: ${item.status === 'G' ? '#10B981' : item.status === 'A' ? '#F59E0B' : '#EF4444'};
+                    ">${item.status}</span>
+                    <span style="color: #6B7280; font-size: 12px;">Updated: ${item.updated}</span>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      };
 
       // Generate meeting summary content - check if there's a meaningful summary
       const meetingSummaryText = meetingData.meetingSummary?.trim();
@@ -274,6 +375,8 @@ export const useMeetingEmailNotification = () => {
                 <p style="color: #9CA3AF; margin: 5px 0 0 0; font-size: 14px;">${new Date(meetingData.date).toLocaleDateString('en-GB')} at ${new Date(meetingData.date).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}</p>
                 <p style="color: #9CA3AF; margin: 5px 0 0 0; font-size: 14px;">👥 Attendees: ${attendedCount} of ${totalAttendeesCount} attended</p>
               </div>
+              
+              ${generateStatusSummary()}
               
               ${shouldIncludeSummary ? `
               <div style="margin-bottom: 30px;">
