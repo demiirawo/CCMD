@@ -380,14 +380,14 @@ export const useMeetingEmailNotification = () => {
               
               ${shouldIncludeSummary ? `
               <div style="margin-bottom: 30px;">
-                <h3 style="color: #374151; margin-bottom: 16px;">Meeting Notes:</h3>
+                <h3 style="color: #374151; margin-bottom: 16px;">Meeting Summary:</h3>
                 <div style="background-color: #F9FAFB; padding: 16px; border-radius: 8px; border-left: 4px solid #3B82F6;">
                   <p style="color: #6B7280; margin: 0; line-height: 1.6;">${meetingSummaryText}</p>
                 </div>
               </div>
               ` : `
               <div style="margin-bottom: 30px;">
-                <h3 style="color: #374151; margin-bottom: 16px;">Meeting Notes:</h3>
+                <h3 style="color: #374151; margin-bottom: 16px;">Meeting Summary:</h3>
                 <div style="background-color: #F9FAFB; padding: 16px; border-radius: 8px; border-left: 4px solid #3B82F6;">
                   <p style="color: #9CA3AF; margin: 0; line-height: 1.6; font-style: italic;">No meeting summary provided</p>
                 </div>
