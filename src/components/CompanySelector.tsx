@@ -118,74 +118,39 @@ export const CompanySelector = () => {
   const handleSelectCompany = async (userCompanyId: string, companyId: string, teamMemberId: string) => {
     setSelecting(true);
     try {
-      // Set all user companies to inactive
-      await supabase
-        .from('user_companies')
-        .update({ is_active: false })
-        .eq('user_id', user!.id);
-
-      // Set selected company as active
-      const { error: updateError } = await supabase
-        .from('user_companies')
-        .update({ is_active: true })
-        .eq('id', userCompanyId);
-
-      if (updateError) throw updateError;
-
-      // Get team member details
+      // Get team member details before signing out
       const selectedCompany = userCompanies.find(uc => uc.id === userCompanyId);
       if (!selectedCompany) throw new Error('Company not found');
 
-      // Update or create profile for this company (conflict on user_id)
-      const { data: updatedProfile, error: profileError } = await supabase
-        .from('profiles')
-        .upsert(
-          {
-            user_id: user!.id,
-            username: selectedCompany.team_members.name,
-            permission: selectedCompany.team_members.permission,
-            team_member_id: teamMemberId,
-            company_id: companyId
-          },
-          { onConflict: 'user_id' }
-        )
-        .select('*')
-        .single();
-
-      if (profileError) throw profileError;
-
-      // Clear any dashboard caches when switching companies
+      // Clear all data to prevent cross-company leakage
       sessionStorage.clear();
+      localStorage.clear();
       
-      // Force clear all localStorage backup data to prevent cross-company data leakage
-      const keysToRemove = [];
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key && (key.includes('_backup_') || key.includes('persistentMeetingId_'))) {
-          keysToRemove.push(key);
-        }
-      }
-      keysToRemove.forEach(key => localStorage.removeItem(key));
-      
-      console.log('🧹 CompanySelector: Cleared localStorage backups when switching companies:', keysToRemove);
+      console.log('🔄 CompanySelector: Starting new session for company:', selectedCompany.companies.name);
 
-      // Force refresh the profile in auth context to get updated company_id
-      refreshProfile();
+      // Sign out to create a fresh session
+      await supabase.auth.signOut();
+
+      // Store company selection data for after re-authentication
+      sessionStorage.setItem('pendingCompanySelection', JSON.stringify({
+        userCompanyId,
+        companyId,
+        teamMemberId,
+        companyName: selectedCompany.companies.name
+      }));
 
       toast({
-        title: "Company selected",
-        description: `You're now viewing ${selectedCompany.companies.name}.`
+        title: "Switching to new session",
+        description: `Please log in again to access ${selectedCompany.companies.name}.`
       });
 
-      // Navigate after a short delay to ensure auth context has updated
-      setTimeout(() => {
-        navigate('/');
-      }, 200);
+      // Navigate to auth page
+      navigate('/auth');
     } catch (error) {
-      console.error('Error selecting company:', error);
+      console.error('Error switching company:', error);
       toast({
         title: "Error",
-        description: "Failed to select company.",
+        description: "Failed to switch company.",
         variant: "destructive"
       });
     } finally {

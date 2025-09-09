@@ -40,9 +40,6 @@ export const Navigation = () => {
     navigate('/auth');
   };
 
-  const handleChangeCompany = () => {
-    navigate('/company-selection');
-  };
 
   return (
     <nav className="bg-primary text-primary-foreground border-b border-primary/20 px-6 py-3 fixed top-0 left-0 right-0 z-50">
@@ -102,12 +99,6 @@ export const Navigation = () => {
                   </p>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                {(hasMultipleCompanies || isSuperAdmin) && (
-                  <DropdownMenuItem onClick={handleChangeCompany}>
-                    <Building2 className="h-4 w-4 mr-2" />
-                    Switch Profile
-                  </DropdownMenuItem>
-                )}
                 <DropdownMenuItem onClick={handleSignOut}>
                   <LogOut className="h-4 w-4 mr-2" />
                   Sign Out
