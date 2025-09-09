@@ -57,17 +57,32 @@ export const useMeetingEmailNotification = () => {
       const generateStatusSummary = () => {
         if (!meetingData.dashboardData?.sections) return '';
         
+        console.log('🏠 Company Services for filtering:', meetingData.companyServices);
+        console.log('📋 Available sections:', meetingData.dashboardData.sections.map(s => ({ id: s.id, title: s.title })));
+        
         const statusMapping = { green: 'G', amber: 'A', red: 'R' };
         const sectionStatusSummary: Array<{title: string, status: string, updated: string}> = [];
         
         // Calculate status for each major section (excluding meeting-overview)
         meetingData.dashboardData.sections.forEach(section => {
-          if (section.id === 'meeting-overview') return;
+          if (section.id === 'meeting-overview') {
+            console.log('🏠 Skipping meeting-overview section');
+            return;
+          }
           
           // Skip Supported Housing section if not enabled in company services
           if (section.id === 'supported-housing') {
             const hasSupported = meetingData.companyServices?.includes('Supported Housing') || false;
-            if (!hasSupported) return;
+            console.log('🏠 Supported Housing check:', { 
+              sectionId: section.id, 
+              hasSupported, 
+              companyServices: meetingData.companyServices,
+              includes: meetingData.companyServices?.includes('Supported Housing')
+            });
+            if (!hasSupported) {
+              console.log('🏠 Skipping Supported Housing - not in company services');
+              return;
+            }
           }
           
           // Calculate overall section status (red takes priority, then amber, then green)
@@ -86,6 +101,8 @@ export const useMeetingEmailNotification = () => {
           if (section.id === 'care-planning') displayTitle = 'Care & Support';
           if (section.id === 'continuous-improvement') displayTitle = 'Continuous Improvement';
           if (section.id === 'supported-housing') displayTitle = 'Supported Housing';
+          
+          console.log('✅ Including section in status summary:', { id: section.id, title: displayTitle, status: sectionStatus });
           
           sectionStatusSummary.push({
             title: displayTitle,
@@ -336,28 +353,48 @@ export const useMeetingEmailNotification = () => {
 
       // Function to generate personalized action items HTML for each attendee
       const generateActionItemsHtml = (attendeeEmail: string) => {
+        // Separate completed and open actions
         const completedRecent = getRecentCompletedActions(meetingData.actions, 30);
         const openActions = meetingData.actions.filter(a => !isActionCompleted(a));
 
-        const myActions = getCurrentUserActions(attendeeEmail, openActions);
-        const officeTeamActions = getOfficeTeamActions(attendeeEmail, openActions);
+        // Get actions for current user and office team - only from OPEN actions
+        const myOpenActions = getCurrentUserActions(attendeeEmail, openActions);
+        const officeTeamOpenActions = getOfficeTeamActions(attendeeEmail, openActions);
 
         console.log(`📧 Actions for ${attendeeEmail}:`, {
-          myActions: myActions.length,
-          officeTeamActions: officeTeamActions.length,
+          myOpenActions: myOpenActions.length,
+          officeTeamOpenActions: officeTeamOpenActions.length,
           completedRecent: completedRecent.length,
-          myActionsList: myActions.map(a => ({ text: a.action || a.actionText, assignee: a.mentionedAttendee || a.assignee })),
-          officeActionsList: officeTeamActions.map(a => ({ text: a.action || a.actionText, assignee: a.mentionedAttendee || a.assignee }))
+          companyServices: meetingData.companyServices,
+          myActionsList: myOpenActions.map(a => ({ text: a.action || a.actionText, assignee: a.mentionedAttendee || a.assignee })),
+          officeActionsList: officeTeamOpenActions.map(a => ({ text: a.action || a.actionText, assignee: a.mentionedAttendee || a.assignee }))
         });
 
-        return meetingData.actions.length > 0 
-          ? `
+        let actionItemsHtml = '';
+        
+        // Only show open action items if there are any
+        if (openActions.length > 0) {
+          actionItemsHtml = `
             <h3 style="color: #374151; margin-bottom: 16px;">Action Items (${openActions.length} total):</h3>
-            ${formatActionSection(myActions, 'My Actions')}
-            ${formatActionSection(officeTeamActions, 'Office Team')}
-            ${formatActionSection(completedRecent, 'Actions Completed (Last 30 Days)')}
-          `
-          : '<h3 style="color: #374151; margin-bottom: 16px;">Action Items:</h3><p style="color: #6B7280;">No action items recorded.</p>';
+            ${formatActionSection(myOpenActions, 'My Actions')}
+            ${formatActionSection(officeTeamOpenActions, 'Office Team')}
+          `;
+        }
+
+        // Add completed actions section if there are any recent completions
+        if (completedRecent.length > 0) {
+          actionItemsHtml += `
+            <h3 style="color: #374151; margin-bottom: 16px; margin-top: 30px;">Completed Actions (Last 30 Days):</h3>
+            ${formatActionSection(completedRecent, 'Recently Completed')}
+          `;
+        }
+
+        // If no actions at all
+        if (openActions.length === 0 && completedRecent.length === 0) {
+          actionItemsHtml = '<h3 style="color: #374151; margin-bottom: 16px;">Action Items:</h3><p style="color: #6B7280;">No action items recorded.</p>';
+        }
+
+        return actionItemsHtml;
       };
 
       // Send emails to all attendees with rate limiting
