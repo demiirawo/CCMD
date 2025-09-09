@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useAuth } from '@/hooks/useAuth';
+import { useSessionManager } from '@/hooks/useSessionManager';
 import { useToast } from '@/hooks/use-toast';
 import { Plus, Building2, Trash2, ChevronDown, Clock, Check, X } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
@@ -33,6 +34,7 @@ export const CompanySelection = () => {
     loading: authLoading,
     refreshProfile
   } = useAuth();
+  const { selectCompanyWithSession, isSessionValid, sessionChecking } = useSessionManager();
   const {
     toast
   } = useToast();
@@ -133,10 +135,16 @@ export const CompanySelection = () => {
     console.log('Company slug:', company.slug);
     
     try {
-      // First, select the company in the auth context
+      // First create session to prevent multi-company login
+      const sessionCreated = await selectCompanyWithSession(company.id);
+      if (!sessionCreated) {
+        throw new Error('Failed to create secure session. Another company session may be active.');
+      }
+
+      // Then, select the company in the auth context
       console.log('Calling selectCompany with ID:', company.id);
       await selectCompany(company.id);
-      console.log('selectCompany completed');
+      console.log('selectCompany completed with secure session');
       
       const slug = company.slug || company.name.toLowerCase().replace(/\s+/g, '-');
       console.log('Final slug for navigation:', slug);
@@ -147,7 +155,7 @@ export const CompanySelection = () => {
       console.error('Error in handleSelectCompany:', error);
       toast({
         title: 'Error',
-        description: 'Failed to navigate to company',
+        description: error instanceof Error ? error.message : 'Failed to navigate to company',
         variant: 'destructive'
       });
     }

@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Navigation } from "./components/Navigation";
 import { AuthProvider } from "./components/AuthProvider";
 import { ProtectedRoute } from "./components/ProtectedRoute";
+import { DataIsolationWrapper } from "./components/DataIsolationWrapper";
 import { useAuth } from "@/hooks/useAuth";
 
 import { useTheme } from "./hooks/useTheme";
@@ -43,7 +44,11 @@ const AppContent = () => {
           <CompanySelection />
         </ProtectedRoute>
       } />
-      <Route path="/company/:slug" element={<CompanyDashboard />} />
+      <Route path="/company/:slug" element={
+        <ProtectedRoute requireCompany>
+          <CompanyDashboard />
+        </ProtectedRoute>
+      } />
       <Route path="/" element={
         <>
           {console.log('Root route "/" matched, rendering Landing')}
@@ -80,59 +85,65 @@ const AppContent = () => {
       } />
       <Route path="/base" element={
         <ProtectedRoute requireCompany>
-          <>
+          <DataIsolationWrapper enableLogging={true}>
             <Navigation />
             <Base />
-          </>
+          </DataIsolationWrapper>
         </ProtectedRoute>
       } />
       <Route path="/base/table/:tableId" element={
         <ProtectedRoute requireCompany>
-          <>
+          <DataIsolationWrapper enableLogging={true}>
             <Navigation />
             <TableView />
-          </>
+          </DataIsolationWrapper>
         </ProtectedRoute>
       } />
       <Route path="/shared/:token" element={<SharedTable />} />
       <Route path="/public/:tableId" element={<PublicTable />} />
       <Route path="/meetings" element={
         <ProtectedRoute requireCompany>
-          <>
+          <DataIsolationWrapper enableLogging={true}>
             <Navigation />
             <Meetings />
-          </>
+          </DataIsolationWrapper>
         </ProtectedRoute>
       } />
       <Route path="/inspection" element={
         <ProtectedRoute requireCompany>
-          <Inspection />
+          <DataIsolationWrapper enableLogging={true}>
+            <Inspection />
+          </DataIsolationWrapper>
         </ProtectedRoute>
       } />
       <Route path="/reports" element={
         <ProtectedRoute requireCompany>
-          <>
+          <DataIsolationWrapper enableLogging={true}>
             <Navigation />
             <Reports />
-          </>
+          </DataIsolationWrapper>
         </ProtectedRoute>
       } />
       <Route path="/quarterly-report" element={
         <ProtectedRoute requireCompany>
-          <QuarterlyReport />
+          <DataIsolationWrapper enableLogging={true}>
+            <QuarterlyReport />
+          </DataIsolationWrapper>
         </ProtectedRoute>
       } />
       <Route path="/report-builder" element={
         <ProtectedRoute requireCompany>
-          <ReportBuilder />
+          <DataIsolationWrapper enableLogging={true}>
+            <ReportBuilder />
+          </DataIsolationWrapper>
         </ProtectedRoute>
       } />
       <Route path="/settings" element={
         <ProtectedRoute requireCompany>
-          <>
+          <DataIsolationWrapper enableLogging={true}>
             <Navigation />
             <Settings />
-          </>
+          </DataIsolationWrapper>
         </ProtectedRoute>
       } />
       {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
