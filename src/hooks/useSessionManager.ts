@@ -102,6 +102,11 @@ export const useSessionManager = () => {
       return true; // No session to validate yet
     }
 
+    // Skip validation if user is still being set up (no company selected yet)
+    if (!profile.company_id) {
+      return true;
+    }
+
     setSessionChecking(true);
 
     try {
@@ -112,10 +117,24 @@ export const useSessionManager = () => {
         .eq('company_id', profile.company_id)
         .eq('session_token', sessionTokenRef.current)
         .eq('is_active', true)
-        .single();
+        .maybeSingle();
 
-      if (error || !data) {
+      if (error) {
+        console.error('Session validation error:', error);
+        return true; // Don't sign out on database errors
+      }
+
+      if (!data) {
         console.warn('🚨 Session validation failed - session not found or inactive');
+        
+        // Only invalidate session if user has been authenticated for more than 10 seconds
+        // This prevents immediate logout during the login process
+        const loginTime = sessionStorage.getItem('__login_time');
+        if (loginTime && Date.now() - parseInt(loginTime) < 10000) {
+          console.log('🕐 Skipping session invalidation - user recently logged in');
+          return true;
+        }
+        
         setIsSessionValid(false);
         
         // Check if user has another active session in a different company
@@ -191,13 +210,17 @@ export const useSessionManager = () => {
   // Set up session validation interval
   useEffect(() => {
     if (user && profile?.company_id && isSessionValid) {
-      // Validate immediately
-      validateSession();
+      // Set login timestamp to prevent immediate validation failures
+      sessionStorage.setItem('__login_time', Date.now().toString());
+      
+      // Delay initial validation to allow company selection to complete
+      const timeoutId = setTimeout(validateSession, 5000);
 
       // Set up periodic validation (every 30 seconds)
       validationIntervalRef.current = setInterval(validateSession, 30000);
 
       return () => {
+        clearTimeout(timeoutId);
         if (validationIntervalRef.current) {
           clearInterval(validationIntervalRef.current);
         }
