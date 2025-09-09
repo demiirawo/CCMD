@@ -1632,47 +1632,6 @@ export type Database = {
           },
         ]
       }
-      user_sessions: {
-        Row: {
-          browser_tab_id: string
-          company_id: string
-          created_at: string
-          id: string
-          is_active: boolean
-          last_active: string
-          session_token: string
-          user_id: string
-        }
-        Insert: {
-          browser_tab_id: string
-          company_id: string
-          created_at?: string
-          id?: string
-          is_active?: boolean
-          last_active?: string
-          session_token: string
-          user_id: string
-        }
-        Update: {
-          browser_tab_id?: string
-          company_id?: string
-          created_at?: string
-          id?: string
-          is_active?: boolean
-          last_active?: string
-          session_token?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "user_sessions_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       workspaces: {
         Row: {
           color: string | null
@@ -1723,10 +1682,6 @@ export type Database = {
         }
         Returns: boolean
       }
-      cleanup_old_sessions: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
       ensure_user_setup_complete: {
         Args: { user_email: string }
         Returns: undefined
@@ -1746,14 +1701,6 @@ export type Database = {
       get_user_permission: {
         Args: Record<PropertyKey, never>
         Returns: Database["public"]["Enums"]["user_permission"]
-      }
-      invalidate_other_company_sessions: {
-        Args: {
-          p_company_id: string
-          p_current_session_token: string
-          p_user_id: string
-        }
-        Returns: undefined
       }
       is_admin: {
         Args: Record<PropertyKey, never>

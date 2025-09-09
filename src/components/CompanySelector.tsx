@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { useSessionManager } from "@/hooks/useSessionManager";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -28,7 +27,6 @@ interface UserCompany {
 
 export const CompanySelector = () => {
   const { user, refreshProfile } = useAuth();
-  const { selectCompanyWithSession, isSessionValid, sessionChecking } = useSessionManager();
   const { toast } = useToast();
   const { companySlug } = useParams();
   const navigate = useNavigate();
@@ -120,12 +118,6 @@ export const CompanySelector = () => {
   const handleSelectCompany = async (userCompanyId: string, companyId: string, teamMemberId: string) => {
     setSelecting(true);
     try {
-      // First create session to prevent multi-company login
-      const sessionCreated = await selectCompanyWithSession(companyId);
-      if (!sessionCreated) {
-        throw new Error('Failed to create secure session');
-      }
-
       // Set all user companies to inactive
       await supabase
         .from('user_companies')
@@ -176,7 +168,6 @@ export const CompanySelector = () => {
       keysToRemove.forEach(key => localStorage.removeItem(key));
       
       console.log('🧹 CompanySelector: Cleared localStorage backups when switching companies:', keysToRemove);
-      console.log('🔐 CompanySelector: Secure session created for company:', companyId);
 
       // Force refresh the profile in auth context to get updated company_id
       refreshProfile();
@@ -194,7 +185,7 @@ export const CompanySelector = () => {
       console.error('Error selecting company:', error);
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to select company.",
+        description: "Failed to select company.",
         variant: "destructive"
       });
     } finally {
@@ -202,26 +193,12 @@ export const CompanySelector = () => {
     }
   };
 
-  if (loading || sessionChecking) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p>{sessionChecking ? 'Validating session...' : 'Loading your companies...'}</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!isSessionValid) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-red-500 mb-4">⚠️</div>
-          <h1 className="text-2xl font-bold mb-2">Session Conflict</h1>
-          <p className="text-muted-foreground">
-            You're being signed out due to a session conflict with another browser tab.
-          </p>
+          <p>Loading your companies...</p>
         </div>
       </div>
     );

@@ -308,8 +308,6 @@ export const useAuthProvider = (): AuthContextType => {
         // Handle profile fetching for authenticated users
         if (session?.user) {
           console.log('User logged in, deferring profile fetch...');
-          // Set login timestamp for session management
-          sessionStorage.setItem('__login_time', Date.now().toString());
           // Use setTimeout(0) to defer Supabase calls and prevent auth context deadlocks
           setTimeout(() => {
             if (!mounted) return;
@@ -319,8 +317,6 @@ export const useAuthProvider = (): AuthContextType => {
           // Clear data when user logs out
           setProfile(null);
           setCompanies([]);
-          // Clear login timestamp
-          sessionStorage.removeItem('__login_time');
         }
       }
     );
