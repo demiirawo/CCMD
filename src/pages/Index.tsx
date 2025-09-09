@@ -12,7 +12,6 @@ import { ActionsLog, ActionLogEntry } from "@/components/ActionsLog";
 import { KeyDocumentTracker, DocumentData } from "@/components/KeyDocumentTracker";
 import { StatusItemData } from "@/components/StatusItem";
 import { ActionItem } from "@/components/ActionForm";
-import { SubsectionMetadata } from "@/components/SubsectionMetadataDialog";
 import { StatusType } from "@/components/StatusBadge";
 import { Users, Target, BarChart3, FileText, Heart, Shield, Calendar, UserCheck, ClipboardList, HeartHandshake, TrendingUp, Save, Download, ChevronDown, ChevronUp, Copy, Home, Loader2, Send } from "lucide-react";
 import { MeetingStatusSummary } from "@/components/MeetingStatusSummary";
@@ -953,7 +952,7 @@ const Index = () => {
       description: "Item documents have been saved"
     });
   };
-  const handleMetadataChange = async (sectionId: string, itemId: string, metadata: SubsectionMetadata) => {
+  const handleMetadataChange = async (sectionId: string, itemId: string, metadata: any) => {
     // Update local state
     setDashboardData(prev => ({
       ...prev,

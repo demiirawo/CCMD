@@ -19,7 +19,6 @@ import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { format, addDays, addWeeks, addMonths, addYears } from "date-fns";
 import { cn } from "@/lib/utils";
 import { AccountableManager } from "./AccountableManager";
-import { SubsectionMetadataDialog, SubsectionMetadata } from "./SubsectionMetadataDialog";
 import { IframeDialog } from "./IframeDialog";
 export interface DocumentData {
   documentName: string;
@@ -40,7 +39,7 @@ export interface StatusItemData {
   accountable?: string[];
   details?: string;
   documents?: DocumentData[];
-  metadata?: SubsectionMetadata;
+  metadata?: any;
 }
 interface StatusItemProps {
   item: StatusItemData;
@@ -58,7 +57,7 @@ interface StatusItemProps {
   }) => void;
   onSubsectionActionComplete?: (actionId: string) => void;
   onSubsectionActionDelete?: (actionId: string) => void;
-  onMetadataChange?: (id: string, metadata: SubsectionMetadata) => void;
+  onMetadataChange?: (id: string, metadata: any) => void;
   attendees?: string[];
   monthlyStaffData?: Array<{
     month: string;
@@ -186,7 +185,7 @@ export const StatusItem = memo(({
     const updatedDocuments = (item.documents || []).filter((_, i) => i !== index);
     onDocumentsChange?.(item.id, updatedDocuments);
   };
-  const handleMetadataChange = (metadata: SubsectionMetadata) => {
+  const handleMetadataChange = (metadata: any) => {
     onMetadataChange?.(item.id, metadata);
   };
   const getStatusBackgroundClass = (status: StatusType) => {
@@ -230,11 +229,9 @@ export const StatusItem = memo(({
           <div>
             {readOnly ? <h4 className="font-semibold text-foreground text-sm truncate">
                 {item.title}
-              </h4> : <SubsectionMetadataDialog title={item.title} metadata={item.metadata} attendees={attendees} onSave={handleMetadataChange}>
-                <h4 className="font-semibold text-foreground text-base cursor-pointer hover:text-primary transition-colors line-clamp-2">
+              </h4> : <h4 className="font-semibold text-foreground text-base cursor-pointer hover:text-primary transition-colors line-clamp-2">
                   {item.title}
-                </h4>
-              </SubsectionMetadataDialog>}
+                </h4>}
             
             {item.metadata?.accountableOwner && <p className="text-xs text-muted-foreground mt-1">
                 Accountable: {item.metadata.accountableOwner}

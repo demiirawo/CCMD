@@ -23,7 +23,6 @@ export const Navigation = () => {
 
   const navItems = [
     { name: "Dashboard", path: "/" },
-    ...((currentCompany as any)?.base_enabled !== false ? [{ name: "Base", path: "/base" }] : []),
     { name: "Compliance", path: "/inspection" },
     { name: "Report", path: "/reports" }
   ];
