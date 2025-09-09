@@ -17,6 +17,7 @@ import { Users, Target, BarChart3, FileText, Heart, Shield, Calendar, UserCheck,
 import { MeetingStatusSummary } from "@/components/MeetingStatusSummary";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
+import { ActionConsistencyReport } from "@/components/ActionConsistencyReport";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import { useSearchParams, useNavigate } from "react-router-dom";
@@ -2089,6 +2090,13 @@ const Index = () => {
             />
           );
         })}
+        
+        {/* Action Consistency Checker - Only show for admin users */}
+        {canEdit && (
+          <div className="mt-8 p-6 bg-blue-50 rounded-lg border border-blue-200">
+            <ActionConsistencyReport />
+          </div>
+        )}
         </div>
       </div>
     </div>
