@@ -18,6 +18,7 @@ import { MeetingStatusSummary } from "@/components/MeetingStatusSummary";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { ActionConsistencyReport } from "@/components/ActionConsistencyReport";
+import { DataLeakageMonitor } from "@/components/DataLeakageMonitor";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import { useSearchParams, useNavigate } from "react-router-dom";
@@ -2097,6 +2098,9 @@ const Index = () => {
             <ActionConsistencyReport />
           </div>
         )}
+
+        {/* Data Leakage Monitor - Development & Admin only */}
+        <DataLeakageMonitor />
         </div>
       </div>
     </div>
