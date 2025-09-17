@@ -26,6 +26,7 @@ export async function checkActionConsistency(companyId: string): Promise<{
   };
 }> {
   try {
+    console.log('🔍 Starting action consistency check for company:', companyId);
     // Get all subsection actions
     const { data: subsectionData, error: subsectionError } = await supabase
       .from('subsection_data')
@@ -47,13 +48,22 @@ export async function checkActionConsistency(companyId: string): Promise<{
       throw new Error(`Error fetching actions log: ${logError.message}`);
     }
 
+    console.log('📊 Subsection data found:', subsectionData?.length || 0, 'rows');
+
     // Parse subsection actions
     const subsectionActions: { [key: string]: any } = {};
     let totalSubsectionActions = 0;
 
-    subsectionData?.forEach((row) => {
+    subsectionData?.forEach((row, rowIndex) => {
       if (row.actions && Array.isArray(row.actions)) {
-        row.actions.forEach((action: any) => {
+        console.log(`📝 Row ${rowIndex} (section: ${row.section_id}, item: ${row.item_id}) has ${row.actions.length} actions:`);
+        row.actions.forEach((action: any, actionIndex) => {
+          console.log(`  Action ${actionIndex}:`, {
+            id: action?.id,
+            description: action?.description,
+            name: action?.name,
+            targetDate: action?.targetDate
+          });
           if (action && action.id) {
             totalSubsectionActions++;
             subsectionActions[action.id] = {
@@ -61,21 +71,39 @@ export async function checkActionConsistency(companyId: string): Promise<{
               sectionId: row.section_id,
               itemId: row.item_id
             };
+            // Special logging for the mentioned action
+            if (action.description?.toLowerCase().includes('hauwa') || 
+                action.description?.toLowerCase().includes('inventory')) {
+              console.log('🎯 Found Hauwa inventory action in subsection:', action);
+            }
           }
         });
       }
     });
 
+    console.log('📈 Total subsection actions found:', totalSubsectionActions);
+    console.log('🔑 Subsection action IDs:', Object.keys(subsectionActions));
+
+    console.log('📋 Actions log data found:', logData?.length || 0, 'entries');
+
     // Create lookup for log actions
     const logActions: { [key: string]: any } = {};
     let totalLogActions = 0;
 
-    logData?.forEach((action) => {
+    logData?.forEach((action, index) => {
       if (action.action_id) {
         totalLogActions++;
         logActions[action.action_id] = action;
+        // Special logging for the mentioned action
+        if (action.action_text?.toLowerCase().includes('hauwa') || 
+            action.action_text?.toLowerCase().includes('inventory')) {
+          console.log('🎯 Found Hauwa inventory action in log:', action);
+        }
       }
     });
+
+    console.log('📊 Total log actions found:', totalLogActions);
+    console.log('🔑 Log action IDs:', Object.keys(logActions));
 
     // Compare actions
     const results: ConsistencyResult[] = [];
@@ -84,20 +112,39 @@ export async function checkActionConsistency(companyId: string): Promise<{
       ...Object.keys(logActions)
     ]);
 
+    console.log('🔄 Starting comparison for', allActionIds.size, 'unique action IDs');
+
     allActionIds.forEach((actionId) => {
       const subsectionAction = subsectionActions[actionId];
       const logAction = logActions[actionId];
       const issues: string[] = [];
 
+      // Debug logging for specific actions
+      if (actionId.includes('hauwa') || 
+          subsectionAction?.description?.toLowerCase().includes('hauwa') ||
+          logAction?.action_text?.toLowerCase().includes('hauwa') ||
+          subsectionAction?.description?.toLowerCase().includes('inventory') ||
+          logAction?.action_text?.toLowerCase().includes('inventory')) {
+        console.log('🎯 Comparing Hauwa/inventory action:', {
+          actionId,
+          hasSubsection: !!subsectionAction,
+          hasLog: !!logAction,
+          subsectionData: subsectionAction,
+          logData: logAction
+        });
+      }
+
       let location: 'subsection' | 'actions_log' | 'both' = 'both';
       if (subsectionAction && !logAction) {
         location = 'subsection';
         issues.push('Action exists in subsection but not in actions log');
+        console.log('⚠️ Orphaned subsection action:', actionId, subsectionAction?.description);
       } else if (!subsectionAction && logAction) {
         location = 'actions_log';
         // If action is closed, it's correct that it only exists in the log
         if (!logAction.closed) {
           issues.push('Action exists in actions log but not in subsection');
+          console.log('⚠️ Orphaned log action:', actionId, logAction?.action_text);
         }
       }
 
