@@ -7,6 +7,7 @@ import { AlertTriangle, Shield, Trash2, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useSecureQueryClient } from '@/hooks/useSecureQueryClient';
 import { useEnhancedDataIsolation } from '@/hooks/useEnhancedDataIsolation';
+import { supabase } from '@/integrations/supabase/client';
 
 interface DataLeakage {
   type: 'storage' | 'cache' | 'memory' | 'dom';
@@ -14,6 +15,9 @@ interface DataLeakage {
   description: string;
   source: string;
   foreignCompanyIds?: string[];
+  foreignCompanyNames?: string[];
+  fieldName?: string;
+  leakedText?: string;
   timestamp: number;
 }
 
@@ -38,14 +42,38 @@ export const DataLeakageMonitor: React.FC = () => {
   const [isMonitoring, setIsMonitoring] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
   const [monitoringInterval, setMonitoringInterval] = useState<NodeJS.Timeout | null>(null);
+  const [companyNames, setCompanyNames] = useState<Record<string, string>>({});
+
+  // Fetch company names for display
+  const fetchCompanyNames = useCallback(async (companyIds: string[]) => {
+    try {
+      const { data: companies } = await supabase
+        .from('companies')
+        .select('id, name')
+        .in('id', companyIds);
+      
+      if (companies) {
+        const nameMap: Record<string, string> = {};
+        companies.forEach(company => {
+          nameMap[company.id] = company.name;
+        });
+        setCompanyNames(prev => ({ ...prev, ...nameMap }));
+        return nameMap;
+      }
+    } catch (error) {
+      console.error('Error fetching company names:', error);
+    }
+    return {};
+  }, []);
 
   // Scan for storage leakages
-  const scanStorageLeakages = useCallback((): DataLeakage[] => {
+  const scanStorageLeakages = useCallback(async (): Promise<DataLeakage[]> => {
     const currentCompanyId = profile?.company_id;
     if (!currentCompanyId) return [];
 
     const leaks: DataLeakage[] = [];
     const companyIdPattern = /[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}/g;
+    const allForeignIds: string[] = [];
 
     // Check localStorage
     for (let i = 0; i < localStorage.length; i++) {
@@ -59,24 +87,51 @@ export const DataLeakageMonitor: React.FC = () => {
       const foreignIds = foundIds.filter(id => id !== currentCompanyId);
 
       if (foreignIds.length > 0) {
+        allForeignIds.push(...foreignIds);
+
+        // Extract field information from JSON data
+        let fieldInfo = '';
+        let leakedText = '';
+        try {
+          const parsedValue = JSON.parse(value);
+          if (typeof parsedValue === 'object') {
+            const fieldWithCompanyId = Object.keys(parsedValue).find(k => 
+              foreignIds.some(id => parsedValue[k]?.toString().includes(id))
+            );
+            if (fieldWithCompanyId) {
+              fieldInfo = fieldWithCompanyId;
+              leakedText = JSON.stringify(parsedValue[fieldWithCompanyId]).substring(0, 100);
+            }
+          }
+        } catch {
+          // If not JSON, show first 100 chars of raw value
+          leakedText = value.substring(0, 100);
+        }
+
         leaks.push({
           type: 'storage',
           severity: 'high',
-          description: `localStorage key "${key}" contains foreign company data`,
+          description: `localStorage contains foreign company data`,
           source: `localStorage: ${key}`,
           foreignCompanyIds: foreignIds,
+          fieldName: fieldInfo || key,
+          leakedText: leakedText + (leakedText.length === 100 ? '...' : ''),
           timestamp: Date.now()
         });
       }
 
       // Check if key itself contains foreign company ID
-      if (key.includes('company_') && !key.includes(currentCompanyId)) {
+      const keyCompanyId = key.match(companyIdPattern)?.[0];
+      if (keyCompanyId && keyCompanyId !== currentCompanyId) {
+        allForeignIds.push(keyCompanyId);
         leaks.push({
           type: 'storage',
           severity: 'critical',
           description: `localStorage key belongs to different company`,
           source: `localStorage: ${key}`,
-          foreignCompanyIds: [key.match(companyIdPattern)?.[0] || 'unknown'],
+          foreignCompanyIds: [keyCompanyId],
+          fieldName: key,
+          leakedText: value.substring(0, 100) + (value.length > 100 ? '...' : ''),
           timestamp: Date.now()
         });
       }
@@ -94,53 +149,110 @@ export const DataLeakageMonitor: React.FC = () => {
       const foreignIds = foundIds.filter(id => id !== currentCompanyId);
 
       if (foreignIds.length > 0) {
+        allForeignIds.push(...foreignIds);
+
+        // Extract field information from JSON data
+        let fieldInfo = '';
+        let leakedText = '';
+        try {
+          const parsedValue = JSON.parse(value);
+          if (typeof parsedValue === 'object') {
+            const fieldWithCompanyId = Object.keys(parsedValue).find(k => 
+              foreignIds.some(id => parsedValue[k]?.toString().includes(id))
+            );
+            if (fieldWithCompanyId) {
+              fieldInfo = fieldWithCompanyId;
+              leakedText = JSON.stringify(parsedValue[fieldWithCompanyId]).substring(0, 100);
+            }
+          }
+        } catch {
+          leakedText = value.substring(0, 100);
+        }
+
         leaks.push({
           type: 'storage',
           severity: 'medium',
-          description: `sessionStorage key "${key}" contains foreign company data`,
+          description: `sessionStorage contains foreign company data`,
           source: `sessionStorage: ${key}`,
           foreignCompanyIds: foreignIds,
+          fieldName: fieldInfo || key,
+          leakedText: leakedText + (leakedText.length === 100 ? '...' : ''),
           timestamp: Date.now()
         });
       }
     }
 
+    // Fetch company names for all foreign IDs
+    if (allForeignIds.length > 0) {
+      const uniqueForeignIds = [...new Set(allForeignIds)];
+      const nameMapping = await fetchCompanyNames(uniqueForeignIds);
+      
+      // Update leaks with company names
+      leaks.forEach(leak => {
+        if (leak.foreignCompanyIds) {
+          leak.foreignCompanyNames = leak.foreignCompanyIds.map(id => nameMapping[id] || `Unknown (${id})`);
+        }
+      });
+    }
+
     return leaks;
-  }, [profile?.company_id]);
+  }, [profile?.company_id, fetchCompanyNames]);
 
   // Scan for cache leakages
-  const scanCacheLeakages = useCallback((): DataLeakage[] => {
+  const scanCacheLeakages = useCallback(async (): Promise<DataLeakage[]> => {
     const auditResult = auditCache();
     if (auditResult.clean) return [];
 
-    return auditResult.contaminations?.map(contamination => ({
+    const leaks = auditResult.contaminations?.map(contamination => ({
       type: 'cache' as const,
       severity: 'high' as const,
       description: contamination.reason,
       source: `React Query: ${JSON.stringify(contamination.queryKey)}`,
       foreignCompanyIds: contamination.foreignCompanies,
+      foreignCompanyNames: [] as string[],
+      fieldName: `Query: ${contamination.queryKey?.[0] || 'unknown'}`,
+      leakedText: JSON.stringify(contamination.queryKey).substring(0, 100),
       timestamp: Date.now()
     })) || [];
-  }, [auditCache]);
+
+    // Fetch company names for cache leaks
+    const allForeignIds = leaks.flatMap(leak => leak.foreignCompanyIds || []);
+    if (allForeignIds.length > 0) {
+      const uniqueForeignIds = [...new Set(allForeignIds)];
+      const nameMapping = await fetchCompanyNames(uniqueForeignIds);
+      
+      leaks.forEach(leak => {
+        if (leak.foreignCompanyIds) {
+          leak.foreignCompanyNames = leak.foreignCompanyIds.map(id => nameMapping[id] || `Unknown (${id})`);
+        }
+      });
+    }
+
+    return leaks;
+  }, [auditCache, fetchCompanyNames]);
 
   // Scan for DOM leakages
-  const scanDOMLeakages = useCallback((): DataLeakage[] => {
+  const scanDOMLeakages = useCallback(async (): Promise<DataLeakage[]> => {
     const currentCompanyId = profile?.company_id;
     if (!currentCompanyId) return [];
 
     const leaks: DataLeakage[] = [];
+    const allForeignIds: string[] = [];
     
     // Check for elements with company data attributes
     const elementsWithCompanyData = document.querySelectorAll('[data-company-id]');
     elementsWithCompanyData.forEach(element => {
       const companyId = element.getAttribute('data-company-id');
       if (companyId && companyId !== currentCompanyId) {
+        allForeignIds.push(companyId);
         leaks.push({
           type: 'dom',
           severity: 'medium',
           description: `DOM element contains foreign company data attribute`,
           source: `Element: ${element.tagName}[data-company-id="${companyId}"]`,
           foreignCompanyIds: [companyId],
+          fieldName: 'data-company-id',
+          leakedText: companyId,
           timestamp: Date.now()
         });
       }
@@ -162,27 +274,43 @@ export const DataLeakageMonitor: React.FC = () => {
       const foreignIds = foundIds.filter(id => id !== currentCompanyId);
       
       if (foreignIds.length > 0) {
+        allForeignIds.push(...foreignIds);
+        const leakedTextSnippet = content.substring(0, 200);
         leaks.push({
           type: 'dom',
           severity: 'low',
           description: `Text content contains foreign company IDs`,
           source: `Text content in ${textNode.parentElement?.tagName || 'unknown'}`,
           foreignCompanyIds: foreignIds,
+          fieldName: 'textContent',
+          leakedText: leakedTextSnippet + (content.length > 200 ? '...' : ''),
           timestamp: Date.now()
         });
         break; // Limit to first occurrence to avoid spam
       }
     }
 
+    // Fetch company names for DOM leaks
+    if (allForeignIds.length > 0) {
+      const uniqueForeignIds = [...new Set(allForeignIds)];
+      const nameMapping = await fetchCompanyNames(uniqueForeignIds);
+      
+      leaks.forEach(leak => {
+        if (leak.foreignCompanyIds) {
+          leak.foreignCompanyNames = leak.foreignCompanyIds.map(id => nameMapping[id] || `Unknown (${id})`);
+        }
+      });
+    }
+
     return leaks;
-  }, [profile?.company_id]);
+  }, [profile?.company_id, fetchCompanyNames]);
 
   // Comprehensive leak scan
-  const performLeakScan = useCallback(() => {
+  const performLeakScan = useCallback(async () => {
     const allLeaks = [
-      ...scanStorageLeakages(),
-      ...scanCacheLeakages(),
-      ...scanDOMLeakages()
+      ...(await scanStorageLeakages()),
+      ...(await scanCacheLeakages()),
+      ...(await scanDOMLeakages())
     ];
 
     // Add memory leaks
@@ -194,6 +322,8 @@ export const DataLeakageMonitor: React.FC = () => {
           severity: 'medium',
           description: leak,
           source: 'Memory monitoring',
+          fieldName: 'Memory Reference',
+          leakedText: leak.substring(0, 100),
           timestamp: Date.now()
         });
       });
@@ -256,8 +386,8 @@ export const DataLeakageMonitor: React.FC = () => {
       }
       setIsMonitoring(false);
     } else {
-      const interval = setInterval(() => {
-        const detectedLeaks = performLeakScan();
+      const interval = setInterval(async () => {
+        const detectedLeaks = await performLeakScan();
         if (detectedLeaks.length > 0) {
           console.warn('🚨 Data leakages detected:', detectedLeaks.length);
           // Auto-cleanup critical leaks
@@ -401,9 +531,19 @@ export const DataLeakageMonitor: React.FC = () => {
                       </Badge>
                       <span className="ml-2 text-sm">{leak.description}</span>
                       <div className="text-xs text-gray-600 mt-1">{leak.source}</div>
-                      {leak.foreignCompanyIds && (
+                      {leak.foreignCompanyNames && (
                         <div className="text-xs text-red-600 mt-1">
-                          Foreign companies: {leak.foreignCompanyIds.join(', ')}
+                          <strong>Leaked to:</strong> {leak.foreignCompanyNames.join(', ')}
+                        </div>
+                      )}
+                      {leak.fieldName && (
+                        <div className="text-xs text-blue-600 mt-1">
+                          <strong>Field:</strong> {leak.fieldName}
+                        </div>
+                      )}
+                      {leak.leakedText && (
+                        <div className="text-xs text-orange-600 mt-1 bg-orange-50 p-2 rounded font-mono">
+                          <strong>Leaked text:</strong> {leak.leakedText}
                         </div>
                       )}
                     </div>
