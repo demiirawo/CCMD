@@ -8,7 +8,6 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { Palette, Building, Image, Upload, X } from "lucide-react";
 import { TeamMembersManager } from "@/components/TeamMembersManager";
-import { ActionConsistencyReport } from "@/components/ActionConsistencyReport";
 import { DataLeakageMonitor } from "@/components/DataLeakageMonitor";
 
 // Helper function to convert hex to HSL
@@ -251,9 +250,10 @@ export const Settings = () => {
         <div className="text-center">
           <p className="text-muted-foreground">No company selected</p>
         </div>
-      </div>;
+      </div>
   }
-  return <div className="min-h-screen pt-24 pb-16 space-y-6 px-6" style={{backgroundColor: '#F4F5F6'}}>
+  return (
+    <div className="min-h-screen pt-24 pb-16 space-y-6 px-6" style={{backgroundColor: '#F4F5F6'}}>
       <div className="flex items-center gap-3 mb-6">
         
         <div>
@@ -375,19 +375,6 @@ export const Settings = () => {
       {/* Super Admin Tools */}
       {isSuperAdmin && (
         <div className="space-y-6">
-          {/* Action Consistency Checker */}
-          <Card style={{backgroundColor: '#EAEBEC'}}>
-            <CardHeader>
-              <CardTitle>Action Consistency Checker</CardTitle>
-              <CardDescription>Check for inconsistencies between subsection actions and main actions log</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="bg-white p-4 rounded-lg">
-                <ActionConsistencyReport />
-              </div>
-            </CardContent>
-          </Card>
-
           {/* Data Leakage Monitor */}
           <Card style={{backgroundColor: '#EAEBEC'}}>
             <CardHeader>
@@ -409,5 +396,6 @@ export const Settings = () => {
           {loading ? "Saving..." : "Save Changes"}
         </Button>
       </div>
-    </div>;
+    </div>
+  );
 };
