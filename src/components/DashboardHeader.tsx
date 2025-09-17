@@ -49,7 +49,8 @@ export const DashboardHeader = ({
   console.log('🏠 DashboardHeader rendered with:', { 
     readOnly, 
     hasOnDataChange: !!onDataChange,
-    title: title?.substring(0, 20) + '...'
+    title: title?.substring(0, 20) + '...',
+    canActuallyEdit: !readOnly && !!onDataChange
   });
   const {
     profile,

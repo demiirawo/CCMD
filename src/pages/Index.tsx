@@ -35,13 +35,17 @@ const Index = () => {
   const { toast } = useToast();
 
 
-  // Check if user has edit permissions
-  const canEdit = (user?.email === 'demi.irawo@care-cuddle.co.uk') || Boolean(profile?.company_id);
+  // Check if user has edit permissions - Super admin should always be able to edit
+  const isSuperAdmin = user?.email === 'demi.irawo@care-cuddle.co.uk';
+  const canEdit = isSuperAdmin || Boolean(profile?.company_id);
+  
   console.log('🔐 Edit Permissions Check:', {
     userEmail: user?.email,
-    isSuperAdmin: user?.email === 'demi.irawo@care-cuddle.co.uk',
+    isSuperAdmin,
     profileCompanyId: profile?.company_id,
-    canEdit: canEdit
+    canEdit,
+    userExists: !!user,
+    profileExists: !!profile
   });
   const [isDataLoaded, setIsDataLoaded] = useState(false);
   const [currentMeetingId, setCurrentMeetingId] = useState<string | null>(null);
