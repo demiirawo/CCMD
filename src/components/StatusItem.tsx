@@ -229,7 +229,15 @@ export const StatusItem = memo(({
           <div>
             {readOnly ? <h4 className="font-semibold text-foreground text-sm truncate">
                 {item.title}
-              </h4> : <h4 className="font-semibold text-foreground text-base cursor-pointer hover:text-primary transition-colors line-clamp-2">
+              </h4> : <h4 
+                  className="font-semibold text-foreground text-base cursor-pointer hover:text-primary transition-colors line-clamp-2"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setIsEditingObservation(true);
+                  }}
+                  style={{ position: 'relative', zIndex: 1 }}
+                >
                   {item.title}
                 </h4>}
             
