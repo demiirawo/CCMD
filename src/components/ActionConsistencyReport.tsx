@@ -294,13 +294,22 @@ export const ActionConsistencyReport = () => {
                         </div>
                       )}
 
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                         <div>
                           <div className="font-medium text-muted-foreground">Subsection Data:</div>
                           <div className="space-y-1 bg-gray-50 p-2 rounded">
                             <div><span className="font-medium">Owner:</span> {result.subsectionOwner || 'N/A'}</div>
                             <div><span className="font-medium">Date:</span> {result.subsectionDate || 'N/A'}</div>
-                            <div><span className="font-medium">Description:</span> {result.subsectionDescription || 'N/A'}</div>
+                            <div>
+                              <span className="font-medium">Description:</span> 
+                              <div className={`mt-1 p-2 rounded text-xs ${
+                                result.issues.some(issue => issue.includes('Description mismatch')) 
+                                  ? 'bg-red-100 border border-red-200' 
+                                  : 'bg-white'
+                              }`}>
+                                {result.subsectionDescription || 'N/A'}
+                              </div>
+                            </div>
                           </div>
                         </div>
                         <div>
@@ -308,7 +317,16 @@ export const ActionConsistencyReport = () => {
                           <div className="space-y-1 bg-blue-50 p-2 rounded">
                             <div><span className="font-medium">Owner:</span> {result.logOwner || 'N/A'}</div>
                             <div><span className="font-medium">Date:</span> {result.logDate || 'N/A'}</div>
-                            <div><span className="font-medium">Description:</span> {result.logDescription || 'N/A'}</div>
+                            <div>
+                              <span className="font-medium">Description:</span>
+                              <div className={`mt-1 p-2 rounded text-xs ${
+                                result.issues.some(issue => issue.includes('Description mismatch')) 
+                                  ? 'bg-red-100 border border-red-200' 
+                                  : 'bg-white'
+                              }`}>
+                                {result.logDescription || 'N/A'}
+                              </div>
+                            </div>
                           </div>
                         </div>
                       </div>
