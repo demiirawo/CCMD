@@ -1,5 +1,5 @@
 import React, { createContext, useContext, ReactNode, useEffect } from 'react';
-import { QueryClient, QueryClientProvider, useQueryClient } from '@tanstack/react-query';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
 import { useEnhancedDataIsolation } from '@/hooks/useEnhancedDataIsolation';
 import { useSecureCompanySwitch } from '@/hooks/useSecureCompanySwitch';
@@ -26,9 +26,12 @@ interface SecureDataProviderProps {
 }
 
 /**
- * Inner component that uses hooks requiring QueryClient
+ * Secure data provider that ensures company data isolation
  */
-const SecureDataProviderInner: React.FC<{ children: ReactNode }> = ({ children }) => {
+export const SecureDataProvider: React.FC<SecureDataProviderProps> = ({ 
+  children, 
+  queryClient 
+}) => {
   const { profile } = useAuth();
   const { validateCompanyContext, secureCompanySwitch } = useSecureCompanySwitch();
   const { validateDataIntegrity } = useEnhancedDataIsolation({
@@ -36,13 +39,59 @@ const SecureDataProviderInner: React.FC<{ children: ReactNode }> = ({ children }
     enableRuntimeValidation: true,
     enableMemoryMonitoring: true
   });
-  const queryClient = useQueryClient();
 
-  // Use the provided query client and enhance it with validation
+  // Enhanced query client with automatic data validation
+  const secureQueryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: (failureCount, error) => {
+          // Don't retry on data validation errors
+          if (error instanceof Error && error.message.includes('Data validation failed')) {
+            return false;
+          }
+          return failureCount < 3;
+        },
+        staleTime: 5 * 60 * 1000, // 5 minutes
+        gcTime: 10 * 60 * 1000, // 10 minutes (renamed from cacheTime)
+        refetchOnWindowFocus: false,
+        refetchOnMount: true,
+        refetchOnReconnect: true,
+        // Add query validation
+        queryFn: async (context) => {
+          const originalQueryFn = context.meta?.originalQueryFn as any;
+          if (!originalQueryFn) {
+            throw new Error('Original query function not found');
+          }
+          
+          const result = await originalQueryFn(context);
+          
+          // Validate result data
+          const validation = validateDataIntegrity('query-result', result);
+          if (!validation.valid) {
+            console.error('🚨 Query result validation failed:', {
+              queryKey: context.queryKey,
+              violations: validation.violations
+            });
+            throw new Error('Data validation failed: foreign company data detected');
+          }
+          
+          return result;
+        }
+      },
+      mutations: {
+        retry: false, // Don't retry mutations
+        // Add mutation validation
+        mutationFn: async (variables) => {
+          // This is a placeholder - actual implementation would depend on mutation setup
+          return variables;
+        }
+      }
+    }
+  });
 
   // Override the query client's methods to add validation
-  const originalSetQueryData = queryClient.setQueryData.bind(queryClient);
-  queryClient.setQueryData = (queryKey, updater, options) => {
+  const originalSetQueryData = secureQueryClient.setQueryData.bind(secureQueryClient);
+  secureQueryClient.setQueryData = (queryKey, updater, options) => {
     try {
       const result = originalSetQueryData(queryKey, updater, options);
       
@@ -51,7 +100,7 @@ const SecureDataProviderInner: React.FC<{ children: ReactNode }> = ({ children }
         const validation = validateDataIntegrity('cache-set', result);
         if (!validation.valid) {
           console.warn('🚨 Removing invalid cached data:', queryKey);
-          queryClient.removeQueries({ queryKey });
+          secureQueryClient.removeQueries({ queryKey });
           return undefined;
         }
       }
@@ -83,8 +132,8 @@ const SecureDataProviderInner: React.FC<{ children: ReactNode }> = ({ children }
   const switchCompany = async (companyId: string) => {
     console.log('🔄 Initiating secure company switch to:', companyId);
     
-    // Clear the query client cache
-    queryClient.clear();
+    // Clear the secure query client cache
+    secureQueryClient.clear();
     
     const result = await secureCompanySwitch(companyId);
     
@@ -101,7 +150,7 @@ const SecureDataProviderInner: React.FC<{ children: ReactNode }> = ({ children }
       console.log('🔄 Company context changed, validating cache');
       
       // Remove any queries that don't belong to current company
-      queryClient.removeQueries({
+      secureQueryClient.removeQueries({
         predicate: (query) => {
           const hasCompanyScope = query.queryKey.some(key => 
             typeof key === 'string' && key.includes('company_')
@@ -119,7 +168,7 @@ const SecureDataProviderInner: React.FC<{ children: ReactNode }> = ({ children }
         }
       });
     }
-  }, [profile?.company_id, queryClient]);
+  }, [profile?.company_id, secureQueryClient]);
 
   const contextValue: SecureDataContextType = {
     validateContext,
@@ -129,46 +178,9 @@ const SecureDataProviderInner: React.FC<{ children: ReactNode }> = ({ children }
 
   return (
     <SecureDataContext.Provider value={contextValue}>
-      {children}
-    </SecureDataContext.Provider>
-  );
-};
-
-/**
- * Secure data provider that ensures company data isolation
- */
-export const SecureDataProvider: React.FC<SecureDataProviderProps> = ({ 
-  children, 
-  queryClient 
-}) => {
-  // Enhanced query client with automatic data validation
-  const secureQueryClient = new QueryClient({
-    defaultOptions: {
-      queries: {
-        retry: (failureCount, error) => {
-          // Don't retry on data validation errors
-          if (error instanceof Error && error.message.includes('Data validation failed')) {
-            return false;
-          }
-          return failureCount < 3;
-        },
-        staleTime: 5 * 60 * 1000, // 5 minutes
-        gcTime: 10 * 60 * 1000, // 10 minutes (renamed from cacheTime)
-        refetchOnWindowFocus: false,
-        refetchOnMount: true,
-        refetchOnReconnect: true
-      },
-      mutations: {
-        retry: false // Don't retry mutations
-      }
-    }
-  });
-
-  return (
-    <QueryClientProvider client={secureQueryClient}>
-      <SecureDataProviderInner>
+      <QueryClientProvider client={secureQueryClient}>
         {children}
-      </SecureDataProviderInner>
-    </QueryClientProvider>
+      </QueryClientProvider>
+    </SecureDataContext.Provider>
   );
 };
