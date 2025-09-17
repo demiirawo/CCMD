@@ -5,7 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useAutoSave } from "@/hooks/useAutoSave";
 
 import { useMeetingEmailNotification } from "@/hooks/useMeetingEmailNotification";
-import { clearCompanyData, getTabId } from "@/utils/dataIsolationUtils";
+import { useCompanyDataIsolation } from "@/hooks/useCompanyDataIsolation";
 import { Attendee } from "@/components/TeamAttendeesDisplay";
 import { DashboardSection } from "@/components/DashboardSection";
 import { ActionsLog, ActionLogEntry } from "@/components/ActionsLog";
@@ -40,25 +40,28 @@ const Index = () => {
   const canEdit = (user?.email === 'demi.irawo@care-cuddle.co.uk') || Boolean(profile?.company_id);
   const [isDataLoaded, setIsDataLoaded] = useState(false);
   const [currentMeetingId, setCurrentMeetingId] = useState<string | null>(null);
+  const { localStorage: companyStorage, isReady: dataIsolationReady } = useCompanyDataIsolation({ enableLogging: true });
+  
   const [tempMeetingId, setTempMeetingId] = useState<string>(() => {
-    // Initialize tab isolation
-    const tabId = getTabId();
-    
-    // Use a company-specific AND tab-specific persistent ID for continuous data storage
-    if (!profile?.company_id) return crypto.randomUUID();
-    const companyId = profile.company_id;
-    
-    const persistentId = localStorage.getItem(`persistentMeetingId_${companyId}_${tabId}`);
-    if (persistentId) {
-      console.log('Index: Using persistent meeting ID:', persistentId, 'for tab:', tabId);
-      return persistentId;
-    } else {
-      const newId = crypto.randomUUID();
-      localStorage.setItem(`persistentMeetingId_${companyId}_${tabId}`, newId);
-      console.log('Index: Generated persistent meeting ID:', newId, 'for tab:', tabId);
-      return newId;
-    }
+    // Initialize with a temporary ID, will be updated when company context is ready
+    return crypto.randomUUID();
   });
+
+  // Initialize persistent meeting ID when company context is ready
+  useEffect(() => {
+    if (dataIsolationReady && profile?.company_id) {
+      const persistentId = companyStorage.getItem<string>('persistentMeetingId');
+      if (persistentId) {
+        console.log('Index: Using persistent meeting ID:', persistentId);
+        setTempMeetingId(persistentId);
+      } else {
+        const newId = crypto.randomUUID();
+        companyStorage.setItem('persistentMeetingId', newId);
+        console.log('Index: Generated new persistent meeting ID:', newId);
+        setTempMeetingId(newId);
+      }
+    }
+  }, [dataIsolationReady, profile?.company_id]);
   const [actionsLog, setActionsLog] = useState<ActionLogEntry[]>([]);
   const [allSectionsExpanded, setAllSectionsExpanded] = useState<boolean | undefined>(undefined);
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -254,21 +257,17 @@ const Index = () => {
         throw result.error;
       } else {
         console.log('✅ MeetingHeaders: Successfully saved to database:', result.data);
-        // Save to localStorage as backup with tab isolation
-        const tabId = sessionStorage.getItem('__tab_id') || `tab_${Date.now()}`;
-        const backupKey = currentMeetingId ? `headers_backup_${profile.company_id}_${currentMeetingId}_${tabId}` : `headers_backup_${profile.company_id}_${tabId}`;
-        localStorage.setItem(backupKey, JSON.stringify(newHeaderData));
-        console.log('💾 MeetingHeaders: Also saved backup to localStorage:', backupKey);
+        // Save to company-isolated localStorage as backup
+        const backupKey = currentMeetingId ? `headers_backup_${currentMeetingId}` : 'headers_backup';
+        companyStorage.setItem(backupKey, newHeaderData);
+        console.log('💾 MeetingHeaders: Also saved backup to company-isolated localStorage');
       }
     } catch (error) {
       console.error('❌ MeetingHeaders: Exception in saveHeaderData:', error);
-      // Save to localStorage as fallback with tab isolation
-      if (profile?.company_id) {
-        const tabId = sessionStorage.getItem('__tab_id') || `tab_${Date.now()}`;
-        const backupKey = currentMeetingId ? `headers_backup_${profile.company_id}_${currentMeetingId}_${tabId}` : `headers_backup_${profile.company_id}_${tabId}`;
-        localStorage.setItem(backupKey, JSON.stringify(newHeaderData));
-        console.log('💾 MeetingHeaders: Exception fallback to localStorage:', backupKey);
-      }
+      // Save to company-isolated localStorage as fallback
+      const backupKey = currentMeetingId ? `headers_backup_${currentMeetingId}` : 'headers_backup';
+      companyStorage.setItem(backupKey, newHeaderData);
+      console.log('💾 MeetingHeaders: Exception fallback to company-isolated localStorage');
     }
   };
 

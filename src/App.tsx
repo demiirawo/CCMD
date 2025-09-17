@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Navigation } from "./components/Navigation";
 import { AuthProvider } from "./components/AuthProvider";
 import { ProtectedRoute } from "./components/ProtectedRoute";
+import { CompanyDataIsolationProvider } from "./components/CompanyDataIsolationProvider";
 import { useAuth } from "@/hooks/useAuth";
 
 import { useTheme } from "./hooks/useTheme";
@@ -123,9 +124,11 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <AuthProvider>
-        <BrowserRouter>
-          <AppContent />
-        </BrowserRouter>
+        <CompanyDataIsolationProvider enableLogging={true}>
+          <BrowserRouter>
+            <AppContent />
+          </BrowserRouter>
+        </CompanyDataIsolationProvider>
       </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
