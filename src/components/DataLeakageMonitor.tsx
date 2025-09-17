@@ -111,8 +111,8 @@ export const DataLeakageMonitor: React.FC = () => {
         leaks.push({
           type: 'storage',
           severity: 'high',
-          description: `localStorage contains foreign company data`,
-          source: `localStorage: ${key}`,
+          description: `Your browser's local storage contains data belonging to other companies. This data persists even after switching companies.`,
+          source: `Browser Local Storage`,
           foreignCompanyIds: foreignIds,
           fieldName: fieldInfo || key,
           leakedText: leakedText + (leakedText.length === 100 ? '...' : ''),
@@ -127,8 +127,8 @@ export const DataLeakageMonitor: React.FC = () => {
         leaks.push({
           type: 'storage',
           severity: 'critical',
-          description: `localStorage key belongs to different company`,
-          source: `localStorage: ${key}`,
+          description: `CRITICAL: Your current browser session is storing data that was meant for another company. This is a serious security breach.`,
+          source: `Browser Local Storage`,
           foreignCompanyIds: [keyCompanyId],
           fieldName: key,
           leakedText: value.substring(0, 100) + (value.length > 100 ? '...' : ''),
@@ -172,8 +172,8 @@ export const DataLeakageMonitor: React.FC = () => {
         leaks.push({
           type: 'storage',
           severity: 'medium',
-          description: `sessionStorage contains foreign company data`,
-          source: `sessionStorage: ${key}`,
+          description: `Your browser's temporary session data contains information from other companies. This data will be cleared when you close the browser tab.`,
+          source: `Browser Session Storage`,
           foreignCompanyIds: foreignIds,
           fieldName: fieldInfo || key,
           leakedText: leakedText + (leakedText.length === 100 ? '...' : ''),
@@ -206,11 +206,11 @@ export const DataLeakageMonitor: React.FC = () => {
     const leaks = auditResult.contaminations?.map(contamination => ({
       type: 'cache' as const,
       severity: 'high' as const,
-      description: contamination.reason,
-      source: `React Query: ${JSON.stringify(contamination.queryKey)}`,
+      description: `The application's memory cache is storing data queries that belong to other companies. This cached data could be accidentally displayed to you.`,
+      source: `Application Memory Cache`,
       foreignCompanyIds: contamination.foreignCompanies,
       foreignCompanyNames: [] as string[],
-      fieldName: `Query: ${contamination.queryKey?.[0] || 'unknown'}`,
+      fieldName: `Database Query: ${contamination.queryKey?.[0] || 'unknown'}`,
       leakedText: JSON.stringify(contamination.queryKey).substring(0, 100),
       timestamp: Date.now()
     })) || [];
@@ -248,10 +248,10 @@ export const DataLeakageMonitor: React.FC = () => {
         leaks.push({
           type: 'dom',
           severity: 'medium',
-          description: `DOM element contains foreign company data attribute`,
-          source: `Element: ${element.tagName}[data-company-id="${companyId}"]`,
+          description: `Web page elements are tagged with data belonging to other companies. This could cause confusion about which company's data you're viewing.`,
+          source: `Web Page Elements`,
           foreignCompanyIds: [companyId],
-          fieldName: 'data-company-id',
+          fieldName: 'Element Attribute',
           leakedText: companyId,
           timestamp: Date.now()
         });
@@ -279,10 +279,10 @@ export const DataLeakageMonitor: React.FC = () => {
         leaks.push({
           type: 'dom',
           severity: 'low',
-          description: `Text content contains foreign company IDs`,
-          source: `Text content in ${textNode.parentElement?.tagName || 'unknown'}`,
+          description: `Text visible on the web page contains company identifiers from other companies. This may expose sensitive company information.`,
+          source: `Visible Text Content`,
           foreignCompanyIds: foreignIds,
-          fieldName: 'textContent',
+          fieldName: 'Page Text',
           leakedText: leakedTextSnippet + (content.length > 200 ? '...' : ''),
           timestamp: Date.now()
         });
@@ -320,8 +320,8 @@ export const DataLeakageMonitor: React.FC = () => {
         allLeaks.push({
           type: 'memory',
           severity: 'medium',
-          description: leak,
-          source: 'Memory monitoring',
+          description: `The application's memory contains references to data from other companies. This could indicate incomplete cleanup when switching between companies.`,
+          source: 'Application Memory',
           fieldName: 'Memory Reference',
           leakedText: leak.substring(0, 100),
           timestamp: Date.now()
@@ -529,23 +529,37 @@ export const DataLeakageMonitor: React.FC = () => {
                       <Badge className={`${getSeverityColor(leak.severity)} text-white text-xs`}>
                         {leak.severity.toUpperCase()}
                       </Badge>
-                      <span className="ml-2 text-sm">{leak.description}</span>
-                      <div className="text-xs text-gray-600 mt-1">{leak.source}</div>
-                      {leak.foreignCompanyNames && (
-                        <div className="text-xs text-red-600 mt-1">
-                          <strong>Leaked to:</strong> {leak.foreignCompanyNames.join(', ')}
+                      <div className="text-sm font-medium text-gray-900 mb-2">{leak.description}</div>
+                      
+                      <div className="space-y-2">
+                        <div className="text-xs">
+                          <span className="font-semibold text-blue-700">📍 Location:</span>
+                          <span className="ml-1 text-gray-700">{leak.source}</span>
                         </div>
-                      )}
-                      {leak.fieldName && (
-                        <div className="text-xs text-blue-600 mt-1">
-                          <strong>Field:</strong> {leak.fieldName}
-                        </div>
-                      )}
-                      {leak.leakedText && (
-                        <div className="text-xs text-orange-600 mt-1 bg-orange-50 p-2 rounded font-mono">
-                          <strong>Leaked text:</strong> {leak.leakedText}
-                        </div>
-                      )}
+                        
+                        {leak.foreignCompanyNames && leak.foreignCompanyNames.length > 0 && (
+                          <div className="text-xs">
+                            <span className="font-semibold text-red-700">🏢 Companies affected:</span>
+                            <span className="ml-1 text-red-600">{leak.foreignCompanyNames.join(', ')}</span>
+                          </div>
+                        )}
+                        
+                        {leak.fieldName && (
+                          <div className="text-xs">
+                            <span className="font-semibold text-purple-700">🏷️ Data field:</span>
+                            <span className="ml-1 text-purple-600">{leak.fieldName}</span>
+                          </div>
+                        )}
+                        
+                        {leak.leakedText && (
+                          <div className="text-xs">
+                            <span className="font-semibold text-orange-700">📝 Leaked content:</span>
+                            <div className="mt-1 bg-orange-50 border border-orange-200 p-2 rounded text-orange-800 font-mono text-xs break-all">
+                              {leak.leakedText}
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     </div>
                     <div className="text-xs text-gray-500">
                       {new Date(leak.timestamp).toLocaleTimeString()}
