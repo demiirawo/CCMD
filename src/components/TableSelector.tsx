@@ -52,7 +52,7 @@ export const TableSelector = ({
             <SelectValue placeholder="No tables available" />
           </SelectTrigger>
           <SelectContent className="bg-white border border-border shadow-md max-h-60 z-50">
-            <SelectItem value="" disabled>
+            <SelectItem value="no-tables" disabled>
               BASE functionality not available
             </SelectItem>
           </SelectContent>
