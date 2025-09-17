@@ -95,21 +95,30 @@ export async function checkActionConsistency(companyId: string): Promise<{
         issues.push('Action exists in subsection but not in actions log');
       } else if (!subsectionAction && logAction) {
         location = 'actions_log';
-        issues.push('Action exists in actions log but not in subsection');
+        // If action is closed, it's correct that it only exists in the log
+        if (!logAction.closed) {
+          issues.push('Action exists in actions log but not in subsection');
+        }
       }
 
       // Check for inconsistencies if action exists in both places
       if (subsectionAction && logAction) {
-        if (subsectionAction.name !== logAction.mentioned_attendee) {
-          issues.push(`Owner mismatch: subsection="${subsectionAction.name}" vs log="${logAction.mentioned_attendee}"`);
-        }
-        
-        if (subsectionAction.targetDate !== logAction.due_date) {
-          issues.push(`Date mismatch: subsection="${subsectionAction.targetDate}" vs log="${logAction.due_date}"`);
-        }
-        
-        if (subsectionAction.description !== logAction.action_text) {
-          issues.push(`Description mismatch: subsection="${subsectionAction.description}" vs log="${logAction.action_text}"`);
+        // If action is closed, it shouldn't be in subsections at all
+        if (logAction.closed) {
+          issues.push('Closed action should only exist in actions log, not in subsection');
+        } else {
+          // Only check for other inconsistencies if action is not closed
+          if (subsectionAction.name !== logAction.mentioned_attendee) {
+            issues.push(`Owner mismatch: subsection="${subsectionAction.name}" vs log="${logAction.mentioned_attendee}"`);
+          }
+          
+          if (subsectionAction.targetDate !== logAction.due_date) {
+            issues.push(`Date mismatch: subsection="${subsectionAction.targetDate}" vs log="${logAction.due_date}"`);
+          }
+          
+          if (subsectionAction.description !== logAction.action_text) {
+            issues.push(`Description mismatch: subsection="${subsectionAction.description}" vs log="${logAction.action_text}"`);
+          }
         }
       }
 
@@ -132,7 +141,8 @@ export async function checkActionConsistency(companyId: string): Promise<{
     const consistentActions = results.filter(r => r.issues.length === 0).length;
     const inconsistentActions = results.filter(r => r.issues.length > 0 && r.location === 'both').length;
     const orphanedSubsectionActions = results.filter(r => r.location === 'subsection').length;
-    const orphanedLogActions = results.filter(r => r.location === 'actions_log').length;
+    // Only count log-only actions as orphaned if they're not closed (closed actions should only be in log)
+    const orphanedLogActions = results.filter(r => r.location === 'actions_log' && r.issues.length > 0).length;
 
     return {
       results: results.sort((a, b) => b.issues.length - a.issues.length), // Sort by most issues first
