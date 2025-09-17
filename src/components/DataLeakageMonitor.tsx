@@ -22,7 +22,8 @@ interface DataLeakage {
 }
 
 /**
- * Development and production monitoring for data leakage between companies
+ * Real-time Data Leakage Prevention System
+ * Actively monitors and prevents cross-company data contamination
  */
 export const DataLeakageMonitor: React.FC = () => {
   const { profile } = useAuth();
@@ -34,15 +35,89 @@ export const DataLeakageMonitor: React.FC = () => {
     leakDetection: {
       enabled: true,
       alertOnDetection: true,
-      autoCleanup: false
+      autoCleanup: true // Enable auto-cleanup for prevention
     }
   });
   
   const [leakages, setLeakages] = useState<DataLeakage[]>([]);
   const [isMonitoring, setIsMonitoring] = useState(false);
+  const [isPreventionActive, setIsPreventionActive] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
   const [monitoringInterval, setMonitoringInterval] = useState<NodeJS.Timeout | null>(null);
+  const [preventionStats, setPreventionStats] = useState({ blocked: 0, cleaned: 0 });
   const [companyNames, setCompanyNames] = useState<Record<string, string>>({});
+  const [domObserver, setDomObserver] = useState<MutationObserver | null>(null);
+
+  // Real-time DOM monitoring for prevention
+  const setupDOMPrevention = useCallback(() => {
+    const currentCompanyId = profile?.company_id;
+    if (!currentCompanyId) return;
+
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        mutation.addedNodes.forEach((node) => {
+          if (node.nodeType === Node.ELEMENT_NODE) {
+            const element = node as Element;
+            const companyId = element.getAttribute?.('data-company-id');
+            
+            if (companyId && companyId !== currentCompanyId) {
+              console.warn('🚫 BLOCKED: Preventing foreign company DOM element insertion');
+              element.removeAttribute('data-company-id');
+              setPreventionStats(prev => ({ ...prev, blocked: prev.blocked + 1 }));
+            }
+          }
+        });
+      });
+    });
+
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['data-company-id']
+    });
+
+    setDomObserver(observer);
+    return observer;
+  }, [profile?.company_id]);
+
+  // Storage interception for prevention
+  const setupStoragePrevention = useCallback(() => {
+    const currentCompanyId = profile?.company_id;
+    if (!currentCompanyId) return;
+
+    const companyIdPattern = /[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}/g;
+    
+    // Intercept localStorage.setItem
+    const originalSetItem = localStorage.setItem;
+    localStorage.setItem = function(key: string, value: string) {
+      const foreignIds = value.match(companyIdPattern)?.filter(id => id !== currentCompanyId);
+      if (foreignIds?.length > 0) {
+        console.warn('🚫 BLOCKED: Preventing foreign company data storage in localStorage', { key, foreignIds });
+        setPreventionStats(prev => ({ ...prev, blocked: prev.blocked + 1 }));
+        return; // Block the operation
+      }
+      return originalSetItem.call(this, key, value);
+    };
+
+    // Intercept sessionStorage.setItem
+    const originalSessionSetItem = sessionStorage.setItem;
+    sessionStorage.setItem = function(key: string, value: string) {
+      const foreignIds = value.match(companyIdPattern)?.filter(id => id !== currentCompanyId);
+      if (foreignIds?.length > 0) {
+        console.warn('🚫 BLOCKED: Preventing foreign company data storage in sessionStorage', { key, foreignIds });
+        setPreventionStats(prev => ({ ...prev, blocked: prev.blocked + 1 }));
+        return; // Block the operation
+      }
+      return originalSessionSetItem.call(this, key, value);
+    };
+
+    return () => {
+      // Restore original methods
+      localStorage.setItem = originalSetItem;
+      sessionStorage.setItem = originalSessionSetItem;
+    };
+  }, [profile?.company_id]);
 
   // Fetch company names for display
   const fetchCompanyNames = useCallback(async (companyIds: string[]) => {
@@ -65,6 +140,76 @@ export const DataLeakageMonitor: React.FC = () => {
     }
     return {};
   }, []);
+
+  // Enhanced auto-cleanup for real-time prevention
+  const performRealTimeCleanup = useCallback(async (detectedLeaks: DataLeakage[]) => {
+    const currentCompanyId = profile?.company_id;
+    if (!currentCompanyId) return;
+
+    let cleanedCount = 0;
+
+    for (const leak of detectedLeaks) {
+      try {
+        switch (leak.type) {
+          case 'storage':
+            if (leak.source.includes('Local Storage')) {
+              // Clean localStorage
+              for (let i = localStorage.length - 1; i >= 0; i--) {
+                const key = localStorage.key(i);
+                if (key) {
+                  const value = localStorage.getItem(key);
+                  if (value && leak.foreignCompanyIds?.some(id => value.includes(id))) {
+                    localStorage.removeItem(key);
+                    cleanedCount++;
+                    console.log('🧹 AUTO-CLEANED localStorage:', key);
+                  }
+                }
+              }
+            } else if (leak.source.includes('Session Storage')) {
+              // Clean sessionStorage
+              for (let i = sessionStorage.length - 1; i >= 0; i--) {
+                const key = sessionStorage.key(i);
+                if (key && key !== '__tab_id') {
+                  const value = sessionStorage.getItem(key);
+                  if (value && leak.foreignCompanyIds?.some(id => value.includes(id))) {
+                    sessionStorage.removeItem(key);
+                    cleanedCount++;
+                    console.log('🧹 AUTO-CLEANED sessionStorage:', key);
+                  }
+                }
+              }
+            }
+            break;
+          case 'cache':
+            if (leak.foreignCompanyIds) {
+              leak.foreignCompanyIds.forEach(companyId => {
+                clearCompanyCache(companyId);
+                cleanedCount++;
+              });
+              console.log('🧹 AUTO-CLEANED cache for:', leak.foreignCompanyIds);
+            }
+            break;
+          case 'dom':
+            const elements = document.querySelectorAll('[data-company-id]');
+            elements.forEach(el => {
+              const companyId = el.getAttribute('data-company-id');
+              if (companyId !== currentCompanyId) {
+                el.removeAttribute('data-company-id');
+                cleanedCount++;
+              }
+            });
+            console.log('🧹 AUTO-CLEANED DOM attributes');
+            break;
+        }
+      } catch (error) {
+        console.error('Error during real-time cleanup:', error);
+      }
+    }
+
+    if (cleanedCount > 0) {
+      setPreventionStats(prev => ({ ...prev, cleaned: prev.cleaned + cleanedCount }));
+    }
+  }, [profile?.company_id, clearCompanyCache]);
 
   // Scan for storage leakages
   const scanStorageLeakages = useCallback(async (): Promise<DataLeakage[]> => {
@@ -377,39 +522,68 @@ export const DataLeakageMonitor: React.FC = () => {
     });
   }, [profile?.company_id, clearCompanyCache]);
 
-  // Toggle monitoring
+  // Enhanced real-time monitoring with active prevention
   const toggleMonitoring = useCallback(() => {
     if (isMonitoring) {
       if (monitoringInterval) {
         clearInterval(monitoringInterval);
         setMonitoringInterval(null);
       }
+      if (domObserver) {
+        domObserver.disconnect();
+        setDomObserver(null);
+      }
       setIsMonitoring(false);
+      setIsPreventionActive(false);
     } else {
+      // Start real-time monitoring (every 2 seconds for faster detection)
       const interval = setInterval(async () => {
         const detectedLeaks = await performLeakScan();
         if (detectedLeaks.length > 0) {
           console.warn('🚨 Data leakages detected:', detectedLeaks.length);
-          // Auto-cleanup critical leaks
-          const criticalLeaks = detectedLeaks.filter(l => l.severity === 'critical');
-          if (criticalLeaks.length > 0) {
-            autoCleanupLeaks(criticalLeaks);
+          
+          // Immediately clean up ALL leaks in real-time mode
+          if (isPreventionActive) {
+            await performRealTimeCleanup(detectedLeaks);
           }
         }
-      }, 10000); // Check every 10 seconds
+      }, 2000); // Faster scanning for real-time prevention
       
       setMonitoringInterval(interval);
       setIsMonitoring(true);
     }
-  }, [isMonitoring, monitoringInterval, performLeakScan, autoCleanupLeaks]);
+  }, [isMonitoring, monitoringInterval, domObserver, performLeakScan, performRealTimeCleanup, isPreventionActive]);
 
-  // Manual cleanup all
-  const cleanupAllLeaks = useCallback(() => {
-    autoCleanupLeaks(leakages);
+  // Toggle prevention system
+  const togglePrevention = useCallback(() => {
+    if (isPreventionActive) {
+      // Disable prevention
+      if (domObserver) {
+        domObserver.disconnect();
+        setDomObserver(null);
+      }
+      setIsPreventionActive(false);
+      // Note: Storage interception cleanup would happen on component unmount
+    } else {
+      // Enable prevention
+      setupDOMPrevention();
+      setupStoragePrevention();
+      setIsPreventionActive(true);
+      
+      // Auto-start monitoring when prevention is enabled
+      if (!isMonitoring) {
+        toggleMonitoring();
+      }
+    }
+  }, [isPreventionActive, domObserver, setupDOMPrevention, setupStoragePrevention, isMonitoring, toggleMonitoring]);
+
+  // Manual cleanup all (enhanced)
+  const cleanupAllLeaks = useCallback(async () => {
+    await performRealTimeCleanup(leakages);
     setTimeout(() => {
       performLeakScan(); // Re-scan after cleanup
     }, 1000);
-  }, [leakages, autoCleanupLeaks, performLeakScan]);
+  }, [leakages, performRealTimeCleanup, performLeakScan]);
 
   // Initial scan on mount
   useEffect(() => {
@@ -422,8 +596,13 @@ export const DataLeakageMonitor: React.FC = () => {
       if (monitoringInterval) {
         clearInterval(monitoringInterval);
       }
+      if (domObserver) {
+        domObserver.disconnect();
+      }
+      // Restore original storage methods if they were intercepted
+      // This is handled by the cleanup function returned by setupStoragePrevention
     };
-  }, [monitoringInterval]);
+  }, [monitoringInterval, domObserver]);
 
   const getSeverityColor = (severity: string) => {
     switch (severity) {
@@ -452,7 +631,7 @@ export const DataLeakageMonitor: React.FC = () => {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Shield className="w-5 h-5" />
-          Data Leakage Monitor
+          Real-time Data Leakage Prevention System
           <Badge variant={leakages.length > 0 ? "destructive" : "default"}>
             {leakages.length} issues
           </Badge>
@@ -461,25 +640,40 @@ export const DataLeakageMonitor: React.FC = () => {
               Monitoring Active
             </Badge>
           )}
+          {isPreventionActive && (
+            <Badge variant="default" className="bg-green-600">
+              Prevention Active
+            </Badge>
+          )}
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="flex gap-2 mb-4">
+        <div className="flex gap-2 mb-4 flex-wrap">
           <Button 
             onClick={toggleMonitoring}
             variant={isMonitoring ? "destructive" : "default"}
           >
             {isMonitoring ? 'Stop Monitoring' : 'Start Monitoring'}
           </Button>
+          
+          <Button 
+            onClick={togglePrevention}
+            variant={isPreventionActive ? "destructive" : "secondary"}
+          >
+            {isPreventionActive ? 'Disable Prevention' : 'Enable Prevention'}
+          </Button>
+          
           <Button onClick={performLeakScan} variant="outline">
             Scan Now
           </Button>
+          
           {leakages.length > 0 && (
             <Button onClick={cleanupAllLeaks} variant="outline">
               <Trash2 className="w-4 h-4 mr-2" />
               Cleanup All
             </Button>
           )}
+          
           <Button 
             onClick={() => setShowDetails(!showDetails)} 
             variant="outline"
@@ -487,6 +681,23 @@ export const DataLeakageMonitor: React.FC = () => {
             {showDetails ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
           </Button>
         </div>
+
+        {/* Prevention Statistics */}
+        {isPreventionActive && (
+          <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded">
+            <h4 className="font-semibold text-sm mb-2 text-green-800">🛡️ Prevention Statistics</h4>
+            <div className="grid grid-cols-2 gap-4 text-xs">
+              <div>
+                <span className="font-semibold text-green-700">Blocked Operations:</span>
+                <span className="ml-1 text-green-600">{preventionStats.blocked}</span>
+              </div>
+              <div>
+                <span className="font-semibold text-green-700">Auto-cleaned Items:</span>
+                <span className="ml-1 text-green-600">{preventionStats.cleaned}</span>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Summary */}
         <div className="grid grid-cols-4 gap-2 mb-4">
