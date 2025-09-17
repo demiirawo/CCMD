@@ -439,7 +439,7 @@ const Index = () => {
       icon: <Users className="w-6 h-6 text-purple-600" />,
       items: [{
         id: "recruitment",
-        title: "Resourcing",
+        title: "Capacity",
         status: "green" as StatusType,
         lastReviewed: "",
         observation: "",
