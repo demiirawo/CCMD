@@ -72,7 +72,7 @@ const Index = () => {
       const {
         data: tempData,
         error: fetchError
-      } = await (supabase as any).from('dashboard_data').select('*').eq('meeting_id', tempId);
+      } = await (supabase as any).from('dashboard_data').select('*').eq('meeting_id', tempId).eq('company_id', profile?.company_id);
       if (fetchError) {
         console.error('Error fetching temporary dashboard data:', fetchError);
         return;
