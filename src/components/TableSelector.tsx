@@ -26,34 +26,15 @@ export const TableSelector = ({
   label
 }: TableSelectorProps) => {
   const [tables, setTables] = useState<Table[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false); // Set to false since BASE is not available
   const { profile } = useAuth();
 
+  // No longer fetch tables since BASE functionality has been removed
+  // Keep component for compatibility but disable functionality
   useEffect(() => {
-    const fetchTables = async () => {
-      if (!profile?.company_id) return;
-
-      try {
-        const { data, error } = await supabase
-          .from('base_tables')
-          .select('id, name')
-          .eq('company_id', profile.company_id)
-          .order('name');
-
-        if (error) {
-          console.error('Error fetching tables:', error);
-          return;
-        }
-
-        setTables(data || []);
-      } catch (error) {
-        console.error('Error fetching tables:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchTables();
+    // BASE functionality removed - no tables to fetch
+    setTables([]);
+    setLoading(false);
   }, [profile?.company_id]);
 
   return (
@@ -66,16 +47,14 @@ export const TableSelector = ({
           placeholder="Display name (optional)"
           className="flex-1 bg-white"
         />
-        <Select value={value || ''} onValueChange={onTableChange} disabled={loading || tables.length === 0}>
+        <Select value={value || ''} onValueChange={onTableChange} disabled={true}>
           <SelectTrigger className="flex-1 bg-white">
-            <SelectValue placeholder={loading ? "Loading tables..." : tables.length === 0 ? "No tables available" : "Select a table..."} />
+            <SelectValue placeholder="No tables available" />
           </SelectTrigger>
           <SelectContent className="bg-white border border-border shadow-md max-h-60 z-50">
-            {tables.map((table) => (
-              <SelectItem key={table.id} value={table.id}>
-                {table.name}
-              </SelectItem>
-            ))}
+            <SelectItem value="" disabled>
+              BASE functionality not available
+            </SelectItem>
           </SelectContent>
         </Select>
       </div>
