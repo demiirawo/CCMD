@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { Badge } from "./ui/badge";
-import { AlertCircle, CheckCircle, Search, RefreshCw, Trash2, AlertTriangle } from "lucide-react";
+import { AlertCircle, CheckCircle, Search, RefreshCw, Trash2, AlertTriangle, Check } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { checkActionConsistency, ConsistencyResult } from "@/utils/actionConsistencyChecker";
 import { useToast } from "@/hooks/use-toast";
@@ -14,6 +14,7 @@ export const ActionConsistencyReport = () => {
   const { toast } = useToast();
   const [isChecking, setIsChecking] = useState(false);
   const [isCleaning, setIsCleaning] = useState(false);
+  const [isCompleting, setIsCompleting] = useState(false);
   const [results, setResults] = useState<{
     results: ConsistencyResult[];
     summary: any;
@@ -53,6 +54,84 @@ export const ActionConsistencyReport = () => {
       });
     } finally {
       setIsChecking(false);
+    }
+  };
+
+  const markOrphanedActionsComplete = async () => {
+    if (!profile?.company_id || !results) {
+      toast({
+        title: "Error",
+        description: "No company selected or no results available",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Find orphaned actions in the log (actions that exist only in log and are not closed)
+    const orphanedLogActions = results.results.filter(result => 
+      result.location === 'actions_log' && 
+      result.issues.some(issue => issue.includes('Action exists in actions log but not in subsection')) &&
+      !result.logClosed
+    );
+
+    if (orphanedLogActions.length === 0) {
+      toast({
+        title: "No Orphaned Actions",
+        description: "No orphaned actions found to mark as complete.",
+        variant: "default"
+      });
+      return;
+    }
+
+    // Show confirmation
+    const confirmed = window.confirm(
+      `Are you sure you want to mark ${orphanedLogActions.length} orphaned actions as complete?\n\n` +
+      "This will close actions that exist in the actions log but cannot be found in any subsection. " +
+      "Closed actions will no longer appear as orphaned in future consistency checks."
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    setIsCompleting(true);
+    try {
+      // Mark orphaned actions as closed/complete
+      const actionIds = orphanedLogActions.map(action => action.actionId);
+      
+      const { error } = await supabase
+        .from('actions_log')
+        .update({ 
+          closed: true,
+          closed_date: new Date().toISOString().split('T')[0], // Today's date
+          status: 'complete'
+        })
+        .eq('company_id', profile.company_id)
+        .in('action_id', actionIds)
+        .eq('closed', false); // Only mark non-closed actions
+
+      if (error) {
+        throw error;
+      }
+
+      toast({
+        title: "Actions Marked Complete",
+        description: `Successfully marked ${actionIds.length} orphaned actions as complete.`,
+        variant: "default"
+      });
+
+      // Re-run consistency check to update results
+      await runConsistencyCheck();
+
+    } catch (error) {
+      console.error('Failed to mark orphaned actions as complete:', error);
+      toast({
+        title: "Completion Failed",
+        description: "Failed to mark orphaned actions as complete. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsCompleting(false);
     }
   };
 
@@ -164,11 +243,11 @@ export const ActionConsistencyReport = () => {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-wrap">
               <Button 
                 onClick={runConsistencyCheck} 
-                disabled={isChecking || isCleaning}
-                className="flex-1"
+                disabled={isChecking || isCleaning || isCompleting}
+                className="flex-1 min-w-[200px]"
               >
                 {isChecking ? (
                   <>
@@ -184,24 +263,45 @@ export const ActionConsistencyReport = () => {
               </Button>
               
               {results && results.summary.orphanedLogActions > 0 && (
-                <Button 
-                  onClick={removeOrphanedActions} 
-                  disabled={isChecking || isCleaning}
-                  variant="destructive"
-                  className="flex-1"
-                >
-                  {isCleaning ? (
-                    <>
-                      <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                      Removing...
-                    </>
-                  ) : (
-                    <>
-                      <Trash2 className="h-4 w-4 mr-2" />
-                      Remove Orphaned Actions ({results.summary.orphanedLogActions})
-                    </>
-                  )}
-                </Button>
+                <>
+                  <Button 
+                    onClick={markOrphanedActionsComplete} 
+                    disabled={isChecking || isCleaning || isCompleting}
+                    variant="default"
+                    className="flex-1 min-w-[200px]"
+                  >
+                    {isCompleting ? (
+                      <>
+                        <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                        Marking Complete...
+                      </>
+                    ) : (
+                      <>
+                        <Check className="h-4 w-4 mr-2" />
+                        Mark as Complete ({results.summary.orphanedLogActions})
+                      </>
+                    )}
+                  </Button>
+                  
+                  <Button 
+                    onClick={removeOrphanedActions} 
+                    disabled={isChecking || isCleaning || isCompleting}
+                    variant="destructive"
+                    className="flex-1 min-w-[200px]"
+                  >
+                    {isCleaning ? (
+                      <>
+                        <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                        Removing...
+                      </>
+                    ) : (
+                      <>
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Delete Orphaned ({results.summary.orphanedLogActions})
+                      </>
+                    )}
+                  </Button>
+                </>
               )}
             </div>
             
@@ -209,8 +309,11 @@ export const ActionConsistencyReport = () => {
               <Alert>
                 <AlertTriangle className="h-4 w-4" />
                 <AlertDescription>
-                  <strong>Warning:</strong> Orphaned actions are entries in the actions log that cannot be found in any subsection and are not closed. 
-                  Removing them will permanently delete these action records. This is typically safe for cleanup, but ensure these actions are truly orphaned.
+                  <strong>Cleanup Options:</strong>
+                  <br />
+                  • <strong>Mark as Complete:</strong> Safer option - closes orphaned actions so they won't appear as issues in future checks
+                  <br />
+                  • <strong>Delete Orphaned:</strong> Permanent removal - completely deletes orphaned action records from the database
                 </AlertDescription>
               </Alert>
             )}
