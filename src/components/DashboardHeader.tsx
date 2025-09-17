@@ -80,7 +80,16 @@ export const DashboardHeader = ({
       if (e.key === "Escape") {
         setEditingField(null);
       }
-    }} autoFocus /> : <button onClick={() => setEditingField(field)} className={`w-full text-left min-h-12 p-2 text-sm ${textClass} text-foreground hover:bg-white hover:border-gray-400 transition-colors rounded whitespace-pre-wrap break-words overflow-wrap-anywhere border border-gray-200`}>
+    }} autoFocus /> : <button 
+        onClick={(e) => {
+          console.log('✏️ Editable field clicked:', field, 'readOnly:', readOnly, 'editingField:', editingField);
+          e.preventDefault();
+          e.stopPropagation();
+          setEditingField(field);
+        }} 
+        className={`w-full text-left min-h-12 p-2 text-sm ${textClass} text-foreground hover:bg-white hover:border-gray-400 transition-colors rounded whitespace-pre-wrap break-words overflow-wrap-anywhere border border-gray-200 cursor-pointer`}
+        style={{ zIndex: 10, position: 'relative' }}
+      >
             {value}
           </button>}
     </div>;
