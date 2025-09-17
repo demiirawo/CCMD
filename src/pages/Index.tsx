@@ -37,6 +37,12 @@ const Index = () => {
 
   // Check if user has edit permissions
   const canEdit = (user?.email === 'demi.irawo@care-cuddle.co.uk') || Boolean(profile?.company_id);
+  console.log('🔐 Edit Permissions Check:', {
+    userEmail: user?.email,
+    isSuperAdmin: user?.email === 'demi.irawo@care-cuddle.co.uk',
+    profileCompanyId: profile?.company_id,
+    canEdit: canEdit
+  });
   const [isDataLoaded, setIsDataLoaded] = useState(false);
   const [currentMeetingId, setCurrentMeetingId] = useState<string | null>(null);
   const [tempMeetingId, setTempMeetingId] = useState<string>(() => {

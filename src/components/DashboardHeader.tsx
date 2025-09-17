@@ -46,6 +46,11 @@ export const DashboardHeader = ({
   onAttendeesChange,
   readOnly = false
 }: DashboardHeaderProps) => {
+  console.log('🏠 DashboardHeader rendered with:', { 
+    readOnly, 
+    hasOnDataChange: !!onDataChange,
+    title: title?.substring(0, 20) + '...'
+  });
   const {
     profile,
     companies
