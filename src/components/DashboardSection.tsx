@@ -247,7 +247,10 @@ export const DashboardSection = ({
     )}>
       <div 
         className="flex items-center justify-between cursor-pointer mb-4"
-        onClick={() => {
+        onClick={(e) => {
+          console.log('🖱️ Section title clicked:', title, 'Current state:', isOpen);
+          e.preventDefault();
+          e.stopPropagation();
           const newState = !isOpen;
           setIsOpen(newState);
           const storageKey = `section_${title.replace(/\s+/g, '_').toLowerCase()}_open`;
@@ -255,7 +258,9 @@ export const DashboardSection = ({
           const isolatedStorageKey = `${storageKey}_${tabId}`;
           sessionStorage.setItem(isolatedStorageKey, JSON.stringify(newState));
           onPanelStateChange?.();
+          console.log('🖱️ Section state updated to:', newState);
         }}
+        style={{ zIndex: 1, position: 'relative' }}
       >
         <div className="flex items-center gap-3">
           <div>
