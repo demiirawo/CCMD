@@ -55,36 +55,10 @@ export const SecureDataProvider: React.FC<SecureDataProviderProps> = ({
         gcTime: 10 * 60 * 1000, // 10 minutes (renamed from cacheTime)
         refetchOnWindowFocus: false,
         refetchOnMount: true,
-        refetchOnReconnect: true,
-        // Add query validation
-        queryFn: async (context) => {
-          const originalQueryFn = context.meta?.originalQueryFn as any;
-          if (!originalQueryFn) {
-            throw new Error('Original query function not found');
-          }
-          
-          const result = await originalQueryFn(context);
-          
-          // Validate result data
-          const validation = validateDataIntegrity('query-result', result);
-          if (!validation.valid) {
-            console.error('🚨 Query result validation failed:', {
-              queryKey: context.queryKey,
-              violations: validation.violations
-            });
-            throw new Error('Data validation failed: foreign company data detected');
-          }
-          
-          return result;
-        }
+        refetchOnReconnect: true
       },
       mutations: {
-        retry: false, // Don't retry mutations
-        // Add mutation validation
-        mutationFn: async (variables) => {
-          // This is a placeholder - actual implementation would depend on mutation setup
-          return variables;
-        }
+        retry: false // Don't retry mutations
       }
     }
   });
