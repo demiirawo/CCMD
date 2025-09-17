@@ -2,15 +2,18 @@ import { useState } from "react";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { Badge } from "./ui/badge";
-import { AlertCircle, CheckCircle, Search, RefreshCw } from "lucide-react";
+import { AlertCircle, CheckCircle, Search, RefreshCw, Trash2, AlertTriangle } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { checkActionConsistency, ConsistencyResult } from "@/utils/actionConsistencyChecker";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { Alert, AlertDescription } from "./ui/alert";
 
 export const ActionConsistencyReport = () => {
   const { profile } = useAuth();
   const { toast } = useToast();
   const [isChecking, setIsChecking] = useState(false);
+  const [isCleaning, setIsCleaning] = useState(false);
   const [results, setResults] = useState<{
     results: ConsistencyResult[];
     summary: any;
@@ -53,6 +56,79 @@ export const ActionConsistencyReport = () => {
     }
   };
 
+  const removeOrphanedActions = async () => {
+    if (!profile?.company_id || !results) {
+      toast({
+        title: "Error",
+        description: "No company selected or no results available",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Find orphaned actions in the log (actions that exist only in log and are not closed)
+    const orphanedLogActions = results.results.filter(result => 
+      result.location === 'actions_log' && 
+      result.issues.some(issue => issue.includes('Action exists in actions log but not in subsection')) &&
+      !result.logClosed
+    );
+
+    if (orphanedLogActions.length === 0) {
+      toast({
+        title: "No Orphaned Actions",
+        description: "No orphaned actions found to remove.",
+        variant: "default"
+      });
+      return;
+    }
+
+    // Show confirmation
+    const confirmed = window.confirm(
+      `Are you sure you want to permanently remove ${orphanedLogActions.length} orphaned actions from the actions log?\n\n` +
+      "This will delete actions that exist in the actions log but cannot be found in any subsection and are not closed. This action cannot be undone."
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    setIsCleaning(true);
+    try {
+      // Remove orphaned actions from the actions_log table
+      const actionIds = orphanedLogActions.map(action => action.actionId);
+      
+      const { error } = await supabase
+        .from('actions_log')
+        .delete()
+        .eq('company_id', profile.company_id)
+        .in('action_id', actionIds)
+        .eq('closed', false); // Only remove non-closed actions
+
+      if (error) {
+        throw error;
+      }
+
+      toast({
+        title: "Cleanup Successful",
+        description: `Removed ${actionIds.length} orphaned actions from the actions log.`,
+        variant: "default"
+      });
+
+      // Re-run consistency check to update results
+      await runConsistencyCheck();
+
+    } catch (error) {
+      console.error('Failed to remove orphaned actions:', error);
+      toast({
+        title: "Cleanup Failed",
+        description: "Failed to remove orphaned actions. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsCleaning(false);
+    }
+  };
+
   const getLocationBadge = (location: string) => {
     switch (location) {
       case 'both':
@@ -87,23 +163,58 @@ export const ActionConsistencyReport = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Button 
-            onClick={runConsistencyCheck} 
-            disabled={isChecking}
-            className="w-full"
-          >
-            {isChecking ? (
-              <>
-                <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                Checking Consistency...
-              </>
-            ) : (
-              <>
-                <Search className="h-4 w-4 mr-2" />
-                Run Consistency Check
-              </>
+          <div className="space-y-4">
+            <div className="flex gap-2">
+              <Button 
+                onClick={runConsistencyCheck} 
+                disabled={isChecking || isCleaning}
+                className="flex-1"
+              >
+                {isChecking ? (
+                  <>
+                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                    Checking Consistency...
+                  </>
+                ) : (
+                  <>
+                    <Search className="h-4 w-4 mr-2" />
+                    Run Consistency Check
+                  </>
+                )}
+              </Button>
+              
+              {results && results.summary.orphanedLogActions > 0 && (
+                <Button 
+                  onClick={removeOrphanedActions} 
+                  disabled={isChecking || isCleaning}
+                  variant="destructive"
+                  className="flex-1"
+                >
+                  {isCleaning ? (
+                    <>
+                      <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                      Removing...
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Remove Orphaned Actions ({results.summary.orphanedLogActions})
+                    </>
+                  )}
+                </Button>
+              )}
+            </div>
+            
+            {results && results.summary.orphanedLogActions > 0 && (
+              <Alert>
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription>
+                  <strong>Warning:</strong> Orphaned actions are entries in the actions log that cannot be found in any subsection and are not closed. 
+                  Removing them will permanently delete these action records. This is typically safe for cleanup, but ensure these actions are truly orphaned.
+                </AlertDescription>
+              </Alert>
             )}
-          </Button>
+          </div>
         </CardContent>
       </Card>
 
