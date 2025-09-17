@@ -21,6 +21,10 @@ import { AdminAuth } from "./pages/AdminAuth";
 import { CompanySelection } from "./pages/CompanySelection";
 import NotFound from "./pages/NotFound";
 import CompanyDashboard from "./pages/CompanyDashboard";
+import { Base } from "./pages/Base";
+import { TableView } from "./pages/TableView";
+import { SharedTable } from "./pages/SharedTable";
+import { PublicTable } from "./pages/PublicTable";
 
 const queryClient = new QueryClient();
 
@@ -74,6 +78,24 @@ const AppContent = () => {
           })()}
         </>
       } />
+      <Route path="/base" element={
+        <ProtectedRoute requireCompany>
+          <>
+            <Navigation />
+            <Base />
+          </>
+        </ProtectedRoute>
+      } />
+      <Route path="/base/table/:tableId" element={
+        <ProtectedRoute requireCompany>
+          <>
+            <Navigation />
+            <TableView />
+          </>
+        </ProtectedRoute>
+      } />
+      <Route path="/shared/:token" element={<SharedTable />} />
+      <Route path="/public/:tableId" element={<PublicTable />} />
       <Route path="/meetings" element={
         <ProtectedRoute requireCompany>
           <>

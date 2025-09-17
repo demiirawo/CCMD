@@ -1,5 +1,7 @@
 import { StatusItem, StatusItemData } from "./StatusItem";
 import { StatusType, StatusBadge } from "./StatusBadge";
+
+import { SubsectionMetadata } from "./SubsectionMetadataDialog";
 import { ChevronDown, ChevronRight, Plus, CheckCircle, AlertTriangle, XCircle } from "lucide-react";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
@@ -15,7 +17,7 @@ interface DashboardSectionProps {
   onItemLessonsLearnedChange?: (id: string, lessonsLearned: string) => void;
   onItemActionsChange?: (id: string, actions: import("./ActionForm").ActionItem[]) => void;
   onItemDocumentsChange?: (id: string, documents: import("./StatusItem").DocumentData[]) => void;
-  onItemMetadataChange?: (id: string, metadata: any) => void;
+  onItemMetadataChange?: (id: string, metadata: SubsectionMetadata) => void;
   onAddItem?: (sectionTitle: string) => void;
   onActionCreated?: (itemTitle: string, mentionedAttendee: string, comment: string, action: string, dueDate: string, subsectionActionId?: string) => void;
   onSubsectionActionEdit?: (sectionId: string, actionId: string, updates: { comment?: string; dueDate?: string }) => void;
