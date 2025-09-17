@@ -17,6 +17,8 @@ import { Users, Target, BarChart3, FileText, Heart, Shield, Calendar, UserCheck,
 import { MeetingStatusSummary } from "@/components/MeetingStatusSummary";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
+import { ActionConsistencyReport } from "@/components/ActionConsistencyReport";
+import { DataLeakageMonitor } from "@/components/DataLeakageMonitor";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import { useSearchParams, useNavigate } from "react-router-dom";
@@ -35,18 +37,8 @@ const Index = () => {
   const { toast } = useToast();
 
 
-  // Check if user has edit permissions - Super admin should always be able to edit
-  const isSuperAdmin = user?.email === 'demi.irawo@care-cuddle.co.uk';
-  const canEdit = isSuperAdmin || Boolean(profile?.company_id);
-  
-  console.log('🔐 Edit Permissions Check:', {
-    userEmail: user?.email,
-    isSuperAdmin,
-    profileCompanyId: profile?.company_id,
-    canEdit,
-    userExists: !!user,
-    profileExists: !!profile
-  });
+  // Check if user has edit permissions
+  const canEdit = (user?.email === 'demi.irawo@care-cuddle.co.uk') || Boolean(profile?.company_id);
   const [isDataLoaded, setIsDataLoaded] = useState(false);
   const [currentMeetingId, setCurrentMeetingId] = useState<string | null>(null);
   const [tempMeetingId, setTempMeetingId] = useState<string>(() => {
@@ -82,7 +74,7 @@ const Index = () => {
       const {
         data: tempData,
         error: fetchError
-      } = await (supabase as any).from('dashboard_data').select('*').eq('meeting_id', tempId).eq('company_id', profile?.company_id);
+      } = await (supabase as any).from('dashboard_data').select('*').eq('meeting_id', tempId);
       if (fetchError) {
         console.error('Error fetching temporary dashboard data:', fetchError);
         return;
@@ -2099,6 +2091,16 @@ const Index = () => {
             />
           );
         })}
+        
+        {/* Action Consistency Checker - Only show for admin users */}
+        {canEdit && (
+          <div className="mt-8 p-6 bg-blue-50 rounded-lg border border-blue-200">
+            <ActionConsistencyReport />
+          </div>
+        )}
+
+        {/* Data Leakage Monitor - Development & Admin only */}
+        <DataLeakageMonitor />
         </div>
       </div>
     </div>
