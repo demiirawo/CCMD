@@ -5,7 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useAutoSave } from "@/hooks/useAutoSave";
 
 import { useMeetingEmailNotification } from "@/hooks/useMeetingEmailNotification";
-import { useCompanyDataIsolation } from "@/hooks/useCompanyDataIsolation";
+import { clearCompanyData, getTabId } from "@/utils/dataIsolationUtils";
 import { Attendee } from "@/components/TeamAttendeesDisplay";
 import { DashboardSection } from "@/components/DashboardSection";
 import { ActionsLog, ActionLogEntry } from "@/components/ActionsLog";
@@ -17,7 +17,6 @@ import { Users, Target, BarChart3, FileText, Heart, Shield, Calendar, UserCheck,
 import { MeetingStatusSummary } from "@/components/MeetingStatusSummary";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
-import { ActionConsistencyReport } from "@/components/ActionConsistencyReport";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import { useSearchParams, useNavigate } from "react-router-dom";
@@ -36,32 +35,39 @@ const Index = () => {
   const { toast } = useToast();
 
 
-  // Check if user has edit permissions
-  const canEdit = (user?.email === 'demi.irawo@care-cuddle.co.uk') || Boolean(profile?.company_id);
+  // Check if user has edit permissions - Super admin should always be able to edit
+  const isSuperAdmin = user?.email === 'demi.irawo@care-cuddle.co.uk';
+  const canEdit = isSuperAdmin || Boolean(profile?.company_id);
+  
+  console.log('🔐 Edit Permissions Check:', {
+    userEmail: user?.email,
+    isSuperAdmin,
+    profileCompanyId: profile?.company_id,
+    canEdit,
+    userExists: !!user,
+    profileExists: !!profile
+  });
   const [isDataLoaded, setIsDataLoaded] = useState(false);
   const [currentMeetingId, setCurrentMeetingId] = useState<string | null>(null);
-  const { localStorage: companyStorage, isReady: dataIsolationReady } = useCompanyDataIsolation({ enableLogging: true });
-  
   const [tempMeetingId, setTempMeetingId] = useState<string>(() => {
-    // Initialize with a temporary ID, will be updated when company context is ready
-    return crypto.randomUUID();
-  });
-
-  // Initialize persistent meeting ID when company context is ready
-  useEffect(() => {
-    if (dataIsolationReady && profile?.company_id) {
-      const persistentId = companyStorage.getItem<string>('persistentMeetingId');
-      if (persistentId) {
-        console.log('Index: Using persistent meeting ID:', persistentId);
-        setTempMeetingId(persistentId);
-      } else {
-        const newId = crypto.randomUUID();
-        companyStorage.setItem('persistentMeetingId', newId);
-        console.log('Index: Generated new persistent meeting ID:', newId);
-        setTempMeetingId(newId);
-      }
+    // Initialize tab isolation
+    const tabId = getTabId();
+    
+    // Use a company-specific AND tab-specific persistent ID for continuous data storage
+    if (!profile?.company_id) return crypto.randomUUID();
+    const companyId = profile.company_id;
+    
+    const persistentId = localStorage.getItem(`persistentMeetingId_${companyId}_${tabId}`);
+    if (persistentId) {
+      console.log('Index: Using persistent meeting ID:', persistentId, 'for tab:', tabId);
+      return persistentId;
+    } else {
+      const newId = crypto.randomUUID();
+      localStorage.setItem(`persistentMeetingId_${companyId}_${tabId}`, newId);
+      console.log('Index: Generated persistent meeting ID:', newId, 'for tab:', tabId);
+      return newId;
     }
-  }, [dataIsolationReady, profile?.company_id]);
+  });
   const [actionsLog, setActionsLog] = useState<ActionLogEntry[]>([]);
   const [allSectionsExpanded, setAllSectionsExpanded] = useState<boolean | undefined>(undefined);
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -76,7 +82,7 @@ const Index = () => {
       const {
         data: tempData,
         error: fetchError
-      } = await (supabase as any).from('dashboard_data').select('*').eq('meeting_id', tempId);
+      } = await (supabase as any).from('dashboard_data').select('*').eq('meeting_id', tempId).eq('company_id', profile?.company_id);
       if (fetchError) {
         console.error('Error fetching temporary dashboard data:', fetchError);
         return;
@@ -257,17 +263,21 @@ const Index = () => {
         throw result.error;
       } else {
         console.log('✅ MeetingHeaders: Successfully saved to database:', result.data);
-        // Save to company-isolated localStorage as backup
-        const backupKey = currentMeetingId ? `headers_backup_${currentMeetingId}` : 'headers_backup';
-        companyStorage.setItem(backupKey, newHeaderData);
-        console.log('💾 MeetingHeaders: Also saved backup to company-isolated localStorage');
+        // Save to localStorage as backup with tab isolation
+        const tabId = sessionStorage.getItem('__tab_id') || `tab_${Date.now()}`;
+        const backupKey = currentMeetingId ? `headers_backup_${profile.company_id}_${currentMeetingId}_${tabId}` : `headers_backup_${profile.company_id}_${tabId}`;
+        localStorage.setItem(backupKey, JSON.stringify(newHeaderData));
+        console.log('💾 MeetingHeaders: Also saved backup to localStorage:', backupKey);
       }
     } catch (error) {
       console.error('❌ MeetingHeaders: Exception in saveHeaderData:', error);
-      // Save to company-isolated localStorage as fallback
-      const backupKey = currentMeetingId ? `headers_backup_${currentMeetingId}` : 'headers_backup';
-      companyStorage.setItem(backupKey, newHeaderData);
-      console.log('💾 MeetingHeaders: Exception fallback to company-isolated localStorage');
+      // Save to localStorage as fallback with tab isolation
+      if (profile?.company_id) {
+        const tabId = sessionStorage.getItem('__tab_id') || `tab_${Date.now()}`;
+        const backupKey = currentMeetingId ? `headers_backup_${profile.company_id}_${currentMeetingId}_${tabId}` : `headers_backup_${profile.company_id}_${tabId}`;
+        localStorage.setItem(backupKey, JSON.stringify(newHeaderData));
+        console.log('💾 MeetingHeaders: Exception fallback to localStorage:', backupKey);
+      }
     }
   };
 
@@ -2089,13 +2099,6 @@ const Index = () => {
             />
           );
         })}
-        
-        {/* Action Consistency Checker - Only show for admin users */}
-        {canEdit && (
-          <div className="mt-8 p-6 bg-blue-50 rounded-lg border border-blue-200">
-            <ActionConsistencyReport />
-          </div>
-        )}
         </div>
       </div>
     </div>

@@ -65,8 +65,9 @@ export const Reports = () => {
     profile
   } = useAuth();
 
-  // Check if user has edit permissions
-  const canEdit = (user?.email === 'demi.irawo@care-cuddle.co.uk') || Boolean(profile?.company_id);
+  // Check if user has edit permissions - Super admin should always be able to edit
+  const isSuperAdmin = user?.email === 'demi.irawo@care-cuddle.co.uk';
+  const canEdit = isSuperAdmin || Boolean(profile?.company_id);
   useTheme(); // Apply dynamic theme
   const [meetings, setMeetings] = useState<ParsedMeeting[]>([]);
   const [loading, setLoading] = useState(true);

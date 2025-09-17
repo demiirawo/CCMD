@@ -8,6 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { Palette, Building, Image, Upload, X } from "lucide-react";
 import { TeamMembersManager } from "@/components/TeamMembersManager";
+import { DataLeakageMonitor } from "@/components/DataLeakageMonitor";
 
 // Helper function to convert hex to HSL
 const hexToHsl = (hex: string): string => {
@@ -51,6 +52,9 @@ export const Settings = () => {
   
   // Allow all company-level users to access settings
   const canAccessSettings = Boolean(profile?.company_id);
+  
+  // Check if current user is super admin
+  const isSuperAdmin = user?.email === 'demi.irawo@care-cuddle.co.uk';
   
   // If no company selected, ask user to select one
   if (!canAccessSettings) {
@@ -246,9 +250,10 @@ export const Settings = () => {
         <div className="text-center">
           <p className="text-muted-foreground">No company selected</p>
         </div>
-      </div>;
+      </div>
   }
-  return <div className="min-h-screen pt-24 pb-16 space-y-6 px-6" style={{backgroundColor: '#F4F5F6'}}>
+  return (
+    <div className="min-h-screen pt-24 pb-16 space-y-6 px-6" style={{backgroundColor: '#F4F5F6'}}>
       <div className="flex items-center gap-3 mb-6">
         
         <div>
@@ -367,11 +372,30 @@ export const Settings = () => {
         <TeamMembersManager companyId={currentCompany.id} />
       </div>
 
+      {/* Super Admin Tools */}
+      {isSuperAdmin && (
+        <div className="space-y-6">
+          {/* Data Leakage Monitor */}
+          <Card style={{backgroundColor: '#EAEBEC'}}>
+            <CardHeader>
+              <CardTitle>Data Leakage Monitor</CardTitle>
+              <CardDescription>Monitor for potential data leakages between companies</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="bg-white p-4 rounded-lg">
+                <DataLeakageMonitor />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
       {/* Save Button */}
       <div className="flex justify-end">
         <Button onClick={handleSave} disabled={loading}>
           {loading ? "Saving..." : "Save Changes"}
         </Button>
       </div>
-    </div>;
+    </div>
+  );
 };
