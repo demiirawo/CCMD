@@ -135,11 +135,11 @@ const AppContent = () => {
 const App = () => (
   <TooltipProvider>
     <AuthProvider>
-      <SecureDataProvider queryClient={queryClient}>
-        <BrowserRouter>
+      <BrowserRouter>
+        <SecureDataProvider queryClient={queryClient}>
           <AppContent />
-        </BrowserRouter>
-      </SecureDataProvider>
+        </SecureDataProvider>
+      </BrowserRouter>
     </AuthProvider>
   </TooltipProvider>
 );
