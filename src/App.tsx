@@ -1,11 +1,9 @@
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient } from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Navigation } from "./components/Navigation";
 import { AuthProvider } from "./components/AuthProvider";
 import { ProtectedRoute } from "./components/ProtectedRoute";
-import { SecureDataProvider } from "./components/SecureDataProvider";
-import { DataIsolationWrapper } from "./components/DataIsolationWrapper";
 import { useAuth } from "@/hooks/useAuth";
 
 import { useTheme } from "./hooks/useTheme";
@@ -24,16 +22,7 @@ import { CompanySelection } from "./pages/CompanySelection";
 import NotFound from "./pages/NotFound";
 import CompanyDashboard from "./pages/CompanyDashboard";
 
-// Basic query client for initial setup - SecureDataProvider will create enhanced version
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 5 * 60 * 1000, // 5 minutes
-      gcTime: 10 * 60 * 1000, // 10 minutes (renamed from cacheTime)
-      refetchOnWindowFocus: false,
-    },
-  },
-});
+const queryClient = new QueryClient();
 
 const AppContent = () => {
   console.log('AppContent rendering, pathname:', window.location.pathname);
@@ -41,107 +30,105 @@ const AppContent = () => {
   console.log('About to render Routes');
   
   return (
-    <DataIsolationWrapper enableLogging={process.env.NODE_ENV === 'development'}>
-      <Routes>
-        <Route path="/auth" element={<Auth />} />
-        <Route path="/admin" element={<AdminAuth />} />
-        
-        <Route path="/company-selection" element={
-          <ProtectedRoute>
-            <CompanySelection />
-          </ProtectedRoute>
-        } />
-        <Route path="/company/:slug" element={<CompanyDashboard />} />
-        <Route path="/" element={
-          <>
-            {console.log('Root route "/" matched, rendering Landing')}
-            {(() => {
-              console.log('Inline component executing');
-              const { user, profile, companies, loading } = useAuth();
-              console.log('Inline auth state:', { user: !!user, profile: !!profile, companies: companies.length, loading });
-              
-              if (loading) {
-                return (
-                  <div className="min-h-screen flex items-center justify-center">
-                    <div className="text-center">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-                      <p>Loading...</p>
-                    </div>
+    <Routes>
+      <Route path="/auth" element={<Auth />} />
+      <Route path="/admin" element={<AdminAuth />} />
+      
+      <Route path="/company-selection" element={
+        <ProtectedRoute>
+          <CompanySelection />
+        </ProtectedRoute>
+      } />
+      <Route path="/company/:slug" element={<CompanyDashboard />} />
+      <Route path="/" element={
+        <>
+          {console.log('Root route "/" matched, rendering Landing')}
+          {(() => {
+            console.log('Inline component executing');
+            const { user, profile, companies, loading } = useAuth();
+            console.log('Inline auth state:', { user: !!user, profile: !!profile, companies: companies.length, loading });
+            
+            if (loading) {
+              return (
+                <div className="min-h-screen flex items-center justify-center">
+                  <div className="text-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+                    <p>Loading...</p>
                   </div>
-                );
+                </div>
+              );
+            }
+            
+            if (user && profile && profile.company_id && companies.length > 0) {
+              const currentCompany = companies.find(c => c.id === profile.company_id);
+              if (currentCompany) {
+                const slug = ('slug' in currentCompany && currentCompany.slug) || 
+                           currentCompany.name.toLowerCase().replace(/\s+/g, '-');
+                console.log('Redirecting to company dashboard:', slug);
+                return <Navigate to={`/company/${slug}`} replace />;
               }
-              
-              if (user && profile && profile.company_id && companies.length > 0) {
-                const currentCompany = companies.find(c => c.id === profile.company_id);
-                if (currentCompany) {
-                  const slug = ('slug' in currentCompany && currentCompany.slug) || 
-                               currentCompany.name.toLowerCase().replace(/\s+/g, '-');
-                  console.log('Redirecting to company dashboard:', slug);
-                  return <Navigate to={`/company/${slug}`} replace />;
-                }
-              }
-              
-              console.log('Redirecting to company selection');
-              return <Navigate to="/company-selection" replace />;
-            })()}
+            }
+            
+            console.log('Redirecting to company selection');
+            return <Navigate to="/company-selection" replace />;
+          })()}
+        </>
+      } />
+      <Route path="/meetings" element={
+        <ProtectedRoute requireCompany>
+          <>
+            <Navigation />
+            <Meetings />
           </>
-        } />
-        <Route path="/meetings" element={
-          <ProtectedRoute requireCompany>
-            <>
-              <Navigation />
-              <Meetings />
-            </>
-          </ProtectedRoute>
-        } />
-        <Route path="/inspection" element={
-          <ProtectedRoute requireCompany>
-            <Inspection />
-          </ProtectedRoute>
-        } />
-        <Route path="/reports" element={
-          <ProtectedRoute requireCompany>
-            <>
-              <Navigation />
-              <Reports />
-            </>
-          </ProtectedRoute>
-        } />
-        <Route path="/quarterly-report" element={
-          <ProtectedRoute requireCompany>
-            <QuarterlyReport />
-          </ProtectedRoute>
-        } />
-        <Route path="/report-builder" element={
-          <ProtectedRoute requireCompany>
-            <ReportBuilder />
-          </ProtectedRoute>
-        } />
-        <Route path="/settings" element={
-          <ProtectedRoute requireCompany>
-            <>
-              <Navigation />
-              <Settings />
-            </>
-          </ProtectedRoute>
-        } />
-        {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-    </DataIsolationWrapper>
+        </ProtectedRoute>
+      } />
+      <Route path="/inspection" element={
+        <ProtectedRoute requireCompany>
+          <Inspection />
+        </ProtectedRoute>
+      } />
+      <Route path="/reports" element={
+        <ProtectedRoute requireCompany>
+          <>
+            <Navigation />
+            <Reports />
+          </>
+        </ProtectedRoute>
+      } />
+      <Route path="/quarterly-report" element={
+        <ProtectedRoute requireCompany>
+          <QuarterlyReport />
+        </ProtectedRoute>
+      } />
+      <Route path="/report-builder" element={
+        <ProtectedRoute requireCompany>
+          <ReportBuilder />
+        </ProtectedRoute>
+      } />
+      <Route path="/settings" element={
+        <ProtectedRoute requireCompany>
+          <>
+            <Navigation />
+            <Settings />
+          </>
+        </ProtectedRoute>
+      } />
+      {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+      <Route path="*" element={<NotFound />} />
+    </Routes>
   );
 };
 
 const App = () => (
-  <TooltipProvider>
-    <AuthProvider>
-      <SecureDataProvider queryClient={queryClient}>
+  <QueryClientProvider client={queryClient}>
+    <TooltipProvider>
+      <AuthProvider>
         <BrowserRouter>
           <AppContent />
         </BrowserRouter>
-      </SecureDataProvider>
-    </AuthProvider>
-  </TooltipProvider>
+      </AuthProvider>
+    </TooltipProvider>
+  </QueryClientProvider>
 );
 
 export default App;
