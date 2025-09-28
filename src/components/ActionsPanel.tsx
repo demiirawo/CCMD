@@ -51,43 +51,48 @@ export function ActionsPanel({
   
   // Process all actions from subsections
   const processedActions = useMemo(() => {
+    console.log('ActionsPanel: Processing actions from sections:', sections.length);
     const actions: ProcessedAction[] = [];
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
     sections.forEach(section => {
       section.items.forEach(item => {
-        item.actions.forEach(action => {
-          // For now, assume actions are completed if they're older than due date
-          // In a real implementation, you'd have a completion status
-          const isCompleted = false; // ActionItem doesn't have completion status yet
-          
-          // Determine if this is the current user's action
-          // Since ActionItem doesn't have assignee, we'll use a simple heuristic
-          const isMyAction = currentUserName ? 
-            action.description.toLowerCase().includes(currentUserName.toLowerCase()) ||
-            action.name.toLowerCase().includes(currentUserName.toLowerCase()) : false;
+        if (item.actions && item.actions.length > 0) {
+          console.log(`ActionsPanel: Found ${item.actions.length} actions in ${section.title} -> ${item.title}`);
+          item.actions.forEach(action => {
+            // For now, assume actions are completed if they're older than due date
+            // In a real implementation, you'd have a completion status
+            const isCompleted = false; // ActionItem doesn't have completion status yet
+            
+            // Determine if this is the current user's action
+            // Since ActionItem doesn't have assignee, we'll use a simple heuristic
+            const isMyAction = currentUserName ? 
+              action.description.toLowerCase().includes(currentUserName.toLowerCase()) ||
+              action.name.toLowerCase().includes(currentUserName.toLowerCase()) : false;
 
-          // Check if action is within last 30 days (for old actions)
-          let isWithinLast30Days = true;
-          if (action.targetDate) {
-            const targetDate = new Date(action.targetDate);
-            isWithinLast30Days = targetDate >= thirtyDaysAgo;
-          }
+            // Check if action is within last 30 days (for old actions)
+            let isWithinLast30Days = true;
+            if (action.targetDate) {
+              const targetDate = new Date(action.targetDate);
+              isWithinLast30Days = targetDate >= thirtyDaysAgo;
+            }
 
-          actions.push({
-            ...action,
-            sectionTitle: section.title,
-            itemTitle: item.title,
-            isMyAction,
-            isWithinLast30Days,
-            isCompleted,
-            assignedTo: isMyAction ? currentUserName : 'Office Team'
+            actions.push({
+              ...action,
+              sectionTitle: section.title,
+              itemTitle: item.title,
+              isMyAction,
+              isWithinLast30Days,
+              isCompleted,
+              assignedTo: isMyAction ? currentUserName : 'Office Team'
+            });
           });
-        });
+        }
       });
     });
 
+    console.log('ActionsPanel: Total processed actions:', actions.length);
     return actions;
   }, [sections, currentUserName]);
 

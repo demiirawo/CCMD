@@ -1517,6 +1517,7 @@ const Index = () => {
           sections={dashboardData.sections}
           attendees={headerData.attendees}
           currentUserName={profile?.username || undefined}
+          key={`actions-panel-${JSON.stringify(dashboardData.sections.map(s => s.items.map(i => i.actions).flat()).flat().map(a => a.id)).slice(0, 50)}`}
         />
         </div>
       </div>
