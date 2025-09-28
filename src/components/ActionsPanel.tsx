@@ -1,10 +1,10 @@
-import { useMemo } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
-import { Users, User, CheckCircle, Clock } from "lucide-react";
+import { Users, User, CheckCircle, Clock, ChevronDown, ChevronRight } from "lucide-react";
 import { StatusType } from "@/components/StatusBadge";
 import { ActionItem } from "@/components/ActionForm";
 import { Attendee } from "@/components/TeamAttendeesDisplay";
+import { cn } from "@/lib/utils";
 
 interface ActionsPanelProps {
   sections: Array<{
@@ -23,6 +23,8 @@ interface ActionsPanelProps {
   }>;
   attendees: Attendee[];
   currentUserName?: string;
+  defaultOpen?: boolean;
+  forceOpen?: boolean;
 }
 
 interface ProcessedAction extends ActionItem {
@@ -34,7 +36,15 @@ interface ProcessedAction extends ActionItem {
   assignedTo?: string;
 }
 
-export function ActionsPanel({ sections, attendees, currentUserName }: ActionsPanelProps) {
+export function ActionsPanel({ 
+  sections, 
+  attendees, 
+  currentUserName, 
+  defaultOpen = false, 
+  forceOpen = false 
+}: ActionsPanelProps) {
+  const [isOpen, setIsOpen] = useState(defaultOpen);
+  
   // Process all actions from subsections
   const processedActions = useMemo(() => {
     const actions: ProcessedAction[] = [];
@@ -150,61 +160,87 @@ export function ActionsPanel({ sections, attendees, currentUserName }: ActionsPa
     </div>
   );
 
+  const shouldBeOpen = forceOpen || isOpen;
+
   return (
-    <Card className="w-full">
-      <CardHeader className="pb-4">
-        <CardTitle className="flex items-center gap-2">
+    <div className="bg-background rounded-lg border border-border shadow-sm">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        disabled={forceOpen}
+        className={cn(
+          "w-full flex items-center justify-between p-4 text-left transition-colors",
+          "hover:bg-muted/50 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+          forceOpen && "cursor-default"
+        )}
+      >
+        <div className="flex items-center gap-3">
           <CheckCircle className="w-5 h-5 text-primary" />
-          Actions Summary
-        </CardTitle>
-        <p className="text-sm text-muted-foreground">
-          Real-time summary of all actions from subsections
-        </p>
-      </CardHeader>
-      
-      <CardContent className="space-y-6">
-        <div className="grid md:grid-cols-2 gap-6">
-          {/* My Actions */}
-          <div className="space-y-4">
-            <h3 className="font-semibold text-base flex items-center gap-2">
-              <User className="w-4 h-4" />
-              My Actions
-            </h3>
-            
-            {renderActionsList(
-              myOpenActions, 
-              "Open Actions", 
-              <Clock className="w-4 h-4 text-amber-600" />
-            )}
-            
-            {renderActionsList(
-              myClosedActions, 
-              "Closed (Last 30 Days)", 
-              <CheckCircle className="w-4 h-4 text-green-600" />
+          <h2 className="text-lg font-semibold">Actions Summary</h2>
+        </div>
+        
+        {!forceOpen && (
+          <div className="flex items-center gap-2">
+            <Badge variant="secondary" className="text-xs">
+              {processedActions.length} total
+            </Badge>
+            {shouldBeOpen ? (
+              <ChevronDown className="w-4 h-4 text-muted-foreground" />
+            ) : (
+              <ChevronRight className="w-4 h-4 text-muted-foreground" />
             )}
           </div>
+        )}
+      </button>
 
-          {/* Office Team Actions */}
-          <div className="space-y-4">
-            <h3 className="font-semibold text-base flex items-center gap-2">
-              <Users className="w-4 h-4" />
-              Office Team Actions
-            </h3>
-            
-            {renderActionsList(
-              officeTeamOpenActions, 
-              "Open Actions", 
-              <Clock className="w-4 h-4 text-amber-600" />
-            )}
-            
-            {renderActionsList(
-              officeTeamClosedActions, 
-              "Closed (Last 30 Days)", 
-              <CheckCircle className="w-4 h-4 text-green-600" />
-            )}
+      {shouldBeOpen && (
+        <div className="px-4 pb-4 space-y-6 animate-fade-in">
+          <p className="text-sm text-muted-foreground">
+            Real-time summary of all actions from subsections
+          </p>
+          
+          <div className="grid md:grid-cols-2 gap-6">
+            {/* My Actions */}
+            <div className="space-y-4">
+              <h3 className="font-semibold text-base flex items-center gap-2">
+                <User className="w-4 h-4" />
+                My Actions
+              </h3>
+              
+              {renderActionsList(
+                myOpenActions, 
+                "Open Actions", 
+                <Clock className="w-4 h-4 text-amber-600" />
+              )}
+              
+              {renderActionsList(
+                myClosedActions, 
+                "Closed (Last 30 Days)", 
+                <CheckCircle className="w-4 h-4 text-green-600" />
+              )}
+            </div>
+
+            {/* Office Team Actions */}
+            <div className="space-y-4">
+              <h3 className="font-semibold text-base flex items-center gap-2">
+                <Users className="w-4 h-4" />
+                Office Team Actions
+              </h3>
+              
+              {renderActionsList(
+                officeTeamOpenActions, 
+                "Open Actions", 
+                <Clock className="w-4 h-4 text-amber-600" />
+              )}
+              
+              {renderActionsList(
+                officeTeamClosedActions, 
+                "Closed (Last 30 Days)", 
+                <CheckCircle className="w-4 h-4 text-green-600" />
+              )}
+            </div>
           </div>
         </div>
-      </CardContent>
-    </Card>
+      )}
+    </div>
   );
 }
