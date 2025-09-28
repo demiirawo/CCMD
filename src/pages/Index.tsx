@@ -8,7 +8,7 @@ import { useMeetingEmailNotification } from "@/hooks/useMeetingEmailNotification
 import { clearCompanyData, getTabId } from "@/utils/dataIsolationUtils";
 import { Attendee } from "@/components/TeamAttendeesDisplay";
 import { DashboardSection } from "@/components/DashboardSection";
-import { ActionsLog } from "@/components/ActionsLog";
+import { ActionsLog, ActionLogEntry } from "@/components/ActionsLog";
 import { KeyDocumentTracker, DocumentData } from "@/components/KeyDocumentTracker";
 import { StatusItemData } from "@/components/StatusItem";
 import { ActionItem } from "@/components/ActionForm";
@@ -59,7 +59,7 @@ const Index = () => {
       return newId;
     }
   });
-  
+  const [actionsLog, setActionsLog] = useState<ActionLogEntry[]>([]);
   const [allSectionsExpanded, setAllSectionsExpanded] = useState<boolean | undefined>(undefined);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -143,7 +143,32 @@ const Index = () => {
       console.error('Error updating temporary analytics data:', error);
     }
   };
-  // Actions log functionality removed - actions now come from subsections
+  // Reset actions log function
+  const resetActionsLog = async () => {
+    try {
+      // Clear local state
+      setActionsLog([]);
+
+      // Clear from database by updating all meetings to have empty actions_log
+      const {
+        error
+      } = await supabase.from('meetings').update({
+        actions_log: []
+      }).not('id', 'is', null);
+      if (error) throw error;
+      toast({
+        title: "Actions Log Reset",
+        description: "All actions have been cleared successfully"
+      });
+    } catch (error) {
+      console.error('Error resetting actions log:', error);
+      toast({
+        title: "Error",
+        description: "Failed to reset actions log",
+        variant: "destructive"
+      });
+    }
+  };
   const [keyDocuments, setKeyDocuments] = useState<DocumentData[]>([]);
   const [headerData, setHeaderData] = useState({
     date: (() => {
@@ -288,7 +313,45 @@ const Index = () => {
     loadHeaderData();
   }, [profile?.company_id]);
 
-  // Actions log loading removed - actions now come from subsections
+  // Load actions log from database on component mount
+  useEffect(() => {
+    const loadActionsLog = async () => {
+      if (!profile?.company_id) return;
+      try {
+        const {
+          data,
+          error
+        } = await supabase.from('actions_log').select('*').eq('company_id', profile.company_id).order('created_at', {
+          ascending: false
+        });
+        if (error) {
+          console.error('Error loading actions log:', error);
+          return;
+        }
+        if (data && data.length > 0) {
+          const actions = data.map(record => ({
+            id: record.action_id,
+            timestamp: record.timestamp,
+            itemTitle: record.item_title,
+            mentionedAttendee: record.mentioned_attendee,
+            comment: record.comment,
+            action: record.action_text,
+            dueDate: record.due_date,
+            status: record.status as "green" | "amber" | "red",
+            closed: record.closed,
+            closedDate: record.closed_date || undefined,
+            sourceType: record.source_type as "manual" | "document",
+            sourceId: record.source_id || undefined,
+            auditTrail: record.audit_trail as any || []
+          }));
+          setActionsLog(actions);
+        }
+      } catch (error) {
+        console.error('Failed to load actions log:', error);
+      }
+    };
+    loadActionsLog();
+  }, [profile?.company_id]);
 
   // Load key documents from database on component mount
   useEffect(() => {
@@ -937,8 +1000,179 @@ const Index = () => {
       description: "Subsection details have been saved"
     });
   };
-  // Action handling removed - actions are now managed directly in subsections
-  // Action deletion removed - actions are now managed directly in subsections
+  const handleActionCreated = async (itemTitle: string, mentionedAttendee: string, comment: string, action: string, dueDate: string, subsectionActionId?: string) => {
+    console.log('Index: handleActionCreated called with meetingIds:', {
+      currentMeetingId,
+      tempMeetingId
+    });
+    const actionId = subsectionActionId || `action-${Date.now()}`;
+    const newAction: ActionLogEntry = {
+      id: actionId,
+      timestamp: new Date().toLocaleString(),
+      itemTitle,
+      mentionedAttendee,
+      comment,
+      action,
+      dueDate,
+      status: "green",
+      closed: false,
+      sourceType: "manual",
+      sourceId: subsectionActionId ? `subsection-${itemTitle}` : undefined
+    };
+    console.log('Index: Action created:', newAction);
+    console.log('Index: Current actions log before adding:', actionsLog);
+    setActionsLog(prev => {
+      const newLog = [newAction, ...prev];
+      console.log('Index: New actions log after adding:', newLog);
+      return newLog;
+    });
+    console.log('Index: meetingIds after setActionsLog:', {
+      currentMeetingId,
+      tempMeetingId
+    });
+
+    // Save action to database immediately
+    if (profile?.company_id) {
+      try {
+        const {
+          error
+        } = await supabase.from('actions_log').upsert({
+          company_id: profile.company_id,
+          action_id: actionId,
+          timestamp: newAction.timestamp,
+          item_title: itemTitle,
+          mentioned_attendee: mentionedAttendee,
+          comment: comment,
+          action_text: action,
+          due_date: dueDate,
+          status: "green",
+          closed: false,
+          source_type: "manual",
+          source_id: subsectionActionId ? `subsection-${itemTitle}` : ''
+        }, {
+          onConflict: 'company_id,action_id'
+        });
+        if (error) {
+          console.error('Error saving action to database:', error);
+        }
+      } catch (error) {
+        console.error('Failed to save action to database:', error);
+      }
+    }
+    toast({
+      title: "Action Created",
+      description: `Action assigned to @${mentionedAttendee} for ${itemTitle} and saved`
+    });
+  };
+  const handleActionComplete = async (actionId: string) => {
+    // Mark action as complete in actions log
+    setActionsLog(prev => prev.map(action => action.id === actionId ? {
+      ...action,
+      closed: true,
+      closedDate: new Date().toISOString()
+    } : action));
+
+    // Also remove the same action from subsections (actions disappear when completed)
+    setDashboardData(prev => ({
+      ...prev,
+      sections: prev.sections.map(section => ({
+        ...section,
+        items: section.items.map(item => ({
+          ...item,
+          actions: item.actions.filter(action => action.id !== actionId)
+        }))
+      }))
+    }));
+
+    // Update action in database immediately
+    if (profile?.company_id) {
+      try {
+        const {
+          error
+        } = await supabase.from('actions_log').update({
+          closed: true,
+          closed_date: new Date().toISOString()
+        }).eq('company_id', profile.company_id).eq('action_id', actionId);
+        if (error) {
+          console.error('Error updating action completion in database:', error);
+        }
+      } catch (error) {
+        console.error('Failed to update action completion in database:', error);
+      }
+    }
+    toast({
+      title: "Action Completed",
+      description: "Action has been marked as complete and removed from subsection"
+    });
+  };
+
+  const handleActionUndo = async (actionId: string) => {
+    const actionToUndo = actionsLog.find(action => action.id === actionId);
+    if (!actionToUndo) return;
+
+    const updatedAction = {
+      ...actionToUndo,
+      closed: false,
+      closedDate: undefined,
+      auditTrail: [
+        ...(actionToUndo.auditTrail || []),
+        {
+          timestamp: new Date().toLocaleString('en-GB'),
+          change: `Action reopened by ${profile?.username || 'Unknown user'}`
+        }
+      ]
+    };
+
+    // Update local state
+    const updatedActions = actionsLog.map(action => 
+      action.id === actionId ? updatedAction : action
+    );
+    setActionsLog(updatedActions);
+
+    // Update database
+    const { error } = await supabase
+      .from('actions_log')
+      .update({ 
+        closed: false,
+        closed_date: null,
+        audit_trail: updatedAction.auditTrail as any
+      })
+      .eq('action_id', actionId)
+      .eq('company_id', profile?.company_id);
+
+    if (error) {
+      console.error('Error undoing action:', error);
+      toast({
+        title: "Error",
+        description: "Failed to reopen action",
+        variant: "destructive",
+      });
+      // Revert the local state on error
+      setActionsLog(actionsLog);
+    } else {
+      toast({
+        title: "Action Reopened",
+        description: "Action has been reopened",
+      });
+    }
+  };
+  const handleActionDelete = async (actionId: string) => {
+    // Remove action from actions log
+    setActionsLog(prev => prev.filter(action => action.id !== actionId));
+
+    // Also remove the same action from subsections
+    setDashboardData(prev => ({
+      ...prev,
+      sections: prev.sections.map(section => ({
+        ...section,
+        items: section.items.map(item => ({
+          ...item,
+          actions: item.actions.filter(action => action.id !== actionId)
+        }))
+      }))
+    }));
+
+    // Delete action from database immediately
     if (profile?.company_id) {
       try {
         const {
@@ -956,8 +1190,346 @@ const Index = () => {
       description: "Action has been removed from both Actions Log and subsections"
     });
   };
-  
-  // All action handlers removed - actions are now display-only from subsections
+  const handleActionEdit = async (actionId: string, updates: {
+    comment?: string;
+    dueDate?: string;
+    owner?: string;
+    action?: string;
+  }) => {
+    const timestamp = new Date().toLocaleString('en-GB', {
+      day: '2-digit',
+      month: 'short',
+      year: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+
+    // Update action in Actions Log
+    setActionsLog(prev => prev.map(action => {
+      if (action.id !== actionId) return action;
+      const updatedAction = {
+        ...action
+      };
+      const auditEntries: import("@/components/ActionsLog").AuditEntry[] = action.auditTrail || [];
+
+      // Add comment to audit trail
+      if (updates.comment) {
+        auditEntries.push({
+          timestamp,
+          change: `Audit Comment Added`,
+          user: profile?.username || "Unknown"
+        });
+      }
+
+      // Update action text and add to audit trail
+      if (updates.action && updates.action !== action.action) {
+        auditEntries.push({
+          timestamp,
+          change: `Action Description Changed`,
+          user: profile?.username || "Unknown"
+        });
+        updatedAction.action = updates.action;
+      }
+
+      // Update due date and add to audit trail
+      if (updates.dueDate && updates.dueDate !== action.dueDate) {
+        auditEntries.push({
+          timestamp,
+          change: `Action Due Date Changed`,
+          user: profile?.username || "Unknown"
+        });
+        updatedAction.dueDate = updates.dueDate;
+      }
+
+      // Update owner and add to audit trail
+      if (updates.owner && updates.owner !== action.mentionedAttendee) {
+        auditEntries.push({
+          timestamp,
+          change: `Action Owner Changed`,
+          user: profile?.username || "Unknown"
+        });
+        updatedAction.mentionedAttendee = updates.owner;
+      }
+      updatedAction.auditTrail = auditEntries;
+      return updatedAction;
+    }));
+
+    // Update action in database immediately
+    if (profile?.company_id) {
+      try {
+        const updateData: any = {};
+        if (updates.dueDate) {
+          updateData.due_date = updates.dueDate;
+        }
+        if (updates.owner) {
+          updateData.mentioned_attendee = updates.owner;
+        }
+        if (updates.action) {
+          updateData.action_text = updates.action;
+        }
+        // Add audit trail update
+        const currentAction = actionsLog.find(a => a.id === actionId);
+        const newAuditTrail = [...(currentAction?.auditTrail || [])];
+        if (updates.comment) {
+          newAuditTrail.push({
+            timestamp,
+            change: `Audit Comment Added`,
+            user: profile?.username || "Unknown"
+          });
+        }
+        if (updates.action && currentAction && updates.action !== currentAction.action) {
+          newAuditTrail.push({
+            timestamp,
+            change: `Action Description Changed`,
+            user: profile?.username || "Unknown"
+          });
+        }
+        if (updates.dueDate && currentAction && updates.dueDate !== currentAction.dueDate) {
+          newAuditTrail.push({
+            timestamp,
+            change: `Action Due Date Changed`,
+            user: profile?.username || "Unknown"
+          });
+        }
+        if (updates.owner && currentAction && updates.owner !== currentAction.mentionedAttendee) {
+          newAuditTrail.push({
+            timestamp,
+            change: `Action Owner Changed`,
+            user: profile?.username || "Unknown"
+          });
+        }
+        updateData.audit_trail = newAuditTrail;
+        const {
+          error
+        } = await supabase.from('actions_log').update(updateData).eq('company_id', profile.company_id).eq('action_id', actionId);
+        if (error) {
+          console.error('Error updating action in database:', error);
+        }
+      } catch (error) {
+        console.error('Failed to update action in database:', error);
+      }
+    }
+
+    // Sync the same changes to subsection actions using the same actionId
+    setDashboardData(prev => ({
+      ...prev,
+      sections: prev.sections.map(section => ({
+        ...section,
+        items: section.items.map(item => ({
+          ...item,
+          actions: item.actions.map(action => {
+            if (action.id !== actionId) return action;
+            const updatedAction = {
+              ...action
+            };
+            const auditEntries: import("@/components/ActionsLog").AuditEntry[] = action.auditTrail || [];
+
+            // Add comment to audit trail
+            if (updates.comment) {
+              auditEntries.push({
+                timestamp,
+                change: `Audit Comment Added`,
+                user: profile?.username || "Unknown"
+              });
+            }
+
+            // Update action text and add to audit trail
+            if (updates.action && updates.action !== action.description) {
+              auditEntries.push({
+                timestamp,
+                change: `Action Description Changed`,
+                user: profile?.username || "Unknown"
+              });
+              updatedAction.description = updates.action;
+            }
+
+            // Update due date and add to audit trail
+            if (updates.dueDate && updates.dueDate !== action.targetDate) {
+              auditEntries.push({
+                timestamp,
+                change: `Action Due Date Changed`,
+                user: profile?.username || "Unknown"
+              });
+              updatedAction.targetDate = updates.dueDate;
+            }
+
+            // Update owner and add to audit trail
+            if (updates.owner && updates.owner !== action.name) {
+              auditEntries.push({
+                timestamp,
+                change: `Action Owner Changed`,
+                user: profile?.username || "Unknown"
+              });
+              updatedAction.name = updates.owner;
+            }
+            updatedAction.auditTrail = auditEntries;
+            return updatedAction;
+          })
+        }))
+      }))
+    }));
+    toast({
+      title: "Action Updated",
+      description: "Action has been updated and saved to database"
+    });
+  };
+  const handleSubsectionActionEdit = (sectionId: string, actionId: string, updates: {
+    comment?: string;
+    dueDate?: string;
+    owner?: string;
+  }) => {
+    const timestamp = new Date().toLocaleString('en-GB', {
+      day: '2-digit',
+      month: 'short',
+      year: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+
+    // Update the action in the subsection
+    setDashboardData(prev => ({
+      ...prev,
+      sections: prev.sections.map(section => section.id === sectionId ? {
+        ...section,
+        items: section.items.map(item => ({
+          ...item,
+          actions: item.actions.map(action => {
+            if (action.id !== actionId) return action;
+            const updatedAction = {
+              ...action
+            };
+            const auditEntries: import("@/components/ActionsLog").AuditEntry[] = action.auditTrail || [];
+
+            // Add comment to audit trail
+            if (updates.comment) {
+              auditEntries.push({
+              timestamp,
+              change: `Audit Comment Added`,
+              user: profile?.username || "Unknown"
+              });
+            }
+
+            // Update due date and add to audit trail
+            if (updates.dueDate && updates.dueDate !== action.targetDate) {
+              auditEntries.push({
+              timestamp,
+              change: `Action Due Date Changed`,
+              user: profile?.username || "Unknown"
+              });
+              updatedAction.targetDate = updates.dueDate;
+            }
+
+            // Update owner and add to audit trail
+            if (updates.owner && updates.owner !== action.name) {
+              auditEntries.push({
+              timestamp,
+              change: `Action Owner Changed`,
+              user: profile?.username || "Unknown"
+              });
+              updatedAction.name = updates.owner;
+            }
+            updatedAction.auditTrail = auditEntries;
+            return updatedAction;
+          })
+        }))
+      } : section)
+    }));
+
+    // Update the exact same action in the main Actions Log using the same ID
+    setActionsLog(prev => prev.map(action => {
+      if (action.id !== actionId) return action;
+      const updatedAction = {
+        ...action
+      };
+      const auditEntries: import("@/components/ActionsLog").AuditEntry[] = action.auditTrail || [];
+
+      // Add comment to audit trail
+      if (updates.comment) {
+        auditEntries.push({
+          timestamp,
+          change: `Audit Comment Added`,
+          user: profile?.username || "Unknown"
+        });
+      }
+
+      // Update due date and add to audit trail
+      if (updates.dueDate && updates.dueDate !== action.dueDate) {
+        auditEntries.push({
+          timestamp,
+          change: `Action Due Date Changed`,
+          user: profile?.username || "Unknown"
+        });
+        updatedAction.dueDate = updates.dueDate;
+      }
+
+      // Update owner and add to audit trail
+      if (updates.owner && updates.owner !== action.mentionedAttendee) {
+        auditEntries.push({
+          timestamp,
+          change: `Action Owner Changed`,
+          user: profile?.username || "Unknown"
+        });
+        updatedAction.mentionedAttendee = updates.owner;
+      }
+      updatedAction.auditTrail = auditEntries;
+      return updatedAction;
+    }));
+    toast({
+      title: "Action Updated",
+      description: "Action has been updated in both subsection and Actions Log"
+    });
+  };
+  const handleSubsectionActionComplete = async (actionId: string) => {
+    // Mark action as complete in main Actions Log
+    setActionsLog(prev => prev.map(action => action.id === actionId ? {
+      ...action,
+      closed: true,
+      closedDate: new Date().toISOString()
+    } : action));
+
+    // Update action in database immediately
+    if (profile?.company_id) {
+      try {
+        const {
+          error
+        } = await supabase.from('actions_log').update({
+          closed: true,
+          closed_date: new Date().toISOString()
+        }).eq('company_id', profile.company_id).eq('action_id', actionId);
+        if (error) {
+          console.error('Error updating action completion in database:', error);
+        }
+      } catch (error) {
+        console.error('Failed to update action completion in database:', error);
+      }
+    }
+    toast({
+      title: "Action Completed",
+      description: "Action has been marked as complete and saved to database"
+    });
+  };
+  const handleSubsectionActionDelete = async (actionId: string) => {
+    // Remove action from main Actions Log
+    setActionsLog(prev => prev.filter(action => action.id !== actionId));
+
+    // Delete action from database immediately
+    if (profile?.company_id) {
+      try {
+        const {
+          error
+        } = await supabase.from('actions_log').delete().eq('company_id', profile.company_id).eq('action_id', actionId);
+        if (error) {
+          console.error('Error deleting action from database:', error);
+        }
+      } catch (error) {
+        console.error('Failed to delete action from database:', error);
+      }
+    }
+    toast({
+      title: "Action Deleted",
+      description: "Action has been removed from Actions Log and database"
+    });
+  };
   const getAttendeesList = () => {
     return headerData.attendees.filter(attendee => attendee.name && attendee.name.trim() !== '') // Filter out empty names
     .map(attendee => attendee.name);
@@ -1026,7 +1598,7 @@ const Index = () => {
         attendees: JSON.stringify(headerData.attendees),
         purpose: headerData.purpose || '',
         sections: JSON.stringify(cleanSections),
-        actions_log: JSON.stringify([]), // Actions now come from subsections
+        actions_log: JSON.stringify(actionsLog),
         quarter,
         year,
         company_id: profile?.company_id
@@ -1131,7 +1703,7 @@ const Index = () => {
         title: headerData.title,
         date: meetingDate.toISOString(),
         attendees: headerData.attendees,
-        actions: [], // Actions now come from subsections
+        actions: actionsLog,
         meetingSummary: meetingSummary,
         companyName: currentCompany?.name,
         companyServices: currentCompany?.services || [],
@@ -1247,7 +1819,7 @@ const Index = () => {
   // Check if any individual panels are open
   const areAnyPanelsOpen = () => {
     const tabId = sessionStorage.getItem('__tab_id') || `tab_${Date.now()}`;
-    const actionsLogExpanded = false; // Actions log functionality removed
+    const actionsLogExpanded = JSON.parse(sessionStorage.getItem(`actions_log_expanded_${tabId}`) || 'false');
     const keyDocsExpanded = JSON.parse(sessionStorage.getItem(`key_documents_expanded_${tabId}`) || 'false');
 
     // Check if any dashboard sections are open - they default to TRUE when no storage value exists
@@ -1261,7 +1833,7 @@ const Index = () => {
   };
   const areAllPanelsClosed = () => {
     const tabId = sessionStorage.getItem('__tab_id') || `tab_${Date.now()}`;
-    const actionsLogExpanded = false; // Actions log functionality removed
+    const actionsLogExpanded = JSON.parse(sessionStorage.getItem(`actions_log_expanded_${tabId}`) || 'false');
     const keyDocsExpanded = JSON.parse(sessionStorage.getItem(`key_documents_expanded_${tabId}`) || 'false');
 
     // Check if all dashboard sections are closed
@@ -1326,8 +1898,23 @@ const Index = () => {
   };
   const todayMid = new Date(); todayMid.setHours(0,0,0,0);
 
-  // Actions status simplified since actions are now in subsections
-  const actionsStatus: StatusType = 'green'; // Default to green since actions are managed in subsections
+  // Actions overall status
+  const activeActions = actionsLog.filter(a => !a.closed);
+  const hasOverdueAction = activeActions.some(a => {
+    const d = parseDueDate(a.dueDate);
+    if (!d) return false;
+    d.setHours(0,0,0,0);
+    return d.getTime() < todayMid.getTime();
+  });
+  const hasDueSoonAction = activeActions.some(a => {
+    const d = parseDueDate(a.dueDate);
+    if (!d) return false;
+    d.setHours(0,0,0,0);
+    const diffDays = Math.ceil((d.getTime() - todayMid.getTime()) / (1000*60*60*24));
+    return diffDays >= 0 && diffDays <= 5;
+  });
+  // For top count: only show RED when overdue, otherwise GREEN (amber treated as green)
+  const actionsStatus: StatusType = hasOverdueAction ? 'red' : 'green';
 
   // Key documents overall status
   const docStatus = (nextReviewDate: string | null): StatusType => {
@@ -1401,10 +1988,10 @@ const Index = () => {
         </div>
         
         <div id="dashboard-container" className="space-y-6">
-          <DashboardHeader date={headerData.date} title={headerData.title} attendees={headerData.attendees} purpose={headerData.purpose} stats={calculateStats()} sections={dashboardData.sections} actionsLog={[]} onDataChange={canEdit ? handleDataChange : undefined} onAttendeesChange={canEdit ? handleAttendeesChange : undefined} readOnly={!canEdit} />
+          <DashboardHeader date={headerData.date} title={headerData.title} attendees={headerData.attendees} purpose={headerData.purpose} stats={calculateStats()} sections={dashboardData.sections} actionsLog={actionsLog} onDataChange={canEdit ? handleDataChange : undefined} onAttendeesChange={canEdit ? handleAttendeesChange : undefined} readOnly={!canEdit} />
           
           
-          <ActionsLog sections={dashboardData.sections} sessionId={tempMeetingId} onPanelStateChange={triggerPanelStateUpdate} panelStateTracker={panelStateTracker} />
+          <ActionsLog actions={actionsLog} onActionComplete={canEdit ? handleActionComplete : undefined} onActionDelete={canEdit ? handleActionDelete : undefined} onActionUndo={canEdit ? handleActionUndo : undefined} onResetActions={canEdit ? resetActionsLog : undefined} onActionEdit={canEdit ? handleActionEdit : undefined} attendees={getAttendeesList()} onPanelStateChange={triggerPanelStateUpdate} panelStateTracker={panelStateTracker} readOnly={!canEdit} currentUsername={profile?.username} />
           
           <KeyDocumentTracker documents={keyDocuments} onDocumentsChange={canEdit ? async newDocuments => {
           setKeyDocuments(newDocuments);
@@ -1499,6 +2086,10 @@ const Index = () => {
               onItemActionsChange={canEdit ? (itemId, actions) => handleActionsChange(section.id, itemId, actions) : undefined} 
               onItemDocumentsChange={canEdit ? (itemId, documents) => handleDocumentsChange(section.id, itemId, documents) : undefined} 
               onItemMetadataChange={canEdit ? (itemId, metadata) => handleMetadataChange(section.id, itemId, metadata) : undefined} 
+              onActionCreated={canEdit ? handleActionCreated : undefined} 
+              onSubsectionActionEdit={canEdit ? handleSubsectionActionEdit : undefined} 
+              onSubsectionActionComplete={canEdit ? handleSubsectionActionComplete : undefined} 
+              onSubsectionActionDelete={canEdit ? handleSubsectionActionDelete : undefined} 
               attendees={getAttendeesList()} 
               meetingDate={meetingDate} 
               meetingId={currentMeetingId || tempMeetingId} 
@@ -1512,7 +2103,6 @@ const Index = () => {
       </div>
     </div>
   );
-  console.log('✅ Index component render completed successfully');
-}; // End of Index component
+};
 
 export default Index;
