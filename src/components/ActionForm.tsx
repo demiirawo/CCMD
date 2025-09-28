@@ -7,9 +7,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { format, differenceInDays } from "date-fns";
 import { ActionEditDialog } from "./ActionEditDialog";
 import { useActions, ActionItem } from "../hooks/useActions";
-import { useMigrateActions } from "../hooks/useMigrateActions";
 import { useAuth } from "../hooks/useAuth";
-import { useEffect } from "react";
 
 // Export ActionItem for backward compatibility
 export type { ActionItem };
@@ -32,43 +30,18 @@ export const ActionForm = ({
   readOnly = false
 }: ActionFormProps) => {
   const { profile } = useAuth();
-  const { migrateSubsectionActions, fixSourceIds } = useMigrateActions();
   const { 
     actions, 
     loading, 
     createAction, 
     updateAction, 
     completeAction, 
-    deleteAction,
-    refetch
+    deleteAction 
   } = useActions({ 
     sessionId, 
     sourceId, 
     sourceType 
   });
-
-  // Migrate actions on first load
-  useEffect(() => {
-    console.log('ActionForm mounted with props:', { 
-      sessionId, 
-      sourceId, 
-      sourceType, 
-      itemTitle,
-      companyId: profile?.company_id 
-    });
-    
-    const migrate = async () => {
-      await fixSourceIds(); // Fix existing source_id formats first
-      await migrateSubsectionActions();
-      refetch();
-    };
-    migrate();
-  }, [migrateSubsectionActions, fixSourceIds, refetch]);
-
-  // Debug: Log when actions change
-  useEffect(() => {
-    console.log('Actions loaded for sourceId:', sourceId, 'actions:', actions);
-  }, [actions, sourceId]);
 
   const [newAction, setNewAction] = useState({
     name: "",
@@ -286,20 +259,17 @@ export const ActionForm = ({
                      <Edit className="h-4 w-4 font-bold stroke-2" />
                    </Button>
                  )}
-                  {!readOnly && (
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={() => {
-                        console.log('Complete button clicked for action:', action.id, action);
-                        completeAction(action.id);
-                      }} 
-                      className="h-8 w-8 p-0 text-gray-700 hover:bg-black/10 font-bold" 
-                      title="Mark as completed"
-                    >
-                      <Check className="h-4 w-4 font-bold stroke-2" />
-                    </Button>
-                  )}
+                 {!readOnly && (
+                   <Button 
+                     variant="ghost" 
+                     size="sm" 
+                     onClick={() => completeAction(action.id)} 
+                     className="h-8 w-8 p-0 text-gray-700 hover:bg-black/10 font-bold" 
+                     title="Mark as completed"
+                   >
+                     <Check className="h-4 w-4 font-bold stroke-2" />
+                   </Button>
+                 )}
                  {!readOnly && (
                    <Button 
                      variant="ghost" 

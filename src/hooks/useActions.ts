@@ -36,28 +36,24 @@ export const useActions = (options: UseActionsOptions = {}) => {
 
   // Fetch actions from database
   const fetchActions = useCallback(async () => {
-    if (!profile?.company_id) {
-      console.log('No company_id in profile:', profile);
-      setLoading(false);
-      return;
-    }
+    if (!profile?.company_id) return;
 
-    console.log('Fetching actions for company:', profile.company_id);
-    console.log('With filters:', { sessionId: options.sessionId, sourceId: options.sourceId, sourceType: options.sourceType });
-    
     try {
       let query = supabase
         .from('actions_log')
         .select('*')
         .eq('company_id', profile.company_id)
-        .eq('closed', false) // Only show open/active actions in subsections
         .order('due_date', { ascending: true });
 
-      if (options.sourceId && options.sourceId.trim() !== '') {
-        console.log('Applying sourceId filter:', options.sourceId);
-        // The sourceId from StatusItem is the item.id (like "medication", "care-plans") 
-        // We need to match this with actions that have this as source_id
+      // Apply filters if provided
+      if (options.sessionId) {
+        query = query.eq('session_id', options.sessionId);
+      }
+      if (options.sourceId) {
         query = query.eq('source_id', options.sourceId);
+      }
+      if (options.sourceType) {
+        query = query.eq('source_type', options.sourceType);
       }
 
       const { data, error } = await query;
@@ -72,7 +68,6 @@ export const useActions = (options: UseActionsOptions = {}) => {
         return;
       }
 
-      console.log('Fetched actions:', data);
       setActions(data || []);
     } catch (error) {
       console.error('Error fetching actions:', error);
@@ -241,8 +236,8 @@ export const useActions = (options: UseActionsOptions = {}) => {
     }
   }, [actions, profile?.username]);
 
+  // Complete action
   const completeAction = useCallback(async (actionId: string) => {
-    console.log('Attempting to complete action:', actionId);
     try {
       const { error } = await supabase
         .from('actions_log')
@@ -263,10 +258,19 @@ export const useActions = (options: UseActionsOptions = {}) => {
         return;
       }
 
-      console.log('Action completed successfully:', actionId);
-
-      // Remove the completed action from local state since we only show open actions in subsections
-      setActions(prev => prev.filter(a => a.id !== actionId));
+      // Update local state
+      setActions(prev =>
+        prev.map(a =>
+          a.id === actionId
+            ? { 
+                ...a, 
+                closed: true, 
+                closed_date: new Date().toISOString(),
+                updated_at: new Date().toISOString()
+              }
+            : a
+        )
+      );
 
       toast({
         title: "Action completed",
@@ -352,66 +356,10 @@ export const useActions = (options: UseActionsOptions = {}) => {
     }
   }, []);
 
-  // Initialize data and set up real-time subscription
+  // Initialize data
   useEffect(() => {
     fetchActions();
-
-    // Set up real-time subscription for actions_log table
-    const subscription = supabase
-      .channel('actions-realtime')
-      .on(
-        'postgres_changes',
-        {
-          event: '*', // Listen to all changes (INSERT, UPDATE, DELETE)
-          schema: 'public',
-          table: 'actions_log',
-          filter: `company_id=eq.${profile?.company_id}`
-        },
-        (payload) => {
-          console.log('Real-time action change:', payload);
-          
-          if (payload.eventType === 'INSERT') {
-            const newAction = payload.new as ActionItem;
-            // Check if this action matches our filters
-            const shouldInclude = (!options.sourceId || newAction.source_id === options.sourceId) &&
-                                 !newAction.closed; // Only show open actions in subsections
-            
-            if (shouldInclude) {
-              setActions(prev => [...prev, newAction]);
-            }
-          } else if (payload.eventType === 'UPDATE') {
-            const updatedAction = payload.new as ActionItem;
-            // If action is now closed, remove it from subsections
-            if (updatedAction.closed) {
-              setActions(prev => prev.filter(a => a.id !== updatedAction.id));
-            } else {
-              // Check if this action should be shown based on filters
-              const shouldInclude = (!options.sourceId || updatedAction.source_id === options.sourceId);
-              
-              if (shouldInclude) {
-                setActions(prev => 
-                  prev.some(a => a.id === updatedAction.id)
-                    ? prev.map(a => a.id === updatedAction.id ? updatedAction : a)
-                    : [...prev, updatedAction]
-                );
-              } else {
-                // Remove if it no longer matches filters
-                setActions(prev => prev.filter(a => a.id !== updatedAction.id));
-              }
-            }
-          } else if (payload.eventType === 'DELETE') {
-            const deletedAction = payload.old as ActionItem;
-            setActions(prev => prev.filter(a => a.id !== deletedAction.id));
-          }
-        }
-      )
-      .subscribe();
-
-    // Cleanup subscription on unmount
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [fetchActions, profile?.company_id, options.sourceId]);
+  }, [fetchActions]);
 
   return {
     actions,
