@@ -99,21 +99,46 @@ export function ActionsPanel({
     return actions;
   }, [sections, currentUserName]);
 
-  // Filter actions into categories
-  const myOpenActions = processedActions.filter(action => 
-    action.isMyAction && !action.isCompleted
+  // Helper function to sort actions by due date (soonest first)
+  const sortActionsByDueDate = (actions: ProcessedAction[]) => {
+    return [...actions].sort((a, b) => {
+      // Handle missing dates - put them at the end
+      if (!a.targetDate && !b.targetDate) return 0;
+      if (!a.targetDate) return 1;
+      if (!b.targetDate) return -1;
+      
+      // Parse dates correctly for dd/MM/yyyy format
+      const parseDate = (dateString: string): Date => {
+        if (dateString.includes('/')) {
+          const [day, month, year] = dateString.split('/');
+          return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+        }
+        return new Date(dateString);
+      };
+      
+      const dateA = parseDate(a.targetDate);
+      const dateB = parseDate(b.targetDate);
+      
+      // Sort by date ascending (soonest first)
+      return dateA.getTime() - dateB.getTime();
+    });
+  };
+
+  // Filter and sort actions into categories
+  const myOpenActions = sortActionsByDueDate(
+    processedActions.filter(action => action.isMyAction && !action.isCompleted)
   );
 
-  const myClosedActions = processedActions.filter(action => 
-    action.isMyAction && action.isCompleted && action.isWithinLast30Days
+  const myClosedActions = sortActionsByDueDate(
+    processedActions.filter(action => action.isMyAction && action.isCompleted && action.isWithinLast30Days)
   );
 
-  const officeTeamOpenActions = processedActions.filter(action => 
-    !action.isMyAction && !action.isCompleted
+  const officeTeamOpenActions = sortActionsByDueDate(
+    processedActions.filter(action => !action.isMyAction && !action.isCompleted)
   );
 
-  const officeTeamClosedActions = processedActions.filter(action => 
-    !action.isMyAction && action.isCompleted && action.isWithinLast30Days
+  const officeTeamClosedActions = sortActionsByDueDate(
+    processedActions.filter(action => !action.isMyAction && action.isCompleted && action.isWithinLast30Days)
   );
 
   console.log('ActionsPanel: Action categories:', {
