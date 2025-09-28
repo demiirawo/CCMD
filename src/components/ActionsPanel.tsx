@@ -310,7 +310,7 @@ export function ActionsPanel({
 
   return (
     <div className={cn(
-      "rounded-2xl shadow-lg -mx-8 px-14 py-6 text-white"
+      "rounded-2xl shadow-lg -mx-8 px-14 py-6 text-white min-h-[120px]"
     )} style={{ backgroundColor: '#202A38' }}>
       <div 
         className="flex items-center justify-between cursor-pointer mb-4"
