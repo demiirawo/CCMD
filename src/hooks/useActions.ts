@@ -50,6 +50,7 @@ export const useActions = (options: UseActionsOptions = {}) => {
         .from('actions_log')
         .select('*')
         .eq('company_id', profile.company_id)
+        .eq('closed', false) // Only show open/active actions in subsections
         .order('due_date', { ascending: true });
 
       if (options.sourceId && options.sourceId.trim() !== '') {
