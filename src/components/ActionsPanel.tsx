@@ -64,11 +64,12 @@ export function ActionsPanel({
             // Use the isCompleted field from the action
             const isCompleted = action.isCompleted || false;
             
+            // Extract assignee name from action.name field (which contains the assignee)
+            const assigneeName = action.name || 'Unassigned';
+            
             // Determine if this is the current user's action
-            // Since ActionItem doesn't have assignee, we'll use a simple heuristic
             const isMyAction = currentUserName ? 
-              action.description.toLowerCase().includes(currentUserName.toLowerCase()) ||
-              action.name.toLowerCase().includes(currentUserName.toLowerCase()) : false;
+              assigneeName.toLowerCase().includes(currentUserName.toLowerCase()) : false;
 
             // Check if action is within last 30 days (for completed actions)
             let isWithinLast30Days = true;
@@ -87,7 +88,7 @@ export function ActionsPanel({
               isMyAction,
               isWithinLast30Days,
               isCompleted,
-              assignedTo: isMyAction ? currentUserName : 'Office Team'
+              assignedTo: assigneeName
             });
           });
         }
