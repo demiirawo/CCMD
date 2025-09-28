@@ -7,7 +7,9 @@ import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { format, differenceInDays } from "date-fns";
 import { ActionEditDialog } from "./ActionEditDialog";
 import { useActions, ActionItem } from "../hooks/useActions";
+import { useMigrateActions } from "../hooks/useMigrateActions";
 import { useAuth } from "../hooks/useAuth";
+import { useEffect } from "react";
 
 // Export ActionItem for backward compatibility
 export type { ActionItem };
@@ -30,18 +32,29 @@ export const ActionForm = ({
   readOnly = false
 }: ActionFormProps) => {
   const { profile } = useAuth();
+  const { migrateSubsectionActions } = useMigrateActions();
   const { 
     actions, 
     loading, 
     createAction, 
     updateAction, 
     completeAction, 
-    deleteAction 
+    deleteAction,
+    refetch
   } = useActions({ 
     sessionId, 
     sourceId, 
     sourceType 
   });
+
+  // Migrate actions on first load
+  useEffect(() => {
+    const migrate = async () => {
+      await migrateSubsectionActions();
+      refetch();
+    };
+    migrate();
+  }, [migrateSubsectionActions, refetch]);
 
   const [newAction, setNewAction] = useState({
     name: "",

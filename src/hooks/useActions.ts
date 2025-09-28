@@ -45,14 +45,14 @@ export const useActions = (options: UseActionsOptions = {}) => {
         .eq('company_id', profile.company_id)
         .order('due_date', { ascending: true });
 
-      // Apply filters if provided
-      if (options.sessionId) {
+      // Only apply filters if they're specifically provided and not empty
+      if (options.sessionId && options.sessionId.trim() !== '') {
         query = query.eq('session_id', options.sessionId);
       }
-      if (options.sourceId) {
+      if (options.sourceId && options.sourceId.trim() !== '') {
         query = query.eq('source_id', options.sourceId);
       }
-      if (options.sourceType) {
+      if (options.sourceType && options.sourceType.trim() !== '') {
         query = query.eq('source_type', options.sourceType);
       }
 
