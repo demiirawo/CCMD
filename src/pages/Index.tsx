@@ -647,6 +647,15 @@ const Index = () => {
         actions: [],
         details: "",
         metadata: {}
+      }, {
+        id: "accommodation-suitability",
+        title: "Accommodation Suitability",
+        status: "green" as StatusType,
+        lastReviewed: "",
+        observation: "",
+        actions: [],
+        details: "",
+        metadata: {}
       }]
     }]
   });
