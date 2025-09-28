@@ -436,7 +436,7 @@ const Index = () => {
       }]
     }, {
       id: "staff",
-      title: "Staff",
+      title: "Staffing",
       icon: <Users className="w-6 h-6 text-purple-600" />,
       items: [{
         id: "recruitment",
