@@ -295,30 +295,38 @@ export const StatusItem = memo(({
                 <LessonsLearnedField value={item.lessonsLearned || ''} onChange={value => onLessonsLearnedChange?.(item.id, value)} readOnly={readOnly} />
               </> : <>
                 <label className="text-xs font-medium text-muted-foreground mb-1 block">ACTIONS</label>
-                <ActionForm 
-                  attendees={attendees} 
-                  sectionStatus={item.status} 
-                  sessionId={meetingId || undefined}
-                  sourceId={item.id}
-                  sourceType="manual"
-                  itemTitle={item.title}
-                  readOnly={readOnly}
-                />
+                {readOnly ? <div className="space-y-2">
+                    {item.actions.length > 0 ? item.actions.map((action, index) => <div key={index} className="p-3 border border-border/30 rounded-lg bg-muted/20">
+                          <div className="text-sm font-medium">{action.description}</div>
+                          <div className="text-xs text-muted-foreground mt-1">
+                            Assigned to: {action.name} | Due: {action.targetDate}
+                          </div>
+                        </div>) : <div className="p-3 border border-border/30 rounded-lg bg-muted/20 text-sm text-muted-foreground">
+                        No actions
+                      </div>}
+                  </div> : <ActionForm actions={item.actions} attendees={attendees} sectionStatus={item.status} onActionsChange={handleActionsChange} onActionCreated={handleActionCreated} onActionCompleted={handleActionCompleted} onActionEdit={(actionId, updates) => {
+              // Handle action edit at the section level and sync with main Actions Log
+              onSubsectionActionEdit?.(item.id, actionId, updates);
+            }} />}
               </>}
           </div>
 
           {/* Actions section for Achievements & Learning */}
           {item.id === "achievements-learning" && <div>
               <label className="text-xs font-medium text-muted-foreground mb-1 block">ACTIONS</label>
-              <ActionForm 
-                attendees={attendees} 
-                sectionStatus={item.status} 
-                sessionId={meetingId || undefined}
-                sourceId={item.id}
-                sourceType="manual"
-                itemTitle={item.title}
-                readOnly={readOnly}
-              />
+              {readOnly ? <div className="space-y-2">
+                  {item.actions.length > 0 ? item.actions.map((action, index) => <div key={index} className="p-3 border border-border/30 rounded-lg bg-muted/20">
+                        <div className="text-sm font-medium">{action.description}</div>
+                        <div className="text-xs text-muted-foreground mt-1">
+                          Assigned to: {action.name} | Due: {action.targetDate}
+                        </div>
+                      </div>) : <div className="p-3 border border-border/30 rounded-lg bg-muted/20 text-sm text-muted-foreground">
+                      No actions
+                    </div>}
+                </div> : <ActionForm actions={item.actions} attendees={attendees} sectionStatus={item.status} onActionsChange={handleActionsChange} onActionCreated={handleActionCreated} onActionCompleted={handleActionCompleted} onActionEdit={(actionId, updates) => {
+            // Handle action edit at the section level and sync with main Actions Log
+            onSubsectionActionEdit?.(item.id, actionId, updates);
+          }} />}
             </div>}
         </div>
       </div>
