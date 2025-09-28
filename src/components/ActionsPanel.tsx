@@ -126,7 +126,6 @@ export function ActionsPanel({
   const renderActionsList = (actions: ProcessedAction[], title: string, icon: React.ReactNode) => (
     <div className="space-y-3">
       <div className="flex items-center gap-2">
-        {icon}
         <h4 className="font-medium text-sm text-white">{title}</h4>
         <Badge variant="secondary" className="text-xs bg-white/20 text-white border-white/20">
           {actions.length}
