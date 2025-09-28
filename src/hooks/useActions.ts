@@ -47,7 +47,8 @@ export const useActions = (options: UseActionsOptions = {}) => {
 
       // Apply filters if provided
       if (options.sessionId) {
-        query = query.eq('session_id', options.sessionId);
+        // For session-scoped queries, include both current session AND legacy actions (null session_id)
+        query = query.or(`session_id.eq.${options.sessionId},session_id.is.null`);
       }
       if (options.sourceId) {
         query = query.eq('source_id', options.sourceId);
