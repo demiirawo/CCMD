@@ -300,6 +300,7 @@ export const useActions = (options: UseActionsOptions = {}) => {
 
   // Complete action
   const completeAction = useCallback(async (actionId: string) => {
+    console.log('completeAction called with actionId:', actionId);
     try {
       const { error } = await supabase
         .from('actions_log')
@@ -309,6 +310,8 @@ export const useActions = (options: UseActionsOptions = {}) => {
           updated_at: new Date().toISOString()
         })
         .eq('id', actionId);
+
+      console.log('Supabase update result:', { error });
 
       if (error) {
         console.error('Error completing action:', error);

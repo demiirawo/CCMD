@@ -263,7 +263,10 @@ export const ActionForm = ({
                    <Button 
                      variant="ghost" 
                      size="sm" 
-                     onClick={() => completeAction(action.id)} 
+                      onClick={() => {
+                        console.log('Complete action clicked, action.id:', action.id, 'action:', action);
+                        completeAction(action.id);
+                      }}
                      className="h-8 w-8 p-0 text-gray-700 hover:bg-black/10 font-bold" 
                      title="Mark as completed"
                    >
