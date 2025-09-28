@@ -280,17 +280,20 @@ export const ActionForm = ({
                      <Edit className="h-4 w-4 font-bold stroke-2" />
                    </Button>
                  )}
-                 {!readOnly && (
-                   <Button 
-                     variant="ghost" 
-                     size="sm" 
-                     onClick={() => completeAction(action.id)} 
-                     className="h-8 w-8 p-0 text-gray-700 hover:bg-black/10 font-bold" 
-                     title="Mark as completed"
-                   >
-                     <Check className="h-4 w-4 font-bold stroke-2" />
-                   </Button>
-                 )}
+                  {!readOnly && (
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => {
+                        console.log('Complete button clicked for action:', action.id, action);
+                        completeAction(action.id);
+                      }} 
+                      className="h-8 w-8 p-0 text-gray-700 hover:bg-black/10 font-bold" 
+                      title="Mark as completed"
+                    >
+                      <Check className="h-4 w-4 font-bold stroke-2" />
+                    </Button>
+                  )}
                  {!readOnly && (
                    <Button 
                      variant="ghost" 

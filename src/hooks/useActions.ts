@@ -52,36 +52,8 @@ export const useActions = (options: UseActionsOptions = {}) => {
         .eq('company_id', profile.company_id)
         .order('due_date', { ascending: true });
 
-      // For now, let's be less restrictive with filtering to show all actions for this company
-      // We can make it more specific later once we see the data
-      if (!options.sourceId && !options.sessionId && !options.sourceType) {
-        // If no filters specified, show all actions for this company
-        console.log('No filters specified, showing all actions for company');
-      } else {
-        // Apply filters more loosely - match the sourceId as a substring
-        if (options.sourceId && options.sourceId.trim() !== '') {
-          console.log('Applying loose sourceId filter:', options.sourceId);
-          // Try exact match first, then partial match
-          const exactQuery = supabase
-            .from('actions_log')
-            .select('*')
-            .eq('company_id', profile.company_id)
-            .eq('source_id', options.sourceId)
-            .order('due_date', { ascending: true });
-          
-          const { data: exactData } = await exactQuery;
-          
-          if (exactData && exactData.length > 0) {
-            console.log('Found exact matches:', exactData);
-            setActions(exactData);
-            setLoading(false);
-            return;
-          }
-          
-          // If no exact match, try partial match
-          query = query.or(`source_id.ilike.%${options.sourceId}%,item_title.ilike.%${options.sourceId}%`);
-        }
-      }
+      // Temporarily show all actions for the company to debug the completion issue
+      console.log('Fetching all actions for company (debug mode)');
 
       const { data, error } = await query;
 
@@ -264,8 +236,8 @@ export const useActions = (options: UseActionsOptions = {}) => {
     }
   }, [actions, profile?.username]);
 
-  // Complete action
   const completeAction = useCallback(async (actionId: string) => {
+    console.log('Attempting to complete action:', actionId);
     try {
       const { error } = await supabase
         .from('actions_log')
@@ -285,6 +257,8 @@ export const useActions = (options: UseActionsOptions = {}) => {
         });
         return;
       }
+
+      console.log('Action completed successfully:', actionId);
 
       // Update local state
       setActions(prev =>
