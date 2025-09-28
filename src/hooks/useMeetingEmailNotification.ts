@@ -41,14 +41,35 @@ interface MeetingEmailData {
 export const useMeetingEmailNotification = () => {
   const { toast } = useToast();
 
-  const sendMeetingEmails = async (meetingData: MeetingEmailData) => {
-    try {
-      console.log('🔄 Starting email notification process...');
-      console.log('📧 Meeting data:', {
-        title: meetingData.title,
-        attendeesCount: meetingData.attendees.length,
-        actionsCount: meetingData.actions.length
-      });
+      const sendMeetingEmails = async (meetingData: MeetingEmailData) => {
+        try {
+          console.log('🔄 Starting email notification process...');
+          console.log('📧 Meeting data:', {
+            title: meetingData.title,
+            attendeesCount: meetingData.attendees.length,
+            actionsCount: meetingData.actions.length,
+            hasDashboardData: !!meetingData.dashboardData,
+            sectionsCount: meetingData.dashboardData?.sections?.length || 0
+          });
+
+          // Debug dashboard sections structure
+          if (meetingData.dashboardData?.sections) {
+            console.log('📊 Dashboard sections structure:');
+            meetingData.dashboardData.sections.forEach((section, idx) => {
+              const totalActions = section.items.reduce((total, item) => total + (item.actions?.length || 0), 0);
+              console.log(`  Section ${idx}: ${section.title} - ${section.items.length} items, ${totalActions} total actions`);
+              section.items.forEach((item, itemIdx) => {
+                if (item.actions && item.actions.length > 0) {
+                  console.log(`    Item ${itemIdx}: ${item.title} - ${item.actions.length} actions`);
+                  item.actions.forEach((action, actionIdx) => {
+                    console.log(`      Action ${actionIdx}: ${action.name || 'unnamed'} - ${action.isCompleted ? 'completed' : 'open'} - due: ${action.targetDate}`);
+                  });
+                }
+              });
+            });
+          } else {
+            console.log('⚠️ No dashboard sections found in meeting data');
+          }
 
       // Extract attendee emails
       const attendeeEmails = meetingData.attendees
@@ -510,7 +531,9 @@ export const useMeetingEmailNotification = () => {
           const currentAttendee = meetingData.attendees.find(att => att.email === attendeeEmail);
           const currentAttendeeName = currentAttendee?.name || '';
           
+          console.log(`📧 Processing dashboard actions for ${attendeeEmail} (${currentAttendeeName})`);
           const processedActions = processActionsFromSections(meetingData.dashboardData.sections, currentAttendeeName);
+          console.log(`📊 Processed ${processedActions.length} total actions from dashboard sections`);
           
           const myOpenActions = processedActions.filter(action => action.isMyAction && !action.isCompleted);
           const myClosedActions = processedActions.filter(action => action.isMyAction && action.isCompleted && action.isWithinLast30Days);
@@ -525,7 +548,15 @@ export const useMeetingEmailNotification = () => {
           });
 
           if (processedActions.length === 0) {
-            return '<div style="margin-bottom: 30px;"><h3 style="color: #374151; margin-bottom: 16px;">No action items at this time</h3></div>';
+            console.log('⚠️ No actions found in dashboard sections for email');
+            return `
+              <div style="margin-bottom: 30px;">
+                <h3 style="color: #374151; margin-bottom: 16px;">Actions Summary</h3>
+                <div style="background-color: #F9FAFB; padding: 16px; border-radius: 8px; border-left: 4px solid #3B82F6;">
+                  <p style="color: #6B7280; font-style: italic;">No action items at this time</p>
+                </div>
+              </div>
+            `;
           }
 
           return `
