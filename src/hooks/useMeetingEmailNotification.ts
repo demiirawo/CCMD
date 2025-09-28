@@ -14,7 +14,21 @@ interface MeetingEmailData {
       id: string;
       title: string;
       items: Array<{
+        id: string;
+        title: string;
         status: 'green' | 'amber' | 'red' | 'na';
+        lastReviewed: string;
+        observation: string;
+        actions: Array<{
+          id: string;
+          name: string;
+          description?: string;
+          targetDate: string;
+          isCompleted: boolean;
+          completedAt?: string;
+        }>;
+        details: string;
+        metadata?: any;
         [key: string]: any;
       }>;
       [key: string]: any;
@@ -52,6 +66,91 @@ export const useMeetingEmailNotification = () => {
         });
         return;
       }
+
+      // Helper function to get overall actions status from dashboard sections
+      const getActionsOverallStatus = (sections: any[]): 'green' | 'red' => {
+        const allActions: any[] = [];
+        
+        sections.forEach(section => {
+          section.items.forEach((item: any) => {
+            if (item.actions && item.actions.length > 0) {
+              allActions.push(...item.actions);
+            }
+          });
+        });
+
+        const openActions = allActions.filter(action => !action.isCompleted);
+        const overdueActions = openActions.filter(action => {
+          if (!action.targetDate || action.targetDate === '' || action.targetDate === 'No due date') {
+            return false;
+          }
+          
+          let dueDate: Date;
+          try {
+            if (action.targetDate.includes('/')) {
+              const [day, month, year] = action.targetDate.split('/');
+              dueDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+            } else {
+              dueDate = new Date(action.targetDate);
+            }
+            
+            if (isNaN(dueDate.getTime())) {
+              return false;
+            }
+          } catch (error) {
+            return false;
+          }
+          
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          dueDate.setHours(0, 0, 0, 0);
+          
+          return dueDate < today;
+        });
+        
+        return overdueActions.length > 0 ? 'red' : 'green';
+      };
+
+      // Helper function to process actions from dashboard sections
+      const processActionsFromSections = (sections: any[], currentUserName?: string) => {
+        const processedActions: any[] = [];
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+        sections.forEach(section => {
+          section.items.forEach((item: any) => {
+            if (item.actions && item.actions.length > 0) {
+              item.actions.forEach((action: any) => {
+                const isCompleted = action.isCompleted || false;
+                const assigneeName = action.name || 'Unassigned';
+                const isMyAction = currentUserName ? 
+                  assigneeName.toLowerCase().includes(currentUserName.toLowerCase()) : false;
+
+                let isWithinLast30Days = true;
+                if (isCompleted && action.completedAt) {
+                  const completedDate = new Date(action.completedAt);
+                  isWithinLast30Days = completedDate >= thirtyDaysAgo;
+                } else if (action.targetDate) {
+                  const targetDate = new Date(action.targetDate);
+                  isWithinLast30Days = targetDate >= thirtyDaysAgo;
+                }
+
+                processedActions.push({
+                  ...action,
+                  sectionTitle: section.title,
+                  itemTitle: item.title,
+                  isMyAction,
+                  isWithinLast30Days,
+                  isCompleted,
+                  assignedTo: assigneeName
+                });
+              });
+            }
+          });
+        });
+
+        return processedActions;
+      };
 
       // Generate high-level status summary
       const generateStatusSummary = () => {
@@ -111,6 +210,16 @@ export const useMeetingEmailNotification = () => {
           });
         });
         
+        // Add Actions Summary status
+        if (meetingData.dashboardData?.sections) {
+          const actionsStatus = getActionsOverallStatus(meetingData.dashboardData.sections);
+          sectionStatusSummary.unshift({
+            title: 'Actions Summary',
+            status: statusMapping[actionsStatus],
+            updated: new Date().toLocaleDateString('en-GB')
+          });
+        }
+
         // Add Key Review Dates status if we have key documents
         if (meetingData.keyDocuments && meetingData.keyDocuments.length > 0) {
           // Calculate key documents status based on due dates
@@ -281,6 +390,49 @@ export const useMeetingEmailNotification = () => {
         });
       };
 
+      // Format dashboard actions with enhanced information
+      const formatDashboardActionSection = (actions: any[], title: string) => {
+        if (actions.length === 0) {
+          return `<div style="margin-bottom: 16px;"><h4 style="color: #374151; margin: 8px 0; font-size: 16px;">${title} (0)</h4><p style="color: #6B7280; font-style: italic;">No actions</p></div>`;
+        }
+
+        return `
+          <div style="margin-bottom: 16px;">
+            <h4 style="color: #374151; margin: 8px 0; font-size: 16px;">${title} (${actions.length})</h4>
+            <ul style="margin: 0; padding-left: 20px;">
+              ${actions.map((action: any) => {
+                const formatDateSafely = (dateString: string) => {
+                  if (!dateString) return 'No due date';
+                  try {
+                    if (dateString.includes('/')) {
+                      const [day, month, year] = dateString.split('/');
+                      const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+                      return !isNaN(date.getTime()) ? date.toLocaleDateString() : dateString;
+                    }
+                    const date = new Date(dateString);
+                    return !isNaN(date.getTime()) ? date.toLocaleDateString() : dateString;
+                  } catch (error) {
+                    return dateString;
+                  }
+                };
+
+                return `
+                  <li style="margin-bottom: 12px; color: #6B7280; line-height: 1.5;">
+                    <div style="margin-bottom: 4px;">
+                      <strong style="color: #374151;">${action.assignedTo || action.name || 'Unassigned'}</strong>
+                    </div>
+                    ${action.description ? `<div style="font-size: 14px; color: #6B7280; margin-bottom: 4px;">${action.description}</div>` : ''}
+                    <div style="font-size: 14px; color: #6B7280;">📄 From: ${action.sectionTitle} → ${action.itemTitle}</div>
+                    ${action.targetDate ? `<div style="font-size: 14px; color: #6B7280;">📅 Due: ${formatDateSafely(action.targetDate)}</div>` : ''}
+                    ${action.isCompleted && action.completedAt ? `<div style="font-size: 14px; color: #10B981;">✅ Completed: ${formatDateSafely(action.completedAt)}</div>` : ''}
+                  </li>
+                `;
+              }).join('')}
+            </ul>
+          </div>
+        `;
+      };
+
       // Format action items with categories
       const formatActionSection = (actions: any[], title: string) => {
         if (actions.length === 0) return '';
@@ -353,7 +505,43 @@ export const useMeetingEmailNotification = () => {
 
       // Function to generate personalized action items HTML for each attendee
       const generateActionItemsHtml = (attendeeEmail: string) => {
-        // Separate completed and open actions
+        // Use dashboard sections if available, otherwise fallback to legacy actions
+        if (meetingData.dashboardData?.sections) {
+          const currentAttendee = meetingData.attendees.find(att => att.email === attendeeEmail);
+          const currentAttendeeName = currentAttendee?.name || '';
+          
+          const processedActions = processActionsFromSections(meetingData.dashboardData.sections, currentAttendeeName);
+          
+          const myOpenActions = processedActions.filter(action => action.isMyAction && !action.isCompleted);
+          const myClosedActions = processedActions.filter(action => action.isMyAction && action.isCompleted && action.isWithinLast30Days);
+          const officeTeamOpenActions = processedActions.filter(action => !action.isMyAction && !action.isCompleted);
+          const officeTeamClosedActions = processedActions.filter(action => !action.isMyAction && action.isCompleted && action.isWithinLast30Days);
+
+          console.log(`📧 Dashboard Actions for ${attendeeEmail}:`, {
+            myOpen: myOpenActions.length,
+            myClosed: myClosedActions.length,
+            officeOpen: officeTeamOpenActions.length,
+            officeClosed: officeTeamClosedActions.length
+          });
+
+          if (processedActions.length === 0) {
+            return '<div style="margin-bottom: 30px;"><h3 style="color: #374151; margin-bottom: 16px;">No action items at this time</h3></div>';
+          }
+
+          return `
+            <div style="margin-bottom: 30px;">
+              <h3 style="color: #374151; margin-bottom: 16px;">Actions Summary</h3>
+              <div style="background-color: #F9FAFB; padding: 16px; border-radius: 8px; border-left: 4px solid #3B82F6;">
+                ${formatDashboardActionSection(myOpenActions, 'My Open Actions')}
+                ${formatDashboardActionSection(myClosedActions, 'My Closed Actions (Last 30 Days)')}
+                ${formatDashboardActionSection(officeTeamOpenActions, 'Office Team Open Actions')}
+                ${formatDashboardActionSection(officeTeamClosedActions, 'Office Team Closed Actions (Last 30 Days)')}
+              </div>
+            </div>
+          `;
+        }
+
+        // Fallback to legacy action processing
         const completedRecent = getRecentCompletedActions(meetingData.actions, 30);
         const openActions = meetingData.actions.filter(a => !isActionCompleted(a));
 
@@ -361,7 +549,7 @@ export const useMeetingEmailNotification = () => {
         const myOpenActions = getCurrentUserActions(attendeeEmail, openActions);
         const officeTeamOpenActions = getOfficeTeamActions(attendeeEmail, openActions);
 
-        console.log(`📧 Actions for ${attendeeEmail}:`, {
+        console.log(`📧 Legacy Actions for ${attendeeEmail}:`, {
           myOpenActions: myOpenActions.length,
           officeTeamOpenActions: officeTeamOpenActions.length,
           completedRecent: completedRecent.length,
