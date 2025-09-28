@@ -152,16 +152,20 @@ export function ActionsPanel({
   };
 
   const getActionBackgroundClass = (action: ProcessedAction) => {
+    // Always apply a background color based on status
     if (action.isCompleted) {
       return 'bg-green-50 border border-green-200'; // Completed - green background
     }
     
     if (!action.targetDate) {
-      return 'bg-white border border-gray-200'; // No due date - white background
+      return 'bg-gray-50 border border-gray-200'; // No due date - gray background
     }
     
     const dueDate = new Date(action.targetDate);
     const today = new Date();
+    today.setHours(0, 0, 0, 0); // Reset time to start of day for accurate comparison
+    dueDate.setHours(0, 0, 0, 0);
+    
     const diffTime = dueDate.getTime() - today.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     
@@ -170,7 +174,7 @@ export function ActionsPanel({
     } else if (diffDays <= 7) {
       return 'bg-amber-50 border border-amber-200'; // Due soon (within 7 days) - amber background
     } else {
-      return 'bg-white border border-gray-200'; // Future - white background
+      return 'bg-blue-50 border border-blue-200'; // Future - blue background for better distinction
     }
   };
 
