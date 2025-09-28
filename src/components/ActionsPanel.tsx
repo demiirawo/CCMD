@@ -321,7 +321,7 @@ export function ActionsPanel({
             <h3 className={cn(
               "text-xl font-bold",
               isDynamicPanelColourEnabled ? "text-white" : "text-foreground"
-            )}>Actions</h3>
+            )}>Actions Summary</h3>
           </div>
         </div>
         
