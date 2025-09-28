@@ -336,16 +336,6 @@ export const Settings = () => {
                   Ofsted (Supported Accomodation For Age 16-17)
                 </Label>
               </div>
-              <div className="flex items-center space-x-2">
-                <Checkbox 
-                  id="base_enabled" 
-                  checked={complianceSettings.base_enabled} 
-                  onCheckedChange={checked => handleComplianceChange('base_enabled', checked as boolean)} 
-                />
-                <Label htmlFor="base_enabled" className="text-sm font-normal cursor-pointer">
-                  Base
-                </Label>
-              </div>
             </div>
           </CardContent>
         </Card>
