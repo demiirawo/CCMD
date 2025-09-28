@@ -1506,47 +1506,7 @@ const Index = () => {
             readOnly={!canEdit} 
           />
           
-          
-          
-          
-          <KeyDocumentTracker documents={keyDocuments} onDocumentsChange={canEdit ? async newDocuments => {
-          setKeyDocuments(newDocuments);
-
-          // Save key documents to database immediately
-          if (profile?.company_id) {
-            try {
-              // Clear existing documents for this company
-              await supabase.from('key_documents').delete().eq('company_id', profile.company_id);
-
-              // Insert new documents
-              if (newDocuments.length > 0) {
-                const documentsToInsert = newDocuments.map(doc => ({
-                  company_id: profile.company_id,
-                  name: doc.name,
-                  status: 'missing',
-                  // Default status since KeyDocumentTracker doesn't use the status we stored
-                  due_date: doc.nextReviewDate || '',
-                  notes: `${doc.owner} | ${doc.category} | ${doc.lastReviewDate} | ${doc.reviewFrequencyNumber} ${doc.reviewFrequencyPeriod} | ${doc.updatedAt || ''}`
-                }));
-                const {
-                  error
-                } = await supabase.from('key_documents').insert(documentsToInsert);
-                if (error) {
-                  console.error('Error saving key documents:', error);
-                }
-              }
-            } catch (error) {
-              console.error('Failed to save key documents to database:', error);
-            }
-          }
-        } : undefined} 
-        attendees={getAttendeesList()} 
-        onPanelStateChange={triggerPanelStateUpdate} 
-        panelStateTracker={panelStateTracker} 
-        readOnly={!canEdit} 
-      />
-      
-      {dashboardData.sections.filter(section => {
+          {dashboardData.sections.filter(section => {
           // Always show non-meeting-overview sections except for conditional ones
           if (section.id === "meeting-overview") return false;
 
@@ -1636,8 +1596,46 @@ const Index = () => {
           );
         })}
         
+        {/* Key Document Tracker - moved above Actions Panel */}
+        <KeyDocumentTracker documents={keyDocuments} onDocumentsChange={canEdit ? async newDocuments => {
+          setKeyDocuments(newDocuments);
+
+          // Save key documents to database immediately
+          if (profile?.company_id) {
+            try {
+              // Clear existing documents for this company
+              await supabase.from('key_documents').delete().eq('company_id', profile.company_id);
+
+              // Insert new documents
+              if (newDocuments.length > 0) {
+                const documentsToInsert = newDocuments.map(doc => ({
+                  company_id: profile.company_id,
+                  name: doc.name,
+                  status: 'missing',
+                  // Default status since KeyDocumentTracker doesn't use the status we stored
+                  due_date: doc.nextReviewDate || '',
+                  notes: `${doc.owner} | ${doc.category} | ${doc.lastReviewDate} | ${doc.reviewFrequencyNumber} ${doc.reviewFrequencyPeriod} | ${doc.updatedAt || ''}`
+                }));
+                const {
+                  error
+                } = await supabase.from('key_documents').insert(documentsToInsert);
+                if (error) {
+                  console.error('Error saving key documents:', error);
+                }
+              }
+            } catch (error) {
+              console.error('Failed to save key documents to database:', error);
+            }
+          }
+        } : undefined} 
+        attendees={getAttendeesList()} 
+        onPanelStateChange={triggerPanelStateUpdate} 
+        panelStateTracker={panelStateTracker} 
+        readOnly={!canEdit} 
+        />
+        
         {/* Actions Panel - Always show at the bottom */}
-        <ActionsPanel 
+        <ActionsPanel
           sections={dashboardData.sections}
           attendees={headerData.attendees}
           currentUserName={profile?.username || undefined}
