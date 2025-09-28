@@ -1120,7 +1120,7 @@ const Index = () => {
         title: headerData.title,
         date: meetingDate.toISOString(),
         attendees: headerData.attendees,
-        actions: [],
+        actions: [], // Actions removed - using empty array
         meetingSummary: meetingSummary,
         companyName: currentCompany?.name,
         companyServices: currentCompany?.services || [],
@@ -1388,7 +1388,18 @@ const Index = () => {
         </div>
         
         <div id="dashboard-container" className="space-y-6">
-          <DashboardHeader date={headerData.date} title={headerData.title} attendees={headerData.attendees} purpose={headerData.purpose} stats={calculateStats()} sections={dashboardData.sections} actionsLog={[]} onDataChange={canEdit ? handleDataChange : undefined} onAttendeesChange={canEdit ? handleAttendeesChange : undefined} readOnly={!canEdit} />
+          <DashboardHeader 
+            date={headerData.date} 
+            title={headerData.title} 
+            attendees={headerData.attendees} 
+            purpose={headerData.purpose} 
+            stats={calculateStats()} 
+            sections={dashboardData.sections} 
+            actionsLog={[]} 
+            onDataChange={canEdit ? handleDataChange : undefined} 
+            onAttendeesChange={canEdit ? handleAttendeesChange : undefined} 
+            readOnly={!canEdit} 
+          />
           
           
           
