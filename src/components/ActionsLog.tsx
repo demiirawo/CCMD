@@ -4,6 +4,7 @@ import { StatusBadge } from "./StatusBadge";
 import { Button } from "./ui/button";
 import { ActionEditDialog } from "./ActionEditDialog";
 import { useAuth } from "@/hooks/useAuth";
+import { useActionsLog } from "@/hooks/useActionsLog";
 import { cn } from "@/lib/utils";
 
 export interface AuditEntry {
@@ -29,42 +30,37 @@ export interface ActionLogEntry {
 }
 
 interface ActionsLogProps {
-  actions: ActionLogEntry[];
-  onActionComplete?: (actionId: string) => void;
-  onActionDelete?: (actionId: string) => void;
-  onActionUndo?: (actionId: string) => void;
-  onResetActions?: () => void;
-  onActionEdit?: (actionId: string, updates: {
-    comment?: string;
-    dueDate?: string;
-    owner?: string;
-    action?: string;
-  }) => void;
   attendees?: string[];
   forceOpen?: boolean;
   onPanelStateChange?: () => void;
   panelStateTracker?: number;
   readOnly?: boolean;
   currentUsername?: string;
+  onResetActions?: () => void;
 }
 
 export const ActionsLog = ({
-  actions,
-  onActionComplete,
-  onActionDelete,
-  onActionUndo,
-  onResetActions,
-  onActionEdit,
   attendees = [],
   forceOpen,
   onPanelStateChange,
   panelStateTracker,
   readOnly = false,
-  currentUsername
+  currentUsername,
+  onResetActions
 }: ActionsLogProps) => {
   const { companies, profile } = useAuth();
   const currentCompany = companies.find(c => c.id === profile?.company_id);
   const isDynamicPanelColourEnabled = true;
+  
+  // Use the actions log hook for real-time data
+  const { 
+    actions, 
+    loading, 
+    onActionComplete, 
+    onActionDelete, 
+    onActionUndo, 
+    onActionEdit 
+  } = useActionsLog();
   
   const [isExpanded, setIsExpanded] = useState(() => {
     const tabId = sessionStorage.getItem('__tab_id') || `tab_${Date.now()}`;

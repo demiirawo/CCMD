@@ -29,7 +29,7 @@ interface DashboardHeaderProps {
       lastReviewed?: string;
     }>;
   }>;
-  actionsLog?: any[];
+  
   onDataChange?: (field: string, value: string) => void;
   onAttendeesChange?: (attendees: Attendee[]) => void;
   readOnly?: boolean;
@@ -41,7 +41,6 @@ export const DashboardHeader = ({
   purpose,
   stats,
   sections,
-  actionsLog,
   onDataChange,
   onAttendeesChange,
   readOnly = false
@@ -112,7 +111,7 @@ export const DashboardHeader = ({
         attendees,
         purpose,
         sections: sections || [],
-        actionsLog: actionsLog || [],
+        actionsLog: [],
         companyName: companies.find(c => c.id === profile?.company_id)?.name || "the organization"
       }} />
       </div>

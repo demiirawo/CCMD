@@ -76,6 +76,67 @@ export const useActions = (options: UseActionsOptions = {}) => {
     }
   }, [profile?.company_id, options.sessionId, options.sourceId, options.sourceType]);
 
+  // Set up real-time subscription
+  useEffect(() => {
+    if (!profile?.company_id) return;
+
+    const channel = supabase
+      .channel('actions_log_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'actions_log',
+          filter: `company_id=eq.${profile.company_id}`
+        },
+        (payload) => {
+          console.log('Real-time action change:', payload);
+          
+          if (payload.eventType === 'INSERT') {
+            const newAction = payload.new as ActionItem;
+            // Check if this action matches our filters
+            if ((!options.sessionId || newAction.session_id === options.sessionId) &&
+                (!options.sourceId || newAction.source_id === options.sourceId) &&
+                (!options.sourceType || newAction.source_type === options.sourceType)) {
+              setActions(prev => {
+                const exists = prev.find(a => a.id === newAction.id);
+                if (!exists) {
+                  return [...prev, newAction].sort((a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime());
+                }
+                return prev;
+              });
+            }
+          } else if (payload.eventType === 'UPDATE') {
+            const updatedAction = payload.new as ActionItem;
+            // Check if this action matches our filters
+            if ((!options.sessionId || updatedAction.session_id === options.sessionId) &&
+                (!options.sourceId || updatedAction.source_id === options.sourceId) &&
+                (!options.sourceType || updatedAction.source_type === options.sourceType)) {
+              setActions(prev => 
+                prev.map(a => 
+                  a.id === updatedAction.id 
+                    ? updatedAction 
+                    : a
+                ).sort((a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime())
+              );
+            } else {
+              // Action no longer matches filters, remove it
+              setActions(prev => prev.filter(a => a.id !== updatedAction.id));
+            }
+          } else if (payload.eventType === 'DELETE') {
+            const deletedAction = payload.old as ActionItem;
+            setActions(prev => prev.filter(a => a.id !== deletedAction.id));
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [profile?.company_id, options.sessionId, options.sourceId, options.sourceType]);
+
   // Create new action
   const createAction = useCallback(async (actionData: {
     itemTitle: string;
