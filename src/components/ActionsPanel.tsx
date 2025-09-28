@@ -161,15 +161,27 @@ export function ActionsPanel({
       return 'bg-gray-50 border border-gray-200'; // No due date - gray background
     }
     
-    const dueDate = new Date(action.targetDate);
+    // Parse date correctly for dd/MM/yyyy format
+    let dueDate: Date;
+    try {
+      if (action.targetDate.includes('/')) {
+        const [day, month, year] = action.targetDate.split('/');
+        dueDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+      } else {
+        dueDate = new Date(action.targetDate);
+      }
+      
+      // Check if date parsing failed
+      if (isNaN(dueDate.getTime())) {
+        return 'bg-gray-50 border border-gray-200'; // Invalid date - gray background
+      }
+    } catch (error) {
+      return 'bg-gray-50 border border-gray-200'; // Error parsing date - gray background
+    }
+    
     const today = new Date();
     today.setHours(0, 0, 0, 0); // Reset time to start of day for accurate comparison
     dueDate.setHours(0, 0, 0, 0);
-    
-    // Check if date parsing failed
-    if (isNaN(dueDate.getTime())) {
-      return 'bg-gray-50 border border-gray-200'; // Invalid date - gray background
-    }
     
     const diffTime = dueDate.getTime() - today.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
