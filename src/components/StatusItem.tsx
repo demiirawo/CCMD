@@ -128,8 +128,12 @@ export const StatusItem = memo(({
     onActionCreated?.(item.title, name, `Action from ${item.title}`, description, targetDate, actionId);
   }, [item.title, onActionCreated]);
   const handleActionCompleted = useCallback((actionId: string) => {
-    // Remove the completed action from the local actions
-    const updatedActions = item.actions.filter(action => action.id !== actionId);
+    // Mark the action as completed in the local actions (don't remove it)
+    const updatedActions = item.actions.map(action => 
+      action.id === actionId 
+        ? { ...action, isCompleted: true, completedAt: new Date().toISOString() }
+        : action
+    );
     onActionsChange?.(item.id, updatedActions);
 
     // Mark the action as completed in the main Actions Log

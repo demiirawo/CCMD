@@ -115,6 +115,14 @@ export function ActionsPanel({
     !action.isMyAction && action.isCompleted && action.isWithinLast30Days
   );
 
+  console.log('ActionsPanel: Action categories:', {
+    myOpen: myOpenActions.length,
+    myClosed: myClosedActions.length,
+    officeOpen: officeTeamOpenActions.length,
+    officeClosed: officeTeamClosedActions.length,
+    totalCompleted: processedActions.filter(a => a.isCompleted).length
+  });
+
   const renderActionsList = (actions: ProcessedAction[], title: string, icon: React.ReactNode) => (
     <div className="space-y-3">
       <div className="flex items-center gap-2">
