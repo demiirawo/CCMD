@@ -5,6 +5,7 @@ import { Button } from "./ui/button";
 import { ActionEditDialog } from "./ActionEditDialog";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
 
 export interface AuditEntry {
   timestamp: string;

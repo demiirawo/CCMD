@@ -352,10 +352,66 @@ export const useActions = (options: UseActionsOptions = {}) => {
     }
   }, []);
 
-  // Initialize data
+  // Initialize data and set up real-time subscription
   useEffect(() => {
     fetchActions();
-  }, [fetchActions]);
+
+    // Set up real-time subscription for actions_log table
+    const subscription = supabase
+      .channel('actions-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*', // Listen to all changes (INSERT, UPDATE, DELETE)
+          schema: 'public',
+          table: 'actions_log',
+          filter: `company_id=eq.${profile?.company_id}`
+        },
+        (payload) => {
+          console.log('Real-time action change:', payload);
+          
+          if (payload.eventType === 'INSERT') {
+            const newAction = payload.new as ActionItem;
+            // Check if this action matches our filters
+            const shouldInclude = (!options.sourceId || newAction.source_id === options.sourceId) &&
+                                 !newAction.closed; // Only show open actions in subsections
+            
+            if (shouldInclude) {
+              setActions(prev => [...prev, newAction]);
+            }
+          } else if (payload.eventType === 'UPDATE') {
+            const updatedAction = payload.new as ActionItem;
+            // If action is now closed, remove it from subsections
+            if (updatedAction.closed) {
+              setActions(prev => prev.filter(a => a.id !== updatedAction.id));
+            } else {
+              // Check if this action should be shown based on filters
+              const shouldInclude = (!options.sourceId || updatedAction.source_id === options.sourceId);
+              
+              if (shouldInclude) {
+                setActions(prev => 
+                  prev.some(a => a.id === updatedAction.id)
+                    ? prev.map(a => a.id === updatedAction.id ? updatedAction : a)
+                    : [...prev, updatedAction]
+                );
+              } else {
+                // Remove if it no longer matches filters
+                setActions(prev => prev.filter(a => a.id !== updatedAction.id));
+              }
+            }
+          } else if (payload.eventType === 'DELETE') {
+            const deletedAction = payload.old as ActionItem;
+            setActions(prev => prev.filter(a => a.id !== deletedAction.id));
+          }
+        }
+      )
+      .subscribe();
+
+    // Cleanup subscription on unmount
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [fetchActions, profile?.company_id, options.sourceId]);
 
   return {
     actions,
