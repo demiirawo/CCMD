@@ -210,34 +210,23 @@ export function ActionsPanel({
         <div className="space-y-2">
           {actions.map((action, index) => (
             <div key={`${action.id}-${index}`} className={`rounded-lg p-3 space-y-2 backdrop-blur-sm ${getActionBackgroundClass(action)}`}>
-              <div className="flex items-start justify-between gap-2">
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium text-sm text-black truncate">
-                    {action.name}
-                  </p>
-                </div>
-                <Badge 
-                  variant={action.isCompleted ? 'default' : 'secondary'}
-                  className="text-xs shrink-0 bg-white/20 text-black border-white/20"
-                >
-                  {action.isCompleted ? 'Completed' : 'Open'}
-                </Badge>
-              </div>
-              
               {action.description && (
                 <p className="text-xs text-black/70">
                   {action.description}
                 </p>
               )}
               
+              <div className="flex-1 min-w-0">
+                <p className="font-medium text-sm text-black">
+                  {action.assignedTo || 'Unassigned'}
+                </p>
+              </div>
+              
               <p className="text-xs text-black/70">
                 {action.sectionTitle} → {action.itemTitle}
               </p>
               
-              <div className="flex items-center justify-between text-xs text-black/60">
-                <span>
-                  {action.assignedTo ? `Assigned to: ${action.assignedTo}` : 'Unassigned'}
-                </span>
+              <div className="flex items-center justify-end text-xs text-black/60">
                 {action.targetDate && (
                   <span>
                     Due: {formatDateSafely(action.targetDate)}
