@@ -333,7 +333,6 @@ export function ActionsPanel({
             {/* Office Team Actions */}
             <div className="space-y-4">
               <h3 className="font-semibold text-base flex items-center gap-2 text-white">
-                <Users className="w-4 h-4" />
                 Office Team Actions
               </h3>
               
