@@ -32,7 +32,7 @@ export const ActionForm = ({
   readOnly = false
 }: ActionFormProps) => {
   const { profile } = useAuth();
-  const { migrateSubsectionActions } = useMigrateActions();
+  const { migrateSubsectionActions, fixSourceIds } = useMigrateActions();
   const { 
     actions, 
     loading, 
@@ -58,11 +58,17 @@ export const ActionForm = ({
     });
     
     const migrate = async () => {
+      await fixSourceIds(); // Fix existing source_id formats first
       await migrateSubsectionActions();
       refetch();
     };
     migrate();
-  }, [migrateSubsectionActions, refetch]);
+  }, [migrateSubsectionActions, fixSourceIds, refetch]);
+
+  // Debug: Log when actions change
+  useEffect(() => {
+    console.log('Actions loaded for sourceId:', sourceId, 'actions:', actions);
+  }, [actions, sourceId]);
 
   const [newAction, setNewAction] = useState({
     name: "",

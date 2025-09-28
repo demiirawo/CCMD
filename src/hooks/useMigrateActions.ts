@@ -38,7 +38,7 @@ export const useMigrateActions = () => {
             status: 'green',
             closed: false,
             source_type: 'manual',
-            source_id: subsection.item_id || '',
+            source_id: subsection.item_id || '', // Use the same format as the subsection item_id
             session_id: subsection.session_id || '',
             timestamp: new Date().toISOString(),
             audit_trail: action.auditTrail || []
@@ -95,5 +95,66 @@ export const useMigrateActions = () => {
     }
   }, [profile?.company_id]);
 
-  return { migrateSubsectionActions };
+  const fixSourceIds = useCallback(async () => {
+    if (!profile?.company_id) return;
+
+    console.log('Fixing source_id format for existing actions...');
+
+    const sourceIdMapping: Record<string, string> = {
+      'subsection-Service User Documents': 'service-user-docs',
+      'subsection-Care Plans & Risk Assessments': 'care-plans', 
+      'subsection-Spot Checks': 'spot-checks',
+      'subsection-Medication Management': 'medication',
+      'subsection-Care & Support Notes': 'care-notes',
+      'subsection-Call Monitoring': 'call-monitoring',
+      'subsection-Training': 'training',
+      'subsection-Resourcing': 'recruitment',
+      'subsection-Staff Meetings': 'staff-meetings',
+      'subsection-Staff Supervisions': 'staff-supervisions',
+      'subsection-Transportation': 'transportation',
+      'subsection-Risk Register': 'risk-register',
+      'subsection-Incidents, Accidents & Safeguarding': 'incidents-accidents',
+      'subsection-Staff Documents': 'staff-documents'
+    };
+
+    try {
+      // Get all actions that need source_id updates
+      const { data: actionsToUpdate, error: fetchError } = await supabase
+        .from('actions_log')
+        .select('*')
+        .eq('company_id', profile.company_id)
+        .in('source_id', Object.keys(sourceIdMapping));
+
+      if (fetchError) {
+        console.error('Error fetching actions for source_id update:', fetchError);
+        return;
+      }
+
+      for (const action of actionsToUpdate || []) {
+        const newSourceId = sourceIdMapping[action.source_id];
+        if (newSourceId) {
+          const { error: updateError } = await supabase
+            .from('actions_log')
+            .update({ source_id: newSourceId })
+            .eq('id', action.id);
+
+          if (updateError) {
+            console.error('Error updating source_id for action:', action.id, updateError);
+          } else {
+            console.log('Updated source_id for action:', action.id, 'from', action.source_id, 'to', newSourceId);
+          }
+        }
+      }
+
+      toast({
+        title: "Source IDs updated",
+        description: "Action source IDs have been standardized",
+      });
+
+    } catch (error) {
+      console.error('Error fixing source IDs:', error);
+    }
+  }, [profile?.company_id]);
+
+  return { migrateSubsectionActions, fixSourceIds };
 };

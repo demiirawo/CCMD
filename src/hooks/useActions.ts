@@ -52,10 +52,10 @@ export const useActions = (options: UseActionsOptions = {}) => {
         .eq('company_id', profile.company_id)
         .order('due_date', { ascending: true });
 
-      // Apply proper filtering to show only relevant actions for this subsection
       if (options.sourceId && options.sourceId.trim() !== '') {
         console.log('Applying sourceId filter:', options.sourceId);
-        // Try exact match first
+        // The sourceId from StatusItem is the item.id (like "medication", "care-plans") 
+        // We need to match this with actions that have this as source_id
         query = query.eq('source_id', options.sourceId);
       }
 
