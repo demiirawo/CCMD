@@ -241,40 +241,18 @@ export function ActionsPanel({
   };
 
   const getSectionBackgroundClass = (status: string) => {
-    const isHighLevelPanel = true; // Actions is a high level panel
     const baseClass = "-mx-8 px-14 py-6";
     
-    // High level panels use dynamic color based on status when enabled
-    if (isHighLevelPanel && isDynamicPanelColourEnabled) {
-      switch (status) {
-        case 'green':
-          return `bg-status-green text-white ${baseClass}`;
-        case 'amber':
-          return `bg-status-amber text-white ${baseClass}`;
-        case 'red':
-          return `bg-status-red text-white ${baseClass}`;
-        case 'na':
-          return `bg-status-na text-white ${baseClass}`;
-        default:
-          return `bg-status-green text-white ${baseClass}`;
-      }
-    }
-    
-    // High level panels use theme color background when dynamic color is disabled
-    if (isHighLevelPanel) {
-      return `bg-primary/10 ${baseClass}`;
-    }
-    
-    return `bg-white ${baseClass}`;
+    // Use custom color for actions panel
+    return `text-white ${baseClass}`;
   };
 
   const overallStatus = getOverallStatus();
 
   return (
     <div className={cn(
-      "rounded-2xl shadow-lg",
-      getSectionBackgroundClass(overallStatus)
-    )}>
+      "rounded-2xl shadow-lg -mx-8 px-14 py-6 text-white"
+    )} style={{ backgroundColor: '#202A38' }}>
       <div 
         className="flex items-center justify-between cursor-pointer mb-4"
         onClick={() => setIsOpen(!isOpen)}
