@@ -99,7 +99,7 @@ export const DashboardSection = ({
     }, {} as Record<StatusType, number>);
     
     // Special logic for major sections
-    const majorSections = ["Staff", "Care & Support", "Safety", "Continuous Improvement"];
+    const majorSections = ["Staffing", "Care & Support", "Safety", "Continuous Improvement"];
     if (majorSections.includes(title)) {
       // If any subsection is red -> make major section red
       if (applicableCounts.red > 0) return 'red';
@@ -201,7 +201,7 @@ export const DashboardSection = ({
   };
 
   const getSectionBackgroundClass = (status: string) => {
-    const isHighLevelPanel = ["Staff", "Care & Support", "Support Planning & Delivery", "Safety", "Continuous Improvement", "Key Review Dates", "Actions", "Supported Housing"].includes(title);
+    const isHighLevelPanel = ["Staffing", "Care & Support", "Support Planning & Delivery", "Safety", "Continuous Improvement", "Key Review Dates", "Actions", "Supported Housing"].includes(title);
     const baseClass = isHighLevelPanel 
       ? "-mx-8 px-14 py-6" 
       : "p-6";
@@ -262,7 +262,7 @@ export const DashboardSection = ({
         <div className="flex items-center gap-3">
           <div>
             {(() => {
-              const isHighLevelPanel = ["Staff", "Care & Support", "Support Planning & Delivery", "Safety", "Continuous Improvement", "Key Review Dates", "Actions", "Supported Housing"].includes(title);
+              const isHighLevelPanel = ["Staffing", "Care & Support", "Support Planning & Delivery", "Safety", "Continuous Improvement", "Key Review Dates", "Actions", "Supported Housing"].includes(title);
               return (
                 <>
                   <h3 className={cn(
@@ -302,7 +302,7 @@ export const DashboardSection = ({
           
           <div className="p-1 rounded-lg hover:bg-accent/50 transition-colors">
             {(() => {
-              const isHighLevelPanel = ["Staff", "Care & Support", "Support Planning & Delivery", "Safety", "Continuous Improvement", "Key Review Dates", "Actions", "Supported Housing"].includes(title);
+              const isHighLevelPanel = ["Staffing", "Care & Support", "Support Planning & Delivery", "Safety", "Continuous Improvement", "Key Review Dates", "Actions", "Supported Housing"].includes(title);
               const iconClass = cn(
                 "w-5 h-5",
                 isHighLevelPanel && isDynamicPanelColourEnabled ? "text-white/80" : "text-muted-foreground"
