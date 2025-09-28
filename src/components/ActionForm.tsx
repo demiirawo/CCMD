@@ -14,7 +14,10 @@ export interface ActionItem {
   name: string;
   description: string;
   targetDate: string;
-  auditTrail?: AuditEntry[]; // Add audit trail to ActionItem
+  auditTrail?: AuditEntry[];
+  isCompleted?: boolean;
+  completedAt?: string;
+  completedBy?: string;
 }
 interface ActionFormProps {
   actions: ActionItem[];

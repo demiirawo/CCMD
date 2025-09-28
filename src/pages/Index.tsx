@@ -881,6 +881,110 @@ const Index = () => {
       description: "Item actions have been saved"
     });
   };
+
+  const handleActionComplete = async (sectionId: string, itemId: string, actionId: string) => {
+    // Update local state - mark action as completed
+    setDashboardData(prev => ({
+      ...prev,
+      sections: prev.sections.map(section => section.id === sectionId ? {
+        ...section,
+        items: section.items.map(item => item.id === itemId ? {
+          ...item,
+          actions: item.actions.map(action => action.id === actionId ? {
+            ...action,
+            isCompleted: true,
+            completedAt: new Date().toISOString(),
+            completedBy: profile?.username || 'Unknown'
+          } : action),
+          lastReviewed: new Date().toLocaleDateString('en-GB')
+        } : item)
+      } : section)
+    }));
+
+    // Save to database immediately
+    if (profile?.company_id) {
+      try {
+        // Get updated actions for this item
+        const section = dashboardData.sections.find(s => s.id === sectionId);
+        const item = section?.items.find(i => i.id === itemId);
+        if (item) {
+          const updatedActions = item.actions.map(action => action.id === actionId ? {
+            ...action,
+            isCompleted: true,
+            completedAt: new Date().toISOString(),
+            completedBy: profile?.username || 'Unknown'
+          } : action);
+
+          const { error } = await supabase.from('subsection_data').upsert({
+            company_id: profile.company_id,
+            section_id: sectionId,
+            item_id: itemId,
+            actions: JSON.stringify(updatedActions)
+          }, {
+            onConflict: 'company_id,section_id,item_id'
+          });
+          
+          if (error) {
+            console.error('Error saving completed action:', error);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to save completed action to database:', error);
+      }
+    }
+
+    toast({
+      title: "Action Completed",
+      description: "Action has been marked as completed"
+    });
+  };
+
+  const handleActionDelete = async (sectionId: string, itemId: string, actionId: string) => {
+    // Update local state - remove action
+    setDashboardData(prev => ({
+      ...prev,
+      sections: prev.sections.map(section => section.id === sectionId ? {
+        ...section,
+        items: section.items.map(item => item.id === itemId ? {
+          ...item,
+          actions: item.actions.filter(action => action.id !== actionId),
+          lastReviewed: new Date().toLocaleDateString('en-GB')
+        } : item)
+      } : section)
+    }));
+
+    // Save to database immediately
+    if (profile?.company_id) {
+      try {
+        // Get updated actions for this item
+        const section = dashboardData.sections.find(s => s.id === sectionId);
+        const item = section?.items.find(i => i.id === itemId);
+        if (item) {
+          const updatedActions = item.actions.filter(action => action.id !== actionId);
+
+          const { error } = await supabase.from('subsection_data').upsert({
+            company_id: profile.company_id,
+            section_id: sectionId,
+            item_id: itemId,
+            actions: JSON.stringify(updatedActions)
+          }, {
+            onConflict: 'company_id,section_id,item_id'
+          });
+          
+          if (error) {
+            console.error('Error saving after action deletion:', error);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to save after action deletion to database:', error);
+      }
+    }
+
+    toast({
+      title: "Action Deleted",
+      description: "Action has been removed"
+    });
+  };
   const handleDocumentsChange = (sectionId: string, itemId: string, newDocuments: import("@/components/StatusItem").DocumentData[]) => {
     setDashboardData(prev => ({
       ...prev,
@@ -1500,8 +1604,28 @@ const Index = () => {
               onItemMetadataChange={canEdit ? (itemId, metadata) => handleMetadataChange(section.id, itemId, metadata) : undefined} 
               onActionCreated={canEdit ? handleActionCreated : undefined} 
               onSubsectionActionEdit={undefined} 
-              onSubsectionActionComplete={undefined} 
-              onSubsectionActionDelete={undefined}
+              onSubsectionActionComplete={canEdit ? (actionId: string) => {
+                // Find which section and item this action belongs to
+                for (const section of dashboardData.sections) {
+                  for (const item of section.items) {
+                    if (item.actions.some(action => action.id === actionId)) {
+                      handleActionComplete(section.id, item.id, actionId);
+                      return;
+                    }
+                  }
+                }
+              } : undefined} 
+              onSubsectionActionDelete={canEdit ? (actionId: string) => {
+                // Find which section and item this action belongs to
+                for (const section of dashboardData.sections) {
+                  for (const item of section.items) {
+                    if (item.actions.some(action => action.id === actionId)) {
+                      handleActionDelete(section.id, item.id, actionId);
+                      return;
+                    }
+                  }
+                }
+              } : undefined}
               attendees={getAttendeesList()} 
               meetingDate={meetingDate} 
               meetingId={currentMeetingId || tempMeetingId} 

@@ -61,9 +61,8 @@ export function ActionsPanel({
         if (item.actions && item.actions.length > 0) {
           console.log(`ActionsPanel: Found ${item.actions.length} actions in ${section.title} -> ${item.title}`);
           item.actions.forEach(action => {
-            // For now, assume actions are completed if they're older than due date
-            // In a real implementation, you'd have a completion status
-            const isCompleted = false; // ActionItem doesn't have completion status yet
+            // Use the isCompleted field from the action
+            const isCompleted = action.isCompleted || false;
             
             // Determine if this is the current user's action
             // Since ActionItem doesn't have assignee, we'll use a simple heuristic
@@ -71,9 +70,12 @@ export function ActionsPanel({
               action.description.toLowerCase().includes(currentUserName.toLowerCase()) ||
               action.name.toLowerCase().includes(currentUserName.toLowerCase()) : false;
 
-            // Check if action is within last 30 days (for old actions)
+            // Check if action is within last 30 days (for completed actions)
             let isWithinLast30Days = true;
-            if (action.targetDate) {
+            if (isCompleted && action.completedAt) {
+              const completedDate = new Date(action.completedAt);
+              isWithinLast30Days = completedDate >= thirtyDaysAgo;
+            } else if (action.targetDate) {
               const targetDate = new Date(action.targetDate);
               isWithinLast30Days = targetDate >= thirtyDaysAgo;
             }
