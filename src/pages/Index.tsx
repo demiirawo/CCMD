@@ -1326,23 +1326,8 @@ const Index = () => {
   };
   const todayMid = new Date(); todayMid.setHours(0,0,0,0);
 
-  // Actions overall status
-  const activeActions: any[] = []; // Actions now come from subsections
-  const hasOverdueAction = activeActions.some(a => {
-    const d = parseDueDate(a.dueDate);
-    if (!d) return false;
-    d.setHours(0,0,0,0);
-    return d.getTime() < todayMid.getTime();
-  });
-  const hasDueSoonAction = activeActions.some(a => {
-    const d = parseDueDate(a.dueDate);
-    if (!d) return false;
-    d.setHours(0,0,0,0);
-    const diffDays = Math.ceil((d.getTime() - todayMid.getTime()) / (1000*60*60*24));
-    return diffDays >= 0 && diffDays <= 5;
-  });
-  // For top count: only show RED when overdue, otherwise GREEN (amber treated as green)
-  const actionsStatus: StatusType = hasOverdueAction ? 'red' : 'green';
+  // Actions status simplified since actions are now in subsections
+  const actionsStatus: StatusType = 'green'; // Default to green since actions are managed in subsections
 
   // Key documents overall status
   const docStatus = (nextReviewDate: string | null): StatusType => {
@@ -1527,6 +1512,7 @@ const Index = () => {
       </div>
     </div>
   );
-};
+  console.log('✅ Index component render completed successfully');
+}; // End of Index component
 
 export default Index;
