@@ -49,6 +49,14 @@ export const ActionForm = ({
 
   // Migrate actions on first load
   useEffect(() => {
+    console.log('ActionForm mounted with props:', { 
+      sessionId, 
+      sourceId, 
+      sourceType, 
+      itemTitle,
+      companyId: profile?.company_id 
+    });
+    
     const migrate = async () => {
       await migrateSubsectionActions();
       refetch();

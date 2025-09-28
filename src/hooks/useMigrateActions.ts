@@ -24,6 +24,8 @@ export const useMigrateActions = () => {
 
       for (const subsection of subsections || []) {
         if (subsection.actions && Array.isArray(subsection.actions) && subsection.actions.length > 0) {
+          console.log('Migrating actions from subsection:', subsection.item_id, 'actions:', subsection.actions);
+          
           // Convert subsection actions to actions_log format
           const actionsToInsert = subsection.actions.map((action: any) => ({
             action_id: action.id || `migrated-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
@@ -42,14 +44,28 @@ export const useMigrateActions = () => {
             audit_trail: action.auditTrail || []
           }));
 
-          // Insert actions into actions_log
-          const { error: insertError } = await supabase
-            .from('actions_log')
-            .insert(actionsToInsert);
+          // Check if actions already exist in actions_log
+          for (const actionToInsert of actionsToInsert) {
+            const { data: existing } = await supabase
+              .from('actions_log')
+              .select('id')
+              .eq('action_id', actionToInsert.action_id)
+              .maybeSingle();
 
-          if (insertError) {
-            console.error('Error inserting actions:', insertError);
-            continue;
+            if (!existing) {
+              // Insert action into actions_log
+              const { error: insertError } = await supabase
+                .from('actions_log')
+                .insert(actionToInsert);
+
+              if (insertError) {
+                console.error('Error inserting action:', insertError);
+              } else {
+                console.log('Successfully migrated action:', actionToInsert.action_id);
+              }
+            } else {
+              console.log('Action already exists:', actionToInsert.action_id);
+            }
           }
 
           // Clear actions from subsection_data

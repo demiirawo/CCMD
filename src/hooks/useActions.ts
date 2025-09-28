@@ -36,8 +36,15 @@ export const useActions = (options: UseActionsOptions = {}) => {
 
   // Fetch actions from database
   const fetchActions = useCallback(async () => {
-    if (!profile?.company_id) return;
+    if (!profile?.company_id) {
+      console.log('No company_id in profile:', profile);
+      setLoading(false);
+      return;
+    }
 
+    console.log('Fetching actions for company:', profile.company_id);
+    console.log('With filters:', { sessionId: options.sessionId, sourceId: options.sourceId, sourceType: options.sourceType });
+    
     try {
       let query = supabase
         .from('actions_log')
@@ -45,15 +52,35 @@ export const useActions = (options: UseActionsOptions = {}) => {
         .eq('company_id', profile.company_id)
         .order('due_date', { ascending: true });
 
-      // Only apply filters if they're specifically provided and not empty
-      if (options.sessionId && options.sessionId.trim() !== '') {
-        query = query.eq('session_id', options.sessionId);
-      }
-      if (options.sourceId && options.sourceId.trim() !== '') {
-        query = query.eq('source_id', options.sourceId);
-      }
-      if (options.sourceType && options.sourceType.trim() !== '') {
-        query = query.eq('source_type', options.sourceType);
+      // For now, let's be less restrictive with filtering to show all actions for this company
+      // We can make it more specific later once we see the data
+      if (!options.sourceId && !options.sessionId && !options.sourceType) {
+        // If no filters specified, show all actions for this company
+        console.log('No filters specified, showing all actions for company');
+      } else {
+        // Apply filters more loosely - match the sourceId as a substring
+        if (options.sourceId && options.sourceId.trim() !== '') {
+          console.log('Applying loose sourceId filter:', options.sourceId);
+          // Try exact match first, then partial match
+          const exactQuery = supabase
+            .from('actions_log')
+            .select('*')
+            .eq('company_id', profile.company_id)
+            .eq('source_id', options.sourceId)
+            .order('due_date', { ascending: true });
+          
+          const { data: exactData } = await exactQuery;
+          
+          if (exactData && exactData.length > 0) {
+            console.log('Found exact matches:', exactData);
+            setActions(exactData);
+            setLoading(false);
+            return;
+          }
+          
+          // If no exact match, try partial match
+          query = query.or(`source_id.ilike.%${options.sourceId}%,item_title.ilike.%${options.sourceId}%`);
+        }
       }
 
       const { data, error } = await query;
@@ -68,6 +95,7 @@ export const useActions = (options: UseActionsOptions = {}) => {
         return;
       }
 
+      console.log('Fetched actions:', data);
       setActions(data || []);
     } catch (error) {
       console.error('Error fetching actions:', error);
