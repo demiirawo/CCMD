@@ -324,8 +324,8 @@ export function ActionsPanel({
              )}>Actions Summary</h3>
              {getLastUpdated() && (
                <p className={cn(
-                 "text-sm mt-1",
-                 isDynamicPanelColourEnabled ? "text-white/80" : "text-muted-foreground"
+                 "text-sm mt-1 opacity-50",
+                 isDynamicPanelColourEnabled ? "text-white/40" : "text-muted-foreground/60"
                )}>
                  Updated: {getLastUpdated()}
                </p>
