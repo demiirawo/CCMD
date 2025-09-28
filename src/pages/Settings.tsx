@@ -37,25 +37,7 @@ const hexToHsl = (hex: string): string => {
   }
   return `${Math.round(h * 360)} ${Math.round(s * 100)}% ${Math.round(l * 100)}%`;
 };
-const SERVICES = [
-  "Home Care", 
-  "Supported Housing",
-  "  - Supported Living",
-  "  - Supported Accommodation",
-  "Nursing Homes", 
-  "Mental Health Support Services", 
-  "Day Services and Community Support", 
-  "Live-in Care", 
-  "Specialist Clinical Services", 
-  "Outreach and Floating Support", 
-  "Palliative and End-of-Life Care", 
-  "Substance Misuse Support", 
-  "Reablement Services", 
-  "Short Breaks and Respite Care", 
-  "Advocacy and Independent Living Support", 
-  "Community Nursing", 
-  "Early Help and Family Support Services"
-];
+const SERVICES = ["Domiciliary (Home) Care", "Supported Housing", "Nursing Homes", "Mental Health Support Services", "Day Services and Community Support", "Live-in Care", "Specialist Clinical Services", "Outreach and Floating Support", "Palliative and End-of-Life Care", "Substance Misuse Support", "Reablement Services", "Short Breaks and Respite Care", "Advocacy and Independent Living Support", "Community Nursing", "Early Help and Family Support Services"];
 export const Settings = () => {
   const {
     user,
@@ -287,10 +269,10 @@ export const Settings = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-3 max-h-80 overflow-y-auto bg-white p-4 rounded-lg w-full">
-              {SERVICES.map(service => <div key={service} className={`flex items-center space-x-2 ${service.startsWith('  -') ? 'ml-6' : ''}`}>
+              {SERVICES.map(service => <div key={service} className="flex items-center space-x-2">
                   <Checkbox id={service} checked={selectedServices.includes(service)} onCheckedChange={checked => handleServiceChange(service, checked as boolean)} />
                   <Label htmlFor={service} className="text-sm font-normal cursor-pointer">
-                    {service.startsWith('  -') ? service.substring(4) : service}
+                    {service}
                   </Label>
                 </div>)}
             </div>
