@@ -257,15 +257,6 @@ export function ActionsPanel({
               "text-xl font-bold",
               isDynamicPanelColourEnabled ? "text-white" : "text-foreground"
             )}>Actions Summary</h3>
-            <p className={cn(
-              "text-sm mt-1",
-              isDynamicPanelColourEnabled ? "text-white/80" : "text-muted-foreground"
-            )}>
-              Updated: {getLastUpdated()}
-            </p>
-          </div>
-          <div className="ml-4">
-            <StatusBadge status={overallStatus} />
           </div>
         </div>
         
