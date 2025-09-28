@@ -143,32 +143,7 @@ const Index = () => {
       console.error('Error updating temporary analytics data:', error);
     }
   };
-  // Reset actions log function
-  const resetActionsLog = async () => {
-    try {
-      // Clear local state
-      // Actions log removed
-
-      // Clear from database by updating all meetings to have empty actions_log
-      const {
-        error
-      } = await supabase.from('meetings').update({
-        actions_log: []
-      }).not('id', 'is', null);
-      if (error) throw error;
-      toast({
-        title: "Actions Log Reset",
-        description: "All actions have been cleared successfully"
-      });
-    } catch (error) {
-      console.error('Error resetting actions log:', error);
-      toast({
-        title: "Error",
-        description: "Failed to reset actions log",
-        variant: "destructive"
-      });
-    }
-  };
+  // Actions log functionality removed - actions now come from subsections
   const [keyDocuments, setKeyDocuments] = useState<DocumentData[]>([]);
   const [headerData, setHeaderData] = useState({
     date: (() => {
@@ -313,45 +288,7 @@ const Index = () => {
     loadHeaderData();
   }, [profile?.company_id]);
 
-  // Load actions log from database on component mount
-  useEffect(() => {
-    const loadActionsLog = async () => {
-      if (!profile?.company_id) return;
-      try {
-        const {
-          data,
-          error
-        } = await supabase.from('actions_log').select('*').eq('company_id', profile.company_id).order('created_at', {
-          ascending: false
-        });
-        if (error) {
-          console.error('Error loading actions log:', error);
-          return;
-        }
-        if (data && data.length > 0) {
-          const actions = data.map(record => ({
-            id: record.action_id,
-            timestamp: record.timestamp,
-            itemTitle: record.item_title,
-            mentionedAttendee: record.mentioned_attendee,
-            comment: record.comment,
-            action: record.action_text,
-            dueDate: record.due_date,
-            status: record.status as "green" | "amber" | "red",
-            closed: record.closed,
-            closedDate: record.closed_date || undefined,
-            sourceType: record.source_type as "manual" | "document",
-            sourceId: record.source_id || undefined,
-            auditTrail: record.audit_trail as any || []
-          }));
-          // Actions log removed
-        }
-      } catch (error) {
-        console.error('Failed to load actions log:', error);
-      }
-    };
-    loadActionsLog();
-  }, [profile?.company_id]);
+  // Actions log loading removed - actions now come from subsections
 
   // Load key documents from database on component mount
   useEffect(() => {
@@ -1310,7 +1247,7 @@ const Index = () => {
   // Check if any individual panels are open
   const areAnyPanelsOpen = () => {
     const tabId = sessionStorage.getItem('__tab_id') || `tab_${Date.now()}`;
-    const actionsLogExpanded = JSON.parse(sessionStorage.getItem(`actions_log_expanded_${tabId}`) || 'false');
+    const actionsLogExpanded = false; // Actions log functionality removed
     const keyDocsExpanded = JSON.parse(sessionStorage.getItem(`key_documents_expanded_${tabId}`) || 'false');
 
     // Check if any dashboard sections are open - they default to TRUE when no storage value exists
@@ -1324,7 +1261,7 @@ const Index = () => {
   };
   const areAllPanelsClosed = () => {
     const tabId = sessionStorage.getItem('__tab_id') || `tab_${Date.now()}`;
-    const actionsLogExpanded = JSON.parse(sessionStorage.getItem(`actions_log_expanded_${tabId}`) || 'false');
+    const actionsLogExpanded = false; // Actions log functionality removed
     const keyDocsExpanded = JSON.parse(sessionStorage.getItem(`key_documents_expanded_${tabId}`) || 'false');
 
     // Check if all dashboard sections are closed
