@@ -152,9 +152,9 @@ export function ActionsPanel({
   };
 
   const getActionBackgroundClass = (action: ProcessedAction) => {
-    // Always apply a background color based on status
+    // Completed actions should be grey
     if (action.isCompleted) {
-      return 'bg-green-50 border border-green-200'; // Completed - green background
+      return 'bg-gray-50 border border-gray-200'; // Completed - grey background
     }
     
     if (!action.targetDate || action.targetDate === '' || action.targetDate === 'No due date') {
@@ -188,10 +188,10 @@ export function ActionsPanel({
     
     if (diffDays < 0) {
       return 'bg-red-50 border border-red-200'; // Overdue - red background
-    } else if (diffDays <= 7) {
-      return 'bg-amber-50 border border-amber-200'; // Due soon (within 7 days) - amber background
+    } else if (diffDays <= 5) {
+      return 'bg-amber-50 border border-amber-200'; // Due within 5 days - amber background
     } else {
-      return 'bg-blue-50 border border-blue-200'; // Future - blue background for better distinction
+      return 'bg-green-50 border border-green-200'; // Due in more than 5 days - green background
     }
   };
 
