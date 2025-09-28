@@ -352,10 +352,6 @@ export function ActionsPanel({
 
       {shouldBeOpen && (
         <div className="space-y-6">
-          <p className="text-sm text-white/80">
-            Real-time summary of all actions from subsections
-          </p>
-          
           <div className="grid md:grid-cols-2 gap-6">
             {/* My Actions */}
             <div className="space-y-4">
