@@ -38,7 +38,7 @@ const hexToHsl = (hex: string): string => {
   return `${Math.round(h * 360)} ${Math.round(s * 100)}% ${Math.round(l * 100)}%`;
 };
 const SERVICES = [
-  "Domiciliary (Home) Care", 
+  "Home Care", 
   "Supported Housing",
   "  - Supported Living",
   "  - Supported Accommodation",
@@ -287,10 +287,10 @@ export const Settings = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-3 max-h-80 overflow-y-auto bg-white p-4 rounded-lg w-full">
-              {SERVICES.map(service => <div key={service} className="flex items-center space-x-2">
+              {SERVICES.map(service => <div key={service} className={`flex items-center space-x-2 ${service.startsWith('  -') ? 'ml-6' : ''}`}>
                   <Checkbox id={service} checked={selectedServices.includes(service)} onCheckedChange={checked => handleServiceChange(service, checked as boolean)} />
                   <Label htmlFor={service} className="text-sm font-normal cursor-pointer">
-                    {service}
+                    {service.startsWith('  -') ? service.substring(4) : service}
                   </Label>
                 </div>)}
             </div>
