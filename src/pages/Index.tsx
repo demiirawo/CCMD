@@ -545,7 +545,7 @@ const Index = () => {
       }]
     }, {
       id: "safety",
-      title: "Safety",
+      title: "Risk Management",
       icon: <Shield className="w-6 h-6 text-red-600" />,
       items: [{
         id: "incidents-accidents",
