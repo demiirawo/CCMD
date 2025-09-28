@@ -39,10 +39,9 @@ const hexToHsl = (hex: string): string => {
 };
 const SERVICES = [
   "Home Care", 
-  "Supported Housing", 
-  "- Supported Living",
-  "- Supported Accommodation", 
-  "- Accommodation Suitability",
+  "Supported Housing",
+  "  - Supported Living",
+  "  - Supported Accommodation",
   "Nursing Homes", 
   "Mental Health Support Services", 
   "Day Services and Community Support", 
@@ -288,10 +287,10 @@ export const Settings = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-3 max-h-80 overflow-y-auto bg-white p-4 rounded-lg w-full">
-              {SERVICES.map(service => <div key={service} className={`flex items-center space-x-2 ${service.startsWith('- ') ? 'ml-6' : ''}`}>
+              {SERVICES.map(service => <div key={service} className={`flex items-center space-x-2 ${service.startsWith('  -') ? 'ml-6' : ''}`}>
                   <Checkbox id={service} checked={selectedServices.includes(service)} onCheckedChange={checked => handleServiceChange(service, checked as boolean)} />
                   <Label htmlFor={service} className="text-sm font-normal cursor-pointer">
-                    {service.startsWith('- ') ? service.substring(2) : service}
+                    {service.startsWith('  -') ? service.substring(4) : service}
                   </Label>
                 </div>)}
             </div>
