@@ -152,14 +152,6 @@ export function ActionsPanel({
   };
 
   const getActionBackgroundClass = (action: ProcessedAction) => {
-    // Debug logging to see what's happening
-    console.log('Action background check:', {
-      name: action.name,
-      isCompleted: action.isCompleted,
-      targetDate: action.targetDate,
-      hasTargetDate: !!action.targetDate
-    });
-    
     // Always apply a background color based on status
     if (action.isCompleted) {
       return 'bg-green-50 border border-green-200'; // Completed - green background
