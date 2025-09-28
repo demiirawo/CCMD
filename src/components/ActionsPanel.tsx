@@ -316,14 +316,22 @@ export function ActionsPanel({
         className="flex items-center justify-between cursor-pointer mb-4"
         onClick={() => setIsOpen(!isOpen)}
       >
-        <div className="flex items-center gap-3">
-          <div>
-            <h3 className={cn(
-              "text-xl font-bold",
-              isDynamicPanelColourEnabled ? "text-white" : "text-foreground"
-            )}>Actions Summary</h3>
-          </div>
-        </div>
+         <div className="flex items-center gap-3">
+           <div>
+             <h3 className={cn(
+               "text-xl font-bold",
+               isDynamicPanelColourEnabled ? "text-white" : "text-foreground"
+             )}>Actions Summary</h3>
+             {getLastUpdated() && (
+               <p className={cn(
+                 "text-sm mt-1",
+                 isDynamicPanelColourEnabled ? "text-white/80" : "text-muted-foreground"
+               )}>
+                 Updated: {getLastUpdated()}
+               </p>
+             )}
+           </div>
+         </div>
         
         <div className="flex items-center gap-2">
           <div className="p-1 rounded-lg hover:bg-accent/50 transition-colors">
