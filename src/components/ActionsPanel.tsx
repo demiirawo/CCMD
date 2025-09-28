@@ -123,6 +123,34 @@ export function ActionsPanel({
     totalCompleted: processedActions.filter(a => a.isCompleted).length
   });
 
+  // Helper function to parse and format dates correctly
+  const formatDateSafely = (dateString: string) => {
+    if (!dateString) return 'No due date';
+    
+    try {
+      // Handle dd/MM/yyyy format
+      if (dateString.includes('/')) {
+        const [day, month, year] = dateString.split('/');
+        const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+        if (!isNaN(date.getTime())) {
+          return date.toLocaleDateString();
+        }
+      }
+      
+      // Handle ISO format or other standard formats
+      const date = new Date(dateString);
+      if (!isNaN(date.getTime())) {
+        return date.toLocaleDateString();
+      }
+      
+      // If all parsing fails, return the original string
+      return dateString;
+    } catch (error) {
+      console.warn('Date parsing error:', error, 'for date:', dateString);
+      return dateString;
+    }
+  };
+
   const renderActionsList = (actions: ProcessedAction[], title: string, icon: React.ReactNode) => (
     <div className="space-y-3">
       <div className="flex items-center gap-2">
@@ -167,7 +195,7 @@ export function ActionsPanel({
                 </span>
                 {action.targetDate && (
                   <span>
-                    Due: {new Date(action.targetDate).toLocaleDateString()}
+                    Due: {formatDateSafely(action.targetDate)}
                   </span>
                 )}
               </div>
