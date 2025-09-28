@@ -264,14 +264,13 @@ export const ActionForm = ({
     onActionEdit?.(actionId, updates);
   };
   return <div className="space-y-4">
-      {/* Existing Actions - Show both completed and open actions */}
-      {actions.length > 0 && <div className="space-y-2">
-          {sortActionsByDate(actions).map(action => (
-            <div key={action.id} className={`flex items-start gap-2 p-3 rounded-lg border ${action.isCompleted ? 'bg-green-50 opacity-60' : getActionColorClass(action.targetDate)}`}>
+      {/* Existing Actions - Only show uncompleted actions */}
+      {actions.filter(action => !action.isCompleted).length > 0 && <div className="space-y-2">
+          {sortActionsByDate(actions.filter(action => !action.isCompleted)).map(action => (
+            <div key={action.id} className={`flex items-start gap-2 p-3 rounded-lg border ${getActionColorClass(action.targetDate)}`}>
               <div className="flex-1 min-w-0">
                 <div className="font-medium break-words">
                   <span className="font-bold">{action.name}</span> - {action.description}
-                  {action.isCompleted && <span className="ml-2 text-green-600 text-xs font-medium">✓ COMPLETED</span>}
                 </div>
                 <div className="text-sm opacity-80 mt-1">
                   Due: {action.targetDate} • {formatDaysRemaining(action.targetDate)}
@@ -301,20 +300,18 @@ export const ActionForm = ({
                      <Edit className="h-4 w-4 font-bold stroke-2" />
                    </Button>
                  )}
-                  {!action.isCompleted && (
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={() => {
-                        console.log('ActionForm: Attempting to complete action:', action.id);
-                        onActionCompleted?.(action.id);
-                      }} 
-                      className="h-8 w-8 p-0 text-gray-700 hover:bg-black/10 font-bold" 
-                      title="Mark as completed"
-                    >
-                      <Check className="h-4 w-4 font-bold stroke-2" />
-                    </Button>
-                  )}
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => {
+                      console.log('ActionForm: Attempting to complete action:', action.id);
+                      onActionCompleted?.(action.id);
+                    }} 
+                    className="h-8 w-8 p-0 text-gray-700 hover:bg-black/10 font-bold" 
+                    title="Mark as completed"
+                  >
+                    <Check className="h-4 w-4 font-bold stroke-2" />
+                  </Button>
                  <Button 
                    variant="ghost" 
                    size="sm" 

@@ -302,7 +302,7 @@ export const StatusItem = memo(({
               </> : <>
                 <label className="text-xs font-medium text-muted-foreground mb-1 block">ACTIONS</label>
                 {readOnly ? <div className="space-y-2">
-                    {item.actions.length > 0 ? item.actions.map((action, index) => <div key={index} className="p-3 border border-border/30 rounded-lg bg-muted/20">
+                    {item.actions.filter(action => !action.isCompleted).length > 0 ? item.actions.filter(action => !action.isCompleted).map((action, index) => <div key={index} className="p-3 border border-border/30 rounded-lg bg-muted/20">
                           <div className="text-sm font-medium">{action.description}</div>
                           <div className="text-xs text-muted-foreground mt-1">
                             Assigned to: {action.name} | Due: {action.targetDate}
