@@ -107,19 +107,30 @@ export function ActionsPanel({
     action.isMyAction && action.isCompleted && action.isWithinLast30Days
   );
 
-  const officeTeamOpenActions = processedActions.filter(action => 
-    !action.isMyAction && !action.isCompleted
+  const otherUsersActions = processedActions.filter(action => 
+    !action.isMyAction
   );
 
-  const officeTeamClosedActions = processedActions.filter(action => 
-    !action.isMyAction && action.isCompleted && action.isWithinLast30Days
-  );
+  // Group actions by assignee
+  const actionsByAssignee = otherUsersActions.reduce((acc, action) => {
+    const assignee = action.assignedTo || 'Unassigned';
+    if (!acc[assignee]) {
+      acc[assignee] = { open: [], closed: [] };
+    }
+    
+    if (action.isCompleted && action.isWithinLast30Days) {
+      acc[assignee].closed.push(action);
+    } else if (!action.isCompleted) {
+      acc[assignee].open.push(action);
+    }
+    
+    return acc;
+  }, {} as Record<string, { open: ProcessedAction[], closed: ProcessedAction[] }>);
 
   console.log('ActionsPanel: Action categories:', {
     myOpen: myOpenActions.length,
     myClosed: myClosedActions.length,
-    officeOpen: officeTeamOpenActions.length,
-    officeClosed: officeTeamClosedActions.length,
+    otherUsers: Object.keys(actionsByAssignee).length,
     totalCompleted: processedActions.filter(a => a.isCompleted).length
   });
 
@@ -322,7 +333,9 @@ export function ActionsPanel({
             Real-time summary of all actions from subsections
           </p>
           
-          <div className="grid md:grid-cols-2 gap-6">
+          <div className="grid gap-6" style={{ 
+            gridTemplateColumns: `repeat(${Math.min(Object.keys(actionsByAssignee).length + 1, 3)}, 1fr)` 
+          }}>
             {/* My Actions */}
             <div className="space-y-4">
               <h3 className="font-semibold text-base flex items-center gap-2 text-white">
@@ -342,24 +355,26 @@ export function ActionsPanel({
               )}
             </div>
 
-            {/* Office Team Actions */}
-            <div className="space-y-4">
-              <h3 className="font-semibold text-base flex items-center gap-2 text-white">
-                Office Team Actions
-              </h3>
-              
-              {renderActionsList(
-                officeTeamOpenActions, 
-                "Open Actions", 
-                <Clock className="w-4 h-4 text-amber-300" />
-              )}
-              
-              {renderActionsList(
-                officeTeamClosedActions, 
-                "Closed (Last 30 Days)", 
-                <CheckCircle className="w-4 h-4 text-green-300" />
-              )}
-            </div>
+            {/* Actions by Assignee */}
+            {Object.entries(actionsByAssignee).map(([assignee, actions]) => (
+              <div key={assignee} className="space-y-4">
+                <h3 className="font-semibold text-base flex items-center gap-2 text-white">
+                  {assignee} Actions
+                </h3>
+                
+                {renderActionsList(
+                  actions.open, 
+                  "Open Actions", 
+                  <Clock className="w-4 h-4 text-amber-300" />
+                )}
+                
+                {renderActionsList(
+                  actions.closed, 
+                  "Closed (Last 30 Days)", 
+                  <CheckCircle className="w-4 h-4 text-green-300" />
+                )}
+              </div>
+            ))}
           </div>
         </div>
       )}
