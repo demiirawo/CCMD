@@ -1420,7 +1420,7 @@ const Index = () => {
           <DashboardHeader date={headerData.date} title={headerData.title} attendees={headerData.attendees} purpose={headerData.purpose} stats={calculateStats()} sections={dashboardData.sections} onDataChange={canEdit ? handleDataChange : undefined} onAttendeesChange={canEdit ? handleAttendeesChange : undefined} readOnly={!canEdit} />
           
           
-          <ActionsLog onResetActions={canEdit ? resetActionsLog : undefined} attendees={getAttendeesList()} onPanelStateChange={triggerPanelStateUpdate} panelStateTracker={panelStateTracker} readOnly={!canEdit} currentUsername={profile?.username} />
+          <ActionsLog onResetActions={canEdit ? resetActionsLog : undefined} attendees={getAttendeesList()} onPanelStateChange={triggerPanelStateUpdate} panelStateTracker={panelStateTracker} readOnly={!canEdit} currentUsername={profile?.username} sessionId={currentMeetingId || tempMeetingId} />
           
           <KeyDocumentTracker documents={keyDocuments} onDocumentsChange={canEdit ? async newDocuments => {
           setKeyDocuments(newDocuments);

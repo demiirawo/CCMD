@@ -37,6 +37,7 @@ interface ActionsLogProps {
   readOnly?: boolean;
   currentUsername?: string;
   onResetActions?: () => void;
+  sessionId?: string;
 }
 
 export const ActionsLog = ({
@@ -46,7 +47,8 @@ export const ActionsLog = ({
   panelStateTracker,
   readOnly = false,
   currentUsername,
-  onResetActions
+  onResetActions,
+  sessionId
 }: ActionsLogProps) => {
   const { companies, profile } = useAuth();
   const currentCompany = companies.find(c => c.id === profile?.company_id);
@@ -57,10 +59,10 @@ export const ActionsLog = ({
     actions, 
     loading, 
     onActionComplete, 
-    onActionDelete, 
+    onActionDelete,
     onActionUndo, 
     onActionEdit 
-  } = useActionsLog();
+  } = useActionsLog({ sessionId });
   
   const [isExpanded, setIsExpanded] = useState(() => {
     const tabId = sessionStorage.getItem('__tab_id') || `tab_${Date.now()}`;

@@ -1,8 +1,12 @@
 import { useActions } from './useActions';
 import { useAuth } from './useAuth';
 
-// Hook specifically for the Actions Log component to get all actions without filters
-export const useActionsLog = () => {
+interface UseActionsLogOptions {
+  sessionId?: string;
+}
+
+// Hook specifically for the Actions Log component to get session-scoped actions
+export const useActionsLog = (options?: UseActionsLogOptions) => {
   const { profile } = useAuth();
   const { 
     actions: allActions, 
@@ -12,7 +16,7 @@ export const useActionsLog = () => {
     deleteAction,
     reopenAction,
     refetch
-  } = useActions(); // No filters - get all actions for the company
+  } = useActions({ sessionId: options?.sessionId }); // Filter by session ID
 
   // Transform actions to match the ActionLogEntry interface expected by ActionsLog
   const actions = allActions.map(action => ({
