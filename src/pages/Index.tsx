@@ -649,7 +649,7 @@ const Index = () => {
         metadata: {}
       }, {
         id: "accommodation-suitability",
-        title: "Accommodation Suitability",
+        title: "Placement Matching",
         status: "green" as StatusType,
         lastReviewed: "",
         observation: "",
