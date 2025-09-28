@@ -558,7 +558,7 @@ const Index = () => {
         metadata: {}
       }, {
         id: "risk-register",
-        title: "Risk Register",
+        title: "Risk Management",
         status: "green" as StatusType,
         lastReviewed: "",
         observation: "",
