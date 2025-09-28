@@ -269,20 +269,62 @@ export function ActionsPanel({
   const shouldBeOpen = forceOpen || isOpen;
   const totalActions = processedActions.length;
   
-  // Determine overall status based on action priorities
-  const getOverallStatus = (): StatusType => {
-    if (totalActions === 0) return 'green';
-    
+  // Determine overall status based on overdue actions
+  const getOverallActionsStatus = (): StatusType => {
     const openActions = processedActions.filter(action => !action.isCompleted);
     const overdueActions = openActions.filter(action => {
-      if (!action.targetDate) return false;
-      return new Date(action.targetDate) < new Date();
+      if (!action.targetDate || action.targetDate === '' || action.targetDate === 'No due date') {
+        return false;
+      }
+      
+      // Parse date correctly for dd/MM/yyyy format
+      let dueDate: Date;
+      try {
+        if (action.targetDate.includes('/')) {
+          const [day, month, year] = action.targetDate.split('/');
+          dueDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+        } else {
+          dueDate = new Date(action.targetDate);
+        }
+        
+        if (isNaN(dueDate.getTime())) {
+          return false;
+        }
+      } catch (error) {
+        return false;
+      }
+      
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      dueDate.setHours(0, 0, 0, 0);
+      
+      return dueDate < today; // Action is overdue
     });
     
-    if (overdueActions.length > 0) return 'red';
-    if (openActions.length > 5) return 'amber'; // Many open actions
-    return 'green';
+    // R - Actions overdue, G - no actions overdue
+    return overdueActions.length > 0 ? 'red' : 'green';
   };
+
+  const getSectionBackgroundClass = (status: StatusType) => {
+    const baseClass = "-mx-8 px-14 py-6 min-h-[120px]";
+    
+    // Use dynamic color based on status when enabled
+    if (isDynamicPanelColourEnabled) {
+      switch (status) {
+        case 'green':
+          return `bg-status-green text-white ${baseClass}`;
+        case 'red':
+          return `bg-status-red text-white ${baseClass}`;
+        default:
+          return `bg-primary/10 text-foreground ${baseClass}`;
+      }
+    }
+    
+    // Fallback to default styling when dynamic colors disabled
+    return `bg-primary/10 text-foreground ${baseClass}`;
+  };
+
+  const overallActionsStatus = getOverallActionsStatus();
 
   const getLastUpdated = () => {
     // Find the most recent action date
@@ -299,19 +341,11 @@ export function ActionsPanel({
     return dates[0].toLocaleDateString('en-GB');
   };
 
-  const getSectionBackgroundClass = (status: string) => {
-    const baseClass = "-mx-8 px-14 py-6";
-    
-    // Use custom color for actions panel
-    return `text-white ${baseClass}`;
-  };
-
-  const overallStatus = getOverallStatus();
-
   return (
     <div className={cn(
-      "rounded-2xl shadow-lg -mx-8 px-14 py-6 text-white min-h-[120px]"
-    )} style={{ backgroundColor: '#202A38' }}>
+      "rounded-2xl shadow-lg",
+      getSectionBackgroundClass(overallActionsStatus)
+    )}>
       <div 
         className="flex items-center justify-between cursor-pointer mb-4"
         onClick={() => setIsOpen(!isOpen)}
