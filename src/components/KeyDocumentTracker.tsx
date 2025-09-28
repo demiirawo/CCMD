@@ -33,7 +33,7 @@ interface KeyDocumentTrackerProps {
   readOnly?: boolean;
 }
 const categories = ["Governance and Compliance", "Care Delivery", "Staffing and HR", "Finance and Payroll", "Health and Safety", "Client Records and Contracts", "Quality Assurance and Audit", "Transportation and Logistics"];
-const periods = ["days", "weeks", "months", "years"];
+const periods = ["days", "weeks", "months", "years", "ongoing"];
 const numbers = Array.from({
   length: 12
 }, (_, i) => (i + 1).toString());
