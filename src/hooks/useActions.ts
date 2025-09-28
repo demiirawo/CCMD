@@ -52,8 +52,12 @@ export const useActions = (options: UseActionsOptions = {}) => {
         .eq('company_id', profile.company_id)
         .order('due_date', { ascending: true });
 
-      // Temporarily show all actions for the company to debug the completion issue
-      console.log('Fetching all actions for company (debug mode)');
+      // Apply proper filtering to show only relevant actions for this subsection
+      if (options.sourceId && options.sourceId.trim() !== '') {
+        console.log('Applying sourceId filter:', options.sourceId);
+        // Try exact match first
+        query = query.eq('source_id', options.sourceId);
+      }
 
       const { data, error } = await query;
 
