@@ -52,6 +52,31 @@ export const KeyDocumentTracker = ({
   } = useAuth();
   const currentCompany = companies.find(c => c.id === profile?.company_id);
   const isDynamicPanelColourEnabled = true;
+
+  // Initialize default documents if none exist
+  const initializeDefaultDocuments = () => {
+    if (documents.length === 0) {
+      const defaultDocument: DocumentData = {
+        id: `doc-default-${Date.now()}`,
+        name: 'Statement of purpose',
+        owner: 'TBC',
+        category: 'Governance and Compliance',
+        lastReviewDate: '',
+        reviewFrequency: 'annual',
+        reviewFrequencyNumber: '1',
+        reviewFrequencyPeriod: 'years',
+        nextReviewDate: null,
+        comment: '',
+        updatedAt: new Date().toISOString()
+      };
+      onDocumentsChange?.([defaultDocument]);
+    }
+  };
+
+  // Initialize default documents on mount if needed
+  useEffect(() => {
+    initializeDefaultDocuments();
+  }, []);
   const [isExpanded, setIsExpanded] = useState(() => {
     const tabId = sessionStorage.getItem('__tab_id') || `tab_${Date.now()}`;
     const isolatedStorageKey = `key_documents_expanded_${tabId}`;
