@@ -8,6 +8,7 @@ import { useMeetingEmailNotification } from "@/hooks/useMeetingEmailNotification
 import { clearCompanyData, getTabId } from "@/utils/dataIsolationUtils";
 import { Attendee } from "@/components/TeamAttendeesDisplay";
 import { DashboardSection } from "@/components/DashboardSection";
+import { ActionsPanel } from "@/components/ActionsPanel";
 
 import { KeyDocumentTracker, DocumentData } from "@/components/KeyDocumentTracker";
 import { StatusItemData } from "@/components/StatusItem";
@@ -1510,6 +1511,13 @@ const Index = () => {
             />
           );
         })}
+        
+        {/* Actions Panel - Always show at the bottom */}
+        <ActionsPanel 
+          sections={dashboardData.sections}
+          attendees={headerData.attendees}
+          currentUserName={profile?.username || undefined}
+        />
         </div>
       </div>
     </div>
