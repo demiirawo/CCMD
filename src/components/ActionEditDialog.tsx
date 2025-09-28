@@ -5,7 +5,7 @@ import { Textarea } from "./ui/textarea";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
-import { ActionLogEntry } from "./ActionsLog";
+import { ActionLogEntry } from "@/types/actions";
 interface ActionEditDialogProps {
   isOpen: boolean;
   onClose: () => void;

@@ -7,7 +7,7 @@ import { Calendar as CalendarComponent } from "./ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { format, differenceInDays } from "date-fns";
 import { ActionEditDialog } from "./ActionEditDialog";
-import { AuditEntry } from "./ActionsLog";
+import { AuditEntry } from "@/types/actions";
 import { useAuth } from "../hooks/useAuth";
 export interface ActionItem {
   id: string;
