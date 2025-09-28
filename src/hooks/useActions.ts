@@ -265,19 +265,8 @@ export const useActions = (options: UseActionsOptions = {}) => {
 
       console.log('Action completed successfully:', actionId);
 
-      // Update local state
-      setActions(prev =>
-        prev.map(a =>
-          a.id === actionId
-            ? { 
-                ...a, 
-                closed: true, 
-                closed_date: new Date().toISOString(),
-                updated_at: new Date().toISOString()
-              }
-            : a
-        )
-      );
+      // Remove the completed action from local state since we only show open actions in subsections
+      setActions(prev => prev.filter(a => a.id !== actionId));
 
       toast({
         title: "Action completed",
