@@ -152,12 +152,20 @@ export function ActionsPanel({
   };
 
   const getActionBackgroundClass = (action: ProcessedAction) => {
+    // Debug logging to see what's happening
+    console.log('Action background check:', {
+      name: action.name,
+      isCompleted: action.isCompleted,
+      targetDate: action.targetDate,
+      hasTargetDate: !!action.targetDate
+    });
+    
     // Always apply a background color based on status
     if (action.isCompleted) {
       return 'bg-green-50 border border-green-200'; // Completed - green background
     }
     
-    if (!action.targetDate) {
+    if (!action.targetDate || action.targetDate === '' || action.targetDate === 'No due date') {
       return 'bg-gray-50 border border-gray-200'; // No due date - gray background
     }
     
@@ -165,6 +173,11 @@ export function ActionsPanel({
     const today = new Date();
     today.setHours(0, 0, 0, 0); // Reset time to start of day for accurate comparison
     dueDate.setHours(0, 0, 0, 0);
+    
+    // Check if date parsing failed
+    if (isNaN(dueDate.getTime())) {
+      return 'bg-gray-50 border border-gray-200'; // Invalid date - gray background
+    }
     
     const diffTime = dueDate.getTime() - today.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
