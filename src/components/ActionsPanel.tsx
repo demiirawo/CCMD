@@ -314,7 +314,6 @@ export function ActionsPanel({
             {/* My Actions */}
             <div className="space-y-4">
               <h3 className="font-semibold text-base flex items-center gap-2 text-white">
-                <User className="w-4 h-4" />
                 My Actions
               </h3>
               
