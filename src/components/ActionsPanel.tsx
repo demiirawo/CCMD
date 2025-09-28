@@ -171,9 +171,6 @@ export function ActionsPanel({
                   <p className="font-medium text-sm text-white truncate">
                     {action.name}
                   </p>
-                  <p className="text-xs text-white/70">
-                    {action.sectionTitle} → {action.itemTitle}
-                  </p>
                 </div>
                 <Badge 
                   variant={action.isCompleted ? 'default' : 'secondary'}
@@ -188,6 +185,10 @@ export function ActionsPanel({
                   {action.description}
                 </p>
               )}
+              
+              <p className="text-xs text-white/70">
+                {action.sectionTitle} → {action.itemTitle}
+              </p>
               
               <div className="flex items-center justify-between text-xs text-white/60">
                 <span>
