@@ -151,6 +151,29 @@ export function ActionsPanel({
     }
   };
 
+  const getActionBackgroundClass = (action: ProcessedAction) => {
+    if (action.isCompleted) {
+      return 'bg-green-50 border border-green-200'; // Completed - green background
+    }
+    
+    if (!action.targetDate) {
+      return 'bg-white border border-gray-200'; // No due date - white background
+    }
+    
+    const dueDate = new Date(action.targetDate);
+    const today = new Date();
+    const diffTime = dueDate.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays < 0) {
+      return 'bg-red-50 border border-red-200'; // Overdue - red background
+    } else if (diffDays <= 7) {
+      return 'bg-amber-50 border border-amber-200'; // Due soon (within 7 days) - amber background
+    } else {
+      return 'bg-white border border-gray-200'; // Future - white background
+    }
+  };
+
   const renderActionsList = (actions: ProcessedAction[], title: string, icon: React.ReactNode) => (
     <div className="space-y-3">
       <div className="flex items-center gap-2">
@@ -165,7 +188,7 @@ export function ActionsPanel({
       ) : (
         <div className="space-y-2">
           {actions.map((action, index) => (
-            <div key={`${action.id}-${index}`} className="bg-white rounded-lg p-3 space-y-2 backdrop-blur-sm">
+            <div key={`${action.id}-${index}`} className={`rounded-lg p-3 space-y-2 backdrop-blur-sm ${getActionBackgroundClass(action)}`}>
               <div className="flex items-start justify-between gap-2">
                 <div className="flex-1 min-w-0">
                   <p className="font-medium text-sm text-black truncate">
