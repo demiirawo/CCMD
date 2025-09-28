@@ -439,10 +439,8 @@ export const useMeetingEmailNotification = () => {
 
                 return `
                   <li style="margin-bottom: 12px; color: #6B7280; line-height: 1.5;">
-                    <div style="margin-bottom: 4px;">
-                      <strong style="color: #374151;">${action.assignedTo || action.name || 'Unassigned'}</strong>
-                    </div>
-                    ${action.description ? `<div style="font-size: 14px; color: #6B7280; margin-bottom: 4px;">${action.description}</div>` : ''}
+                    ${action.description ? `<div style="margin-bottom: 4px;"><strong style="color: #374151;">${action.description}</strong></div>` : '<div style="margin-bottom: 4px;"><strong style="color: #374151;">No description</strong></div>'}
+                    <div style="margin-bottom: 4px; font-size: 14px; color: #6B7280;">👤 ${action.assignedTo || action.name || 'Unassigned'}</div>
                     <div style="font-size: 14px; color: #6B7280;">📄 From: ${action.sectionTitle} → ${action.itemTitle}</div>
                     ${action.targetDate ? `<div style="font-size: 14px; color: #6B7280;">📅 Due: ${formatDateSafely(action.targetDate)}</div>` : ''}
                     ${action.isCompleted && action.completedAt ? `<div style="font-size: 14px; color: #10B981;">✅ Completed: ${formatDateSafely(action.completedAt)}</div>` : ''}
