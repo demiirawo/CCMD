@@ -390,10 +390,10 @@ export const ReadOnlyDashboardView = ({ meetingId }: ReadOnlyDashboardViewProps)
                                 {item.actions && item.actions.length > 0 ? (
                                   item.actions.map((action, actionIndex) => (
                                     <div key={actionIndex} className="p-3 border border-border/30 rounded-lg bg-muted/20">
-                                      <div className="text-sm font-medium text-foreground">{action.description}</div>
-                                      <div className="text-xs text-muted-foreground mt-1">
-                                        Assigned to: {action.name} | Due: {action.targetDate}
-                                      </div>
+                                       <div className="text-sm font-medium text-foreground">{action.action_text}</div>
+                                       <div className="text-xs text-muted-foreground mt-1">
+                                         Assigned to: {action.mentioned_attendee} | Due: {action.due_date}
+                                       </div>
                                     </div>
                                   ))
                                 ) : (

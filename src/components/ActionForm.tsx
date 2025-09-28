@@ -1,60 +1,67 @@
-import { useState } from "react";
-import { Plus, Minus, Calendar, Check, Edit } from "lucide-react";
+import { useState, useMemo } from "react";
+import { Calendar, Check, Edit, Minus } from "lucide-react";
 import { Button } from "./ui/button";
-import { Input } from "./ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { Calendar as CalendarComponent } from "./ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { format, differenceInDays } from "date-fns";
 import { ActionEditDialog } from "./ActionEditDialog";
-import { AuditEntry } from "./ActionsLog";
+import { useActions, ActionItem } from "../hooks/useActions";
 import { useAuth } from "../hooks/useAuth";
-export interface ActionItem {
-  id: string;
-  name: string;
-  description: string;
-  targetDate: string;
-  auditTrail?: AuditEntry[]; // Add audit trail to ActionItem
-}
+
+// Export ActionItem for backward compatibility
+export type { ActionItem };
 interface ActionFormProps {
-  actions: ActionItem[];
   attendees: string[];
-  sectionStatus?: string; // Add section status for RAG coloring
-  onActionsChange: (actions: ActionItem[]) => void;
-  onActionCreated?: (name: string, description: string, targetDate: string, actionId: string) => void;
-  onActionCompleted?: (actionId: string) => void;
-  onActionEdit?: (actionId: string, updates: { comment?: string; dueDate?: string; owner?: string; action?: string }) => void;
+  sectionStatus?: string;
+  sessionId?: string;
+  sourceId?: string;
+  sourceType?: 'manual' | 'document';
+  itemTitle: string;
+  readOnly?: boolean;
 }
 export const ActionForm = ({
-  actions,
   attendees,
   sectionStatus,
-  onActionsChange,
-  onActionCreated,
-  onActionCompleted,
-  onActionEdit
+  sessionId,
+  sourceId,
+  sourceType = 'manual',
+  itemTitle,
+  readOnly = false
 }: ActionFormProps) => {
   const { profile } = useAuth();
+  const { 
+    actions, 
+    loading, 
+    createAction, 
+    updateAction, 
+    completeAction, 
+    deleteAction 
+  } = useActions({ 
+    sessionId, 
+    sourceId, 
+    sourceType 
+  });
+
   const [newAction, setNewAction] = useState({
     name: "",
     description: "",
     targetDate: ""
   });
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
-  const [editingAction, setEditingAction] = useState<ActionItem | null>(null);
-  const addAction = () => {
+  const [editingAction, setEditingAction] = useState<any>(null);
+  const addAction = async () => {
     if (newAction.name && newAction.description && newAction.targetDate) {
-      const actionItem: ActionItem = {
-        id: `action-${Date.now()}`,
-        name: newAction.name,
-        description: newAction.description,
-        targetDate: newAction.targetDate
-      };
-      const updatedActions = [...actions, actionItem];
-      onActionsChange(updatedActions);
-
-      // Notify parent for actions log
-      onActionCreated?.(newAction.name, newAction.description, newAction.targetDate, actionItem.id);
+      await createAction({
+        itemTitle,
+        mentionedAttendee: newAction.name,
+        comment: '',
+        actionText: newAction.description,
+        dueDate: newAction.targetDate,
+        sessionId,
+        sourceId,
+        sourceType
+      });
 
       // Reset form
       setNewAction({
@@ -64,11 +71,10 @@ export const ActionForm = ({
       });
     }
   };
-  const removeAction = (actionId: string) => {
-    const updatedActions = actions.filter(action => action.id !== actionId);
-    onActionsChange(updatedActions);
+  const removeAction = async (actionId: string) => {
+    await deleteAction(actionId);
   };
-  const handleDateSelect = (date: Date | undefined) => {
+  const handleDateSelect = async (date: Date | undefined) => {
     console.log("Date selected:", date);
     if (date) {
       const formattedDate = format(date, "dd/MM/yyyy");
@@ -82,17 +88,16 @@ export const ActionForm = ({
 
       // Auto-save the action if all fields are filled
       if (updatedAction.name && updatedAction.description && formattedDate) {
-        const actionItem: ActionItem = {
-          id: `action-${Date.now()}`,
-          name: updatedAction.name,
-          description: updatedAction.description,
-          targetDate: formattedDate
-        };
-        const updatedActions = [...actions, actionItem];
-        onActionsChange(updatedActions);
-
-        // Notify parent for actions log
-        onActionCreated?.(updatedAction.name, updatedAction.description, formattedDate, actionItem.id);
+        await createAction({
+          itemTitle,
+          mentionedAttendee: updatedAction.name,
+          comment: '',
+          actionText: updatedAction.description,
+          dueDate: formattedDate,
+          sessionId,
+          sourceId,
+          sourceType
+        });
 
         // Reset form
         setNewAction({
@@ -149,7 +154,7 @@ export const ActionForm = ({
   };
 
   // Sort actions by due date (soonest first)
-  const sortActionsByDate = (actionsToSort: ActionItem[]) => {
+  const sortActionsByDate = (actionsToSort: any[]) => {
     return [...actionsToSort].sort((a, b) => {
       const getDays = (targetDate: string) => {
         try {
@@ -199,71 +204,28 @@ export const ActionForm = ({
     }
   };
 
-  const handleActionEdit = (actionId: string, updates: { comment?: string; dueDate?: string; owner?: string; action?: string }) => {
-    const updatedActions = actions.map(action => {
-      if (action.id !== actionId) return action;
-      
-      const updatedAction = { ...action };
-      const auditEntries: AuditEntry[] = action.auditTrail || [];
-      const timestamp = new Date().toLocaleString('en-GB', {
-        day: '2-digit',
-        month: 'short',
-        year: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit'
-      });
-      const currentUser = profile?.username || 'Unknown';
-
-      // Add comment to audit trail (include comment text)
-      if (updates.comment) {
-        auditEntries.push({
-          timestamp,
-          change: `Audit Comment Added: "${updates.comment}"`,
-          user: currentUser
-        });
-      }
-
-      // Update action text and add to audit trail
-      if (updates.action && updates.action !== action.description) {
-        auditEntries.push({
-          timestamp,
-          change: `Action Description Changed`,
-          user: currentUser
-        });
-        updatedAction.description = updates.action;
-      }
-
-      // Update due date and add to audit trail (show old -> new)
-      if (updates.dueDate && updates.dueDate !== action.targetDate) {
-        auditEntries.push({
-          timestamp,
-          change: `Action Due Date Changed: from ${action.targetDate} to ${updates.dueDate}`,
-          user: currentUser
-        });
-        updatedAction.targetDate = updates.dueDate;
-      }
-
-      // Update owner and add to audit trail (show old -> new)
-      if (updates.owner && updates.owner !== action.name) {
-        auditEntries.push({
-          timestamp,
-          change: `Action Owner Changed: from ${action.name} to ${updates.owner}`,
-          user: currentUser
-        });
-        updatedAction.name = updates.owner;
-      }
-
-      updatedAction.auditTrail = auditEntries;
-      return updatedAction;
-    });
-
-    onActionsChange(updatedActions);
-    onActionEdit?.(actionId, updates);
+  const handleActionEdit = async (actionId: string, updates: { comment?: string; dueDate?: string; owner?: string; action?: string }) => {
+    await updateAction(actionId, updates);
   };
+
+  // Convert database actions to display format
+  const displayActions = useMemo(() => {
+    return actions.map(action => ({
+      id: action.id,
+      name: action.mentioned_attendee,
+      description: action.action_text,
+      targetDate: action.due_date,
+      auditTrail: action.audit_trail || []
+    }));
+  }, [actions]);
+  if (loading) {
+    return <div className="text-center py-4 text-muted-foreground">Loading actions...</div>;
+  }
+
   return <div className="space-y-4">
       {/* Existing Actions */}
-      {actions.length > 0 && <div className="space-y-2">
-          {sortActionsByDate(actions).map(action => (
+      {displayActions.length > 0 && <div className="space-y-2">
+          {sortActionsByDate(displayActions).map(action => (
             <div key={action.id} className={`flex items-start gap-2 p-3 rounded-lg border ${getActionColorClass(action.targetDate)}`}>
               <div className="flex-1 min-w-0">
                 <div className="font-medium break-words">
@@ -285,8 +247,8 @@ export const ActionForm = ({
                   </div>
                 )}
               </div>
-              <div className="flex gap-1">
-                 {onActionEdit && (
+               <div className="flex gap-1">
+                 {!readOnly && (
                    <Button 
                      variant="ghost" 
                      size="sm" 
@@ -297,24 +259,28 @@ export const ActionForm = ({
                      <Edit className="h-4 w-4 font-bold stroke-2" />
                    </Button>
                  )}
-                 <Button 
-                   variant="ghost" 
-                   size="sm" 
-                   onClick={() => onActionCompleted?.(action.id)} 
-                   className="h-8 w-8 p-0 text-gray-700 hover:bg-black/10 font-bold" 
-                   title="Mark as completed"
-                 >
-                   <Check className="h-4 w-4 font-bold stroke-2" />
-                 </Button>
-                 <Button 
-                   variant="ghost" 
-                   size="sm" 
-                   onClick={() => removeAction(action.id)} 
-                   className="h-8 w-8 p-0 text-gray-700 hover:bg-black/10 font-bold" 
-                   title="Delete action"
-                 >
-                   <Minus className="h-4 w-4 font-bold stroke-2" />
-                 </Button>
+                 {!readOnly && (
+                   <Button 
+                     variant="ghost" 
+                     size="sm" 
+                     onClick={() => completeAction(action.id)} 
+                     className="h-8 w-8 p-0 text-gray-700 hover:bg-black/10 font-bold" 
+                     title="Mark as completed"
+                   >
+                     <Check className="h-4 w-4 font-bold stroke-2" />
+                   </Button>
+                 )}
+                 {!readOnly && (
+                   <Button 
+                     variant="ghost" 
+                     size="sm" 
+                     onClick={() => removeAction(action.id)} 
+                     className="h-8 w-8 p-0 text-gray-700 hover:bg-black/10 font-bold" 
+                     title="Delete action"
+                   >
+                     <Minus className="h-4 w-4 font-bold stroke-2" />
+                   </Button>
+                 )}
               </div>
             </div>
           ))}
@@ -326,7 +292,7 @@ export const ActionForm = ({
         onClose={() => setEditingAction(null)}
         action={editingAction ? {
           ...editingAction,
-          itemTitle: "Section Action",
+          itemTitle: itemTitle,
           mentionedAttendee: editingAction.name,
           comment: editingAction.description,
           action: editingAction.description,
@@ -342,6 +308,7 @@ export const ActionForm = ({
       />
 
       {/* Add New Action Form */}
+      {!readOnly && (
       <div className="rounded-lg p-4 space-y-3">
         <div className="flex gap-3 items-start">
           {/* Name Dropdown */}
@@ -402,8 +369,9 @@ export const ActionForm = ({
             {newAction.targetDate && <div className="text-xs text-muted-foreground mt-1 text-center">
                 {newAction.targetDate}
               </div>}
-          </div>
+           </div>
         </div>
       </div>
+      )}
     </div>;
 };
