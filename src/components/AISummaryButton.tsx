@@ -14,6 +14,10 @@ interface AISummaryButtonProps {
     sections: any[];
     actionsLog: any[];
     companyName?: string;
+    keyDocuments?: any[];
+    dashboardData?: {
+      sections: any[];
+    };
   };
 }
 
@@ -22,12 +26,11 @@ export const AISummaryButton = ({ onSummaryGenerated, meetingData }: AISummaryBu
   const { toast } = useToast();
   const [isGenerating, setIsGenerating] = useState(false);
 
-  const collectMeetingData = () => {
-    console.log('Starting data collection with structured data...');
+  const collectMeetingData = async () => {
+    console.log('🔍 Starting comprehensive data collection for AI summary...');
     
     if (!meetingData) {
       console.log('No meeting data provided, falling back to DOM scraping');
-      // Fallback to DOM scraping if no data provided (for backward compatibility)
       return collectFromDOM();
     }
 
@@ -53,141 +56,190 @@ export const AISummaryButton = ({ onSummaryGenerated, meetingData }: AISummaryBu
     }
     
     if (meetingData.purpose && meetingData.purpose.trim()) {
-      allData += `Current Meeting Purpose: ${meetingData.purpose}\n`;
+      allData += `Meeting Purpose: ${meetingData.purpose}\n`;
     }
 
-    // Get today's date for filtering recent updates
+    // Get meeting date for filtering relevant updates
     const meetingDate = meetingData.date ? new Date(meetingData.date) : new Date();
     const todayStart = new Date(meetingDate);
     todayStart.setHours(0, 0, 0, 0);
     const todayEnd = new Date(meetingDate);
     todayEnd.setHours(23, 59, 59, 999);
     
-    // Dashboard sections and items (filter for today's updates only)
-    if (meetingData.sections && meetingData.sections.length > 0) {
-      meetingData.sections.forEach((section: any) => {
+    console.log('📅 Meeting date range:', { start: todayStart, end: todayEnd });
+
+    // Enhanced dashboard data collection
+    const dashboardSections = meetingData.dashboardData?.sections || meetingData.sections || [];
+    
+    if (dashboardSections.length > 0) {
+      console.log('📋 Processing dashboard sections:', dashboardSections.map(s => s.title));
+      
+      dashboardSections.forEach((section: any) => {
         if (!section.items || section.items.length === 0) return;
         
-        // Helper function to check if an item was updated today
-        const isUpdatedToday = (item: any) => {
-          if (item.lastUpdated) {
-            const itemDate = new Date(item.lastUpdated);
-            return itemDate >= todayStart && itemDate <= todayEnd;
-          }
-          if (item.lastReviewed) {
-            const reviewDate = new Date(item.lastReviewed);
-            return reviewDate >= todayStart && reviewDate <= todayEnd;
-          }
-          // If no timestamp available, check if there's meaningful new content
-          return item.observation?.trim() || item.trendsThemes?.trim() || item.details?.trim();
+        // Helper function to check if content is meaningful and relevant
+        const hasRelevantContent = (item: any) => {
+          // Check for meaningful observations, trends, or lessons learned
+          const hasObservation = item.observation?.trim() && item.observation.length > 10;
+          const hasTrends = item.trendsThemes?.trim() && item.trendsThemes.length > 10;
+          const hasLessons = item.lessonsLearned?.trim() && item.lessonsLearned.length > 10;
+          const hasDetails = item.details?.trim() && item.details.length > 10;
+          
+          // Check for recent updates based on timestamps
+          const isRecentlyUpdated = () => {
+            if (item.lastUpdated) {
+              const itemDate = new Date(item.lastUpdated);
+              return itemDate >= todayStart && itemDate <= todayEnd;
+            }
+            if (item.lastReviewed) {
+              const reviewDate = new Date(item.lastReviewed);
+              return reviewDate >= todayStart && reviewDate <= todayEnd;
+            }
+            return hasObservation || hasTrends || hasLessons || hasDetails;
+          };
+          
+          // Check for new actions
+          const hasNewActions = item.actions && item.actions.length > 0;
+          
+          // Check for status changes (non-green status indicates attention needed)
+          const hasStatusChange = item.status && item.status !== 'green';
+          
+          return isRecentlyUpdated() || hasNewActions || hasStatusChange;
         };
         
-        // Filter items to only include those updated today or with new content
-        const todaysItems = section.items.filter((item: any) => {
-          // Include if updated today
-          if (isUpdatedToday(item)) return true;
-          
-          // Include if it has new actions from today
-          if (item.actions && item.actions.length > 0) {
-            return item.actions.some((action: any) => {
-              if (action.createdDate) {
-                const actionDate = new Date(action.createdDate);
-                return actionDate >= todayStart && actionDate <= todayEnd;
-              }
-              return true; // Include actions without dates (assumed to be new)
-            });
-          }
-          
-          // Include if status changed and item seems recently updated
-          if (item.status && item.status !== 'green') {
-            return true;
-          }
-          
-          return false;
-        });
+        // Filter items with relevant content
+        const relevantItems = section.items.filter(hasRelevantContent);
         
-        if (todaysItems.length > 0) {
-          allData += `\n=== ${section.title} (Today's Updates) ===\n`;
+        if (relevantItems.length > 0) {
+          allData += `\n=== ${section.title} ===\n`;
           
-          todaysItems.forEach((item: any) => {
-            allData += `- ${item.title}`;
+          relevantItems.forEach((item: any) => {
+            allData += `\n• ${item.title}`;
+            
+            // Status information
             if (item.status && item.status !== 'green') {
-              allData += ` (Status: ${item.status})`;
+              const statusLabels = {
+                'amber': 'Needs Attention',
+                'red': 'Critical',
+                'na': 'Not Applicable'
+              };
+              allData += ` [${statusLabels[item.status as keyof typeof statusLabels] || item.status.toUpperCase()}]`;
             }
+            
+            // Last reviewed information
             if (item.lastReviewed) {
               allData += ` (Last Reviewed: ${item.lastReviewed})`;
             }
+            
             allData += '\n';
             
-            // Only include observations if they seem to be from today
-            if (item.observation?.trim() && isUpdatedToday(item)) {
-              allData += `  Today's Observation: ${item.observation.trim()}\n`;
+            // Current observations
+            if (item.observation?.trim() && item.observation.length > 10) {
+              allData += `  Current Observation: ${item.observation.trim()}\n`;
             }
             
-            if (item.trendsThemes?.trim() && isUpdatedToday(item)) {
-              allData += `  Current Trends/Themes: ${item.trendsThemes.trim()}\n`;
+            // Trends and themes
+            if (item.trendsThemes?.trim() && item.trendsThemes.length > 10) {
+              allData += `  Trends & Themes: ${item.trendsThemes.trim()}\n`;
             }
             
-            if (item.details?.trim() && isUpdatedToday(item)) {
-              allData += `  Latest Details: ${item.details.trim()}\n`;
+            // Lessons learned
+            if (item.lessonsLearned?.trim() && item.lessonsLearned.length > 10) {
+              allData += `  Lessons Learned: ${item.lessonsLearned.trim()}\n`;
             }
             
-            // Filter actions to today's actions only
+            // Additional details
+            if (item.details?.trim() && item.details.length > 10) {
+              allData += `  Details: ${item.details.trim()}\n`;
+            }
+            
+            // Actions associated with this item
             if (item.actions && item.actions.length > 0) {
-              const todaysActions = item.actions.filter((action: any) => {
-                if (action.createdDate) {
-                  const actionDate = new Date(action.createdDate);
-                  return actionDate >= todayStart && actionDate <= todayEnd;
+              allData += `  Actions Identified:\n`;
+              item.actions.forEach((action: any) => {
+                const actionText = action.text || action.action || action.description;
+                const assignedTo = action.assignedTo || action.assignee || action.owner;
+                const dueDate = action.targetDate || action.dueDate || action.due_date;
+                
+                if (actionText) {
+                  allData += `    - ${actionText}`;
+                  if (assignedTo) allData += ` (Assigned: ${assignedTo})`;
+                  if (dueDate) allData += ` (Due: ${dueDate})`;
+                  if (action.status) allData += ` [${action.status}]`;
+                  allData += '\n';
                 }
-                return true; // Include actions without dates
               });
-              
-              if (todaysActions.length > 0) {
-                allData += `  New Actions:\n`;
-                todaysActions.forEach((action: any) => {
-                  allData += `    - ${action.text || action.action}\n`;
-                });
-              }
             }
           });
         }
       });
     }
     
-    // Actions log (filter for today's actions only)
+    // Centralized actions log from meeting
     if (meetingData.actionsLog && meetingData.actionsLog.length > 0) {
-      const todaysActions = meetingData.actionsLog.filter((action: any) => {
-        if (action.createdDate) {
-          const actionDate = new Date(action.createdDate);
-          return actionDate >= todayStart && actionDate <= todayEnd;
+      console.log('📋 Processing actions log:', meetingData.actionsLog.length, 'actions');
+      
+      const relevantActions = meetingData.actionsLog.filter((action: any) => {
+        // Include actions created today or still active
+        if (action.createdDate || action.dateAdded || action.timestamp) {
+          const actionDate = new Date(action.createdDate || action.dateAdded || action.timestamp);
+          const isFromToday = actionDate >= todayStart && actionDate <= todayEnd;
+          const isActive = !action.closed && !action.isCompleted;
+          return isFromToday || isActive;
         }
-        if (action.dateAdded) {
-          const actionDate = new Date(action.dateAdded);
-          return actionDate >= todayStart && actionDate <= todayEnd;
-        }
-        // Include actions without dates (assumed to be from today's meeting)
-        return true;
+        // Include actions without dates (assumed relevant)
+        return !action.closed && !action.isCompleted;
       });
 
-      if (todaysActions.length > 0) {
-        allData += '\n=== New Actions from Today\'s Meeting ===\n';
-        todaysActions.forEach((action: any) => {
-          allData += `- ${action.action || action.text}`;
-          if (action.assignee) {
-            allData += ` (Assignee: ${action.assignee})`;
+      if (relevantActions.length > 0) {
+        allData += '\n=== Action Items Status ===\n';
+        relevantActions.forEach((action: any) => {
+          const actionText = action.action_text || action.action || action.text;
+          const assignee = action.mentioned_attendee || action.assignee || action.owner;
+          const dueDate = action.due_date || action.dueDate || action.targetDate;
+          const status = action.status || (action.closed ? 'Completed' : 'Open');
+          const sourceItem = action.item_title;
+          
+          if (actionText) {
+            allData += `• ${actionText}`;
+            if (assignee) allData += ` (Owner: ${assignee})`;
+            if (sourceItem) allData += ` (From: ${sourceItem})`;
+            if (dueDate) allData += ` (Due: ${dueDate})`;
+            allData += ` [${status}]\n`;
+            
+            if (action.comment?.trim()) {
+              allData += `  Context: ${action.comment.trim()}\n`;
+            }
           }
-          if (action.dueDate) {
-            allData += ` (Due: ${action.dueDate})`;
-          }
-          if (action.status) {
-            allData += ` (Status: ${action.status})`;
-          }
-          allData += '\n';
         });
       }
     }
 
-    console.log('Data collection completed. Total data length:', allData.length);
+    // Key documents status
+    if (meetingData.keyDocuments && meetingData.keyDocuments.length > 0) {
+      console.log('📄 Processing key documents:', meetingData.keyDocuments.length, 'documents');
+      
+      const documentsNeedingAttention = meetingData.keyDocuments.filter((doc: any) => {
+        return doc.status !== 'complete' || doc.comment?.trim();
+      });
+      
+      if (documentsNeedingAttention.length > 0) {
+        allData += '\n=== Key Documents Update ===\n';
+        documentsNeedingAttention.forEach((doc: any) => {
+          allData += `• ${doc.name}`;
+          if (doc.status) allData += ` [${doc.status}]`;
+          if (doc.due_date || doc.nextReviewDate) allData += ` (Due: ${doc.due_date || doc.nextReviewDate})`;
+          allData += '\n';
+          
+          if (doc.comment?.trim()) {
+            allData += `  Notes: ${doc.comment.trim()}\n`;
+          }
+        });
+      }
+    }
+
+    console.log('✅ Data collection completed. Total data length:', allData.length);
+    console.log('📝 Collected data preview:', allData.substring(0, 500) + '...');
     return allData;
   };
 
@@ -229,17 +281,17 @@ export const AISummaryButton = ({ onSummaryGenerated, meetingData }: AISummaryBu
   };
 
   const generateAISummary = async () => {
-    console.log('AI Summary button clicked');
+    console.log('🚀 AI Summary generation started');
     if (isLoading || isGenerating) {
-      console.log('Already generating, skipping');
+      console.log('⏳ Already generating, skipping');
       return;
     }
     
     setIsGenerating(true);
     try {
       const companyName = meetingData?.companyName || "the organization";
-      const collectedData = collectMeetingData();
-      console.log('Collected meeting data:', collectedData);
+      const collectedData = await collectMeetingData();
+      console.log('📊 Collected meeting data length:', collectedData.length);
       
       if (!collectedData.trim()) {
         console.log('No meeting data found');
@@ -254,24 +306,24 @@ export const AISummaryButton = ({ onSummaryGenerated, meetingData }: AISummaryBu
       const messages = [
         {
           role: "system" as const,
-          content: `You are an AI assistant that creates factual meeting summaries for care management meetings. Your job is to summarize only what was actually discussed and decided in today's specific meeting.
+          content: `You are an AI assistant that creates comprehensive meeting summaries for care management meetings. Create a factual summary of what was reviewed, discussed, and decided in today's meeting.
 
 Instructions:
-- Focus ONLY on updates, observations, and actions from today's meeting date
-- State only the facts of what was discussed, reviewed, or decided today
-- When referring to the company, use "${companyName}" instead of generic terms like "provider" or "the organization"
-- Avoid cliche phrases about "commitment to compliance" or "quality care" 
-- Do not add editorial commentary or assessments
-- Use simple, direct language
-- Focus on specific items that were reviewed today, their current status, and any new actions taken
-- Ignore historical comments unless they provide essential context for today's updates
-- Keep it to 150 words or less
-- Write in paragraph form without bullet points
-- Emphasize that this summary covers today's meeting updates only`
+- Summarize all sections that were reviewed with their current status
+- Include specific observations, trends, and lessons learned discussed
+- Highlight any areas requiring attention (amber/red status items)
+- List key actions identified with owners and timelines where specified
+- Include updates on key documents and compliance matters
+- When referring to the company, use "${companyName}" 
+- Use clear, professional language suitable for care management
+- Focus on operational updates and decisions made
+- Keep summary concise but comprehensive (200-250 words)
+- Structure: Overview → Key Areas Reviewed → Actions & Next Steps
+- Write in paragraph form, not bullet points`
         },
         {
           role: "user" as const,
-          content: `Create a factual summary for ${companyName} based on today's meeting updates and new information discussed:\n\n${collectedData}`
+          content: `Create a comprehensive meeting summary for ${companyName} based on today's meeting data:\n\n${collectedData}`
         }
       ];
 
