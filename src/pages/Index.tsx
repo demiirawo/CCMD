@@ -6,6 +6,7 @@ import { useAutoSave } from "@/hooks/useAutoSave";
 
 import { useMeetingEmailNotification } from "@/hooks/useMeetingEmailNotification";
 import { clearCompanyData, getTabId } from "@/utils/dataIsolationUtils";
+import { useCompanySwitchReset } from "@/hooks/useCompanySwitchReset";
 import { Attendee } from "@/components/TeamAttendeesDisplay";
 import { DashboardSection } from "@/components/DashboardSection";
 import { ActionsPanel } from "@/components/ActionsPanel";
@@ -23,6 +24,9 @@ import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import { useSearchParams, useNavigate } from "react-router-dom";
 const Index = () => {
+  // Force component remount on company switch to prevent data leakage
+  const mountKey = useCompanySwitchReset();
+  
   const {
     user,
     profile,

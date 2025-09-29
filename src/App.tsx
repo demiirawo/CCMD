@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Navigation } from "./components/Navigation";
 import { AuthProvider } from "./components/AuthProvider";
 import { ProtectedRoute } from "./components/ProtectedRoute";
+import { DataIsolationWrapper } from "./components/DataIsolationWrapper";
 import { useAuth } from "@/hooks/useAuth";
 
 import { useTheme } from "./hooks/useTheme";
@@ -41,7 +42,11 @@ const AppContent = () => {
           <CompanySelection />
         </ProtectedRoute>
       } />
-      <Route path="/company/:slug" element={<CompanyDashboard />} />
+      <Route path="/company/:slug" element={
+        <DataIsolationWrapper enableLogging={true}>
+          <CompanyDashboard />
+        </DataIsolationWrapper>
+      } />
       <Route path="/" element={
         <>
           {console.log('Root route "/" matched, rendering Landing')}
@@ -80,10 +85,10 @@ const AppContent = () => {
       <Route path="/public/:tableId" element={<PublicTable />} />
       <Route path="/meetings" element={
         <ProtectedRoute requireCompany>
-          <>
+          <DataIsolationWrapper enableLogging={true}>
             <Navigation />
             <Meetings />
-          </>
+          </DataIsolationWrapper>
         </ProtectedRoute>
       } />
       <Route path="/inspection" element={
