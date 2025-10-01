@@ -211,9 +211,6 @@ export const useMeetingEmailNotification = () => {
             sectionStatus = 'red';
           } else if (section.items.some(item => item.status === 'amber')) {
             sectionStatus = 'amber';
-          } else if (section.items.some(item => item.status === 'na')) {
-            // Treat 'na' status as amber for visibility
-            sectionStatus = 'amber';
           }
           
           // Map section titles for display
@@ -231,17 +228,7 @@ export const useMeetingEmailNotification = () => {
           });
         });
         
-        // Add Actions Summary status
-        if (meetingData.dashboardData?.sections) {
-          const actionsStatus = getActionsOverallStatus(meetingData.dashboardData.sections);
-          sectionStatusSummary.unshift({
-            title: 'Actions Summary',
-            status: statusMapping[actionsStatus],
-            updated: new Date().toLocaleDateString('en-GB')
-          });
-        }
-
-        // Add Key Review Dates status if we have key documents
+        // Add Key Review Dates status if we have key documents (at the end to match dashboard order)
         if (meetingData.keyDocuments && meetingData.keyDocuments.length > 0) {
           // Calculate key documents status based on due dates
           const now = new Date();
@@ -257,9 +244,19 @@ export const useMeetingEmailNotification = () => {
             }
           });
           
-          sectionStatusSummary.unshift({
+          sectionStatusSummary.push({
             title: 'Key Review Dates',
             status: statusMapping[keyDocsStatus],
+            updated: new Date().toLocaleDateString('en-GB')
+          });
+        }
+
+        // Add Actions Summary status (at the end to match dashboard order)
+        if (meetingData.dashboardData?.sections) {
+          const actionsStatus = getActionsOverallStatus(meetingData.dashboardData.sections);
+          sectionStatusSummary.push({
+            title: 'Actions Summary',
+            status: statusMapping[actionsStatus],
             updated: new Date().toLocaleDateString('en-GB')
           });
         }
