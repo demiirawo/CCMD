@@ -177,8 +177,12 @@ export const useMeetingEmailNotification = () => {
       const generateStatusSummary = () => {
         if (!meetingData.dashboardData?.sections) return '';
         
-        console.log('🏠 Company Services for filtering:', meetingData.companyServices);
-        console.log('📋 Available sections:', meetingData.dashboardData.sections.map(s => ({ id: s.id, title: s.title })));
+        console.log('📧 EMAIL: Company Services for filtering:', meetingData.companyServices);
+        console.log('📧 EMAIL: Available sections:', meetingData.dashboardData.sections.map(s => ({ 
+          id: s.id, 
+          title: s.title,
+          items: s.items.map(i => ({ id: i.id, title: i.title, status: i.status }))
+        })));
         
         const statusMapping = { green: 'G', amber: 'A', red: 'R' };
         const sectionStatusSummary: Array<{title: string, status: string, updated: string}> = [];
@@ -186,32 +190,43 @@ export const useMeetingEmailNotification = () => {
         // Calculate status for each major section (excluding meeting-overview)
         meetingData.dashboardData.sections.forEach(section => {
           if (section.id === 'meeting-overview') {
-            console.log('🏠 Skipping meeting-overview section');
+            console.log('📧 EMAIL: Skipping meeting-overview section');
             return;
           }
           
           // Skip Supported Housing section if not enabled in company services
           if (section.id === 'supported-housing') {
             const hasSupported = meetingData.companyServices?.includes('Supported Housing') || false;
-            console.log('🏠 Supported Housing check:', { 
+            console.log('📧 EMAIL: Supported Housing check:', { 
               sectionId: section.id, 
               hasSupported, 
               companyServices: meetingData.companyServices,
               includes: meetingData.companyServices?.includes('Supported Housing')
             });
             if (!hasSupported) {
-              console.log('🏠 Skipping Supported Housing - not in company services');
+              console.log('📧 EMAIL: Skipping Supported Housing - not in company services');
               return;
             }
           }
           
           // Calculate overall section status (red takes priority, then amber, then green)
+          // Only consider green, amber, red statuses (exclude 'na')
+          const validItems = section.items.filter(item => item.status !== 'na');
           let sectionStatus: 'green' | 'amber' | 'red' = 'green';
-          if (section.items.some(item => item.status === 'red')) {
+          
+          if (validItems.some(item => item.status === 'red')) {
             sectionStatus = 'red';
-          } else if (section.items.some(item => item.status === 'amber')) {
+          } else if (validItems.some(item => item.status === 'amber')) {
             sectionStatus = 'amber';
           }
+          
+          console.log('📧 EMAIL: Section status calculation:', {
+            sectionId: section.id,
+            totalItems: section.items.length,
+            validItems: validItems.length,
+            itemStatuses: section.items.map(i => ({ id: i.id, title: i.title, status: i.status })),
+            calculatedStatus: sectionStatus
+          });
           
           // Map section titles for display
           let displayTitle = section.title;
@@ -219,7 +234,7 @@ export const useMeetingEmailNotification = () => {
           if (section.id === 'continuous-improvement') displayTitle = 'Continuous Improvement';
           if (section.id === 'supported-housing') displayTitle = 'Supported Housing';
           
-          console.log('✅ Including section in status summary:', { id: section.id, title: displayTitle, status: sectionStatus });
+          console.log('📧 EMAIL: Including section in status summary:', { id: section.id, title: displayTitle, status: sectionStatus });
           
           sectionStatusSummary.push({
             title: displayTitle,
