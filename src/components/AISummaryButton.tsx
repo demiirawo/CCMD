@@ -36,15 +36,7 @@ export const AISummaryButton = ({ onSummaryGenerated, meetingData }: AISummaryBu
 
     let allData = "";
     
-    // Meeting basic information
-    if (meetingData.title) {
-      allData += `Meeting Title: ${meetingData.title}\n`;
-    }
-    
-    if (meetingData.date) {
-      allData += `Meeting Date: ${meetingData.date}\n`;
-    }
-    
+    // Attendees information (but not title or date)
     if (meetingData.attendees && meetingData.attendees.length > 0) {
       const attendeeNames = meetingData.attendees
         .map(attendee => typeof attendee === 'string' ? attendee : attendee.name || attendee.email)
@@ -306,24 +298,25 @@ export const AISummaryButton = ({ onSummaryGenerated, meetingData }: AISummaryBu
       const messages = [
         {
           role: "system" as const,
-          content: `You are an AI assistant that creates comprehensive meeting summaries for care management meetings. Create a factual summary of what was reviewed, discussed, and decided in today's meeting.
+          content: `You are an AI assistant that creates meeting summaries for care management meetings. Create a factual summary focusing ONLY on what was reviewed and discussed in today's meeting.
 
 Instructions:
-- Summarize all sections that were reviewed with their current status
+- Create TWO sections only: "Overview" and "Key Areas Reviewed"
+- DO NOT include meeting title, date, or actions/next steps sections
+- In Overview: Brief summary of the meeting focus and purpose
+- In Key Areas Reviewed: Summarize all sections that were reviewed with their current status
 - Include specific observations, trends, and lessons learned discussed
 - Highlight any areas requiring attention (amber/red status items)
-- List key actions identified with owners and timelines where specified
 - Include updates on key documents and compliance matters
 - When referring to the company, use "${companyName}" 
 - Use clear, professional language suitable for care management
-- Focus on operational updates and decisions made
-- Keep summary concise but comprehensive (200-250 words)
-- Structure: Overview → Key Areas Reviewed → Actions & Next Steps
+- Focus on operational updates and what was reviewed
+- Keep summary concise (150-200 words total)
 - Write in paragraph form, not bullet points`
         },
         {
           role: "user" as const,
-          content: `Create a comprehensive meeting summary for ${companyName} based on today's meeting data:\n\n${collectedData}`
+          content: `Create a meeting summary for ${companyName} based on today's meeting data:\n\n${collectedData}`
         }
       ];
 
