@@ -209,30 +209,60 @@ export const useMeetingEmailNotification = () => {
             }
           }
           
-          // Calculate overall section status (red takes priority, then amber, then green)
+          // Calculate overall section status matching dashboard logic
           // Only consider green, amber, red statuses (exclude 'na')
           const validItems = section.items.filter(item => item.status !== 'na');
           let sectionStatus: 'green' | 'amber' | 'red' = 'green';
           
-          if (validItems.some(item => item.status === 'red')) {
-            sectionStatus = 'red';
-          } else if (validItems.some(item => item.status === 'amber')) {
-            sectionStatus = 'amber';
-          }
+          // Count statuses
+          const statusCounts = {
+            red: validItems.filter(item => item.status === 'red').length,
+            amber: validItems.filter(item => item.status === 'amber').length,
+            green: validItems.filter(item => item.status === 'green').length
+          };
           
-          console.log('📧 EMAIL: Section status calculation:', {
-            sectionId: section.id,
-            totalItems: section.items.length,
-            validItems: validItems.length,
-            itemStatuses: section.items.map(i => ({ id: i.id, title: i.title, status: i.status })),
-            calculatedStatus: sectionStatus
-          });
-          
-          // Map section titles for display
+          // Map section titles for special logic check
           let displayTitle = section.title;
           if (section.id === 'care-planning') displayTitle = 'Care & Support';
           if (section.id === 'continuous-improvement') displayTitle = 'Continuous Improvement';
           if (section.id === 'supported-housing') displayTitle = 'Supported Housing';
+          
+          // Special logic for major sections (matching dashboard DashboardSection.tsx)
+          const majorSections = ["Staffing", "Care & Support", "Safety", "Continuous Improvement"];
+          if (majorSections.includes(displayTitle)) {
+            // If any subsection is red -> make major section red
+            if (statusCounts.red > 0) {
+              sectionStatus = 'red';
+            }
+            // If more than one subsection is amber -> make major section amber
+            else if (statusCounts.amber > 1) {
+              sectionStatus = 'amber';
+            }
+            // If only one subsection is amber but others are green -> keep major section green
+            else {
+              sectionStatus = 'green';
+            }
+          } else {
+            // Default logic for other sections
+            if (statusCounts.red > 0) {
+              sectionStatus = 'red';
+            } else if (statusCounts.amber > 0) {
+              sectionStatus = 'amber';
+            } else {
+              sectionStatus = 'green';
+            }
+          }
+          
+          console.log('📧 EMAIL: Section status calculation:', {
+            sectionId: section.id,
+            displayTitle: displayTitle,
+            isMajorSection: majorSections.includes(displayTitle),
+            totalItems: section.items.length,
+            validItems: validItems.length,
+            statusCounts,
+            itemStatuses: section.items.map(i => ({ id: i.id, title: i.title, status: i.status })),
+            calculatedStatus: sectionStatus
+          });
           
           console.log('📧 EMAIL: Including section in status summary:', { id: section.id, title: displayTitle, status: sectionStatus });
           
