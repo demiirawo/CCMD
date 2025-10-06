@@ -247,7 +247,7 @@ export const StatusItem = memo(({
               </p>}
             
             <p className="text-xs text-muted-foreground mt-1">
-              {item.id === "achievements-learning" ? `${new Date().getFullYear()}` : `Updated: ${item.metadata?.updated || item.lastReviewed}`}
+              {item.id === "achievements-learning" ? `${new Date().getFullYear()}` : `Updated: ${item.lastReviewed || item.metadata?.updated}`}
             </p>
             
             {/* Display metadata below title */}
