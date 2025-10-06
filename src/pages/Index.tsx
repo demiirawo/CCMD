@@ -747,13 +747,15 @@ const Index = () => {
     // Save to database immediately for persistence
     if (profile?.company_id) {
       try {
+        const lastReviewed = new Date().toLocaleDateString('en-GB');
         const {
           error
         } = await supabase.from('subsection_data').upsert({
           company_id: profile.company_id,
           section_id: sectionId,
           item_id: itemId,
-          observation: newObservation
+          observation: newObservation,
+          last_reviewed: lastReviewed
         }, {
           onConflict: 'company_id,section_id,item_id'
         });
@@ -786,13 +788,15 @@ const Index = () => {
     // Save to database immediately for persistence
     if (profile?.company_id) {
       try {
+        const lastReviewed = new Date().toLocaleDateString('en-GB');
         const {
           error
         } = await supabase.from('subsection_data').upsert({
           company_id: profile.company_id,
           section_id: sectionId,
           item_id: itemId,
-          trends_themes: newTrendsThemes
+          trends_themes: newTrendsThemes,
+          last_reviewed: lastReviewed
         }, {
           onConflict: 'company_id,section_id,item_id'
         });
@@ -826,11 +830,13 @@ const Index = () => {
     // Save to database immediately for persistence
     if (profile?.company_id) {
       try {
+        const lastReviewed = new Date().toLocaleDateString('en-GB');
         const { error } = await supabase.from('subsection_data').upsert({
           company_id: profile.company_id,
           section_id: sectionId,
           item_id: itemId,
-          lessons_learned: newLessonsLearned
+          lessons_learned: newLessonsLearned,
+          last_reviewed: lastReviewed
         }, {
           onConflict: 'company_id,section_id,item_id'
         });
@@ -863,13 +869,15 @@ const Index = () => {
     // Save to database immediately for persistence
     if (profile?.company_id) {
       try {
+        const lastReviewed = new Date().toLocaleDateString('en-GB');
         const {
           error
         } = await supabase.from('subsection_data').upsert({
           company_id: profile.company_id,
           section_id: sectionId,
           item_id: itemId,
-          actions: JSON.stringify(newActions)
+          actions: JSON.stringify(newActions),
+          last_reviewed: lastReviewed
         }, {
           onConflict: 'company_id,section_id,item_id'
         });
@@ -966,11 +974,13 @@ const Index = () => {
         if (item) {
           const updatedActions = item.actions.filter(action => action.id !== actionId);
 
+          const lastReviewed = new Date().toLocaleDateString('en-GB');
           const { error } = await supabase.from('subsection_data').upsert({
             company_id: profile.company_id,
             section_id: sectionId,
             item_id: itemId,
-            actions: JSON.stringify(updatedActions)
+            actions: JSON.stringify(updatedActions),
+            last_reviewed: lastReviewed
           }, {
             onConflict: 'company_id,section_id,item_id'
           });
@@ -1007,6 +1017,8 @@ const Index = () => {
     });
   };
   const handleMetadataChange = async (sectionId: string, itemId: string, metadata: SubsectionMetadata) => {
+    const lastReviewed = new Date().toLocaleDateString('en-GB');
+    
     // Update local state
     setDashboardData(prev => ({
       ...prev,
@@ -1014,7 +1026,8 @@ const Index = () => {
         ...section,
         items: section.items.map(item => item.id === itemId ? {
           ...item,
-          metadata: metadata
+          metadata: metadata,
+          lastReviewed: lastReviewed
         } : item)
       } : section)
     }));
@@ -1028,7 +1041,8 @@ const Index = () => {
           company_id: profile.company_id,
           section_id: sectionId,
           item_id: itemId,
-          metadata: JSON.stringify(metadata)
+          metadata: JSON.stringify(metadata),
+          last_reviewed: lastReviewed
         }, {
           onConflict: 'company_id,section_id,item_id'
         });
