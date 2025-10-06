@@ -641,7 +641,9 @@ const Index = () => {
                 if (savedData) {
                   console.log(`📋 Loading data for ${section.id}/${item.id}, company: ${currentCompanyId}`, {
                     trends_themes: (savedData as any).trends_themes,
-                    observation: savedData.observation
+                    observation: savedData.observation,
+                    last_reviewed: (savedData as any).last_reviewed,
+                    updated_at: savedData.updated_at
                   });
                   return {
                     ...item,
@@ -731,6 +733,9 @@ const Index = () => {
     });
   };
   const handleObservationChange = async (sectionId: string, itemId: string, newObservation: string) => {
+    const lastReviewed = new Date().toLocaleDateString('en-GB');
+    console.log('🔄 Updating observation:', { sectionId, itemId, lastReviewed, observation: newObservation.substring(0, 50) });
+    
     // Update local state
     setDashboardData(prev => ({
       ...prev,
@@ -739,7 +744,7 @@ const Index = () => {
         items: section.items.map(item => item.id === itemId ? {
           ...item,
           observation: newObservation,
-          lastReviewed: new Date().toLocaleDateString('en-GB')
+          lastReviewed: lastReviewed
         } : item)
       } : section)
     }));
@@ -747,7 +752,6 @@ const Index = () => {
     // Save to database immediately for persistence
     if (profile?.company_id) {
       try {
-        const lastReviewed = new Date().toLocaleDateString('en-GB');
         const {
           error
         } = await supabase.from('subsection_data').upsert({
@@ -759,8 +763,11 @@ const Index = () => {
         }, {
           onConflict: 'company_id,section_id,item_id'
         });
+        
         if (error) {
-          console.error('Error saving observation:', error);
+          console.error('❌ Error saving observation:', error);
+        } else {
+          console.log('✅ Observation saved successfully with date:', lastReviewed);
         }
       } catch (error) {
         console.error('Failed to save observation to database:', error);
