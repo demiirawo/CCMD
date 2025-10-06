@@ -639,6 +639,10 @@ const Index = () => {
               items: section.items.map(item => {
                 const savedData = data.find(d => d.section_id === section.id && d.item_id === item.id && d.company_id === currentCompanyId);
                 if (savedData) {
+                  console.log(`📋 [Data Load] Loading ${section.id}/${item.id}:`, {
+                    last_reviewed: (savedData as any).last_reviewed,
+                    observation: savedData.observation?.substring(0, 30)
+                  });
                   return {
                     ...item,
                     status: savedData.status as StatusType || item.status,
@@ -724,23 +728,45 @@ const Index = () => {
   };
   const handleObservationChange = async (sectionId: string, itemId: string, newObservation: string) => {
     const lastReviewed = new Date().toLocaleDateString('en-GB');
+    console.log('🔄 [Observation Change] Starting update:', { sectionId, itemId, lastReviewed });
     
     // Update local state
-    setDashboardData(prev => ({
-      ...prev,
-      sections: prev.sections.map(section => section.id === sectionId ? {
-        ...section,
-        items: section.items.map(item => item.id === itemId ? {
-          ...item,
-          observation: newObservation,
-          lastReviewed: lastReviewed
-        } : item)
-      } : section)
-    }));
+    setDashboardData(prev => {
+      console.log('📊 [Observation Change] Previous state sections count:', prev.sections.length);
+      const updated = {
+        ...prev,
+        sections: prev.sections.map(section => section.id === sectionId ? {
+          ...section,
+          items: section.items.map(item => {
+            if (item.id === itemId) {
+              console.log('✏️ [Observation Change] Updating item:', { 
+                oldLastReviewed: item.lastReviewed, 
+                newLastReviewed: lastReviewed 
+              });
+              return {
+                ...item,
+                observation: newObservation,
+                lastReviewed: lastReviewed
+              };
+            }
+            return item;
+          })
+        } : section)
+      };
+      console.log('✅ [Observation Change] State updated');
+      return updated;
+    });
 
     // Save to database immediately for persistence
     if (profile?.company_id) {
       try {
+        console.log('💾 [Observation Change] Saving to database:', {
+          company_id: profile.company_id,
+          section_id: sectionId,
+          item_id: itemId,
+          last_reviewed: lastReviewed
+        });
+        
         const {
           error
         } = await supabase.from('subsection_data').upsert({
@@ -754,10 +780,12 @@ const Index = () => {
         });
         
         if (error) {
-          console.error('Error saving observation:', error);
+          console.error('❌ [Observation Change] Error saving:', error);
+        } else {
+          console.log('✅ [Observation Change] Saved successfully with date:', lastReviewed);
         }
       } catch (error) {
-        console.error('Failed to save observation to database:', error);
+        console.error('❌ [Observation Change] Failed to save to database:', error);
       }
     }
     toast({
