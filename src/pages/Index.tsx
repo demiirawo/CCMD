@@ -651,7 +651,7 @@ const Index = () => {
                     lessonsLearned: (savedData as any).lessons_learned as string || item.lessonsLearned || "",
                     actions: savedData.actions ? typeof savedData.actions === 'string' ? JSON.parse(savedData.actions) : savedData.actions : item.actions,
                     metadata: savedData.metadata ? typeof savedData.metadata === 'string' ? JSON.parse(savedData.metadata) : savedData.metadata : item.metadata || {},
-                    lastReviewed: savedData.updated_at ? new Date(savedData.updated_at).toLocaleDateString('en-GB') : item.lastReviewed
+                    lastReviewed: (savedData as any).last_reviewed || (savedData.updated_at ? new Date(savedData.updated_at).toLocaleDateString('en-GB') : item.lastReviewed)
                   };
                 }
                 return item;
