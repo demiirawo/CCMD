@@ -639,12 +639,6 @@ const Index = () => {
               items: section.items.map(item => {
                 const savedData = data.find(d => d.section_id === section.id && d.item_id === item.id && d.company_id === currentCompanyId);
                 if (savedData) {
-                  console.log(`📋 Loading data for ${section.id}/${item.id}, company: ${currentCompanyId}`, {
-                    trends_themes: (savedData as any).trends_themes,
-                    observation: savedData.observation,
-                    last_reviewed: (savedData as any).last_reviewed,
-                    updated_at: savedData.updated_at
-                  });
                   return {
                     ...item,
                     status: savedData.status as StatusType || item.status,
@@ -653,7 +647,7 @@ const Index = () => {
                     lessonsLearned: (savedData as any).lessons_learned as string || item.lessonsLearned || "",
                     actions: savedData.actions ? typeof savedData.actions === 'string' ? JSON.parse(savedData.actions) : savedData.actions : item.actions,
                     metadata: savedData.metadata ? typeof savedData.metadata === 'string' ? JSON.parse(savedData.metadata) : savedData.metadata : item.metadata || {},
-                    lastReviewed: (savedData as any).last_reviewed || (savedData.updated_at ? new Date(savedData.updated_at).toLocaleDateString('en-GB') : item.lastReviewed)
+                    lastReviewed: (savedData as any).last_reviewed || item.lastReviewed
                   };
                 }
                 return item;
@@ -689,11 +683,7 @@ const Index = () => {
     await saveHeaderData(updatedHeaderData);
   };
   const handleStatusChange = async (sectionId: string, itemId: string, newStatus: StatusType) => {
-    const lastReviewed = new Date().toLocaleDateString('en-GB', {
-      day: '2-digit',
-      month: 'short',
-      year: '2-digit'
-    });
+    const lastReviewed = new Date().toLocaleDateString('en-GB');
     setDashboardData(prev => ({
       ...prev,
       sections: prev.sections.map(section => section.id === sectionId ? {
@@ -734,7 +724,6 @@ const Index = () => {
   };
   const handleObservationChange = async (sectionId: string, itemId: string, newObservation: string) => {
     const lastReviewed = new Date().toLocaleDateString('en-GB');
-    console.log('🔄 Updating observation:', { sectionId, itemId, lastReviewed, observation: newObservation.substring(0, 50) });
     
     // Update local state
     setDashboardData(prev => ({
@@ -765,9 +754,7 @@ const Index = () => {
         });
         
         if (error) {
-          console.error('❌ Error saving observation:', error);
-        } else {
-          console.log('✅ Observation saved successfully with date:', lastReviewed);
+          console.error('Error saving observation:', error);
         }
       } catch (error) {
         console.error('Failed to save observation to database:', error);
@@ -934,11 +921,13 @@ const Index = () => {
             completedBy: profile?.username || 'Unknown'
           } : action);
 
+          const lastReviewed = new Date().toLocaleDateString('en-GB');
           const { error } = await supabase.from('subsection_data').upsert({
             company_id: profile.company_id,
             section_id: sectionId,
             item_id: itemId,
-            actions: JSON.stringify(updatedActions)
+            actions: JSON.stringify(updatedActions),
+            last_reviewed: lastReviewed
           }, {
             onConflict: 'company_id,section_id,item_id'
           });
