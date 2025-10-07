@@ -515,15 +515,6 @@ const Index = () => {
         details: "",
         metadata: {}
       }, {
-        id: "information-governance",
-        title: "Information Governance",
-        status: "green" as StatusType,
-        lastReviewed: "",
-        observation: "",
-        actions: [],
-        details: "",
-        metadata: {}
-      }, {
         id: "transportation",
         title: "Transportation",
         status: "green" as StatusType,
