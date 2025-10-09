@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useToast } from "@/hooks/use-toast";
 import { ChevronDown, ChevronUp, Search, Link } from "lucide-react";
-import { EvidenceItem, loadAllEvidence } from "@/utils/evidenceLinkage";
+import { EvidenceItem, getAllEvidenceItems } from "@/utils/evidenceLinkage";
 
 interface EvidenceLinkageSettingsProps {
   companyId: string;
@@ -73,7 +73,7 @@ export const EvidenceLinkageSettings = ({ companyId }: EvidenceLinkageSettingsPr
       setLoading(true);
       try {
         // Load all evidence
-        const evidence = await loadAllEvidence(profile, companyId);
+        const evidence = await getAllEvidenceItems(companyId);
         setAllEvidence(evidence);
 
         // Load existing global linkages
