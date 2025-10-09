@@ -301,7 +301,7 @@ export const StatusItem = memo(({
               onClick={() => setShowEvidenceLinkageDialog(true)}
               className="text-xs text-primary hover:underline mt-1 text-left"
             >
-              Checklist
+              Compliance Checklist
             </button>
             
             {/* Display metadata below title */}
