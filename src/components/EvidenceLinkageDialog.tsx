@@ -41,6 +41,7 @@ export const EvidenceLinkageDialog = ({
 
   useEffect(() => {
     if (isOpen && profile?.company_id) {
+      console.log('Dialog opened with linked refs:', linkedEvidenceRefs);
       loadEvidenceData();
       setSelectedRefs(linkedEvidenceRefs);
     }
@@ -77,14 +78,18 @@ export const EvidenceLinkageDialog = ({
   };
 
   const handleToggleEvidence = (refId: string) => {
-    setSelectedRefs(prev => 
-      prev.includes(refId) 
+    console.log('Toggling evidence:', refId);
+    setSelectedRefs(prev => {
+      const newRefs = prev.includes(refId) 
         ? prev.filter(r => r !== refId)
-        : [...prev, refId]
-    );
+        : [...prev, refId];
+      console.log('Previous refs:', prev, 'New refs:', newRefs);
+      return newRefs;
+    });
   };
 
   const handleSaveConfiguration = () => {
+    console.log('Saving configuration with refs:', selectedRefs);
     onSave(selectedRefs);
     toast.success('Evidence linkage saved');
     onClose();
