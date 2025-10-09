@@ -40,23 +40,28 @@ export const EvidenceLinkageSettings = ({ companyId }: EvidenceLinkageSettingsPr
       { id: "recruitment", title: "Capacity", sectionId: "staff", sectionTitle: "Staffing" },
       { id: "staff-documents", title: "Staff Documents", sectionId: "staff", sectionTitle: "Staffing" },
       { id: "training", title: "Training", sectionId: "staff", sectionTitle: "Staffing" },
-      { id: "supervision", title: "Supervision", sectionId: "staff", sectionTitle: "Staffing" },
-      // Service Users
-      { id: "people-profile", title: "People We Support Profiles", sectionId: "service-users", sectionTitle: "Service Users" },
-      { id: "care-plans", title: "Care Plans", sectionId: "service-users", sectionTitle: "Service Users" },
-      { id: "risk-assessments", title: "Risk Assessments", sectionId: "service-users", sectionTitle: "Service Users" },
-      { id: "activity-engagement", title: "Activity & Engagement", sectionId: "service-users", sectionTitle: "Service Users" },
-      { id: "emotional-wellbeing", title: "Emotional Wellbeing", sectionId: "service-users", sectionTitle: "Service Users" },
-      { id: "health", title: "Health", sectionId: "service-users", sectionTitle: "Service Users" },
-      { id: "medication", title: "Medication", sectionId: "service-users", sectionTitle: "Service Users" },
-      { id: "care-notes", title: "Care Notes", sectionId: "service-users", sectionTitle: "Service Users" },
-      // Quality & Compliance
-      { id: "spot-checks", title: "Spot Checks", sectionId: "quality", sectionTitle: "Quality & Compliance" },
-      { id: "safeguarding", title: "Safeguarding", sectionId: "quality", sectionTitle: "Quality & Compliance" },
-      { id: "incidents", title: "Incidents", sectionId: "quality", sectionTitle: "Quality & Compliance" },
-      { id: "complaints", title: "Complaints", sectionId: "quality", sectionTitle: "Quality & Compliance" },
-      { id: "feedback", title: "Feedback", sectionId: "quality", sectionTitle: "Quality & Compliance" },
-      { id: "policies", title: "Policies & Procedures", sectionId: "quality", sectionTitle: "Quality & Compliance" },
+      { id: "spot-checks", title: "Spot Checks", sectionId: "staff", sectionTitle: "Staffing" },
+      { id: "staff-supervisions", title: "Staff Supervisions", sectionId: "staff", sectionTitle: "Staffing" },
+      { id: "staff-meetings", title: "Staff Meetings", sectionId: "staff", sectionTitle: "Staffing" },
+      // Care & Support
+      { id: "care-plans", title: "Planning & Risk Assessment", sectionId: "care-planning", sectionTitle: "Care & Support" },
+      { id: "service-user-docs", title: "Service User Documents", sectionId: "care-planning", sectionTitle: "Care & Support" },
+      { id: "medication", title: "Medication Management", sectionId: "care-planning", sectionTitle: "Care & Support" },
+      { id: "care-notes", title: "Care & Support Notes", sectionId: "care-planning", sectionTitle: "Care & Support" },
+      { id: "call-monitoring", title: "Call Monitoring", sectionId: "care-planning", sectionTitle: "Care & Support" },
+      // Safety
+      { id: "incidents-accidents", title: "Incidents, Accidents & Safeguarding", sectionId: "safety", sectionTitle: "Safety" },
+      { id: "risk-register", title: "Risk Management", sectionId: "safety", sectionTitle: "Safety" },
+      { id: "infection-control", title: "Infection Control", sectionId: "safety", sectionTitle: "Safety" },
+      { id: "transportation", title: "Transportation", sectionId: "safety", sectionTitle: "Safety" },
+      // Continuous Improvement
+      { id: "feedback", title: "Feedback", sectionId: "continuous-improvement", sectionTitle: "Continuous Improvement" },
+      { id: "audits", title: "Audits", sectionId: "continuous-improvement", sectionTitle: "Continuous Improvement" },
+      { id: "achievements-learning", title: "Achievements & Challenges", sectionId: "continuous-improvement", sectionTitle: "Continuous Improvement" },
+      // Supported Housing
+      { id: "tenancy-benefits", title: "Tenancy & Benefits", sectionId: "supported-housing", sectionTitle: "Supported Housing" },
+      { id: "property-safety-maintenance", title: "Property Safety & Maintenance", sectionId: "supported-housing", sectionTitle: "Supported Housing" },
+      { id: "accommodation-suitability", title: "Compatibility Assessment", sectionId: "supported-housing", sectionTitle: "Supported Housing" },
     ];
     setSectionItems(items);
   }, []);
