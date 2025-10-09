@@ -57,6 +57,7 @@ export const EvidenceLinkageSettings = ({ companyId }: EvidenceLinkageSettingsPr
       // Continuous Improvement
       { id: "feedback", title: "Feedback", sectionId: "continuous-improvement", sectionTitle: "Continuous Improvement" },
       { id: "audits", title: "Audits", sectionId: "continuous-improvement", sectionTitle: "Continuous Improvement" },
+      { id: "stakeholders-social-community", title: "Stakeholders, Social & Community", sectionId: "continuous-improvement", sectionTitle: "Continuous Improvement" },
       { id: "achievements-learning", title: "Achievements & Challenges", sectionId: "continuous-improvement", sectionTitle: "Continuous Improvement" },
       // Supported Housing
       { id: "tenancy-benefits", title: "Tenancy & Benefits", sectionId: "supported-housing", sectionTitle: "Supported Housing" },
