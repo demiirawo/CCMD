@@ -48,6 +48,16 @@ export const EvidenceLinkageDialog = ({
     }
   }, [isOpen, profile?.company_id, linkedEvidenceRefs]);
 
+  // Initialize expanded panels when linked evidence loads (for regular users)
+  useEffect(() => {
+    if (!isSuperAdmin && linkedEvidence.length > 0) {
+      const panels = [...new Set(linkedEvidence.map(ev => ev.panelName))];
+      if (panels.length > 0 && expandedPanels.size === 0) {
+        setExpandedPanels(new Set(panels));
+      }
+    }
+  }, [linkedEvidence, isSuperAdmin]);
+
   const loadEvidenceData = async () => {
     if (!profile?.company_id) return;
     
@@ -302,13 +312,6 @@ export const EvidenceLinkageDialog = ({
     }
     groupedByPanel[item.panelName][item.categoryName].push(item);
   });
-
-  // Initialize expanded panels when data loads
-  useEffect(() => {
-    if (Object.keys(groupedByPanel).length > 0 && expandedPanels.size === 0) {
-      setExpandedPanels(new Set(Object.keys(groupedByPanel)));
-    }
-  }, [groupedByPanel]);
 
   const togglePanel = (panelName: string) => {
     const newExpanded = new Set(expandedPanels);
