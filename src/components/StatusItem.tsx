@@ -221,13 +221,13 @@ export const StatusItem = memo(({
                 <StatusBadge status={item.status} />
               </div> : <StatusBadge status={item.status} />}
             <button className="relative inline-flex items-center justify-center cursor-pointer hover:scale-105 transition-all duration-300">
-              <Square className="w-12 h-12 text-gray-400" fill="currentColor" />
+              <Square className="w-12 h-12 text-[#202A38]" fill="currentColor" />
               <Check className="absolute inset-0 m-auto w-7 h-7 text-white" strokeWidth={3} />
             </button>
           </div> : item.id === "achievements-learning" ? <div className="flex-shrink-0 flex flex-col gap-2 invisible pointer-events-none">
               <StatusBadge status={item.status} />
               <button className="relative inline-flex items-center justify-center cursor-pointer hover:scale-105 transition-all duration-300">
-                <Square className="w-12 h-12 text-gray-400" fill="currentColor" />
+                <Square className="w-12 h-12 text-[#202A38]" fill="currentColor" />
                 <Check className="absolute inset-0 m-auto w-7 h-7 text-white" strokeWidth={3} />
               </button>
             </div> : <div className="flex-shrink-0 flex flex-col gap-2">
@@ -241,7 +241,7 @@ export const StatusItem = memo(({
                 <StatusBadge status={item.status} />
               </button>
               <button className="relative inline-flex items-center justify-center cursor-pointer hover:scale-105 transition-all duration-300">
-                <Square className="w-12 h-12 text-gray-400" fill="currentColor" />
+                <Square className="w-12 h-12 text-[#202A38]" fill="currentColor" />
                 <Check className="absolute inset-0 m-auto w-7 h-7 text-white" strokeWidth={3} />
               </button>
             </div>}
