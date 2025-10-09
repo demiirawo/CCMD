@@ -290,7 +290,7 @@ export const useMeetingEmailNotification = () => {
           });
           
           sectionStatusSummary.push({
-            title: 'Key Review Dates',
+            title: 'Compliance Documents',
             status: statusMapping[keyDocsStatus],
             updated: new Date().toLocaleDateString('en-GB')
           });

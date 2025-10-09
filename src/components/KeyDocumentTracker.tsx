@@ -248,7 +248,7 @@ export const KeyDocumentTracker = ({
     }}>
         <div className="flex items-center gap-3">
           <div>
-            <h3 className={cn("text-xl font-bold", isDynamicPanelColourEnabled ? "text-white" : "text-foreground")}>Key Review Dates</h3>
+            <h3 className={cn("text-xl font-bold", isDynamicPanelColourEnabled ? "text-white" : "text-foreground")}>Compliance Documents</h3>
             <p className={cn("text-sm", isDynamicPanelColourEnabled ? "text-white/80" : "text-muted-foreground")}>
               Updated: {new Date().toLocaleDateString('en-GB')}
             </p>

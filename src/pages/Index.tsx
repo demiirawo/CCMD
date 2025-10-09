@@ -1447,7 +1447,7 @@ const Index = () => {
         </div>
       </div>;
   }
-  // Compute extra statuses for RAG (Actions + Key Review Dates)
+  // Compute extra statuses for RAG (Actions + Compliance Documents)
   const parseDueDate = (dueDate: string): Date | null => {
     if (!dueDate) return null;
     if (dueDate.includes('/') && dueDate.split('/').length === 3) {
