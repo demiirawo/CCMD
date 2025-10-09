@@ -470,13 +470,14 @@ export const StatusItem = memo(({
                   </div>
                 </div>
               </div>}
+          </div>
         </div>}
       
       <IframeDialog isOpen={iframeDialog.isOpen} onClose={() => setIframeDialog({
-      isOpen: false,
-      url: '',
-      title: ''
-    })} url={iframeDialog.url} title={iframeDialog.title} />
+        isOpen: false,
+        url: '',
+        title: ''
+      })} url={iframeDialog.url} title={iframeDialog.title} />
       
       <EvidenceLinkageDialog
         isOpen={showEvidenceLinkageDialog}
