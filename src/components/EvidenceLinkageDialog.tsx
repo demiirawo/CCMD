@@ -38,6 +38,7 @@ export const EvidenceLinkageDialog = ({
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [expandedTypes, setExpandedTypes] = useState<Set<string>>(new Set(['CQC', 'HO', 'OFT']));
+  const [expandedPanels, setExpandedPanels] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (isOpen && profile?.company_id) {
@@ -302,9 +303,12 @@ export const EvidenceLinkageDialog = ({
     groupedByPanel[item.panelName][item.categoryName].push(item);
   });
 
-  const [expandedPanels, setExpandedPanels] = useState<Set<string>>(
-    new Set(Object.keys(groupedByPanel))
-  );
+  // Initialize expanded panels when data loads
+  useEffect(() => {
+    if (Object.keys(groupedByPanel).length > 0 && expandedPanels.size === 0) {
+      setExpandedPanels(new Set(Object.keys(groupedByPanel)));
+    }
+  }, [groupedByPanel]);
 
   const togglePanel = (panelName: string) => {
     const newExpanded = new Set(expandedPanels);
