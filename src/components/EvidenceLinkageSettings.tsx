@@ -36,10 +36,6 @@ export const EvidenceLinkageSettings = ({ companyId }: EvidenceLinkageSettingsPr
   // Load all subsections from the dashboard structure
   useEffect(() => {
     const items: SectionItem[] = [
-      // Meeting Overview
-      { id: "meeting-date", title: "Meeting Date", sectionId: "meeting-overview", sectionTitle: "Meeting Overview" },
-      { id: "meeting-attendees", title: "Meeting Attendees", sectionId: "meeting-overview", sectionTitle: "Meeting Overview" },
-      { id: "meeting-purpose", title: "Meeting Purpose", sectionId: "meeting-overview", sectionTitle: "Meeting Overview" },
       // Staffing
       { id: "recruitment", title: "Capacity", sectionId: "staff", sectionTitle: "Staffing" },
       { id: "staff-documents", title: "Staff Documents", sectionId: "staff", sectionTitle: "Staffing" },
