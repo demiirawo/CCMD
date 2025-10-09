@@ -376,7 +376,7 @@ export const EvidenceLinkageDialog = ({
                                   <div className="font-mono font-semibold text-xs pt-2">
                                     {ev.referenceId}
                                   </div>
-                                  <div className="text-xs p-2 bg-muted/30 rounded max-h-20 overflow-y-auto">
+                                  <div className="text-xs p-2 bg-muted/30 rounded min-h-[60px]">
                                     {ev.evidenceText || 'No evidence provided'}
                                   </div>
                                   <div>
