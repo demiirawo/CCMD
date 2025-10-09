@@ -153,7 +153,7 @@ export const EvidenceLinkageDialog = ({
   if (loading) {
     return (
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="sm:max-w-6xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-6xl max-h-[90vh] flex flex-col">
           <div className="flex items-center justify-center py-12">
             <Loader2 className="h-8 w-8 animate-spin" />
           </div>
@@ -170,12 +170,12 @@ export const EvidenceLinkageDialog = ({
 
     return (
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="sm:max-w-6xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
+        <DialogContent className="sm:max-w-6xl max-h-[90vh] flex flex-col">
+          <DialogHeader className="flex-shrink-0">
             <DialogTitle>Configure Evidence Links - {subsectionTitle}</DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-4">
+          <div className="flex-1 overflow-y-auto space-y-3 pr-2">
             <div className="relative">
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
@@ -186,27 +186,29 @@ export const EvidenceLinkageDialog = ({
               />
             </div>
 
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-2">
               <p className="text-sm font-semibold text-blue-900">
-                Selected Evidence: {selectedRefs.length} items
+                Selected: {selectedRefs.length} items
               </p>
-              <p className="text-xs text-blue-700 mt-1">
-                {selectedRefs.length > 0 ? selectedRefs.join(', ') : 'No evidence selected'}
-              </p>
+              {selectedRefs.length > 0 && (
+                <p className="text-xs text-blue-700 mt-1 max-h-12 overflow-y-auto">
+                  {selectedRefs.join(', ')}
+                </p>
+              )}
             </div>
 
             {currentlyLinked.length > 0 && (
-              <div className="border rounded-lg p-4 bg-muted/50">
-                <h3 className="font-semibold mb-2">Currently Linked ({currentlyLinked.length})</h3>
-                <div className="space-y-1 max-h-32 overflow-y-auto">
+              <div className="border rounded-lg p-2 bg-muted/50">
+                <h3 className="font-semibold text-sm mb-1">Currently Linked ({currentlyLinked.length})</h3>
+                <div className="space-y-1 max-h-24 overflow-y-auto">
                   {currentlyLinked.map(ev => (
                     <div key={ev.id} className="text-sm flex items-center gap-2">
                       <Checkbox
                         checked={true}
                         onCheckedChange={() => handleToggleEvidence(ev.referenceId)}
                       />
-                      <span className="font-mono font-semibold">{ev.referenceId}</span>
-                      <span className="text-muted-foreground truncate">{ev.evidenceText}</span>
+                      <span className="font-mono font-semibold text-xs">{ev.referenceId}</span>
+                      <span className="text-muted-foreground truncate text-xs">{ev.evidenceText}</span>
                     </div>
                   ))}
                 </div>
@@ -227,13 +229,13 @@ export const EvidenceLinkageDialog = ({
                     onOpenChange={() => toggleType(type)}
                   >
                     <CollapsibleTrigger className="w-full">
-                      <div className="flex items-center gap-2 p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors">
+                      <div className="flex items-center gap-2 p-2 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors">
                         {expandedTypes.has(type) ? (
                           <ChevronDown className="h-4 w-4" />
                         ) : (
                           <ChevronRight className="h-4 w-4" />
                         )}
-                        <span className="font-semibold">{typeLabel} Evidence ({typeEvidence.length})</span>
+                        <span className="font-semibold text-sm">{typeLabel} Evidence ({typeEvidence.length})</span>
                       </div>
                     </CollapsibleTrigger>
                     <CollapsibleContent>
@@ -263,14 +265,15 @@ export const EvidenceLinkageDialog = ({
               })}
             </div>
 
-            <div className="flex justify-end gap-2 pt-4 border-t">
-              <Button onClick={onClose} variant="outline">
-                Cancel
-              </Button>
-              <Button onClick={handleSaveConfiguration}>
-                Save Configuration
-              </Button>
-            </div>
+          </div>
+
+          <div className="flex justify-end gap-2 pt-3 border-t flex-shrink-0 mt-3">
+            <Button onClick={onClose} variant="outline">
+              Cancel
+            </Button>
+            <Button onClick={handleSaveConfiguration}>
+              Save Configuration
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
@@ -282,8 +285,8 @@ export const EvidenceLinkageDialog = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-6xl max-h-[80vh] overflow-y-auto">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-6xl max-h-[90vh] flex flex-col">
+        <DialogHeader className="flex-shrink-0">
           <DialogTitle>Evidence Items - {subsectionTitle}</DialogTitle>
         </DialogHeader>
 
@@ -292,21 +295,21 @@ export const EvidenceLinkageDialog = ({
             No evidence items linked to this subsection yet.
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="flex-1 overflow-y-auto space-y-3">
             {filteredLinked.length > 0 && (
               <div className="border rounded-lg overflow-hidden">
-                <div className="grid grid-cols-[100px_2fr_2fr_120px] gap-4 p-3 bg-muted font-semibold text-sm border-b">
+                <div className="grid grid-cols-[90px_1.5fr_1.5fr_100px] gap-3 p-2 bg-muted font-semibold text-xs border-b sticky top-0">
                   <div>Ref ID</div>
                   <div>Evidence</div>
                   <div>Comment</div>
                   <div>Status</div>
                 </div>
                 {filteredLinked.map(ev => (
-                  <div key={ev.id} className="grid grid-cols-[100px_2fr_2fr_120px] gap-4 p-3 border-b last:border-b-0 items-start">
-                    <div className="font-mono font-semibold text-sm pt-2">
+                  <div key={ev.id} className="grid grid-cols-[90px_1.5fr_1.5fr_100px] gap-3 p-2 border-b last:border-b-0 items-start">
+                    <div className="font-mono font-semibold text-xs pt-2">
                       {ev.referenceId}
                     </div>
-                    <div className="text-sm p-2 bg-muted/30 rounded">
+                    <div className="text-xs p-2 bg-muted/30 rounded max-h-20 overflow-y-auto">
                       {ev.evidenceText || 'No evidence provided'}
                     </div>
                     <div>
@@ -314,7 +317,7 @@ export const EvidenceLinkageDialog = ({
                         value={ev.comment}
                         onChange={(e) => handleUpdateComment(ev.id, e.target.value)}
                         placeholder="Enter comment..."
-                        className="text-sm min-h-[80px] bg-white"
+                        className="text-xs min-h-[60px] max-h-20 bg-white"
                       />
                     </div>
                     <div className="flex justify-center pt-2">
@@ -327,14 +330,14 @@ export const EvidenceLinkageDialog = ({
                 ))}
               </div>
             )}
-
-            <div className="flex justify-end pt-4 border-t">
-              <Button onClick={onClose}>
-                Close
-              </Button>
-            </div>
           </div>
         )}
+
+        <div className="flex justify-end pt-3 border-t flex-shrink-0 mt-3">
+          <Button onClick={onClose}>
+            Close
+          </Button>
+        </div>
       </DialogContent>
     </Dialog>
   );
