@@ -547,6 +547,15 @@ const Index = () => {
         details: "",
         metadata: {}
       }, {
+        id: "stakeholders-social-community",
+        title: "Stakeholders, Social & Community",
+        status: "green" as StatusType,
+        lastReviewed: "",
+        observation: "",
+        actions: [],
+        details: "",
+        metadata: {}
+      }, {
         id: "achievements-learning",
         title: "Achievements & Challenges",
         status: "green" as StatusType,
