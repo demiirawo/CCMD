@@ -9,6 +9,7 @@ import { useAuth } from "@/hooks/useAuth";
 
 interface DashboardSectionProps {
   title: string;
+  sectionId?: string;
   icon?: React.ReactNode;
   items: StatusItemData[];
   onItemStatusChange?: (id: string, status: StatusType) => void;
@@ -35,6 +36,7 @@ interface DashboardSectionProps {
 
 export const DashboardSection = ({
   title,
+  sectionId,
   icon,
   items,
   onItemStatusChange,
@@ -321,6 +323,7 @@ export const DashboardSection = ({
             <StatusItem
               key={item.id}
               item={item}
+              sectionId={sectionId}
               onStatusChange={readOnly ? undefined : onItemStatusChange}
               onObservationChange={readOnly ? undefined : onItemObservationChange}
               onTrendsThemesChange={readOnly ? undefined : onItemTrendsThemesChange}

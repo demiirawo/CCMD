@@ -649,6 +649,36 @@ export type Database = {
           },
         ]
       }
+      global_subsection_evidence: {
+        Row: {
+          created_at: string
+          id: string
+          item_id: string
+          linked_evidence_refs: Json
+          section_id: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          item_id: string
+          linked_evidence_refs?: Json
+          section_id: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          item_id?: string
+          linked_evidence_refs?: Json
+          section_id?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       incidents_analytics: {
         Row: {
           company_id: string

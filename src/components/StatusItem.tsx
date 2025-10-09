@@ -7,7 +7,7 @@ import { ResourcingOverview } from "./ResourcingOverview";
 import { IncidentsAnalytics } from "./IncidentsAnalytics";
 import { FeedbackAnalytics } from "./FeedbackAnalytics";
 import { ChevronDown, ChevronRight, CalendarIcon, ExternalLink, Square, Check } from "lucide-react";
-import { useState, memo, useCallback } from "react";
+import { useState, memo, useCallback, useEffect } from "react";
 import { CommentEditor } from "./CommentEditor";
 import { ChallengesField } from "./ChallengesField";
 import { LessonsLearnedField } from "./LessonsLearnedField";
@@ -23,6 +23,8 @@ import { SubsectionMetadataDialog, SubsectionMetadata } from "./SubsectionMetada
 import { IframeDialog } from "./IframeDialog";
 import { EvidenceLinkageDialog } from "./EvidenceLinkageDialog";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 export interface DocumentData {
   documentName: string;
   documentOwner: string;
@@ -46,6 +48,7 @@ export interface StatusItemData {
 }
 interface StatusItemProps {
   item: StatusItemData;
+  sectionId?: string;
   onStatusChange?: (id: string, status: StatusType) => void;
   onObservationChange?: (id: string, observation: string) => void;
   onTrendsThemesChange?: (id: string, trendsThemes: string) => void;
@@ -78,6 +81,7 @@ interface StatusItemProps {
 }
 export const StatusItem = memo(({
   item,
+  sectionId,
   onStatusChange,
   onObservationChange,
   onTrendsThemesChange,
@@ -103,6 +107,7 @@ export const StatusItem = memo(({
   const [isExpanded, setIsExpanded] = useState(false);
   const [isEditingObservation, setIsEditingObservation] = useState(false);
   const [showEvidenceLinkageDialog, setShowEvidenceLinkageDialog] = useState(false);
+  const [globalEvidenceRefs, setGlobalEvidenceRefs] = useState<string[]>([]);
   const [iframeDialog, setIframeDialog] = useState<{
     isOpen: boolean;
     url: string;
@@ -202,13 +207,57 @@ export const StatusItem = memo(({
     onMetadataChange?.(item.id, metadata);
   };
 
-  const handleEvidenceLinkageSave = useCallback((refs: string[]) => {
-    const updatedMetadata = {
-      ...item.metadata,
-      linkedEvidenceRefs: refs
+  // Load global evidence linkage if available
+  useEffect(() => {
+    const loadGlobalEvidence = async () => {
+      if (!sectionId) return;
+      
+      const { data, error } = await supabase
+        .from('global_subsection_evidence')
+        .select('linked_evidence_refs')
+        .eq('section_id', sectionId)
+        .eq('item_id', item.id)
+        .maybeSingle();
+      
+      if (!error && data) {
+        setGlobalEvidenceRefs(data.linked_evidence_refs as string[]);
+      }
     };
-    onMetadataChange?.(item.id, updatedMetadata);
-  }, [item.id, item.metadata, onMetadataChange]);
+    
+    loadGlobalEvidence();
+  }, [sectionId, item.id]);
+
+  const handleEvidenceLinkageSave = useCallback(async (refs: string[]) => {
+    if (isSuperAdmin && sectionId) {
+      // For super admin, save to global table so all companies see it
+      const { error } = await supabase
+        .from('global_subsection_evidence')
+        .upsert({
+          section_id: sectionId,
+          item_id: item.id,
+          linked_evidence_refs: refs,
+          updated_by: profile?.user_id
+        });
+      
+      if (error) {
+        console.error('Error saving global evidence linkage:', error);
+        toast.error('Failed to save evidence linkage');
+        return;
+      }
+      
+      // Update local state immediately
+      setGlobalEvidenceRefs(refs);
+      toast.success('Evidence linkage saved globally for all companies');
+    } else {
+      // For regular users, save to their company's metadata
+      const updatedMetadata = {
+        ...item.metadata,
+        linkedEvidenceRefs: refs
+      };
+      onMetadataChange?.(item.id, updatedMetadata);
+    }
+    setShowEvidenceLinkageDialog(false);
+  }, [item.id, item.metadata, onMetadataChange, isSuperAdmin, sectionId, profile]);
   const getStatusBackgroundClass = (status: StatusType) => {
     // Panel color is determined by the R/A/G status only
     switch (status) {
@@ -483,7 +532,7 @@ export const StatusItem = memo(({
         isOpen={showEvidenceLinkageDialog}
         onClose={() => setShowEvidenceLinkageDialog(false)}
         subsectionTitle={item.title}
-        linkedEvidenceRefs={item.metadata?.linkedEvidenceRefs || []}
+        linkedEvidenceRefs={globalEvidenceRefs.length > 0 ? globalEvidenceRefs : (item.metadata?.linkedEvidenceRefs || [])}
         onSave={handleEvidenceLinkageSave}
         isSuperAdmin={isSuperAdmin}
       />

@@ -1586,6 +1586,7 @@ const Index = () => {
           return (
             <DashboardSection
               key={section.id} 
+              sectionId={section.id}
               title={sectionTitle} 
               items={modifiedItems} 
               onItemStatusChange={canEdit ? (itemId, status) => handleStatusChange(section.id, itemId, status) : undefined} 
