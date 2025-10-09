@@ -120,6 +120,35 @@ export const StatusItem = memo(({
 
   // Check if any iframe links are available
   const hasIframeLinks = item.metadata?.linkIsIframe || item.metadata?.link2IsIframe || item.metadata?.link3IsIframe || item.metadata?.link4IsIframe;
+
+  // Load global evidence linkage (read-only for everyone on dashboard)
+  useEffect(() => {
+    const loadGlobalEvidence = async () => {
+      if (!sectionId) return;
+      
+      try {
+        const { data, error } = await supabase
+          .from('global_subsection_evidence')
+          .select('linked_evidence_refs')
+          .eq('section_id', sectionId)
+          .eq('item_id', item.id)
+          .maybeSingle();
+
+        if (error) {
+          console.error('Error loading global evidence:', error);
+          return;
+        }
+
+        if (data?.linked_evidence_refs && Array.isArray(data.linked_evidence_refs)) {
+          setGlobalEvidenceRefs(data.linked_evidence_refs as string[]);
+        }
+      } catch (error) {
+        console.error('Error loading global evidence:', error);
+      }
+    };
+
+    loadGlobalEvidence();
+  }, [sectionId, item.id]);
   const handleObservationSubmit = useCallback((observation: string) => {
     onObservationChange?.(item.id, observation);
     setIsEditingObservation(false);
@@ -207,57 +236,6 @@ export const StatusItem = memo(({
     onMetadataChange?.(item.id, metadata);
   };
 
-  // Load global evidence linkage if available
-  useEffect(() => {
-    const loadGlobalEvidence = async () => {
-      if (!sectionId) return;
-      
-      const { data, error } = await supabase
-        .from('global_subsection_evidence')
-        .select('linked_evidence_refs')
-        .eq('section_id', sectionId)
-        .eq('item_id', item.id)
-        .maybeSingle();
-      
-      if (!error && data) {
-        setGlobalEvidenceRefs(data.linked_evidence_refs as string[]);
-      }
-    };
-    
-    loadGlobalEvidence();
-  }, [sectionId, item.id]);
-
-  const handleEvidenceLinkageSave = useCallback(async (refs: string[]) => {
-    if (isSuperAdmin && sectionId) {
-      // For super admin, save to global table so all companies see it
-      const { error } = await supabase
-        .from('global_subsection_evidence')
-        .upsert({
-          section_id: sectionId,
-          item_id: item.id,
-          linked_evidence_refs: refs,
-          updated_by: profile?.user_id
-        });
-      
-      if (error) {
-        console.error('Error saving global evidence linkage:', error);
-        toast.error('Failed to save evidence linkage');
-        return;
-      }
-      
-      // Update local state immediately
-      setGlobalEvidenceRefs(refs);
-      toast.success('Evidence linkage saved globally for all companies');
-    } else {
-      // For regular users, save to their company's metadata
-      const updatedMetadata = {
-        ...item.metadata,
-        linkedEvidenceRefs: refs
-      };
-      onMetadataChange?.(item.id, updatedMetadata);
-    }
-    setShowEvidenceLinkageDialog(false);
-  }, [item.id, item.metadata, onMetadataChange, isSuperAdmin, sectionId, profile]);
   const getStatusBackgroundClass = (status: StatusType) => {
     // Panel color is determined by the R/A/G status only
     switch (status) {
@@ -533,8 +511,8 @@ export const StatusItem = memo(({
         onClose={() => setShowEvidenceLinkageDialog(false)}
         subsectionTitle={item.title}
         linkedEvidenceRefs={globalEvidenceRefs.length > 0 ? globalEvidenceRefs : (item.metadata?.linkedEvidenceRefs || [])}
-        onSave={handleEvidenceLinkageSave}
-        isSuperAdmin={isSuperAdmin}
+        onSave={async () => {}} // Read-only - no save needed on dashboard
+        isSuperAdmin={false} // Always read-only on dashboard
       />
     </div>;
 });

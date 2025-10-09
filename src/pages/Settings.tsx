@@ -8,6 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { Palette, Building, Image, Upload, X } from "lucide-react";
 import { TeamMembersManager } from "@/components/TeamMembersManager";
+import { EvidenceLinkageSettings } from "@/components/EvidenceLinkageSettings";
 
 // Helper function to convert hex to HSL
 const hexToHsl = (hex: string): string => {
@@ -374,6 +375,13 @@ export const Settings = () => {
       <div className="mt-6">
         <TeamMembersManager companyId={currentCompany.id} />
       </div>
+
+      {/* Evidence Linkage Configuration - Only for Super Admin */}
+      {user?.email === 'demi.irawo@care-cuddle.co.uk' && (
+        <div className="mt-6">
+          <EvidenceLinkageSettings companyId={currentCompany.id} />
+        </div>
+      )}
 
       {/* Save Button */}
       <div className="flex justify-end">

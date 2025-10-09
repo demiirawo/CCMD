@@ -99,6 +99,13 @@ export const getLinkedEvidenceDetails = async (
 };
 
 /**
+ * Load all evidence for a user's company
+ */
+export const loadAllEvidence = async (profile: any, companyId: string): Promise<EvidenceItem[]> => {
+  return await getAllEvidenceItems(companyId);
+};
+
+/**
  * Updates an evidence response (comment or status)
  */
 export const updateEvidenceResponse = async (
