@@ -33,7 +33,8 @@ const SortableCategory = ({
   updateResponse,
   deleteEvidence,
   handleStatusClick,
-  isSuperAdmin
+  isSuperAdmin,
+  evidenceReferenceMap
 }: any) => {
   const {
     attributes,
@@ -101,11 +102,12 @@ const SortableCategory = ({
           {/* Evidence Rows */}
           {getEvidenceForCategory(category.id).map((evidenceItem: any, index: number) => {
         const response = getResponseForEvidence(evidenceItem.id);
+        const referenceId = evidenceReferenceMap?.[evidenceItem.id] || `E${index + 1}`;
         return <div key={evidenceItem.id} className="grid gap-4 items-start py-2 border-b border-gray-100" style={{
           gridTemplateColumns: isSuperAdmin ? '80px 2fr 2fr 100px 60px' : '80px 2fr 2fr 100px'
         }}>
                  <div className="text-sm font-mono text-muted-foreground self-center">
-                   {`E${index + 1}`}
+                   {referenceId}
                  </div>
                  <div>
                    {isSuperAdmin ? <DebouncedTextarea value={evidenceItem.evidence_text} onSave={value => updateEvidence(evidenceItem.id, value)} placeholder="Enter evidence..." className="text-sm" /> : <div className="text-sm p-2 bg-gray-50 rounded">
@@ -445,6 +447,29 @@ const Inspection = () => {
       }));
     }
   };
+
+  // Build evidence reference ID maps for each compliance type
+  const buildEvidenceReferenceMap = (panelList: any[], prefix: string) => {
+    const map: { [key: string]: string } = {};
+    let counter = 1;
+    
+    panelList.forEach(panel => {
+      const panelCategories = getOrderedCategoriesForPanel(panel.id);
+      panelCategories.forEach(category => {
+        const categoryEvidence = getEvidenceForCategory(category.id);
+        categoryEvidence.forEach(evidenceItem => {
+          map[evidenceItem.id] = `${prefix}${counter}`;
+          counter++;
+        });
+      });
+    });
+    
+    return map;
+  };
+
+  const cqcEvidenceReferenceMap = buildEvidenceReferenceMap(cqcPanels, 'CQC');
+  const cosEvidenceReferenceMap = cosCompliancePanel ? buildEvidenceReferenceMap([cosCompliancePanel], 'HO') : {};
+  const ofstedEvidenceReferenceMap = buildEvidenceReferenceMap(ofstedPanels, 'OFT');
   if (loading) {
     return <div className="min-h-screen bg-background">
         <Navigation />
@@ -504,7 +529,7 @@ const Inspection = () => {
                           {getOrderedCategoriesForPanel(panel.id).length > 0 && <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={event => handleDragEnd(event, panel.id)}>
                               <SortableContext items={getOrderedCategoriesForPanel(panel.id).map(cat => cat.id)} strategy={verticalListSortingStrategy}>
                                 <div className="space-y-6">
-                                  {getOrderedCategoriesForPanel(panel.id).map(category => <SortableCategory key={category.id} category={category} isExpanded={expandedCategories.has(category.id)} onToggle={toggleCategory} onUpdateCategory={updateCategory} onAddEvidence={handleAddEvidence} onDeleteCategory={deleteCategory} getEvidenceForCategory={getEvidenceForCategory} getResponseForEvidence={getResponseForEvidence} getCategoryStatus={getCategoryStatus} getCategoryLastUpdated={getCategoryLastUpdated} updateEvidence={updateEvidence} updateResponse={updateResponse} deleteEvidence={deleteEvidence} handleStatusClick={handleStatusClick} isSuperAdmin={isSuperAdmin} />)}
+                                  {getOrderedCategoriesForPanel(panel.id).map(category => <SortableCategory key={category.id} category={category} isExpanded={expandedCategories.has(category.id)} onToggle={toggleCategory} onUpdateCategory={updateCategory} onAddEvidence={handleAddEvidence} onDeleteCategory={deleteCategory} getEvidenceForCategory={getEvidenceForCategory} getResponseForEvidence={getResponseForEvidence} getCategoryStatus={getCategoryStatus} getCategoryLastUpdated={getCategoryLastUpdated} updateEvidence={updateEvidence} updateResponse={updateResponse} deleteEvidence={deleteEvidence} handleStatusClick={handleStatusClick} isSuperAdmin={isSuperAdmin} evidenceReferenceMap={cqcEvidenceReferenceMap} />)}
                                 </div>
                               </SortableContext>
                             </DndContext>}
@@ -546,7 +571,7 @@ const Inspection = () => {
                     {getOrderedCategoriesForPanel(cosCompliancePanel.id).length > 0 && <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={event => handleDragEnd(event, cosCompliancePanel.id)}>
                         <SortableContext items={getOrderedCategoriesForPanel(cosCompliancePanel.id).map(cat => cat.id)} strategy={verticalListSortingStrategy}>
                           <div className="space-y-6">
-                            {getOrderedCategoriesForPanel(cosCompliancePanel.id).map(category => <SortableCategory key={category.id} category={category} isExpanded={expandedCategories.has(category.id)} onToggle={toggleCategory} onUpdateCategory={updateCategory} onAddEvidence={handleAddEvidence} onDeleteCategory={deleteCategory} getEvidenceForCategory={getEvidenceForCategory} getResponseForEvidence={getResponseForEvidence} getCategoryStatus={getCategoryStatus} getCategoryLastUpdated={getCategoryLastUpdated} updateEvidence={updateEvidence} updateResponse={updateResponse} deleteEvidence={deleteEvidence} handleStatusClick={handleStatusClick} isSuperAdmin={isSuperAdmin} />)}
+                            {getOrderedCategoriesForPanel(cosCompliancePanel.id).map(category => <SortableCategory key={category.id} category={category} isExpanded={expandedCategories.has(category.id)} onToggle={toggleCategory} onUpdateCategory={updateCategory} onAddEvidence={handleAddEvidence} onDeleteCategory={deleteCategory} getEvidenceForCategory={getEvidenceForCategory} getResponseForEvidence={getResponseForEvidence} getCategoryStatus={getCategoryStatus} getCategoryLastUpdated={getCategoryLastUpdated} updateEvidence={updateEvidence} updateResponse={updateResponse} deleteEvidence={deleteEvidence} handleStatusClick={handleStatusClick} isSuperAdmin={isSuperAdmin} evidenceReferenceMap={cosEvidenceReferenceMap} />)}
                           </div>
                         </SortableContext>
                       </DndContext>}
@@ -591,7 +616,7 @@ const Inspection = () => {
                         {getOrderedCategoriesForPanel(panel.id).length > 0 && <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={event => handleDragEnd(event, panel.id)}>
                             <SortableContext items={getOrderedCategoriesForPanel(panel.id).map(cat => cat.id)} strategy={verticalListSortingStrategy}>
                               <div className="space-y-6">
-                                {getOrderedCategoriesForPanel(panel.id).map(category => <SortableCategory key={category.id} category={category} isExpanded={expandedCategories.has(category.id)} onToggle={toggleCategory} onUpdateCategory={updateCategory} onAddEvidence={handleAddEvidence} onDeleteCategory={deleteCategory} getEvidenceForCategory={getEvidenceForCategory} getResponseForEvidence={getResponseForEvidence} getCategoryStatus={getCategoryStatus} getCategoryLastUpdated={getCategoryLastUpdated} updateEvidence={updateEvidence} updateResponse={updateResponse} deleteEvidence={deleteEvidence} handleStatusClick={handleStatusClick} isSuperAdmin={isSuperAdmin} />)}
+                                {getOrderedCategoriesForPanel(panel.id).map(category => <SortableCategory key={category.id} category={category} isExpanded={expandedCategories.has(category.id)} onToggle={toggleCategory} onUpdateCategory={updateCategory} onAddEvidence={handleAddEvidence} onDeleteCategory={deleteCategory} getEvidenceForCategory={getEvidenceForCategory} getResponseForEvidence={getResponseForEvidence} getCategoryStatus={getCategoryStatus} getCategoryLastUpdated={getCategoryLastUpdated} updateEvidence={updateEvidence} updateResponse={updateResponse} deleteEvidence={deleteEvidence} handleStatusClick={handleStatusClick} isSuperAdmin={isSuperAdmin} evidenceReferenceMap={ofstedEvidenceReferenceMap} />)}
                               </div>
                             </SortableContext>
                           </DndContext>}
