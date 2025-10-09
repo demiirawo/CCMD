@@ -9,6 +9,7 @@ export interface EvidenceItem {
   status: string;
   comment: string;
   categoryId: string;
+  panelName: string;
 }
 
 export interface EvidenceResponse {
@@ -66,7 +67,8 @@ export const getAllEvidenceItems = async (companyId: string): Promise<EvidenceIt
               complianceType: prefix,
               status: response?.status || 'green',
               comment: response?.comment || '',
-              categoryId: category.id
+              categoryId: category.id,
+              panelName: panel.name
             });
             counter++;
           });

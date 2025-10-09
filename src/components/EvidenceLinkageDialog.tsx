@@ -202,13 +202,18 @@ export const EvidenceLinkageDialog = ({
                 <h3 className="font-semibold text-sm mb-1">Currently Linked ({currentlyLinked.length})</h3>
                 <div className="space-y-1 max-h-24 overflow-y-auto">
                   {currentlyLinked.map(ev => (
-                    <div key={ev.id} className="text-sm flex items-center gap-2">
+                    <div key={ev.id} className="text-sm flex items-start gap-2">
                       <Checkbox
                         checked={true}
                         onCheckedChange={() => handleToggleEvidence(ev.referenceId)}
+                        className="mt-1"
                       />
-                      <span className="font-mono font-semibold text-xs">{ev.referenceId}</span>
-                      <span className="text-muted-foreground truncate text-xs">{ev.evidenceText}</span>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-mono font-semibold text-xs mb-0.5">{ev.referenceId}</div>
+                        <div className="text-xs text-muted-foreground">
+                          {ev.panelName} &gt; {ev.categoryName}
+                        </div>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -248,9 +253,11 @@ export const EvidenceLinkageDialog = ({
                               className="mt-1"
                             />
                             <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 mb-1">
+                              <div className="mb-1">
                                 <span className="font-mono font-semibold text-sm">{ev.referenceId}</span>
-                                <span className="text-xs text-muted-foreground">({ev.categoryName})</span>
+                                <div className="text-xs text-muted-foreground mt-0.5">
+                                  {ev.panelName} &gt; {ev.categoryName}
+                                </div>
                               </div>
                               <p className="text-sm text-muted-foreground line-clamp-2">
                                 {ev.evidenceText || 'No evidence text'}
