@@ -89,8 +89,9 @@ const SortableCategory = ({
       {isExpanded && getEvidenceForCategory(category.id).length > 0 && <div className="space-y-2">
           {/* Grid Header */}
           <div className="grid gap-4 font-semibold border-b pb-2 text-sm" style={{
-        gridTemplateColumns: isSuperAdmin ? '2fr 2fr 100px 60px' : '2fr 2fr 100px'
+        gridTemplateColumns: isSuperAdmin ? '80px 2fr 2fr 100px 60px' : '80px 2fr 2fr 100px'
       }}>
+             <div>Ref ID</div>
              <div>Evidence</div>
              <div>Comment</div>
              <div>Status</div>
@@ -98,11 +99,14 @@ const SortableCategory = ({
           </div>
 
           {/* Evidence Rows */}
-          {getEvidenceForCategory(category.id).map((evidenceItem: any) => {
+          {getEvidenceForCategory(category.id).map((evidenceItem: any, index: number) => {
         const response = getResponseForEvidence(evidenceItem.id);
         return <div key={evidenceItem.id} className="grid gap-4 items-start py-2 border-b border-gray-100" style={{
-          gridTemplateColumns: isSuperAdmin ? '2fr 2fr 100px 60px' : '2fr 2fr 100px'
+          gridTemplateColumns: isSuperAdmin ? '80px 2fr 2fr 100px 60px' : '80px 2fr 2fr 100px'
         }}>
+                 <div className="text-sm font-mono text-muted-foreground self-center">
+                   {`E${index + 1}`}
+                 </div>
                  <div>
                    {isSuperAdmin ? <DebouncedTextarea value={evidenceItem.evidence_text} onSave={value => updateEvidence(evidenceItem.id, value)} placeholder="Enter evidence..." className="text-sm" /> : <div className="text-sm p-2 bg-gray-50 rounded">
                        {evidenceItem.evidence_text || "No evidence provided"}
