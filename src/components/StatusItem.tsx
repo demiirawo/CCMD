@@ -6,7 +6,7 @@ import { SupervisionAnalytics } from "./SupervisionAnalytics";
 import { ResourcingOverview } from "./ResourcingOverview";
 import { IncidentsAnalytics } from "./IncidentsAnalytics";
 import { FeedbackAnalytics } from "./FeedbackAnalytics";
-import { ChevronDown, ChevronRight, CalendarIcon, ExternalLink, Square } from "lucide-react";
+import { ChevronDown, ChevronRight, CalendarIcon, ExternalLink, Square, Check } from "lucide-react";
 import { useState, memo, useCallback } from "react";
 import { CommentEditor } from "./CommentEditor";
 import { ChallengesField } from "./ChallengesField";
@@ -220,14 +220,16 @@ export const StatusItem = memo(({
             {item.id === "achievements-learning" ? <div className="invisible pointer-events-none">
                 <StatusBadge status={item.status} />
               </div> : <StatusBadge status={item.status} />}
-            <div className="w-10 h-10 flex items-center justify-center">
-              <Square className="w-10 h-10 text-muted-foreground" />
-            </div>
+            <button className="relative inline-flex items-center justify-center cursor-pointer hover:scale-105 transition-all duration-300">
+              <Square className="w-12 h-12 text-gray-400" fill="currentColor" />
+              <Check className="absolute inset-0 m-auto w-7 h-7 text-white" strokeWidth={3} />
+            </button>
           </div> : item.id === "achievements-learning" ? <div className="flex-shrink-0 flex flex-col gap-2 invisible pointer-events-none">
               <StatusBadge status={item.status} />
-              <div className="w-10 h-10 flex items-center justify-center">
-                <Square className="w-10 h-10 text-muted-foreground" />
-              </div>
+              <button className="relative inline-flex items-center justify-center cursor-pointer hover:scale-105 transition-all duration-300">
+                <Square className="w-12 h-12 text-gray-400" fill="currentColor" />
+                <Check className="absolute inset-0 m-auto w-7 h-7 text-white" strokeWidth={3} />
+              </button>
             </div> : <div className="flex-shrink-0 flex flex-col gap-2">
               <button onClick={e => {
                 e.stopPropagation();
@@ -238,9 +240,10 @@ export const StatusItem = memo(({
               }} className="hover:scale-110 transition-transform">
                 <StatusBadge status={item.status} />
               </button>
-              <div className="w-10 h-10 flex items-center justify-center">
-                <Square className="w-10 h-10 text-muted-foreground" />
-              </div>
+              <button className="relative inline-flex items-center justify-center cursor-pointer hover:scale-105 transition-all duration-300">
+                <Square className="w-12 h-12 text-gray-400" fill="currentColor" />
+                <Check className="absolute inset-0 m-auto w-7 h-7 text-white" strokeWidth={3} />
+              </button>
             </div>}
         
         <div className="flex-1 min-w-0 mr-3 flex flex-col justify-between h-full">
