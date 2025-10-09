@@ -289,6 +289,32 @@ export const EvidenceLinkageDialog = ({
 
   // Regular User Mode
   const filteredLinked = filterEvidence(linkedEvidence);
+  
+  // Group by panel and category
+  const groupedByPanel: { [key: string]: { [key: string]: EvidenceItem[] } } = {};
+  filteredLinked.forEach(item => {
+    if (!groupedByPanel[item.panelName]) {
+      groupedByPanel[item.panelName] = {};
+    }
+    if (!groupedByPanel[item.panelName][item.categoryName]) {
+      groupedByPanel[item.panelName][item.categoryName] = [];
+    }
+    groupedByPanel[item.panelName][item.categoryName].push(item);
+  });
+
+  const [expandedPanels, setExpandedPanels] = useState<Set<string>>(
+    new Set(Object.keys(groupedByPanel))
+  );
+
+  const togglePanel = (panelName: string) => {
+    const newExpanded = new Set(expandedPanels);
+    if (newExpanded.has(panelName)) {
+      newExpanded.delete(panelName);
+    } else {
+      newExpanded.add(panelName);
+    }
+    setExpandedPanels(newExpanded);
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -303,38 +329,76 @@ export const EvidenceLinkageDialog = ({
           </div>
         ) : (
           <div className="flex-1 overflow-y-auto space-y-3">
-            {filteredLinked.length > 0 && (
-              <div className="border rounded-lg overflow-hidden">
-                <div className="grid grid-cols-[90px_1.5fr_1.5fr_100px] gap-3 p-2 bg-muted font-semibold text-xs border-b sticky top-0">
-                  <div>Ref ID</div>
-                  <div>Evidence</div>
-                  <div>Comment</div>
-                  <div>Status</div>
-                </div>
-                {filteredLinked.map(ev => (
-                  <div key={ev.id} className="grid grid-cols-[90px_1.5fr_1.5fr_100px] gap-3 p-2 border-b last:border-b-0 items-start">
-                    <div className="font-mono font-semibold text-xs pt-2">
-                      {ev.referenceId}
-                    </div>
-                    <div className="text-xs p-2 bg-muted/30 rounded max-h-20 overflow-y-auto">
-                      {ev.evidenceText || 'No evidence provided'}
-                    </div>
-                    <div>
-                      <Textarea
-                        value={ev.comment}
-                        onChange={(e) => handleUpdateComment(ev.id, e.target.value)}
-                        placeholder="Enter comment..."
-                        className="text-xs min-h-[60px] max-h-20 bg-white"
-                      />
-                    </div>
-                    <div className="flex justify-center pt-2">
-                      <StatusBadge
-                        status={ev.status as StatusType}
-                        onClick={() => handleUpdateStatus(ev.id, ev.status as StatusType)}
-                      />
-                    </div>
-                  </div>
+            {Object.keys(groupedByPanel).length > 0 ? (
+              <div className="space-y-3">
+                {Object.entries(groupedByPanel).map(([panelName, categories]) => (
+                  <Collapsible
+                    key={panelName}
+                    open={expandedPanels.has(panelName)}
+                    onOpenChange={() => togglePanel(panelName)}
+                  >
+                    <CollapsibleTrigger className="w-full">
+                      <div className="flex items-center gap-2 p-3 bg-primary/10 rounded-lg hover:bg-primary/15 transition-colors">
+                        {expandedPanels.has(panelName) ? (
+                          <ChevronDown className="h-5 w-5" />
+                        ) : (
+                          <ChevronRight className="h-5 w-5" />
+                        )}
+                        <span className="font-semibold text-base">{panelName}</span>
+                        <span className="text-sm text-muted-foreground ml-auto">
+                          {Object.values(categories).flat().length} items
+                        </span>
+                      </div>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <div className="pl-2 pt-2 space-y-4">
+                        {Object.entries(categories).map(([categoryName, items]) => (
+                          <div key={categoryName} className="space-y-2">
+                            <div className="font-medium text-sm text-muted-foreground pl-4 pt-2">
+                              {categoryName}
+                            </div>
+                            <div className="border rounded-lg overflow-hidden">
+                              <div className="grid grid-cols-[90px_1.5fr_1.5fr_100px] gap-3 p-2 bg-muted font-semibold text-xs border-b sticky top-0">
+                                <div>Ref ID</div>
+                                <div>Evidence</div>
+                                <div>Comment</div>
+                                <div>Status</div>
+                              </div>
+                              {items.map(ev => (
+                                <div key={ev.id} className="grid grid-cols-[90px_1.5fr_1.5fr_100px] gap-3 p-2 border-b last:border-b-0 items-start">
+                                  <div className="font-mono font-semibold text-xs pt-2">
+                                    {ev.referenceId}
+                                  </div>
+                                  <div className="text-xs p-2 bg-muted/30 rounded max-h-20 overflow-y-auto">
+                                    {ev.evidenceText || 'No evidence provided'}
+                                  </div>
+                                  <div>
+                                    <Textarea
+                                      value={ev.comment}
+                                      onChange={(e) => handleUpdateComment(ev.id, e.target.value)}
+                                      placeholder="Enter comment..."
+                                      className="text-xs min-h-[60px] max-h-20 bg-white"
+                                    />
+                                  </div>
+                                  <div className="flex justify-center pt-2">
+                                    <StatusBadge
+                                      status={ev.status as StatusType}
+                                      onClick={() => handleUpdateStatus(ev.id, ev.status as StatusType)}
+                                    />
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </CollapsibleContent>
+                  </Collapsible>
                 ))}
+              </div>
+            ) : (
+              <div className="text-center py-12 text-muted-foreground">
+                No evidence items match your search.
               </div>
             )}
           </div>
