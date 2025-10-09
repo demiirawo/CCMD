@@ -140,7 +140,11 @@ export const StatusItem = memo(({
         }
 
         if (data?.linked_evidence_refs && Array.isArray(data.linked_evidence_refs)) {
+          console.log(`✅ Loaded ${data.linked_evidence_refs.length} evidence items for ${item.title}`, data.linked_evidence_refs);
           setGlobalEvidenceRefs(data.linked_evidence_refs as string[]);
+        } else {
+          console.log(`ℹ️ No evidence configured for ${item.title}`);
+          setGlobalEvidenceRefs([]);
         }
       } catch (error) {
         console.error('Error loading global evidence:', error);
@@ -148,7 +152,7 @@ export const StatusItem = memo(({
     };
 
     loadGlobalEvidence();
-  }, [sectionId, item.id]);
+  }, [sectionId, item.id, item.title]);
   const handleObservationSubmit = useCallback((observation: string) => {
     onObservationChange?.(item.id, observation);
     setIsEditingObservation(false);
@@ -510,7 +514,7 @@ export const StatusItem = memo(({
         isOpen={showEvidenceLinkageDialog}
         onClose={() => setShowEvidenceLinkageDialog(false)}
         subsectionTitle={item.title}
-        linkedEvidenceRefs={globalEvidenceRefs.length > 0 ? globalEvidenceRefs : (item.metadata?.linkedEvidenceRefs || [])}
+        linkedEvidenceRefs={globalEvidenceRefs}
         onSave={async () => {}} // Read-only - no save needed on dashboard
         isSuperAdmin={false} // Always read-only on dashboard
       />
