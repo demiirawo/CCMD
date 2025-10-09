@@ -25,6 +25,7 @@ export interface SubsectionMetadata {
   link4IsIframe?: boolean;
   description?: string;
   updated?: string;
+  linkedEvidenceRefs?: string[];
 }
 
 interface SubsectionMetadataDialogProps {

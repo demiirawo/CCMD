@@ -21,6 +21,8 @@ import { cn } from "@/lib/utils";
 import { AccountableManager } from "./AccountableManager";
 import { SubsectionMetadataDialog, SubsectionMetadata } from "./SubsectionMetadataDialog";
 import { IframeDialog } from "./IframeDialog";
+import { EvidenceLinkageDialog } from "./EvidenceLinkageDialog";
+import { useAuth } from "@/hooks/useAuth";
 export interface DocumentData {
   documentName: string;
   documentOwner: string;
@@ -95,8 +97,12 @@ export const StatusItem = memo(({
   meetingId,
   readOnly = false
 }: StatusItemProps) => {
+  const { profile } = useAuth();
+  const isSuperAdmin = profile?.role === 'admin';
+  
   const [isExpanded, setIsExpanded] = useState(false);
   const [isEditingObservation, setIsEditingObservation] = useState(false);
+  const [showEvidenceLinkageDialog, setShowEvidenceLinkageDialog] = useState(false);
   const [iframeDialog, setIframeDialog] = useState<{
     isOpen: boolean;
     url: string;
@@ -195,6 +201,14 @@ export const StatusItem = memo(({
   const handleMetadataChange = (metadata: SubsectionMetadata) => {
     onMetadataChange?.(item.id, metadata);
   };
+
+  const handleEvidenceLinkageSave = useCallback((refs: string[]) => {
+    const updatedMetadata = {
+      ...item.metadata,
+      linkedEvidenceRefs: refs
+    };
+    onMetadataChange?.(item.id, updatedMetadata);
+  }, [item.id, item.metadata, onMetadataChange]);
   const getStatusBackgroundClass = (status: StatusType) => {
     // Panel color is determined by the R/A/G status only
     switch (status) {
@@ -220,16 +234,22 @@ export const StatusItem = memo(({
             {item.id === "achievements-learning" ? <div className="invisible pointer-events-none">
                 <StatusBadge status={item.status} />
               </div> : <StatusBadge status={item.status} />}
-            <button className="relative inline-flex items-center justify-center cursor-pointer hover:scale-105 transition-all duration-300">
-              <Square className="w-12 h-12 text-[#202A38]" fill="currentColor" />
-              <Check className="absolute inset-0 m-auto w-7 h-7 text-white" strokeWidth={3} />
-            </button>
-          </div> : item.id === "achievements-learning" ? <div className="flex-shrink-0 flex flex-col gap-2 invisible pointer-events-none">
-              <StatusBadge status={item.status} />
-              <button className="relative inline-flex items-center justify-center cursor-pointer hover:scale-105 transition-all duration-300">
+              <button 
+                onClick={() => setShowEvidenceLinkageDialog(true)}
+                className="relative inline-flex items-center justify-center cursor-pointer hover:scale-105 transition-all duration-300"
+              >
                 <Square className="w-12 h-12 text-[#202A38]" fill="currentColor" />
                 <Check className="absolute inset-0 m-auto w-7 h-7 text-white" strokeWidth={3} />
               </button>
+          </div> : item.id === "achievements-learning" ? <div className="flex-shrink-0 flex flex-col gap-2 invisible pointer-events-none">
+              <StatusBadge status={item.status} />
+            <button 
+              onClick={() => setShowEvidenceLinkageDialog(true)}
+              className="relative inline-flex items-center justify-center cursor-pointer hover:scale-105 transition-all duration-300"
+            >
+              <Square className="w-12 h-12 text-[#202A38]" fill="currentColor" />
+              <Check className="absolute inset-0 m-auto w-7 h-7 text-white" strokeWidth={3} />
+            </button>
             </div> : <div className="flex-shrink-0 flex flex-col gap-2">
               <button onClick={e => {
                 e.stopPropagation();
@@ -240,7 +260,10 @@ export const StatusItem = memo(({
               }} className="hover:scale-110 transition-transform">
                 <StatusBadge status={item.status} />
               </button>
-              <button className="relative inline-flex items-center justify-center cursor-pointer hover:scale-105 transition-all duration-300">
+              <button 
+                onClick={() => setShowEvidenceLinkageDialog(true)}
+                className="relative inline-flex items-center justify-center cursor-pointer hover:scale-105 transition-all duration-300"
+              >
                 <Square className="w-12 h-12 text-[#202A38]" fill="currentColor" />
                 <Check className="absolute inset-0 m-auto w-7 h-7 text-white" strokeWidth={3} />
               </button>
@@ -447,7 +470,6 @@ export const StatusItem = memo(({
                   </div>
                 </div>
               </div>}
-          </div>
         </div>}
       
       <IframeDialog isOpen={iframeDialog.isOpen} onClose={() => setIframeDialog({
@@ -455,5 +477,14 @@ export const StatusItem = memo(({
       url: '',
       title: ''
     })} url={iframeDialog.url} title={iframeDialog.title} />
+      
+      <EvidenceLinkageDialog
+        isOpen={showEvidenceLinkageDialog}
+        onClose={() => setShowEvidenceLinkageDialog(false)}
+        subsectionTitle={item.title}
+        linkedEvidenceRefs={item.metadata?.linkedEvidenceRefs || []}
+        onSave={handleEvidenceLinkageSave}
+        isSuperAdmin={isSuperAdmin}
+      />
     </div>;
 });
