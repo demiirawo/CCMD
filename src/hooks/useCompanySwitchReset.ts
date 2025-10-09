@@ -23,10 +23,8 @@ export const useCompanySwitchReset = () => {
       // Increment mount key to force remount
       mountKey.current += 1;
       
-      // Small delay to ensure state clears properly
-      setTimeout(() => {
-        window.location.reload();
-      }, 100);
+      // Note: We don't reload the page here anymore as selectCompany 
+      // already handles data clearing and state updates
     }
     
     previousCompanyId.current = currentCompanyId;
