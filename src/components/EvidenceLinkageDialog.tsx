@@ -42,8 +42,9 @@ export const EvidenceLinkageDialog = ({
   useEffect(() => {
     if (isOpen && profile?.company_id) {
       loadEvidenceData();
+      setSelectedRefs(linkedEvidenceRefs);
     }
-  }, [isOpen, profile?.company_id]);
+  }, [isOpen, profile?.company_id, linkedEvidenceRefs]);
 
   const loadEvidenceData = async () => {
     if (!profile?.company_id) return;
