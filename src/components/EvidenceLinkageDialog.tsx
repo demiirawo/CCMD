@@ -53,10 +53,12 @@ export const EvidenceLinkageDialog = ({
     setLoading(true);
     try {
       const all = await getAllEvidenceItems(profile.company_id);
+      console.log('Loaded evidence items:', all.length, all);
       setAllEvidence(all);
       
       if (!isSuperAdmin) {
         const linked = await getLinkedEvidenceDetails(linkedEvidenceRefs, profile.company_id);
+        console.log('Loaded linked evidence:', linked.length, linked);
         setLinkedEvidence(linked);
       }
     } catch (error) {
@@ -182,6 +184,15 @@ export const EvidenceLinkageDialog = ({
                 placeholder="Search by reference ID, evidence text, or category..."
                 className="pl-10 bg-white"
               />
+            </div>
+
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+              <p className="text-sm font-semibold text-blue-900">
+                Selected Evidence: {selectedRefs.length} items
+              </p>
+              <p className="text-xs text-blue-700 mt-1">
+                {selectedRefs.length > 0 ? selectedRefs.join(', ') : 'No evidence selected'}
+              </p>
             </div>
 
             {currentlyLinked.length > 0 && (
