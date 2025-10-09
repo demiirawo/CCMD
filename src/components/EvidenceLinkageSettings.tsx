@@ -236,19 +236,37 @@ export const EvidenceLinkageSettings = ({ companyId }: EvidenceLinkageSettingsPr
                       open={expandedItems[itemKey]}
                       onOpenChange={() => toggleItem(itemKey)}
                     >
-                      <CollapsibleTrigger className="flex items-center justify-between w-full p-3 ml-4 bg-white rounded-lg hover:bg-gray-50 border">
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm">{item.title}</span>
-                          {linkedCount > 0 && (
-                            <Badge variant="secondary">{linkedCount} linked</Badge>
+                      <div className="ml-4 bg-white rounded-lg border">
+                        <CollapsibleTrigger className="flex items-center justify-between w-full p-3 hover:bg-gray-50">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-medium">{item.title}</span>
+                              {linkedCount > 0 && (
+                                <Badge variant="secondary">{linkedCount} linked</Badge>
+                              )}
+                            </div>
+                            {linkedCount > 0 && (
+                              <div className="flex flex-wrap gap-1 mt-2">
+                                {selectedEvidence[itemKey]?.slice(0, 10).map((refId) => (
+                                  <Badge key={refId} variant="outline" className="text-xs">
+                                    {refId}
+                                  </Badge>
+                                ))}
+                                {linkedCount > 10 && (
+                                  <Badge variant="outline" className="text-xs">
+                                    +{linkedCount - 10} more
+                                  </Badge>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                          {expandedItems[itemKey] ? (
+                            <ChevronUp className="w-4 h-4 flex-shrink-0 ml-2" />
+                          ) : (
+                            <ChevronDown className="w-4 h-4 flex-shrink-0 ml-2" />
                           )}
-                        </div>
-                        {expandedItems[itemKey] ? (
-                          <ChevronUp className="w-4 h-4" />
-                        ) : (
-                          <ChevronDown className="w-4 h-4" />
-                        )}
-                      </CollapsibleTrigger>
+                        </CollapsibleTrigger>
+                      </div>
                       <CollapsibleContent className="mt-2 ml-8 p-4 bg-white rounded-lg border">
                         <div className="space-y-4">
                           <div className="relative">
