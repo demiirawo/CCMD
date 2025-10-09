@@ -6,7 +6,7 @@ import { SupervisionAnalytics } from "./SupervisionAnalytics";
 import { ResourcingOverview } from "./ResourcingOverview";
 import { IncidentsAnalytics } from "./IncidentsAnalytics";
 import { FeedbackAnalytics } from "./FeedbackAnalytics";
-import { ChevronDown, ChevronRight, CalendarIcon, ExternalLink, Square, Check } from "lucide-react";
+import { ChevronDown, ChevronRight, CalendarIcon, ExternalLink } from "lucide-react";
 import { useState, memo, useCallback, useEffect } from "react";
 import { CommentEditor } from "./CommentEditor";
 import { ChallengesField } from "./ChallengesField";
@@ -261,27 +261,13 @@ export const StatusItem = memo(({
             <ChevronDown className={cn("w-4 h-4 text-gray-600 transition-transform", isExpanded && "rotate-180")} />
           </button>}
         
-        {readOnly ? <div className="flex-shrink-0 flex flex-col gap-2">
+        {readOnly ? <div className="flex-shrink-0">
             {item.id === "achievements-learning" ? <div className="invisible pointer-events-none">
                 <StatusBadge status={item.status} />
               </div> : <StatusBadge status={item.status} />}
-              <button 
-                onClick={() => setShowEvidenceLinkageDialog(true)}
-                className="relative inline-flex items-center justify-center cursor-pointer hover:scale-105 transition-all duration-300"
-              >
-                <Square className="w-12 h-12 text-[#202A38]" fill="currentColor" />
-                <Check className="absolute inset-0 m-auto w-7 h-7 text-white" strokeWidth={3} />
-              </button>
-          </div> : item.id === "achievements-learning" ? <div className="flex-shrink-0 flex flex-col gap-2 invisible pointer-events-none">
+          </div> : item.id === "achievements-learning" ? <div className="flex-shrink-0 invisible pointer-events-none">
               <StatusBadge status={item.status} />
-            <button 
-              onClick={() => setShowEvidenceLinkageDialog(true)}
-              className="relative inline-flex items-center justify-center cursor-pointer hover:scale-105 transition-all duration-300"
-            >
-              <Square className="w-12 h-12 text-[#202A38]" fill="currentColor" />
-              <Check className="absolute inset-0 m-auto w-7 h-7 text-white" strokeWidth={3} />
-            </button>
-            </div> : <div className="flex-shrink-0 flex flex-col gap-2">
+            </div> : <div className="flex-shrink-0">
               <button onClick={e => {
                 e.stopPropagation();
                 const statusOrder: StatusType[] = ["green", "amber", "red", "na"];
@@ -290,13 +276,6 @@ export const StatusItem = memo(({
                 onStatusChange?.(item.id, nextStatus);
               }} className="hover:scale-110 transition-transform">
                 <StatusBadge status={item.status} />
-              </button>
-              <button 
-                onClick={() => setShowEvidenceLinkageDialog(true)}
-                className="relative inline-flex items-center justify-center cursor-pointer hover:scale-105 transition-all duration-300"
-              >
-                <Square className="w-12 h-12 text-[#202A38]" fill="currentColor" />
-                <Check className="absolute inset-0 m-auto w-7 h-7 text-white" strokeWidth={3} />
               </button>
             </div>}
         
@@ -317,6 +296,13 @@ export const StatusItem = memo(({
             <p className="text-xs text-muted-foreground mt-1">
               {item.id === "achievements-learning" ? `${new Date().getFullYear()}` : `Updated: ${item.lastReviewed || item.metadata?.updated}`}
             </p>
+            
+            <button 
+              onClick={() => setShowEvidenceLinkageDialog(true)}
+              className="text-xs text-primary hover:underline mt-1 text-left"
+            >
+              Checklist
+            </button>
             
             {/* Display metadata below title */}
             {item.metadata?.link && <div className="flex items-center gap-1 mt-1">
