@@ -37,9 +37,9 @@ export const EvidenceLinkageSettings = ({ companyId }: EvidenceLinkageSettingsPr
   useEffect(() => {
     const items: SectionItem[] = [
       // Staffing
-      { id: "recruitment", title: "Capacity", sectionId: "staff", sectionTitle: "Staffing" },
+      { id: "recruitment", title: "Capacity Planning", sectionId: "staff", sectionTitle: "Staffing" },
       { id: "staff-documents", title: "Staff Documents", sectionId: "staff", sectionTitle: "Staffing" },
-      { id: "training", title: "Training", sectionId: "staff", sectionTitle: "Staffing" },
+      { id: "training", title: "Training & Development", sectionId: "staff", sectionTitle: "Staffing" },
       { id: "spot-checks", title: "Spot Checks", sectionId: "staff", sectionTitle: "Staffing" },
       { id: "staff-supervisions", title: "Staff Supervisions", sectionId: "staff", sectionTitle: "Staffing" },
       { id: "staff-meetings", title: "Staff Meetings", sectionId: "staff", sectionTitle: "Staffing" },

@@ -380,7 +380,7 @@ const Index = () => {
       icon: <Users className="w-6 h-6 text-purple-600" />,
       items: [{
         id: "recruitment",
-        title: "Capacity",
+        title: "Capacity Planning",
         status: "green" as StatusType,
         lastReviewed: "",
         observation: "",
@@ -398,7 +398,7 @@ const Index = () => {
         metadata: {}
       }, {
         id: "training",
-        title: "Training",
+        title: "Training & Development",
         status: "green" as StatusType,
         lastReviewed: "",
         observation: "",
