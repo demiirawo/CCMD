@@ -6,7 +6,7 @@ import { SupervisionAnalytics } from "./SupervisionAnalytics";
 import { ResourcingOverview } from "./ResourcingOverview";
 import { IncidentsAnalytics } from "./IncidentsAnalytics";
 import { FeedbackAnalytics } from "./FeedbackAnalytics";
-import { ChevronDown, ChevronRight, CalendarIcon, ExternalLink } from "lucide-react";
+import { ChevronDown, ChevronRight, CalendarIcon, ExternalLink, Square } from "lucide-react";
 import { useState, memo, useCallback } from "react";
 import { CommentEditor } from "./CommentEditor";
 import { ChallengesField } from "./ChallengesField";
@@ -216,21 +216,32 @@ export const StatusItem = memo(({
             <ChevronDown className={cn("w-4 h-4 text-gray-600 transition-transform", isExpanded && "rotate-180")} />
           </button>}
         
-        {readOnly ? <div className="flex-shrink-0">
+        {readOnly ? <div className="flex-shrink-0 flex flex-col gap-2">
             {item.id === "achievements-learning" ? <div className="invisible pointer-events-none">
                 <StatusBadge status={item.status} />
               </div> : <StatusBadge status={item.status} />}
-          </div> : item.id === "achievements-learning" ? <div className="flex-shrink-0 invisible pointer-events-none">
+            <div className="w-10 h-10 flex items-center justify-center">
+              <Square className="w-10 h-10 text-muted-foreground" />
+            </div>
+          </div> : item.id === "achievements-learning" ? <div className="flex-shrink-0 flex flex-col gap-2 invisible pointer-events-none">
               <StatusBadge status={item.status} />
-            </div> : <button onClick={e => {
-        e.stopPropagation();
-        const statusOrder: StatusType[] = ["green", "amber", "red", "na"];
-        const currentIndex = statusOrder.indexOf(item.status);
-        const nextStatus = statusOrder[(currentIndex + 1) % statusOrder.length];
-        onStatusChange?.(item.id, nextStatus);
-      }} className="flex-shrink-0 hover:scale-110 transition-transform">
-              <StatusBadge status={item.status} />
-            </button>}
+              <div className="w-10 h-10 flex items-center justify-center">
+                <Square className="w-10 h-10 text-muted-foreground" />
+              </div>
+            </div> : <div className="flex-shrink-0 flex flex-col gap-2">
+              <button onClick={e => {
+                e.stopPropagation();
+                const statusOrder: StatusType[] = ["green", "amber", "red", "na"];
+                const currentIndex = statusOrder.indexOf(item.status);
+                const nextStatus = statusOrder[(currentIndex + 1) % statusOrder.length];
+                onStatusChange?.(item.id, nextStatus);
+              }} className="hover:scale-110 transition-transform">
+                <StatusBadge status={item.status} />
+              </button>
+              <div className="w-10 h-10 flex items-center justify-center">
+                <Square className="w-10 h-10 text-muted-foreground" />
+              </div>
+            </div>}
         
         <div className="flex-1 min-w-0 mr-3 flex flex-col justify-between h-full">
           <div>
