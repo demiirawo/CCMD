@@ -143,6 +143,8 @@ export const EvidenceLinkageSettings = ({ companyId }: EvidenceLinkageSettingsPr
     const key = `${sectionId}_${itemId}`;
     const refs = selectedEvidence[key] || [];
 
+    console.log("💾 Saving evidence linkage:", { sectionId, itemId, refs, profileUserId: profile?.user_id });
+
     try {
       const { error } = await supabase
         .from('global_subsection_evidence')
@@ -155,14 +157,18 @@ export const EvidenceLinkageSettings = ({ companyId }: EvidenceLinkageSettingsPr
           onConflict: 'section_id,item_id'
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error("❌ Error saving evidence linkage:", error);
+        throw error;
+      }
 
+      console.log("✅ Evidence linkage saved successfully");
       toast({
         title: "Saved",
         description: "Evidence linkage configuration saved successfully",
       });
     } catch (error) {
-      console.error("Error saving evidence linkage:", error);
+      console.error("❌ Exception in handleSave:", error);
       toast({
         title: "Error",
         description: "Failed to save evidence linkage configuration",
@@ -305,7 +311,10 @@ export const EvidenceLinkageSettings = ({ companyId }: EvidenceLinkageSettingsPr
                           <div className="flex justify-end pt-2 border-t">
                             <Button
                               size="sm"
-                              onClick={() => handleSave(item.sectionId, item.id)}
+                              onClick={() => {
+                                console.log("🔘 Save Configuration button clicked for:", { sectionId: item.sectionId, itemId: item.id });
+                                handleSave(item.sectionId, item.id);
+                              }}
                             >
                               Save Configuration
                             </Button>
