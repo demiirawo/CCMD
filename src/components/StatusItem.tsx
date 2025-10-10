@@ -14,6 +14,7 @@ import { LessonsLearnedField } from "./LessonsLearnedField";
 import { ActionForm, ActionItem } from "./ActionForm";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
+import { Badge } from "./ui/badge";
 import { Calendar } from "./ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { format, addDays, addWeeks, addMonths, addYears } from "date-fns";
@@ -388,6 +389,34 @@ export const StatusItem = memo(({
             onSubsectionActionEdit?.(item.id, actionId, updates);
           }} />}
             </div>}
+
+          {/* Tags Display */}
+          {item.metadata?.tags && item.metadata.tags.length > 0 && (
+            <div className="mt-4">
+              <div className="flex flex-wrap gap-2">
+                {item.metadata.tags.map((tag, index) => {
+                  const tagColors = [
+                    'hsl(var(--chart-1))',
+                    'hsl(var(--chart-2))',
+                    'hsl(var(--chart-3))',
+                    'hsl(var(--chart-4))',
+                    'hsl(var(--chart-5))',
+                  ];
+                  const backgroundColor = tagColors[index % tagColors.length];
+                  
+                  return (
+                    <Badge
+                      key={tag}
+                      className="text-white px-3 py-1"
+                      style={{ backgroundColor }}
+                    >
+                      {tag}
+                    </Badge>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
       </div>
       

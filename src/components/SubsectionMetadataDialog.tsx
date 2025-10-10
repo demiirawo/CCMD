@@ -6,6 +6,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
+import { X, Plus } from "lucide-react";
 import { processUrl } from "@/utils/urlProcessor";
 import { TableSelector } from "./TableSelector";
 
@@ -26,6 +28,7 @@ export interface SubsectionMetadata {
   description?: string;
   updated?: string;
   linkedEvidenceRefs?: string[];
+  tags?: string[];
 }
 
 interface SubsectionMetadataDialogProps {
@@ -58,6 +61,31 @@ export const SubsectionMetadataDialog = ({
   const [link4Text, setLink4Text] = useState(metadata.link4Text || "");
   const [link4IsIframe, setLink4IsIframe] = useState(metadata.link4IsIframe || false);
   const [description, setDescription] = useState(metadata.description || "");
+  const [tags, setTags] = useState<string[]>(metadata.tags || []);
+  const [newTag, setNewTag] = useState("");
+
+  const tagColors = [
+    'hsl(var(--chart-1))',
+    'hsl(var(--chart-2))',
+    'hsl(var(--chart-3))',
+    'hsl(var(--chart-4))',
+    'hsl(var(--chart-5))',
+  ];
+
+  const getTagColor = (index: number) => {
+    return tagColors[index % tagColors.length];
+  };
+
+  const handleAddTag = () => {
+    if (newTag.trim() && !tags.includes(newTag.trim())) {
+      setTags([...tags, newTag.trim()]);
+      setNewTag("");
+    }
+  };
+
+  const handleRemoveTag = (tagToRemove: string) => {
+    setTags(tags.filter(tag => tag !== tagToRemove));
+  };
 
   const processAndDetectIframe = (input: string): { url: string; isIframe: boolean } => {
     if (!input) return { url: '', isIframe: false };
@@ -98,7 +126,8 @@ export const SubsectionMetadataDialog = ({
       link4Text: link4Text || undefined,
       link4IsIframe: !!link4, // Always true if table is selected
       description: description || undefined,
-      updated: new Date().toLocaleDateString('en-GB')
+      updated: new Date().toLocaleDateString('en-GB'),
+      tags: tags.length > 0 ? tags : undefined
     };
     onSave(newMetadata);
     setIsOpen(false);
@@ -214,6 +243,52 @@ export const SubsectionMetadataDialog = ({
               rows={3}
               className="bg-white"
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="tags">Tags</Label>
+            <div className="flex gap-2">
+              <Input
+                id="tags"
+                value={newTag}
+                onChange={(e) => setNewTag(e.target.value)}
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleAddTag();
+                  }
+                }}
+                placeholder="Add a tag..."
+                className="flex-1 bg-white"
+              />
+              <Button
+                type="button"
+                onClick={handleAddTag}
+                variant="outline"
+                size="icon"
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
+            {tags.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-2">
+                {tags.map((tag, index) => (
+                  <Badge
+                    key={tag}
+                    className="text-white"
+                    style={{ backgroundColor: getTagColor(index) }}
+                  >
+                    {tag}
+                    <button
+                      onClick={() => handleRemoveTag(tag)}
+                      className="ml-2 hover:opacity-70"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </Badge>
+                ))}
+              </div>
+            )}
           </div>
           
           <div className="flex justify-end gap-2">
