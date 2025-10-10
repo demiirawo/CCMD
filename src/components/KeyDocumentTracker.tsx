@@ -17,7 +17,7 @@ const CommentField = ({ value, onChange, readOnly }: { value: string; onChange: 
   const [tempValue, setTempValue] = useState(value);
   
   const renderCommentWithLinks = (text: string) => {
-    if (!text) return null;
+    if (!text) return <span className="text-gray-400">No comment</span>;
     
     // URL detection regex
     const urlRegex = /(https?:\/\/[^\s]+)/g;
@@ -25,14 +25,14 @@ const CommentField = ({ value, onChange, readOnly }: { value: string; onChange: 
     const urls = text.match(urlRegex) || [];
     
     return (
-      <span className="text-sm">
+      <>
         {parts.map((part, index) => {
           const isUrl = urls.some(url => url === part);
           if (isUrl) {
             return (
               <a
                 key={index}
-                href={part}
+                href={part.startsWith('http') ? part : `https://${part}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-blue-600 hover:text-blue-800 underline break-all"
@@ -43,7 +43,7 @@ const CommentField = ({ value, onChange, readOnly }: { value: string; onChange: 
           }
           return <span key={index}>{part}</span>;
         })}
-      </span>
+      </>
     );
   };
   
@@ -59,8 +59,8 @@ const CommentField = ({ value, onChange, readOnly }: { value: string; onChange: 
   
   if (readOnly) {
     return (
-      <div className="text-sm p-2 bg-white rounded border border-gray-300 min-h-[36px] text-black">
-        {renderCommentWithLinks(value) || <span className="text-gray-400">No comment</span>}
+      <div className="text-sm p-2 bg-gray-100 rounded border border-gray-300 min-h-[36px] text-black">
+        {renderCommentWithLinks(value)}
       </div>
     );
   }
@@ -102,8 +102,8 @@ const CommentField = ({ value, onChange, readOnly }: { value: string; onChange: 
   
   return (
     <div className="flex gap-2 items-center group">
-      <div className="text-sm p-2 bg-white rounded border border-gray-300 min-h-[36px] text-black flex-1">
-        {value ? renderCommentWithLinks(value) : <span className="text-gray-400">Click edit to add comment or link...</span>}
+      <div className="text-sm p-2 bg-gray-100 rounded border border-gray-300 min-h-[36px] text-black flex-1">
+        {renderCommentWithLinks(value)}
       </div>
       <Button
         type="button"
