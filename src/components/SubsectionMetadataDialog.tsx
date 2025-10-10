@@ -12,6 +12,7 @@ import { processUrl } from "@/utils/urlProcessor";
 import { TableSelector } from "./TableSelector";
 
 export interface SubsectionMetadata {
+  customTitle?: string;
   accountableOwner?: string;
   link?: string;
   linkText?: string;
@@ -47,6 +48,7 @@ export const SubsectionMetadataDialog = ({
   onSave
 }: SubsectionMetadataDialogProps) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [customTitle, setCustomTitle] = useState(metadata.customTitle || "");
   const [accountableOwner, setAccountableOwner] = useState(metadata.accountableOwner || "");
   const [link, setLink] = useState(metadata.link || "");
   const [linkText, setLinkText] = useState(metadata.linkText || "");
@@ -112,6 +114,7 @@ export const SubsectionMetadataDialog = ({
     const link4Url = link4 ? `${baseUrl}/public/${link4}?embed=true` : '';
     
     const newMetadata: SubsectionMetadata = {
+      customTitle: customTitle.trim() || undefined,
       accountableOwner: accountableOwner || undefined,
       link: link1Result.url || undefined,
       linkText: linkText || undefined,
@@ -143,6 +146,18 @@ export const SubsectionMetadataDialog = ({
           <DialogTitle>Edit {title} Details</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="custom-title">Custom Title (Optional)</Label>
+            <Input
+              id="custom-title"
+              value={customTitle}
+              onChange={(e) => setCustomTitle(e.target.value)}
+              placeholder={title}
+              className="bg-white"
+            />
+            <p className="text-xs text-muted-foreground">Leave empty to use the default title: "{title}"</p>
+          </div>
+
           <div className="space-y-2">
             <Label htmlFor="accountable-owner">Accountable Owner</Label>
             <Select value={accountableOwner} onValueChange={setAccountableOwner}>

@@ -283,10 +283,10 @@ export const StatusItem = memo(({
         <div className="flex-1 min-w-0 mr-3 flex flex-col justify-between h-full">
           <div>
             {readOnly ? <h4 className="font-semibold text-foreground text-sm truncate">
-                {item.title}
+                {item.metadata?.customTitle || item.title}
               </h4> : <SubsectionMetadataDialog title={item.title} metadata={item.metadata} attendees={attendees} onSave={handleMetadataChange}>
                 <h4 className="font-semibold text-foreground text-base cursor-pointer hover:text-primary transition-colors line-clamp-2">
-                  {item.title}
+                  {item.metadata?.customTitle || item.title}
                 </h4>
               </SubsectionMetadataDialog>}
             
