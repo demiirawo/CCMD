@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { CalendarIcon, FileText, Plus, Minus, ChevronDown, ChevronRight, Edit2, Check, X } from "lucide-react";
+import { CalendarIcon, FileText, Plus, Minus, ChevronDown, ChevronRight } from "lucide-react";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import { Calendar } from "./ui/calendar";
@@ -14,37 +14,28 @@ import { cn } from "@/lib/utils";
 // Comment Field Component with URL detection
 const CommentField = ({ value, onChange, readOnly }: { value: string; onChange: (value: string) => void; readOnly?: boolean }) => {
   const [isEditing, setIsEditing] = useState(false);
-  const [tempValue, setTempValue] = useState(value);
-  
-  // Sync tempValue with value prop when not editing
-  useEffect(() => {
-    if (!isEditing) {
-      setTempValue(value);
-    }
-  }, [value, isEditing]);
   
   const renderCommentWithLinks = (text: string) => {
-    if (!text) return <span className="text-gray-400">No comment</span>;
+    if (!text) return null;
     
-    // Enhanced URL detection regex that matches both http(s):// and domain patterns
-    const urlRegex = /(?:https?:\/\/[^\s]+)|(?:(?:www\.)?[a-zA-Z0-9-]+\.[a-zA-Z]{2,}(?:\/[^\s]*)?)/g;
+    // URL detection regex - create fresh instances for each use
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
     const parts = text.split(urlRegex);
     const urls = text.match(urlRegex) || [];
     
     return (
-      <>
+      <div className="text-sm">
         {parts.map((part, index) => {
           const isUrl = urls.some(url => url === part);
           if (isUrl) {
-            // Ensure URL has protocol
-            const fullUrl = part.startsWith('http') ? part : `https://${part}`;
             return (
               <a
                 key={index}
-                href={fullUrl}
+                href={part}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-blue-600 hover:text-blue-800 underline break-all"
+                onClick={(e) => e.stopPropagation()}
               >
                 {part}
               </a>
@@ -52,79 +43,37 @@ const CommentField = ({ value, onChange, readOnly }: { value: string; onChange: 
           }
           return <span key={index}>{part}</span>;
         })}
-      </>
+      </div>
     );
-  };
-  
-  const handleSave = () => {
-    onChange(tempValue);
-    setIsEditing(false);
-  };
-  
-  const handleCancel = () => {
-    setTempValue(value);
-    setIsEditing(false);
   };
   
   if (readOnly) {
     return (
-      <div className="text-sm p-2 bg-gray-100 rounded border border-gray-300 min-h-[36px] text-black">
-        {renderCommentWithLinks(value)}
+      <div className="text-sm p-2 bg-white rounded border border-gray-300 min-h-[36px] text-black">
+        {renderCommentWithLinks(value) || <span className="text-gray-400">No comment</span>}
       </div>
     );
   }
   
   if (isEditing) {
     return (
-      <div className="flex gap-2">
-        <Input
-          value={tempValue}
-          onChange={(e) => setTempValue(e.target.value)}
-          className="text-sm h-9 bg-white text-black flex-1"
-          placeholder="Enter comment or paste a link..."
-          autoFocus
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') handleSave();
-            if (e.key === 'Escape') handleCancel();
-          }}
-        />
-        <Button
-          type="button"
-          size="sm"
-          onClick={handleSave}
-          className="h-9 w-9 p-0 bg-green-600 hover:bg-green-700 text-white"
-        >
-          <Check className="w-4 h-4" />
-        </Button>
-        <Button
-          type="button"
-          size="sm"
-          variant="outline"
-          onClick={handleCancel}
-          className="h-9 w-9 p-0 bg-red-600 hover:bg-red-700 text-white border-red-600"
-        >
-          <X className="w-4 h-4" />
-        </Button>
-      </div>
+      <Input
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        onBlur={() => setIsEditing(false)}
+        className="text-sm h-9 bg-white text-black"
+        placeholder="Enter comment or paste a link..."
+        autoFocus
+      />
     );
   }
   
   return (
-    <div className="flex gap-2 items-center group">
-      <div className="text-sm p-2 bg-gray-100 rounded border border-gray-300 min-h-[36px] text-black flex-1">
-        {renderCommentWithLinks(value)}
-      </div>
-      <Button
-        type="button"
-        size="sm"
-        onClick={() => {
-          setTempValue(value);
-          setIsEditing(true);
-        }}
-        className="h-9 w-9 p-0 bg-blue-600 hover:bg-blue-700 text-white opacity-0 group-hover:opacity-100 transition-opacity"
-      >
-        <Edit2 className="w-4 h-4" />
-      </Button>
+    <div
+      onClick={() => setIsEditing(true)}
+      className="text-sm p-2 bg-white rounded border border-gray-300 min-h-[36px] text-black cursor-text hover:border-gray-400 transition-colors"
+    >
+      {value ? renderCommentWithLinks(value) : <span className="text-gray-400">Click to add comment or link...</span>}
     </div>
   );
 };
