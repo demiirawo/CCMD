@@ -18,8 +18,8 @@ const CommentField = ({ value, onChange, readOnly }: { value: string; onChange: 
   const renderCommentWithLinks = (text: string) => {
     if (!text) return null;
     
-    // URL detection regex - create fresh instances for each use
-    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    // URL detection regex - matches URLs with or without protocol
+    const urlRegex = /(https?:\/\/[^\s]+|(?:www\.)?[a-zA-Z0-9-]+\.[a-zA-Z]{2,}(?:\/[^\s]*)?)/g;
     const parts = text.split(urlRegex);
     const urls = text.match(urlRegex) || [];
     
@@ -28,10 +28,12 @@ const CommentField = ({ value, onChange, readOnly }: { value: string; onChange: 
         {parts.map((part, index) => {
           const isUrl = urls.some(url => url === part);
           if (isUrl) {
+            // Add https:// if the URL doesn't already have a protocol
+            const href = part.match(/^https?:\/\//) ? part : `https://${part}`;
             return (
               <a
                 key={index}
-                href={part}
+                href={href}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-blue-600 hover:text-blue-800 underline break-all"
