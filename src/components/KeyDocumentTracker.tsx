@@ -16,6 +16,13 @@ const CommentField = ({ value, onChange, readOnly }: { value: string; onChange: 
   const [isEditing, setIsEditing] = useState(false);
   const [tempValue, setTempValue] = useState(value);
   
+  // Sync tempValue with value prop when not editing
+  useEffect(() => {
+    if (!isEditing) {
+      setTempValue(value);
+    }
+  }, [value, isEditing]);
+  
   const renderCommentWithLinks = (text: string) => {
     if (!text) return <span className="text-gray-400">No comment</span>;
     
