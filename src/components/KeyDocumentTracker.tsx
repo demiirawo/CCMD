@@ -15,13 +15,11 @@ import { cn } from "@/lib/utils";
 const CommentField = ({ value, onChange, readOnly }: { value: string; onChange: (value: string) => void; readOnly?: boolean }) => {
   const [isEditing, setIsEditing] = useState(false);
   
-  // URL detection regex
-  const urlRegex = /(https?:\/\/[^\s]+)/g;
-  const hasUrl = urlRegex.test(value);
-  
   const renderCommentWithLinks = (text: string) => {
     if (!text) return null;
     
+    // URL detection regex - create fresh instances for each use
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
     const parts = text.split(urlRegex);
     const urls = text.match(urlRegex) || [];
     
