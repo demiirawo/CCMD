@@ -10,6 +10,75 @@ import { Card } from "./ui/card";
 import { StatusBadge, StatusType } from "./StatusBadge";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
+
+// Comment Field Component with URL detection
+const CommentField = ({ value, onChange, readOnly }: { value: string; onChange: (value: string) => void; readOnly?: boolean }) => {
+  const [isEditing, setIsEditing] = useState(false);
+  
+  // URL detection regex
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  const hasUrl = urlRegex.test(value);
+  
+  const renderCommentWithLinks = (text: string) => {
+    if (!text) return null;
+    
+    const parts = text.split(urlRegex);
+    const urls = text.match(urlRegex) || [];
+    
+    return (
+      <div className="text-sm">
+        {parts.map((part, index) => {
+          const isUrl = urls.some(url => url === part);
+          if (isUrl) {
+            return (
+              <a
+                key={index}
+                href={part}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:text-blue-800 underline break-all"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {part}
+              </a>
+            );
+          }
+          return <span key={index}>{part}</span>;
+        })}
+      </div>
+    );
+  };
+  
+  if (readOnly) {
+    return (
+      <div className="text-sm p-2 bg-white rounded border border-gray-300 min-h-[36px] text-black">
+        {renderCommentWithLinks(value) || <span className="text-gray-400">No comment</span>}
+      </div>
+    );
+  }
+  
+  if (isEditing) {
+    return (
+      <Input
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        onBlur={() => setIsEditing(false)}
+        className="text-sm h-9 bg-white text-black"
+        placeholder="Enter comment or paste a link..."
+        autoFocus
+      />
+    );
+  }
+  
+  return (
+    <div
+      onClick={() => setIsEditing(true)}
+      className="text-sm p-2 bg-white rounded border border-gray-300 min-h-[36px] text-black cursor-text hover:border-gray-400 transition-colors"
+    >
+      {value ? renderCommentWithLinks(value) : <span className="text-gray-400">Click to add comment or link...</span>}
+    </div>
+  );
+};
 export interface DocumentData {
   id: string;
   name: string;
@@ -376,7 +445,11 @@ export const KeyDocumentTracker = ({
                 <div className="grid grid-cols-12 gap-3 items-start">
                   <div className="col-span-10">
                     <label className="text-xs text-gray-700 mb-1 block">Comment</label>
-                    <Input value={doc.comment || ''} onChange={e => handleDocumentChange(documents.indexOf(doc), 'comment', e.target.value)} className="text-sm h-9 bg-white text-black" />
+                    <CommentField
+                      value={doc.comment || ''}
+                      onChange={(value) => handleDocumentChange(documents.indexOf(doc), 'comment', value)}
+                      readOnly={readOnly}
+                    />
                   </div>
                   <div className="col-span-2 flex gap-1">
                     <div className="flex-1"></div>
