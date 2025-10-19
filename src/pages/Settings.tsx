@@ -55,7 +55,8 @@ const SERVICES = [
   "Short Breaks and Respite Care", 
   "Advocacy and Independent Living Support", 
   "Community Nursing", 
-  "Early Help and Family Support Services"
+  "Early Help and Family Support Services",
+  "Child Contact Centre"
 ];
 export const Settings = () => {
   const {
