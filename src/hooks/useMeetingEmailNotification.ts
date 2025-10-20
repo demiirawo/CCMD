@@ -187,6 +187,10 @@ export const useMeetingEmailNotification = () => {
         const statusMapping = { green: 'G', amber: 'A', red: 'R' };
         const sectionStatusSummary: Array<{title: string, status: string, updated: string}> = [];
         
+        // Check if Child Contact Centre is selected
+        const isChildContactCentre = meetingData.companyServices?.includes("Child Contact Centre") || false;
+        console.log('📧 EMAIL: Child Contact Centre check:', isChildContactCentre);
+        
         // Calculate status for each major section (excluding meeting-overview)
         meetingData.dashboardData.sections.forEach(section => {
           if (section.id === 'meeting-overview') {
@@ -227,8 +231,14 @@ export const useMeetingEmailNotification = () => {
           if (section.id === 'continuous-improvement') displayTitle = 'Continuous Improvement';
           if (section.id === 'supported-housing') displayTitle = 'Supported Housing';
           
+          // For Child Contact Centre, use the section title as-is (already correct in the data)
+          // The Child Contact Centre sections are: Staffing, Case Management, Safety, Continuous Improvement
+          
           // Special logic for major sections (matching dashboard DashboardSection.tsx)
-          const majorSections = ["Staffing", "Care & Support", "Safety", "Continuous Improvement"];
+          const majorSections = isChildContactCentre 
+            ? ["Staffing", "Case Management", "Safety", "Continuous Improvement"]
+            : ["Staffing", "Care & Support", "Safety", "Continuous Improvement"];
+            
           if (majorSections.includes(displayTitle)) {
             // If any subsection is red -> make major section red
             if (statusCounts.red > 0) {
@@ -274,7 +284,8 @@ export const useMeetingEmailNotification = () => {
         });
         
         // Add Key Review Dates status if we have key documents (at the end to match dashboard order)
-        if (meetingData.keyDocuments && meetingData.keyDocuments.length > 0) {
+        // Don't include Compliance Documents for Child Contact Centre
+        if (meetingData.keyDocuments && meetingData.keyDocuments.length > 0 && !isChildContactCentre) {
           // Calculate key documents status based on due dates
           const now = new Date();
           let keyDocsStatus: 'green' | 'amber' | 'red' = 'green';
