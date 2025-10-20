@@ -148,198 +148,154 @@ const Index = () => {
       console.error('Error updating temporary analytics data:', error);
     }
   };
-  const [keyDocuments, setKeyDocuments] = useState<DocumentData[]>([]);
-  const [headerData, setHeaderData] = useState({
-    date: (() => {
-      const now = new Date();
-      now.setMinutes(0, 0, 0); // Set to beginning of current hour
-      return now.toLocaleDateString('en-GB', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric'
-      }) + ' ' + now.toLocaleTimeString('en-GB', {
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: false
-      });
-    })(),
-    title: "Management Meeting",
-    attendees: [] as Attendee[],
-    purpose: ""
-  });
+  // Helper function to get dashboard structure based on company services
+  const getInitialDashboardStructure = () => {
+    const currentCompany = companies.find(c => c.id === profile?.company_id);
+    const isChildContactCentre = currentCompany?.services?.includes("Child Contact Centre") || false;
 
-  // Simplified save function for header data - just for compatibility
-  const saveHeaderData = async (newHeaderData: typeof headerData) => {
-    if (!profile?.company_id) return;
-    
-    console.log('🔄 MeetingHeaders: Basic save operation', {
-      companyId: profile.company_id,
-      headerData: newHeaderData
-    });
-    
-    try {
-      const meeting_date = (() => {
-        try {
-          const parts = newHeaderData.date.match(/(\d{2})\/(\d{2})\/(\d{4})\s+(\d{2}):(\d{2})/);
-          if (parts) {
-            const [, day, month, year, hour, minute] = parts;
-            return new Date(parseInt(year), parseInt(month) - 1, parseInt(day), parseInt(hour), parseInt(minute)).toISOString();
-          }
-          return new Date(newHeaderData.date).toISOString();
-        } catch (error) {
-          return new Date().toISOString();
-        }
-      })();
-
-      const dataToSave = {
-        company_id: profile.company_id,
-        meeting_date,
-        title: newHeaderData.title,
-        attendees: JSON.parse(JSON.stringify(newHeaderData.attendees)),
-        purpose: newHeaderData.purpose,
-        updated_at: new Date().toISOString()
-      };
-
-      console.log('💾 MeetingHeaders: Attempting database save with payload:', dataToSave);
-
-      // Try to find existing record
-      const { data: existingData } = await supabase
-        .from('meeting_headers')
-        .select('id')
-        .eq('company_id', profile.company_id)
-        .eq('meeting_date', meeting_date)
-        .maybeSingle();
-
-      let result;
-      if (existingData) {
-        // Update existing record
-        console.log('🔄 MeetingHeaders: Updating existing record');
-        result = await supabase
-          .from('meeting_headers')
-          .update(dataToSave)
-          .eq('id', existingData.id)
-          .select();
-      } else {
-        // Insert new record
-        console.log('➕ MeetingHeaders: Inserting new record');
-        result = await supabase
-          .from('meeting_headers')
-          .insert(dataToSave)
-          .select();
-      }
-
-      if (result.error) {
-        console.error('❌ MeetingHeaders: Database save failed:', result.error);
-        throw result.error;
-      } else {
-        console.log('✅ MeetingHeaders: Successfully saved to database:', result.data);
-        // Save to localStorage as backup with tab isolation
-        const tabId = sessionStorage.getItem('__tab_id') || `tab_${Date.now()}`;
-        const backupKey = currentMeetingId ? `headers_backup_${profile.company_id}_${currentMeetingId}_${tabId}` : `headers_backup_${profile.company_id}_${tabId}`;
-        localStorage.setItem(backupKey, JSON.stringify(newHeaderData));
-        console.log('💾 MeetingHeaders: Also saved backup to localStorage:', backupKey);
-      }
-    } catch (error) {
-      console.error('❌ MeetingHeaders: Exception in saveHeaderData:', error);
-      // Save to localStorage as fallback with tab isolation
-      if (profile?.company_id) {
-        const tabId = sessionStorage.getItem('__tab_id') || `tab_${Date.now()}`;
-        const backupKey = currentMeetingId ? `headers_backup_${profile.company_id}_${currentMeetingId}_${tabId}` : `headers_backup_${profile.company_id}_${tabId}`;
-        localStorage.setItem(backupKey, JSON.stringify(newHeaderData));
-        console.log('💾 MeetingHeaders: Exception fallback to localStorage:', backupKey);
-      }
+    if (isChildContactCentre) {
+      // Child Contact Centre specific structure
+      return [{
+        id: "meeting-overview",
+        title: "Meeting Overview",
+        icon: <Calendar className="w-6 h-6 text-blue-600" />,
+        items: [{
+          id: "meeting-date",
+          title: "Meeting Date",
+          status: "green" as StatusType,
+          lastReviewed: "",
+          observation: "",
+          trendsThemes: "",
+          actions: [],
+          details: "",
+          metadata: {}
+        }, {
+          id: "meeting-attendees",
+          title: "Meeting Attendees",
+          status: "green" as StatusType,
+          lastReviewed: "",
+          observation: "",
+          trendsThemes: "",
+          actions: [],
+          details: "",
+          metadata: {}
+        }, {
+          id: "meeting-purpose",
+          title: "Meeting Purpose",
+          status: "green" as StatusType,
+          lastReviewed: "",
+          observation: "",
+          trendsThemes: "",
+          actions: [],
+          details: "",
+          metadata: {}
+        }]
+      }, {
+        id: "staff",
+        title: "Staffing",
+        icon: <Users className="w-6 h-6 text-purple-600" />,
+        items: [{
+          id: "staff-training",
+          title: "Staff Training",
+          status: "green" as StatusType,
+          lastReviewed: "",
+          observation: "",
+          actions: [],
+          details: "",
+          metadata: {}
+        }, {
+          id: "staff-documents",
+          title: "Staff Documents",
+          status: "green" as StatusType,
+          lastReviewed: "",
+          observation: "",
+          actions: [],
+          details: "",
+          metadata: {}
+        }]
+      }, {
+        id: "case-management",
+        title: "Case Management",
+        icon: <ClipboardList className="w-6 h-6 text-green-600" />,
+        items: [{
+          id: "bookings-attendance",
+          title: "Bookings & Attendance",
+          status: "green" as StatusType,
+          lastReviewed: "",
+          observation: "",
+          actions: [],
+          details: "",
+          metadata: {}
+        }, {
+          id: "family-time-plan-reviews",
+          title: "Family Time Plan Reviews",
+          status: "green" as StatusType,
+          lastReviewed: "",
+          observation: "",
+          actions: [],
+          details: "",
+          metadata: {}
+        }]
+      }, {
+        id: "safety",
+        title: "Safety",
+        icon: <Shield className="w-6 h-6 text-red-600" />,
+        items: [{
+          id: "building-maintenance",
+          title: "Building Maintenance",
+          status: "green" as StatusType,
+          lastReviewed: "",
+          observation: "",
+          actions: [],
+          details: "",
+          metadata: {}
+        }, {
+          id: "health-safety",
+          title: "Health & Safety",
+          status: "green" as StatusType,
+          lastReviewed: "",
+          observation: "",
+          actions: [],
+          details: "",
+          metadata: {}
+        }, {
+          id: "accidents-incidents-safeguarding",
+          title: "Accidents & Incidents, Safeguarding",
+          status: "green" as StatusType,
+          lastReviewed: "",
+          observation: "",
+          actions: [],
+          details: "",
+          metadata: {}
+        }]
+      }, {
+        id: "continuous-improvement",
+        title: "Continuous Improvement",
+        icon: <TrendingUp className="w-6 h-6 text-indigo-600" />,
+        items: [{
+          id: "feedback",
+          title: "Feedback",
+          status: "green" as StatusType,
+          lastReviewed: "",
+          observation: "",
+          actions: [],
+          details: "",
+          metadata: {}
+        }, {
+          id: "audit",
+          title: "Audit",
+          status: "green" as StatusType,
+          lastReviewed: "",
+          observation: "",
+          actions: [],
+          details: "",
+          metadata: {}
+        }]
+      }];
     }
-  };
 
-  // Load header data from database on component mount
-  useEffect(() => {
-    const loadHeaderData = async () => {
-      if (!profile?.company_id) return;
-      try {
-        const {
-          data,
-          error
-        } = await supabase.from('meeting_headers').select('*').eq('company_id', profile.company_id).order('updated_at', {
-          ascending: false
-        }).limit(1);
-        if (error) {
-          console.error('Error loading header data:', error);
-          return;
-        }
-        if (data && data.length > 0) {
-          const headerRecord = data[0];
-          console.log('Loading header data from database:', headerRecord);
-          const loadedData = {
-            date: new Date(headerRecord.meeting_date).toLocaleDateString('en-GB', {
-              day: '2-digit',
-              month: '2-digit',
-              year: 'numeric'
-            }) + ' ' + new Date(headerRecord.meeting_date).toLocaleTimeString('en-GB', {
-              hour: '2-digit',
-              minute: '2-digit',
-              hour12: false
-            }),
-            title: headerRecord.title || '',
-            attendees: Array.isArray(headerRecord.attendees) ? headerRecord.attendees as unknown as Attendee[] : [],
-            purpose: headerRecord.purpose || ''
-          };
-          setHeaderData(loadedData);
-        }
-      } catch (error) {
-        console.error('Failed to load header data:', error);
-      }
-    };
-    loadHeaderData();
-  }, [profile?.company_id]);
-
-
-  // Load key documents from database on component mount
-  useEffect(() => {
-    const loadKeyDocuments = async () => {
-      if (!profile?.company_id) return;
-      try {
-        const {
-          data,
-          error
-        } = await supabase.from('key_documents').select('*').eq('company_id', profile.company_id).order('created_at', {
-          ascending: false
-        });
-        if (error) {
-          console.error('Error loading key documents:', error);
-          return;
-        }
-        if (data && data.length > 0) {
-          const documents = data.map(record => {
-            // Parse the notes field to restore saved data
-            const notesParts = record.notes ? record.notes.split(' | ') : ['', '', '', '', ''];
-            const [owner = '', category = '', lastReviewDate = '', reviewFrequency = '', updatedAt = ''] = notesParts;
-            return {
-              id: record.id,
-              name: record.name,
-              owner,
-              category,
-              lastReviewDate,
-              reviewFrequency,
-              reviewFrequencyNumber: reviewFrequency.split(' ')[0] || '',
-              reviewFrequencyPeriod: reviewFrequency.split(' ')[1] || '',
-              nextReviewDate: record.due_date || null,
-              updatedAt: updatedAt || undefined
-            };
-          });
-          setKeyDocuments(documents);
-        }
-      } catch (error) {
-        console.error('Failed to load key documents:', error);
-      }
-    };
-    loadKeyDocuments();
-  }, [profile?.company_id]);
-  const [dashboardData, setDashboardData] = useState({
-    date: "",
-    title: "",
-    attendees: "",
-    purpose: "",
-    sections: [{
+    // Default structure for all other services
+    return [{
       id: "meeting-overview",
       title: "Meeting Overview",
       icon: <Calendar className="w-6 h-6 text-blue-600" />,
@@ -597,8 +553,218 @@ const Index = () => {
         details: "",
         metadata: {}
       }]
-    }]
+    }];
+  };
+
+  const [keyDocuments, setKeyDocuments] = useState<DocumentData[]>([]);
+  const [headerData, setHeaderData] = useState({
+    date: (() => {
+      const now = new Date();
+      now.setMinutes(0, 0, 0); // Set to beginning of current hour
+      return now.toLocaleDateString('en-GB', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      }) + ' ' + now.toLocaleTimeString('en-GB', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+      });
+    })(),
+    title: "Management Meeting",
+    attendees: [] as Attendee[],
+    purpose: ""
   });
+
+  // Simplified save function for header data - just for compatibility
+  const saveHeaderData = async (newHeaderData: typeof headerData) => {
+    if (!profile?.company_id) return;
+    
+    console.log('🔄 MeetingHeaders: Basic save operation', {
+      companyId: profile.company_id,
+      headerData: newHeaderData
+    });
+    
+    try {
+      const meeting_date = (() => {
+        try {
+          const parts = newHeaderData.date.match(/(\d{2})\/(\d{2})\/(\d{4})\s+(\d{2}):(\d{2})/);
+          if (parts) {
+            const [, day, month, year, hour, minute] = parts;
+            return new Date(parseInt(year), parseInt(month) - 1, parseInt(day), parseInt(hour), parseInt(minute)).toISOString();
+          }
+          return new Date(newHeaderData.date).toISOString();
+        } catch (error) {
+          return new Date().toISOString();
+        }
+      })();
+
+      const dataToSave = {
+        company_id: profile.company_id,
+        meeting_date,
+        title: newHeaderData.title,
+        attendees: JSON.parse(JSON.stringify(newHeaderData.attendees)),
+        purpose: newHeaderData.purpose,
+        updated_at: new Date().toISOString()
+      };
+
+      console.log('💾 MeetingHeaders: Attempting database save with payload:', dataToSave);
+
+      // Try to find existing record
+      const { data: existingData } = await supabase
+        .from('meeting_headers')
+        .select('id')
+        .eq('company_id', profile.company_id)
+        .eq('meeting_date', meeting_date)
+        .maybeSingle();
+
+      let result;
+      if (existingData) {
+        // Update existing record
+        console.log('🔄 MeetingHeaders: Updating existing record');
+        result = await supabase
+          .from('meeting_headers')
+          .update(dataToSave)
+          .eq('id', existingData.id)
+          .select();
+      } else {
+        // Insert new record
+        console.log('➕ MeetingHeaders: Inserting new record');
+        result = await supabase
+          .from('meeting_headers')
+          .insert(dataToSave)
+          .select();
+      }
+
+      if (result.error) {
+        console.error('❌ MeetingHeaders: Database save failed:', result.error);
+        throw result.error;
+      } else {
+        console.log('✅ MeetingHeaders: Successfully saved to database:', result.data);
+        // Save to localStorage as backup with tab isolation
+        const tabId = sessionStorage.getItem('__tab_id') || `tab_${Date.now()}`;
+        const backupKey = currentMeetingId ? `headers_backup_${profile.company_id}_${currentMeetingId}_${tabId}` : `headers_backup_${profile.company_id}_${tabId}`;
+        localStorage.setItem(backupKey, JSON.stringify(newHeaderData));
+        console.log('💾 MeetingHeaders: Also saved backup to localStorage:', backupKey);
+      }
+    } catch (error) {
+      console.error('❌ MeetingHeaders: Exception in saveHeaderData:', error);
+      // Save to localStorage as fallback with tab isolation
+      if (profile?.company_id) {
+        const tabId = sessionStorage.getItem('__tab_id') || `tab_${Date.now()}`;
+        const backupKey = currentMeetingId ? `headers_backup_${profile.company_id}_${currentMeetingId}_${tabId}` : `headers_backup_${profile.company_id}_${tabId}`;
+        localStorage.setItem(backupKey, JSON.stringify(newHeaderData));
+        console.log('💾 MeetingHeaders: Exception fallback to localStorage:', backupKey);
+      }
+    }
+  };
+
+  // Load header data from database on component mount
+  useEffect(() => {
+    const loadHeaderData = async () => {
+      if (!profile?.company_id) return;
+      try {
+        const {
+          data,
+          error
+        } = await supabase.from('meeting_headers').select('*').eq('company_id', profile.company_id).order('updated_at', {
+          ascending: false
+        }).limit(1);
+        if (error) {
+          console.error('Error loading header data:', error);
+          return;
+        }
+        if (data && data.length > 0) {
+          const headerRecord = data[0];
+          console.log('Loading header data from database:', headerRecord);
+          const loadedData = {
+            date: new Date(headerRecord.meeting_date).toLocaleDateString('en-GB', {
+              day: '2-digit',
+              month: '2-digit',
+              year: 'numeric'
+            }) + ' ' + new Date(headerRecord.meeting_date).toLocaleTimeString('en-GB', {
+              hour: '2-digit',
+              minute: '2-digit',
+              hour12: false
+            }),
+            title: headerRecord.title || '',
+            attendees: Array.isArray(headerRecord.attendees) ? headerRecord.attendees as unknown as Attendee[] : [],
+            purpose: headerRecord.purpose || ''
+          };
+          setHeaderData(loadedData);
+        }
+      } catch (error) {
+        console.error('Failed to load header data:', error);
+      }
+    };
+    loadHeaderData();
+  }, [profile?.company_id]);
+
+
+  // Load key documents from database on component mount
+  useEffect(() => {
+    const loadKeyDocuments = async () => {
+      if (!profile?.company_id) return;
+      try {
+        const {
+          data,
+          error
+        } = await supabase.from('key_documents').select('*').eq('company_id', profile.company_id).order('created_at', {
+          ascending: false
+        });
+        if (error) {
+          console.error('Error loading key documents:', error);
+          return;
+        }
+        if (data && data.length > 0) {
+          const documents = data.map(record => {
+            // Parse the notes field to restore saved data
+            const notesParts = record.notes ? record.notes.split(' | ') : ['', '', '', '', ''];
+            const [owner = '', category = '', lastReviewDate = '', reviewFrequency = '', updatedAt = ''] = notesParts;
+            return {
+              id: record.id,
+              name: record.name,
+              owner,
+              category,
+              lastReviewDate,
+              reviewFrequency,
+              reviewFrequencyNumber: reviewFrequency.split(' ')[0] || '',
+              reviewFrequencyPeriod: reviewFrequency.split(' ')[1] || '',
+              nextReviewDate: record.due_date || null,
+              updatedAt: updatedAt || undefined
+            };
+          });
+          setKeyDocuments(documents);
+        }
+      } catch (error) {
+        console.error('Failed to load key documents:', error);
+      }
+    };
+    loadKeyDocuments();
+  }, [profile?.company_id]);
+  const [dashboardData, setDashboardData] = useState({
+    date: "",
+    title: "",
+    attendees: "",
+    purpose: "",
+    sections: getInitialDashboardStructure()
+  });
+
+  // Update dashboard structure when company services change
+  useEffect(() => {
+    if (!profile?.company_id || companies.length === 0) return;
+    
+    const currentCompany = companies.find(c => c.id === profile?.company_id);
+    const isChildContactCentre = currentCompany?.services?.includes("Child Contact Centre") || false;
+    
+    console.log('🔄 Updating dashboard structure. Child Contact Centre:', isChildContactCentre);
+    
+    // Update sections structure based on company services
+    setDashboardData(prev => ({
+      ...prev,
+      sections: getInitialDashboardStructure()
+    }));
+  }, [profile?.company_id, companies]);
 
   // Load existing subsection data from database on component mount
   useEffect(() => {
