@@ -299,48 +299,50 @@ export const Settings = () => {
           </CardContent>
         </Card>
 
-        {/* Compliance Settings */}
-        <Card style={{backgroundColor: '#EAEBEC'}}>
-          <CardHeader>
-            <CardTitle>
-              Compliance
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3 bg-white p-4 rounded-lg w-full">
-              <div className="flex items-center space-x-2">
-                <Checkbox 
-                  id="cqc_personal_care" 
-                  checked={complianceSettings.cqc_personal_care} 
-                  onCheckedChange={checked => handleComplianceChange('cqc_personal_care', checked as boolean)} 
-                />
-                <Label htmlFor="cqc_personal_care" className="text-sm font-normal cursor-pointer">
-                  CQC (Personal Care)
-                </Label>
+        {/* Compliance Settings - Hidden for Child Contact Centre */}
+        {!selectedServices.includes("Child Contact Centre") && (
+          <Card style={{backgroundColor: '#EAEBEC'}}>
+            <CardHeader>
+              <CardTitle>
+                Compliance
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3 bg-white p-4 rounded-lg w-full">
+                <div className="flex items-center space-x-2">
+                  <Checkbox 
+                    id="cqc_personal_care" 
+                    checked={complianceSettings.cqc_personal_care} 
+                    onCheckedChange={checked => handleComplianceChange('cqc_personal_care', checked as boolean)} 
+                  />
+                  <Label htmlFor="cqc_personal_care" className="text-sm font-normal cursor-pointer">
+                    CQC (Personal Care)
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox 
+                    id="home_office_cos" 
+                    checked={complianceSettings.home_office_cos} 
+                    onCheckedChange={checked => handleComplianceChange('home_office_cos', checked as boolean)} 
+                  />
+                  <Label htmlFor="home_office_cos" className="text-sm font-normal cursor-pointer">
+                    Home Office (Certificate of Sponsorship)
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox 
+                    id="ofsted_supported_accommodation" 
+                    checked={complianceSettings.ofsted_supported_accommodation} 
+                    onCheckedChange={checked => handleComplianceChange('ofsted_supported_accommodation', checked as boolean)} 
+                  />
+                  <Label htmlFor="ofsted_supported_accommodation" className="text-sm font-normal cursor-pointer">
+                    Ofsted (Supported Accomodation For Age 16-17)
+                  </Label>
+                </div>
               </div>
-              <div className="flex items-center space-x-2">
-                <Checkbox 
-                  id="home_office_cos" 
-                  checked={complianceSettings.home_office_cos} 
-                  onCheckedChange={checked => handleComplianceChange('home_office_cos', checked as boolean)} 
-                />
-                <Label htmlFor="home_office_cos" className="text-sm font-normal cursor-pointer">
-                  Home Office (Certificate of Sponsorship)
-                </Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Checkbox 
-                  id="ofsted_supported_accommodation" 
-                  checked={complianceSettings.ofsted_supported_accommodation} 
-                  onCheckedChange={checked => handleComplianceChange('ofsted_supported_accommodation', checked as boolean)} 
-                />
-                <Label htmlFor="ofsted_supported_accommodation" className="text-sm font-normal cursor-pointer">
-                  Ofsted (Supported Accomodation For Age 16-17)
-                </Label>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Logo Upload */}
         <Card style={{backgroundColor: '#EAEBEC'}}>
