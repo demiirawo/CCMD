@@ -377,8 +377,8 @@ export const Settings = () => {
         <TeamMembersManager companyId={currentCompany.id} />
       </div>
 
-      {/* Evidence Linkage Configuration - Only for Super Admin */}
-      {user?.email === 'demi.irawo@care-cuddle.co.uk' && (
+      {/* Evidence Linkage Configuration - Only for Super Admin and not for Child Contact Centre */}
+      {user?.email === 'demi.irawo@care-cuddle.co.uk' && !selectedServices.includes("Child Contact Centre") && (
         <div className="mt-6">
           <EvidenceLinkageSettings companyId={currentCompany.id} />
         </div>
