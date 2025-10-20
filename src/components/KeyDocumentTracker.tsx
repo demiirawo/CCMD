@@ -121,10 +121,12 @@ export const KeyDocumentTracker = ({
   } = useAuth();
   const currentCompany = companies.find(c => c.id === profile?.company_id);
   const isDynamicPanelColourEnabled = true;
+  const isChildContactCentre = currentCompany?.services?.includes("Child Contact Centre") || false;
 
   // Initialize default documents if none exist
   const initializeDefaultDocuments = () => {
-    if (documents.length === 0) {
+    // Don't initialize "Statement of purpose" for Child Contact Centre
+    if (documents.length === 0 && !isChildContactCentre) {
       const defaultDocument: DocumentData = {
         id: `doc-default-${Date.now()}`,
         name: 'Statement of purpose',
@@ -225,10 +227,10 @@ export const KeyDocumentTracker = ({
     }
   };
 
-  // Calculate overall status for the section
+  // Calculate overall status for the section (using filtered documents)
   const getOverallStatus = (): StatusType => {
-    if (documents.length === 0) return "green";
-    const statuses = documents.filter(doc => doc.name && doc.lastReviewDate) // Only consider documents with name and date
+    if (filteredDocuments.length === 0) return "green";
+    const statuses = filteredDocuments.filter(doc => doc.name && doc.lastReviewDate) // Only consider documents with name and date
     .map(doc => getDocumentStatus(doc.nextReviewDate));
     if (statuses.some(status => status === "red")) return "red";
     if (statuses.some(status => status === "amber")) return "amber";
@@ -275,14 +277,18 @@ export const KeyDocumentTracker = ({
     onDocumentsChange?.(updatedDocuments);
   };
 
-  // Group documents by category
+  // Filter out "Statement of purpose" for Child Contact Centre and group documents by category
+  const filteredDocuments = isChildContactCentre 
+    ? documents.filter(doc => doc.name !== 'Statement of purpose')
+    : documents;
+
   const groupedDocuments = categories.map(category => {
-    const categoryDocs = documents.filter(doc => doc.category === category);
+    const categoryDocs = filteredDocuments.filter(doc => doc.category === category);
     return [category, categoryDocs] as [string, DocumentData[]];
   }).filter(([, docs]) => docs.length > 0);
 
-  // Add uncategorized documents
-  const uncategorizedDocs = documents.filter(doc => !doc.category || !categories.includes(doc.category));
+  // Add uncategorized documents (also filtered)
+  const uncategorizedDocs = filteredDocuments.filter(doc => !doc.category || !categories.includes(doc.category));
   if (uncategorizedDocs.length > 0) {
     groupedDocuments.push(["Uncategorized", uncategorizedDocs]);
   }
