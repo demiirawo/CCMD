@@ -833,6 +833,24 @@ const Index = () => {
     };
     loadSubsectionData();
   }, [profile?.company_id]);
+
+  // Add visibility change handler to refresh UI when returning to tab
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && isDataLoaded) {
+        // Force a re-render when tab becomes visible to ensure UI displays all data
+        console.log('🔄 Tab became visible - refreshing UI');
+        setPanelStateTracker(prev => prev + 1);
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [isDataLoaded]);
+
   const handleDataChange = async (field: string, value: string) => {
     const updatedHeaderData = { ...headerData, [field]: value };
     setHeaderData(updatedHeaderData);
