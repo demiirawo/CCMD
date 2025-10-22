@@ -750,6 +750,14 @@ const Index = () => {
     sections: getInitialDashboardStructure()
   });
 
+  // Debug: Log dashboard data changes to track when it gets cleared
+  useEffect(() => {
+    const itemCount = dashboardData.sections.reduce((count, section) => {
+      return count + section.items.filter(item => item.observation || item.lastReviewed).length;
+    }, 0);
+    console.log('📊 Dashboard data changed - Items with data:', itemCount, 'Total sections:', dashboardData.sections.length);
+  }, [dashboardData]);
+
   // Update dashboard structure when company services change
   useEffect(() => {
     if (!profile?.company_id || companies.length === 0) return;
@@ -834,14 +842,12 @@ const Index = () => {
     loadSubsectionData();
   }, [profile?.company_id]);
 
-  // Add visibility change handler to refresh UI when returning to tab
+  // Debug: Monitor tab visibility changes
   useEffect(() => {
     const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible' && isDataLoaded) {
-        // Force a re-render when tab becomes visible to ensure UI displays all data
-        console.log('🔄 Tab became visible - refreshing UI');
-        setPanelStateTracker(prev => prev + 1);
-      }
+      console.log('👀 Tab visibility changed:', document.visibilityState);
+      console.log('📊 Current dashboard sections count:', dashboardData.sections.length);
+      console.log('📊 Current data loaded flag:', isDataLoaded);
     };
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
@@ -849,7 +855,7 @@ const Index = () => {
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [isDataLoaded]);
+  }, [dashboardData.sections.length, isDataLoaded]);
 
   const handleDataChange = async (field: string, value: string) => {
     const updatedHeaderData = { ...headerData, [field]: value };
