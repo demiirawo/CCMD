@@ -766,6 +766,22 @@ const Index = () => {
     }));
   }, [profile?.company_id, companies]);
 
+  // Handle tab visibility changes to prevent UI from going blank
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        // Tab became visible again - force re-render to ensure UI stays consistent
+        console.log('👁️ Tab became visible - maintaining UI state');
+        setPanelStateTracker(prev => prev + 1);
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, []);
+
   // Load existing subsection data from database on component mount
   useEffect(() => {
     const loadSubsectionData = async () => {
