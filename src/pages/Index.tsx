@@ -765,8 +765,21 @@ const Index = () => {
     const currentCompany = companies.find(c => c.id === profile?.company_id);
     const isChildContactCentre = currentCompany?.services?.includes("Child Contact Centre") || false;
     
-    console.log('🔄 Updating dashboard structure. Child Contact Centre:', isChildContactCentre);
+    console.log('🔄 Dashboard structure check. Child Contact Centre:', isChildContactCentre);
+    console.log('🔄 Current sections count:', dashboardData.sections.length);
     
+    // Only update structure on initial load or actual company change - NOT on every companies array update
+    // Check if we already have the correct structure
+    const hasData = dashboardData.sections.some(section => 
+      section.items.some(item => item.observation || item.lastReviewed)
+    );
+    
+    if (hasData) {
+      console.log('🔄 Data exists, skipping structure reset to preserve data');
+      return;
+    }
+    
+    console.log('🔄 No data found, initializing structure');
     // Update sections structure based on company services
     setDashboardData(prev => ({
       ...prev,
