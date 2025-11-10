@@ -763,10 +763,59 @@ export const useMeetingEmailNotification = () => {
       const successCount = results.filter(r => r.success).length;
       const totalCount = results.length;
 
+      // If emails were sent successfully, create a follow-up tracking record
+      if (successCount > 0) {
+        try {
+          console.log('📝 Creating follow-up tracking record...');
+          
+          // Calculate follow-up date (3.5 days from now)
+          const followUpDate = new Date();
+          followUpDate.setDate(followUpDate.getDate() + 3);
+          followUpDate.setHours(followUpDate.getHours() + 12); // Add 12 hours for 3.5 days
+          
+          // Get company_id from profile
+          const { data: profileData } = await supabase
+            .from('profiles')
+            .select('company_id')
+            .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
+            .single();
+          
+          if (profileData?.company_id) {
+            // Prepare attendees data with emails only for those who received emails
+            const attendeesWithEmails = meetingData.attendees
+              .filter(attendee => results.some(r => r.email === attendee.email && r.success))
+              .map(attendee => ({
+                name: attendee.name,
+                email: attendee.email
+              }));
+
+            const { error: trackingError } = await supabase
+              .from('meeting_email_tracking')
+              .insert({
+                company_id: profileData.company_id,
+                meeting_date: meetingData.date,
+                meeting_title: meetingData.title,
+                follow_up_scheduled_for: followUpDate.toISOString(),
+                attendees: attendeesWithEmails,
+                dashboard_data: meetingData.dashboardData
+              });
+
+            if (trackingError) {
+              console.error('❌ Failed to create follow-up tracking record:', trackingError);
+            } else {
+              console.log('✅ Follow-up reminder scheduled for:', followUpDate.toISOString());
+            }
+          }
+        } catch (trackingError) {
+          console.error('❌ Error creating follow-up tracking:', trackingError);
+          // Don't fail the whole operation if tracking fails
+        }
+      }
+
       if (successCount === totalCount) {
         toast({
           title: "Emails Sent",
-          description: `Meeting summary sent to all ${totalCount} attendees`,
+          description: `Meeting summary sent to all ${totalCount} attendees. Follow-up reminder scheduled for 3.5 days.`,
         });
       } else if (successCount > 0) {
         toast({

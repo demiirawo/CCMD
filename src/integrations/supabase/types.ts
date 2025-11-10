@@ -997,6 +997,56 @@ export type Database = {
         }
         Relationships: []
       }
+      meeting_email_tracking: {
+        Row: {
+          attendees: Json
+          company_id: string
+          created_at: string
+          dashboard_data: Json | null
+          follow_up_scheduled_for: string
+          follow_up_sent_at: string | null
+          id: string
+          meeting_date: string
+          meeting_title: string
+          sent_at: string
+          updated_at: string
+        }
+        Insert: {
+          attendees?: Json
+          company_id: string
+          created_at?: string
+          dashboard_data?: Json | null
+          follow_up_scheduled_for: string
+          follow_up_sent_at?: string | null
+          id?: string
+          meeting_date: string
+          meeting_title: string
+          sent_at?: string
+          updated_at?: string
+        }
+        Update: {
+          attendees?: Json
+          company_id?: string
+          created_at?: string
+          dashboard_data?: Json | null
+          follow_up_scheduled_for?: string
+          follow_up_sent_at?: string | null
+          id?: string
+          meeting_date?: string
+          meeting_title?: string
+          sent_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meeting_email_tracking_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       meeting_headers: {
         Row: {
           attendees: Json
@@ -1753,28 +1803,16 @@ export type Database = {
         }
         Returns: boolean
       }
-      cleanup_old_sessions: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+      cleanup_old_sessions: { Args: never; Returns: undefined }
       ensure_user_setup_complete: {
         Args: { user_email: string }
         Returns: undefined
       }
-      generate_slug: {
-        Args: { input_text: string }
-        Returns: string
-      }
-      get_user_accessible_company_ids: {
-        Args: Record<PropertyKey, never>
-        Returns: string[]
-      }
-      get_user_company_id: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
+      generate_slug: { Args: { input_text: string }; Returns: string }
+      get_user_accessible_company_ids: { Args: never; Returns: string[] }
+      get_user_company_id: { Args: never; Returns: string }
       get_user_permission: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: Database["public"]["Enums"]["user_permission"]
       }
       invalidate_other_company_sessions: {
@@ -1785,14 +1823,8 @@ export type Database = {
         }
         Returns: undefined
       }
-      is_admin: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
-      is_super_admin: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
+      is_admin: { Args: never; Returns: boolean }
+      is_super_admin: { Args: never; Returns: boolean }
     }
     Enums: {
       user_permission: "read" | "edit" | "company_admin"
