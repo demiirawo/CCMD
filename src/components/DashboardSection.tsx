@@ -77,10 +77,8 @@ export const DashboardSection = ({
     const isolatedStorageKey = `${storageKey}_${tabId}`;
     const saved = sessionStorage.getItem(isolatedStorageKey);
     const savedState = saved !== null ? JSON.parse(saved) : defaultOpen;
-    if (savedState !== isOpen) {
-      setIsOpen(savedState);
-    }
-  }, [panelStateTracker, storageKey, defaultOpen, isOpen]);
+    setIsOpen(savedState);
+  }, [panelStateTracker, storageKey, defaultOpen]);
   
   const isExpanded = isOpen;
   const [monthlyStaffData, setMonthlyStaffData] = useState<Array<{month: string, currentStaff: number, probationStaff?: number}>>([]);
