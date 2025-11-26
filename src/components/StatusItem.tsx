@@ -307,17 +307,6 @@ export const StatusItem = memo(({
               Compliance Checklist
             </button>
             
-            {/* Display configured tags */}
-            {tags.length > 0 && (
-              <div className="flex flex-wrap gap-1 mt-2">
-                {tags.map((tag) => (
-                  <Badge key={tag} variant="outline" className="text-xs">
-                    {tag}
-                  </Badge>
-                ))}
-              </div>
-            )}
-            
             {/* Display metadata below title */}
             {item.metadata?.link && <div className="flex items-center gap-1 mt-1">
                 <ExternalLink className="w-3 h-3 text-muted-foreground" />
@@ -332,6 +321,33 @@ export const StatusItem = memo(({
                   {item.metadata.link2Text || item.metadata.link2}
                 </a>
               </div>}
+            
+            {/* Display configured tags */}
+            {tags.length > 0 && (
+              <div className="flex flex-wrap gap-1 mt-2">
+                {tags.map((tag) => {
+                  // Generate consistent color for each tag
+                  const getTagColor = (text: string) => {
+                    let hash = 0;
+                    for (let i = 0; i < text.length; i++) {
+                      hash = text.charCodeAt(i) + ((hash << 5) - hash);
+                    }
+                    const hue = hash % 360;
+                    return `hsl(${hue}, 70%, 45%)`;
+                  };
+                  
+                  return (
+                    <Badge 
+                      key={tag} 
+                      className="text-xs text-white border-0"
+                      style={{ backgroundColor: getTagColor(tag) }}
+                    >
+                      {tag}
+                    </Badge>
+                  );
+                })}
+              </div>
+            )}
             
             {item.metadata?.description && <p className="text-xs text-muted-foreground mt-4 whitespace-pre-wrap italic">
                 {item.metadata.description}
