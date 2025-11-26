@@ -324,23 +324,33 @@ export const StatusItem = memo(({
             
             {/* Display configured tags */}
             {tags.length > 0 && (
-              <div className="flex flex-wrap gap-1 mt-2">
+              <div className="flex flex-wrap gap-1.5 mt-3">
                 {tags.map((tag) => {
-                  // Generate consistent color for each tag
+                  // Generate consistent, softer color for each tag
                   const getTagColor = (text: string) => {
                     let hash = 0;
                     for (let i = 0; i < text.length; i++) {
                       hash = text.charCodeAt(i) + ((hash << 5) - hash);
                     }
                     const hue = hash % 360;
-                    return `hsl(${hue}, 70%, 45%)`;
+                    return {
+                      bg: `hsl(${hue}, 65%, 95%)`,
+                      text: `hsl(${hue}, 70%, 35%)`,
+                      border: `hsl(${hue}, 60%, 85%)`
+                    };
                   };
+                  
+                  const colors = getTagColor(tag);
                   
                   return (
                     <Badge 
                       key={tag} 
-                      className="text-xs text-white border-0"
-                      style={{ backgroundColor: getTagColor(tag) }}
+                      className="text-[11px] font-medium px-2.5 py-0.5 rounded-md"
+                      style={{ 
+                        backgroundColor: colors.bg,
+                        color: colors.text,
+                        border: `1px solid ${colors.border}`
+                      }}
                     >
                       {tag}
                     </Badge>
