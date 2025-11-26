@@ -239,9 +239,9 @@ export const ServiceTagsSettings = ({ companyId, selectedServices }: ServiceTags
               <SelectTrigger className="w-[280px] bg-white">
                 <SelectValue placeholder="Select a service" />
               </SelectTrigger>
-              <SelectContent className="bg-white">
+              <SelectContent className="bg-white z-50 max-h-[300px] overflow-y-auto">
                 {mainServices.map((service) => (
-                  <SelectItem key={service} value={service}>
+                  <SelectItem key={service} value={service} className="bg-white hover:bg-gray-100">
                     {service}
                   </SelectItem>
                 ))}
