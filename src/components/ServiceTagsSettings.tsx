@@ -123,47 +123,36 @@ export const ServiceTagsSettings = ({ companyId }: ServiceTagsSettingsProps) => 
     }));
   };
 
-  const addTag = (service: string, sectionId: string, itemId: string) => {
+  const addTag = async (service: string, sectionId: string, itemId: string) => {
     const key = `${service}_${sectionId}_${itemId}`;
     const inputKey = key;
     const newTag = newTagInput[inputKey]?.trim();
     
     if (!newTag) return;
 
-    setServiceTags((prev) => {
-      const current = prev[key] || [];
-      if (current.includes(newTag)) {
-        toast({
-          title: "Tag exists",
-          description: "This tag already exists",
-          variant: "destructive",
-        });
-        return prev;
-      }
-      return {
-        ...prev,
-        [key]: [...current, newTag],
-      };
-    });
+    const current = serviceTags[key] || [];
+    if (current.includes(newTag)) {
+      toast({
+        title: "Tag exists",
+        description: "This tag already exists",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const updatedTags = [...current, newTag];
+    
+    setServiceTags((prev) => ({
+      ...prev,
+      [key]: updatedTags,
+    }));
 
     setNewTagInput((prev) => ({
       ...prev,
       [inputKey]: "",
     }));
-  };
 
-  const removeTag = (service: string, sectionId: string, itemId: string, tagToRemove: string) => {
-    const key = `${service}_${sectionId}_${itemId}`;
-    setServiceTags((prev) => ({
-      ...prev,
-      [key]: (prev[key] || []).filter((tag) => tag !== tagToRemove),
-    }));
-  };
-
-  const handleSave = async (service: string, sectionId: string, itemId: string) => {
-    const key = `${service}_${sectionId}_${itemId}`;
-    const tags = serviceTags[key] || [];
-
+    // Auto-save
     try {
       const { error } = await supabase
         .from('service_subsection_tags')
@@ -171,27 +160,57 @@ export const ServiceTagsSettings = ({ companyId }: ServiceTagsSettingsProps) => 
           service,
           section_id: sectionId,
           item_id: itemId,
-          tags,
+          tags: updatedTags,
           updated_by: profile?.user_id,
         }, {
           onConflict: 'service,section_id,item_id'
         });
 
       if (error) throw error;
-
-      toast({
-        title: "Saved",
-        description: "Tag configuration saved successfully",
-      });
     } catch (error) {
       console.error("Error saving tags:", error);
       toast({
         title: "Error",
-        description: "Failed to save tag configuration",
+        description: "Failed to save tags",
         variant: "destructive",
       });
     }
   };
+
+  const removeTag = async (service: string, sectionId: string, itemId: string, tagToRemove: string) => {
+    const key = `${service}_${sectionId}_${itemId}`;
+    const updatedTags = (serviceTags[key] || []).filter((tag) => tag !== tagToRemove);
+    
+    setServiceTags((prev) => ({
+      ...prev,
+      [key]: updatedTags,
+    }));
+
+    // Auto-save
+    try {
+      const { error } = await supabase
+        .from('service_subsection_tags')
+        .upsert({
+          service,
+          section_id: sectionId,
+          item_id: itemId,
+          tags: updatedTags,
+          updated_by: profile?.user_id,
+        }, {
+          onConflict: 'service,section_id,item_id'
+        });
+
+      if (error) throw error;
+    } catch (error) {
+      console.error("Error saving tags:", error);
+      toast({
+        title: "Error",
+        description: "Failed to save tags",
+        variant: "destructive",
+      });
+    }
+  };
+
 
   const groupBySection = (items: SectionItem[]) => {
     const groups: Record<string, SectionItem[]> = {};
@@ -267,26 +286,10 @@ export const ServiceTagsSettings = ({ companyId }: ServiceTagsSettingsProps) => 
                     >
                       <div className="ml-4 bg-white rounded-lg border">
                         <CollapsibleTrigger className="flex items-center justify-between w-full p-3 hover:bg-gray-50">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2">
-                              <span className="text-sm font-medium">{item.title}</span>
-                              {tags.length > 0 && (
-                                <Badge variant="secondary">{tags.length} tags</Badge>
-                              )}
-                            </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-medium">{item.title}</span>
                             {tags.length > 0 && (
-                              <div className="flex flex-wrap gap-1 mt-2">
-                                {tags.slice(0, 5).map((tag) => (
-                                  <Badge key={tag} variant="outline" className="text-xs">
-                                    {tag}
-                                  </Badge>
-                                ))}
-                                {tags.length > 5 && (
-                                  <Badge variant="outline" className="text-xs">
-                                    +{tags.length - 5} more
-                                  </Badge>
-                                )}
-                              </div>
+                              <Badge variant="secondary">{tags.length} tags</Badge>
                             )}
                           </div>
                           {expandedItems[itemKey] ? (
@@ -335,14 +338,6 @@ export const ServiceTagsSettings = ({ companyId }: ServiceTagsSettingsProps) => 
                                 />
                               </Badge>
                             ))}
-                          </div>
-                          <div className="flex justify-end pt-2 border-t">
-                            <Button
-                              size="sm"
-                              onClick={() => handleSave(selectedService, item.sectionId, item.id)}
-                            >
-                              Save Configuration
-                            </Button>
                           </div>
                         </div>
                       </CollapsibleContent>
