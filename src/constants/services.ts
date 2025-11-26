@@ -18,3 +18,9 @@ export const SERVICES = [
   "Early Help and Family Support Services",
   "Child Contact Centre"
 ];
+
+export const COMPLIANCE_OPTIONS = [
+  "CQC (Personal Care)",
+  "Home Office (Certificate of Sponsorship)",
+  "Ofsted (Supported Accomodation For Age 16-17)"
+];
