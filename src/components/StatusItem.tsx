@@ -26,6 +26,7 @@ import { EvidenceLinkageDialog } from "./EvidenceLinkageDialog";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useSubsectionTags } from "@/hooks/useSubsectionTags";
 export interface DocumentData {
   documentName: string;
   documentOwner: string;
@@ -104,6 +105,7 @@ export const StatusItem = memo(({
 }: StatusItemProps) => {
   const { profile } = useAuth();
   const isSuperAdmin = profile?.role === 'admin';
+  const { tags } = useSubsectionTags(sectionId, item.id);
   
   const [isExpanded, setIsExpanded] = useState(false);
   const [isEditingObservation, setIsEditingObservation] = useState(false);
@@ -304,6 +306,17 @@ export const StatusItem = memo(({
             >
               Compliance Checklist
             </button>
+            
+            {/* Display configured tags */}
+            {tags.length > 0 && (
+              <div className="flex flex-wrap gap-1 mt-2">
+                {tags.map((tag) => (
+                  <Badge key={tag} variant="outline" className="text-xs">
+                    {tag}
+                  </Badge>
+                ))}
+              </div>
+            )}
             
             {/* Display metadata below title */}
             {item.metadata?.link && <div className="flex items-center gap-1 mt-1">
