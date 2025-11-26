@@ -9,6 +9,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { ChevronDown, ChevronUp, Plus, X, Tags } from "lucide-react";
+import { SERVICES } from "@/constants/services";
 
 interface ServiceTagsSettingsProps {
   companyId: string;
@@ -33,13 +34,13 @@ export const ServiceTagsSettings = ({ companyId, selectedServices }: ServiceTags
   const [newTagInput, setNewTagInput] = useState<Record<string, string>>({});
   const [sectionItems, setSectionItems] = useState<SectionItem[]>([]);
 
-  // Set first service as default when services change
+  // Set first service as default when component mounts
   useEffect(() => {
-    const mainServices = selectedServices.filter(s => !s.startsWith('  -'));
+    const mainServices = SERVICES.filter(s => !s.startsWith('  -'));
     if (mainServices.length > 0 && !selectedService) {
       setSelectedService(mainServices[0]);
     }
-  }, [selectedServices, selectedService]);
+  }, [selectedService]);
 
   // Load all subsections from the dashboard structure
   useEffect(() => {
@@ -210,23 +211,7 @@ export const ServiceTagsSettings = ({ companyId, selectedServices }: ServiceTags
   }
 
   const groupedItems = groupBySection(sectionItems);
-  const mainServices = selectedServices.filter(s => !s.startsWith('  -'));
-
-  if (mainServices.length === 0) {
-    return (
-      <Card style={{ backgroundColor: '#EAEBEC' }}>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Tags className="w-5 h-5" />
-            Service Tags Configuration
-          </CardTitle>
-          <CardDescription>
-            Please select services in the settings above to configure tags
-          </CardDescription>
-        </CardHeader>
-      </Card>
-    );
-  }
+  const mainServices = SERVICES.filter(s => !s.startsWith('  -'));
 
   return (
     <Card style={{ backgroundColor: '#EAEBEC' }}>
