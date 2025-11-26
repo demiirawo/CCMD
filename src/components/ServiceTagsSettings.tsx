@@ -64,15 +64,15 @@ const SortableTag = ({ tag, onRemove }: SortableTagProps) => {
     <div
       ref={setNodeRef}
       style={style}
-      className="flex items-center gap-2 p-2 bg-secondary rounded-md hover:bg-secondary/80"
+      className="flex items-center gap-2 p-2 bg-tag rounded-md hover:bg-tag/90"
     >
       <div {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing">
-        <GripVertical className="w-4 h-4 text-muted-foreground" />
+        <GripVertical className="w-4 h-4 text-tag-foreground/60" />
       </div>
-      <span className="flex-1 text-sm">{tag}</span>
+      <span className="flex-1 text-sm text-tag-foreground">{tag}</span>
       <button
         onClick={onRemove}
-        className="p-1 hover:bg-destructive hover:text-destructive-foreground rounded transition-colors"
+        className="p-1 hover:bg-destructive hover:text-destructive-foreground rounded transition-colors text-tag-foreground/60 hover:text-destructive-foreground"
       >
         <X className="w-3 h-3" />
       </button>
@@ -348,11 +348,8 @@ export const ServiceTagsSettings = ({ companyId }: ServiceTagsSettingsProps) => 
             </Select>
           </div>
         </div>
-        <CardDescription className="space-y-2">
-          <span className="block">Configure which tags display for each dashboard subsection based on selected compliance option</span>
-          <span className="block text-sm font-medium text-primary mt-2 bg-blue-50 px-3 py-2 rounded-md border border-blue-200">
-            ⓘ Global Configuration: Tags configured here automatically apply to ALL accounts with the selected compliance option enabled.
-          </span>
+        <CardDescription>
+          Configure which tags display for each dashboard subsection based on selected compliance option
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
