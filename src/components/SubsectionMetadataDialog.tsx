@@ -8,7 +8,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { X } from "lucide-react";
 import { processUrl } from "@/utils/urlProcessor";
-import { TableSelector } from "./TableSelector";
 
 export interface SubsectionMetadata {
   customTitle?: string;
@@ -19,12 +18,6 @@ export interface SubsectionMetadata {
   link2?: string;
   link2Text?: string;
   link2IsIframe?: boolean;
-  link3?: string;
-  link3Text?: string;
-  link3IsIframe?: boolean;
-  link4?: string;
-  link4Text?: string;
-  link4IsIframe?: boolean;
   description?: string;
   updated?: string;
   linkedEvidenceRefs?: string[];
@@ -54,12 +47,6 @@ export const SubsectionMetadataDialog = ({
   const [link2, setLink2] = useState(metadata.link2 || "");
   const [link2Text, setLink2Text] = useState(metadata.link2Text || "");
   const [link2IsIframe, setLink2IsIframe] = useState(metadata.link2IsIframe || false);
-  const [link3, setLink3] = useState(metadata.link3 || "");
-  const [link3Text, setLink3Text] = useState(metadata.link3Text || "");
-  const [link3IsIframe, setLink3IsIframe] = useState(metadata.link3IsIframe || false);
-  const [link4, setLink4] = useState(metadata.link4 || "");
-  const [link4Text, setLink4Text] = useState(metadata.link4Text || "");
-  const [link4IsIframe, setLink4IsIframe] = useState(metadata.link4IsIframe || false);
   const [description, setDescription] = useState(metadata.description || "");
 
   const processAndDetectIframe = (input: string): { url: string; isIframe: boolean } => {
@@ -81,11 +68,6 @@ export const SubsectionMetadataDialog = ({
     const link1Result = processAndDetectIframe(link);
     const link2Result = processAndDetectIframe(link2);
     
-    // For link3 and link4, if they are table IDs, convert to full public table URLs
-    const baseUrl = window.location.origin;
-    const link3Url = link3 ? `${baseUrl}/public/${link3}?embed=true` : '';
-    const link4Url = link4 ? `${baseUrl}/public/${link4}?embed=true` : '';
-    
     const newMetadata: SubsectionMetadata = {
       customTitle: customTitle.trim() || undefined,
       accountableOwner: accountableOwner || undefined,
@@ -95,12 +77,6 @@ export const SubsectionMetadataDialog = ({
       link2: link2Result.url || undefined,
       link2Text: link2Text || undefined,
       link2IsIframe: link2IsIframe,
-      link3: link3Url || undefined,
-      link3Text: link3Text || undefined,
-      link3IsIframe: !!link3, // Always true if table is selected
-      link4: link4Url || undefined,
-      link4Text: link4Text || undefined,
-      link4IsIframe: !!link4, // Always true if table is selected
       description: description || undefined,
       updated: new Date().toLocaleDateString('en-GB')
     };
@@ -167,7 +143,7 @@ export const SubsectionMetadataDialog = ({
                   checked={linkIsIframe}
                   onCheckedChange={(checked) => setLinkIsIframe(!!checked)}
                 />
-                <Label htmlFor="link1-iframe" className="text-sm">Display as iframe</Label>
+                <Label htmlFor="link1-iframe" className="text-sm">Display</Label>
               </div>
             </div>
           </div>
@@ -193,32 +169,10 @@ export const SubsectionMetadataDialog = ({
                   checked={link2IsIframe}
                   onCheckedChange={(checked) => setLink2IsIframe(!!checked)}
                 />
-                <Label htmlFor="link2-iframe" className="text-sm">Display as iframe</Label>
+                <Label htmlFor="link2-iframe" className="text-sm">Display</Label>
               </div>
             </div>
           </div>
-
-          <TableSelector
-            label="Base 1"
-            value={link3}
-            displayName={link3Text}
-            onTableChange={(tableId) => {
-              setLink3(tableId);
-              setLink3IsIframe(true); // Always display as iframe for tables
-            }}
-            onDisplayNameChange={setLink3Text}
-          />
-
-          <TableSelector
-            label="Base 2"
-            value={link4}
-            displayName={link4Text}
-            onTableChange={(tableId) => {
-              setLink4(tableId);
-              setLink4IsIframe(true); // Always display as iframe for tables
-            }}
-            onDisplayNameChange={setLink4Text}
-          />
           
           <div className="space-y-2">
             <Label htmlFor="description">Note</Label>
