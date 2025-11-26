@@ -322,20 +322,6 @@ export const StatusItem = memo(({
                 </a>
               </div>}
             
-            {/* Display configured tags */}
-            {tags.length > 0 && (
-              <div className="flex flex-wrap gap-1.5 mt-3 mb-4">
-                {tags.map((tag) => (
-                  <Badge 
-                    key={tag} 
-                    className="text-[11px] font-medium px-2.5 py-0.5 rounded-md w-44 min-w-44 max-w-44 h-auto whitespace-normal break-words bg-tag text-tag-foreground border-tag"
-                  >
-                    {tag}
-                  </Badge>
-                ))}
-              </div>
-            )}
-            
             {item.metadata?.description && <p className="text-xs text-muted-foreground mt-4 whitespace-pre-wrap italic">
                 {item.metadata.description}
               </p>}
@@ -536,6 +522,21 @@ export const StatusItem = memo(({
           </div>
         </div>}
       
+      {/* Display configured tags at bottom */}
+      {tags.length > 0 && (
+        <div className="flex flex-wrap gap-1.5 px-4 pb-4 pt-3 border-t mt-4">
+          {tags.map((tag) => (
+            <Badge 
+              key={tag} 
+              variant="outline"
+              className="text-[11px] font-medium px-2.5 py-0.5 rounded-md w-44 min-w-44 max-w-44 h-auto whitespace-normal break-words bg-tag text-tag-foreground border-tag"
+            >
+              {tag}
+            </Badge>
+          ))}
+        </div>
+      )}
+
       <IframeDialog isOpen={iframeDialog.isOpen} onClose={() => setIframeDialog({
         isOpen: false,
         url: '',
