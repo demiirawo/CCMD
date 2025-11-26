@@ -9,11 +9,10 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { ChevronDown, ChevronUp, Plus, X, Tags } from "lucide-react";
-import { SERVICES } from "@/constants/services";
+import { COMPLIANCE_OPTIONS } from "@/constants/services";
 
 interface ServiceTagsSettingsProps {
   companyId: string;
-  selectedServices: string[];
 }
 
 interface SectionItem {
@@ -23,7 +22,7 @@ interface SectionItem {
   sectionTitle: string;
 }
 
-export const ServiceTagsSettings = ({ companyId, selectedServices }: ServiceTagsSettingsProps) => {
+export const ServiceTagsSettings = ({ companyId }: ServiceTagsSettingsProps) => {
   const { profile } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
@@ -34,11 +33,10 @@ export const ServiceTagsSettings = ({ companyId, selectedServices }: ServiceTags
   const [newTagInput, setNewTagInput] = useState<Record<string, string>>({});
   const [sectionItems, setSectionItems] = useState<SectionItem[]>([]);
 
-  // Set first service as default when component mounts
+  // Set first compliance option as default when component mounts
   useEffect(() => {
-    const mainServices = SERVICES.filter(s => !s.startsWith('  -'));
-    if (mainServices.length > 0 && !selectedService) {
-      setSelectedService(mainServices[0]);
+    if (COMPLIANCE_OPTIONS.length > 0 && !selectedService) {
+      setSelectedService(COMPLIANCE_OPTIONS[0]);
     }
   }, [selectedService]);
 
@@ -211,7 +209,6 @@ export const ServiceTagsSettings = ({ companyId, selectedServices }: ServiceTags
   }
 
   const groupedItems = groupBySection(sectionItems);
-  const mainServices = SERVICES.filter(s => !s.startsWith('  -'));
 
   return (
     <Card style={{ backgroundColor: '#EAEBEC' }}>
@@ -221,13 +218,13 @@ export const ServiceTagsSettings = ({ companyId, selectedServices }: ServiceTags
             <Tags className="w-5 h-5" />
             <CardTitle>Service Tags Configuration</CardTitle>
             <Select value={selectedService} onValueChange={setSelectedService}>
-              <SelectTrigger className="w-[280px] bg-white">
-                <SelectValue placeholder="Select a service" />
+              <SelectTrigger className="w-[380px] bg-white">
+                <SelectValue placeholder="Select a compliance option" />
               </SelectTrigger>
               <SelectContent className="bg-white z-50 max-h-[300px] overflow-y-auto">
-                {mainServices.map((service) => (
-                  <SelectItem key={service} value={service} className="bg-white hover:bg-gray-100">
-                    {service}
+                {COMPLIANCE_OPTIONS.map((option) => (
+                  <SelectItem key={option} value={option} className="bg-white hover:bg-gray-100">
+                    {option}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -235,7 +232,7 @@ export const ServiceTagsSettings = ({ companyId, selectedServices }: ServiceTags
           </div>
         </div>
         <CardDescription>
-          Configure which tags display for each dashboard subsection based on selected services
+          Configure which tags display for each dashboard subsection based on selected compliance option
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">

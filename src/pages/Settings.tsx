@@ -371,7 +371,7 @@ export const Settings = () => {
       {/* Service Tags Configuration - Only for Super Admin and not for Child Contact Centre */}
       {user?.email === 'demi.irawo@care-cuddle.co.uk' && !selectedServices.includes("Child Contact Centre") && (
         <div className="mt-6">
-          <ServiceTagsSettings companyId={currentCompany.id} selectedServices={selectedServices} />
+          <ServiceTagsSettings companyId={currentCompany.id} />
         </div>
       )}
 
