@@ -348,8 +348,11 @@ export const ServiceTagsSettings = ({ companyId }: ServiceTagsSettingsProps) => 
             </Select>
           </div>
         </div>
-        <CardDescription>
-          Configure which tags display for each dashboard subsection based on selected compliance option
+        <CardDescription className="space-y-2">
+          <span className="block">Configure which tags display for each dashboard subsection based on selected compliance option</span>
+          <span className="block text-sm font-medium text-primary mt-2 bg-blue-50 px-3 py-2 rounded-md border border-blue-200">
+            ⓘ Global Configuration: Tags configured here automatically apply to ALL accounts with the selected compliance option enabled.
+          </span>
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
