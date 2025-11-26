@@ -15,6 +15,7 @@ import { ActionForm, ActionItem } from "./ActionForm";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
+import { Textarea } from "./ui/textarea";
 import { Calendar } from "./ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { format, addDays, addWeeks, addMonths, addYears } from "date-fns";
@@ -109,8 +110,15 @@ export const StatusItem = memo(({
   
   const [isExpanded, setIsExpanded] = useState(false);
   const [isEditingObservation, setIsEditingObservation] = useState(false);
+  const [isEditingDescription, setIsEditingDescription] = useState(false);
+  const [descriptionValue, setDescriptionValue] = useState(item.metadata?.description || "");
   const [showEvidenceLinkageDialog, setShowEvidenceLinkageDialog] = useState(false);
   const [globalEvidenceRefs, setGlobalEvidenceRefs] = useState<string[]>([]);
+
+  // Update description value when metadata changes
+  useEffect(() => {
+    setDescriptionValue(item.metadata?.description || "");
+  }, [item.metadata?.description]);
   const [iframeDialog, setIframeDialog] = useState<{
     isOpen: boolean;
     url: string;
@@ -243,6 +251,21 @@ export const StatusItem = memo(({
     onMetadataChange?.(item.id, metadata);
   };
 
+  const handleDescriptionSave = () => {
+    if (item.metadata) {
+      handleMetadataChange({
+        ...item.metadata,
+        description: descriptionValue
+      });
+    }
+    setIsEditingDescription(false);
+  };
+
+  const handleDescriptionCancel = () => {
+    setDescriptionValue(item.metadata?.description || "");
+    setIsEditingDescription(false);
+  };
+
   const getStatusBackgroundClass = (status: StatusType) => {
     // Panel color is determined by the R/A/G status only
     switch (status) {
@@ -322,9 +345,35 @@ export const StatusItem = memo(({
                 </a>
               </div>}
             
-            {item.metadata?.description && <p className="text-xs text-muted-foreground mt-4 whitespace-pre-wrap italic">
+            {item.metadata?.description && !isEditingDescription && (
+              <p 
+                onDoubleClick={() => !readOnly && setIsEditingDescription(true)}
+                className="text-xs text-muted-foreground mt-4 whitespace-pre-wrap italic cursor-pointer hover:bg-muted/30 p-2 rounded transition-colors"
+              >
                 {item.metadata.description}
-              </p>}
+              </p>
+            )}
+
+            {isEditingDescription && !readOnly && (
+              <div className="mt-4">
+                <Textarea
+                  value={descriptionValue}
+                  onChange={(e) => setDescriptionValue(e.target.value)}
+                  className="text-xs bg-white"
+                  rows={3}
+                  placeholder="Enter note..."
+                  autoFocus
+                />
+                <div className="flex gap-2 mt-2">
+                  <Button onClick={handleDescriptionSave} size="sm" className="bg-primary hover:bg-primary/90 text-primary-foreground">
+                    Save
+                  </Button>
+                  <Button onClick={handleDescriptionCancel} size="sm" variant="outline">
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            )}
 
             {!readOnly && <div className="mt-2">
                 <AccountableManager accountable={item.accountable || []} attendees={attendees} onChange={newAccountable => onAccountableChange?.(item.id, newAccountable)} />
