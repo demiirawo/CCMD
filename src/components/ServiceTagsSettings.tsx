@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { ChevronDown, ChevronUp, Plus, X, Tags } from "lucide-react";
 
@@ -25,12 +26,20 @@ export const ServiceTagsSettings = ({ companyId, selectedServices }: ServiceTags
   const { profile } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
-  const [expandedServices, setExpandedServices] = useState<Record<string, boolean>>({});
+  const [selectedService, setSelectedService] = useState<string>("");
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
   const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>({});
   const [serviceTags, setServiceTags] = useState<Record<string, string[]>>({});
   const [newTagInput, setNewTagInput] = useState<Record<string, string>>({});
   const [sectionItems, setSectionItems] = useState<SectionItem[]>([]);
+
+  // Set first service as default when services change
+  useEffect(() => {
+    const mainServices = selectedServices.filter(s => !s.startsWith('  -'));
+    if (mainServices.length > 0 && !selectedService) {
+      setSelectedService(mainServices[0]);
+    }
+  }, [selectedServices, selectedService]);
 
   // Load all subsections from the dashboard structure
   useEffect(() => {
@@ -100,13 +109,6 @@ export const ServiceTagsSettings = ({ companyId, selectedServices }: ServiceTags
 
     loadData();
   }, [profile]);
-
-  const toggleService = (service: string) => {
-    setExpandedServices((prev) => ({
-      ...prev,
-      [service]: !prev[service],
-    }));
-  };
 
   const toggleSection = (serviceSection: string) => {
     setExpandedSections((prev) => ({
@@ -208,154 +210,167 @@ export const ServiceTagsSettings = ({ companyId, selectedServices }: ServiceTags
   }
 
   const groupedItems = groupBySection(sectionItems);
+  const mainServices = selectedServices.filter(s => !s.startsWith('  -'));
+
+  if (mainServices.length === 0) {
+    return (
+      <Card style={{ backgroundColor: '#EAEBEC' }}>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Tags className="w-5 h-5" />
+            Service Tags Configuration
+          </CardTitle>
+          <CardDescription>
+            Please select services in the settings above to configure tags
+          </CardDescription>
+        </CardHeader>
+      </Card>
+    );
+  }
 
   return (
     <Card style={{ backgroundColor: '#EAEBEC' }}>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Tags className="w-5 h-5" />
-          Service Tags Configuration
-        </CardTitle>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Tags className="w-5 h-5" />
+            <CardTitle>Service Tags Configuration</CardTitle>
+            <Select value={selectedService} onValueChange={setSelectedService}>
+              <SelectTrigger className="w-[280px] bg-white">
+                <SelectValue placeholder="Select a service" />
+              </SelectTrigger>
+              <SelectContent className="bg-white">
+                {mainServices.map((service) => (
+                  <SelectItem key={service} value={service}>
+                    {service}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
         <CardDescription>
           Configure which tags display for each dashboard subsection based on selected services
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {selectedServices.filter(s => !s.startsWith('  -')).map((service) => (
-          <Collapsible
-            key={service}
-            open={expandedServices[service]}
-            onOpenChange={() => toggleService(service)}
-          >
-            <CollapsibleTrigger className="flex items-center justify-between w-full p-4 bg-white rounded-lg hover:bg-gray-50">
-              <span className="font-semibold text-lg">{service}</span>
-              {expandedServices[service] ? (
-                <ChevronUp className="w-5 h-5" />
-              ) : (
-                <ChevronDown className="w-5 h-5" />
-              )}
-            </CollapsibleTrigger>
-            <CollapsibleContent className="mt-2 space-y-2">
-              {Object.entries(groupedItems).map(([sectionId, items]) => {
-                const sectionTitle = items[0]?.sectionTitle || sectionId;
-                const serviceSectionKey = `${service}_${sectionId}`;
-                return (
-                  <Collapsible
-                    key={sectionId}
-                    open={expandedSections[serviceSectionKey]}
-                    onOpenChange={() => toggleSection(serviceSectionKey)}
-                  >
-                    <CollapsibleTrigger className="flex items-center justify-between w-full p-3 ml-4 bg-white rounded-lg hover:bg-gray-50">
-                      <span className="font-semibold">{sectionTitle}</span>
-                      {expandedSections[serviceSectionKey] ? (
-                        <ChevronUp className="w-5 h-5" />
-                      ) : (
-                        <ChevronDown className="w-5 h-5" />
-                      )}
-                    </CollapsibleTrigger>
-                    <CollapsibleContent className="mt-2 space-y-2">
-                      {items.map((item) => {
-                        const itemKey = `${service}_${item.sectionId}_${item.id}`;
-                        const tagsKey = `${service}_${item.sectionId}_${item.id}`;
-                        const tags = serviceTags[tagsKey] || [];
-                        const inputKey = itemKey;
-                        return (
-                          <Collapsible
-                            key={item.id}
-                            open={expandedItems[itemKey]}
-                            onOpenChange={() => toggleItem(itemKey)}
-                          >
-                            <div className="ml-8 bg-white rounded-lg border">
-                              <CollapsibleTrigger className="flex items-center justify-between w-full p-3 hover:bg-gray-50">
-                                <div className="flex-1">
-                                  <div className="flex items-center gap-2">
-                                    <span className="text-sm font-medium">{item.title}</span>
-                                    {tags.length > 0 && (
-                                      <Badge variant="secondary">{tags.length} tags</Badge>
-                                    )}
-                                  </div>
-                                  {tags.length > 0 && (
-                                    <div className="flex flex-wrap gap-1 mt-2">
-                                      {tags.slice(0, 5).map((tag) => (
-                                        <Badge key={tag} variant="outline" className="text-xs">
-                                          {tag}
-                                        </Badge>
-                                      ))}
-                                      {tags.length > 5 && (
-                                        <Badge variant="outline" className="text-xs">
-                                          +{tags.length - 5} more
-                                        </Badge>
-                                      )}
-                                    </div>
-                                  )}
-                                </div>
-                                {expandedItems[itemKey] ? (
-                                  <ChevronUp className="w-4 h-4 flex-shrink-0 ml-2" />
-                                ) : (
-                                  <ChevronDown className="w-4 h-4 flex-shrink-0 ml-2" />
-                                )}
-                              </CollapsibleTrigger>
+        {selectedService && Object.entries(groupedItems).map(([sectionId, items]) => {
+          const sectionTitle = items[0]?.sectionTitle || sectionId;
+          const serviceSectionKey = `${selectedService}_${sectionId}`;
+          return (
+            <Collapsible
+              key={sectionId}
+              open={expandedSections[serviceSectionKey]}
+              onOpenChange={() => toggleSection(serviceSectionKey)}
+            >
+              <CollapsibleTrigger className="flex items-center justify-between w-full p-4 bg-white rounded-lg hover:bg-gray-50">
+                <span className="font-semibold">{sectionTitle}</span>
+                {expandedSections[serviceSectionKey] ? (
+                  <ChevronUp className="w-5 h-5" />
+                ) : (
+                  <ChevronDown className="w-5 h-5" />
+                )}
+              </CollapsibleTrigger>
+              <CollapsibleContent className="mt-2 space-y-2">
+                {items.map((item) => {
+                  const itemKey = `${selectedService}_${item.sectionId}_${item.id}`;
+                  const tagsKey = `${selectedService}_${item.sectionId}_${item.id}`;
+                  const tags = serviceTags[tagsKey] || [];
+                  const inputKey = itemKey;
+                  return (
+                    <Collapsible
+                      key={item.id}
+                      open={expandedItems[itemKey]}
+                      onOpenChange={() => toggleItem(itemKey)}
+                    >
+                      <div className="ml-4 bg-white rounded-lg border">
+                        <CollapsibleTrigger className="flex items-center justify-between w-full p-3 hover:bg-gray-50">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-medium">{item.title}</span>
+                              {tags.length > 0 && (
+                                <Badge variant="secondary">{tags.length} tags</Badge>
+                              )}
                             </div>
-                            <CollapsibleContent className="mt-2 ml-12 p-4 bg-white rounded-lg border">
-                              <div className="space-y-4">
-                                <div className="flex gap-2">
-                                  <Input
-                                    placeholder="Add new tag..."
-                                    value={newTagInput[inputKey] || ""}
-                                    onChange={(e) =>
-                                      setNewTagInput((prev) => ({
-                                        ...prev,
-                                        [inputKey]: e.target.value,
-                                      }))
-                                    }
-                                    onKeyPress={(e) => {
-                                      if (e.key === 'Enter') {
-                                        addTag(service, item.sectionId, item.id);
-                                      }
-                                    }}
-                                  />
-                                  <Button
-                                    size="sm"
-                                    onClick={() => addTag(service, item.sectionId, item.id)}
-                                  >
-                                    <Plus className="w-4 h-4" />
-                                  </Button>
-                                </div>
-                                <div className="flex flex-wrap gap-2">
-                                  {tags.map((tag) => (
-                                    <Badge
-                                      key={tag}
-                                      variant="secondary"
-                                      className="flex items-center gap-1 cursor-pointer hover:bg-destructive hover:text-destructive-foreground"
-                                    >
-                                      {tag}
-                                      <X
-                                        className="w-3 h-3"
-                                        onClick={() => removeTag(service, item.sectionId, item.id, tag)}
-                                      />
-                                    </Badge>
-                                  ))}
-                                </div>
-                                <div className="flex justify-end pt-2 border-t">
-                                  <Button
-                                    size="sm"
-                                    onClick={() => handleSave(service, item.sectionId, item.id)}
-                                  >
-                                    Save Configuration
-                                  </Button>
-                                </div>
+                            {tags.length > 0 && (
+                              <div className="flex flex-wrap gap-1 mt-2">
+                                {tags.slice(0, 5).map((tag) => (
+                                  <Badge key={tag} variant="outline" className="text-xs">
+                                    {tag}
+                                  </Badge>
+                                ))}
+                                {tags.length > 5 && (
+                                  <Badge variant="outline" className="text-xs">
+                                    +{tags.length - 5} more
+                                  </Badge>
+                                )}
                               </div>
-                            </CollapsibleContent>
-                          </Collapsible>
-                        );
-                      })}
-                    </CollapsibleContent>
-                  </Collapsible>
-                );
-              })}
-            </CollapsibleContent>
-          </Collapsible>
-        ))}
+                            )}
+                          </div>
+                          {expandedItems[itemKey] ? (
+                            <ChevronUp className="w-4 h-4 flex-shrink-0 ml-2" />
+                          ) : (
+                            <ChevronDown className="w-4 h-4 flex-shrink-0 ml-2" />
+                          )}
+                        </CollapsibleTrigger>
+                      </div>
+                      <CollapsibleContent className="mt-2 ml-8 p-4 bg-white rounded-lg border">
+                        <div className="space-y-4">
+                          <div className="flex gap-2">
+                            <Input
+                              placeholder="Add new tag..."
+                              value={newTagInput[inputKey] || ""}
+                              onChange={(e) =>
+                                setNewTagInput((prev) => ({
+                                  ...prev,
+                                  [inputKey]: e.target.value,
+                                }))
+                              }
+                              onKeyPress={(e) => {
+                                if (e.key === 'Enter') {
+                                  addTag(selectedService, item.sectionId, item.id);
+                                }
+                              }}
+                            />
+                            <Button
+                              size="sm"
+                              onClick={() => addTag(selectedService, item.sectionId, item.id)}
+                            >
+                              <Plus className="w-4 h-4" />
+                            </Button>
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            {tags.map((tag) => (
+                              <Badge
+                                key={tag}
+                                variant="secondary"
+                                className="flex items-center gap-1 cursor-pointer hover:bg-destructive hover:text-destructive-foreground"
+                              >
+                                {tag}
+                                <X
+                                  className="w-3 h-3"
+                                  onClick={() => removeTag(selectedService, item.sectionId, item.id, tag)}
+                                />
+                              </Badge>
+                            ))}
+                          </div>
+                          <div className="flex justify-end pt-2 border-t">
+                            <Button
+                              size="sm"
+                              onClick={() => handleSave(selectedService, item.sectionId, item.id)}
+                            >
+                              Save Configuration
+                            </Button>
+                          </div>
+                        </div>
+                      </CollapsibleContent>
+                    </Collapsible>
+                  );
+                })}
+              </CollapsibleContent>
+            </Collapsible>
+          );
+        })}
       </CardContent>
     </Card>
   );
