@@ -71,15 +71,6 @@ export const DashboardSection = ({
     return saved !== null ? JSON.parse(saved) : defaultOpen;
   });
   
-  // Listen for panel state changes to sync with sessionStorage
-  useEffect(() => {
-    const tabId = sessionStorage.getItem('__tab_id') || `tab_${Date.now()}`;
-    const isolatedStorageKey = `${storageKey}_${tabId}`;
-    const saved = sessionStorage.getItem(isolatedStorageKey);
-    const savedState = saved !== null ? JSON.parse(saved) : defaultOpen;
-    setIsOpen(savedState);
-  }, [panelStateTracker, storageKey, defaultOpen]);
-  
   const isExpanded = isOpen;
   const [monthlyStaffData, setMonthlyStaffData] = useState<Array<{month: string, currentStaff: number, probationStaff?: number}>>([]);
 
