@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Palette, Building, Image, Upload, X } from "lucide-react";
 import { TeamMembersManager } from "@/components/TeamMembersManager";
 import { EvidenceLinkageSettings } from "@/components/EvidenceLinkageSettings";
+import { ServiceTagsSettings } from "@/components/ServiceTagsSettings";
 
 // Helper function to convert hex to HSL
 const hexToHsl = (hex: string): string => {
@@ -383,6 +384,13 @@ export const Settings = () => {
       {user?.email === 'demi.irawo@care-cuddle.co.uk' && !selectedServices.includes("Child Contact Centre") && (
         <div className="mt-6">
           <EvidenceLinkageSettings companyId={currentCompany.id} />
+        </div>
+      )}
+
+      {/* Service Tags Configuration - Only for Super Admin and not for Child Contact Centre */}
+      {user?.email === 'demi.irawo@care-cuddle.co.uk' && !selectedServices.includes("Child Contact Centre") && (
+        <div className="mt-6">
+          <ServiceTagsSettings companyId={currentCompany.id} selectedServices={selectedServices} />
         </div>
       )}
 
