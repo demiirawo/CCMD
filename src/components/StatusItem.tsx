@@ -529,7 +529,7 @@ export const StatusItem = memo(({
             <Badge 
               key={tag} 
               variant="outline"
-              className="text-[11px] font-medium px-2.5 py-0.5 rounded-md w-44 min-w-44 max-w-44 h-auto whitespace-normal break-words bg-tag text-tag-foreground border-tag"
+              className="text-[11px] font-medium px-2.5 py-0.5 rounded-md w-44 min-w-44 max-w-44 h-auto whitespace-normal break-words bg-muted/40 text-foreground border-border"
             >
               {tag}
             </Badge>
