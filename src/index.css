@@ -74,6 +74,10 @@ All colors MUST be HSL.
     --chart-3: 0 70% 75%;
     --chart-4: 150 60% 75%;
 
+    /* Tag Colors */
+    --tag: 210 28% 17%;
+    --tag-foreground: 0 0% 100%;
+
     /* Custom background colors */
     --meetings-bg: 210 6% 87%;
     --filter-button-bg: 208 27% 18%;
