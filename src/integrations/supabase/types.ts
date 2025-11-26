@@ -1349,6 +1349,39 @@ export type Database = {
         }
         Relationships: []
       }
+      service_subsection_tags: {
+        Row: {
+          created_at: string
+          id: string
+          item_id: string
+          section_id: string
+          service: string
+          tags: Json
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          item_id: string
+          section_id: string
+          service: string
+          tags?: Json
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          item_id?: string
+          section_id?: string
+          service?: string
+          tags?: Json
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       service_user_document_analytics: {
         Row: {
           company_id: string
