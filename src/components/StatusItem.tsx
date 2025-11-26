@@ -328,7 +328,7 @@ export const StatusItem = memo(({
                 {tags.map((tag) => (
                   <Badge 
                     key={tag} 
-                    className="text-[11px] font-medium px-2.5 py-0.5 rounded-md bg-tag text-tag-foreground border-tag"
+                    className="text-[11px] font-medium px-2.5 py-0.5 rounded-md w-44 h-auto whitespace-normal bg-tag text-tag-foreground border-tag"
                   >
                     {tag}
                   </Badge>
