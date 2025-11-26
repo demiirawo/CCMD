@@ -345,7 +345,7 @@ export const StatusItem = memo(({
                   return (
                     <Badge 
                       key={tag} 
-                      className="text-[11px] font-medium px-2.5 py-0.5 rounded-md"
+                      className="text-[11px] font-medium px-2.5 py-0.5 rounded-md w-32 justify-center"
                       style={{ 
                         backgroundColor: colors.bg,
                         color: colors.text,
