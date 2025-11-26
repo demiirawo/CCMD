@@ -525,15 +525,29 @@ export const StatusItem = memo(({
       {/* Display configured tags at bottom */}
       {tags.length > 0 && (
         <div className="flex flex-wrap gap-1.5 px-4 pb-4 pt-3 border-t mt-4">
-          {tags.map((tag) => (
-            <Badge 
-              key={tag} 
-              variant="outline"
-              className="text-[11px] font-medium px-2.5 py-0.5 rounded-md w-44 min-w-44 max-w-44 h-auto whitespace-normal break-words bg-muted/40 text-foreground border-border"
-            >
-              {tag}
-            </Badge>
-          ))}
+          {tags.map((tag, index) => {
+            const pastelColors = [
+              'bg-blue-100 text-blue-800 border-blue-200',
+              'bg-purple-100 text-purple-800 border-purple-200',
+              'bg-pink-100 text-pink-800 border-pink-200',
+              'bg-green-100 text-green-800 border-green-200',
+              'bg-yellow-100 text-yellow-800 border-yellow-200',
+              'bg-indigo-100 text-indigo-800 border-indigo-200',
+              'bg-rose-100 text-rose-800 border-rose-200',
+              'bg-cyan-100 text-cyan-800 border-cyan-200',
+            ];
+            const colorClass = pastelColors[index % pastelColors.length];
+            
+            return (
+              <Badge 
+                key={tag} 
+                variant="outline"
+                className={`text-[11px] font-medium px-2.5 py-0.5 rounded-md w-44 min-w-44 max-w-44 h-auto whitespace-normal break-words ${colorClass}`}
+              >
+                {tag}
+              </Badge>
+            );
+          })}
         </div>
       )}
 
