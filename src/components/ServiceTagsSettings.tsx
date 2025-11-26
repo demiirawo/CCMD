@@ -8,8 +8,25 @@ import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { ChevronDown, ChevronUp, Plus, X, Tags } from "lucide-react";
+import { ChevronDown, ChevronUp, Plus, X, Tags, GripVertical } from "lucide-react";
 import { COMPLIANCE_OPTIONS } from "@/constants/services";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 interface ServiceTagsSettingsProps {
   companyId: string;
@@ -21,6 +38,47 @@ interface SectionItem {
   sectionId: string;
   sectionTitle: string;
 }
+
+interface SortableTagProps {
+  tag: string;
+  onRemove: () => void;
+}
+
+const SortableTag = ({ tag, onRemove }: SortableTagProps) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: tag });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="flex items-center gap-2 p-2 bg-secondary rounded-md hover:bg-secondary/80"
+    >
+      <div {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing">
+        <GripVertical className="w-4 h-4 text-muted-foreground" />
+      </div>
+      <span className="flex-1 text-sm">{tag}</span>
+      <button
+        onClick={onRemove}
+        className="p-1 hover:bg-destructive hover:text-destructive-foreground rounded transition-colors"
+      >
+        <X className="w-3 h-3" />
+      </button>
+    </div>
+  );
+};
 
 export const ServiceTagsSettings = ({ companyId }: ServiceTagsSettingsProps) => {
   const { profile } = useAuth();
@@ -211,6 +269,46 @@ export const ServiceTagsSettings = ({ companyId }: ServiceTagsSettingsProps) => 
     }
   };
 
+  const reorderTags = async (service: string, sectionId: string, itemId: string, reorderedTags: string[]) => {
+    const key = `${service}_${sectionId}_${itemId}`;
+    
+    setServiceTags((prev) => ({
+      ...prev,
+      [key]: reorderedTags,
+    }));
+
+    // Auto-save
+    try {
+      const { error } = await supabase
+        .from('service_subsection_tags')
+        .upsert({
+          service,
+          section_id: sectionId,
+          item_id: itemId,
+          tags: reorderedTags,
+          updated_by: profile?.user_id,
+        }, {
+          onConflict: 'service,section_id,item_id'
+        });
+
+      if (error) throw error;
+    } catch (error) {
+      console.error("Error saving tag order:", error);
+      toast({
+        title: "Error",
+        description: "Failed to save tag order",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
 
   const groupBySection = (items: SectionItem[]) => {
     const groups: Record<string, SectionItem[]> = {};
@@ -324,21 +422,32 @@ export const ServiceTagsSettings = ({ companyId }: ServiceTagsSettingsProps) => 
                               <Plus className="w-4 h-4" />
                             </Button>
                           </div>
-                          <div className="flex flex-wrap gap-2">
-                            {tags.map((tag) => (
-                              <Badge
-                                key={tag}
-                                variant="secondary"
-                                className="flex items-center gap-1 cursor-pointer hover:bg-destructive hover:text-destructive-foreground"
-                              >
-                                {tag}
-                                <X
-                                  className="w-3 h-3"
-                                  onClick={() => removeTag(selectedService, item.sectionId, item.id, tag)}
-                                />
-                              </Badge>
-                            ))}
-                          </div>
+                          <DndContext
+                            sensors={sensors}
+                            collisionDetection={closestCenter}
+                            onDragEnd={(event: DragEndEvent) => {
+                              const { active, over } = event;
+                              
+                              if (over && active.id !== over.id) {
+                                const oldIndex = tags.indexOf(active.id as string);
+                                const newIndex = tags.indexOf(over.id as string);
+                                const reordered = arrayMove(tags, oldIndex, newIndex);
+                                reorderTags(selectedService, item.sectionId, item.id, reordered);
+                              }
+                            }}
+                          >
+                            <SortableContext items={tags} strategy={verticalListSortingStrategy}>
+                              <div className="space-y-2">
+                                {tags.map((tag) => (
+                                  <SortableTag
+                                    key={tag}
+                                    tag={tag}
+                                    onRemove={() => removeTag(selectedService, item.sectionId, item.id, tag)}
+                                  />
+                                ))}
+                              </div>
+                            </SortableContext>
+                          </DndContext>
                         </div>
                       </CollapsibleContent>
                     </Collapsible>
