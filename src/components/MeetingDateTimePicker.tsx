@@ -6,6 +6,40 @@ import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+
+// Parse dd/MM/yyyy HH:mm format correctly
+const parseDateTimeString = (value: string): { date: Date; time: string } | null => {
+  if (!value) return null;
+  
+  // Try to match dd/MM/yyyy HH:mm format
+  const match = value.match(/^(\d{2})\/(\d{2})\/(\d{4})\s+(\d{2}):(\d{2})$/);
+  if (match) {
+    const [, day, month, year, hours, minutes] = match;
+    const parsed = new Date(parseInt(year), parseInt(month) - 1, parseInt(day), parseInt(hours), parseInt(minutes));
+    if (!isNaN(parsed.getTime())) {
+      return { date: parsed, time: `${hours}:${minutes}` };
+    }
+  }
+  
+  // Try to match dd/MM/yyyy format (without time)
+  const dateOnlyMatch = value.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if (dateOnlyMatch) {
+    const [, day, month, year] = dateOnlyMatch;
+    const parsed = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+    if (!isNaN(parsed.getTime())) {
+      return { date: parsed, time: "00:00" };
+    }
+  }
+  
+  // Try ISO format as fallback
+  const isoParsed = new Date(value);
+  if (!isNaN(isoParsed.getTime())) {
+    return { date: isoParsed, time: format(isoParsed, "HH:mm") };
+  }
+  
+  return null;
+};
+
 interface MeetingDateTimePickerProps {
   value: string;
   onChange: (value: string) => void;
@@ -15,18 +49,13 @@ export const MeetingDateTimePicker = ({
   onChange
 }: MeetingDateTimePickerProps) => {
   const [date, setDate] = React.useState<Date>(() => {
-    if (value) {
-      const parsed = new Date(value);
-      return isNaN(parsed.getTime()) ? new Date() : parsed;
-    }
-    return new Date();
+    const parsed = parseDateTimeString(value);
+    return parsed ? parsed.date : new Date();
   });
   const [time, setTime] = React.useState(() => {
-    if (value) {
-      const parsed = new Date(value);
-      if (!isNaN(parsed.getTime())) {
-        return format(parsed, "HH:mm");
-      }
+    const parsed = parseDateTimeString(value);
+    if (parsed) {
+      return parsed.time;
     }
     // Default to current hour with 00 minutes
     const now = new Date();
