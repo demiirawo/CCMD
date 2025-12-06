@@ -17,9 +17,9 @@ import { MeetingStatusSummary } from "@/components/MeetingStatusSummary";
 import { StatusBadge } from "@/components/StatusBadge";
 import { NarrativeQuarterlyReportGenerator } from "@/components/NarrativeQuarterlyReportGenerator";
 import { ReadOnlyDashboardView } from "@/components/ReadOnlyDashboardView";
-import { AddMeetingDialog } from "@/components/AddMeetingDialog";
+
 import { MeetingPreview } from "@/components/MeetingPreview";
-import { InspectionUpdatesPreview } from "@/components/InspectionUpdatesPreview";
+
 
 interface Meeting {
   id: string;
@@ -645,7 +645,6 @@ export const Reports = () => {
                       <div className="flex items-center gap-2 min-w-[300px] justify-end">
                         {canEdit && (
                           <div onClick={e => e.stopPropagation()} className="flex items-center gap-2">
-                            <AddMeetingDialog onMeetingAdded={fetchMeetings} />
                             <NarrativeQuarterlyReportGenerator quarter={quarter} year={year} meetings={quarterMeetings} />
                           </div>
                         )}
@@ -659,36 +658,6 @@ export const Reports = () => {
 
                   {/* Collapsible Quarter Content */}
                   {isExpanded && <div className="space-y-3 pt-4 border-t border-border/20">
-                      {/* Inspection activity summary for this quarter */}
-                      <div className="rounded-lg p-4 border bg-white">
-                        <div className="flex items-center justify-between">
-                          <h4 className="font-medium text-foreground">Inspection Checklist</h4>
-                          <Dialog>
-                            <DialogTrigger asChild>
-                              <Button variant="outline" size="sm">View</Button>
-                            </DialogTrigger>
-                            <DialogContent className="max-w-4xl">
-                              <DialogHeader>
-                                <DialogTitle>Inspection Updates - {quarter} {year}</DialogTitle>
-                              </DialogHeader>
-                              <div className="max-h-[70vh] overflow-y-auto">
-                                <InspectionUpdatesPreview year={yearNum} quarter={quarter} />
-                              </div>
-                            </DialogContent>
-                          </Dialog>
-                        </div>
-                        {inspectionSummary[quarterKey]?.length ? (
-                          <div className="flex flex-wrap gap-3 mt-2">
-                            {inspectionSummary[quarterKey].map(item => (
-                              <span key={item.panelId} className="text-sm text-muted-foreground">
-                                {item.panelName}: {item.count} {item.count === 1 ? 'Item Reviewed' : 'Items Reviewed'}
-                              </span>
-                            ))}
-                          </div>
-                        ) : (
-                          <p className="text-sm text-muted-foreground mt-2">No inspection updates this quarter.</p>
-                        )}
-                      </div>
                       {quarterMeetings.map(meeting => <div key={meeting.id} className="rounded-lg p-4 border bg-white">
                           <div className="flex items-center justify-between w-full">
                             <div className="flex items-center gap-6 flex-1">
