@@ -342,56 +342,10 @@ export const Matching = () => {
                     <User className="h-5 w-5" />
                     Service Users
                   </h2>
-                  <Dialog open={isAddUserOpen} onOpenChange={setIsAddUserOpen}>
-                    <DialogTrigger asChild>
-                      <Button size="sm" variant="outline">
-                        <Plus className="h-4 w-4 mr-1" />
-                        Add
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="bg-white">
-                      <DialogHeader>
-                        <DialogTitle>Add Service User</DialogTitle>
-                      </DialogHeader>
-                      <div className="space-y-4 pt-4">
-                        <div>
-                          <Label>Name</Label>
-                          <Input 
-                            value={newUserForm.name} 
-                            onChange={(e) => setNewUserForm(f => ({ ...f, name: e.target.value }))}
-                            className="bg-white"
-                          />
-                        </div>
-                        <div>
-                          <Label>Support Needs (comma separated)</Label>
-                          <Textarea 
-                            value={newUserForm.supportNeeds} 
-                            onChange={(e) => setNewUserForm(f => ({ ...f, supportNeeds: e.target.value }))}
-                            placeholder="Autism, Personal Care, Community Access"
-                            className="bg-white"
-                          />
-                        </div>
-                        <div>
-                          <Label>Preferences (comma separated)</Label>
-                          <Textarea 
-                            value={newUserForm.preferences} 
-                            onChange={(e) => setNewUserForm(f => ({ ...f, preferences: e.target.value }))}
-                            placeholder="Prefers male staff, Enjoys gardening"
-                            className="bg-white"
-                          />
-                        </div>
-                        <div>
-                          <Label>Location</Label>
-                          <Input 
-                            value={newUserForm.location} 
-                            onChange={(e) => setNewUserForm(f => ({ ...f, location: e.target.value }))}
-                            className="bg-white"
-                          />
-                        </div>
-                        <Button onClick={handleAddUser} className="w-full">Add Service User</Button>
-                      </div>
-                    </DialogContent>
-                  </Dialog>
+                  <Button size="sm" variant="outline" onClick={() => setIsAddUserOpen(true)}>
+                    <Plus className="h-4 w-4 mr-1" />
+                    Add
+                  </Button>
                 </div>
                 
                 {filteredServiceUsers.map(user => (
@@ -575,84 +529,10 @@ export const Matching = () => {
                     <Users className="h-5 w-5" />
                     Support Staff
                   </h2>
-                  <Dialog open={isAddStaffOpen} onOpenChange={setIsAddStaffOpen}>
-                    <DialogTrigger asChild>
-                      <Button size="sm" variant="outline">
-                        <Plus className="h-4 w-4 mr-1" />
-                        Add
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="bg-white">
-                      <DialogHeader>
-                        <DialogTitle>Add Staff Member</DialogTitle>
-                      </DialogHeader>
-                      <div className="space-y-4 pt-4">
-                        <div>
-                          <Label>Name</Label>
-                          <Input 
-                            value={newStaffForm.name} 
-                            onChange={(e) => setNewStaffForm(f => ({ ...f, name: e.target.value }))}
-                            className="bg-white"
-                          />
-                        </div>
-                        <div>
-                          <Label>Skills & Experience (comma separated)</Label>
-                          <Textarea 
-                            value={newStaffForm.skills} 
-                            onChange={(e) => setNewStaffForm(f => ({ ...f, skills: e.target.value }))}
-                            placeholder="Autism Trained, Personal Care, Makaton"
-                            className="bg-white"
-                          />
-                        </div>
-                        <div>
-                          <Label>Location</Label>
-                          <Input 
-                            value={newStaffForm.location} 
-                            onChange={(e) => setNewStaffForm(f => ({ ...f, location: e.target.value }))}
-                            className="bg-white"
-                          />
-                        </div>
-                        <div>
-                          <Label>Interests (comma separated)</Label>
-                          <Textarea 
-                            value={newStaffForm.interests} 
-                            onChange={(e) => setNewStaffForm(f => ({ ...f, interests: e.target.value }))}
-                            placeholder="Gardening, Sports, Music"
-                            className="bg-white"
-                          />
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <Label>Availability</Label>
-                            <Select value={newStaffForm.availability} onValueChange={(v) => setNewStaffForm(f => ({ ...f, availability: v }))}>
-                              <SelectTrigger className="bg-white">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent className="bg-white">
-                                <SelectItem value="Full-time">Full-time</SelectItem>
-                                <SelectItem value="Part-time">Part-time</SelectItem>
-                                <SelectItem value="Flexible">Flexible</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                          <div>
-                            <Label>Role Type</Label>
-                            <Select value={newStaffForm.roleType} onValueChange={(v) => setNewStaffForm(f => ({ ...f, roleType: v as "Primary" | "Backup" | "Float" }))}>
-                              <SelectTrigger className="bg-white">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent className="bg-white">
-                                <SelectItem value="Primary">Primary</SelectItem>
-                                <SelectItem value="Backup">Backup</SelectItem>
-                                <SelectItem value="Float">Float</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                        </div>
-                        <Button onClick={handleAddStaff} className="w-full">Add Staff Member</Button>
-                      </div>
-                    </DialogContent>
-                  </Dialog>
+                  <Button size="sm" variant="outline" onClick={() => setIsAddStaffOpen(true)}>
+                    <Plus className="h-4 w-4 mr-1" />
+                    Add
+                  </Button>
                 </div>
                 
                 {staff.map(s => (
@@ -833,6 +713,126 @@ export const Matching = () => {
             </Card>
           </TabsContent>
         </Tabs>
+
+        {/* Add Service User Dialog - rendered at top level for immediate display */}
+        <Dialog open={isAddUserOpen} onOpenChange={setIsAddUserOpen}>
+          <DialogContent className="bg-white">
+            <DialogHeader>
+              <DialogTitle>Add Service User</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 pt-4">
+              <div>
+                <Label>Name</Label>
+                <Input 
+                  value={newUserForm.name} 
+                  onChange={(e) => setNewUserForm(f => ({ ...f, name: e.target.value }))}
+                  className="bg-white"
+                />
+              </div>
+              <div>
+                <Label>Support Needs (comma separated)</Label>
+                <Textarea 
+                  value={newUserForm.supportNeeds} 
+                  onChange={(e) => setNewUserForm(f => ({ ...f, supportNeeds: e.target.value }))}
+                  placeholder="Autism, Personal Care, Community Access"
+                  className="bg-white"
+                />
+              </div>
+              <div>
+                <Label>Preferences (comma separated)</Label>
+                <Textarea 
+                  value={newUserForm.preferences} 
+                  onChange={(e) => setNewUserForm(f => ({ ...f, preferences: e.target.value }))}
+                  placeholder="Prefers male staff, Enjoys gardening"
+                  className="bg-white"
+                />
+              </div>
+              <div>
+                <Label>Location</Label>
+                <Input 
+                  value={newUserForm.location} 
+                  onChange={(e) => setNewUserForm(f => ({ ...f, location: e.target.value }))}
+                  className="bg-white"
+                />
+              </div>
+              <Button onClick={handleAddUser} className="w-full">Add Service User</Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Add Staff Dialog - rendered at top level for immediate display */}
+        <Dialog open={isAddStaffOpen} onOpenChange={setIsAddStaffOpen}>
+          <DialogContent className="bg-white">
+            <DialogHeader>
+              <DialogTitle>Add Staff Member</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 pt-4">
+              <div>
+                <Label>Name</Label>
+                <Input 
+                  value={newStaffForm.name} 
+                  onChange={(e) => setNewStaffForm(f => ({ ...f, name: e.target.value }))}
+                  className="bg-white"
+                />
+              </div>
+              <div>
+                <Label>Skills & Experience (comma separated)</Label>
+                <Textarea 
+                  value={newStaffForm.skills} 
+                  onChange={(e) => setNewStaffForm(f => ({ ...f, skills: e.target.value }))}
+                  placeholder="Autism Trained, Personal Care, Makaton"
+                  className="bg-white"
+                />
+              </div>
+              <div>
+                <Label>Location</Label>
+                <Input 
+                  value={newStaffForm.location} 
+                  onChange={(e) => setNewStaffForm(f => ({ ...f, location: e.target.value }))}
+                  className="bg-white"
+                />
+              </div>
+              <div>
+                <Label>Interests (comma separated)</Label>
+                <Textarea 
+                  value={newStaffForm.interests} 
+                  onChange={(e) => setNewStaffForm(f => ({ ...f, interests: e.target.value }))}
+                  placeholder="Gardening, Sports, Music"
+                  className="bg-white"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Availability</Label>
+                  <Select value={newStaffForm.availability} onValueChange={(v) => setNewStaffForm(f => ({ ...f, availability: v }))}>
+                    <SelectTrigger className="bg-white">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white">
+                      <SelectItem value="Full-time">Full-time</SelectItem>
+                      <SelectItem value="Part-time">Part-time</SelectItem>
+                      <SelectItem value="Flexible">Flexible</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>Role Type</Label>
+                  <Select value={newStaffForm.roleType} onValueChange={(v) => setNewStaffForm(f => ({ ...f, roleType: v as "Primary" | "Backup" | "Float" }))}>
+                    <SelectTrigger className="bg-white">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white">
+                      <SelectItem value="Primary">Primary</SelectItem>
+                      <SelectItem value="Backup">Backup</SelectItem>
+                      <SelectItem value="Float">Float</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <Button onClick={handleAddStaff} className="w-full">Add Staff Member</Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
