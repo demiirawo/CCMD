@@ -706,14 +706,10 @@ export const Matching = () => {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle>Service Users</CardTitle>
-                <Dialog open={isAddUserOpen} onOpenChange={setIsAddUserOpen}>
-                  <DialogTrigger asChild>
-                    <Button>
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add Service User
-                    </Button>
-                  </DialogTrigger>
-                </Dialog>
+                <Button onClick={() => setIsAddUserOpen(true)}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Service User
+                </Button>
               </CardHeader>
               <CardContent>
                 <Table>
@@ -779,14 +775,10 @@ export const Matching = () => {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle>Support Staff</CardTitle>
-                <Dialog open={isAddStaffOpen} onOpenChange={setIsAddStaffOpen}>
-                  <DialogTrigger asChild>
-                    <Button>
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add Staff Member
-                    </Button>
-                  </DialogTrigger>
-                </Dialog>
+                <Button onClick={() => setIsAddStaffOpen(true)}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Staff Member
+                </Button>
               </CardHeader>
               <CardContent>
                 <Table>
