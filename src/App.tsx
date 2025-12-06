@@ -24,6 +24,7 @@ import NotFound from "./pages/NotFound";
 import CompanyDashboard from "./pages/CompanyDashboard";
 import { SharedTable } from "./pages/SharedTable";
 import { PublicTable } from "./pages/PublicTable";
+import { Matching } from "./pages/Matching";
 
 const queryClient = new QueryClient();
 
@@ -119,6 +120,14 @@ const AppContent = () => {
           <>
             <Navigation />
             <Settings />
+          </>
+        </ProtectedRoute>
+      } />
+      <Route path="/matching" element={
+        <ProtectedRoute requireCompany>
+          <>
+            <Navigation />
+            <Matching />
           </>
         </ProtectedRoute>
       } />
