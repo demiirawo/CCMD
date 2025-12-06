@@ -822,7 +822,7 @@ export const Matching = () => {
           </TabsContent>
 
           {/* Service Users Table */}
-          <TabsContent value="users">
+          <TabsContent value="users" className="space-y-6">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle>Service Users</CardTitle>
@@ -836,21 +836,18 @@ export const Matching = () => {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead className="sticky left-0 bg-background">Name</TableHead>
+                        <TableHead>Name</TableHead>
                         <TableHead>Support Needs</TableHead>
                         <TableHead>Location</TableHead>
                         <TableHead>Primary Staff</TableHead>
                         <TableHead>Backup Staff</TableHead>
-                        {MONTHS.map(month => (
-                          <TableHead key={month} className="text-right min-w-[80px] text-xs">{month}</TableHead>
-                        ))}
                         <TableHead className="w-[50px]"></TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {serviceUsers.map(user => (
                         <TableRow key={user.id}>
-                          <TableCell className="font-medium sticky left-0 bg-background">{user.name}</TableCell>
+                          <TableCell className="font-medium">{user.name}</TableCell>
                           <TableCell>
                             <div className="flex flex-wrap gap-1">
                               {user.supportNeeds.slice(0, 2).map(need => (
@@ -876,6 +873,42 @@ export const Matching = () => {
                               ))}
                             </div>
                           </TableCell>
+                          <TableCell>
+                            <Button variant="ghost" size="icon" onClick={() => handleDeleteUser(user.id)}>
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Service Users Forecast Hours Table */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <TrendingUp className="h-5 w-5" />
+                  Service User Hours Forecast (12 Months)
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="sticky left-0 bg-background">Name</TableHead>
+                        {MONTHS.map(month => (
+                          <TableHead key={month} className="text-right min-w-[80px]">{month}</TableHead>
+                        ))}
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {serviceUsers.map(user => (
+                        <TableRow key={user.id}>
+                          <TableCell className="font-medium sticky left-0 bg-background">{user.name}</TableCell>
                           {MONTHS.map(month => (
                             <TableCell key={month} className="text-right">
                               <Input
@@ -889,17 +922,20 @@ export const Matching = () => {
                                       : u
                                   ));
                                 }}
-                                className="h-8 w-16 text-right bg-white text-xs"
+                                className="h-8 w-20 text-right bg-white"
                               />
                             </TableCell>
                           ))}
-                          <TableCell>
-                            <Button variant="ghost" size="icon" onClick={() => handleDeleteUser(user.id)}>
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </TableCell>
                         </TableRow>
                       ))}
+                      <TableRow className="bg-muted/50 font-semibold">
+                        <TableCell className="sticky left-0 bg-muted/50">Total</TableCell>
+                        {MONTHS.map(month => (
+                          <TableCell key={month} className="text-right">
+                            {serviceUsers.reduce((sum, u) => sum + (u.forecastHours[month] || 0), 0)}
+                          </TableCell>
+                        ))}
+                      </TableRow>
                     </TableBody>
                   </Table>
                 </div>
@@ -908,7 +944,7 @@ export const Matching = () => {
           </TabsContent>
 
           {/* Staff Table */}
-          <TabsContent value="staff">
+          <TabsContent value="staff" className="space-y-6">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle>Support Staff</CardTitle>
@@ -922,21 +958,18 @@ export const Matching = () => {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead className="sticky left-0 bg-background">Name</TableHead>
+                        <TableHead>Name</TableHead>
                         <TableHead>Skills</TableHead>
                         <TableHead>Location</TableHead>
                         <TableHead>Status</TableHead>
                         <TableHead>Role Type</TableHead>
-                        {MONTHS.map(month => (
-                          <TableHead key={month} className="text-right min-w-[80px] text-xs">{month}</TableHead>
-                        ))}
                         <TableHead className="w-[50px]"></TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {staff.map(s => (
                         <TableRow key={s.id}>
-                          <TableCell className="font-medium sticky left-0 bg-background">{s.name}</TableCell>
+                          <TableCell className="font-medium">{s.name}</TableCell>
                           <TableCell>
                             <div className="flex flex-wrap gap-1">
                               {s.skills.slice(0, 2).map(skill => (
@@ -974,6 +1007,42 @@ export const Matching = () => {
                               {s.roleType}
                             </Badge>
                           </TableCell>
+                          <TableCell>
+                            <Button variant="ghost" size="icon" onClick={() => handleDeleteStaff(s.id)}>
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Staff Forecast Hours Table */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <TrendingUp className="h-5 w-5" />
+                  Staff Hours Forecast (12 Months)
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="sticky left-0 bg-background">Name</TableHead>
+                        {MONTHS.map(month => (
+                          <TableHead key={month} className="text-right min-w-[80px]">{month}</TableHead>
+                        ))}
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {staff.map(s => (
+                        <TableRow key={s.id}>
+                          <TableCell className="font-medium sticky left-0 bg-background">{s.name}</TableCell>
                           {MONTHS.map(month => (
                             <TableCell key={month} className="text-right">
                               <Input
@@ -987,17 +1056,20 @@ export const Matching = () => {
                                       : staff
                                   ));
                                 }}
-                                className="h-8 w-16 text-right bg-white text-xs"
+                                className="h-8 w-20 text-right bg-white"
                               />
                             </TableCell>
                           ))}
-                          <TableCell>
-                            <Button variant="ghost" size="icon" onClick={() => handleDeleteStaff(s.id)}>
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </TableCell>
                         </TableRow>
                       ))}
+                      <TableRow className="bg-muted/50 font-semibold">
+                        <TableCell className="sticky left-0 bg-muted/50">Total</TableCell>
+                        {MONTHS.map(month => (
+                          <TableCell key={month} className="text-right">
+                            {staff.reduce((sum, s) => sum + (s.forecastHours[month] || 0), 0)}
+                          </TableCell>
+                        ))}
+                      </TableRow>
                     </TableBody>
                   </Table>
                 </div>
