@@ -7,10 +7,28 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Search, Plus, User, Users, MapPin, Lightbulb, X, Edit2, Trash2 } from "lucide-react";
+import { Search, Plus, User, Users, MapPin, Lightbulb, X, Edit2, Trash2, TrendingUp, BarChart3 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { Progress } from "@/components/ui/progress";
+
+// Generate month names for the next 12 months
+const getNext12Months = () => {
+  const months: string[] = [];
+  const now = new Date();
+  for (let i = 0; i < 12; i++) {
+    const date = new Date(now.getFullYear(), now.getMonth() + i, 1);
+    months.push(date.toLocaleDateString('en-GB', { month: 'short', year: '2-digit' }));
+  }
+  return months;
+};
+
+const MONTHS = getNext12Months();
+
+interface MonthlyForecast {
+  [month: string]: number;
+}
 
 interface ServiceUser {
   id: string;
@@ -20,6 +38,7 @@ interface ServiceUser {
   location: string;
   primaryStaffId?: string;
   backupStaffIds: string[];
+  forecastHours: MonthlyForecast;
 }
 
 interface Staff {
@@ -30,7 +49,18 @@ interface Staff {
   interests: string[];
   availability: string;
   roleType: "Primary" | "Backup" | "Float";
+  status: "Active" | "On Leave" | "Inactive";
+  forecastHours: MonthlyForecast;
 }
+
+// Helper to create default forecast hours
+const createDefaultForecast = (baseHours: number = 0): MonthlyForecast => {
+  const forecast: MonthlyForecast = {};
+  MONTHS.forEach(month => {
+    forecast[month] = baseHours;
+  });
+  return forecast;
+};
 
 const INITIAL_SERVICE_USERS: ServiceUser[] = [
   {
@@ -40,7 +70,8 @@ const INITIAL_SERVICE_USERS: ServiceUser[] = [
     preferences: ["Prefers male staff", "Enjoys gardening", "Likes quiet environments"],
     location: "North London",
     primaryStaffId: "s1",
-    backupStaffIds: ["s3"]
+    backupStaffIds: ["s3"],
+    forecastHours: { [MONTHS[0]]: 21, [MONTHS[1]]: 123, [MONTHS[2]]: 34, [MONTHS[3]]: 45, [MONTHS[4]]: 50, [MONTHS[5]]: 55, ...createDefaultForecast(40) }
   },
   {
     id: "su2",
@@ -49,7 +80,8 @@ const INITIAL_SERVICE_USERS: ServiceUser[] = [
     preferences: ["Prefers female staff", "Enjoys music", "Likes pets"],
     location: "South London",
     primaryStaffId: "s2",
-    backupStaffIds: ["s4"]
+    backupStaffIds: ["s4"],
+    forecastHours: { [MONTHS[0]]: 124, [MONTHS[1]]: 3, [MONTHS[2]]: 3, [MONTHS[3]]: 60, [MONTHS[4]]: 65, [MONTHS[5]]: 70, ...createDefaultForecast(50) }
   },
   {
     id: "su3",
@@ -58,7 +90,8 @@ const INITIAL_SERVICE_USERS: ServiceUser[] = [
     preferences: ["Enjoys sports", "Likes cooking", "Prefers consistent routines"],
     location: "East London",
     primaryStaffId: undefined,
-    backupStaffIds: []
+    backupStaffIds: [],
+    forecastHours: { [MONTHS[0]]: 55, [MONTHS[1]]: 223, [MONTHS[2]]: 21, [MONTHS[3]]: 30, [MONTHS[4]]: 35, [MONTHS[5]]: 40, ...createDefaultForecast(35) }
   }
 ];
 
@@ -70,7 +103,9 @@ const INITIAL_STAFF: Staff[] = [
     location: "North London",
     interests: ["Gardening", "Reading", "Nature walks"],
     availability: "Full-time",
-    roleType: "Primary"
+    roleType: "Primary",
+    status: "Active",
+    forecastHours: { [MONTHS[0]]: 200, [MONTHS[1]]: 200, [MONTHS[2]]: 200, [MONTHS[3]]: 180, [MONTHS[4]]: 200, [MONTHS[5]]: 200, ...createDefaultForecast(160) }
   },
   {
     id: "s2",
@@ -79,7 +114,9 @@ const INITIAL_STAFF: Staff[] = [
     location: "South London",
     interests: ["Music", "Animals", "Crafts"],
     availability: "Full-time",
-    roleType: "Primary"
+    roleType: "Primary",
+    status: "Active",
+    forecastHours: { [MONTHS[0]]: 10, [MONTHS[1]]: 10, [MONTHS[2]]: 10, [MONTHS[3]]: 160, [MONTHS[4]]: 160, [MONTHS[5]]: 160, ...createDefaultForecast(160) }
   },
   {
     id: "s3",
@@ -88,7 +125,9 @@ const INITIAL_STAFF: Staff[] = [
     location: "North London",
     interests: ["Sports", "Gaming", "Gardening"],
     availability: "Part-time",
-    roleType: "Backup"
+    roleType: "Backup",
+    status: "Active",
+    forecastHours: { [MONTHS[0]]: 50, [MONTHS[1]]: 50, [MONTHS[2]]: 50, [MONTHS[3]]: 80, [MONTHS[4]]: 80, [MONTHS[5]]: 80, ...createDefaultForecast(80) }
   },
   {
     id: "s4",
@@ -97,7 +136,9 @@ const INITIAL_STAFF: Staff[] = [
     location: "South London",
     interests: ["Music", "Cooking", "Animals"],
     availability: "Full-time",
-    roleType: "Float"
+    roleType: "Float",
+    status: "Active",
+    forecastHours: { [MONTHS[0]]: 43, [MONTHS[1]]: 43, [MONTHS[2]]: 43, [MONTHS[3]]: 160, [MONTHS[4]]: 160, [MONTHS[5]]: 160, ...createDefaultForecast(160) }
   },
   {
     id: "s5",
@@ -106,7 +147,9 @@ const INITIAL_STAFF: Staff[] = [
     location: "East London",
     interests: ["Sports", "Cooking", "Outdoor activities"],
     availability: "Full-time",
-    roleType: "Primary"
+    roleType: "Primary",
+    status: "Active",
+    forecastHours: { [MONTHS[0]]: 120, [MONTHS[1]]: 120, [MONTHS[2]]: 120, [MONTHS[3]]: 160, [MONTHS[4]]: 160, [MONTHS[5]]: 160, ...createDefaultForecast(160) }
   }
 ];
 
@@ -230,7 +273,8 @@ export const Matching = () => {
       supportNeeds: newUserForm.supportNeeds.split(",").map(s => s.trim()).filter(Boolean),
       preferences: newUserForm.preferences.split(",").map(s => s.trim()).filter(Boolean),
       location: newUserForm.location,
-      backupStaffIds: []
+      backupStaffIds: [],
+      forecastHours: createDefaultForecast(0)
     };
     setServiceUsers(prev => [...prev, newUser]);
     setNewUserForm({ name: "", supportNeeds: "", preferences: "", location: "" });
@@ -250,7 +294,9 @@ export const Matching = () => {
       location: newStaffForm.location,
       interests: newStaffForm.interests.split(",").map(s => s.trim()).filter(Boolean),
       availability: newStaffForm.availability,
-      roleType: newStaffForm.roleType
+      roleType: newStaffForm.roleType,
+      status: "Active",
+      forecastHours: createDefaultForecast(160)
     };
     setStaff(prev => [...prev, newStaffMember]);
     setNewStaffForm({ name: "", skills: "", location: "", interests: "", availability: "Full-time", roleType: "Primary" });
@@ -328,6 +374,7 @@ export const Matching = () => {
         <Tabs defaultValue="diagram" className="space-y-6">
           <TabsList>
             <TabsTrigger value="diagram">Visual Diagram</TabsTrigger>
+            <TabsTrigger value="utilisation">Utilisation</TabsTrigger>
             <TabsTrigger value="users">Service Users</TabsTrigger>
             <TabsTrigger value="staff">Staff</TabsTrigger>
           </TabsList>
@@ -581,6 +628,199 @@ export const Matching = () => {
             </div>
           </TabsContent>
 
+          {/* Utilisation Tab */}
+          <TabsContent value="utilisation" className="space-y-6">
+            {/* Staff Dependency Overview - 6 Month Forecast */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <BarChart3 className="h-5 w-5" />
+                  Staff Utilisation Forecast (6 Months)
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Month</TableHead>
+                      <TableHead className="text-right">Forecasted Hours</TableHead>
+                      <TableHead className="text-right">Required FTE</TableHead>
+                      <TableHead className="text-right">Available Staff Hours</TableHead>
+                      <TableHead className="text-right">Available FTE</TableHead>
+                      <TableHead>Utilisation Status</TableHead>
+                      <TableHead>Comment</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {MONTHS.slice(0, 6).map((month, index) => {
+                      const forecastedHours = serviceUsers.reduce((sum, u) => sum + (u.forecastHours[month] || 0), 0);
+                      const availableHours = staff.filter(s => s.status === "Active").reduce((sum, s) => sum + (s.forecastHours[month] || 0), 0);
+                      const requiredFTE = Math.ceil(forecastedHours / 160);
+                      const availableFTE = staff.filter(s => s.status === "Active").length;
+                      const utilisation = availableHours > 0 ? (forecastedHours / availableHours) * 100 : 0;
+                      
+                      let statusColor = "bg-green-100 text-green-800";
+                      let statusText = "Optimal – Staff well utilised";
+                      
+                      if (utilisation < 70) {
+                        statusColor = "bg-orange-100 text-orange-800";
+                        statusText = "Underused – Moderate staff underutilisation";
+                      } else if (utilisation > 100) {
+                        statusColor = "bg-red-100 text-red-800";
+                        statusText = "Overworked – Staff shortage risk";
+                      }
+                      
+                      return (
+                        <TableRow key={month}>
+                          <TableCell className="font-medium">{month}</TableCell>
+                          <TableCell className="text-right">{forecastedHours.toFixed(1)}</TableCell>
+                          <TableCell className="text-right">{requiredFTE}</TableCell>
+                          <TableCell className="text-right">{availableHours.toFixed(1)}</TableCell>
+                          <TableCell className="text-right">{availableFTE}</TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm">Utilisation: {utilisation.toFixed(1)}%</span>
+                              <span className="text-muted-foreground">—</span>
+                              <Badge className={statusColor}>{statusText}</Badge>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Input 
+                              placeholder="Add comment..." 
+                              className="h-8 bg-white text-sm"
+                            />
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+                <div className="mt-4 text-sm text-muted-foreground">
+                  {serviceUsers.length} service users • Sum of forecasted hours shown above
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Service User Needs Summary */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <User className="h-5 w-5" />
+                  Service User Needs Tracker
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="sticky left-0 bg-background">Name</TableHead>
+                        {MONTHS.slice(0, 6).map(month => (
+                          <TableHead key={month} className="text-right min-w-[100px]">{month} Forecast Hours</TableHead>
+                        ))}
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {serviceUsers.map(user => (
+                        <TableRow key={user.id}>
+                          <TableCell className="font-medium sticky left-0 bg-background">{user.name}</TableCell>
+                          {MONTHS.slice(0, 6).map(month => (
+                            <TableCell key={month} className="text-right">
+                              <Input
+                                type="number"
+                                value={user.forecastHours[month] || 0}
+                                onChange={(e) => {
+                                  const value = parseFloat(e.target.value) || 0;
+                                  setServiceUsers(prev => prev.map(u => 
+                                    u.id === user.id 
+                                      ? { ...u, forecastHours: { ...u.forecastHours, [month]: value } }
+                                      : u
+                                  ));
+                                }}
+                                className="h-8 w-20 text-right bg-white"
+                              />
+                            </TableCell>
+                          ))}
+                        </TableRow>
+                      ))}
+                      <TableRow className="bg-muted/50 font-semibold">
+                        <TableCell className="sticky left-0 bg-muted/50">Total</TableCell>
+                        {MONTHS.slice(0, 6).map(month => (
+                          <TableCell key={month} className="text-right">
+                            Sum {serviceUsers.reduce((sum, u) => sum + (u.forecastHours[month] || 0), 0)}
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Staff Capability Summary */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="h-5 w-5" />
+                  Staff Capability Tracker
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="sticky left-0 bg-background">Employee Name</TableHead>
+                        <TableHead>Status</TableHead>
+                        {MONTHS.slice(0, 6).map(month => (
+                          <TableHead key={month} className="text-right min-w-[100px]">{month} Forecast Hours</TableHead>
+                        ))}
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {staff.map(s => (
+                        <TableRow key={s.id}>
+                          <TableCell className="font-medium sticky left-0 bg-background">{s.name}</TableCell>
+                          <TableCell>
+                            <Badge className={s.status === "Active" ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"}>
+                              {s.status}
+                            </Badge>
+                          </TableCell>
+                          {MONTHS.slice(0, 6).map(month => (
+                            <TableCell key={month} className="text-right">
+                              <Input
+                                type="number"
+                                value={s.forecastHours[month] || 0}
+                                onChange={(e) => {
+                                  const value = parseFloat(e.target.value) || 0;
+                                  setStaff(prev => prev.map(staff => 
+                                    staff.id === s.id 
+                                      ? { ...staff, forecastHours: { ...staff.forecastHours, [month]: value } }
+                                      : staff
+                                  ));
+                                }}
+                                className="h-8 w-20 text-right bg-white"
+                              />
+                            </TableCell>
+                          ))}
+                        </TableRow>
+                      ))}
+                      <TableRow className="bg-muted/50 font-semibold">
+                        <TableCell className="sticky left-0 bg-muted/50">Total</TableCell>
+                        <TableCell></TableCell>
+                        {MONTHS.slice(0, 6).map(month => (
+                          <TableCell key={month} className="text-right">
+                            Sum {staff.reduce((sum, s) => sum + (s.forecastHours[month] || 0), 0)}
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
           {/* Service Users Table */}
           <TabsContent value="users">
             <Card>
@@ -592,60 +832,77 @@ export const Matching = () => {
                 </Button>
               </CardHeader>
               <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Support Needs</TableHead>
-                      <TableHead>Preferences</TableHead>
-                      <TableHead>Location</TableHead>
-                      <TableHead>Primary Staff</TableHead>
-                      <TableHead>Backup Staff</TableHead>
-                      <TableHead className="w-[50px]"></TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {serviceUsers.map(user => (
-                      <TableRow key={user.id}>
-                        <TableCell className="font-medium">{user.name}</TableCell>
-                        <TableCell>
-                          <div className="flex flex-wrap gap-1">
-                            {user.supportNeeds.map(need => (
-                              <Badge key={need} variant="secondary" className="text-xs">{need}</Badge>
-                            ))}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex flex-wrap gap-1">
-                            {user.preferences.map(pref => (
-                              <Badge key={pref} variant="outline" className="text-xs">{pref}</Badge>
-                            ))}
-                          </div>
-                        </TableCell>
-                        <TableCell>{user.location}</TableCell>
-                        <TableCell>
-                          {user.primaryStaffId ? (
-                            <Badge className="bg-green-100 text-green-800">{getStaffById(user.primaryStaffId)?.name}</Badge>
-                          ) : (
-                            <span className="text-orange-600 text-sm">Unassigned</span>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex flex-wrap gap-1">
-                            {user.backupStaffIds.map(id => (
-                              <Badge key={id} variant="outline">{getStaffById(id)?.name}</Badge>
-                            ))}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Button variant="ghost" size="icon" onClick={() => handleDeleteUser(user.id)}>
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </TableCell>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="sticky left-0 bg-background">Name</TableHead>
+                        <TableHead>Support Needs</TableHead>
+                        <TableHead>Location</TableHead>
+                        <TableHead>Primary Staff</TableHead>
+                        <TableHead>Backup Staff</TableHead>
+                        {MONTHS.map(month => (
+                          <TableHead key={month} className="text-right min-w-[80px] text-xs">{month}</TableHead>
+                        ))}
+                        <TableHead className="w-[50px]"></TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {serviceUsers.map(user => (
+                        <TableRow key={user.id}>
+                          <TableCell className="font-medium sticky left-0 bg-background">{user.name}</TableCell>
+                          <TableCell>
+                            <div className="flex flex-wrap gap-1">
+                              {user.supportNeeds.slice(0, 2).map(need => (
+                                <Badge key={need} variant="secondary" className="text-xs">{need}</Badge>
+                              ))}
+                              {user.supportNeeds.length > 2 && (
+                                <Badge variant="outline" className="text-xs">+{user.supportNeeds.length - 2}</Badge>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell>{user.location}</TableCell>
+                          <TableCell>
+                            {user.primaryStaffId ? (
+                              <Badge className="bg-green-100 text-green-800">{getStaffById(user.primaryStaffId)?.name}</Badge>
+                            ) : (
+                              <span className="text-orange-600 text-sm">Unassigned</span>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex flex-wrap gap-1">
+                              {user.backupStaffIds.map(id => (
+                                <Badge key={id} variant="outline">{getStaffById(id)?.name}</Badge>
+                              ))}
+                            </div>
+                          </TableCell>
+                          {MONTHS.map(month => (
+                            <TableCell key={month} className="text-right">
+                              <Input
+                                type="number"
+                                value={user.forecastHours[month] || 0}
+                                onChange={(e) => {
+                                  const value = parseFloat(e.target.value) || 0;
+                                  setServiceUsers(prev => prev.map(u => 
+                                    u.id === user.id 
+                                      ? { ...u, forecastHours: { ...u.forecastHours, [month]: value } }
+                                      : u
+                                  ));
+                                }}
+                                className="h-8 w-16 text-right bg-white text-xs"
+                              />
+                            </TableCell>
+                          ))}
+                          <TableCell>
+                            <Button variant="ghost" size="icon" onClick={() => handleDeleteUser(user.id)}>
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
@@ -661,54 +918,89 @@ export const Matching = () => {
                 </Button>
               </CardHeader>
               <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Skills & Experience</TableHead>
-                      <TableHead>Location</TableHead>
-                      <TableHead>Interests</TableHead>
-                      <TableHead>Availability</TableHead>
-                      <TableHead>Role Type</TableHead>
-                      <TableHead className="w-[50px]"></TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {staff.map(s => (
-                      <TableRow key={s.id}>
-                        <TableCell className="font-medium">{s.name}</TableCell>
-                        <TableCell>
-                          <div className="flex flex-wrap gap-1">
-                            {s.skills.map(skill => (
-                              <Badge key={skill} variant="secondary" className="text-xs">{skill}</Badge>
-                            ))}
-                          </div>
-                        </TableCell>
-                        <TableCell>{s.location}</TableCell>
-                        <TableCell>
-                          <div className="flex flex-wrap gap-1">
-                            {s.interests.map(interest => (
-                              <Badge key={interest} variant="outline" className="text-xs">{interest}</Badge>
-                            ))}
-                          </div>
-                        </TableCell>
-                        <TableCell>{s.availability}</TableCell>
-                        <TableCell>
-                          <Badge 
-                            variant={s.roleType === 'Primary' ? 'default' : s.roleType === 'Backup' ? 'secondary' : 'outline'}
-                          >
-                            {s.roleType}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <Button variant="ghost" size="icon" onClick={() => handleDeleteStaff(s.id)}>
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </TableCell>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="sticky left-0 bg-background">Name</TableHead>
+                        <TableHead>Skills</TableHead>
+                        <TableHead>Location</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Role Type</TableHead>
+                        {MONTHS.map(month => (
+                          <TableHead key={month} className="text-right min-w-[80px] text-xs">{month}</TableHead>
+                        ))}
+                        <TableHead className="w-[50px]"></TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {staff.map(s => (
+                        <TableRow key={s.id}>
+                          <TableCell className="font-medium sticky left-0 bg-background">{s.name}</TableCell>
+                          <TableCell>
+                            <div className="flex flex-wrap gap-1">
+                              {s.skills.slice(0, 2).map(skill => (
+                                <Badge key={skill} variant="secondary" className="text-xs">{skill}</Badge>
+                              ))}
+                              {s.skills.length > 2 && (
+                                <Badge variant="outline" className="text-xs">+{s.skills.length - 2}</Badge>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell>{s.location}</TableCell>
+                          <TableCell>
+                            <Select 
+                              value={s.status} 
+                              onValueChange={(value: "Active" | "On Leave" | "Inactive") => {
+                                setStaff(prev => prev.map(staff => 
+                                  staff.id === s.id ? { ...staff, status: value } : staff
+                                ));
+                              }}
+                            >
+                              <SelectTrigger className="h-8 w-24 bg-white">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent className="bg-white">
+                                <SelectItem value="Active">Active</SelectItem>
+                                <SelectItem value="On Leave">On Leave</SelectItem>
+                                <SelectItem value="Inactive">Inactive</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </TableCell>
+                          <TableCell>
+                            <Badge 
+                              variant={s.roleType === 'Primary' ? 'default' : s.roleType === 'Backup' ? 'secondary' : 'outline'}
+                            >
+                              {s.roleType}
+                            </Badge>
+                          </TableCell>
+                          {MONTHS.map(month => (
+                            <TableCell key={month} className="text-right">
+                              <Input
+                                type="number"
+                                value={s.forecastHours[month] || 0}
+                                onChange={(e) => {
+                                  const value = parseFloat(e.target.value) || 0;
+                                  setStaff(prev => prev.map(staff => 
+                                    staff.id === s.id 
+                                      ? { ...staff, forecastHours: { ...staff.forecastHours, [month]: value } }
+                                      : staff
+                                  ));
+                                }}
+                                className="h-8 w-16 text-right bg-white text-xs"
+                              />
+                            </TableCell>
+                          ))}
+                          <TableCell>
+                            <Button variant="ghost" size="icon" onClick={() => handleDeleteStaff(s.id)}>
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
