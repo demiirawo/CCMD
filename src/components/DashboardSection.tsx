@@ -70,6 +70,17 @@ export const DashboardSection = ({
     const saved = sessionStorage.getItem(isolatedStorageKey);
     return saved !== null ? JSON.parse(saved) : defaultOpen;
   });
+
+  // Re-read from sessionStorage when panelStateTracker changes (triggered by Expand All / Collapse All)
+  useEffect(() => {
+    if (panelStateTracker === undefined || panelStateTracker === 0) return;
+    const tabId = sessionStorage.getItem('__tab_id') || `tab_${Date.now()}`;
+    const isolatedStorageKey = `${storageKey}_${tabId}`;
+    const saved = sessionStorage.getItem(isolatedStorageKey);
+    if (saved !== null) {
+      setIsOpen(JSON.parse(saved));
+    }
+  }, [panelStateTracker, storageKey]);
   
   const isExpanded = isOpen;
   const [monthlyStaffData, setMonthlyStaffData] = useState<Array<{month: string, currentStaff: number, probationStaff?: number}>>([]);
