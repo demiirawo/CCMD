@@ -676,6 +676,38 @@ export const Matching = () => {
                                       if (!s) return null;
                                       const matchReasons = getMatchReasons(user, s);
                                       
+                                      // Build narrative matching criteria
+                                      const buildMatchingNarrative = () => {
+                                        const parts: string[] = [];
+                                        const skillMatches = user.supportNeeds.filter(need =>
+                                          s.skills.some(skill => 
+                                            skill.toLowerCase().includes(need.toLowerCase()) || 
+                                            need.toLowerCase().includes(skill.toLowerCase())
+                                          )
+                                        );
+                                        const interestMatches = s.interests.filter(interest =>
+                                          user.preferences.some(pref => 
+                                            pref.toLowerCase().includes(interest.toLowerCase()) || 
+                                            interest.toLowerCase().includes(pref.toLowerCase())
+                                          )
+                                        );
+                                        
+                                        if (skillMatches.length > 0) {
+                                          parts.push(`${s.name.split(' ')[0]} has skills in ${skillMatches.slice(0, 2).join(' and ')}`);
+                                        }
+                                        if (interestMatches.length > 0) {
+                                          parts.push(`shares interests in ${interestMatches.slice(0, 2).join(' and ')}`);
+                                        }
+                                        if (user.location === s.location) {
+                                          parts.push('they are in the same location');
+                                        }
+                                        
+                                        if (parts.length === 0) return null;
+                                        return parts.join(', and ') + '.';
+                                      };
+                                      
+                                      const narrative = buildMatchingNarrative();
+                                      
                                       return (
                                         <div key={sid} className={`text-[10px] pl-2 border-l-2 ${type === 'Primary' ? 'border-green-500 bg-green-50' : 'border-gray-400 bg-gray-50'} rounded-r p-1`}>
                                           <div className="flex items-center gap-1">
@@ -684,9 +716,9 @@ export const Matching = () => {
                                               {type}
                                             </span>
                                           </div>
-                                          {matchReasons.length > 0 && (
-                                            <div className="text-[9px] text-muted-foreground mt-0.5">
-                                              Match: {matchReasons.join(' • ')}
+                                          {narrative && (
+                                            <div className="text-[9px] text-muted-foreground mt-0.5 italic">
+                                              <span className="font-medium not-italic">Matching criteria:</span> {user.name.split(' ')[0]} was matched with {s.name.split(' ')[0]} because {narrative}
                                             </div>
                                           )}
                                         </div>
