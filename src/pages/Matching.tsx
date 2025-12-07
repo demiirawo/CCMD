@@ -871,24 +871,25 @@ export const Matching = () => {
                         })}
                       </TableBody>
                     </Table>
-                    <div className="mt-2 text-xs text-muted-foreground">
-                      {(() => {
-                        let count = serviceUsers.length;
-                        let label = `${count} service users`;
-                        if (managerFilter !== "all" || locationFilter !== "all") {
-                          let filtered = serviceUsers;
-                          if (managerFilter !== "all") filtered = filtered.filter(u => u.manager === managerFilter);
-                          if (locationFilter !== "all") filtered = filtered.filter(u => u.location === locationFilter);
-                          count = filtered.length;
-                          const filters = [];
-                          if (managerFilter !== "all") filters.push(`manager: ${managerFilter}`);
-                          if (locationFilter !== "all") filters.push(`location: ${locationFilter}`);
-                          label = `${count} service users (${filters.join(', ')})`;
-                        }
-                        return label;
-                      })()} • Sum of forecasted hours shown above
                     </div>
-                    </div>
+                  </div>
+                  
+                  <div className="text-xs text-muted-foreground">
+                    {(() => {
+                      let count = serviceUsers.length;
+                      let label = `${count} service users`;
+                      if (managerFilter !== "all" || locationFilter !== "all") {
+                        let filtered = serviceUsers;
+                        if (managerFilter !== "all") filtered = filtered.filter(u => u.manager === managerFilter);
+                        if (locationFilter !== "all") filtered = filtered.filter(u => u.location === locationFilter);
+                        count = filtered.length;
+                        const filters = [];
+                        if (managerFilter !== "all") filters.push(`manager: ${managerFilter}`);
+                        if (locationFilter !== "all") filters.push(`location: ${locationFilter}`);
+                        label = `${count} service users (${filters.join(', ')})`;
+                      }
+                      return label;
+                    })()} • Sum of forecasted hours shown above
                   </div>
 
                   
