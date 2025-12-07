@@ -887,6 +887,115 @@ export type Database = {
           },
         ]
       }
+      matching_service_users: {
+        Row: {
+          backup_staff_ids: Json
+          company_id: string
+          created_at: string
+          forecast_hours: Json
+          gender_preference: string
+          id: string
+          location: string
+          name: string
+          preferences: Json
+          primary_staff_ids: Json
+          staff_allocations: Json
+          support_needs: Json
+          typical_weekly_hours: number
+          updated_at: string
+        }
+        Insert: {
+          backup_staff_ids?: Json
+          company_id: string
+          created_at?: string
+          forecast_hours?: Json
+          gender_preference?: string
+          id?: string
+          location?: string
+          name: string
+          preferences?: Json
+          primary_staff_ids?: Json
+          staff_allocations?: Json
+          support_needs?: Json
+          typical_weekly_hours?: number
+          updated_at?: string
+        }
+        Update: {
+          backup_staff_ids?: Json
+          company_id?: string
+          created_at?: string
+          forecast_hours?: Json
+          gender_preference?: string
+          id?: string
+          location?: string
+          name?: string
+          preferences?: Json
+          primary_staff_ids?: Json
+          staff_allocations?: Json
+          support_needs?: Json
+          typical_weekly_hours?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "matching_service_users_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      matching_staff: {
+        Row: {
+          company_id: string
+          contract_type: string
+          created_at: string
+          forecast_hours: Json
+          gender: string
+          id: string
+          location: string
+          name: string
+          status: string
+          typical_weekly_hours: number
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          contract_type?: string
+          created_at?: string
+          forecast_hours?: Json
+          gender?: string
+          id?: string
+          location?: string
+          name: string
+          status?: string
+          typical_weekly_hours?: number
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          contract_type?: string
+          created_at?: string
+          forecast_hours?: Json
+          gender?: string
+          id?: string
+          location?: string
+          name?: string
+          status?: string
+          typical_weekly_hours?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "matching_staff_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       medication_analytics: {
         Row: {
           company_id: string
