@@ -1075,7 +1075,57 @@ export const Matching = () => {
                             </div>;
                   })()}
                       </div>;
-              })}
+                })}
+
+                  {/* Unallocated Staff Section at the Bottom */}
+                  {(() => {
+                    // Get all staff that aren't assigned to any service user (primary or backup)
+                    let unallocatedStaff = staff.filter(s => 
+                      !serviceUsers.some(u => u.primaryStaffIds.includes(s.id) || u.backupStaffIds.includes(s.id))
+                    );
+                    
+                    // Apply filters
+                    if (managerFilter !== "all") {
+                      unallocatedStaff = unallocatedStaff.filter(s => s.manager === managerFilter);
+                    }
+                    if (locationFilter !== "all") {
+                      unallocatedStaff = unallocatedStaff.filter(s => s.location === locationFilter);
+                    }
+                    
+                    if (unallocatedStaff.length === 0) return null;
+                    
+                    const currentWeek = WEEKS[0];
+                    const totalUnallocatedHours = unallocatedStaff.reduce((sum, s) => sum + (s.forecastHours[currentWeek] || 0), 0);
+                    
+                    return (
+                      <div className="rounded-2xl overflow-hidden shadow-md bg-white border border-border mt-6">
+                        <div className="px-6 py-4" style={{ backgroundColor: '#f97316' }}>
+                          <h3 className="font-bold text-xl text-white print:text-sm">Unallocated Staff</h3>
+                          <span className="text-sm text-white/80">
+                            {unallocatedStaff.length} staff • {totalUnallocatedHours}h available this week
+                          </span>
+                        </div>
+                        <div className="p-6">
+                          <div className="flex flex-wrap gap-3">
+                            {unallocatedStaff.map(s => {
+                              const availableHours = s.forecastHours[currentWeek] || 0;
+                              return (
+                                <div key={s.id} className="inline-flex items-center bg-orange-50 border border-orange-200 rounded-lg px-4 py-2 gap-3">
+                                  <div className="flex flex-col">
+                                    <span className="text-sm font-medium text-orange-800">{s.name}</span>
+                                    <span className="text-xs text-orange-600">{s.location}</span>
+                                  </div>
+                                  <span className="text-sm bg-orange-200 text-orange-900 px-2 py-1 rounded-full font-medium">
+                                    {availableHours}h
+                                  </span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
                 </div>
               </div>
             </div>
