@@ -651,8 +651,7 @@ export const Matching = () => {
                 {/* Staff Utilisation Forecast */}
                 <Card>
                   <CardHeader className="py-2">
-                    <CardTitle className="flex items-center gap-2 text-sm">
-                      <BarChart3 className="h-4 w-4" />
+                    <CardTitle className="text-sm">
                       Staff Utilisation Forecast (8 Weeks)
                     </CardTitle>
                   </CardHeader>
@@ -738,7 +737,6 @@ export const Matching = () => {
                 };
                 return <div key={location} className="border rounded-lg p-3 print:border-black print:p-2 bg-primary-foreground">
                         <div className="flex items-center gap-2 mb-2 pb-2 border-b">
-                          <MapPin className="h-4 w-4 print:h-3 print:w-3" />
                           <h3 className="font-semibold text-sm print:text-xs">{location}</h3>
                           <span className="text-xs text-muted-foreground">
                             ({locationUsers.length} service users, {locationStaff.length} staff)
@@ -1190,10 +1188,7 @@ export const Matching = () => {
             {/* Service Users Forecast Hours Table with Staff Allocation */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <BarChart3 className="h-5 w-5" />
-                  Service User Weekly Allocation (8 Weeks)
-                </CardTitle>
+                <CardTitle>Service User Weekly Allocation (8 Weeks)</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="overflow-x-auto">
@@ -1355,7 +1350,7 @@ export const Matching = () => {
           <TabsContent value="staff" className="space-y-6">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle>Support Staff</CardTitle>
+                <CardTitle>Staff</CardTitle>
                 <Button onClick={() => setIsAddStaffOpen(true)}>
                   <Plus className="h-4 w-4 mr-2" />
                   Add Staff Member
@@ -1461,9 +1456,7 @@ export const Matching = () => {
             {/* Staff Forecast Hours Table */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">Available Hours
-
-              </CardTitle>
+                <CardTitle>Available Hours</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="overflow-x-auto">
