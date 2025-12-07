@@ -116,6 +116,8 @@ export const Matching = () => {
     gender: "Prefer not to say" as Gender,
     contractType: "Full-Time Contract" as ContractType
   });
+  const [newUserLocationInput, setNewUserLocationInput] = useState("");
+  const [newStaffLocationInput, setNewStaffLocationInput] = useState("");
   const locations = useMemo(() => {
     const allLocations = [...new Set([...serviceUsers.map(u => u.location), ...staff.map(s => s.location)])];
     return allLocations.filter(Boolean);
@@ -1622,11 +1624,20 @@ export const Matching = () => {
                 <Label>Location</Label>
                 {newUserForm.location === '__adding_new__' ? (
                   <Input 
-                    value="" 
-                    onChange={e => setNewUserForm(f => ({ ...f, location: e.target.value }))} 
+                    value={newUserLocationInput} 
+                    onChange={e => setNewUserLocationInput(e.target.value)} 
                     onBlur={e => {
-                      if (!e.target.value.trim()) {
+                      if (e.target.value.trim()) {
+                        setNewUserForm(f => ({ ...f, location: e.target.value.trim() }));
+                      } else {
                         setNewUserForm(f => ({ ...f, location: '' }));
+                      }
+                      setNewUserLocationInput('');
+                    }}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter' && newUserLocationInput.trim()) {
+                        setNewUserForm(f => ({ ...f, location: newUserLocationInput.trim() }));
+                        setNewUserLocationInput('');
                       }
                     }}
                     autoFocus
@@ -1726,11 +1737,20 @@ export const Matching = () => {
                 <Label>Location</Label>
                 {newStaffForm.location === '__adding_new__' ? (
                   <Input 
-                    value="" 
-                    onChange={e => setNewStaffForm(f => ({ ...f, location: e.target.value }))} 
+                    value={newStaffLocationInput} 
+                    onChange={e => setNewStaffLocationInput(e.target.value)} 
                     onBlur={e => {
-                      if (!e.target.value.trim()) {
+                      if (e.target.value.trim()) {
+                        setNewStaffForm(f => ({ ...f, location: e.target.value.trim() }));
+                      } else {
                         setNewStaffForm(f => ({ ...f, location: '' }));
+                      }
+                      setNewStaffLocationInput('');
+                    }}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter' && newStaffLocationInput.trim()) {
+                        setNewStaffForm(f => ({ ...f, location: newStaffLocationInput.trim() }));
+                        setNewStaffLocationInput('');
                       }
                     }}
                     autoFocus
