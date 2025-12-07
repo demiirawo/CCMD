@@ -573,17 +573,16 @@ export const Matching = () => {
                 <Switch checked={compactView} onCheckedChange={setCompactView} />
                 <span className="text-sm font-medium">Compact View</span>
               </div>
-              {compactView && (
-                <Button variant="outline" size="sm" onClick={() => window.print()}>
+              {compactView && <Button variant="outline" size="sm" onClick={() => window.print()}>
                   <Printer className="h-4 w-4 mr-2" />
                   Print
-                </Button>
-              )}
+                </Button>}
             </div>
 
-            {compactView ? (
-              /* Compact Print-Friendly View */
-              <div className="print:p-0" style={{ fontSize: '10px' }}>
+            {compactView ? (/* Compact Print-Friendly View */
+          <div className="print:p-0" style={{
+            fontSize: '10px'
+          }}>
                 <style>{`
                   @media print {
                     body * { visibility: hidden; }
@@ -595,52 +594,34 @@ export const Matching = () => {
                 <div className="compact-print-view space-y-4">
                   <h2 className="text-lg font-bold text-center mb-4 print:text-base">Staff Allocation by Location</h2>
                   {locations.map(location => {
-                    const locationUsers = serviceUsers.filter(u => u.location === location);
-                    const locationStaff = staff.filter(s => s.location === location);
-                    if (locationUsers.length === 0 && locationStaff.length === 0) return null;
-                    
-                    // Helper to get match reasons between user and staff
-                    const getMatchReasons = (user: ServiceUser, staffMember: Staff): string[] => {
-                      const reasons: string[] = [];
-                      
-                      // Skills matching support needs
-                      const matchingSkills = user.supportNeeds.filter(need =>
-                        staffMember.skills.some(skill => 
-                          skill.toLowerCase().includes(need.toLowerCase()) || 
-                          need.toLowerCase().includes(skill.toLowerCase())
-                        )
-                      );
-                      if (matchingSkills.length > 0) {
-                        reasons.push(`Skills: ${matchingSkills.slice(0, 2).join(', ')}`);
-                      }
-                      
-                      // Interests matching preferences
-                      const matchingInterests = user.preferences.filter(pref =>
-                        staffMember.interests.some(interest => 
-                          pref.toLowerCase().includes(interest.toLowerCase()) || 
-                          interest.toLowerCase().includes(pref.toLowerCase())
-                        )
-                      );
-                      if (matchingInterests.length > 0) {
-                        const interestMatches = staffMember.interests.filter(interest =>
-                          user.preferences.some(pref => 
-                            pref.toLowerCase().includes(interest.toLowerCase()) || 
-                            interest.toLowerCase().includes(pref.toLowerCase())
-                          )
-                        );
-                        reasons.push(`Interests: ${interestMatches.slice(0, 2).join(', ')}`);
-                      }
-                      
-                      // Location match
-                      if (user.location === staffMember.location) {
-                        reasons.push('Same location');
-                      }
-                      
-                      return reasons;
-                    };
-                    
-                    return (
-                      <div key={location} className="border rounded-lg p-3 print:border-black print:p-2">
+                const locationUsers = serviceUsers.filter(u => u.location === location);
+                const locationStaff = staff.filter(s => s.location === location);
+                if (locationUsers.length === 0 && locationStaff.length === 0) return null;
+
+                // Helper to get match reasons between user and staff
+                const getMatchReasons = (user: ServiceUser, staffMember: Staff): string[] => {
+                  const reasons: string[] = [];
+
+                  // Skills matching support needs
+                  const matchingSkills = user.supportNeeds.filter(need => staffMember.skills.some(skill => skill.toLowerCase().includes(need.toLowerCase()) || need.toLowerCase().includes(skill.toLowerCase())));
+                  if (matchingSkills.length > 0) {
+                    reasons.push(`Skills: ${matchingSkills.slice(0, 2).join(', ')}`);
+                  }
+
+                  // Interests matching preferences
+                  const matchingInterests = user.preferences.filter(pref => staffMember.interests.some(interest => pref.toLowerCase().includes(interest.toLowerCase()) || interest.toLowerCase().includes(pref.toLowerCase())));
+                  if (matchingInterests.length > 0) {
+                    const interestMatches = staffMember.interests.filter(interest => user.preferences.some(pref => pref.toLowerCase().includes(interest.toLowerCase()) || interest.toLowerCase().includes(pref.toLowerCase())));
+                    reasons.push(`Interests: ${interestMatches.slice(0, 2).join(', ')}`);
+                  }
+
+                  // Location match
+                  if (user.location === staffMember.location) {
+                    reasons.push('Same location');
+                  }
+                  return reasons;
+                };
+                return <div key={location} className="border rounded-lg p-3 print:border-black print:p-2 bg-primary-foreground">
                         <div className="flex items-center gap-2 mb-2 pb-2 border-b">
                           <MapPin className="h-4 w-4 print:h-3 print:w-3" />
                           <h3 className="font-semibold text-sm print:text-xs">{location}</h3>
@@ -652,13 +633,14 @@ export const Matching = () => {
                         {/* Service User to Staff Allocations */}
                         <div className="space-y-2">
                           {locationUsers.map(user => {
-                            const allAssignedStaff = [
-                              ...user.primaryStaffIds.map(id => ({ id, type: 'Primary' as const })),
-                              ...user.backupStaffIds.map(id => ({ id, type: 'Backup' as const }))
-                            ];
-                            
-                            return (
-                              <div key={user.id} className="bg-muted/50 rounded p-2 print:p-1.5">
+                      const allAssignedStaff = [...user.primaryStaffIds.map(id => ({
+                        id,
+                        type: 'Primary' as const
+                      })), ...user.backupStaffIds.map(id => ({
+                        id,
+                        type: 'Backup' as const
+                      }))];
+                      return <div key={user.id} className="rounded p-2 print:p-1.5 bg-primary-foreground">
                                 <div className="flex items-start justify-between mb-1">
                                   <div>
                                     <div className="font-medium text-xs">{user.name}</div>
@@ -669,99 +651,68 @@ export const Matching = () => {
                                   </div>
                                 </div>
                                 
-                                {allAssignedStaff.length > 0 ? (
-                                  <div className="mt-1.5 space-y-1">
-                                    {allAssignedStaff.map(({ id: sid, type }) => {
-                                      const s = getStaffById(sid);
-                                      if (!s) return null;
-                                      const matchReasons = getMatchReasons(user, s);
-                                      
-                                      // Build narrative matching criteria
-                                      const buildMatchingNarrative = () => {
-                                        const parts: string[] = [];
-                                        const skillMatches = user.supportNeeds.filter(need =>
-                                          s.skills.some(skill => 
-                                            skill.toLowerCase().includes(need.toLowerCase()) || 
-                                            need.toLowerCase().includes(skill.toLowerCase())
-                                          )
-                                        );
-                                        const interestMatches = s.interests.filter(interest =>
-                                          user.preferences.some(pref => 
-                                            pref.toLowerCase().includes(interest.toLowerCase()) || 
-                                            interest.toLowerCase().includes(pref.toLowerCase())
-                                          )
-                                        );
-                                        
-                                        if (skillMatches.length > 0) {
-                                          parts.push(`${s.name.split(' ')[0]} has skills in ${skillMatches.slice(0, 2).join(' and ')}`);
-                                        }
-                                        if (interestMatches.length > 0) {
-                                          parts.push(`shares interests in ${interestMatches.slice(0, 2).join(' and ')}`);
-                                        }
-                                        if (user.location === s.location) {
-                                          parts.push('they are in the same location');
-                                        }
-                                        
-                                        if (parts.length === 0) return null;
-                                        return parts.join(', and ') + '.';
-                                      };
-                                      
-                                      const narrative = buildMatchingNarrative();
-                                      
-                                      return (
-                                        <div key={sid} className={`text-[10px] pl-2 border-l-2 ${type === 'Primary' ? 'border-green-500 bg-green-50' : 'border-gray-400 bg-gray-50'} rounded-r p-1`}>
+                                {allAssignedStaff.length > 0 ? <div className="mt-1.5 space-y-1">
+                                    {allAssignedStaff.map(({
+                            id: sid,
+                            type
+                          }) => {
+                            const s = getStaffById(sid);
+                            if (!s) return null;
+                            const matchReasons = getMatchReasons(user, s);
+
+                            // Build narrative matching criteria
+                            const buildMatchingNarrative = () => {
+                              const parts: string[] = [];
+                              const skillMatches = user.supportNeeds.filter(need => s.skills.some(skill => skill.toLowerCase().includes(need.toLowerCase()) || need.toLowerCase().includes(skill.toLowerCase())));
+                              const interestMatches = s.interests.filter(interest => user.preferences.some(pref => pref.toLowerCase().includes(interest.toLowerCase()) || interest.toLowerCase().includes(pref.toLowerCase())));
+                              if (skillMatches.length > 0) {
+                                parts.push(`${s.name.split(' ')[0]} has skills in ${skillMatches.slice(0, 2).join(' and ')}`);
+                              }
+                              if (interestMatches.length > 0) {
+                                parts.push(`shares interests in ${interestMatches.slice(0, 2).join(' and ')}`);
+                              }
+                              if (user.location === s.location) {
+                                parts.push('they are in the same location');
+                              }
+                              if (parts.length === 0) return null;
+                              return parts.join(', and ') + '.';
+                            };
+                            const narrative = buildMatchingNarrative();
+                            return <div key={sid} className={`text-[10px] pl-2 border-l-2 ${type === 'Primary' ? 'border-green-500 bg-green-50' : 'border-gray-400 bg-gray-50'} rounded-r p-1`}>
                                           <div className="flex items-center gap-1">
                                             <span className="font-medium">{s.name}</span>
                                             <span className={`text-[9px] px-1 rounded ${type === 'Primary' ? 'bg-green-200 text-green-800' : 'bg-gray-200 text-gray-600'}`}>
                                               {type}
                                             </span>
                                           </div>
-                                          {narrative && (
-                                            <div className="text-[9px] text-muted-foreground mt-0.5 italic">
+                                          {narrative && <div className="text-[9px] text-muted-foreground mt-0.5 italic">
                                               <span className="font-medium not-italic">Matching criteria:</span> {user.name.split(' ')[0]} was matched with {s.name.split(' ')[0]} because {narrative}
-                                            </div>
-                                          )}
-                                        </div>
-                                      );
-                                    })}
-                                  </div>
-                                ) : (
-                                  <div className="text-[9px] text-orange-600 mt-1">No staff assigned</div>
-                                )}
-                              </div>
-                            );
+                                            </div>}
+                                        </div>;
                           })}
-                          {locationUsers.length === 0 && (
-                            <div className="text-[10px] text-muted-foreground italic">No service users in this location</div>
-                          )}
+                                  </div> : <div className="text-[9px] text-orange-600 mt-1">No staff assigned</div>}
+                              </div>;
+                    })}
+                          {locationUsers.length === 0 && <div className="text-[10px] text-muted-foreground italic">No service users in this location</div>}
                         </div>
                         
                         {/* Unassigned Staff in this location */}
                         {(() => {
-                          const unassignedStaff = locationStaff.filter(s => 
-                            !serviceUsers.some(u => u.primaryStaffIds.includes(s.id) || u.backupStaffIds.includes(s.id))
-                          );
-                          if (unassignedStaff.length === 0) return null;
-                          return (
-                            <div className="mt-2 pt-2 border-t border-dashed">
+                    const unassignedStaff = locationStaff.filter(s => !serviceUsers.some(u => u.primaryStaffIds.includes(s.id) || u.backupStaffIds.includes(s.id)));
+                    if (unassignedStaff.length === 0) return null;
+                    return <div className="mt-2 pt-2 border-t border-dashed">
                               <div className="text-[10px] font-medium text-muted-foreground mb-1">Unassigned Staff:</div>
                               <div className="flex flex-wrap gap-1">
-                                {unassignedStaff.map(s => (
-                                  <span key={s.id} className="text-[9px] bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded">
+                                {unassignedStaff.map(s => <span key={s.id} className="text-[9px] bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded">
                                     {s.name} ({s.roleType})
-                                  </span>
-                                ))}
+                                  </span>)}
                               </div>
-                            </div>
-                          );
-                        })()}
-                      </div>
-                    );
-                  })}
+                            </div>;
+                  })()}
+                      </div>;
+              })}
                 </div>
-              </div>
-            ) : (
-            <div ref={containerRef} className="grid grid-cols-1 lg:grid-cols-3 gap-6 relative">
+              </div>) : <div ref={containerRef} className="grid grid-cols-1 lg:grid-cols-3 gap-6 relative">
               {/* SVG for connection lines - spans the entire grid */}
               <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{
               zIndex: 10
@@ -935,8 +886,7 @@ export const Matching = () => {
                     </Card>
                   </div>)}
               </div>
-            </div>
-            )}
+            </div>}
           </TabsContent>
 
           {/* Utilisation Tab */}
