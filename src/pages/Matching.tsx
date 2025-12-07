@@ -423,7 +423,6 @@ export const Matching = () => {
     const currentAlloc = currentUser.staffAllocations.find(a => a.staffId === staffId);
     const currentSplit = currentAlloc?.hoursSplit?.[week] || { solo: 0, doubleUp: 0 };
     const otherTypeHours = type === 'solo' ? currentSplit.doubleUp : currentSplit.solo;
-    const newTotalForThisStaff = hours + otherTypeHours;
 
     // Calculate how many hours this staff is already allocated to OTHER service users for this week
     const otherUserAllocations = serviceUsers.filter(u => u.id !== userId).reduce((sum, u) => {
@@ -434,23 +433,59 @@ export const Matching = () => {
     }, 0);
 
     // Check 1: Don't exceed staff's available hours for this week
+    // Staff hours: both solo and double count toward their individual availability
     const staffAvailableHours = staffMember.forecastHours[week] || 0;
     const maxStaffHours = staffAvailableHours - otherUserAllocations - otherTypeHours;
 
     // Check 2: Don't exceed service user's required hours for this week
-    // For double-up hours, they count once toward user's needs (not per staff)
+    // For service user needs: solo hours sum normally, double hours count once (max across staff)
     const userRequiredHours = currentUser.forecastHours[week] || 0;
     
-    // Calculate hours already allocated by other staff (for user's needs check)
-    const otherStaffAllocations = currentUser.staffAllocations
+    // Calculate current allocated hours to service user using the new logic
+    // Solo: sum from all staff (excluding current staff's current type)
+    const otherStaffSoloHours = currentUser.staffAllocations
       .filter(a => a.staffId !== staffId)
       .reduce((sum, a) => {
         const split = a.hoursSplit?.[week] || { solo: 0, doubleUp: 0 };
-        return sum + split.solo + split.doubleUp;
+        return sum + split.solo;
       }, 0);
     
-    // Current staff's other type hours also count toward user's total
-    const maxUserHours = userRequiredHours - otherStaffAllocations - otherTypeHours;
+    // Double: max across all staff
+    const allDoubleHours = currentUser.staffAllocations.map(a => {
+      const split = a.hoursSplit?.[week] || { solo: 0, doubleUp: 0 };
+      return a.staffId === staffId 
+        ? (type === 'doubleUp' ? hours : split.doubleUp) // Use the new value if we're updating double
+        : split.doubleUp;
+    });
+    const maxDoubleFromOthers = currentUser.staffAllocations
+      .filter(a => a.staffId !== staffId)
+      .reduce((max, a) => {
+        const split = a.hoursSplit?.[week] || { solo: 0, doubleUp: 0 };
+        return Math.max(max, split.doubleUp);
+      }, 0);
+
+    // Current staff's solo hours (not the one we're changing if type is solo)
+    const currentStaffSolo = type === 'solo' ? 0 : currentSplit.solo;
+    
+    // Calculate max hours for this input based on type
+    let maxUserHours: number;
+    if (type === 'solo') {
+      // For solo: remaining = required - (other staff solo + current staff solo already) - max(all double hours)
+      const currentMaxDouble = Math.max(maxDoubleFromOthers, currentSplit.doubleUp);
+      const alreadyAllocated = otherStaffSoloHours + currentMaxDouble;
+      maxUserHours = userRequiredHours - alreadyAllocated;
+    } else {
+      // For double: we only add to unallocated if this becomes the new max
+      // If current value would be <= max of others, it doesn't affect unallocated at all
+      if (hours <= maxDoubleFromOthers) {
+        // This double-up is covered by another staff's higher double, no limit from user side
+        maxUserHours = Infinity;
+      } else {
+        // This would become the new max, so it affects unallocated
+        const currentAllocated = otherStaffSoloHours + currentStaffSolo + maxDoubleFromOthers;
+        maxUserHours = userRequiredHours - currentAllocated + maxDoubleFromOthers; // Can go up to replace the old max
+      }
+    }
 
     // Apply the minimum of both constraints
     const validatedHours = Math.max(0, Math.min(hours, maxStaffHours, maxUserHours));
@@ -458,8 +493,8 @@ export const Matching = () => {
     // Show toast if hours were capped
     if (hours > validatedHours && hours > 0) {
       const reason = hours > maxStaffHours 
-        ? `${staffMember.name} only has ${maxStaffHours}h available for ${type === 'solo' ? 'solo' : 'double-up'} this week` 
-        : `${currentUser.name} only needs ${maxUserHours}h more this week`;
+        ? `${staffMember.name} only has ${maxStaffHours}h available this week` 
+        : `${currentUser.name} only needs ${Math.round(maxUserHours)}h more this week`;
       toast({
         title: "Hours adjusted",
         description: reason,
@@ -1573,7 +1608,17 @@ export const Matching = () => {
                             </TableCell>
                             {WEEKS.map(week => {
                             const requiredHours = user.forecastHours[week] || 0;
-                            const allocatedHours = user.staffAllocations.reduce((sum, alloc) => sum + (alloc.allocatedHours[week] || 0), 0);
+                            // Single hours sum normally across all staff
+                            const totalSingleHours = user.staffAllocations.reduce((sum, alloc) => {
+                              const split = alloc.hoursSplit?.[week] || { solo: 0, doubleUp: 0 };
+                              return sum + split.solo;
+                            }, 0);
+                            // Double hours only count once (max across all staff since they work together)
+                            const maxDoubleHours = user.staffAllocations.reduce((max, alloc) => {
+                              const split = alloc.hoursSplit?.[week] || { solo: 0, doubleUp: 0 };
+                              return Math.max(max, split.doubleUp);
+                            }, 0);
+                            const allocatedHours = totalSingleHours + maxDoubleHours;
                             const unallocatedHours = requiredHours - allocatedHours;
                             return <TableCell key={week} colSpan={2} className="text-center border-l">
                                   <span className={`text-sm font-medium ${unallocatedHours > 0 ? 'text-orange-700' : unallocatedHours < 0 ? 'text-red-700' : 'text-green-700'}`}>
