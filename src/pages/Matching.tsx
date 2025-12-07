@@ -16,6 +16,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import { SearchableStaffSelect } from "@/components/SearchableStaffSelect";
+import { ForecastAISummary } from "@/components/ForecastAISummary";
 import { useMatchingData, WEEKS, createDefaultForecast, type ServiceUser, type Staff, type Gender, type GenderPreference, type ContractType, type StaffAllocation, type WeeklyForecast } from "@/hooks/useMatchingData";
 const GENDER_PREFERENCES: GenderPreference[] = ["No Preference", "Male", "Female"];
 const GENDERS: Gender[] = ["Male", "Female", "Non-Binary", "Prefer not to say"];
@@ -659,6 +660,17 @@ export const Matching = () => {
                   }
                 `}</style>
                 <div ref={printAreaRef} className="print-area grid grid-cols-1 gap-6">
+                  {/* AI Forecast Summary */}
+                  <div className="print:hidden">
+                    <ForecastAISummary
+                      serviceUsers={serviceUsers}
+                      staff={staff}
+                      weeks={WEEKS}
+                      showUtilisation={showUtilisation}
+                      showMatchmaking={showMatchmaking}
+                    />
+                  </div>
+
                   {/* Staff Utilisation Forecast */}
                   {showUtilisation && <div className="rounded-2xl overflow-hidden shadow-md bg-white border border-border">
                     <div className="px-6 py-4" style={{
