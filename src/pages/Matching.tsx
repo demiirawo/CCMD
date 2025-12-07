@@ -1189,7 +1189,7 @@ export const Matching = () => {
                               />
                             ) : (
                               <div className="flex flex-wrap gap-1 items-center">
-                                {user.supportNeeds.map(need => (
+                                {user.supportNeeds.slice(0, 9).map(need => (
                                   <Badge key={need} variant="secondary" className="text-xs flex items-center gap-1">
                                     {need}
                                     <X 
@@ -1204,6 +1204,9 @@ export const Matching = () => {
                                     />
                                   </Badge>
                                 ))}
+                                {user.supportNeeds.length > 9 && (
+                                  <Badge variant="outline" className="text-xs">+{user.supportNeeds.length - 9}</Badge>
+                                )}
                                 <Select 
                                   value="" 
                                   onValueChange={value => {
@@ -1268,7 +1271,7 @@ export const Matching = () => {
                               />
                             ) : (
                               <div className="flex flex-wrap gap-1 items-center">
-                                {user.preferences.map(pref => (
+                                {user.preferences.slice(0, 9).map(pref => (
                                   <Badge key={pref} variant="outline" className="text-xs flex items-center gap-1">
                                     {pref}
                                     <X 
@@ -1283,6 +1286,9 @@ export const Matching = () => {
                                     />
                                   </Badge>
                                 ))}
+                                {user.preferences.length > 9 && (
+                                  <Badge variant="outline" className="text-xs">+{user.preferences.length - 9}</Badge>
+                                )}
                                 <Select 
                                   value="" 
                                   onValueChange={value => {
