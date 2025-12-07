@@ -1535,10 +1535,46 @@ export const Matching = () => {
               </div>
               <div>
                 <Label>Location</Label>
-                <Input value={newUserForm.location} onChange={e => setNewUserForm(f => ({
-                ...f,
-                location: e.target.value
-              }))} className="bg-white" />
+                {newUserForm.location === '__adding_new__' ? (
+                  <Input 
+                    value="" 
+                    onChange={e => setNewUserForm(f => ({ ...f, location: e.target.value }))} 
+                    onBlur={e => {
+                      if (!e.target.value.trim()) {
+                        setNewUserForm(f => ({ ...f, location: '' }));
+                      }
+                    }}
+                    autoFocus
+                    placeholder="Enter new location..."
+                    className="bg-white" 
+                  />
+                ) : (
+                  <Select 
+                    value={newUserForm.location} 
+                    onValueChange={v => {
+                      if (v === '__add_new__') {
+                        setNewUserForm(f => ({ ...f, location: '__adding_new__' }));
+                      } else {
+                        setNewUserForm(f => ({ ...f, location: v }));
+                      }
+                    }}
+                  >
+                    <SelectTrigger className="bg-white">
+                      <SelectValue placeholder="Select location" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white z-50">
+                      {locations.map(loc => (
+                        <SelectItem key={loc} value={loc}>{loc}</SelectItem>
+                      ))}
+                      <SelectItem value="__add_new__" className="text-primary font-medium">
+                        <div className="flex items-center gap-1">
+                          <Plus className="h-3 w-3" />
+                          Add new location
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
               </div>
               <div>
                 <Label>Typical Weekly Hours</Label>
@@ -1603,10 +1639,46 @@ export const Matching = () => {
               </div>
               <div>
                 <Label>Location</Label>
-                <Input value={newStaffForm.location} onChange={e => setNewStaffForm(f => ({
-                ...f,
-                location: e.target.value
-              }))} className="bg-white" />
+                {newStaffForm.location === '__adding_new__' ? (
+                  <Input 
+                    value="" 
+                    onChange={e => setNewStaffForm(f => ({ ...f, location: e.target.value }))} 
+                    onBlur={e => {
+                      if (!e.target.value.trim()) {
+                        setNewStaffForm(f => ({ ...f, location: '' }));
+                      }
+                    }}
+                    autoFocus
+                    placeholder="Enter new location..."
+                    className="bg-white" 
+                  />
+                ) : (
+                  <Select 
+                    value={newStaffForm.location} 
+                    onValueChange={v => {
+                      if (v === '__add_new__') {
+                        setNewStaffForm(f => ({ ...f, location: '__adding_new__' }));
+                      } else {
+                        setNewStaffForm(f => ({ ...f, location: v }));
+                      }
+                    }}
+                  >
+                    <SelectTrigger className="bg-white">
+                      <SelectValue placeholder="Select location" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white z-50">
+                      {locations.map(loc => (
+                        <SelectItem key={loc} value={loc}>{loc}</SelectItem>
+                      ))}
+                      <SelectItem value="__add_new__" className="text-primary font-medium">
+                        <div className="flex items-center gap-1">
+                          <Plus className="h-3 w-3" />
+                          Add new location
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
               </div>
               <div>
                 <Label>Typical Weekly Hours</Label>
