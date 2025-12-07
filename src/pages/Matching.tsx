@@ -550,7 +550,7 @@ export const Matching = () => {
               <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{
               zIndex: 10
             }}>
-                {linePositions.map(line => <line key={line.id} x1={line.x1} y1={line.y1} x2={line.x2} y2={line.y2} stroke={line.type === 'primary' ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground))'} strokeWidth={line.type === 'primary' ? 2 : 1.5} strokeDasharray={line.type === 'backup' ? '5,5' : undefined} className="transition-all duration-300" />)}
+                {linePositions.map(line => <line key={line.id} x1={line.x1} y1={line.y1} x2={line.x2} y2={line.y2} stroke={line.type === 'primary' ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground))'} strokeWidth={line.type === 'primary' ? 4 : 1.5} strokeDasharray={line.type === 'backup' ? '5,5' : undefined} className="transition-all duration-300" />)}
               </svg>
 
               {/* Service Users Column */}
