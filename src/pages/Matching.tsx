@@ -709,7 +709,7 @@ export const Matching = () => {
                     
                     <Card className={`cursor-pointer transition-all rounded-3xl overflow-hidden ${selectedStaff?.id === s.id ? 'ring-2 ring-primary' : 'hover:shadow-md'}`} onClick={() => setSelectedStaff(s)}>
                       {/* Header Section with color background */}
-                      <div className="bg-secondary/30 pt-8 pb-3 px-4">
+                      <div className="pt-8 pb-3 px-4 bg-[#3b0fd9]/30">
                         <div className="flex flex-wrap gap-1 justify-center">
                           {s.skills.slice(0, 2).map(skill => <Badge key={skill} variant="outline" className="text-xs bg-background">{skill}</Badge>)}
                           {s.skills.length > 2 && <Badge variant="outline" className="text-xs bg-background">+{s.skills.length - 2}</Badge>}
