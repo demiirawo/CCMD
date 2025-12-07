@@ -201,7 +201,7 @@ Rules:
             size="sm"
             onClick={generateAISummary}
             disabled={isLoading || isGenerating}
-            className="gap-2 bg-primary/5"
+            className="gap-2 bg-primary/5 print:hidden"
           >
             {isGenerating ? (
               <Loader2 className="h-4 w-4 animate-spin" />
