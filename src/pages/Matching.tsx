@@ -470,88 +470,27 @@ export const Matching = () => {
 
           {/* Matching View */}
           <TabsContent value="diagram" className="space-y-6">
-            {/* Print Button at Top */}
-            <div className="flex justify-end print:hidden">
+            {/* Print Button */}
+            <div className="flex justify-end">
               <Button variant="outline" size="sm" onClick={() => window.print()}>
                 <Printer className="h-4 w-4 mr-2" />
                 Print
               </Button>
             </div>
 
-            {/* Print Area - includes both Utilisation Forecast and Matching View */}
-            <div className="print:p-0" style={{ fontSize: '10px' }}>
-              <style>{`
-                @media print {
-                  body * { visibility: hidden; }
-                  .print-area, .print-area * { visibility: visible; }
-                  .print-area { position: absolute; left: 0; top: 0; width: 100%; }
-                  .print-hidden { display: none !important; }
-                  @page { size: A4; margin: 10mm; }
-                }
-              `}</style>
-              <div className="print-area space-y-4">
-                {/* Staff Utilisation Forecast */}
-                <Card>
-                  <CardHeader className="py-2">
-                    <CardTitle className="flex items-center gap-2 text-sm">
-                      <BarChart3 className="h-4 w-4" />
-                      Staff Utilisation Forecast (6 Months)
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="py-2">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead className="text-xs py-1">Month</TableHead>
-                          <TableHead className="text-xs py-1 text-right">Required Hours</TableHead>
-                          <TableHead className="text-xs py-1 text-right">Allocated Hours</TableHead>
-                          <TableHead className="text-xs py-1 text-right">Unallocated Hours</TableHead>
-                          <TableHead className="text-xs py-1">Utilisation Status</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {MONTHS.slice(0, 6).map((month) => {
-                          const requiredHours = serviceUsers.reduce((sum, u) => sum + (u.forecastHours[month] || 0), 0);
-                          const availableHours = staff.filter(s => s.status === "Active").reduce((sum, s) => sum + (s.forecastHours[month] || 0), 0);
-                          const allocatedHours = serviceUsers.reduce((sum, u) => {
-                            const assignedStaffIds = [...u.primaryStaffIds, ...u.backupStaffIds];
-                            const assignedStaff = staff.filter(s => assignedStaffIds.includes(s.id) && s.status === "Active");
-                            return sum + assignedStaff.reduce((staffSum, s) => staffSum + (s.forecastHours[month] || 0), 0);
-                          }, 0);
-                          const utilisation = availableHours > 0 ? requiredHours / availableHours * 100 : 0;
-                          let statusColor = "bg-orange-100 text-orange-800";
-                          let statusText = "Underused – Moderate staff underutilisation";
-                          if (utilisation >= 70 && utilisation <= 100) {
-                            statusColor = "bg-green-100 text-green-800";
-                            statusText = "Optimal – Staff well utilised";
-                          } else if (utilisation > 100) {
-                            statusColor = "bg-red-100 text-red-800";
-                            statusText = "Overworked – Staff shortage risk";
-                          }
-                          return (
-                            <TableRow key={month}>
-                              <TableCell className="font-medium text-xs py-1">{month}</TableCell>
-                              <TableCell className="text-right text-xs py-1">{requiredHours.toFixed(1)}</TableCell>
-                              <TableCell className="text-right text-xs py-1">{allocatedHours.toFixed(1)}</TableCell>
-                              <TableCell className="text-right text-xs py-1">{availableHours.toFixed(1)}</TableCell>
-                              <TableCell className="py-1">
-                                <div className="flex items-center gap-2">
-                                  <span className="text-xs">Utilisation: {utilisation.toFixed(1)}%</span>
-                                  <span className="text-muted-foreground">—</span>
-                                  <Badge className={`${statusColor} text-xs`}>{statusText}</Badge>
-                                </div>
-                              </TableCell>
-                            </TableRow>
-                          );
-                        })}
-                      </TableBody>
-                    </Table>
-                    <div className="mt-2 text-xs text-muted-foreground">
-                      {serviceUsers.length} service users • Sum of forecasted hours shown above
-                    </div>
-                  </CardContent>
-                </Card>
-
+            {/* Compact Print-Friendly View */}
+            <div className="print:p-0" style={{
+              fontSize: '10px'
+            }}>
+                <style>{`
+                  @media print {
+                    body * { visibility: hidden; }
+                    .compact-print-view, .compact-print-view * { visibility: visible; }
+                    .compact-print-view { position: absolute; left: 0; top: 0; width: 100%; }
+                    @page { size: A4; margin: 10mm; }
+                  }
+                `}</style>
+                <div className="compact-print-view space-y-4">
                   
                   {locations.map(location => {
                 const locationUsers = serviceUsers.filter(u => u.location === location);
