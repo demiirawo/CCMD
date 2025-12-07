@@ -569,36 +569,13 @@ export const Matching = () => {
               <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{
               zIndex: 10
             }}>
-                {linePositions.map(line => (
-                  <g key={line.id}>
-                    <line 
-                      x1={line.x1} 
-                      y1={line.y1} 
-                      x2={line.x2} 
-                      y2={line.y2} 
-                      stroke="#3b82f6"
-                      strokeWidth={line.type === 'primary' ? 3 : 2}
-                      strokeDasharray={line.type === 'backup' ? '5,5' : undefined} 
-                      className="transition-all duration-300" 
-                    />
+                {linePositions.map(line => <g key={line.id}>
+                    <line x1={line.x1} y1={line.y1} x2={line.x2} y2={line.y2} stroke="#3b82f6" strokeWidth={line.type === 'primary' ? 3 : 2} strokeDasharray={line.type === 'backup' ? '5,5' : undefined} className="transition-all duration-300" />
                     {/* Start circle connector */}
-                    <circle 
-                      cx={line.x1} 
-                      cy={line.y1} 
-                      r={6} 
-                      fill="#3b82f6"
-                      className="transition-all duration-300"
-                    />
+                    <circle cx={line.x1} cy={line.y1} r={6} fill="#3b82f6" className="transition-all duration-300" />
                     {/* End circle connector */}
-                    <circle 
-                      cx={line.x2} 
-                      cy={line.y2} 
-                      r={6} 
-                      fill="#3b82f6"
-                      className="transition-all duration-300"
-                    />
-                  </g>
-                ))}
+                    <circle cx={line.x2} cy={line.y2} r={6} fill="#3b82f6" className="transition-all duration-300" />
+                  </g>)}
               </svg>
 
               {/* Service Users Column */}
@@ -662,16 +639,14 @@ export const Matching = () => {
                                 <X className="h-3 w-3 ml-1" />
                               </Badge>)}
                           </div>
-                          <SearchableStaffSelect
-                            options={getRankedStaff(user, [...user.primaryStaffIds, ...user.backupStaffIds]).map(({ staff: s, score }) => ({
-                              id: s.id,
-                              name: s.name,
-                              score
-                            }))}
-                            onSelect={(value) => assignStaff(user.id, value, 'primary')}
-                            placeholder="Add primary staff..."
-                            className="w-[200px]"
-                          />
+                          <SearchableStaffSelect options={getRankedStaff(user, [...user.primaryStaffIds, ...user.backupStaffIds]).map(({
+                          staff: s,
+                          score
+                        }) => ({
+                          id: s.id,
+                          name: s.name,
+                          score
+                        }))} onSelect={value => assignStaff(user.id, value, 'primary')} placeholder="Add primary staff..." className="w-[200px]" />
                         </div>
                         
                         {/* Backup Staff Multi-Select */}
@@ -683,16 +658,14 @@ export const Matching = () => {
                                 <X className="h-3 w-3 ml-1" />
                               </Badge>)}
                           </div>
-                          <SearchableStaffSelect
-                            options={getRankedStaff(user, [...user.primaryStaffIds, ...user.backupStaffIds]).map(({ staff: s, score }) => ({
-                              id: s.id,
-                              name: s.name,
-                              score
-                            }))}
-                            onSelect={(value) => assignStaff(user.id, value, 'backup')}
-                            placeholder="Add backup staff..."
-                            className="w-[200px]"
-                          />
+                          <SearchableStaffSelect options={getRankedStaff(user, [...user.primaryStaffIds, ...user.backupStaffIds]).map(({
+                          staff: s,
+                          score
+                        }) => ({
+                          id: s.id,
+                          name: s.name,
+                          score
+                        }))} onSelect={value => assignStaff(user.id, value, 'backup')} placeholder="Add backup staff..." className="w-[200px]" />
                         </div>
                       </div>
                       </CardContent>
@@ -954,118 +927,102 @@ export const Matching = () => {
                     </TableHeader>
                     <TableBody>
                       {serviceUsers.map(user => <TableRow key={user.id}>
-                          <TableCell 
-                            className="font-medium cursor-pointer hover:bg-muted/50"
-                            onDoubleClick={() => {
-                              setEditingCell({ id: user.id, field: 'name', type: 'user' });
-                              setEditValue(user.name);
-                            }}
-                          >
-                            {editingCell?.id === user.id && editingCell?.field === 'name' && editingCell?.type === 'user' ? (
-                              <Input
-                                value={editValue}
-                                onChange={(e) => setEditValue(e.target.value)}
-                                onBlur={() => {
-                                  setServiceUsers(prev => prev.map(u => u.id === user.id ? { ...u, name: editValue } : u));
-                                  setEditingCell(null);
-                                }}
-                                onKeyDown={(e) => {
-                                  if (e.key === 'Enter') {
-                                    setServiceUsers(prev => prev.map(u => u.id === user.id ? { ...u, name: editValue } : u));
-                                    setEditingCell(null);
-                                  } else if (e.key === 'Escape') {
-                                    setEditingCell(null);
-                                  }
-                                }}
-                                autoFocus
-                                className="h-8 bg-white"
-                              />
-                            ) : user.name}
+                          <TableCell className="font-medium cursor-pointer hover:bg-muted/50" onDoubleClick={() => {
+                        setEditingCell({
+                          id: user.id,
+                          field: 'name',
+                          type: 'user'
+                        });
+                        setEditValue(user.name);
+                      }}>
+                            {editingCell?.id === user.id && editingCell?.field === 'name' && editingCell?.type === 'user' ? <Input value={editValue} onChange={e => setEditValue(e.target.value)} onBlur={() => {
+                          setServiceUsers(prev => prev.map(u => u.id === user.id ? {
+                            ...u,
+                            name: editValue
+                          } : u));
+                          setEditingCell(null);
+                        }} onKeyDown={e => {
+                          if (e.key === 'Enter') {
+                            setServiceUsers(prev => prev.map(u => u.id === user.id ? {
+                              ...u,
+                              name: editValue
+                            } : u));
+                            setEditingCell(null);
+                          } else if (e.key === 'Escape') {
+                            setEditingCell(null);
+                          }
+                        }} autoFocus className="h-8 bg-white" /> : user.name}
                           </TableCell>
-                          <TableCell
-                            className="cursor-pointer hover:bg-muted/50"
-                            onDoubleClick={() => {
-                              setEditingCell({ id: user.id, field: 'supportNeeds', type: 'user' });
-                              setEditValue(user.supportNeeds.join(', '));
-                            }}
-                          >
-                            {editingCell?.id === user.id && editingCell?.field === 'supportNeeds' && editingCell?.type === 'user' ? (
-                              <Input
-                                value={editValue}
-                                onChange={(e) => setEditValue(e.target.value)}
-                                onBlur={() => {
-                                  setServiceUsers(prev => prev.map(u => u.id === user.id ? { 
-                                    ...u, 
-                                    supportNeeds: editValue.split(',').map(s => s.trim()).filter(Boolean)
-                                  } : u));
-                                  setEditingCell(null);
-                                }}
-                                onKeyDown={(e) => {
-                                  if (e.key === 'Enter') {
-                                    setServiceUsers(prev => prev.map(u => u.id === user.id ? { 
-                                      ...u, 
-                                      supportNeeds: editValue.split(',').map(s => s.trim()).filter(Boolean)
-                                    } : u));
-                                    setEditingCell(null);
-                                  } else if (e.key === 'Escape') {
-                                    setEditingCell(null);
-                                  }
-                                }}
-                                autoFocus
-                                placeholder="Comma-separated needs..."
-                                className="h-8 bg-white min-w-[200px]"
-                              />
-                            ) : (
-                              <div className="flex flex-wrap gap-1">
+                          <TableCell className="cursor-pointer hover:bg-muted/50" onDoubleClick={() => {
+                        setEditingCell({
+                          id: user.id,
+                          field: 'supportNeeds',
+                          type: 'user'
+                        });
+                        setEditValue(user.supportNeeds.join(', '));
+                      }}>
+                            {editingCell?.id === user.id && editingCell?.field === 'supportNeeds' && editingCell?.type === 'user' ? <Input value={editValue} onChange={e => setEditValue(e.target.value)} onBlur={() => {
+                          setServiceUsers(prev => prev.map(u => u.id === user.id ? {
+                            ...u,
+                            supportNeeds: editValue.split(',').map(s => s.trim()).filter(Boolean)
+                          } : u));
+                          setEditingCell(null);
+                        }} onKeyDown={e => {
+                          if (e.key === 'Enter') {
+                            setServiceUsers(prev => prev.map(u => u.id === user.id ? {
+                              ...u,
+                              supportNeeds: editValue.split(',').map(s => s.trim()).filter(Boolean)
+                            } : u));
+                            setEditingCell(null);
+                          } else if (e.key === 'Escape') {
+                            setEditingCell(null);
+                          }
+                        }} autoFocus placeholder="Comma-separated needs..." className="h-8 bg-white min-w-[200px]" /> : <div className="flex flex-wrap gap-1">
                                 {user.supportNeeds.slice(0, 2).map(need => <Badge key={need} variant="secondary" className="text-xs">{need}</Badge>)}
                                 {user.supportNeeds.length > 2 && <Badge variant="outline" className="text-xs">+{user.supportNeeds.length - 2}</Badge>}
-                              </div>
-                            )}
+                              </div>}
                           </TableCell>
                           <TableCell>
-                            {editingCell?.id === user.id && editingCell?.field === 'location' && editingCell?.type === 'user' ? (
-                              <div className="flex gap-1">
-                                <Input
-                                  value={editValue}
-                                  onChange={(e) => setEditValue(e.target.value)}
-                                  onBlur={() => {
-                                    if (editValue.trim()) {
-                                      setServiceUsers(prev => prev.map(u => u.id === user.id ? { ...u, location: editValue.trim() } : u));
-                                    }
-                                    setEditingCell(null);
-                                  }}
-                                  onKeyDown={(e) => {
-                                    if (e.key === 'Enter' && editValue.trim()) {
-                                      setServiceUsers(prev => prev.map(u => u.id === user.id ? { ...u, location: editValue.trim() } : u));
-                                      setEditingCell(null);
-                                    } else if (e.key === 'Escape') {
-                                      setEditingCell(null);
-                                    }
-                                  }}
-                                  autoFocus
-                                  placeholder="Enter new location..."
-                                  className="h-8 bg-white min-w-[150px]"
-                                />
-                              </div>
-                            ) : (
-                              <Select
-                                value={user.location}
-                                onValueChange={(value) => {
-                                  if (value === '__add_new__') {
-                                    setEditingCell({ id: user.id, field: 'location', type: 'user' });
-                                    setEditValue('');
-                                  } else {
-                                    setServiceUsers(prev => prev.map(u => u.id === user.id ? { ...u, location: value } : u));
-                                  }
-                                }}
-                              >
+                            {editingCell?.id === user.id && editingCell?.field === 'location' && editingCell?.type === 'user' ? <div className="flex gap-1">
+                                <Input value={editValue} onChange={e => setEditValue(e.target.value)} onBlur={() => {
+                            if (editValue.trim()) {
+                              setServiceUsers(prev => prev.map(u => u.id === user.id ? {
+                                ...u,
+                                location: editValue.trim()
+                              } : u));
+                            }
+                            setEditingCell(null);
+                          }} onKeyDown={e => {
+                            if (e.key === 'Enter' && editValue.trim()) {
+                              setServiceUsers(prev => prev.map(u => u.id === user.id ? {
+                                ...u,
+                                location: editValue.trim()
+                              } : u));
+                              setEditingCell(null);
+                            } else if (e.key === 'Escape') {
+                              setEditingCell(null);
+                            }
+                          }} autoFocus placeholder="Enter new location..." className="h-8 bg-white min-w-[150px]" />
+                              </div> : <Select value={user.location} onValueChange={value => {
+                          if (value === '__add_new__') {
+                            setEditingCell({
+                              id: user.id,
+                              field: 'location',
+                              type: 'user'
+                            });
+                            setEditValue('');
+                          } else {
+                            setServiceUsers(prev => prev.map(u => u.id === user.id ? {
+                              ...u,
+                              location: value
+                            } : u));
+                          }
+                        }}>
                                 <SelectTrigger className="h-8 bg-white min-w-[130px]">
                                   <SelectValue placeholder="Select location" />
                                 </SelectTrigger>
                                 <SelectContent className="bg-white z-50">
-                                  {locations.map(loc => (
-                                    <SelectItem key={loc} value={loc}>{loc}</SelectItem>
-                                  ))}
+                                  {locations.map(loc => <SelectItem key={loc} value={loc}>{loc}</SelectItem>)}
                                   <SelectItem value="__add_new__" className="text-primary font-medium">
                                     <div className="flex items-center gap-1">
                                       <Plus className="h-3 w-3" />
@@ -1073,53 +1030,42 @@ export const Matching = () => {
                                     </div>
                                   </SelectItem>
                                 </SelectContent>
-                              </Select>
-                            )}
+                              </Select>}
                           </TableCell>
                           <TableCell>
                             <div className="space-y-1">
                               <div className="flex flex-wrap gap-1">
-                                {user.primaryStaffIds.map(sid => (
-                                  <Badge key={sid} className="cursor-pointer text-xs bg-green-100 text-green-800 hover:bg-green-200" onClick={() => unassignStaff(user.id, sid, 'primary')}>
+                                {user.primaryStaffIds.map(sid => <Badge key={sid} className="cursor-pointer text-xs bg-green-100 text-green-800 hover:bg-green-200" onClick={() => unassignStaff(user.id, sid, 'primary')}>
                                     {getStaffById(sid)?.name}
                                     <X className="h-3 w-3 ml-1" />
-                                  </Badge>
-                                ))}
+                                  </Badge>)}
                               </div>
-                              <SearchableStaffSelect
-                                options={getRankedStaff(user, [...user.primaryStaffIds, ...user.backupStaffIds]).map(({ staff: s, score }) => ({
-                                  id: s.id,
-                                  name: s.name,
-                                  score
-                                }))}
-                                onSelect={(value) => assignStaff(user.id, value, 'primary')}
-                                placeholder={user.primaryStaffIds.length > 0 ? "Add more..." : "Select staff..."}
-                                triggerClassName="w-[140px]"
-                                className="w-[200px]"
-                              />
+                              <SearchableStaffSelect options={getRankedStaff(user, [...user.primaryStaffIds, ...user.backupStaffIds]).map(({
+                            staff: s,
+                            score
+                          }) => ({
+                            id: s.id,
+                            name: s.name,
+                            score
+                          }))} onSelect={value => assignStaff(user.id, value, 'primary')} placeholder={user.primaryStaffIds.length > 0 ? "Add more..." : "Select staff..."} triggerClassName="w-[140px]" className="w-[200px]" />
                             </div>
                           </TableCell>
                           <TableCell>
                             <div className="space-y-1">
                               <div className="flex flex-wrap gap-1">
-                                {user.backupStaffIds.map(sid => (
-                                  <Badge key={sid} variant="outline" className="cursor-pointer text-xs hover:bg-muted" onClick={() => unassignStaff(user.id, sid, 'backup')}>
+                                {user.backupStaffIds.map(sid => <Badge key={sid} variant="outline" className="cursor-pointer text-xs hover:bg-muted" onClick={() => unassignStaff(user.id, sid, 'backup')}>
                                     {getStaffById(sid)?.name}
                                     <X className="h-3 w-3 ml-1" />
-                                  </Badge>
-                                ))}
+                                  </Badge>)}
                               </div>
-                              <SearchableStaffSelect
-                                options={getRankedStaff(user, [...user.primaryStaffIds, ...user.backupStaffIds]).map(({ staff: s, score }) => ({
-                                  id: s.id,
-                                  name: s.name,
-                                  score
-                                }))}
-                                onSelect={(value) => assignStaff(user.id, value, 'backup')}
-                                placeholder={user.backupStaffIds.length > 0 ? "Add more..." : "Select staff..."}
-                                triggerClassName="w-[140px]"
-                                className="w-[200px]"
-                              />
+                              <SearchableStaffSelect options={getRankedStaff(user, [...user.primaryStaffIds, ...user.backupStaffIds]).map(({
+                            staff: s,
+                            score
+                          }) => ({
+                            id: s.id,
+                            name: s.name,
+                            score
+                          }))} onSelect={value => assignStaff(user.id, value, 'backup')} placeholder={user.backupStaffIds.length > 0 ? "Add more..." : "Select staff..."} triggerClassName="w-[140px]" className="w-[200px]" />
                             </div>
                           </TableCell>
                           <TableCell>
@@ -1137,8 +1083,7 @@ export const Matching = () => {
             {/* Service Users Forecast Hours Table */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5" />
+                <CardTitle className="flex items-center gap-2">Required Hours<TrendingUp className="h-5 w-5" />
                   Service User Hours Forecast (12 Months)
                 </CardTitle>
               </CardHeader>
