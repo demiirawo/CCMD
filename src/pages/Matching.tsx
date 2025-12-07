@@ -36,7 +36,7 @@ interface ServiceUser {
   supportNeeds: string[];
   preferences: string[];
   location: string;
-  primaryStaffId?: string;
+  primaryStaffIds: string[];
   backupStaffIds: string[];
   forecastHours: MonthlyForecast;
 }
@@ -66,7 +66,7 @@ const INITIAL_SERVICE_USERS: ServiceUser[] = [{
   supportNeeds: ["Autism", "Personal Care", "Community Access"],
   preferences: ["Prefers male staff", "Enjoys gardening", "Likes quiet environments"],
   location: "North London",
-  primaryStaffId: "s1",
+  primaryStaffIds: ["s1"],
   backupStaffIds: ["s3"],
   forecastHours: {
     [MONTHS[0]]: 21,
@@ -83,7 +83,7 @@ const INITIAL_SERVICE_USERS: ServiceUser[] = [{
   supportNeeds: ["Hoisting", "PEG Feeding", "Dementia Care"],
   preferences: ["Prefers female staff", "Enjoys music", "Likes pets"],
   location: "South London",
-  primaryStaffId: "s2",
+  primaryStaffIds: ["s2"],
   backupStaffIds: ["s4"],
   forecastHours: {
     [MONTHS[0]]: 124,
@@ -100,7 +100,7 @@ const INITIAL_SERVICE_USERS: ServiceUser[] = [{
   supportNeeds: ["Learning Disability", "Behaviour Support", "Community Access"],
   preferences: ["Enjoys sports", "Likes cooking", "Prefers consistent routines"],
   location: "East London",
-  primaryStaffId: undefined,
+  primaryStaffIds: [],
   backupStaffIds: [],
   forecastHours: {
     [MONTHS[0]]: 55,
@@ -283,15 +283,15 @@ export const Matching = () => {
       const userY = userRect.top + userRect.height / 2 - containerRect.top;
       const userX = userRect.right - containerRect.left;
 
-      // Primary staff connection
-      if (user.primaryStaffId) {
-        const staffCard = staffCardRefs.current.get(user.primaryStaffId);
+      // Primary staff connections
+      user.primaryStaffIds.forEach(primaryId => {
+        const staffCard = staffCardRefs.current.get(primaryId);
         if (staffCard) {
           const staffRect = staffCard.getBoundingClientRect();
           const staffY = staffRect.top + staffRect.height / 2 - containerRect.top;
           const staffX = staffRect.left - containerRect.left;
           newLines.push({
-            id: `primary-${user.id}-${user.primaryStaffId}`,
+            id: `primary-${user.id}-${primaryId}`,
             x1: userX,
             y1: userY,
             x2: staffX,
@@ -299,7 +299,7 @@ export const Matching = () => {
             type: 'primary'
           });
         }
-      }
+      });
 
       // Backup staff connections
       user.backupStaffIds.forEach(backupId => {
@@ -368,7 +368,7 @@ export const Matching = () => {
     return Math.min(score, 100);
   }, []);
   const getSuggestedStaff = useCallback((user: ServiceUser) => {
-    const unassignedStaff = staff.filter(s => s.id !== user.primaryStaffId && !user.backupStaffIds.includes(s.id));
+    const unassignedStaff = staff.filter(s => !user.primaryStaffIds.includes(s.id) && !user.backupStaffIds.includes(s.id));
     return unassignedStaff.map(s => ({
       staff: s,
       score: calculateMatchScore(user, s)
@@ -390,9 +390,10 @@ export const Matching = () => {
     setServiceUsers(prev => prev.map(user => {
       if (user.id !== userId) return user;
       if (type === 'primary') {
+        if (user.primaryStaffIds.includes(staffId)) return user;
         return {
           ...user,
-          primaryStaffId: staffId
+          primaryStaffIds: [...user.primaryStaffIds, staffId]
         };
       } else {
         if (user.backupStaffIds.includes(staffId)) return user;
@@ -412,7 +413,7 @@ export const Matching = () => {
       if (type === 'primary') {
         return {
           ...user,
-          primaryStaffId: undefined
+          primaryStaffIds: user.primaryStaffIds.filter(id => id !== staffId)
         };
       } else {
         return {
@@ -439,6 +440,7 @@ export const Matching = () => {
       supportNeeds: newUserForm.supportNeeds.split(",").map(s => s.trim()).filter(Boolean),
       preferences: newUserForm.preferences.split(",").map(s => s.trim()).filter(Boolean),
       location: newUserForm.location,
+      primaryStaffIds: [],
       backupStaffIds: [],
       forecastHours: createDefaultForecast(0)
     };
@@ -497,7 +499,7 @@ export const Matching = () => {
     // Also unassign from any service users
     setServiceUsers(prev => prev.map(u => ({
       ...u,
-      primaryStaffId: u.primaryStaffId === id ? undefined : u.primaryStaffId,
+      primaryStaffIds: u.primaryStaffIds.filter(sid => sid !== id),
       backupStaffIds: u.backupStaffIds.filter(sid => sid !== id)
     })));
     setStaff(prev => prev.filter(s => s.id !== id));
@@ -602,29 +604,32 @@ export const Matching = () => {
                       
                       {/* Staff assignments with dropdowns */}
                       <div className="space-y-3 pt-2 border-t" onClick={e => e.stopPropagation()}>
-                        {/* Primary Staff Dropdown */}
+                        {/* Primary Staff Multi-Select */}
                         <div className="space-y-1">
                           <span className="text-xs font-medium text-muted-foreground">Primary Staff:</span>
+                          <div className="flex flex-wrap gap-1 mb-1">
+                            {user.primaryStaffIds.map(sid => (
+                              <Badge 
+                                key={sid} 
+                                className="cursor-pointer text-xs bg-green-100 text-green-800 hover:bg-green-200"
+                                onClick={() => unassignStaff(user.id, sid, 'primary')}
+                              >
+                                {getStaffById(sid)?.name}
+                                <X className="h-3 w-3 ml-1" />
+                              </Badge>
+                            ))}
+                          </div>
                           <Select
-                            value={user.primaryStaffId || ""}
+                            value=""
                             onValueChange={(value) => {
-                              if (value === "__clear__") {
-                                if (user.primaryStaffId) unassignStaff(user.id, user.primaryStaffId, 'primary');
-                              } else {
-                                assignStaff(user.id, value, 'primary');
-                              }
+                              if (value) assignStaff(user.id, value, 'primary');
                             }}
                           >
                             <SelectTrigger className="h-8 text-xs bg-white">
-                              <SelectValue placeholder="Select primary staff..." />
+                              <SelectValue placeholder="Add primary staff..." />
                             </SelectTrigger>
                             <SelectContent className="bg-white z-50">
-                              {user.primaryStaffId && (
-                                <SelectItem value="__clear__" className="text-orange-600">
-                                  Clear selection
-                                </SelectItem>
-                              )}
-                              {getRankedStaff(user, user.backupStaffIds).map(({ staff: s, score }) => (
+                              {getRankedStaff(user, [...user.primaryStaffIds, ...user.backupStaffIds]).map(({ staff: s, score }) => (
                                 <SelectItem key={s.id} value={s.id}>
                                   <div className="flex items-center justify-between gap-2 w-full">
                                     <span>{s.name}</span>
@@ -662,7 +667,7 @@ export const Matching = () => {
                               <SelectValue placeholder="Add backup staff..." />
                             </SelectTrigger>
                             <SelectContent className="bg-white z-50">
-                              {getRankedStaff(user, [user.primaryStaffId || '', ...user.backupStaffIds]).map(({ staff: s, score }) => (
+                              {getRankedStaff(user, [...user.primaryStaffIds, ...user.backupStaffIds]).map(({ staff: s, score }) => (
                                 <SelectItem key={s.id} value={s.id}>
                                   <div className="flex items-center justify-between gap-2 w-full">
                                     <span>{s.name}</span>
@@ -951,7 +956,13 @@ export const Matching = () => {
                           </TableCell>
                           <TableCell>{user.location}</TableCell>
                           <TableCell>
-                            {user.primaryStaffId ? <Badge className="bg-green-100 text-green-800">{getStaffById(user.primaryStaffId)?.name}</Badge> : <span className="text-orange-600 text-sm">Unassigned</span>}
+                            {user.primaryStaffIds.length > 0 ? (
+                              <div className="flex flex-wrap gap-1">
+                                {user.primaryStaffIds.map(id => (
+                                  <Badge key={id} className="bg-green-100 text-green-800">{getStaffById(id)?.name}</Badge>
+                                ))}
+                              </div>
+                            ) : <span className="text-orange-600 text-sm">Unassigned</span>}
                           </TableCell>
                           <TableCell>
                             <div className="flex flex-wrap gap-1">
