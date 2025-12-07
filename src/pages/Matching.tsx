@@ -1395,7 +1395,37 @@ export const Matching = () => {
                     <TableBody>
                       {staff.map(s => <TableRow key={s.id}>
                           <TableCell className="font-medium">{s.name}</TableCell>
-                          <TableCell>{s.location}</TableCell>
+                          <TableCell>
+                            <Select 
+                              value={s.location} 
+                              onValueChange={(value) => {
+                                if (value === "__add_new__") {
+                                  const newLocation = prompt("Enter new location:");
+                                  if (newLocation && newLocation.trim()) {
+                                    setStaff(prev => prev.map(staff => staff.id === s.id ? {
+                                      ...staff,
+                                      location: newLocation.trim()
+                                    } : staff));
+                                  }
+                                } else {
+                                  setStaff(prev => prev.map(staff => staff.id === s.id ? {
+                                    ...staff,
+                                    location: value
+                                  } : staff));
+                                }
+                              }}
+                            >
+                              <SelectTrigger className="h-8 w-40 bg-white">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent className="bg-white z-50">
+                                {locations.map(loc => (
+                                  <SelectItem key={loc} value={loc}>{loc}</SelectItem>
+                                ))}
+                                <SelectItem value="__add_new__">+ Add New Location</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </TableCell>
                           <TableCell>
                             <Input 
                               type="number" 
