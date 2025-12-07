@@ -1067,6 +1067,7 @@ export const Matching = () => {
                       <TableRow>
                         <TableHead>Name</TableHead>
                         <TableHead>Support Needs</TableHead>
+                        <TableHead>Interests</TableHead>
                         <TableHead>Location</TableHead>
                         <TableHead>Primary Staff</TableHead>
                         <TableHead>Backup Staff</TableHead>
@@ -1129,6 +1130,12 @@ export const Matching = () => {
                                 {user.supportNeeds.slice(0, 2).map(need => <Badge key={need} variant="secondary" className="text-xs">{need}</Badge>)}
                                 {user.supportNeeds.length > 2 && <Badge variant="outline" className="text-xs">+{user.supportNeeds.length - 2}</Badge>}
                               </div>}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex flex-wrap gap-1">
+                              {user.preferences.slice(0, 2).map(pref => <Badge key={pref} variant="outline" className="text-xs">{pref}</Badge>)}
+                              {user.preferences.length > 2 && <Badge variant="outline" className="text-xs">+{user.preferences.length - 2}</Badge>}
+                            </div>
                           </TableCell>
                           <TableCell>
                             {editingCell?.id === user.id && editingCell?.field === 'location' && editingCell?.type === 'user' ? <div className="flex gap-1">
@@ -1290,6 +1297,7 @@ export const Matching = () => {
                       <TableRow>
                         <TableHead>Name</TableHead>
                         <TableHead>Skills</TableHead>
+                        <TableHead>Interests</TableHead>
                         <TableHead>Location</TableHead>
                         <TableHead>Status</TableHead>
                         <TableHead>Role Type</TableHead>
@@ -1303,6 +1311,12 @@ export const Matching = () => {
                             <div className="flex flex-wrap gap-1">
                               {s.skills.slice(0, 2).map(skill => <Badge key={skill} variant="secondary" className="text-xs">{skill}</Badge>)}
                               {s.skills.length > 2 && <Badge variant="outline" className="text-xs">+{s.skills.length - 2}</Badge>}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex flex-wrap gap-1">
+                              {s.interests.slice(0, 2).map(interest => <Badge key={interest} variant="outline" className="text-xs">{interest}</Badge>)}
+                              {s.interests.length > 2 && <Badge variant="outline" className="text-xs">+{s.interests.length - 2}</Badge>}
                             </div>
                           </TableCell>
                           <TableCell>{s.location}</TableCell>
