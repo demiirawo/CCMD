@@ -470,6 +470,68 @@ export const Matching = () => {
 
           {/* Matching View */}
           <TabsContent value="diagram" className="space-y-6">
+            {/* Staff Utilisation Forecast at Top */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <BarChart3 className="h-5 w-5" />
+                  Staff Utilisation Forecast (6 Months)
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Month</TableHead>
+                      <TableHead className="text-right">Required Hours</TableHead>
+                      <TableHead className="text-right">Allocated Hours</TableHead>
+                      <TableHead className="text-right">Unallocated Hours</TableHead>
+                      <TableHead>Utilisation Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {MONTHS.slice(0, 6).map((month) => {
+                      const requiredHours = serviceUsers.reduce((sum, u) => sum + (u.forecastHours[month] || 0), 0);
+                      const availableHours = staff.filter(s => s.status === "Active").reduce((sum, s) => sum + (s.forecastHours[month] || 0), 0);
+                      const allocatedHours = serviceUsers.reduce((sum, u) => {
+                        const assignedStaffIds = [...u.primaryStaffIds, ...u.backupStaffIds];
+                        const assignedStaff = staff.filter(s => assignedStaffIds.includes(s.id) && s.status === "Active");
+                        return sum + assignedStaff.reduce((staffSum, s) => staffSum + (s.forecastHours[month] || 0), 0);
+                      }, 0);
+                      const utilisation = availableHours > 0 ? requiredHours / availableHours * 100 : 0;
+                      let statusColor = "bg-orange-100 text-orange-800";
+                      let statusText = "Underused – Moderate staff underutilisation";
+                      if (utilisation >= 70 && utilisation <= 100) {
+                        statusColor = "bg-green-100 text-green-800";
+                        statusText = "Optimal – Staff well utilised";
+                      } else if (utilisation > 100) {
+                        statusColor = "bg-red-100 text-red-800";
+                        statusText = "Overworked – Staff shortage risk";
+                      }
+                      return (
+                        <TableRow key={month}>
+                          <TableCell className="font-medium">{month}</TableCell>
+                          <TableCell className="text-right">{requiredHours.toFixed(1)}</TableCell>
+                          <TableCell className="text-right">{allocatedHours.toFixed(1)}</TableCell>
+                          <TableCell className="text-right">{availableHours.toFixed(1)}</TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm">Utilisation: {utilisation.toFixed(1)}%</span>
+                              <span className="text-muted-foreground">—</span>
+                              <Badge className={statusColor}>{statusText}</Badge>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+                <div className="mt-4 text-sm text-muted-foreground">
+                  {serviceUsers.length} service users • Sum of forecasted hours shown above
+                </div>
+              </CardContent>
+            </Card>
+
             {/* Print Button */}
             <div className="flex justify-end">
               <Button variant="outline" size="sm" onClick={() => window.print()}>
