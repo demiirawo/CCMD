@@ -676,13 +676,16 @@ export const Matching = () => {
                       }))];
                       const currentWeek = WEEKS[0]; // Current week for display
                       const userRequiredHours = user.forecastHours[currentWeek] || 0;
+                      // Calculate total allocated hours for this user
+                      const userAllocatedHours = user.staffAllocations.reduce((sum, alloc) => 
+                        sum + (alloc.allocatedHours[currentWeek] || 0), 0);
                       return <div key={user.id} className="rounded-lg p-4 print:p-2 bg-gray-50 border">
                                 <div className="flex items-start justify-between mb-2">
                                   <div className="flex-1">
                                     <div className="flex items-center gap-3">
                                       <span className="font-semibold text-base">{user.name}</span>
                                       <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full font-medium">
-                                        {userRequiredHours}h required ({currentWeek})
+                                        {userRequiredHours}h required ({userAllocatedHours}h allocated)
                                       </span>
                                     </div>
                                     <div className="text-sm text-muted-foreground mt-1">
