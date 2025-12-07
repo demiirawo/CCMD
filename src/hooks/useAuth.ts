@@ -44,7 +44,7 @@ interface AuthContextType {
   refreshProfile: () => void;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
@@ -321,26 +321,23 @@ export const useAuthProvider = (): AuthContextType => {
       }
     );
 
-    // THEN check for existing session - but only if we haven't already got one
+    // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!mounted) return;
       
       console.log('Initial session check:', session?.user?.id);
       
-      // Only update state if we don't already have this session
-      if (!user || user.id !== session?.user?.id) {
-        setSession(session);
-        setUser(session?.user ?? null);
-        setLoading(false);
-        
-        if (session?.user) {
-          setTimeout(() => {
-            if (!mounted) return;
-            fetchProfileOnce(session.user.id);
-          }, 0);
-        }
-      } else {
-        setLoading(false);
+      // Set session and user state
+      setSession(session);
+      setUser(session?.user ?? null);
+      setLoading(false);
+      
+      // Fetch profile if session exists
+      if (session?.user) {
+        setTimeout(() => {
+          if (!mounted) return;
+          fetchProfileOnce(session.user.id);
+        }, 0);
       }
     });
 
@@ -634,4 +631,4 @@ export const useAuthProvider = (): AuthContextType => {
   };
 };
 
-export { AuthContext };
+
