@@ -108,6 +108,7 @@ export const Matching = () => {
   // Form states
   const [newUserForm, setNewUserForm] = useState({
     name: "",
+    manager: "",
     location: "",
     typicalWeeklyHours: 0,
     supportNeeds: "",
@@ -116,6 +117,7 @@ export const Matching = () => {
   });
   const [newStaffForm, setNewStaffForm] = useState({
     name: "",
+    manager: "",
     location: "",
     typicalWeeklyHours: 40,
     gender: "Prefer not to say" as Gender,
@@ -147,6 +149,14 @@ export const Matching = () => {
     const allNeeds = serviceUsers.flatMap(u => u.supportNeeds);
     return [...new Set(allNeeds)];
   }, [serviceUsers]);
+
+  const managers = useMemo(() => {
+    const allManagers = [...new Set([
+      ...serviceUsers.map(u => u.manager),
+      ...staff.map(s => s.manager)
+    ])];
+    return allManagers.filter(Boolean);
+  }, [serviceUsers, staff]);
 
   const handleExportPDF = async () => {
     if (!printAreaRef.current) return;
@@ -501,6 +511,7 @@ export const Matching = () => {
     try {
       await addServiceUserToDb({
         name: newUserForm.name,
+        manager: newUserForm.manager || '',
         supportNeeds: newUserForm.supportNeeds.split(",").map(s => s.trim()).filter(Boolean),
         preferences: newUserForm.interests.split(",").map(s => s.trim()).filter(Boolean),
         genderPreference: newUserForm.genderPreference,
@@ -513,6 +524,7 @@ export const Matching = () => {
       });
       setNewUserForm({
         name: "",
+        manager: "",
         location: "",
         typicalWeeklyHours: 0,
         supportNeeds: "",
@@ -543,6 +555,7 @@ export const Matching = () => {
     try {
       await addStaffToDb({
         name: newStaffForm.name,
+        manager: newStaffForm.manager || '',
         gender: newStaffForm.gender,
         location: newStaffForm.location,
         availability: "Full-time",
@@ -553,6 +566,7 @@ export const Matching = () => {
       });
       setNewStaffForm({
         name: "",
+        manager: "",
         location: "",
         typicalWeeklyHours: 40,
         gender: "Prefer not to say",
@@ -1063,6 +1077,7 @@ export const Matching = () => {
                     <TableHeader>
                       <TableRow>
                         <TableHead>Name</TableHead>
+                        <TableHead>Manager</TableHead>
                         <TableHead>Location</TableHead>
                         <TableHead>Typical Weekly Hours</TableHead>
                         <TableHead>Gender Preference</TableHead>
@@ -1099,6 +1114,38 @@ export const Matching = () => {
                             setEditingCell(null);
                           }
                         }} autoFocus className="h-8 bg-white" /> : user.name}
+                          </TableCell>
+                          {/* Manager */}
+                          <TableCell>
+                            <Select 
+                              value={user.manager || ''} 
+                              onValueChange={(value) => {
+                                if (value === "__add_new__") {
+                                  const newManager = prompt("Enter new manager name:");
+                                  if (newManager && newManager.trim()) {
+                                    setServiceUsers(prev => prev.map(u => u.id === user.id ? {
+                                      ...u,
+                                      manager: newManager.trim()
+                                    } : u));
+                                  }
+                                } else {
+                                  setServiceUsers(prev => prev.map(u => u.id === user.id ? {
+                                    ...u,
+                                    manager: value
+                                  } : u));
+                                }
+                              }}
+                            >
+                              <SelectTrigger className="h-8 w-40 bg-white">
+                                <SelectValue placeholder="Select manager" />
+                              </SelectTrigger>
+                              <SelectContent className="bg-white z-50">
+                                {managers.map(mgr => (
+                                  <SelectItem key={mgr} value={mgr}>{mgr}</SelectItem>
+                                ))}
+                                <SelectItem value="__add_new__">+ Add New Manager</SelectItem>
+                              </SelectContent>
+                            </Select>
                           </TableCell>
                           {/* Location */}
                           <TableCell>
@@ -1561,6 +1608,7 @@ export const Matching = () => {
                     <TableHeader>
                       <TableRow>
                         <TableHead>Name</TableHead>
+                        <TableHead>Manager</TableHead>
                         <TableHead>Location</TableHead>
                         <TableHead>Typical Weekly Hours</TableHead>
                         <TableHead>Gender</TableHead>
@@ -1572,6 +1620,38 @@ export const Matching = () => {
                     <TableBody>
                       {staff.filter(s => staffLocationFilter === "all" || s.location === staffLocationFilter).map(s => <TableRow key={s.id}>
                           <TableCell className="font-medium">{s.name}</TableCell>
+                          {/* Manager */}
+                          <TableCell>
+                            <Select 
+                              value={s.manager || ''} 
+                              onValueChange={(value) => {
+                                if (value === "__add_new__") {
+                                  const newManager = prompt("Enter new manager name:");
+                                  if (newManager && newManager.trim()) {
+                                    setStaff(prev => prev.map(staff => staff.id === s.id ? {
+                                      ...staff,
+                                      manager: newManager.trim()
+                                    } : staff));
+                                  }
+                                } else {
+                                  setStaff(prev => prev.map(staff => staff.id === s.id ? {
+                                    ...staff,
+                                    manager: value
+                                  } : staff));
+                                }
+                              }}
+                            >
+                              <SelectTrigger className="h-8 w-40 bg-white">
+                                <SelectValue placeholder="Select manager" />
+                              </SelectTrigger>
+                              <SelectContent className="bg-white z-50">
+                                {managers.map(mgr => (
+                                  <SelectItem key={mgr} value={mgr}>{mgr}</SelectItem>
+                                ))}
+                                <SelectItem value="__add_new__">+ Add New Manager</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </TableCell>
                           <TableCell>
                             <Select 
                               value={s.location} 

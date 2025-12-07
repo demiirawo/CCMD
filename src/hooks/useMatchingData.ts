@@ -53,6 +53,7 @@ export type ContractType =
 export interface ServiceUser {
   id: string;
   name: string;
+  manager: string;
   supportNeeds: string[];
   preferences: string[];
   genderPreference: GenderPreference;
@@ -67,6 +68,7 @@ export interface ServiceUser {
 export interface Staff {
   id: string;
   name: string;
+  manager: string;
   gender: Gender;
   location: string;
   availability: string;
@@ -125,6 +127,7 @@ export const useMatchingData = () => {
       const transformedStaff: Staff[] = (staffData || []).map(s => ({
         id: s.id,
         name: s.name,
+        manager: s.manager || '',
         gender: s.gender as Gender,
         location: s.location,
         availability: 'Full-time',
@@ -138,6 +141,7 @@ export const useMatchingData = () => {
       const transformedUsers: ServiceUser[] = (usersData || []).map(u => ({
         id: u.id,
         name: u.name,
+        manager: u.manager || '',
         location: u.location,
         genderPreference: u.gender_preference as GenderPreference,
         supportNeeds: (u.support_needs as string[]) || [],
@@ -174,6 +178,7 @@ export const useMatchingData = () => {
           id: staffMember.id,
           company_id: companyId,
           name: staffMember.name,
+          manager: staffMember.manager,
           location: staffMember.location,
           gender: staffMember.gender,
           contract_type: staffMember.contractType,
@@ -200,6 +205,7 @@ export const useMatchingData = () => {
           id: user.id,
           company_id: companyId,
           name: user.name,
+          manager: user.manager,
           location: user.location,
           gender_preference: user.genderPreference,
           support_needs: user.supportNeeds as unknown as null,
@@ -264,6 +270,7 @@ export const useMatchingData = () => {
         .insert({
           company_id: companyId,
           name: newStaff.name,
+          manager: newStaff.manager,
           location: newStaff.location,
           gender: newStaff.gender,
           contract_type: newStaff.contractType,
@@ -279,6 +286,7 @@ export const useMatchingData = () => {
       const staffMember: Staff = {
         id: data.id,
         name: data.name,
+        manager: data.manager || '',
         gender: data.gender as Gender,
         location: data.location,
         availability: 'Full-time',
@@ -306,6 +314,7 @@ export const useMatchingData = () => {
         .insert({
           company_id: companyId,
           name: newUser.name,
+          manager: newUser.manager,
           location: newUser.location,
           gender_preference: newUser.genderPreference,
           support_needs: newUser.supportNeeds as unknown as null,
@@ -324,6 +333,7 @@ export const useMatchingData = () => {
       const user: ServiceUser = {
         id: data.id,
         name: data.name,
+        manager: data.manager || '',
         location: data.location,
         genderPreference: data.gender_preference as GenderPreference,
         supportNeeds: (data.support_needs as string[]) || [],
