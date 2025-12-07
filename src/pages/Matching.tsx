@@ -575,29 +575,42 @@ export const Matching = () => {
                   </Button>
                 </div>
                 
-                {filteredServiceUsers.map(user => <Card key={user.id} ref={el => {
+                {filteredServiceUsers.map(user => <div key={user.id} ref={el => {
                 if (el) userCardRefs.current.set(user.id, el);else userCardRefs.current.delete(user.id);
-              }} className={`cursor-pointer transition-all ${selectedServiceUser?.id === user.id ? 'ring-2 ring-primary' : 'hover:shadow-md'}`} onClick={() => setSelectedServiceUser(user)}>
-                    <CardContent className="pt-4">
-                      <div className="flex items-start justify-between mb-2">
-                        <h3 className="font-semibold">{user.name}</h3>
-                        <div className="flex gap-1">
-                          <Button variant="ghost" size="icon" className="h-6 w-6" onClick={e => {
-                        e.stopPropagation();
-                        handleDeleteUser(user.id);
-                      }}>
-                            <Trash2 className="h-3 w-3" />
-                          </Button>
+              }} className="relative pt-10">
+                    {/* Profile Avatar Circle */}
+                    <div className="absolute left-1/2 -translate-x-1/2 top-0 z-10">
+                      <div className="w-16 h-16 rounded-full bg-primary/10 border-4 border-background shadow-lg flex items-center justify-center">
+                        <span className="text-xl font-bold text-primary">{user.name.charAt(0)}</span>
+                      </div>
+                    </div>
+                    
+                    <Card className={`cursor-pointer transition-all rounded-3xl overflow-hidden ${selectedServiceUser?.id === user.id ? 'ring-2 ring-primary' : 'hover:shadow-md'}`} onClick={() => setSelectedServiceUser(user)}>
+                      {/* Header Section with color background */}
+                      <div className="bg-primary/10 pt-8 pb-3 px-4">
+                        <div className="flex flex-wrap gap-1 justify-center">
+                          {user.supportNeeds.slice(0, 2).map(need => <Badge key={need} variant="secondary" className="text-xs">{need}</Badge>)}
+                          {user.supportNeeds.length > 2 && <Badge variant="outline" className="text-xs bg-background">+{user.supportNeeds.length - 2}</Badge>}
                         </div>
                       </div>
-                      <div className="flex items-center gap-1 text-sm text-muted-foreground mb-2">
-                        <MapPin className="h-3 w-3" />
-                        {user.location}
-                      </div>
-                      <div className="flex flex-wrap gap-1 mb-3">
-                        {user.supportNeeds.slice(0, 2).map(need => <Badge key={need} variant="secondary" className="text-xs">{need}</Badge>)}
-                        {user.supportNeeds.length > 2 && <Badge variant="outline" className="text-xs">+{user.supportNeeds.length - 2}</Badge>}
-                      </div>
+                      
+                      {/* Content Section */}
+                      <CardContent className="pt-3">
+                        <div className="flex items-start justify-between mb-2">
+                          <h3 className="font-semibold">{user.name}</h3>
+                          <div className="flex gap-1">
+                            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={e => {
+                          e.stopPropagation();
+                          handleDeleteUser(user.id);
+                        }}>
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1 text-sm text-muted-foreground mb-3">
+                          <MapPin className="h-3 w-3" />
+                          {user.location}
+                        </div>
                       
                       {/* Staff assignments with dropdowns */}
                       <div className="space-y-3 pt-2 border-t" onClick={e => e.stopPropagation()}>
@@ -659,8 +672,9 @@ export const Matching = () => {
                           </Select>
                         </div>
                       </div>
-                    </CardContent>
-                  </Card>)}
+                      </CardContent>
+                    </Card>
+                  </div>)}
               </div>
 
               {/* Connection Diagram (Middle) */}
@@ -683,35 +697,49 @@ export const Matching = () => {
                   </Button>
                 </div>
                 
-                {staff.map(s => <Card key={s.id} ref={el => {
+                {staff.map(s => <div key={s.id} ref={el => {
                 if (el) staffCardRefs.current.set(s.id, el);else staffCardRefs.current.delete(s.id);
-              }} className={`cursor-pointer transition-all ${selectedStaff?.id === s.id ? 'ring-2 ring-primary' : 'hover:shadow-md'}`} onClick={() => setSelectedStaff(s)}>
-                    <CardContent className="pt-4">
-                      <div className="flex items-start justify-between mb-2">
-                        <h3 className="font-semibold">{s.name}</h3>
-                        <div className="flex gap-1 items-center">
-                          <Badge variant={s.roleType === 'Primary' ? 'default' : s.roleType === 'Backup' ? 'secondary' : 'outline'} className="text-xs">
-                            {s.roleType}
-                          </Badge>
-                          <Button variant="ghost" size="icon" className="h-6 w-6" onClick={e => {
-                        e.stopPropagation();
-                        handleDeleteStaff(s.id);
-                      }}>
-                            <Trash2 className="h-3 w-3" />
-                          </Button>
+              }} className="relative pt-10">
+                    {/* Profile Avatar Circle */}
+                    <div className="absolute left-1/2 -translate-x-1/2 top-0 z-10">
+                      <div className="w-16 h-16 rounded-full bg-secondary/50 border-4 border-background shadow-lg flex items-center justify-center">
+                        <span className="text-xl font-bold text-secondary-foreground">{s.name.charAt(0)}</span>
+                      </div>
+                    </div>
+                    
+                    <Card className={`cursor-pointer transition-all rounded-3xl overflow-hidden ${selectedStaff?.id === s.id ? 'ring-2 ring-primary' : 'hover:shadow-md'}`} onClick={() => setSelectedStaff(s)}>
+                      {/* Header Section with color background */}
+                      <div className="bg-secondary/30 pt-8 pb-3 px-4">
+                        <div className="flex flex-wrap gap-1 justify-center">
+                          {s.skills.slice(0, 2).map(skill => <Badge key={skill} variant="outline" className="text-xs bg-background">{skill}</Badge>)}
+                          {s.skills.length > 2 && <Badge variant="outline" className="text-xs bg-background">+{s.skills.length - 2}</Badge>}
                         </div>
                       </div>
-                      <div className="flex items-center gap-1 text-sm text-muted-foreground mb-1">
-                        <MapPin className="h-3 w-3" />
-                        {s.location}
-                      </div>
-                      <p className="text-xs text-muted-foreground mb-2">{s.availability}</p>
-                      <div className="flex flex-wrap gap-1">
-                        {s.skills.slice(0, 2).map(skill => <Badge key={skill} variant="outline" className="text-xs">{skill}</Badge>)}
-                        {s.skills.length > 2 && <Badge variant="outline" className="text-xs">+{s.skills.length - 2}</Badge>}
-                      </div>
-                    </CardContent>
-                  </Card>)}
+                      
+                      {/* Content Section */}
+                      <CardContent className="pt-3">
+                        <div className="flex items-start justify-between mb-2">
+                          <h3 className="font-semibold">{s.name}</h3>
+                          <div className="flex gap-1 items-center">
+                            <Badge variant={s.roleType === 'Primary' ? 'default' : s.roleType === 'Backup' ? 'secondary' : 'outline'} className="text-xs">
+                              {s.roleType}
+                            </Badge>
+                            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={e => {
+                          e.stopPropagation();
+                          handleDeleteStaff(s.id);
+                        }}>
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1 text-sm text-muted-foreground mb-1">
+                          <MapPin className="h-3 w-3" />
+                          {s.location}
+                        </div>
+                        <p className="text-xs text-muted-foreground">{s.availability}</p>
+                      </CardContent>
+                    </Card>
+                  </div>)}
               </div>
             </div>
           </TabsContent>
