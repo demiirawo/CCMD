@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, useRef, useEffect } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,8 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Search, Plus, MapPin, Lightbulb, X, Edit2, Trash2, TrendingUp, BarChart3, Printer } from "lucide-react";
-import { Switch } from "@/components/ui/switch";
+import { Search, Plus, MapPin, X, Edit2, Trash2, BarChart3, Printer } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
@@ -231,18 +230,7 @@ export const Matching = () => {
   } | null>(null);
   const [editValue, setEditValue] = useState<string>("");
 
-  // Refs for line drawing
-  const containerRef = useRef<HTMLDivElement>(null);
-  const userCardRefs = useRef<Map<string, HTMLDivElement>>(new Map());
-  const staffCardRefs = useRef<Map<string, HTMLDivElement>>(new Map());
-  const [linePositions, setLinePositions] = useState<Array<{
-    id: string;
-    x1: number;
-    y1: number;
-    x2: number;
-    y2: number;
-    type: 'primary' | 'backup';
-  }>>([]);
+
 
   // Form states
   const [newUserForm, setNewUserForm] = useState({
@@ -275,81 +263,6 @@ export const Matching = () => {
     });
   }, [serviceUsers, searchTerm, locationFilter, supportTypeFilter]);
 
-  // Calculate line positions based on actual DOM elements
-  const updateLinePositions = useCallback(() => {
-    if (!containerRef.current) return;
-    const containerRect = containerRef.current.getBoundingClientRect();
-    const newLines: typeof linePositions = [];
-    filteredServiceUsers.forEach(user => {
-      const userCard = userCardRefs.current.get(user.id);
-      if (!userCard) return;
-      const userRect = userCard.getBoundingClientRect();
-      const userY = userRect.top + userRect.height / 2 - containerRect.top;
-      const userX = userRect.right - containerRect.left;
-
-      // Primary staff connections
-      user.primaryStaffIds.forEach(primaryId => {
-        const staffCard = staffCardRefs.current.get(primaryId);
-        if (staffCard) {
-          const staffRect = staffCard.getBoundingClientRect();
-          const staffY = staffRect.top + staffRect.height / 2 - containerRect.top;
-          const staffX = staffRect.left - containerRect.left;
-          newLines.push({
-            id: `primary-${user.id}-${primaryId}`,
-            x1: userX,
-            y1: userY,
-            x2: staffX,
-            y2: staffY,
-            type: 'primary'
-          });
-        }
-      });
-
-      // Backup staff connections
-      user.backupStaffIds.forEach(backupId => {
-        const staffCard = staffCardRefs.current.get(backupId);
-        if (staffCard) {
-          const staffRect = staffCard.getBoundingClientRect();
-          const staffY = staffRect.top + staffRect.height / 2 - containerRect.top;
-          const staffX = staffRect.left - containerRect.left;
-          newLines.push({
-            id: `backup-${user.id}-${backupId}`,
-            x1: userX,
-            y1: userY,
-            x2: staffX,
-            y2: staffY,
-            type: 'backup'
-          });
-        }
-      });
-    });
-    setLinePositions(newLines);
-  }, [filteredServiceUsers, linePositions]);
-
-  // Update lines when data changes or on resize
-  useEffect(() => {
-    updateLinePositions();
-    const handleResize = () => {
-      requestAnimationFrame(updateLinePositions);
-    };
-    window.addEventListener('resize', handleResize);
-
-    // Use ResizeObserver for container size changes
-    const resizeObserver = new ResizeObserver(handleResize);
-    if (containerRef.current) {
-      resizeObserver.observe(containerRef.current);
-    }
-    return () => {
-      window.removeEventListener('resize', handleResize);
-      resizeObserver.disconnect();
-    };
-  }, [updateLinePositions, serviceUsers, staff]);
-
-  // Delayed update after render
-  useEffect(() => {
-    const timer = setTimeout(updateLinePositions, 100);
-    return () => clearTimeout(timer);
-  }, [filteredServiceUsers, staff, updateLinePositions]);
   const calculateMatchScore = useCallback((user: ServiceUser, staffMember: Staff): number => {
     let score = 0;
 
@@ -555,34 +468,90 @@ export const Matching = () => {
             <TabsTrigger value="staff">Staff</TabsTrigger>
           </TabsList>
 
-          {/* Visual Diagram View */}
+          {/* Matching View */}
           <TabsContent value="diagram" className="space-y-6">
-            {/* View Toggle */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <span className="text-sm font-medium">Visual View</span>
-                <Switch checked={compactView} onCheckedChange={setCompactView} />
-                <span className="text-sm font-medium">Print Friendly</span>
-              </div>
-              {compactView && <Button variant="outline" size="sm" onClick={() => window.print()}>
-                  <Printer className="h-4 w-4 mr-2" />
-                  Print
-                </Button>}
+            {/* Print Button at Top */}
+            <div className="flex justify-end print:hidden">
+              <Button variant="outline" size="sm" onClick={() => window.print()}>
+                <Printer className="h-4 w-4 mr-2" />
+                Print
+              </Button>
             </div>
 
-            {compactView ? (/* Compact Print-Friendly View */
-          <div className="print:p-0" style={{
-            fontSize: '10px'
-          }}>
-                <style>{`
-                  @media print {
-                    body * { visibility: hidden; }
-                    .compact-print-view, .compact-print-view * { visibility: visible; }
-                    .compact-print-view { position: absolute; left: 0; top: 0; width: 100%; }
-                    @page { size: A4; margin: 10mm; }
-                  }
-                `}</style>
-                <div className="compact-print-view space-y-4">
+            {/* Print Area - includes both Utilisation Forecast and Matching View */}
+            <div className="print:p-0" style={{ fontSize: '10px' }}>
+              <style>{`
+                @media print {
+                  body * { visibility: hidden; }
+                  .print-area, .print-area * { visibility: visible; }
+                  .print-area { position: absolute; left: 0; top: 0; width: 100%; }
+                  .print-hidden { display: none !important; }
+                  @page { size: A4; margin: 10mm; }
+                }
+              `}</style>
+              <div className="print-area space-y-4">
+                {/* Staff Utilisation Forecast */}
+                <Card>
+                  <CardHeader className="py-2">
+                    <CardTitle className="flex items-center gap-2 text-sm">
+                      <BarChart3 className="h-4 w-4" />
+                      Staff Utilisation Forecast (6 Months)
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="py-2">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="text-xs py-1">Month</TableHead>
+                          <TableHead className="text-xs py-1 text-right">Required Hours</TableHead>
+                          <TableHead className="text-xs py-1 text-right">Allocated Hours</TableHead>
+                          <TableHead className="text-xs py-1 text-right">Unallocated Hours</TableHead>
+                          <TableHead className="text-xs py-1">Utilisation Status</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {MONTHS.slice(0, 6).map((month) => {
+                          const requiredHours = serviceUsers.reduce((sum, u) => sum + (u.forecastHours[month] || 0), 0);
+                          const availableHours = staff.filter(s => s.status === "Active").reduce((sum, s) => sum + (s.forecastHours[month] || 0), 0);
+                          const allocatedHours = serviceUsers.reduce((sum, u) => {
+                            const assignedStaffIds = [...u.primaryStaffIds, ...u.backupStaffIds];
+                            const assignedStaff = staff.filter(s => assignedStaffIds.includes(s.id) && s.status === "Active");
+                            return sum + assignedStaff.reduce((staffSum, s) => staffSum + (s.forecastHours[month] || 0), 0);
+                          }, 0);
+                          const utilisation = availableHours > 0 ? requiredHours / availableHours * 100 : 0;
+                          let statusColor = "bg-orange-100 text-orange-800";
+                          let statusText = "Underused – Moderate staff underutilisation";
+                          if (utilisation >= 70 && utilisation <= 100) {
+                            statusColor = "bg-green-100 text-green-800";
+                            statusText = "Optimal – Staff well utilised";
+                          } else if (utilisation > 100) {
+                            statusColor = "bg-red-100 text-red-800";
+                            statusText = "Overworked – Staff shortage risk";
+                          }
+                          return (
+                            <TableRow key={month}>
+                              <TableCell className="font-medium text-xs py-1">{month}</TableCell>
+                              <TableCell className="text-right text-xs py-1">{requiredHours.toFixed(1)}</TableCell>
+                              <TableCell className="text-right text-xs py-1">{allocatedHours.toFixed(1)}</TableCell>
+                              <TableCell className="text-right text-xs py-1">{availableHours.toFixed(1)}</TableCell>
+                              <TableCell className="py-1">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-xs">Utilisation: {utilisation.toFixed(1)}%</span>
+                                  <span className="text-muted-foreground">—</span>
+                                  <Badge className={`${statusColor} text-xs`}>{statusText}</Badge>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
+                      </TableBody>
+                    </Table>
+                    <div className="mt-2 text-xs text-muted-foreground">
+                      {serviceUsers.length} service users • Sum of forecasted hours shown above
+                    </div>
+                  </CardContent>
+                </Card>
+
                   
                   {locations.map(location => {
                 const locationUsers = serviceUsers.filter(u => u.location === location);
@@ -703,178 +672,7 @@ export const Matching = () => {
                       </div>;
               })}
                 </div>
-              </div>) : <div ref={containerRef} className="grid grid-cols-1 lg:grid-cols-3 gap-6 relative">
-              {/* SVG for connection lines - spans the entire grid */}
-              <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{
-              zIndex: 10
-            }}>
-                {linePositions.map(line => <g key={line.id}>
-                    <line x1={line.x1} y1={line.y1} x2={line.x2} y2={line.y2} stroke="#3b82f6" strokeWidth={line.type === 'primary' ? 3 : 2} strokeDasharray={line.type === 'backup' ? '5,5' : undefined} className="transition-all duration-300" />
-                    {/* Start circle connector */}
-                    <circle cx={line.x1} cy={line.y1} r={6} fill="#3b82f6" className="transition-all duration-300" />
-                    {/* End circle connector */}
-                    <circle cx={line.x2} cy={line.y2} r={6} fill="#3b82f6" className="transition-all duration-300" />
-                  </g>)}
-              </svg>
-
-              {/* Service Users Column */}
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-lg font-semibold flex items-center gap-2">
-                    Service Users
-                  </h2>
-                  <Button size="sm" variant="outline" onClick={() => setIsAddUserOpen(true)}>
-                    <Plus className="h-4 w-4 mr-1" />
-                    Add
-                  </Button>
-                </div>
-                
-                {filteredServiceUsers.map(user => <div key={user.id} ref={el => {
-                if (el) userCardRefs.current.set(user.id, el);else userCardRefs.current.delete(user.id);
-              }} className="relative pt-10">
-                    {/* Profile Avatar Circle */}
-                    <div className="absolute left-1/2 -translate-x-1/2 top-0 z-10">
-                      <div className="w-16 h-16 rounded-full bg-primary/10 border-4 border-background shadow-lg flex items-center justify-center">
-                        <span className="text-xl font-bold text-primary">{user.name.charAt(0)}</span>
-                      </div>
-                    </div>
-                    
-                    <Card className={`cursor-pointer transition-all rounded-3xl overflow-hidden ${selectedServiceUser?.id === user.id ? 'ring-2 ring-primary' : 'hover:shadow-md'}`} onClick={() => setSelectedServiceUser(user)}>
-                      {/* Header Section with color background */}
-                      <div className="pt-8 pb-3 px-4 bg-[#ffbf9f]">
-                      </div>
-                      
-                      {/* Content Section */}
-                      <CardContent className="pt-3">
-                        <div className="flex items-start justify-between mb-2">
-                          <h3 className="font-semibold">{user.name}</h3>
-                          <div className="flex gap-1">
-                            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={e => {
-                          e.stopPropagation();
-                          handleDeleteUser(user.id);
-                        }}>
-                              <Trash2 className="h-3 w-3" />
-                            </Button>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-1 text-sm text-muted-foreground mb-2">
-                          <MapPin className="h-3 w-3" />
-                          {user.location}
-                        </div>
-                        {/* Support needs tags - two rows */}
-                        <div className="flex flex-wrap gap-1 justify-center mb-3">
-                          {user.supportNeeds.slice(0, 6).map(need => <Badge key={need} variant="secondary" className="text-xs">{need}</Badge>)}
-                          {user.supportNeeds.length > 6 && <Badge variant="outline" className="text-xs bg-background">+{user.supportNeeds.length - 6}</Badge>}
-                        </div>
-                      
-                      {/* Staff assignments with dropdowns */}
-                      <div className="space-y-3 pt-2 border-t" onClick={e => e.stopPropagation()}>
-                        {/* Primary Staff Multi-Select */}
-                        <div className="space-y-1">
-                          <span className="text-xs font-medium text-muted-foreground">Primary Staff:</span>
-                          <div className="flex flex-wrap gap-1 mb-1">
-                            {user.primaryStaffIds.map(sid => <Badge key={sid} className="cursor-pointer text-xs bg-green-100 text-green-800 hover:bg-green-200" onClick={() => unassignStaff(user.id, sid, 'primary')}>
-                                {getStaffById(sid)?.name}
-                                <X className="h-3 w-3 ml-1" />
-                              </Badge>)}
-                          </div>
-                          <SearchableStaffSelect options={getRankedStaff(user, [...user.primaryStaffIds, ...user.backupStaffIds]).map(({
-                          staff: s,
-                          score
-                        }) => ({
-                          id: s.id,
-                          name: s.name,
-                          score
-                        }))} onSelect={value => assignStaff(user.id, value, 'primary')} placeholder="Add primary staff..." className="w-[200px]" />
-                        </div>
-                        
-                        {/* Backup Staff Multi-Select */}
-                        <div className="space-y-1">
-                          <span className="text-xs font-medium text-muted-foreground">Backup Staff:</span>
-                          <div className="flex flex-wrap gap-1 mb-1">
-                            {user.backupStaffIds.map(sid => <Badge key={sid} variant="outline" className="cursor-pointer text-xs" onClick={() => unassignStaff(user.id, sid, 'backup')}>
-                                {getStaffById(sid)?.name}
-                                <X className="h-3 w-3 ml-1" />
-                              </Badge>)}
-                          </div>
-                          <SearchableStaffSelect options={getRankedStaff(user, [...user.primaryStaffIds, ...user.backupStaffIds]).map(({
-                          staff: s,
-                          score
-                        }) => ({
-                          id: s.id,
-                          name: s.name,
-                          score
-                        }))} onSelect={value => assignStaff(user.id, value, 'backup')} placeholder="Add backup staff..." className="w-[200px]" />
-                        </div>
-                      </div>
-                      </CardContent>
-                    </Card>
-                  </div>)}
               </div>
-
-              {/* Connection Diagram (Middle) */}
-              <div className="relative min-h-[400px] flex flex-col items-center justify-center">
-                {selectedServiceUser && <Card className="text-left">
-                  
-                  
-                </Card>}
-              </div>
-
-              {/* Staff Column */}
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-lg font-semibold flex items-center gap-2">
-                    Support Staff
-                  </h2>
-                  <Button size="sm" variant="outline" onClick={() => setIsAddStaffOpen(true)}>
-                    <Plus className="h-4 w-4 mr-1" />
-                    Add
-                  </Button>
-                </div>
-                
-                {staff.map(s => <div key={s.id} ref={el => {
-                if (el) staffCardRefs.current.set(s.id, el);else staffCardRefs.current.delete(s.id);
-              }} className="relative pt-10">
-                    {/* Profile Avatar Circle */}
-                    <div className="absolute left-1/2 -translate-x-1/2 top-0 z-10">
-                      <div className="w-16 h-16 rounded-full bg-secondary/50 border-4 border-background shadow-lg flex items-center justify-center">
-                        <span className="text-xl font-bold text-secondary-foreground">{s.name.charAt(0)}</span>
-                      </div>
-                    </div>
-                    
-                    <Card className={`cursor-pointer transition-all rounded-3xl overflow-hidden ${selectedStaff?.id === s.id ? 'ring-2 ring-primary' : 'hover:shadow-md'}`} onClick={() => setSelectedStaff(s)}>
-                      {/* Header Section with color background */}
-                      <div className="pt-8 pb-3 px-4 bg-[#3b0fd9]/30">
-                      </div>
-                      
-                      {/* Content Section */}
-                      <CardContent className="pt-3">
-                        <div className="flex items-start justify-between mb-2">
-                          <h3 className="font-semibold">{s.name}</h3>
-                          <div className="flex gap-1 items-center">
-                            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={e => {
-                          e.stopPropagation();
-                          handleDeleteStaff(s.id);
-                        }}>
-                              <Trash2 className="h-3 w-3" />
-                            </Button>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-1 text-sm text-muted-foreground mb-1">
-                          <MapPin className="h-3 w-3" />
-                          {s.location}
-                        </div>
-                        <p className="text-xs text-muted-foreground mb-2">{s.availability}</p>
-                        {/* Skills tags - two rows */}
-                        <div className="flex flex-wrap gap-1 justify-center">
-                          {s.skills.slice(0, 6).map(skill => <Badge key={skill} variant="outline" className="text-xs bg-primary/10">{skill}</Badge>)}
-                          {s.skills.length > 6 && <Badge variant="outline" className="text-xs bg-primary/10">+{s.skills.length - 6}</Badge>}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </div>)}
-              </div>
-            </div>}
           </TabsContent>
 
           {/* Utilisation Tab */}
@@ -1141,9 +939,8 @@ export const Matching = () => {
             {/* Service Users Forecast Hours Table */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">Required Hours
-
-                <TrendingUp className="h-5 w-5" />
+                <CardTitle className="flex items-center gap-2">
+                  <BarChart3 className="h-5 w-5" />
                   Service User Hours Forecast (12 Months)
                 </CardTitle>
               </CardHeader>

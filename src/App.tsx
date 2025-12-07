@@ -1,15 +1,14 @@
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Navigation } from "./components/Navigation";
 import { AuthProvider } from "./components/AuthProvider";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { DataIsolationWrapper } from "./components/DataIsolationWrapper";
-import { useAuth } from "@/hooks/useAuth";
+import { RootRedirect } from "./components/RootRedirect";
 
 import { useTheme } from "./hooks/useTheme";
 import Index from "./pages/Index";
-import Landing from "./pages/Landing";
 
 import { Reports } from "./pages/Reports";
 import { QuarterlyReport } from "./pages/QuarterlyReport";
@@ -31,7 +30,6 @@ const queryClient = new QueryClient();
 const AppContent = () => {
   console.log('AppContent rendering, pathname:', window.location.pathname);
   useTheme(); // Apply theme across all pages
-  console.log('About to render Routes');
   
   return (
     <Routes>
@@ -48,40 +46,7 @@ const AppContent = () => {
           <CompanyDashboard />
         </DataIsolationWrapper>
       } />
-      <Route path="/" element={
-        <>
-          {console.log('Root route "/" matched, rendering Landing')}
-          {(() => {
-            console.log('Inline component executing');
-            const { user, profile, companies, loading } = useAuth();
-            console.log('Inline auth state:', { user: !!user, profile: !!profile, companies: companies.length, loading });
-            
-            if (loading) {
-              return (
-                <div className="min-h-screen flex items-center justify-center">
-                  <div className="text-center">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-                    <p>Loading...</p>
-                  </div>
-                </div>
-              );
-            }
-            
-            if (user && profile && profile.company_id && companies.length > 0) {
-              const currentCompany = companies.find(c => c.id === profile.company_id);
-              if (currentCompany) {
-                const slug = ('slug' in currentCompany && currentCompany.slug) || 
-                           currentCompany.name.toLowerCase().replace(/\s+/g, '-');
-                console.log('Redirecting to company dashboard:', slug);
-                return <Navigate to={`/company/${slug}`} replace />;
-              }
-            }
-            
-            console.log('Redirecting to company selection');
-            return <Navigate to="/company-selection" replace />;
-          })()}
-        </>
-      } />
+      <Route path="/" element={<RootRedirect />} />
       <Route path="/shared/:token" element={<SharedTable />} />
       <Route path="/public/:tableId" element={<PublicTable />} />
       <Route path="/meetings" element={
