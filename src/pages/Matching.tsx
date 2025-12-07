@@ -592,7 +592,7 @@ export const Matching = () => {
                   }
                 `}</style>
                 <div className="compact-print-view space-y-4">
-                  <h2 className="text-lg font-bold text-center mb-4 print:text-base">Staff Allocation by Location</h2>
+                  
                   {locations.map(location => {
                 const locationUsers = serviceUsers.filter(u => u.location === location);
                 const locationStaff = staff.filter(s => s.location === location);
