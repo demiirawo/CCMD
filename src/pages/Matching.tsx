@@ -14,26 +14,34 @@ import { useToast } from "@/hooks/use-toast";
 import { Progress } from "@/components/ui/progress";
 import { SearchableStaffSelect } from "@/components/SearchableStaffSelect";
 
-// Generate month names for the next 12 months
-const getNext12Months = () => {
-  const months: string[] = [];
+// Generate week labels for the next 8 weeks
+const getNext8Weeks = () => {
+  const weeks: string[] = [];
   const now = new Date();
-  for (let i = 0; i < 12; i++) {
-    const date = new Date(now.getFullYear(), now.getMonth() + i, 1);
-    months.push(date.toLocaleDateString('en-GB', {
-      month: 'short',
-      year: '2-digit'
+  // Start from the beginning of the current week (Monday)
+  const startOfWeek = new Date(now);
+  const day = startOfWeek.getDay();
+  const diff = startOfWeek.getDate() - day + (day === 0 ? -6 : 1); // Adjust when day is Sunday
+  startOfWeek.setDate(diff);
+  startOfWeek.setHours(0, 0, 0, 0);
+  
+  for (let i = 0; i < 8; i++) {
+    const weekStart = new Date(startOfWeek);
+    weekStart.setDate(startOfWeek.getDate() + (i * 7));
+    weeks.push(weekStart.toLocaleDateString('en-GB', {
+      day: '2-digit',
+      month: 'short'
     }));
   }
-  return months;
+  return weeks;
 };
-const MONTHS = getNext12Months();
-interface MonthlyForecast {
-  [month: string]: number;
+const WEEKS = getNext8Weeks();
+interface WeeklyForecast {
+  [week: string]: number;
 }
 interface StaffAllocation {
   staffId: string;
-  allocatedHours: MonthlyForecast;
+  allocatedHours: WeeklyForecast;
 }
 
 interface ServiceUser {
@@ -44,7 +52,7 @@ interface ServiceUser {
   location: string;
   primaryStaffIds: string[];
   backupStaffIds: string[];
-  forecastHours: MonthlyForecast;
+  forecastHours: WeeklyForecast;
   staffAllocations: StaffAllocation[];
 }
 interface Staff {
@@ -55,14 +63,14 @@ interface Staff {
   interests: string[];
   availability: string;
   status: "Active" | "On Leave" | "Inactive";
-  forecastHours: MonthlyForecast;
+  forecastHours: WeeklyForecast;
 }
 
 // Helper to create default forecast hours
-const createDefaultForecast = (baseHours: number = 0): MonthlyForecast => {
-  const forecast: MonthlyForecast = {};
-  MONTHS.forEach(month => {
-    forecast[month] = baseHours;
+const createDefaultForecast = (baseHours: number = 0): WeeklyForecast => {
+  const forecast: WeeklyForecast = {};
+  WEEKS.forEach(week => {
+    forecast[week] = baseHours;
   });
   return forecast;
 };
@@ -74,16 +82,8 @@ const INITIAL_SERVICE_USERS: ServiceUser[] = [{
   location: "North London",
   primaryStaffIds: ["s1"],
   backupStaffIds: ["s3"],
-  forecastHours: {
-    [MONTHS[0]]: 21,
-    [MONTHS[1]]: 123,
-    [MONTHS[2]]: 34,
-    [MONTHS[3]]: 45,
-    [MONTHS[4]]: 50,
-    [MONTHS[5]]: 55,
-    ...createDefaultForecast(40)
-  },
-  staffAllocations: [{ staffId: "s1", allocatedHours: { [MONTHS[0]]: 21, ...createDefaultForecast(40) } }]
+  forecastHours: createDefaultForecast(21),
+  staffAllocations: [{ staffId: "s1", allocatedHours: createDefaultForecast(21) }]
 }, {
   id: "su2",
   name: "Mary Johnson",
@@ -92,16 +92,8 @@ const INITIAL_SERVICE_USERS: ServiceUser[] = [{
   location: "South London",
   primaryStaffIds: ["s2"],
   backupStaffIds: ["s4"],
-  forecastHours: {
-    [MONTHS[0]]: 124,
-    [MONTHS[1]]: 3,
-    [MONTHS[2]]: 3,
-    [MONTHS[3]]: 60,
-    [MONTHS[4]]: 65,
-    [MONTHS[5]]: 70,
-    ...createDefaultForecast(50)
-  },
-  staffAllocations: [{ staffId: "s2", allocatedHours: { [MONTHS[0]]: 124, ...createDefaultForecast(50) } }]
+  forecastHours: createDefaultForecast(30),
+  staffAllocations: [{ staffId: "s2", allocatedHours: createDefaultForecast(30) }]
 }, {
   id: "su3",
   name: "David Williams",
@@ -110,15 +102,7 @@ const INITIAL_SERVICE_USERS: ServiceUser[] = [{
   location: "East London",
   primaryStaffIds: [],
   backupStaffIds: [],
-  forecastHours: {
-    [MONTHS[0]]: 55,
-    [MONTHS[1]]: 223,
-    [MONTHS[2]]: 21,
-    [MONTHS[3]]: 30,
-    [MONTHS[4]]: 35,
-    [MONTHS[5]]: 40,
-    ...createDefaultForecast(35)
-  },
+  forecastHours: createDefaultForecast(25),
   staffAllocations: []
 }];
 const INITIAL_STAFF: Staff[] = [{
@@ -129,15 +113,7 @@ const INITIAL_STAFF: Staff[] = [{
   interests: ["Gardening", "Reading", "Nature walks"],
   availability: "Full-time",
   status: "Active",
-  forecastHours: {
-    [MONTHS[0]]: 200,
-    [MONTHS[1]]: 200,
-    [MONTHS[2]]: 200,
-    [MONTHS[3]]: 180,
-    [MONTHS[4]]: 200,
-    [MONTHS[5]]: 200,
-    ...createDefaultForecast(160)
-  }
+  forecastHours: createDefaultForecast(40)
 }, {
   id: "s2",
   name: "Emma Wilson",
@@ -146,15 +122,7 @@ const INITIAL_STAFF: Staff[] = [{
   interests: ["Music", "Animals", "Crafts"],
   availability: "Full-time",
   status: "Active",
-  forecastHours: {
-    [MONTHS[0]]: 10,
-    [MONTHS[1]]: 10,
-    [MONTHS[2]]: 10,
-    [MONTHS[3]]: 160,
-    [MONTHS[4]]: 160,
-    [MONTHS[5]]: 160,
-    ...createDefaultForecast(160)
-  }
+  forecastHours: createDefaultForecast(40)
 }, {
   id: "s3",
   name: "James Taylor",
@@ -163,15 +131,7 @@ const INITIAL_STAFF: Staff[] = [{
   interests: ["Sports", "Gaming", "Gardening"],
   availability: "Part-time",
   status: "Active",
-  forecastHours: {
-    [MONTHS[0]]: 50,
-    [MONTHS[1]]: 50,
-    [MONTHS[2]]: 50,
-    [MONTHS[3]]: 80,
-    [MONTHS[4]]: 80,
-    [MONTHS[5]]: 80,
-    ...createDefaultForecast(80)
-  }
+  forecastHours: createDefaultForecast(20)
 }, {
   id: "s4",
   name: "Lisa Anderson",
@@ -180,15 +140,7 @@ const INITIAL_STAFF: Staff[] = [{
   interests: ["Music", "Cooking", "Animals"],
   availability: "Full-time",
   status: "Active",
-  forecastHours: {
-    [MONTHS[0]]: 43,
-    [MONTHS[1]]: 43,
-    [MONTHS[2]]: 43,
-    [MONTHS[3]]: 160,
-    [MONTHS[4]]: 160,
-    [MONTHS[5]]: 160,
-    ...createDefaultForecast(160)
-  }
+  forecastHours: createDefaultForecast(40)
 }, {
   id: "s5",
   name: "Michael Chen",
@@ -197,15 +149,7 @@ const INITIAL_STAFF: Staff[] = [{
   interests: ["Sports", "Cooking", "Outdoor activities"],
   availability: "Full-time",
   status: "Active",
-  forecastHours: {
-    [MONTHS[0]]: 120,
-    [MONTHS[1]]: 120,
-    [MONTHS[2]]: 120,
-    [MONTHS[3]]: 160,
-    [MONTHS[4]]: 160,
-    [MONTHS[5]]: 160,
-    ...createDefaultForecast(160)
-  }
+  forecastHours: createDefaultForecast(40)
 }];
 export const Matching = () => {
   const {
@@ -532,14 +476,14 @@ export const Matching = () => {
                   <CardHeader className="py-2">
                     <CardTitle className="flex items-center gap-2 text-sm">
                       <BarChart3 className="h-4 w-4" />
-                      Staff Utilisation Forecast (6 Months)
+                      Staff Utilisation Forecast (8 Weeks)
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="py-2">
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead className="text-xs py-1">Month</TableHead>
+                          <TableHead className="text-xs py-1">Week</TableHead>
                           <TableHead className="text-xs py-1 text-right">Required Hours</TableHead>
                           <TableHead className="text-xs py-1 text-right">Allocated Hours</TableHead>
                           <TableHead className="text-xs py-1 text-right">Unallocated Hours</TableHead>
@@ -547,17 +491,17 @@ export const Matching = () => {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {MONTHS.slice(0, 6).map((month) => {
-                          const requiredHours = serviceUsers.reduce((sum, u) => sum + (u.forecastHours[month] || 0), 0);
-                          // Allocated hours = sum of all staff allocations across service users for this month
+                        {WEEKS.map((week) => {
+                          const requiredHours = serviceUsers.reduce((sum, u) => sum + (u.forecastHours[week] || 0), 0);
+                          // Allocated hours = sum of all staff allocations across service users for this week
                           const allocatedHours = serviceUsers.reduce((sum, u) => 
                             sum + u.staffAllocations.reduce((staffSum, alloc) => 
-                              staffSum + (alloc.allocatedHours[month] || 0), 0), 0);
+                              staffSum + (alloc.allocatedHours[week] || 0), 0), 0);
                           // Unallocated hours = sum of hours from staff NOT assigned as PRIMARY to any service user
                           const primaryStaffIds = new Set(serviceUsers.flatMap(u => u.primaryStaffIds));
                           const unallocatedHours = staff
                             .filter(s => s.status === "Active" && !primaryStaffIds.has(s.id))
-                            .reduce((sum, s) => sum + (s.forecastHours[month] || 0), 0);
+                            .reduce((sum, s) => sum + (s.forecastHours[week] || 0), 0);
                           const totalAvailableHours = allocatedHours + unallocatedHours;
                           const utilisation = totalAvailableHours > 0 ? requiredHours / totalAvailableHours * 100 : 0;
                           let statusColor = "bg-orange-100 text-orange-800";
@@ -570,8 +514,8 @@ export const Matching = () => {
                             statusText = "Overworked – Staff shortage risk";
                           }
                           return (
-                            <TableRow key={month}>
-                              <TableCell className="font-medium text-xs py-1">{month}</TableCell>
+                            <TableRow key={week}>
+                              <TableCell className="font-medium text-xs py-1">{week}</TableCell>
                               <TableCell className="text-right text-xs py-1">{requiredHours.toFixed(1)}</TableCell>
                               <TableCell className="text-right text-xs py-1">{allocatedHours.toFixed(1)}</TableCell>
                               <TableCell className="text-right text-xs py-1">{unallocatedHours.toFixed(1)}</TableCell>
@@ -641,15 +585,15 @@ export const Matching = () => {
                         id,
                         type: 'Backup' as const
                       }))];
-                      const currentMonth = MONTHS[0]; // Current month for display
-                      const userRequiredHours = user.forecastHours[currentMonth] || 0;
+                      const currentWeek = WEEKS[0]; // Current week for display
+                      const userRequiredHours = user.forecastHours[currentWeek] || 0;
                       return <div key={user.id} className="rounded p-2 print:p-1.5 bg-primary-foreground">
                                 <div className="flex items-start justify-between mb-1">
                                   <div className="flex-1">
                                     <div className="flex items-center gap-2">
                                       <span className="font-medium text-xs">{user.name}</span>
                                       <span className="text-[9px] bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded font-medium">
-                                        {userRequiredHours}h required ({currentMonth})
+                                        {userRequiredHours}h required ({currentWeek})
                                       </span>
                                     </div>
                                     <div className="text-[10px] text-muted-foreground">
@@ -668,8 +612,8 @@ export const Matching = () => {
                             if (!s) return null;
                             // For primary staff, show allocated hours; for backup, show available hours
                             const displayHours = type === 'Primary' 
-                              ? getStaffAllocation(user, sid, currentMonth)
-                              : (s.forecastHours[currentMonth] || 0);
+                              ? getStaffAllocation(user, sid, currentWeek)
+                              : (s.forecastHours[currentWeek] || 0);
                             const hoursLabel = type === 'Primary' ? 'allocated' : 'available';
 
                             // Build narrative matching criteria
@@ -737,14 +681,14 @@ export const Matching = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <BarChart3 className="h-5 w-5" />
-                  Staff Utilisation Forecast (6 Months)
+                  Staff Utilisation Forecast (8 Weeks)
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Month</TableHead>
+                      <TableHead>Week</TableHead>
                       <TableHead className="text-right">Required Hours</TableHead>
                       <TableHead className="text-right">Allocated Hours</TableHead>
                       <TableHead className="text-right">Unallocated Hours</TableHead>
@@ -752,17 +696,17 @@ export const Matching = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {MONTHS.slice(0, 6).map((month, index) => {
-                    const requiredHours = serviceUsers.reduce((sum, u) => sum + (u.forecastHours[month] || 0), 0);
-                    // Allocated hours = sum of all staff allocations across service users for this month
+                    {WEEKS.map((week, index) => {
+                    const requiredHours = serviceUsers.reduce((sum, u) => sum + (u.forecastHours[week] || 0), 0);
+                    // Allocated hours = sum of all staff allocations across service users for this week
                     const allocatedHours = serviceUsers.reduce((sum, u) => 
                       sum + u.staffAllocations.reduce((staffSum, alloc) => 
-                        staffSum + (alloc.allocatedHours[month] || 0), 0), 0);
+                        staffSum + (alloc.allocatedHours[week] || 0), 0), 0);
                     // Unallocated hours = sum of hours from staff NOT assigned as PRIMARY to any service user
                     const primaryStaffIds = new Set(serviceUsers.flatMap(u => u.primaryStaffIds));
                     const unallocatedHours = staff
                       .filter(s => s.status === "Active" && !primaryStaffIds.has(s.id))
-                      .reduce((sum, s) => sum + (s.forecastHours[month] || 0), 0);
+                      .reduce((sum, s) => sum + (s.forecastHours[week] || 0), 0);
                     const totalAvailableHours = allocatedHours + unallocatedHours;
                     const utilisation = totalAvailableHours > 0 ? requiredHours / totalAvailableHours * 100 : 0;
                     let statusColor = "bg-green-100 text-green-800";
@@ -774,8 +718,8 @@ export const Matching = () => {
                       statusColor = "bg-red-100 text-red-800";
                       statusText = "Overworked – Staff shortage risk";
                     }
-                    return <TableRow key={month}>
-                          <TableCell className="font-medium">{month}</TableCell>
+                    return <TableRow key={week}>
+                          <TableCell className="font-medium">{week}</TableCell>
                           <TableCell className="text-right">{requiredHours.toFixed(1)}</TableCell>
                           <TableCell className="text-right">{allocatedHours.toFixed(1)}</TableCell>
                           <TableCell className="text-right">{unallocatedHours.toFixed(1)}</TableCell>
@@ -950,15 +894,15 @@ export const Matching = () => {
                             <div className="space-y-1">
                               <div className="flex flex-wrap gap-1">
                                 {user.primaryStaffIds.map(sid => {
-                                  const currentMonth = MONTHS[0];
-                                  const allocatedHours = getStaffAllocation(user, sid, currentMonth);
+                                  const currentWeek = WEEKS[0];
+                                  const allocatedHours = getStaffAllocation(user, sid, currentWeek);
                                   return (
                                     <div key={sid} className="flex items-center gap-1 bg-green-100 text-green-800 rounded px-1.5 py-0.5">
                                       <span className="text-xs">{getStaffById(sid)?.name}</span>
                                       <Input
                                         type="number"
                                         value={allocatedHours}
-                                        onChange={e => updateStaffAllocation(user.id, sid, currentMonth, parseFloat(e.target.value) || 0)}
+                                        onChange={e => updateStaffAllocation(user.id, sid, currentWeek, parseFloat(e.target.value) || 0)}
                                         className="h-5 w-14 text-xs text-right bg-white px-1"
                                         placeholder="hrs"
                                       />
@@ -1011,12 +955,12 @@ export const Matching = () => {
               </CardContent>
             </Card>
 
-            {/* Service Users Forecast Hours Table */}
+            {/* Service Users Forecast Hours Table with Staff Allocation */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <BarChart3 className="h-5 w-5" />
-                  Service User Hours Forecast (12 Months)
+                  Service User Weekly Allocation (8 Weeks)
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -1024,32 +968,131 @@ export const Matching = () => {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead className="sticky left-0 bg-background">Name</TableHead>
-                        {MONTHS.map(month => <TableHead key={month} className="text-right min-w-[80px]">{month}</TableHead>)}
+                        <TableHead className="sticky left-0 bg-background min-w-[200px]">Service User / Staff</TableHead>
+                        {WEEKS.map(week => <TableHead key={week} className="text-center min-w-[100px]">{week}</TableHead>)}
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {serviceUsers.map(user => <TableRow key={user.id}>
-                          <TableCell className="font-medium sticky left-0 bg-background">{user.name}</TableCell>
-                          {MONTHS.map(month => <TableCell key={month} className="text-right">
-                              <Input type="number" value={user.forecastHours[month] || 0} onChange={e => {
-                          const value = parseFloat(e.target.value) || 0;
-                          setServiceUsers(prev => prev.map(u => u.id === user.id ? {
-                            ...u,
-                            forecastHours: {
-                              ...u.forecastHours,
-                              [month]: value
-                            }
-                          } : u));
-                        }} className="h-8 w-20 text-right bg-white" />
-                            </TableCell>)}
-                        </TableRow>)}
-                      <TableRow className="bg-muted/50 font-semibold">
-                        <TableCell className="sticky left-0 bg-muted/50">Total</TableCell>
-                        {MONTHS.map(month => <TableCell key={month} className="text-right">
-                            {serviceUsers.reduce((sum, u) => sum + (u.forecastHours[month] || 0), 0)}
-                          </TableCell>)}
-                      </TableRow>
+                      {serviceUsers.map(user => (
+                        <>
+                          {/* Service User Row - Required Hours */}
+                          <TableRow key={user.id} className="bg-blue-50">
+                            <TableCell className="font-medium sticky left-0 bg-blue-50">
+                              <div className="flex flex-col">
+                                <span>{user.name}</span>
+                                <span className="text-xs text-muted-foreground">Required Hours</span>
+                              </div>
+                            </TableCell>
+                            {WEEKS.map(week => (
+                              <TableCell key={week} className="text-center">
+                                <Input 
+                                  type="number" 
+                                  value={user.forecastHours[week] || 0} 
+                                  onChange={e => {
+                                    const value = parseFloat(e.target.value) || 0;
+                                    setServiceUsers(prev => prev.map(u => u.id === user.id ? {
+                                      ...u,
+                                      forecastHours: { ...u.forecastHours, [week]: value }
+                                    } : u));
+                                  }} 
+                                  className="h-8 w-16 text-center bg-white" 
+                                />
+                              </TableCell>
+                            ))}
+                          </TableRow>
+                          
+                          {/* Primary Staff Rows - with hours allocation */}
+                          {user.primaryStaffIds.map(staffId => {
+                            const staffMember = getStaffById(staffId);
+                            if (!staffMember) return null;
+                            return (
+                              <TableRow key={`${user.id}-${staffId}-primary`} className="bg-green-50">
+                                <TableCell className="sticky left-0 bg-green-50 pl-6">
+                                  <div className="flex items-center gap-2">
+                                    <Badge className="bg-green-200 text-green-800 text-xs">Primary</Badge>
+                                    <span className="text-sm">{staffMember.name}</span>
+                                    <X 
+                                      className="h-3 w-3 cursor-pointer text-red-500 hover:text-red-700" 
+                                      onClick={() => unassignStaff(user.id, staffId, 'primary')}
+                                    />
+                                  </div>
+                                </TableCell>
+                                {WEEKS.map(week => (
+                                  <TableCell key={week} className="text-center">
+                                    <Input 
+                                      type="number" 
+                                      value={getStaffAllocation(user, staffId, week)} 
+                                      onChange={e => updateStaffAllocation(user.id, staffId, week, parseFloat(e.target.value) || 0)} 
+                                      className="h-8 w-16 text-center bg-white" 
+                                    />
+                                  </TableCell>
+                                ))}
+                              </TableRow>
+                            );
+                          })}
+                          
+                          {/* Backup Staff Rows - no hours allocation */}
+                          {user.backupStaffIds.map(staffId => {
+                            const staffMember = getStaffById(staffId);
+                            if (!staffMember) return null;
+                            return (
+                              <TableRow key={`${user.id}-${staffId}-backup`} className="bg-gray-50">
+                                <TableCell className="sticky left-0 bg-gray-50 pl-6">
+                                  <div className="flex items-center gap-2">
+                                    <Badge variant="outline" className="text-xs">Backup</Badge>
+                                    <span className="text-sm">{staffMember.name}</span>
+                                    <X 
+                                      className="h-3 w-3 cursor-pointer text-red-500 hover:text-red-700" 
+                                      onClick={() => unassignStaff(user.id, staffId, 'backup')}
+                                    />
+                                  </div>
+                                </TableCell>
+                                {WEEKS.map(week => (
+                                  <TableCell key={week} className="text-center text-xs text-muted-foreground">
+                                    {staffMember.forecastHours[week] || 0}h avail
+                                  </TableCell>
+                                ))}
+                              </TableRow>
+                            );
+                          })}
+                          
+                          {/* Add Staff Row */}
+                          <TableRow key={`${user.id}-add-staff`} className="border-b-2">
+                            <TableCell className="sticky left-0 bg-background pl-6" colSpan={WEEKS.length + 1}>
+                              <div className="flex gap-2">
+                                <SearchableStaffSelect 
+                                  options={getRankedStaff(user, [...user.primaryStaffIds, ...user.backupStaffIds]).map(({
+                                    staff: s,
+                                    score
+                                  }) => ({
+                                    id: s.id,
+                                    name: s.name,
+                                    score
+                                  }))} 
+                                  onSelect={value => assignStaff(user.id, value, 'primary')} 
+                                  placeholder="+ Add Primary Staff" 
+                                  triggerClassName="w-[160px]" 
+                                  className="w-[200px]" 
+                                />
+                                <SearchableStaffSelect 
+                                  options={getRankedStaff(user, [...user.primaryStaffIds, ...user.backupStaffIds]).map(({
+                                    staff: s,
+                                    score
+                                  }) => ({
+                                    id: s.id,
+                                    name: s.name,
+                                    score
+                                  }))} 
+                                  onSelect={value => assignStaff(user.id, value, 'backup')} 
+                                  placeholder="+ Add Backup Staff" 
+                                  triggerClassName="w-[160px]" 
+                                  className="w-[200px]" 
+                                />
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        </>
+                      ))}
                     </TableBody>
                   </Table>
                 </div>
@@ -1138,20 +1181,20 @@ export const Matching = () => {
                     <TableHeader>
                       <TableRow>
                         <TableHead className="sticky left-0 bg-background">Name</TableHead>
-                        {MONTHS.map(month => <TableHead key={month} className="text-right min-w-[80px]">{month}</TableHead>)}
+                        {WEEKS.map(week => <TableHead key={week} className="text-right min-w-[80px]">{week}</TableHead>)}
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {staff.map(s => <TableRow key={s.id}>
                           <TableCell className="font-medium sticky left-0 bg-background">{s.name}</TableCell>
-                          {MONTHS.map(month => <TableCell key={month} className="text-right">
-                              <Input type="number" value={s.forecastHours[month] || 0} onChange={e => {
+                          {WEEKS.map(week => <TableCell key={week} className="text-right">
+                              <Input type="number" value={s.forecastHours[week] || 0} onChange={e => {
                           const value = parseFloat(e.target.value) || 0;
                           setStaff(prev => prev.map(staff => staff.id === s.id ? {
                             ...staff,
                             forecastHours: {
                               ...staff.forecastHours,
-                              [month]: value
+                              [week]: value
                             }
                           } : staff));
                         }} className="h-8 w-20 text-right bg-white" />
@@ -1159,8 +1202,8 @@ export const Matching = () => {
                         </TableRow>)}
                       <TableRow className="bg-muted/50 font-semibold">
                         <TableCell className="sticky left-0 bg-muted/50">Total</TableCell>
-                        {MONTHS.map(month => <TableCell key={month} className="text-right">
-                            {staff.reduce((sum, s) => sum + (s.forecastHours[month] || 0), 0)}
+                        {WEEKS.map(week => <TableCell key={week} className="text-right">
+                            {staff.reduce((sum, s) => sum + (s.forecastHours[week] || 0), 0)}
                           </TableCell>)}
                       </TableRow>
                     </TableBody>
