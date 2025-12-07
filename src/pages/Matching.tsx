@@ -1116,7 +1116,7 @@ export const Matching = () => {
                                     <span className="text-xs text-orange-600">{s.location}</span>
                                   </div>
                                   <span className="text-sm bg-orange-200 text-orange-900 px-2 py-1 rounded-full font-medium">
-                                    {availableHours}h
+                                    {availableHours}h available
                                   </span>
                                 </div>
                               );
