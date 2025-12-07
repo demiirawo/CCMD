@@ -817,18 +817,56 @@ export const Matching = () => {
                               : (s.forecastHours[currentWeek] || 0);
                             const hoursLabel = type === 'Primary' ? 'allocated' : 'available';
 
-                            // Build narrative matching criteria based on confirmed needs
+                            // Build commentary-driven narrative
                             const buildMatchingNarrative = () => {
-                              const parts: string[] = [];
                               const allocation = user.staffAllocations.find(a => a.staffId === sid);
-                              if (allocation && allocation.confirmedNeeds.length > 0) {
-                                parts.push(`${s.name.split(' ')[0]} is confirmed for ${allocation.confirmedNeeds.slice(0, 3).join(', ')}`);
+                              const staffFirstName = s.name.split(' ')[0];
+                              const userFirstName = user.name.split(' ')[0];
+                              const sentences: string[] = [];
+
+                              // Gender preference match
+                              if (user.genderPreference !== "No Preference") {
+                                if (s.gender === user.genderPreference) {
+                                  sentences.push(`${staffFirstName} matches ${userFirstName}'s preference for a ${user.genderPreference.toLowerCase()} carer`);
+                                } else {
+                                  sentences.push(`Note: ${staffFirstName} (${s.gender.toLowerCase()}) does not match ${userFirstName}'s preference for a ${user.genderPreference.toLowerCase()} carer`);
+                                }
                               }
+
+                              // Location match
                               if (user.location === s.location) {
-                                parts.push('they are in the same location');
+                                sentences.push(`is based in the same area (${s.location})`);
+                              } else {
+                                sentences.push(`is based in ${s.location}`);
                               }
-                              if (parts.length === 0) return null;
-                              return parts.join(', and ') + '.';
+
+                              // Support needs alignment
+                              if (allocation && allocation.confirmedNeeds.length > 0) {
+                                const needsList = allocation.confirmedNeeds.length <= 3 
+                                  ? allocation.confirmedNeeds.join(', ')
+                                  : allocation.confirmedNeeds.slice(0, 3).join(', ') + ` and ${allocation.confirmedNeeds.length - 3} more`;
+                                sentences.push(`has the skills and experience to support with ${needsList}`);
+                              }
+
+                              // Shared interests
+                              if (allocation && allocation.confirmedInterests && allocation.confirmedInterests.length > 0) {
+                                const interestsList = allocation.confirmedInterests.length <= 2
+                                  ? allocation.confirmedInterests.join(' and ')
+                                  : allocation.confirmedInterests.slice(0, 2).join(', ') + ` and ${allocation.confirmedInterests.length - 2} more`;
+                                sentences.push(`shares interests in ${interestsList}`);
+                              }
+
+                              if (sentences.length === 0) return null;
+
+                              // Build flowing narrative
+                              const firstSentence = sentences[0];
+                              const restSentences = sentences.slice(1);
+                              
+                              if (restSentences.length === 0) {
+                                return `${staffFirstName} ${firstSentence}.`;
+                              }
+                              
+                              return `${staffFirstName} ${firstSentence}, ${restSentences.join(', ')}.`;
                             };
                             const narrative = buildMatchingNarrative();
                             return <div key={sid} className={`text-[10px] pl-2 border-l-2 ${type === 'Primary' ? 'border-green-500 bg-green-50' : 'border-gray-400 bg-gray-50'} rounded-r p-1`}>
@@ -842,7 +880,7 @@ export const Matching = () => {
                                             </span>
                                           </div>
                                           {narrative && <div className="text-[9px] text-muted-foreground mt-0.5 italic">
-                                              <span className="font-medium not-italic">Matching criteria:</span> {user.name.split(' ')[0]} was matched with {s.name.split(' ')[0]} because {narrative}
+                                              {narrative}
                                             </div>}
                                         </div>;
                           })}
