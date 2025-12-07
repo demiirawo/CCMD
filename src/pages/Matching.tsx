@@ -555,13 +555,13 @@ export const Matching = () => {
                 `}</style>
                 <div className="print-area grid grid-cols-1 gap-6">
                   {/* Staff Utilisation Forecast */}
-                  <Card>
-                    <CardHeader className="py-2 border-b">
-                      <CardTitle className="text-sm">
+                  <div className="rounded-2xl overflow-hidden shadow-md bg-white">
+                    <div className="px-6 py-4" style={{ backgroundColor: '#202A38' }}>
+                      <h3 className="font-bold text-xl text-white print:text-sm">
                         Staff Utilisation Forecast (8 Weeks)
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="py-4">
+                      </h3>
+                    </div>
+                    <div className="p-6">
                     <Table>
                       <TableHeader>
                         <TableRow>
@@ -627,8 +627,8 @@ export const Matching = () => {
                         : `${serviceUsers.filter(u => u.location === locationFilter).length} service users in ${locationFilter}`
                       } • Sum of forecasted hours shown above
                     </div>
-                  </CardContent>
-                </Card>
+                    </div>
+                  </div>
 
                   
                   {locations
@@ -654,17 +654,10 @@ export const Matching = () => {
                   }
                   return reasons;
                 };
-                // Generate a consistent color based on location name
-                const locationColors = [
-                  'bg-blue-600', 'bg-green-600', 'bg-purple-600', 'bg-orange-600', 
-                  'bg-teal-600', 'bg-pink-600', 'bg-indigo-600', 'bg-red-600'
-                ];
-                const colorIndex = location.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % locationColors.length;
-                const bannerColor = locationColors[colorIndex];
                 
                 return <div key={location} className="rounded-2xl overflow-hidden shadow-md print:border-black bg-white">
                         {/* Colored Banner Header */}
-                        <div className={`${bannerColor} px-6 py-4`}>
+                        <div className="px-6 py-4" style={{ backgroundColor: '#202A38' }}>
                           <h3 className="font-bold text-xl text-white print:text-sm">{location}</h3>
                           <span className="text-sm text-white/80">
                             {locationUsers.length} service users • {locationStaff.length} staff
