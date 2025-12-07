@@ -53,7 +53,7 @@ export const Matching = () => {
     type: 'primary' | 'backup';
   } | null>(null);
   const [compactView, setCompactView] = useState(false);
-
+  const [summaryView, setSummaryView] = useState<'utilisation' | 'matchmaking'>('utilisation');
   // Dialog states
   const [isAddUserOpen, setIsAddUserOpen] = useState(false);
   const [isAddStaffOpen, setIsAddStaffOpen] = useState(false);
@@ -596,33 +596,60 @@ export const Matching = () => {
           {/* Matching View */}
           <TabsContent value="diagram" className="space-y-6">
             <div className="grid grid-cols-1 gap-6">
-              {/* Manager, Location Filter and Print Button */}
-              <div className="flex justify-end gap-3 print:hidden">
-                <Select value={managerFilter} onValueChange={setManagerFilter}>
-                  <SelectTrigger className="w-48 bg-white">
-                    <SelectValue placeholder="All Managers" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-white z-50">
-                    <SelectItem value="all">All Managers</SelectItem>
-                    {managers.map(mgr => <SelectItem key={mgr} value={mgr}>{mgr}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-                <Select value={locationFilter} onValueChange={setLocationFilter}>
-                  <SelectTrigger className="w-48 bg-white">
-                    <MapPin className="h-4 w-4 mr-2" />
-                    <SelectValue placeholder="All Locations" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-white z-50">
-                    <SelectItem value="all">All Locations</SelectItem>
-                    {locations.map(loc => <SelectItem key={loc} value={loc}>{loc}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-                <Button size="sm" onClick={handleExportPDF} disabled={isExporting} className="text-white" style={{
-                backgroundColor: '#202A38'
-              }}>
-                  {isExporting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <FileDown className="h-4 w-4 mr-2" />}
-                  Export PDF
-                </Button>
+              {/* Toggle and Filters */}
+              <div className="flex justify-between items-center gap-3 print:hidden">
+                {/* View Toggle */}
+                <div className="flex items-center bg-muted rounded-lg p-1">
+                  <button
+                    onClick={() => setSummaryView('utilisation')}
+                    className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                      summaryView === 'utilisation' 
+                        ? 'bg-background text-foreground shadow-sm' 
+                        : 'bg-[#1F2937] text-white hover:bg-[#374151]'
+                    }`}
+                  >
+                    Utilisation Forecast
+                  </button>
+                  <button
+                    onClick={() => setSummaryView('matchmaking')}
+                    className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                      summaryView === 'matchmaking' 
+                        ? 'bg-background text-foreground shadow-sm' 
+                        : 'bg-[#1F2937] text-white hover:bg-[#374151]'
+                    }`}
+                  >
+                    Matchmaking
+                  </button>
+                </div>
+
+                {/* Filters and Export */}
+                <div className="flex items-center gap-3">
+                  <Select value={managerFilter} onValueChange={setManagerFilter}>
+                    <SelectTrigger className="w-48 bg-white">
+                      <SelectValue placeholder="All Managers" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white z-50">
+                      <SelectItem value="all">All Managers</SelectItem>
+                      {managers.map(mgr => <SelectItem key={mgr} value={mgr}>{mgr}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                  <Select value={locationFilter} onValueChange={setLocationFilter}>
+                    <SelectTrigger className="w-48 bg-white">
+                      <MapPin className="h-4 w-4 mr-2" />
+                      <SelectValue placeholder="All Locations" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white z-50">
+                      <SelectItem value="all">All Locations</SelectItem>
+                      {locations.map(loc => <SelectItem key={loc} value={loc}>{loc}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                  <Button size="sm" onClick={handleExportPDF} disabled={isExporting} className="text-white" style={{
+                    backgroundColor: '#202A38'
+                  }}>
+                    {isExporting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <FileDown className="h-4 w-4 mr-2" />}
+                    Export PDF
+                  </Button>
+                </div>
               </div>
 
               {/* Print Area - includes both Utilisation Forecast and Matching View */}
@@ -640,6 +667,7 @@ export const Matching = () => {
                 `}</style>
                 <div ref={printAreaRef} className="print-area grid grid-cols-1 gap-6">
                   {/* Staff Utilisation Forecast */}
+                  {summaryView === 'utilisation' && (
                   <div className="rounded-2xl overflow-hidden shadow-md bg-white border border-border">
                     <div className="px-6 py-4" style={{
                     backgroundColor: '#202A38'
@@ -817,9 +845,11 @@ export const Matching = () => {
                     </Table>
                     </div>
                   </div>
+                  )}
 
-
-                  
+                  {/* Matchmaking View */}
+                  {summaryView === 'matchmaking' && (
+                  <>
                   {locations.filter(location => locationFilter === "all" || location === locationFilter).map(location => {
                   let locationUsers = serviceUsers.filter(u => u.location === location);
                   let locationStaff = staff.filter(s => s.location === location);
@@ -1018,6 +1048,8 @@ export const Matching = () => {
                         </div>
                       </div>;
                 })()}
+                  </>
+                  )}
                 </div>
               </div>
             </div>
