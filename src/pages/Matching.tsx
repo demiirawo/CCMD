@@ -1039,42 +1039,122 @@ export const Matching = () => {
                               </div>
                             )}
                           </TableCell>
-                          <TableCell
-                            className="cursor-pointer hover:bg-muted/50"
-                            onDoubleClick={() => {
-                              setEditingCell({ id: user.id, field: 'location', type: 'user' });
-                              setEditValue(user.location);
-                            }}
-                          >
+                          <TableCell>
                             {editingCell?.id === user.id && editingCell?.field === 'location' && editingCell?.type === 'user' ? (
-                              <Input
-                                value={editValue}
-                                onChange={(e) => setEditValue(e.target.value)}
-                                onBlur={() => {
-                                  setServiceUsers(prev => prev.map(u => u.id === user.id ? { ...u, location: editValue } : u));
-                                  setEditingCell(null);
-                                }}
-                                onKeyDown={(e) => {
-                                  if (e.key === 'Enter') {
-                                    setServiceUsers(prev => prev.map(u => u.id === user.id ? { ...u, location: editValue } : u));
+                              <div className="flex gap-1">
+                                <Input
+                                  value={editValue}
+                                  onChange={(e) => setEditValue(e.target.value)}
+                                  onBlur={() => {
+                                    if (editValue.trim()) {
+                                      setServiceUsers(prev => prev.map(u => u.id === user.id ? { ...u, location: editValue.trim() } : u));
+                                    }
                                     setEditingCell(null);
-                                  } else if (e.key === 'Escape') {
-                                    setEditingCell(null);
+                                  }}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter' && editValue.trim()) {
+                                      setServiceUsers(prev => prev.map(u => u.id === user.id ? { ...u, location: editValue.trim() } : u));
+                                      setEditingCell(null);
+                                    } else if (e.key === 'Escape') {
+                                      setEditingCell(null);
+                                    }
+                                  }}
+                                  autoFocus
+                                  placeholder="Enter new location..."
+                                  className="h-8 bg-white min-w-[150px]"
+                                />
+                              </div>
+                            ) : (
+                              <Select
+                                value={user.location}
+                                onValueChange={(value) => {
+                                  if (value === '__add_new__') {
+                                    setEditingCell({ id: user.id, field: 'location', type: 'user' });
+                                    setEditValue('');
+                                  } else {
+                                    setServiceUsers(prev => prev.map(u => u.id === user.id ? { ...u, location: value } : u));
                                   }
                                 }}
-                                autoFocus
-                                className="h-8 bg-white"
-                              />
-                            ) : user.location}
+                              >
+                                <SelectTrigger className="h-8 bg-white min-w-[130px]">
+                                  <SelectValue placeholder="Select location" />
+                                </SelectTrigger>
+                                <SelectContent className="bg-white z-50">
+                                  {locations.map(loc => (
+                                    <SelectItem key={loc} value={loc}>{loc}</SelectItem>
+                                  ))}
+                                  <SelectItem value="__add_new__" className="text-primary font-medium">
+                                    <div className="flex items-center gap-1">
+                                      <Plus className="h-3 w-3" />
+                                      Add new location
+                                    </div>
+                                  </SelectItem>
+                                </SelectContent>
+                              </Select>
+                            )}
                           </TableCell>
                           <TableCell>
-                            {user.primaryStaffIds.length > 0 ? <div className="flex flex-wrap gap-1">
-                                {user.primaryStaffIds.map(id => <Badge key={id} className="bg-green-100 text-green-800">{getStaffById(id)?.name}</Badge>)}
-                              </div> : <span className="text-orange-600 text-sm">Unassigned</span>}
+                            <div className="space-y-1">
+                              <div className="flex flex-wrap gap-1">
+                                {user.primaryStaffIds.map(sid => (
+                                  <Badge key={sid} className="cursor-pointer text-xs bg-green-100 text-green-800 hover:bg-green-200" onClick={() => unassignStaff(user.id, sid, 'primary')}>
+                                    {getStaffById(sid)?.name}
+                                    <X className="h-3 w-3 ml-1" />
+                                  </Badge>
+                                ))}
+                              </div>
+                              <Select value="" onValueChange={value => {
+                                if (value) assignStaff(user.id, value, 'primary');
+                              }}>
+                                <SelectTrigger className="h-7 text-xs bg-white w-[140px]">
+                                  <SelectValue placeholder={user.primaryStaffIds.length > 0 ? "Add more..." : "Select staff..."} />
+                                </SelectTrigger>
+                                <SelectContent className="bg-white z-50">
+                                  {getRankedStaff(user, [...user.primaryStaffIds, ...user.backupStaffIds]).map(({
+                                    staff: s,
+                                    score
+                                  }) => (
+                                    <SelectItem key={s.id} value={s.id}>
+                                      <div className="flex items-center justify-between gap-2 w-full">
+                                        <span>{s.name}</span>
+                                        <Badge variant="outline" className="text-[10px] ml-2">{score}%</Badge>
+                                      </div>
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
                           </TableCell>
                           <TableCell>
-                            <div className="flex flex-wrap gap-1">
-                              {user.backupStaffIds.map(id => <Badge key={id} variant="outline">{getStaffById(id)?.name}</Badge>)}
+                            <div className="space-y-1">
+                              <div className="flex flex-wrap gap-1">
+                                {user.backupStaffIds.map(sid => (
+                                  <Badge key={sid} variant="outline" className="cursor-pointer text-xs hover:bg-muted" onClick={() => unassignStaff(user.id, sid, 'backup')}>
+                                    {getStaffById(sid)?.name}
+                                    <X className="h-3 w-3 ml-1" />
+                                  </Badge>
+                                ))}
+                              </div>
+                              <Select value="" onValueChange={value => {
+                                if (value) assignStaff(user.id, value, 'backup');
+                              }}>
+                                <SelectTrigger className="h-7 text-xs bg-white w-[140px]">
+                                  <SelectValue placeholder={user.backupStaffIds.length > 0 ? "Add more..." : "Select staff..."} />
+                                </SelectTrigger>
+                                <SelectContent className="bg-white z-50">
+                                  {getRankedStaff(user, [...user.primaryStaffIds, ...user.backupStaffIds]).map(({
+                                    staff: s,
+                                    score
+                                  }) => (
+                                    <SelectItem key={s.id} value={s.id}>
+                                      <div className="flex items-center justify-between gap-2 w-full">
+                                        <span>{s.name}</span>
+                                        <Badge variant="outline" className="text-[10px] ml-2">{score}%</Badge>
+                                      </div>
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
                             </div>
                           </TableCell>
                           <TableCell>
