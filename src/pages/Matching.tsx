@@ -603,32 +603,14 @@ export const Matching = () => {
                 <div className="flex items-center gap-4">
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-medium">Utilisation Forecast</span>
-                    <button
-                      onClick={() => setShowUtilisation(!showUtilisation)}
-                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                        showUtilisation ? 'bg-primary' : 'bg-muted'
-                      }`}
-                    >
-                      <span
-                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                          showUtilisation ? 'translate-x-6' : 'translate-x-1'
-                        }`}
-                      />
+                    <button onClick={() => setShowUtilisation(!showUtilisation)} className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${showUtilisation ? 'bg-primary' : 'bg-muted'}`}>
+                      <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${showUtilisation ? 'translate-x-6' : 'translate-x-1'}`} />
                     </button>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-medium">Matchmaking</span>
-                    <button
-                      onClick={() => setShowMatchmaking(!showMatchmaking)}
-                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                        showMatchmaking ? 'bg-primary' : 'bg-muted'
-                      }`}
-                    >
-                      <span
-                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                          showMatchmaking ? 'translate-x-6' : 'translate-x-1'
-                        }`}
-                      />
+                    <button onClick={() => setShowMatchmaking(!showMatchmaking)} className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${showMatchmaking ? 'bg-primary' : 'bg-muted'}`}>
+                      <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${showMatchmaking ? 'translate-x-6' : 'translate-x-1'}`} />
                     </button>
                   </div>
                 </div>
@@ -655,8 +637,8 @@ export const Matching = () => {
                     </SelectContent>
                   </Select>
                   <Button size="sm" onClick={handleExportPDF} disabled={isExporting} className="text-white" style={{
-                    backgroundColor: '#202A38'
-                  }}>
+                  backgroundColor: '#202A38'
+                }}>
                     {isExporting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <FileDown className="h-4 w-4 mr-2" />}
                     Export PDF
                   </Button>
@@ -678,8 +660,7 @@ export const Matching = () => {
                 `}</style>
                 <div ref={printAreaRef} className="print-area grid grid-cols-1 gap-6">
                   {/* Staff Utilisation Forecast */}
-                  {showUtilisation && (
-                  <div className="rounded-2xl overflow-hidden shadow-md bg-white border border-border">
+                  {showUtilisation && <div className="rounded-2xl overflow-hidden shadow-md bg-white border border-border">
                     <div className="px-6 py-4" style={{
                     backgroundColor: '#202A38'
                   }}>
@@ -855,44 +836,42 @@ export const Matching = () => {
                       </TableBody>
                     </Table>
                     </div>
-                  </div>
-                  )}
+                  </div>}
 
                   {/* Matchmaking View */}
-                  {showMatchmaking && (
-                  <>
+                  {showMatchmaking && <>
                   {locations.filter(location => locationFilter === "all" || location === locationFilter).map(location => {
-                  let locationUsers = serviceUsers.filter(u => u.location === location);
-                  let locationStaff = staff.filter(s => s.location === location);
+                    let locationUsers = serviceUsers.filter(u => u.location === location);
+                    let locationStaff = staff.filter(s => s.location === location);
 
-                  // Also filter by manager if selected
-                  if (managerFilter !== "all") {
-                    locationUsers = locationUsers.filter(u => u.manager === managerFilter);
-                    locationStaff = locationStaff.filter(s => s.manager === managerFilter);
-                  }
-                  if (locationUsers.length === 0 && locationStaff.length === 0) return null;
-
-                  // Helper to get match reasons between user and staff (based on confirmed needs)
-                  const getMatchReasons = (user: ServiceUser, staffMember: Staff): string[] => {
-                    const reasons: string[] = [];
-
-                    // Get confirmed needs for this staff-user pairing
-                    const allocation = user.staffAllocations.find(a => a.staffId === staffMember.id);
-                    if (allocation && allocation.confirmedNeeds.length > 0) {
-                      reasons.push(`Confirmed for: ${allocation.confirmedNeeds.slice(0, 3).join(', ')}`);
+                    // Also filter by manager if selected
+                    if (managerFilter !== "all") {
+                      locationUsers = locationUsers.filter(u => u.manager === managerFilter);
+                      locationStaff = locationStaff.filter(s => s.manager === managerFilter);
                     }
+                    if (locationUsers.length === 0 && locationStaff.length === 0) return null;
 
-                    // Location match
-                    if (user.location === staffMember.location) {
-                      reasons.push('Same location');
-                    }
-                    return reasons;
-                  };
-                  return <div key={location} className="rounded-2xl overflow-hidden shadow-md bg-white border border-border">
+                    // Helper to get match reasons between user and staff (based on confirmed needs)
+                    const getMatchReasons = (user: ServiceUser, staffMember: Staff): string[] => {
+                      const reasons: string[] = [];
+
+                      // Get confirmed needs for this staff-user pairing
+                      const allocation = user.staffAllocations.find(a => a.staffId === staffMember.id);
+                      if (allocation && allocation.confirmedNeeds.length > 0) {
+                        reasons.push(`Confirmed for: ${allocation.confirmedNeeds.slice(0, 3).join(', ')}`);
+                      }
+
+                      // Location match
+                      if (user.location === staffMember.location) {
+                        reasons.push('Same location');
+                      }
+                      return reasons;
+                    };
+                    return <div key={location} className="rounded-2xl overflow-hidden shadow-md bg-white border border-border">
                         {/* Colored Banner Header */}
                         <div className="px-6 py-4" style={{
-                      backgroundColor: '#202A38'
-                    }}>
+                        backgroundColor: '#202A38'
+                      }}>
                           <h3 className="font-bold text-xl text-white print:text-sm">{location}</h3>
                           <span className="text-sm text-white/80">
                             {locationUsers.length} service users • {locationStaff.length} staff
@@ -902,18 +881,18 @@ export const Matching = () => {
                         {/* Card Content */}
                         <div className="p-6 space-y-4">
                           {locationUsers.map(user => {
-                        const allAssignedStaff = [...user.primaryStaffIds.map(id => ({
-                          id,
-                          type: 'Primary' as const
-                        })), ...user.backupStaffIds.map(id => ({
-                          id,
-                          type: 'Backup' as const
-                        }))];
-                        const currentWeek = WEEKS[0]; // Current week for display
-                        const userRequiredHours = user.forecastHours[currentWeek] || 0;
-                        // Calculate total allocated hours for this user
-                        const userAllocatedHours = user.staffAllocations.reduce((sum, alloc) => sum + (alloc.allocatedHours[currentWeek] || 0), 0);
-                        return <div key={user.id} className="rounded-lg p-4 print:p-2 bg-gray-50 border">
+                          const allAssignedStaff = [...user.primaryStaffIds.map(id => ({
+                            id,
+                            type: 'Primary' as const
+                          })), ...user.backupStaffIds.map(id => ({
+                            id,
+                            type: 'Backup' as const
+                          }))];
+                          const currentWeek = WEEKS[0]; // Current week for display
+                          const userRequiredHours = user.forecastHours[currentWeek] || 0;
+                          // Calculate total allocated hours for this user
+                          const userAllocatedHours = user.staffAllocations.reduce((sum, alloc) => sum + (alloc.allocatedHours[currentWeek] || 0), 0);
+                          return <div key={user.id} className="rounded-lg p-4 print:p-2 bg-gray-50 border">
                                 <div className="flex items-start justify-between mb-2">
                                   <div className="flex-1">
                                     <div className="flex items-center gap-3">
@@ -931,61 +910,61 @@ export const Matching = () => {
                                 
                                 {allAssignedStaff.length > 0 ? <div className="mt-3 space-y-2">
                                     {allAssignedStaff.map(({
-                              id: sid,
-                              type
-                            }) => {
-                              const s = getStaffById(sid);
-                              if (!s) return null;
-                              // For primary staff, show allocated hours; for backup, show available hours
-                              const displayHours = type === 'Primary' ? getStaffAllocation(user, sid, currentWeek) : s.forecastHours[currentWeek] || 0;
-                              const hoursLabel = type === 'Primary' ? 'allocated' : 'available';
+                                id: sid,
+                                type
+                              }) => {
+                                const s = getStaffById(sid);
+                                if (!s) return null;
+                                // For primary staff, show allocated hours; for backup, show available hours
+                                const displayHours = type === 'Primary' ? getStaffAllocation(user, sid, currentWeek) : s.forecastHours[currentWeek] || 0;
+                                const hoursLabel = type === 'Primary' ? 'allocated' : 'available';
 
-                              // Build commentary-driven narrative
-                              const buildMatchingNarrative = () => {
-                                const allocation = user.staffAllocations.find(a => a.staffId === sid);
-                                const staffFirstName = s.name.split(' ')[0];
-                                const userFirstName = user.name.split(' ')[0];
-                                const sentences: string[] = [];
+                                // Build commentary-driven narrative
+                                const buildMatchingNarrative = () => {
+                                  const allocation = user.staffAllocations.find(a => a.staffId === sid);
+                                  const staffFirstName = s.name.split(' ')[0];
+                                  const userFirstName = user.name.split(' ')[0];
+                                  const sentences: string[] = [];
 
-                                // Gender preference match
-                                if (user.genderPreference !== "No Preference") {
-                                  if (s.gender === user.genderPreference) {
-                                    sentences.push(`matches ${userFirstName}'s preference for a ${user.genderPreference.toLowerCase()} carer`);
-                                  } else {
-                                    sentences.push(`(${s.gender.toLowerCase()}) does not match ${userFirstName}'s preference for a ${user.genderPreference.toLowerCase()} carer`);
+                                  // Gender preference match
+                                  if (user.genderPreference !== "No Preference") {
+                                    if (s.gender === user.genderPreference) {
+                                      sentences.push(`matches ${userFirstName}'s preference for a ${user.genderPreference.toLowerCase()} carer`);
+                                    } else {
+                                      sentences.push(`(${s.gender.toLowerCase()}) does not match ${userFirstName}'s preference for a ${user.genderPreference.toLowerCase()} carer`);
+                                    }
                                   }
-                                }
 
-                                // Location match
-                                if (user.location === s.location) {
-                                  sentences.push(`is based in the same area (${s.location})`);
-                                } else {
-                                  sentences.push(`is based in ${s.location}`);
-                                }
+                                  // Location match
+                                  if (user.location === s.location) {
+                                    sentences.push(`is based in the same area (${s.location})`);
+                                  } else {
+                                    sentences.push(`is based in ${s.location}`);
+                                  }
 
-                                // Support needs alignment
-                                if (allocation && allocation.confirmedNeeds.length > 0) {
-                                  const needsList = allocation.confirmedNeeds.length <= 3 ? allocation.confirmedNeeds.join(', ') : allocation.confirmedNeeds.slice(0, 3).join(', ') + ` and ${allocation.confirmedNeeds.length - 3} more`;
-                                  sentences.push(`has the skills and experience to support with ${needsList}`);
-                                }
+                                  // Support needs alignment
+                                  if (allocation && allocation.confirmedNeeds.length > 0) {
+                                    const needsList = allocation.confirmedNeeds.length <= 3 ? allocation.confirmedNeeds.join(', ') : allocation.confirmedNeeds.slice(0, 3).join(', ') + ` and ${allocation.confirmedNeeds.length - 3} more`;
+                                    sentences.push(`has the skills and experience to support with ${needsList}`);
+                                  }
 
-                                // Shared interests
-                                if (allocation && allocation.confirmedInterests && allocation.confirmedInterests.length > 0) {
-                                  const interestsList = allocation.confirmedInterests.length <= 2 ? allocation.confirmedInterests.join(' and ') : allocation.confirmedInterests.slice(0, 2).join(', ') + ` and ${allocation.confirmedInterests.length - 2} more`;
-                                  sentences.push(`shares interests in ${interestsList}`);
-                                }
-                                if (sentences.length === 0) return null;
+                                  // Shared interests
+                                  if (allocation && allocation.confirmedInterests && allocation.confirmedInterests.length > 0) {
+                                    const interestsList = allocation.confirmedInterests.length <= 2 ? allocation.confirmedInterests.join(' and ') : allocation.confirmedInterests.slice(0, 2).join(', ') + ` and ${allocation.confirmedInterests.length - 2} more`;
+                                    sentences.push(`shares interests in ${interestsList}`);
+                                  }
+                                  if (sentences.length === 0) return null;
 
-                                // Build flowing narrative
-                                const firstSentence = sentences[0];
-                                const restSentences = sentences.slice(1);
-                                if (restSentences.length === 0) {
-                                  return `${staffFirstName} ${firstSentence}.`;
-                                }
-                                return `${staffFirstName} ${firstSentence}, ${restSentences.join(', ')}.`;
-                              };
-                              const narrative = buildMatchingNarrative();
-                              return <div key={sid} className={`pl-3 border-l-4 ${type === 'Primary' ? 'border-green-500 bg-green-50' : 'border-gray-400 bg-gray-100'} rounded-r-lg p-3`}>
+                                  // Build flowing narrative
+                                  const firstSentence = sentences[0];
+                                  const restSentences = sentences.slice(1);
+                                  if (restSentences.length === 0) {
+                                    return `${staffFirstName} ${firstSentence}.`;
+                                  }
+                                  return `${staffFirstName} ${firstSentence}, ${restSentences.join(', ')}.`;
+                                };
+                                const narrative = buildMatchingNarrative();
+                                return <div key={sid} className={`pl-3 border-l-4 ${type === 'Primary' ? 'border-green-500 bg-green-50' : 'border-gray-400 bg-gray-100'} rounded-r-lg p-3`}>
                                           <div className="flex items-center gap-2 flex-wrap">
                                             <span className="font-semibold text-sm">{s.name}</span>
                                             <span className={`text-xs px-2 py-0.5 rounded-full ${type === 'Primary' ? 'bg-green-200 text-green-800' : 'bg-gray-200 text-gray-600'}`}>
@@ -999,43 +978,43 @@ export const Matching = () => {
                                               {narrative}
                                             </div>}
                                         </div>;
-                            })}
+                              })}
                                   </div> : <div className="text-sm text-orange-600 mt-2">No staff assigned</div>}
                               </div>;
-                      })}
+                        })}
                           {locationUsers.length === 0 && <div className="text-sm text-muted-foreground italic">No service users in this location</div>}
                         </div>
                         
                         {/* Unassigned Staff in this location */}
                         {(() => {
-                      const unassignedStaff = locationStaff.filter(s => !serviceUsers.some(u => u.primaryStaffIds.includes(s.id) || u.backupStaffIds.includes(s.id)));
-                      if (unassignedStaff.length === 0) return null;
-                      const currentWeek = WEEKS[0];
-                      const totalUnallocatedHours = unassignedStaff.reduce((sum, s) => sum + (s.forecastHours[currentWeek] || 0), 0);
-                      return;
-                    })()}
+                        const unassignedStaff = locationStaff.filter(s => !serviceUsers.some(u => u.primaryStaffIds.includes(s.id) || u.backupStaffIds.includes(s.id)));
+                        if (unassignedStaff.length === 0) return null;
+                        const currentWeek = WEEKS[0];
+                        const totalUnallocatedHours = unassignedStaff.reduce((sum, s) => sum + (s.forecastHours[currentWeek] || 0), 0);
+                        return;
+                      })()}
                       </div>;
-                })}
+                  })}
 
                   {/* Unallocated Staff Section at the Bottom */}
                   {(() => {
-                  // Get all staff that aren't assigned to any service user (primary or backup)
-                  let unallocatedStaff = staff.filter(s => !serviceUsers.some(u => u.primaryStaffIds.includes(s.id) || u.backupStaffIds.includes(s.id)));
+                    // Get all staff that aren't assigned to any service user (primary or backup)
+                    let unallocatedStaff = staff.filter(s => !serviceUsers.some(u => u.primaryStaffIds.includes(s.id) || u.backupStaffIds.includes(s.id)));
 
-                  // Apply filters
-                  if (managerFilter !== "all") {
-                    unallocatedStaff = unallocatedStaff.filter(s => s.manager === managerFilter);
-                  }
-                  if (locationFilter !== "all") {
-                    unallocatedStaff = unallocatedStaff.filter(s => s.location === locationFilter);
-                  }
-                  if (unallocatedStaff.length === 0) return null;
-                  const currentWeek = WEEKS[0];
-                  const totalUnallocatedHours = unallocatedStaff.reduce((sum, s) => sum + (s.forecastHours[currentWeek] || 0), 0);
-                  return <div className="rounded-2xl overflow-hidden shadow-md bg-white border border-border mt-6">
+                    // Apply filters
+                    if (managerFilter !== "all") {
+                      unallocatedStaff = unallocatedStaff.filter(s => s.manager === managerFilter);
+                    }
+                    if (locationFilter !== "all") {
+                      unallocatedStaff = unallocatedStaff.filter(s => s.location === locationFilter);
+                    }
+                    if (unallocatedStaff.length === 0) return null;
+                    const currentWeek = WEEKS[0];
+                    const totalUnallocatedHours = unallocatedStaff.reduce((sum, s) => sum + (s.forecastHours[currentWeek] || 0), 0);
+                    return <div className="rounded-2xl overflow-hidden shadow-md bg-white border border-border mt-6">
                         <div style={{
-                      backgroundColor: '#f97316'
-                    }} className="px-6 py-4 bg-[#ef2525]">
+                        backgroundColor: '#f97316'
+                      }} className="px-6 py-4 bg-[#ef2525]">
                           <h3 className="font-bold text-xl text-white print:text-sm">Unallocated Staff</h3>
                           <span className="text-sm text-white/80">
                             {unallocatedStaff.length} staff • {totalUnallocatedHours}h available this week
@@ -1044,8 +1023,8 @@ export const Matching = () => {
                         <div className="p-6 bg-transparent">
                           <div className="flex flex-wrap gap-3">
                             {unallocatedStaff.map(s => {
-                          const availableHours = s.forecastHours[currentWeek] || 0;
-                          return <div key={s.id} className="inline-flex items-center bg-orange-50 border border-orange-200 rounded-lg px-4 py-2 gap-3">
+                            const availableHours = s.forecastHours[currentWeek] || 0;
+                            return <div key={s.id} className="inline-flex items-center bg-orange-50 border border-orange-200 rounded-lg px-4 py-2 gap-3">
                                   <div className="flex flex-col">
                                     <span className="text-sm font-medium text-orange-800">{s.name}</span>
                                     <span className="text-xs text-orange-600">{s.location}</span>
@@ -1054,13 +1033,12 @@ export const Matching = () => {
                                     {availableHours}h available
                                   </span>
                                 </div>;
-                        })}
+                          })}
                           </div>
                         </div>
                       </div>;
-                })()}
-                  </>
-                  )}
+                  })()}
+                  </>}
                 </div>
               </div>
             </div>
@@ -1086,7 +1064,7 @@ export const Matching = () => {
                     </Select>
                     <Select value={userLocationFilter} onValueChange={setUserLocationFilter}>
                       <SelectTrigger className="w-40 bg-white">
-                        <MapPin className="h-4 w-4 mr-2" />
+                        
                         <SelectValue placeholder="All Locations" />
                       </SelectTrigger>
                       <SelectContent className="bg-white z-50">
@@ -1557,7 +1535,7 @@ export const Matching = () => {
                     </Select>
                     <Select value={staffLocationFilter} onValueChange={setStaffLocationFilter}>
                       <SelectTrigger className="w-40 bg-white">
-                        <MapPin className="h-4 w-4 mr-2" />
+                        
                         <SelectValue placeholder="All Locations" />
                       </SelectTrigger>
                       <SelectContent className="bg-white z-50">
