@@ -109,9 +109,11 @@ export const Matching = () => {
   const [newUserLocationInput, setNewUserLocationInput] = useState("");
   const [newStaffLocationInput, setNewStaffLocationInput] = useState("");
   const [newUserManagerInput, setNewUserManagerInput] = useState("");
+  const [newStaffManagerInput, setNewStaffManagerInput] = useState("");
   const [isAddingUserLocation, setIsAddingUserLocation] = useState(false);
   const [isAddingStaffLocation, setIsAddingStaffLocation] = useState(false);
   const [isAddingUserManager, setIsAddingUserManager] = useState(false);
+  const [isAddingStaffManager, setIsAddingStaffManager] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [customLocations, setCustomLocations] = useState<string[]>([]);
   const [customManagers, setCustomManagers] = useState<string[]>([]);
@@ -2089,6 +2091,71 @@ export const Matching = () => {
                         <div className="flex items-center gap-1">
                           <Plus className="h-3 w-3" />
                           Add new location
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>}
+              </div>
+              <div>
+                <Label>Manager</Label>
+                {isAddingStaffManager ? <div className="flex gap-2">
+                    <Input value={newStaffManagerInput} onChange={e => {
+                  setNewStaffManagerInput(e.target.value);
+                }} onKeyDown={e => {
+                  if (e.key === 'Enter' && newStaffManagerInput.trim()) {
+                    e.preventDefault();
+                    const newMgr = newStaffManagerInput.trim();
+                    addCustomManager(newMgr);
+                    setNewStaffForm(f => ({
+                      ...f,
+                      manager: newMgr
+                    }));
+                    setNewStaffManagerInput('');
+                    setIsAddingStaffManager(false);
+                  } else if (e.key === 'Escape') {
+                    setNewStaffManagerInput('');
+                    setIsAddingStaffManager(false);
+                  }
+                }} autoFocus placeholder="Enter new manager..." className="bg-white border-gray-800 flex-1" />
+                    <Button type="button" size="sm" onClick={() => {
+                  if (newStaffManagerInput.trim()) {
+                    const newMgr = newStaffManagerInput.trim();
+                    addCustomManager(newMgr);
+                    setNewStaffForm(f => ({
+                      ...f,
+                      manager: newMgr
+                    }));
+                    setNewStaffManagerInput('');
+                    setIsAddingStaffManager(false);
+                  }
+                }}>
+                      <Check className="h-4 w-4" />
+                    </Button>
+                    <Button type="button" size="sm" variant="outline" onClick={() => {
+                  setNewStaffManagerInput('');
+                  setIsAddingStaffManager(false);
+                }}>
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div> : <Select value={newStaffForm.manager} onValueChange={v => {
+                if (v === '__add_new__') {
+                  setIsAddingStaffManager(true);
+                } else {
+                  setNewStaffForm(f => ({
+                    ...f,
+                    manager: v
+                  }));
+                }
+              }}>
+                    <SelectTrigger className="bg-white border-gray-800">
+                      <SelectValue placeholder="Select manager" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white z-[100]" position="popper" sideOffset={4}>
+                      {managers.map(mgr => <SelectItem key={mgr} value={mgr}>{mgr}</SelectItem>)}
+                      <SelectItem value="__add_new__" className="text-primary font-medium">
+                        <div className="flex items-center gap-1">
+                          <Plus className="h-3 w-3" />
+                          Add new manager
                         </div>
                       </SelectItem>
                     </SelectContent>
