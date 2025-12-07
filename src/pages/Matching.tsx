@@ -679,16 +679,14 @@ export const Matching = () => {
                   }
                 `}</style>
                 <div ref={printAreaRef} className="print-area grid grid-cols-1 gap-6">
-                  {/* AI Forecast Summary - Hidden from PDF export */}
-                  <div className="pdf-hidden">
-                    <ForecastAISummary
-                      serviceUsers={serviceUsers}
-                      staff={staff}
-                      weeks={WEEKS}
-                      showUtilisation={showUtilisation}
-                      showMatchmaking={showMatchmaking}
-                    />
-                  </div>
+                  {/* AI Forecast Summary */}
+                  <ForecastAISummary
+                    serviceUsers={serviceUsers}
+                    staff={staff}
+                    weeks={WEEKS}
+                    showUtilisation={showUtilisation}
+                    showMatchmaking={showMatchmaking}
+                  />
 
                   {/* Staff Utilisation Forecast */}
                   {showUtilisation && <div className="rounded-2xl overflow-hidden shadow-md bg-white border border-border">
