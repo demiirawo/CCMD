@@ -374,6 +374,17 @@ export const Matching = () => {
       score: calculateMatchScore(user, s)
     })).filter(item => item.score > 30).sort((a, b) => b.score - a.score).slice(0, 3);
   }, [staff, calculateMatchScore]);
+
+  // Get all staff ranked by match score for dropdowns
+  const getRankedStaff = useCallback((user: ServiceUser, excludeIds: string[] = []) => {
+    return staff
+      .filter(s => !excludeIds.includes(s.id))
+      .map(s => ({
+        staff: s,
+        score: calculateMatchScore(user, s)
+      }))
+      .sort((a, b) => b.score - a.score);
+  }, [staff, calculateMatchScore]);
   const getStaffById = (id: string) => staff.find(s => s.id === id);
   const assignStaff = (userId: string, staffId: string, type: 'primary' | 'backup') => {
     setServiceUsers(prev => prev.map(user => {
@@ -589,27 +600,78 @@ export const Matching = () => {
                         {user.supportNeeds.length > 2 && <Badge variant="outline" className="text-xs">+{user.supportNeeds.length - 2}</Badge>}
                       </div>
                       
-                      {/* Staff assignments */}
-                      <div className="space-y-2 pt-2 border-t">
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs font-medium text-muted-foreground">Primary:</span>
-                          {user.primaryStaffId ? <Badge className="bg-green-100 text-green-800 hover:bg-green-200 cursor-pointer" onClick={e => {
-                        e.stopPropagation();
-                        unassignStaff(user.id, user.primaryStaffId!, 'primary');
-                      }}>
-                            {getStaffById(user.primaryStaffId)?.name}
-                            <X className="h-3 w-3 ml-1" />
-                          </Badge> : <span className="text-xs text-orange-600">Unassigned</span>}
+                      {/* Staff assignments with dropdowns */}
+                      <div className="space-y-3 pt-2 border-t" onClick={e => e.stopPropagation()}>
+                        {/* Primary Staff Dropdown */}
+                        <div className="space-y-1">
+                          <span className="text-xs font-medium text-muted-foreground">Primary Staff:</span>
+                          <Select
+                            value={user.primaryStaffId || ""}
+                            onValueChange={(value) => {
+                              if (value === "__clear__") {
+                                if (user.primaryStaffId) unassignStaff(user.id, user.primaryStaffId, 'primary');
+                              } else {
+                                assignStaff(user.id, value, 'primary');
+                              }
+                            }}
+                          >
+                            <SelectTrigger className="h-8 text-xs bg-white">
+                              <SelectValue placeholder="Select primary staff..." />
+                            </SelectTrigger>
+                            <SelectContent className="bg-white z-50">
+                              {user.primaryStaffId && (
+                                <SelectItem value="__clear__" className="text-orange-600">
+                                  Clear selection
+                                </SelectItem>
+                              )}
+                              {getRankedStaff(user, user.backupStaffIds).map(({ staff: s, score }) => (
+                                <SelectItem key={s.id} value={s.id}>
+                                  <div className="flex items-center justify-between gap-2 w-full">
+                                    <span>{s.name}</span>
+                                    <Badge variant="outline" className="text-[10px] ml-2">{score}%</Badge>
+                                  </div>
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                         </div>
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="text-xs font-medium text-muted-foreground">Backup:</span>
-                          {user.backupStaffIds.length > 0 ? user.backupStaffIds.map(sid => <Badge key={sid} variant="outline" className="cursor-pointer" onClick={e => {
-                        e.stopPropagation();
-                        unassignStaff(user.id, sid, 'backup');
-                      }}>
-                            {getStaffById(sid)?.name}
-                            <X className="h-3 w-3 ml-1" />
-                          </Badge>) : <span className="text-xs text-muted-foreground">None</span>}
+                        
+                        {/* Backup Staff Multi-Select */}
+                        <div className="space-y-1">
+                          <span className="text-xs font-medium text-muted-foreground">Backup Staff:</span>
+                          <div className="flex flex-wrap gap-1 mb-1">
+                            {user.backupStaffIds.map(sid => (
+                              <Badge 
+                                key={sid} 
+                                variant="outline" 
+                                className="cursor-pointer text-xs"
+                                onClick={() => unassignStaff(user.id, sid, 'backup')}
+                              >
+                                {getStaffById(sid)?.name}
+                                <X className="h-3 w-3 ml-1" />
+                              </Badge>
+                            ))}
+                          </div>
+                          <Select
+                            value=""
+                            onValueChange={(value) => {
+                              if (value) assignStaff(user.id, value, 'backup');
+                            }}
+                          >
+                            <SelectTrigger className="h-8 text-xs bg-white">
+                              <SelectValue placeholder="Add backup staff..." />
+                            </SelectTrigger>
+                            <SelectContent className="bg-white z-50">
+                              {getRankedStaff(user, [user.primaryStaffId || '', ...user.backupStaffIds]).map(({ staff: s, score }) => (
+                                <SelectItem key={s.id} value={s.id}>
+                                  <div className="flex items-center justify-between gap-2 w-full">
+                                    <span>{s.name}</span>
+                                    <Badge variant="outline" className="text-[10px] ml-2">{score}%</Badge>
+                                  </div>
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                         </div>
                       </div>
                     </CardContent>
