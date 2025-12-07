@@ -56,6 +56,29 @@ interface ServiceUser {
   forecastHours: WeeklyForecast;
   staffAllocations: StaffAllocation[];
 }
+type ContractType = 
+  | "Full-Time Contract"
+  | "Part-Time Contract"
+  | "Zero-Hours Contract"
+  | "Fixed-Term Contract"
+  | "Agency or Temporary Contract"
+  | "Self-Employed/Independent Contractor"
+  | "Apprenticeship Agreement"
+  | "Bank Contract (Casual Staff)"
+  | "Volunteer";
+
+const CONTRACT_TYPES: ContractType[] = [
+  "Full-Time Contract",
+  "Part-Time Contract",
+  "Zero-Hours Contract",
+  "Fixed-Term Contract",
+  "Agency or Temporary Contract",
+  "Self-Employed/Independent Contractor",
+  "Apprenticeship Agreement",
+  "Bank Contract (Casual Staff)",
+  "Volunteer"
+];
+
 interface Staff {
   id: string;
   name: string;
@@ -64,6 +87,8 @@ interface Staff {
   interests: string[];
   availability: string;
   status: "Active" | "On Leave" | "Inactive";
+  typicalWeeklyHours: number;
+  contractType: ContractType;
   forecastHours: WeeklyForecast;
 }
 
@@ -117,6 +142,8 @@ const INITIAL_STAFF: Staff[] = [{
   interests: ["Gardening", "Reading", "Nature walks"],
   availability: "Full-time",
   status: "Active",
+  typicalWeeklyHours: 40,
+  contractType: "Full-Time Contract",
   forecastHours: createDefaultForecast(40)
 }, {
   id: "s2",
@@ -126,6 +153,8 @@ const INITIAL_STAFF: Staff[] = [{
   interests: ["Music", "Animals", "Crafts"],
   availability: "Full-time",
   status: "Active",
+  typicalWeeklyHours: 40,
+  contractType: "Full-Time Contract",
   forecastHours: createDefaultForecast(40)
 }, {
   id: "s3",
@@ -135,6 +164,8 @@ const INITIAL_STAFF: Staff[] = [{
   interests: ["Sports", "Gaming", "Gardening"],
   availability: "Part-time",
   status: "Active",
+  typicalWeeklyHours: 20,
+  contractType: "Part-Time Contract",
   forecastHours: createDefaultForecast(20)
 }, {
   id: "s4",
@@ -144,6 +175,8 @@ const INITIAL_STAFF: Staff[] = [{
   interests: ["Music", "Cooking", "Animals"],
   availability: "Full-time",
   status: "Active",
+  typicalWeeklyHours: 40,
+  contractType: "Full-Time Contract",
   forecastHours: createDefaultForecast(40)
 }, {
   id: "s5",
@@ -153,6 +186,8 @@ const INITIAL_STAFF: Staff[] = [{
   interests: ["Sports", "Cooking", "Outdoor activities"],
   availability: "Full-time",
   status: "Active",
+  typicalWeeklyHours: 40,
+  contractType: "Full-Time Contract",
   forecastHours: createDefaultForecast(40)
 }];
 export const Matching = () => {
@@ -417,7 +452,9 @@ export const Matching = () => {
       interests: newStaffForm.interests.split(",").map(s => s.trim()).filter(Boolean),
       availability: newStaffForm.availability,
       status: "Active",
-      forecastHours: createDefaultForecast(160)
+      typicalWeeklyHours: 40,
+      contractType: "Full-Time Contract",
+      forecastHours: createDefaultForecast(40)
     };
     setStaff(prev => [...prev, newStaffMember]);
     setNewStaffForm({
@@ -1072,9 +1109,11 @@ export const Matching = () => {
                     <TableHeader>
                       <TableRow>
                         <TableHead>Name</TableHead>
+                        <TableHead>Location</TableHead>
+                        <TableHead>Typical Weekly Hours</TableHead>
+                        <TableHead>Contract Type</TableHead>
                         <TableHead>Skills</TableHead>
                         <TableHead>Interests</TableHead>
-                        <TableHead>Location</TableHead>
                         <TableHead>Status</TableHead>
                         <TableHead className="w-[50px]"></TableHead>
                       </TableRow>
@@ -1082,6 +1121,39 @@ export const Matching = () => {
                     <TableBody>
                       {staff.map(s => <TableRow key={s.id}>
                           <TableCell className="font-medium">{s.name}</TableCell>
+                          <TableCell>{s.location}</TableCell>
+                          <TableCell>
+                            <Input 
+                              type="number" 
+                              value={s.typicalWeeklyHours} 
+                              onChange={e => {
+                                const value = parseFloat(e.target.value) || 0;
+                                setStaff(prev => prev.map(staff => staff.id === s.id ? {
+                                  ...staff,
+                                  typicalWeeklyHours: value,
+                                  forecastHours: createDefaultForecast(value)
+                                } : staff));
+                              }} 
+                              className="h-8 w-20 text-center bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" 
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <Select value={s.contractType} onValueChange={(value: ContractType) => {
+                              setStaff(prev => prev.map(staff => staff.id === s.id ? {
+                                ...staff,
+                                contractType: value
+                              } : staff));
+                            }}>
+                              <SelectTrigger className="h-8 w-48 bg-white">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent className="bg-white z-50">
+                                {CONTRACT_TYPES.map(type => (
+                                  <SelectItem key={type} value={type}>{type}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </TableCell>
                           <TableCell>
                             <div className="flex flex-wrap gap-1">
                               {s.skills.slice(0, 2).map(skill => <Badge key={skill} variant="secondary" className="text-xs">{skill}</Badge>)}
@@ -1094,7 +1166,6 @@ export const Matching = () => {
                               {s.interests.length > 2 && <Badge variant="outline" className="text-xs">+{s.interests.length - 2}</Badge>}
                             </div>
                           </TableCell>
-                          <TableCell>{s.location}</TableCell>
                           <TableCell>
                             <Select value={s.status} onValueChange={(value: "Active" | "On Leave" | "Inactive") => {
                           setStaff(prev => prev.map(staff => staff.id === s.id ? {
