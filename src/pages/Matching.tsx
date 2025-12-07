@@ -142,9 +142,10 @@ export const Matching = () => {
       hiddenElements.forEach(el => (el as HTMLElement).style.display = 'none');
 
       // Add temporary padding for PDF export
-      element.style.padding = '20px';
+      element.style.padding = '15px';
+      
       const canvas = await html2canvas(element, {
-        scale: 2,
+        scale: 1.5, // Reduced from 2 for smaller file size
         useCORS: true,
         logging: false,
         backgroundColor: '#ffffff'
@@ -154,56 +155,65 @@ export const Matching = () => {
       element.style.padding = '';
       hiddenElements.forEach(el => (el as HTMLElement).style.display = '');
 
-      const imgData = canvas.toDataURL('image/png');
+      // Use JPEG for smaller file size
+      const imgData = canvas.toDataURL('image/jpeg', 0.85);
+      
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
         format: 'a4'
       });
+      
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = pdf.internal.pageSize.getHeight();
-      const margin = 15; // 15mm margins
+      const margin = 10; // 10mm margins
       const contentWidth = pdfWidth - margin * 2;
+      const contentHeight = pdfHeight - margin * 2;
+      
+      // Calculate scaled dimensions maintaining aspect ratio
       const imgWidth = canvas.width;
       const imgHeight = canvas.height;
       const ratio = contentWidth / imgWidth;
-      const imgX = margin;
-      const imgY = margin;
-
-      // Handle multi-page if content is too tall
       const scaledHeight = imgHeight * ratio;
-      const pageContentHeight = pdfHeight - margin * 2;
 
-      if (scaledHeight <= pageContentHeight) {
-        pdf.addImage(imgData, 'PNG', imgX, imgY, imgWidth * ratio, scaledHeight);
+      if (scaledHeight <= contentHeight) {
+        // Single page - fits on one page
+        pdf.addImage(imgData, 'JPEG', margin, margin, contentWidth, scaledHeight);
       } else {
-        // For multi-page, we need to slice the canvas properly
-        const totalPages = Math.ceil(scaledHeight / pageContentHeight);
-        const sourcePageHeight = canvas.height / totalPages;
+        // Multi-page: calculate how many pages we need
+        const pxPerPage = contentHeight / ratio; // pixels of source per PDF page
+        let yOffset = 0;
+        let pageNum = 0;
         
-        for (let page = 0; page < totalPages; page++) {
-          if (page > 0) pdf.addPage();
+        while (yOffset < imgHeight && pageNum < 20) {
+          if (pageNum > 0) pdf.addPage();
           
-          // Create a temporary canvas for this page slice
-          const pageCanvas = document.createElement('canvas');
-          pageCanvas.width = canvas.width;
-          pageCanvas.height = sourcePageHeight;
-          const ctx = pageCanvas.getContext('2d');
+          // Height of this slice in source pixels
+          const sliceHeight = Math.min(pxPerPage, imgHeight - yOffset);
+          // Height of this slice in PDF mm
+          const sliceHeightMM = sliceHeight * ratio;
+          
+          // Create slice canvas
+          const sliceCanvas = document.createElement('canvas');
+          sliceCanvas.width = imgWidth;
+          sliceCanvas.height = sliceHeight;
+          const ctx = sliceCanvas.getContext('2d');
+          
           if (ctx) {
             ctx.drawImage(
               canvas,
-              0, page * sourcePageHeight,
-              canvas.width, sourcePageHeight,
-              0, 0,
-              canvas.width, sourcePageHeight
+              0, yOffset, imgWidth, sliceHeight,
+              0, 0, imgWidth, sliceHeight
             );
-            const pageImgData = pageCanvas.toDataURL('image/png');
-            pdf.addImage(pageImgData, 'PNG', imgX, imgY, contentWidth, pageContentHeight);
+            const sliceData = sliceCanvas.toDataURL('image/jpeg', 0.85);
+            pdf.addImage(sliceData, 'JPEG', margin, margin, contentWidth, sliceHeightMM);
           }
           
-          if (page > 20) break; // Safety limit
+          yOffset += pxPerPage;
+          pageNum++;
         }
       }
+      
       pdf.save('staff-forecast.pdf');
       toast({
         title: "PDF exported successfully"
