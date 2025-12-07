@@ -7,7 +7,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Search, Plus, MapPin, Lightbulb, X, Edit2, Trash2, TrendingUp, BarChart3 } from "lucide-react";
+import { Search, Plus, MapPin, Lightbulb, X, Edit2, Trash2, TrendingUp, BarChart3, Printer } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
@@ -220,6 +221,7 @@ export const Matching = () => {
     staffId: string;
     type: 'primary' | 'backup';
   } | null>(null);
+  const [compactView, setCompactView] = useState(false);
 
   // Dialog states
   const [isAddUserOpen, setIsAddUserOpen] = useState(false);
@@ -564,6 +566,126 @@ export const Matching = () => {
 
           {/* Visual Diagram View */}
           <TabsContent value="diagram" className="space-y-6">
+            {/* View Toggle */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <span className="text-sm font-medium">Detailed View</span>
+                <Switch checked={compactView} onCheckedChange={setCompactView} />
+                <span className="text-sm font-medium">Compact View</span>
+              </div>
+              {compactView && (
+                <Button variant="outline" size="sm" onClick={() => window.print()}>
+                  <Printer className="h-4 w-4 mr-2" />
+                  Print
+                </Button>
+              )}
+            </div>
+
+            {compactView ? (
+              /* Compact Print-Friendly View */
+              <div className="print:p-0" style={{ fontSize: '10px' }}>
+                <style>{`
+                  @media print {
+                    body * { visibility: hidden; }
+                    .compact-print-view, .compact-print-view * { visibility: visible; }
+                    .compact-print-view { position: absolute; left: 0; top: 0; width: 100%; }
+                    @page { size: A4; margin: 10mm; }
+                  }
+                `}</style>
+                <div className="compact-print-view space-y-4">
+                  <h2 className="text-lg font-bold text-center mb-4 print:text-base">Staff Allocation by Location</h2>
+                  {locations.map(location => {
+                    const locationUsers = serviceUsers.filter(u => u.location === location);
+                    const locationStaff = staff.filter(s => s.location === location);
+                    if (locationUsers.length === 0 && locationStaff.length === 0) return null;
+                    
+                    return (
+                      <div key={location} className="border rounded-lg p-3 print:border-black print:p-2">
+                        <div className="flex items-center gap-2 mb-2 pb-2 border-b">
+                          <MapPin className="h-4 w-4 print:h-3 print:w-3" />
+                          <h3 className="font-semibold text-sm print:text-xs">{location}</h3>
+                          <span className="text-xs text-muted-foreground">
+                            ({locationUsers.length} service users, {locationStaff.length} staff)
+                          </span>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-3 print:gap-2">
+                          {/* Service Users Column */}
+                          <div>
+                            <div className="text-xs font-medium text-muted-foreground mb-1">Service Users</div>
+                            <div className="space-y-1">
+                              {locationUsers.map(user => (
+                                <div key={user.id} className="bg-muted/50 rounded p-1.5 print:p-1">
+                                  <div className="font-medium text-xs">{user.name}</div>
+                                  <div className="text-[10px] text-muted-foreground leading-tight">
+                                    {user.supportNeeds.slice(0, 2).join(', ')}
+                                    {user.supportNeeds.length > 2 && ` +${user.supportNeeds.length - 2}`}
+                                  </div>
+                                  <div className="flex flex-wrap gap-0.5 mt-1">
+                                    {user.primaryStaffIds.map(sid => {
+                                      const s = getStaffById(sid);
+                                      return s ? (
+                                        <span key={sid} className="text-[9px] bg-green-100 text-green-800 px-1 rounded">
+                                          {s.name.split(' ')[0]}
+                                        </span>
+                                      ) : null;
+                                    })}
+                                    {user.backupStaffIds.map(sid => {
+                                      const s = getStaffById(sid);
+                                      return s ? (
+                                        <span key={sid} className="text-[9px] bg-gray-100 text-gray-600 px-1 rounded">
+                                          {s.name.split(' ')[0]} (B)
+                                        </span>
+                                      ) : null;
+                                    })}
+                                    {user.primaryStaffIds.length === 0 && user.backupStaffIds.length === 0 && (
+                                      <span className="text-[9px] text-orange-600">Unassigned</span>
+                                    )}
+                                  </div>
+                                </div>
+                              ))}
+                              {locationUsers.length === 0 && (
+                                <div className="text-[10px] text-muted-foreground italic">No service users</div>
+                              )}
+                            </div>
+                          </div>
+                          
+                          {/* Staff Column */}
+                          <div>
+                            <div className="text-xs font-medium text-muted-foreground mb-1">Staff</div>
+                            <div className="space-y-1">
+                              {locationStaff.map(s => {
+                                const assignedUsers = serviceUsers.filter(
+                                  u => u.primaryStaffIds.includes(s.id) || u.backupStaffIds.includes(s.id)
+                                );
+                                return (
+                                  <div key={s.id} className="bg-muted/50 rounded p-1.5 print:p-1">
+                                    <div className="flex items-center justify-between">
+                                      <span className="font-medium text-xs">{s.name}</span>
+                                      <span className="text-[9px] bg-primary/10 px-1 rounded">{s.roleType}</span>
+                                    </div>
+                                    <div className="text-[10px] text-muted-foreground">{s.availability}</div>
+                                    <div className="text-[9px] text-muted-foreground mt-0.5">
+                                      {assignedUsers.length > 0 
+                                        ? `→ ${assignedUsers.map(u => u.name.split(' ')[0]).join(', ')}`
+                                        : <span className="text-orange-600">Not assigned</span>
+                                      }
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                              {locationStaff.length === 0 && (
+                                <div className="text-[10px] text-muted-foreground italic">No staff</div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : (
             <div ref={containerRef} className="grid grid-cols-1 lg:grid-cols-3 gap-6 relative">
               {/* SVG for connection lines - spans the entire grid */}
               <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{
@@ -739,6 +861,7 @@ export const Matching = () => {
                   </div>)}
               </div>
             </div>
+            )}
           </TabsContent>
 
           {/* Utilisation Tab */}
