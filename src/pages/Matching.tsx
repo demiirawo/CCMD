@@ -1051,7 +1051,7 @@ export const Matching = () => {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5" />
+                  
                   Staff Hours Forecast (12 Months)
                 </CardTitle>
               </CardHeader>
