@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Search, Plus, MapPin, X, Edit2, Trash2, BarChart3, Printer } from "lucide-react";
+import { Search, Plus, MapPin, X, Edit2, Trash2, BarChart3, Printer, Check } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
@@ -42,6 +42,7 @@ interface WeeklyForecast {
 interface StaffAllocation {
   staffId: string;
   allocatedHours: WeeklyForecast;
+  confirmedNeeds: string[]; // Support needs this staff is confirmed to meet
 }
 
 interface ServiceUser {
@@ -82,9 +83,7 @@ const CONTRACT_TYPES: ContractType[] = [
 interface Staff {
   id: string;
   name: string;
-  skills: string[];
   location: string;
-  interests: string[];
   availability: string;
   status: "Active" | "On Leave" | "Inactive";
   typicalWeeklyHours: number;
@@ -110,7 +109,7 @@ const INITIAL_SERVICE_USERS: ServiceUser[] = [{
   primaryStaffIds: ["s1"],
   backupStaffIds: ["s3"],
   forecastHours: createDefaultForecast(21),
-  staffAllocations: [{ staffId: "s1", allocatedHours: createDefaultForecast(21) }]
+  staffAllocations: [{ staffId: "s1", allocatedHours: createDefaultForecast(21), confirmedNeeds: ["Autism", "Personal Care", "Community Access"] }]
 }, {
   id: "su2",
   name: "Mary Johnson",
@@ -121,7 +120,7 @@ const INITIAL_SERVICE_USERS: ServiceUser[] = [{
   primaryStaffIds: ["s2"],
   backupStaffIds: ["s4"],
   forecastHours: createDefaultForecast(30),
-  staffAllocations: [{ staffId: "s2", allocatedHours: createDefaultForecast(30) }]
+  staffAllocations: [{ staffId: "s2", allocatedHours: createDefaultForecast(30), confirmedNeeds: ["Hoisting", "PEG Feeding", "Dementia Care"] }]
 }, {
   id: "su3",
   name: "David Williams",
@@ -137,9 +136,7 @@ const INITIAL_SERVICE_USERS: ServiceUser[] = [{
 const INITIAL_STAFF: Staff[] = [{
   id: "s1",
   name: "Sarah Brown",
-  skills: ["Autism Trained", "Personal Care", "Community Support", "Makaton"],
   location: "North London",
-  interests: ["Gardening", "Reading", "Nature walks"],
   availability: "Full-time",
   status: "Active",
   typicalWeeklyHours: 40,
@@ -148,9 +145,7 @@ const INITIAL_STAFF: Staff[] = [{
 }, {
   id: "s2",
   name: "Emma Wilson",
-  skills: ["PEG Feeding", "Hoisting", "Dementia Experience", "End of Life Care"],
   location: "South London",
-  interests: ["Music", "Animals", "Crafts"],
   availability: "Full-time",
   status: "Active",
   typicalWeeklyHours: 40,
@@ -159,9 +154,7 @@ const INITIAL_STAFF: Staff[] = [{
 }, {
   id: "s3",
   name: "James Taylor",
-  skills: ["Autism Trained", "Behaviour Support", "Personal Care"],
   location: "North London",
-  interests: ["Sports", "Gaming", "Gardening"],
   availability: "Part-time",
   status: "Active",
   typicalWeeklyHours: 20,
@@ -170,9 +163,7 @@ const INITIAL_STAFF: Staff[] = [{
 }, {
   id: "s4",
   name: "Lisa Anderson",
-  skills: ["Hoisting", "Personal Care", "Medication Administration"],
   location: "South London",
-  interests: ["Music", "Cooking", "Animals"],
   availability: "Full-time",
   status: "Active",
   typicalWeeklyHours: 40,
@@ -181,9 +172,7 @@ const INITIAL_STAFF: Staff[] = [{
 }, {
   id: "s5",
   name: "Michael Chen",
-  skills: ["Learning Disability", "Behaviour Support", "Sports Activities"],
   location: "East London",
-  interests: ["Sports", "Cooking", "Outdoor activities"],
   availability: "Full-time",
   status: "Active",
   typicalWeeklyHours: 40,
@@ -217,12 +206,18 @@ export const Matching = () => {
   // Inline editing states
   const [editingCell, setEditingCell] = useState<{
     id: string;
-    field: 'name' | 'supportNeeds' | 'location' | 'interests' | 'skills';
+    field: 'name' | 'supportNeeds' | 'location' | 'interests';
     type: 'user' | 'staff';
   } | null>(null);
   const [editValue, setEditValue] = useState<string>("");
 
-
+  // Support needs confirmation dialog state
+  const [needsConfirmDialog, setNeedsConfirmDialog] = useState<{
+    userId: string;
+    staffId: string;
+    type: 'primary' | 'backup';
+    selectedNeeds: string[];
+  } | null>(null);
 
   // Form states
   const [newUserForm, setNewUserForm] = useState({
@@ -233,9 +228,7 @@ export const Matching = () => {
   });
   const [newStaffForm, setNewStaffForm] = useState({
     name: "",
-    skills: "",
     location: "",
-    interests: "",
     availability: "Full-time"
   });
   const locations = useMemo(() => {
@@ -250,15 +243,8 @@ export const Matching = () => {
   // All interests/preferences for dropdowns
   const allInterests = useMemo(() => {
     const userPrefs = serviceUsers.flatMap(u => u.preferences);
-    const staffInterests = staff.flatMap(s => s.interests);
-    return [...new Set([...userPrefs, ...staffInterests])].filter(Boolean);
-  }, [serviceUsers, staff]);
-
-  // All skills for dropdown
-  const allSkills = useMemo(() => {
-    const staffSkills = staff.flatMap(s => s.skills);
-    return [...new Set(staffSkills)].filter(Boolean);
-  }, [staff]);
+    return [...new Set(userPrefs)].filter(Boolean);
+  }, [serviceUsers]);
   const filteredServiceUsers = useMemo(() => {
     return serviceUsers.filter(user => {
       const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) || user.supportNeeds.some(need => need.toLowerCase().includes(searchTerm.toLowerCase()));
@@ -272,21 +258,14 @@ export const Matching = () => {
     let score = 0;
 
     // Location match (highest priority)
-    if (user.location === staffMember.location) score += 30;
+    if (user.location === staffMember.location) score += 50;
+    
+    // Check if staff has confirmed needs for this user
+    const allocation = user.staffAllocations.find(a => a.staffId === staffMember.id);
+    if (allocation && allocation.confirmedNeeds.length > 0) {
+      score += allocation.confirmedNeeds.length * 10;
+    }
 
-    // Skills matching support needs
-    user.supportNeeds.forEach(need => {
-      if (staffMember.skills.some(skill => skill.toLowerCase().includes(need.toLowerCase()) || need.toLowerCase().includes(skill.toLowerCase()))) {
-        score += 20;
-      }
-    });
-
-    // Interests matching preferences
-    user.preferences.forEach(pref => {
-      if (staffMember.interests.some(interest => pref.toLowerCase().includes(interest.toLowerCase()) || interest.toLowerCase().includes(pref.toLowerCase()))) {
-        score += 10;
-      }
-    });
     return Math.min(score, 100);
   }, []);
   const getSuggestedStaff = useCallback((user: ServiceUser) => {
@@ -305,15 +284,31 @@ export const Matching = () => {
     })).sort((a, b) => b.score - a.score);
   }, [staff, calculateMatchScore]);
   const getStaffById = (id: string) => staff.find(s => s.id === id);
-  const assignStaff = (userId: string, staffId: string, type: 'primary' | 'backup') => {
+  
+  // Open the needs confirmation dialog before assigning staff
+  const openNeedsConfirmDialog = (userId: string, staffId: string, type: 'primary' | 'backup') => {
+    const user = serviceUsers.find(u => u.id === userId);
+    if (!user) return;
+    setNeedsConfirmDialog({
+      userId,
+      staffId,
+      type,
+      selectedNeeds: [] // Start with none selected
+    });
+  };
+
+  const confirmAssignStaff = () => {
+    if (!needsConfirmDialog) return;
+    const { userId, staffId, type, selectedNeeds } = needsConfirmDialog;
+    
     setServiceUsers(prev => prev.map(user => {
       if (user.id !== userId) return user;
       if (type === 'primary') {
         if (user.primaryStaffIds.includes(staffId)) return user;
-        // Add staff allocation with default 0 hours for current month
         const newAllocation: StaffAllocation = {
           staffId,
-          allocatedHours: createDefaultForecast(0)
+          allocatedHours: createDefaultForecast(0),
+          confirmedNeeds: selectedNeeds
         };
         return {
           ...user,
@@ -331,6 +326,35 @@ export const Matching = () => {
     toast({
       title: "Staff assigned successfully"
     });
+    setNeedsConfirmDialog(null);
+  };
+
+  const toggleNeed = (need: string) => {
+    if (!needsConfirmDialog) return;
+    setNeedsConfirmDialog(prev => {
+      if (!prev) return null;
+      const isSelected = prev.selectedNeeds.includes(need);
+      return {
+        ...prev,
+        selectedNeeds: isSelected 
+          ? prev.selectedNeeds.filter(n => n !== need)
+          : [...prev.selectedNeeds, need]
+      };
+    });
+  };
+
+  const selectAllNeeds = () => {
+    if (!needsConfirmDialog) return;
+    const user = serviceUsers.find(u => u.id === needsConfirmDialog.userId);
+    if (!user) return;
+    setNeedsConfirmDialog(prev => {
+      if (!prev) return null;
+      return {
+        ...prev,
+        selectedNeeds: [...user.supportNeeds]
+      };
+    });
+  };
   };
 
   const updateStaffAllocation = (userId: string, staffId: string, week: string, hours: number) => {
@@ -460,9 +484,7 @@ export const Matching = () => {
     const newStaffMember: Staff = {
       id: `s${Date.now()}`,
       name: newStaffForm.name,
-      skills: newStaffForm.skills.split(",").map(s => s.trim()).filter(Boolean),
       location: newStaffForm.location,
-      interests: newStaffForm.interests.split(",").map(s => s.trim()).filter(Boolean),
       availability: newStaffForm.availability,
       status: "Active",
       typicalWeeklyHours: 40,
@@ -472,9 +494,7 @@ export const Matching = () => {
     setStaff(prev => [...prev, newStaffMember]);
     setNewStaffForm({
       name: "",
-      skills: "",
       location: "",
-      interests: "",
       availability: "Full-time"
     });
     setIsAddStaffOpen(false);
@@ -642,21 +662,14 @@ export const Matching = () => {
                 const locationStaff = staff.filter(s => s.location === location);
                 if (locationUsers.length === 0 && locationStaff.length === 0) return null;
 
-                // Helper to get match reasons between user and staff
+                // Helper to get match reasons between user and staff (based on confirmed needs)
                 const getMatchReasons = (user: ServiceUser, staffMember: Staff): string[] => {
                   const reasons: string[] = [];
 
-                  // Skills matching support needs
-                  const matchingSkills = user.supportNeeds.filter(need => staffMember.skills.some(skill => skill.toLowerCase().includes(need.toLowerCase()) || need.toLowerCase().includes(skill.toLowerCase())));
-                  if (matchingSkills.length > 0) {
-                    reasons.push(`Skills: ${matchingSkills.slice(0, 2).join(', ')}`);
-                  }
-
-                  // Interests matching preferences
-                  const matchingInterests = user.preferences.filter(pref => staffMember.interests.some(interest => pref.toLowerCase().includes(interest.toLowerCase()) || interest.toLowerCase().includes(pref.toLowerCase())));
-                  if (matchingInterests.length > 0) {
-                    const interestMatches = staffMember.interests.filter(interest => user.preferences.some(pref => pref.toLowerCase().includes(interest.toLowerCase()) || interest.toLowerCase().includes(pref.toLowerCase())));
-                    reasons.push(`Interests: ${interestMatches.slice(0, 2).join(', ')}`);
+                  // Get confirmed needs for this staff-user pairing
+                  const allocation = user.staffAllocations.find(a => a.staffId === staffMember.id);
+                  if (allocation && allocation.confirmedNeeds.length > 0) {
+                    reasons.push(`Confirmed for: ${allocation.confirmedNeeds.slice(0, 3).join(', ')}`);
                   }
 
                   // Location match
@@ -715,16 +728,12 @@ export const Matching = () => {
                               : (s.forecastHours[currentWeek] || 0);
                             const hoursLabel = type === 'Primary' ? 'allocated' : 'available';
 
-                            // Build narrative matching criteria
+                            // Build narrative matching criteria based on confirmed needs
                             const buildMatchingNarrative = () => {
                               const parts: string[] = [];
-                              const skillMatches = user.supportNeeds.filter(need => s.skills.some(skill => skill.toLowerCase().includes(need.toLowerCase()) || need.toLowerCase().includes(skill.toLowerCase())));
-                              const interestMatches = s.interests.filter(interest => user.preferences.some(pref => pref.toLowerCase().includes(interest.toLowerCase()) || interest.toLowerCase().includes(pref.toLowerCase())));
-                              if (skillMatches.length > 0) {
-                                parts.push(`${s.name.split(' ')[0]} has skills in ${skillMatches.slice(0, 2).join(' and ')}`);
-                              }
-                              if (interestMatches.length > 0) {
-                                parts.push(`shares interests in ${interestMatches.slice(0, 2).join(' and ')}`);
+                              const allocation = user.staffAllocations.find(a => a.staffId === sid);
+                              if (allocation && allocation.confirmedNeeds.length > 0) {
+                                parts.push(`${s.name.split(' ')[0]} is confirmed for ${allocation.confirmedNeeds.slice(0, 3).join(', ')}`);
                               }
                               if (user.location === s.location) {
                                 parts.push('they are in the same location');
@@ -1196,7 +1205,7 @@ export const Matching = () => {
                                     name: s.name,
                                     score
                                   }))} 
-                                  onSelect={value => assignStaff(user.id, value, 'primary')} 
+                                  onSelect={value => openNeedsConfirmDialog(user.id, value, 'primary')} 
                                   placeholder="+ Add Primary Staff" 
                                   triggerClassName="w-[160px]" 
                                   className="w-[200px]" 
@@ -1210,7 +1219,7 @@ export const Matching = () => {
                                     name: s.name,
                                     score
                                   }))} 
-                                  onSelect={value => assignStaff(user.id, value, 'backup')} 
+                                  onSelect={value => openNeedsConfirmDialog(user.id, value, 'backup')} 
                                   placeholder="+ Add Backup Staff" 
                                   triggerClassName="w-[160px]" 
                                   className="w-[200px]" 
@@ -1246,8 +1255,6 @@ export const Matching = () => {
                         <TableHead>Location</TableHead>
                         <TableHead>Typical Weekly Hours</TableHead>
                         <TableHead>Contract Type</TableHead>
-                        <TableHead>Skills</TableHead>
-                        <TableHead>Interests</TableHead>
                         <TableHead>Status</TableHead>
                         <TableHead className="w-[50px]"></TableHead>
                       </TableRow>
@@ -1287,164 +1294,6 @@ export const Matching = () => {
                                 ))}
                               </SelectContent>
                             </Select>
-                          </TableCell>
-                          {/* Skills */}
-                          <TableCell>
-                            {editingCell?.id === s.id && editingCell?.field === 'skills' && editingCell?.type === 'staff' ? (
-                              <Input 
-                                value={editValue} 
-                                onChange={e => setEditValue(e.target.value)} 
-                                onBlur={() => {
-                                  if (editValue.trim()) {
-                                    setStaff(prev => prev.map(staff => staff.id === s.id ? {
-                                      ...staff,
-                                      skills: [...staff.skills, editValue.trim()]
-                                    } : staff));
-                                  }
-                                  setEditingCell(null);
-                                }} 
-                                onKeyDown={e => {
-                                  if (e.key === 'Enter' && editValue.trim()) {
-                                    setStaff(prev => prev.map(staff => staff.id === s.id ? {
-                                      ...staff,
-                                      skills: [...staff.skills, editValue.trim()]
-                                    } : staff));
-                                    setEditingCell(null);
-                                  } else if (e.key === 'Escape') {
-                                    setEditingCell(null);
-                                  }
-                                }} 
-                                autoFocus 
-                                placeholder="Enter new skill..." 
-                                className="h-8 bg-white min-w-[150px]" 
-                              />
-                            ) : (
-                              <div className="flex flex-wrap gap-1 items-center">
-                                {s.skills.map(skill => (
-                                  <Badge key={skill} variant="secondary" className="text-xs flex items-center gap-1">
-                                    {skill}
-                                    <X 
-                                      className="h-3 w-3 cursor-pointer hover:text-destructive" 
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        setStaff(prev => prev.map(staff => staff.id === s.id ? {
-                                          ...staff,
-                                          skills: staff.skills.filter(sk => sk !== skill)
-                                        } : staff));
-                                      }}
-                                    />
-                                  </Badge>
-                                ))}
-                                <Select 
-                                  value="" 
-                                  onValueChange={value => {
-                                    if (value === '__add_new__') {
-                                      setEditingCell({ id: s.id, field: 'skills', type: 'staff' });
-                                      setEditValue('');
-                                    } else if (!s.skills.includes(value)) {
-                                      setStaff(prev => prev.map(staff => staff.id === s.id ? {
-                                        ...staff,
-                                        skills: [...staff.skills, value]
-                                      } : staff));
-                                    }
-                                  }}
-                                >
-                                  <SelectTrigger className="h-6 w-6 p-0 border-dashed">
-                                    <Plus className="h-3 w-3" />
-                                  </SelectTrigger>
-                                  <SelectContent className="bg-white z-50">
-                                    {allSkills.filter(sk => !s.skills.includes(sk)).map(skill => (
-                                      <SelectItem key={skill} value={skill}>{skill}</SelectItem>
-                                    ))}
-                                    <SelectItem value="__add_new__" className="text-primary font-medium">
-                                      <div className="flex items-center gap-1">
-                                        <Plus className="h-3 w-3" />
-                                        Add new
-                                      </div>
-                                    </SelectItem>
-                                  </SelectContent>
-                                </Select>
-                              </div>
-                            )}
-                          </TableCell>
-                          {/* Interests */}
-                          <TableCell>
-                            {editingCell?.id === s.id && editingCell?.field === 'interests' && editingCell?.type === 'staff' ? (
-                              <Input 
-                                value={editValue} 
-                                onChange={e => setEditValue(e.target.value)} 
-                                onBlur={() => {
-                                  if (editValue.trim()) {
-                                    setStaff(prev => prev.map(staff => staff.id === s.id ? {
-                                      ...staff,
-                                      interests: [...staff.interests, editValue.trim()]
-                                    } : staff));
-                                  }
-                                  setEditingCell(null);
-                                }} 
-                                onKeyDown={e => {
-                                  if (e.key === 'Enter' && editValue.trim()) {
-                                    setStaff(prev => prev.map(staff => staff.id === s.id ? {
-                                      ...staff,
-                                      interests: [...staff.interests, editValue.trim()]
-                                    } : staff));
-                                    setEditingCell(null);
-                                  } else if (e.key === 'Escape') {
-                                    setEditingCell(null);
-                                  }
-                                }} 
-                                autoFocus 
-                                placeholder="Enter new interest..." 
-                                className="h-8 bg-white min-w-[150px]" 
-                              />
-                            ) : (
-                              <div className="flex flex-wrap gap-1 items-center">
-                                {s.interests.map(interest => (
-                                  <Badge key={interest} variant="outline" className="text-xs flex items-center gap-1">
-                                    {interest}
-                                    <X 
-                                      className="h-3 w-3 cursor-pointer hover:text-destructive" 
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        setStaff(prev => prev.map(staff => staff.id === s.id ? {
-                                          ...staff,
-                                          interests: staff.interests.filter(i => i !== interest)
-                                        } : staff));
-                                      }}
-                                    />
-                                  </Badge>
-                                ))}
-                                <Select 
-                                  value="" 
-                                  onValueChange={value => {
-                                    if (value === '__add_new__') {
-                                      setEditingCell({ id: s.id, field: 'interests', type: 'staff' });
-                                      setEditValue('');
-                                    } else if (!s.interests.includes(value)) {
-                                      setStaff(prev => prev.map(staff => staff.id === s.id ? {
-                                        ...staff,
-                                        interests: [...staff.interests, value]
-                                      } : staff));
-                                    }
-                                  }}
-                                >
-                                  <SelectTrigger className="h-6 w-6 p-0 border-dashed">
-                                    <Plus className="h-3 w-3" />
-                                  </SelectTrigger>
-                                  <SelectContent className="bg-white z-50">
-                                    {allInterests.filter(i => !s.interests.includes(i)).map(interest => (
-                                      <SelectItem key={interest} value={interest}>{interest}</SelectItem>
-                                    ))}
-                                    <SelectItem value="__add_new__" className="text-primary font-medium">
-                                      <div className="flex items-center gap-1">
-                                        <Plus className="h-3 w-3" />
-                                        Add new
-                                      </div>
-                                    </SelectItem>
-                                  </SelectContent>
-                                </Select>
-                              </div>
-                            )}
                           </TableCell>
                           <TableCell>
                             <Select value={s.status} onValueChange={(value: "Active" | "On Leave" | "Inactive") => {
@@ -1576,25 +1425,11 @@ export const Matching = () => {
               }))} className="bg-white" />
               </div>
               <div>
-                <Label>Skills & Experience (comma separated)</Label>
-                <Textarea value={newStaffForm.skills} onChange={e => setNewStaffForm(f => ({
-                ...f,
-                skills: e.target.value
-              }))} placeholder="Autism Trained, Personal Care, Makaton" className="bg-white" />
-              </div>
-              <div>
                 <Label>Location</Label>
                 <Input value={newStaffForm.location} onChange={e => setNewStaffForm(f => ({
                 ...f,
                 location: e.target.value
               }))} className="bg-white" />
-              </div>
-              <div>
-                <Label>Interests (comma separated)</Label>
-                <Textarea value={newStaffForm.interests} onChange={e => setNewStaffForm(f => ({
-                ...f,
-                interests: e.target.value
-              }))} placeholder="Gardening, Sports, Music" className="bg-white" />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -1618,7 +1453,62 @@ export const Matching = () => {
             </div>
           </DialogContent>
         </Dialog>
+
+        {/* Support Needs Confirmation Dialog */}
+        <Dialog open={!!needsConfirmDialog} onOpenChange={(open) => !open && setNeedsConfirmDialog(null)}>
+          <DialogContent className="bg-white max-w-md">
+            <DialogHeader>
+              <DialogTitle>Confirm Support Needs</DialogTitle>
+            </DialogHeader>
+            {needsConfirmDialog && (() => {
+              const user = serviceUsers.find(u => u.id === needsConfirmDialog.userId);
+              const staffMember = getStaffById(needsConfirmDialog.staffId);
+              if (!user || !staffMember) return null;
+              return (
+                <div className="space-y-4 pt-4">
+                  <p className="text-sm text-muted-foreground">
+                    Select which of <strong>{user.name}'s</strong> support needs <strong>{staffMember.name}</strong> is able to meet:
+                  </p>
+                  <div className="flex justify-end">
+                    <Button variant="outline" size="sm" onClick={selectAllNeeds}>
+                      Match All
+                    </Button>
+                  </div>
+                  <div className="space-y-2 max-h-60 overflow-y-auto">
+                    {user.supportNeeds.map(need => {
+                      const isSelected = needsConfirmDialog.selectedNeeds.includes(need);
+                      return (
+                        <div 
+                          key={need} 
+                          className={`flex items-center gap-3 p-2 rounded border cursor-pointer hover:bg-muted/50 ${isSelected ? 'bg-green-50 border-green-300' : ''}`}
+                          onClick={() => toggleNeed(need)}
+                        >
+                          <div className={`h-4 w-4 rounded border flex items-center justify-center ${isSelected ? 'bg-primary border-primary' : 'border-gray-300'}`}>
+                            {isSelected && <Check className="h-3 w-3 text-white" />}
+                          </div>
+                          <span className="text-sm">{need}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <div className="flex gap-2 justify-end pt-2">
+                    <Button variant="outline" onClick={() => setNeedsConfirmDialog(null)}>
+                      Cancel
+                    </Button>
+                    <Button 
+                      onClick={confirmAssignStaff}
+                      disabled={needsConfirmDialog.selectedNeeds.length === 0}
+                    >
+                      Assign as {needsConfirmDialog.type === 'primary' ? 'Primary' : 'Backup'}
+                    </Button>
+                  </div>
+                </div>
+              );
+            })()}
+          </DialogContent>
+        </Dialog>
       </div>
     </div>;
 };
+
 export default Matching;
