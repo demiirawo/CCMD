@@ -118,6 +118,17 @@ export const Matching = () => {
   const [customLocations, setCustomLocations] = useState<string[]>([]);
   const [customManagers, setCustomManagers] = useState<string[]>([]);
 
+  // Manual utilisation forecast data (replaces calculated values)
+  const [utilisationForecast, setUtilisationForecast] = useState<{
+    [week: string]: { required: number; allocated: number; unallocated: number };
+  }>(() => {
+    const initial: { [week: string]: { required: number; allocated: number; unallocated: number } } = {};
+    WEEKS.forEach(week => {
+      initial[week] = { required: 0, allocated: 0, unallocated: 0 };
+    });
+    return initial;
+  });
+
   // Add a custom location to the shared pool
   const addCustomLocation = (location: string) => {
     if (location.trim() && !customLocations.includes(location.trim())) {
@@ -906,23 +917,10 @@ export const Matching = () => {
                       </TableHeader>
                       <TableBody>
                         {WEEKS.map(week => {
-                          // Filter by manager and location
-                          let filteredUsers = serviceUsers;
-                          let filteredStaff = staff;
-                          if (managerFilter !== "all") {
-                            filteredUsers = filteredUsers.filter(u => u.manager === managerFilter);
-                            filteredStaff = filteredStaff.filter(s => s.manager === managerFilter);
-                          }
-                          if (locationFilter !== "all") {
-                            filteredUsers = filteredUsers.filter(u => u.location === locationFilter);
-                            filteredStaff = filteredStaff.filter(s => s.location === locationFilter);
-                          }
-                          const requiredHours = filteredUsers.reduce((sum, u) => sum + (u.forecastHours[week] || 0), 0);
-                          // Allocated hours = sum of all staff allocations across service users for this week
-                          const allocatedHours = filteredUsers.reduce((sum, u) => sum + u.staffAllocations.reduce((staffSum, alloc) => staffSum + (alloc.allocatedHours[week] || 0), 0), 0);
-                          // Unallocated hours = sum of hours from staff NOT assigned as PRIMARY to any service user
-                          const primaryStaffIds = new Set(filteredUsers.flatMap(u => u.primaryStaffIds));
-                          const unallocatedHours = filteredStaff.filter(s => s.status === "Active" && !primaryStaffIds.has(s.id)).reduce((sum, s) => sum + (s.forecastHours[week] || 0), 0);
+                          const weekData = utilisationForecast[week] || { required: 0, allocated: 0, unallocated: 0 };
+                          const requiredHours = weekData.required;
+                          const allocatedHours = weekData.allocated;
+                          const unallocatedHours = weekData.unallocated;
                           const totalAvailableHours = allocatedHours + unallocatedHours;
                           // Utilisation = allocated hours / total available hours (what % of available capacity is being used)
                           const utilisation = totalAvailableHours > 0 ? allocatedHours / totalAvailableHours * 100 : 0;
@@ -941,11 +939,49 @@ export const Matching = () => {
                           } else if (utilisation >= 90) {
                             utilisationColor = "text-red-600"; // over-utilised (>90%)
                           }
+
+                          const handleUpdateForecast = (field: 'required' | 'allocated' | 'unallocated', value: number) => {
+                            setUtilisationForecast(prev => ({
+                              ...prev,
+                              [week]: {
+                                ...prev[week],
+                                [field]: value
+                              }
+                            }));
+                          };
+
                           return <TableRow key={week}>
                               <TableCell className="font-medium text-xs py-1">{week}</TableCell>
-                              <TableCell className="text-right text-xs py-1">{requiredHours.toFixed(1)}</TableCell>
-                              <TableCell className="text-right text-xs py-1">{allocatedHours.toFixed(1)}</TableCell>
-                              <TableCell className="text-right text-xs py-1">{unallocatedHours.toFixed(1)}</TableCell>
+                              <TableCell className="text-right text-xs py-1">
+                                <Input
+                                  type="number"
+                                  value={requiredHours}
+                                  onChange={(e) => handleUpdateForecast('required', parseFloat(e.target.value) || 0)}
+                                  className="w-20 h-6 text-xs text-right bg-white"
+                                  min={0}
+                                  step={0.5}
+                                />
+                              </TableCell>
+                              <TableCell className="text-right text-xs py-1">
+                                <Input
+                                  type="number"
+                                  value={allocatedHours}
+                                  onChange={(e) => handleUpdateForecast('allocated', parseFloat(e.target.value) || 0)}
+                                  className="w-20 h-6 text-xs text-right bg-white"
+                                  min={0}
+                                  step={0.5}
+                                />
+                              </TableCell>
+                              <TableCell className="text-right text-xs py-1">
+                                <Input
+                                  type="number"
+                                  value={unallocatedHours}
+                                  onChange={(e) => handleUpdateForecast('unallocated', parseFloat(e.target.value) || 0)}
+                                  className="w-20 h-6 text-xs text-right bg-white"
+                                  min={0}
+                                  step={0.5}
+                                />
+                              </TableCell>
                               <TableCell className={`text-right text-xs py-1 font-semibold ${utilisationColor}`}>{utilisation.toFixed(1)}%</TableCell>
                               <TableCell className="text-right text-xs py-1">{requiredFTE.toFixed(2)}</TableCell>
                               <TableCell className="text-right text-xs py-1">{availableFTE.toFixed(2)}</TableCell>
