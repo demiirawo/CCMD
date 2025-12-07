@@ -43,6 +43,7 @@ interface StaffAllocation {
   staffId: string;
   allocatedHours: WeeklyForecast;
   confirmedNeeds: string[]; // Support needs this staff is confirmed to meet
+  confirmedInterests: string[]; // Shared interests confirmed
 }
 
 interface ServiceUser {
@@ -109,7 +110,7 @@ const INITIAL_SERVICE_USERS: ServiceUser[] = [{
   primaryStaffIds: ["s1"],
   backupStaffIds: ["s3"],
   forecastHours: createDefaultForecast(21),
-  staffAllocations: [{ staffId: "s1", allocatedHours: createDefaultForecast(21), confirmedNeeds: ["Autism", "Personal Care", "Community Access"] }]
+  staffAllocations: [{ staffId: "s1", allocatedHours: createDefaultForecast(21), confirmedNeeds: ["Autism", "Personal Care", "Community Access"], confirmedInterests: ["Enjoys gardening"] }]
 }, {
   id: "su2",
   name: "Mary Johnson",
@@ -120,7 +121,7 @@ const INITIAL_SERVICE_USERS: ServiceUser[] = [{
   primaryStaffIds: ["s2"],
   backupStaffIds: ["s4"],
   forecastHours: createDefaultForecast(30),
-  staffAllocations: [{ staffId: "s2", allocatedHours: createDefaultForecast(30), confirmedNeeds: ["Hoisting", "PEG Feeding", "Dementia Care"] }]
+  staffAllocations: [{ staffId: "s2", allocatedHours: createDefaultForecast(30), confirmedNeeds: ["Hoisting", "PEG Feeding", "Dementia Care"], confirmedInterests: ["Enjoys music"] }]
 }, {
   id: "su3",
   name: "David Williams",
@@ -217,6 +218,7 @@ export const Matching = () => {
     staffId: string;
     type: 'primary' | 'backup';
     selectedNeeds: string[];
+    selectedInterests: string[];
   } | null>(null);
 
   // Form states
@@ -293,13 +295,14 @@ export const Matching = () => {
       userId,
       staffId,
       type,
-      selectedNeeds: [] // Start with none selected
+      selectedNeeds: [],
+      selectedInterests: []
     });
   };
 
   const confirmAssignStaff = () => {
     if (!needsConfirmDialog) return;
-    const { userId, staffId, type, selectedNeeds } = needsConfirmDialog;
+    const { userId, staffId, type, selectedNeeds, selectedInterests } = needsConfirmDialog;
     
     setServiceUsers(prev => prev.map(user => {
       if (user.id !== userId) return user;
@@ -308,7 +311,8 @@ export const Matching = () => {
         const newAllocation: StaffAllocation = {
           staffId,
           allocatedHours: createDefaultForecast(0),
-          confirmedNeeds: selectedNeeds
+          confirmedNeeds: selectedNeeds,
+          confirmedInterests: selectedInterests
         };
         return {
           ...user,
@@ -343,6 +347,20 @@ export const Matching = () => {
     });
   };
 
+  const toggleInterest = (interest: string) => {
+    if (!needsConfirmDialog) return;
+    setNeedsConfirmDialog(prev => {
+      if (!prev) return null;
+      const isSelected = prev.selectedInterests.includes(interest);
+      return {
+        ...prev,
+        selectedInterests: isSelected 
+          ? prev.selectedInterests.filter(i => i !== interest)
+          : [...prev.selectedInterests, interest]
+      };
+    });
+  };
+
   const selectAllNeeds = () => {
     if (!needsConfirmDialog) return;
     const user = serviceUsers.find(u => u.id === needsConfirmDialog.userId);
@@ -352,6 +370,19 @@ export const Matching = () => {
       return {
         ...prev,
         selectedNeeds: [...user.supportNeeds]
+      };
+    });
+  };
+
+  const selectAllInterests = () => {
+    if (!needsConfirmDialog) return;
+    const user = serviceUsers.find(u => u.id === needsConfirmDialog.userId);
+    if (!user) return;
+    setNeedsConfirmDialog(prev => {
+      if (!prev) return null;
+      return {
+        ...prev,
+        selectedInterests: [...user.preferences]
       };
     });
   };
@@ -1453,11 +1484,11 @@ export const Matching = () => {
           </DialogContent>
         </Dialog>
 
-        {/* Support Needs Confirmation Dialog */}
+        {/* Support Needs & Interests Confirmation Dialog */}
         <Dialog open={!!needsConfirmDialog} onOpenChange={(open) => !open && setNeedsConfirmDialog(null)}>
-          <DialogContent className="bg-white max-w-md">
+          <DialogContent className="bg-white max-w-2xl">
             <DialogHeader>
-              <DialogTitle>Confirm Support Needs</DialogTitle>
+              <DialogTitle>Confirm Matching Criteria</DialogTitle>
             </DialogHeader>
             {needsConfirmDialog && (() => {
               const user = serviceUsers.find(u => u.id === needsConfirmDialog.userId);
@@ -1466,29 +1497,62 @@ export const Matching = () => {
               return (
                 <div className="space-y-4 pt-4">
                   <p className="text-sm text-muted-foreground">
-                    Select which of <strong>{user.name}'s</strong> support needs <strong>{staffMember.name}</strong> is able to meet:
+                    Select which of <strong>{user.name}'s</strong> needs and interests <strong>{staffMember.name}</strong> can meet:
                   </p>
-                  <div className="flex justify-end">
-                    <Button variant="outline" size="sm" onClick={selectAllNeeds}>
-                      Match All
-                    </Button>
-                  </div>
-                  <div className="space-y-2 max-h-60 overflow-y-auto">
-                    {user.supportNeeds.map(need => {
-                      const isSelected = needsConfirmDialog.selectedNeeds.includes(need);
-                      return (
-                        <div 
-                          key={need} 
-                          className={`flex items-center gap-3 p-2 rounded border cursor-pointer hover:bg-muted/50 ${isSelected ? 'bg-green-50 border-green-300' : ''}`}
-                          onClick={() => toggleNeed(need)}
-                        >
-                          <div className={`h-4 w-4 rounded border flex items-center justify-center ${isSelected ? 'bg-primary border-primary' : 'border-gray-300'}`}>
-                            {isSelected && <Check className="h-3 w-3 text-white" />}
-                          </div>
-                          <span className="text-sm">{need}</span>
-                        </div>
-                      );
-                    })}
+                  <div className="grid grid-cols-2 gap-4">
+                    {/* Support Needs Column */}
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <Label className="font-medium">Support Needs</Label>
+                        <Button variant="outline" size="sm" onClick={selectAllNeeds} className="h-6 text-xs">
+                          Match All
+                        </Button>
+                      </div>
+                      <div className="space-y-2 max-h-60 overflow-y-auto border rounded p-2">
+                        {user.supportNeeds.map(need => {
+                          const isSelected = needsConfirmDialog.selectedNeeds.includes(need);
+                          return (
+                            <div 
+                              key={need} 
+                              className={`flex items-center gap-3 p-2 rounded border cursor-pointer hover:bg-muted/50 ${isSelected ? 'bg-green-50 border-green-300' : ''}`}
+                              onClick={() => toggleNeed(need)}
+                            >
+                              <div className={`h-4 w-4 rounded border flex items-center justify-center ${isSelected ? 'bg-primary border-primary' : 'border-gray-300'}`}>
+                                {isSelected && <Check className="h-3 w-3 text-white" />}
+                              </div>
+                              <span className="text-sm">{need}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                    
+                    {/* Shared Interests Column */}
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <Label className="font-medium">Shared Interests</Label>
+                        <Button variant="outline" size="sm" onClick={selectAllInterests} className="h-6 text-xs">
+                          Match All
+                        </Button>
+                      </div>
+                      <div className="space-y-2 max-h-60 overflow-y-auto border rounded p-2">
+                        {user.preferences.map(interest => {
+                          const isSelected = needsConfirmDialog.selectedInterests.includes(interest);
+                          return (
+                            <div 
+                              key={interest} 
+                              className={`flex items-center gap-3 p-2 rounded border cursor-pointer hover:bg-muted/50 ${isSelected ? 'bg-blue-50 border-blue-300' : ''}`}
+                              onClick={() => toggleInterest(interest)}
+                            >
+                              <div className={`h-4 w-4 rounded border flex items-center justify-center ${isSelected ? 'bg-blue-600 border-blue-600' : 'border-gray-300'}`}>
+                                {isSelected && <Check className="h-3 w-3 text-white" />}
+                              </div>
+                              <span className="text-sm">{interest}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
                   </div>
                   <div className="flex gap-2 justify-end pt-2">
                     <Button variant="outline" onClick={() => setNeedsConfirmDialog(null)}>
