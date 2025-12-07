@@ -1613,7 +1613,7 @@ export const Matching = () => {
                             const allocatedHours = totalSingleHours + maxDoubleHours;
                             const unallocatedHours = requiredHours - allocatedHours;
                             return <TableCell key={week} colSpan={2} className="text-center border-l bg-destructive">
-                                  <span className={`text-sm font-medium ${unallocatedHours > 0 ? 'text-orange-700' : unallocatedHours < 0 ? 'text-red-700' : 'text-green-700'}`}>
+                                  <span className="text-sm font-medium text-white">
                                     {unallocatedHours}
                                   </span>
                                 </TableCell>;
