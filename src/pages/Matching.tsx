@@ -49,7 +49,6 @@ interface Staff {
   location: string;
   interests: string[];
   availability: string;
-  roleType: "Primary" | "Backup" | "Float";
   status: "Active" | "On Leave" | "Inactive";
   forecastHours: MonthlyForecast;
 }
@@ -121,7 +120,6 @@ const INITIAL_STAFF: Staff[] = [{
   location: "North London",
   interests: ["Gardening", "Reading", "Nature walks"],
   availability: "Full-time",
-  roleType: "Primary",
   status: "Active",
   forecastHours: {
     [MONTHS[0]]: 200,
@@ -139,7 +137,6 @@ const INITIAL_STAFF: Staff[] = [{
   location: "South London",
   interests: ["Music", "Animals", "Crafts"],
   availability: "Full-time",
-  roleType: "Primary",
   status: "Active",
   forecastHours: {
     [MONTHS[0]]: 10,
@@ -157,7 +154,6 @@ const INITIAL_STAFF: Staff[] = [{
   location: "North London",
   interests: ["Sports", "Gaming", "Gardening"],
   availability: "Part-time",
-  roleType: "Backup",
   status: "Active",
   forecastHours: {
     [MONTHS[0]]: 50,
@@ -175,7 +171,6 @@ const INITIAL_STAFF: Staff[] = [{
   location: "South London",
   interests: ["Music", "Cooking", "Animals"],
   availability: "Full-time",
-  roleType: "Float",
   status: "Active",
   forecastHours: {
     [MONTHS[0]]: 43,
@@ -193,7 +188,6 @@ const INITIAL_STAFF: Staff[] = [{
   location: "East London",
   interests: ["Sports", "Cooking", "Outdoor activities"],
   availability: "Full-time",
-  roleType: "Primary",
   status: "Active",
   forecastHours: {
     [MONTHS[0]]: 120,
@@ -262,8 +256,7 @@ export const Matching = () => {
     skills: "",
     location: "",
     interests: "",
-    availability: "Full-time",
-    roleType: "Primary" as "Primary" | "Backup" | "Float"
+    availability: "Full-time"
   });
   const locations = useMemo(() => {
     const allLocations = [...new Set([...serviceUsers.map(u => u.location), ...staff.map(s => s.location)])];
@@ -479,7 +472,6 @@ export const Matching = () => {
       location: newStaffForm.location,
       interests: newStaffForm.interests.split(",").map(s => s.trim()).filter(Boolean),
       availability: newStaffForm.availability,
-      roleType: newStaffForm.roleType,
       status: "Active",
       forecastHours: createDefaultForecast(160)
     };
@@ -489,8 +481,7 @@ export const Matching = () => {
       skills: "",
       location: "",
       interests: "",
-      availability: "Full-time",
-      roleType: "Primary"
+      availability: "Full-time"
     });
     setIsAddStaffOpen(false);
     toast({
@@ -704,7 +695,7 @@ export const Matching = () => {
                               <div className="text-[10px] font-medium text-muted-foreground mb-1">Unassigned Staff:</div>
                               <div className="flex flex-wrap gap-1">
                                 {unassignedStaff.map(s => <span key={s.id} className="text-[9px] bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded">
-                                    {s.name} ({s.roleType})
+                                    {s.name}
                                   </span>)}
                               </div>
                             </div>;
@@ -861,9 +852,6 @@ export const Matching = () => {
                         <div className="flex items-start justify-between mb-2">
                           <h3 className="font-semibold">{s.name}</h3>
                           <div className="flex gap-1 items-center">
-                            <Badge variant={s.roleType === 'Primary' ? 'default' : s.roleType === 'Backup' ? 'secondary' : 'outline'} className="text-xs">
-                              {s.roleType}
-                            </Badge>
                             <Button variant="ghost" size="icon" className="h-6 w-6" onClick={e => {
                           e.stopPropagation();
                           handleDeleteStaff(s.id);
@@ -1300,7 +1288,6 @@ export const Matching = () => {
                         <TableHead>Interests</TableHead>
                         <TableHead>Location</TableHead>
                         <TableHead>Status</TableHead>
-                        <TableHead>Role Type</TableHead>
                         <TableHead className="w-[50px]"></TableHead>
                       </TableRow>
                     </TableHeader>
@@ -1336,11 +1323,6 @@ export const Matching = () => {
                                 <SelectItem value="Inactive">Inactive</SelectItem>
                               </SelectContent>
                             </Select>
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant={s.roleType === 'Primary' ? 'default' : s.roleType === 'Backup' ? 'secondary' : 'outline'}>
-                              {s.roleType}
-                            </Badge>
                           </TableCell>
                           <TableCell>
                             <Button variant="ghost" size="icon" onClick={() => handleDeleteStaff(s.id)}>
@@ -1490,22 +1472,6 @@ export const Matching = () => {
                       <SelectItem value="Full-time">Full-time</SelectItem>
                       <SelectItem value="Part-time">Part-time</SelectItem>
                       <SelectItem value="Flexible">Flexible</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label>Role Type</Label>
-                  <Select value={newStaffForm.roleType} onValueChange={v => setNewStaffForm(f => ({
-                  ...f,
-                  roleType: v as "Primary" | "Backup" | "Float"
-                }))}>
-                    <SelectTrigger className="bg-white">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="bg-white">
-                      <SelectItem value="Primary">Primary</SelectItem>
-                      <SelectItem value="Backup">Backup</SelectItem>
-                      <SelectItem value="Float">Float</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
