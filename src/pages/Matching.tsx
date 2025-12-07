@@ -1202,7 +1202,6 @@ export const Matching = () => {
                         <TableHead>Name</TableHead>
                         <TableHead>Manager</TableHead>
                         <TableHead>Location</TableHead>
-                        <TableHead>Typical Weekly Hours</TableHead>
                         <TableHead>Gender Preference</TableHead>
                         <TableHead>Support Needs</TableHead>
                         <TableHead>Interests</TableHead>
@@ -1339,22 +1338,6 @@ export const Matching = () => {
                                   </SelectItem>
                                 </SelectContent>
                               </Select>}
-                          </TableCell>
-                          {/* Typical Weekly Hours */}
-                          <TableCell>
-                            <Input type="number" value={user.typicalWeeklyHours} onChange={e => {
-                            const value = parseFloat(e.target.value) || 0;
-                            // Update typical hours and sync all weeks in forecastHours
-                            const updatedForecast: WeeklyForecast = {};
-                            WEEKS.forEach(week => {
-                              updatedForecast[week] = value;
-                            });
-                            setServiceUsers(prev => prev.map(u => u.id === user.id ? {
-                              ...u,
-                              typicalWeeklyHours: value,
-                              forecastHours: updatedForecast
-                            } : u));
-                          }} className="h-8 w-20 text-center bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
                           </TableCell>
                           {/* Gender Preference */}
                           <TableCell>
