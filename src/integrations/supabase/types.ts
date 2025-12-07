@@ -896,6 +896,7 @@ export type Database = {
           gender_preference: string
           id: string
           location: string
+          manager: string | null
           name: string
           preferences: Json
           primary_staff_ids: Json
@@ -912,6 +913,7 @@ export type Database = {
           gender_preference?: string
           id?: string
           location?: string
+          manager?: string | null
           name: string
           preferences?: Json
           primary_staff_ids?: Json
@@ -928,6 +930,7 @@ export type Database = {
           gender_preference?: string
           id?: string
           location?: string
+          manager?: string | null
           name?: string
           preferences?: Json
           primary_staff_ids?: Json
@@ -955,6 +958,7 @@ export type Database = {
           gender: string
           id: string
           location: string
+          manager: string | null
           name: string
           status: string
           typical_weekly_hours: number
@@ -968,6 +972,7 @@ export type Database = {
           gender?: string
           id?: string
           location?: string
+          manager?: string | null
           name: string
           status?: string
           typical_weekly_hours?: number
@@ -981,6 +986,7 @@ export type Database = {
           gender?: string
           id?: string
           location?: string
+          manager?: string | null
           name?: string
           status?: string
           typical_weekly_hours?: number
