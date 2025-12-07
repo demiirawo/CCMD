@@ -569,9 +569,9 @@ export const Matching = () => {
             {/* View Toggle */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <span className="text-sm font-medium">Detailed View</span>
+                <span className="text-sm font-medium">Visual View</span>
                 <Switch checked={compactView} onCheckedChange={setCompactView} />
-                <span className="text-sm font-medium">Compact View</span>
+                <span className="text-sm font-medium">Print Friendly</span>
               </div>
               {compactView && <Button variant="outline" size="sm" onClick={() => window.print()}>
                   <Printer className="h-4 w-4 mr-2" />
