@@ -1468,37 +1468,45 @@ export const Matching = () => {
                 <CardContent className="pt-6">
                   <div className="overflow-x-auto">
                     <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="sticky left-0 bg-background">Name</TableHead>
-                        {WEEKS.map(week => <TableHead key={week} className="text-right min-w-[80px]">{week}</TableHead>)}
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {staff.map(s => <TableRow key={s.id}>
-                          <TableCell className="font-medium sticky left-0 bg-background">{s.name}</TableCell>
-                          {WEEKS.map(week => <TableCell key={week} className="text-right">
-                              <Input type="number" value={s.forecastHours[week] || 0} onChange={e => {
-                          const value = parseFloat(e.target.value) || 0;
-                          setStaff(prev => prev.map(staff => staff.id === s.id ? {
-                            ...staff,
-                            forecastHours: {
-                              ...staff.forecastHours,
-                              [week]: value
-                            }
-                          } : staff));
-                        }} className="h-8 w-20 text-right bg-white" />
-                            </TableCell>)}
-                        </TableRow>)}
-                      <TableRow className="bg-muted/50 font-semibold">
-                        <TableCell className="sticky left-0 bg-muted/50">Total</TableCell>
-                        {WEEKS.map(week => <TableCell key={week} className="text-right">
-                            {staff.reduce((sum, s) => sum + (s.forecastHours[week] || 0), 0)}
-                          </TableCell>)}
-                      </TableRow>
-                    </TableBody>
-                  </Table>
-                </div>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="sticky left-0 bg-background min-w-[200px]">Name</TableHead>
+                          {WEEKS.map(week => <TableHead key={week} className="text-center min-w-[100px]">{week}</TableHead>)}
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {staff.map(s => (
+                          <TableRow key={s.id}>
+                            <TableCell className="font-medium sticky left-0 bg-background">{s.name}</TableCell>
+                            {WEEKS.map(week => (
+                              <TableCell key={week} className="text-center">
+                                <Input 
+                                  type="number" 
+                                  value={s.forecastHours[week] || 0} 
+                                  onChange={e => {
+                                    const value = parseFloat(e.target.value) || 0;
+                                    setStaff(prev => prev.map(staff => staff.id === s.id ? {
+                                      ...staff,
+                                      forecastHours: { ...staff.forecastHours, [week]: value }
+                                    } : staff));
+                                  }} 
+                                  className="h-8 w-16 text-center bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" 
+                                />
+                              </TableCell>
+                            ))}
+                          </TableRow>
+                        ))}
+                        <TableRow className="bg-muted/50 font-semibold">
+                          <TableCell className="sticky left-0 bg-muted/50">Total</TableCell>
+                          {WEEKS.map(week => (
+                            <TableCell key={week} className="text-center">
+                              {staff.reduce((sum, s) => sum + (s.forecastHours[week] || 0), 0)}
+                            </TableCell>
+                          ))}
+                        </TableRow>
+                      </TableBody>
+                    </Table>
+                  </div>
               </CardContent>
             </Card>
             </div>
