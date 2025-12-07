@@ -739,10 +739,6 @@ export const Matching = () => {
                     <Card className={`cursor-pointer transition-all rounded-3xl overflow-hidden ${selectedStaff?.id === s.id ? 'ring-2 ring-primary' : 'hover:shadow-md'}`} onClick={() => setSelectedStaff(s)}>
                       {/* Header Section with color background */}
                       <div className="pt-8 pb-3 px-4 bg-[#3b0fd9]/30">
-                        <div className="flex flex-wrap gap-1 justify-center">
-                          {s.skills.slice(0, 2).map(skill => <Badge key={skill} variant="outline" className="text-xs bg-background">{skill}</Badge>)}
-                          {s.skills.length > 2 && <Badge variant="outline" className="text-xs bg-background">+{s.skills.length - 2}</Badge>}
-                        </div>
                       </div>
                       
                       {/* Content Section */}
@@ -765,7 +761,12 @@ export const Matching = () => {
                           <MapPin className="h-3 w-3" />
                           {s.location}
                         </div>
-                        <p className="text-xs text-muted-foreground">{s.availability}</p>
+                        <p className="text-xs text-muted-foreground mb-2">{s.availability}</p>
+                        {/* Skills tags - two rows */}
+                        <div className="flex flex-wrap gap-1 justify-center">
+                          {s.skills.slice(0, 4).map(skill => <Badge key={skill} variant="outline" className="text-xs bg-primary/10">{skill}</Badge>)}
+                          {s.skills.length > 4 && <Badge variant="outline" className="text-xs bg-primary/10">+{s.skills.length - 4}</Badge>}
+                        </div>
                       </CardContent>
                     </Card>
                   </div>)}
