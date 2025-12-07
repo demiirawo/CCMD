@@ -120,11 +120,25 @@ export const Matching = () => {
 
   // Manual utilisation forecast data (replaces calculated values)
   const [utilisationForecast, setUtilisationForecast] = useState<{
-    [week: string]: { required: number; allocated: number; unallocated: number };
+    [week: string]: {
+      required: number;
+      allocated: number;
+      unallocated: number;
+    };
   }>(() => {
-    const initial: { [week: string]: { required: number; allocated: number; unallocated: number } } = {};
+    const initial: {
+      [week: string]: {
+        required: number;
+        allocated: number;
+        unallocated: number;
+      };
+    } = {};
     WEEKS.forEach(week => {
-      initial[week] = { required: 0, allocated: 0, unallocated: 0 };
+      initial[week] = {
+        required: 0,
+        allocated: 0,
+        unallocated: 0
+      };
     });
     return initial;
   });
@@ -917,7 +931,11 @@ export const Matching = () => {
                       </TableHeader>
                       <TableBody>
                         {WEEKS.map(week => {
-                          const weekData = utilisationForecast[week] || { required: 0, allocated: 0, unallocated: 0 };
+                          const weekData = utilisationForecast[week] || {
+                            required: 0,
+                            allocated: 0,
+                            unallocated: 0
+                          };
                           const requiredHours = weekData.required;
                           const allocatedHours = weekData.allocated;
                           const unallocatedHours = weekData.unallocated;
@@ -939,7 +957,6 @@ export const Matching = () => {
                           } else if (utilisation >= 90) {
                             utilisationColor = "text-red-600"; // over-utilised (>90%)
                           }
-
                           const handleUpdateForecast = (field: 'required' | 'allocated' | 'unallocated', value: number) => {
                             setUtilisationForecast(prev => ({
                               ...prev,
@@ -949,38 +966,16 @@ export const Matching = () => {
                               }
                             }));
                           };
-
                           return <TableRow key={week}>
                               <TableCell className="font-medium text-xs py-1">{week}</TableCell>
                               <TableCell className="text-right text-xs py-1">
-                                <Input
-                                  type="number"
-                                  value={requiredHours}
-                                  onChange={(e) => handleUpdateForecast('required', parseFloat(e.target.value) || 0)}
-                                  className="w-20 h-6 text-xs text-right bg-white"
-                                  min={0}
-                                  step={0.5}
-                                />
+                                <Input type="number" value={requiredHours} onChange={e => handleUpdateForecast('required', parseFloat(e.target.value) || 0)} className="w-20 h-6 text-xs text-right bg-white" min={0} step={0.5} />
                               </TableCell>
                               <TableCell className="text-right text-xs py-1">
-                                <Input
-                                  type="number"
-                                  value={allocatedHours}
-                                  onChange={(e) => handleUpdateForecast('allocated', parseFloat(e.target.value) || 0)}
-                                  className="w-20 h-6 text-xs text-right bg-white"
-                                  min={0}
-                                  step={0.5}
-                                />
+                                <Input type="number" value={allocatedHours} onChange={e => handleUpdateForecast('allocated', parseFloat(e.target.value) || 0)} className="w-20 h-6 text-xs text-right bg-white" min={0} step={0.5} />
                               </TableCell>
                               <TableCell className="text-right text-xs py-1">
-                                <Input
-                                  type="number"
-                                  value={unallocatedHours}
-                                  onChange={(e) => handleUpdateForecast('unallocated', parseFloat(e.target.value) || 0)}
-                                  className="w-20 h-6 text-xs text-right bg-white"
-                                  min={0}
-                                  step={0.5}
-                                />
+                                <Input type="number" value={unallocatedHours} onChange={e => handleUpdateForecast('unallocated', parseFloat(e.target.value) || 0)} className="w-20 h-6 text-xs text-right bg-white" min={0} step={0.5} />
                               </TableCell>
                               <TableCell className={`text-right text-xs py-1 font-semibold ${utilisationColor}`}>{utilisation.toFixed(1)}%</TableCell>
                               <TableCell className="text-right text-xs py-1">{requiredFTE.toFixed(2)}</TableCell>
@@ -1051,9 +1046,7 @@ export const Matching = () => {
                                   <div className="flex-1">
                                     <div className="flex items-center gap-3">
                                       <span className="font-semibold text-base">{user.name}</span>
-                                      <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full font-medium">
-                                        {userRequiredHours}h required ({userAllocatedHours}h allocated)
-                                      </span>
+                                      
                                     </div>
                                     <div className="text-sm text-muted-foreground mt-1">
                                       Needs: {user.supportNeeds.slice(0, 3).join(', ')}
@@ -1124,9 +1117,7 @@ export const Matching = () => {
                                             <span className={`text-xs px-2 py-0.5 rounded-full ${type === 'Primary' ? 'bg-green-200 text-green-800' : 'bg-gray-200 text-gray-600'}`}>
                                               {type}
                                             </span>
-                                            <span className="text-xs bg-purple-100 text-purple-800 px-2 py-0.5 rounded-full">
-                                              {displayHours}h {hoursLabel}
-                                            </span>
+                                            
                                           </div>
                                           {narrative && <div className="text-sm text-muted-foreground mt-1 italic">
                                               {narrative}
@@ -1411,7 +1402,7 @@ export const Matching = () => {
                             } else if (e.key === 'Escape') {
                               setEditingCell(null);
                             }
-          }} autoFocus placeholder="Enter new support need..." className="h-8 bg-white min-w-[150px]" /> : <div className="flex flex-wrap gap-1 items-center">
+                          }} autoFocus placeholder="Enter new support need..." className="h-8 bg-white min-w-[150px]" /> : <div className="flex flex-wrap gap-1 items-center">
                                 {user.supportNeeds.map(need => <Badge key={need} variant="secondary" className="text-xs flex items-center gap-1">
                                     {need}
                                     <X className="h-3 w-3 cursor-pointer hover:text-destructive" onClick={e => {
@@ -1472,7 +1463,7 @@ export const Matching = () => {
                             } else if (e.key === 'Escape') {
                               setEditingCell(null);
                             }
-          }} autoFocus placeholder="Enter new interest..." className="h-8 bg-white min-w-[150px]" /> : <div className="flex flex-wrap gap-1 items-center">
+                          }} autoFocus placeholder="Enter new interest..." className="h-8 bg-white min-w-[150px]" /> : <div className="flex flex-wrap gap-1 items-center">
                                 {user.preferences.map(pref => <Badge key={pref} variant="outline" className="text-xs flex items-center gap-1">
                                     {pref}
                                     <X className="h-3 w-3 cursor-pointer hover:text-destructive" onClick={e => {
@@ -1554,9 +1545,7 @@ export const Matching = () => {
                             </TableCell>
                             <TableCell className="bg-blue-50">
                               <div className="flex flex-wrap gap-1">
-                                {user.supportNeeds.map(need => (
-                                  <Badge key={need} variant="secondary" className="text-xs">{need}</Badge>
-                                ))}
+                                {user.supportNeeds.map(need => <Badge key={need} variant="secondary" className="text-xs">{need}</Badge>)}
                               </div>
                             </TableCell>
                           </TableRow>
@@ -1568,9 +1557,7 @@ export const Matching = () => {
                             const allocation = user.staffAllocations.find(a => a.staffId === staffId);
                             const confirmedNeeds = allocation?.confirmedNeeds || [];
                             const confirmedInterests = allocation?.confirmedInterests || [];
-                            
-                            return (
-                              <TableRow key={`${user.id}-${staffId}-primary`} className="bg-green-50">
+                            return <TableRow key={`${user.id}-${staffId}-primary`} className="bg-green-50">
                                 <TableCell className="sticky left-0 bg-green-50 pl-6">
                                   <div className="flex items-center gap-2">
                                     <Badge className="bg-green-200 text-green-800 text-xs">Primary</Badge>
@@ -1580,37 +1567,25 @@ export const Matching = () => {
                                 </TableCell>
                                 <TableCell className="bg-green-50">
                                   <div className="flex flex-col gap-1">
-                                    {confirmedNeeds.length > 0 && (
-                                      <div className="flex flex-wrap gap-1 items-center">
+                                    {confirmedNeeds.length > 0 && <div className="flex flex-wrap gap-1 items-center">
                                         <span className="text-xs text-muted-foreground mr-1">Needs:</span>
-                                        {confirmedNeeds.map(need => (
-                                          <Badge key={need} variant="outline" className="text-xs bg-green-100">{need}</Badge>
-                                        ))}
-                                      </div>
-                                    )}
-                                    {confirmedInterests.length > 0 && (
-                                      <div className="flex flex-wrap gap-1 items-center">
+                                        {confirmedNeeds.map(need => <Badge key={need} variant="outline" className="text-xs bg-green-100">{need}</Badge>)}
+                                      </div>}
+                                    {confirmedInterests.length > 0 && <div className="flex flex-wrap gap-1 items-center">
                                         <span className="text-xs text-muted-foreground mr-1">Interests:</span>
-                                        {confirmedInterests.map(interest => (
-                                          <Badge key={interest} variant="outline" className="text-xs bg-blue-100">{interest}</Badge>
-                                        ))}
-                                      </div>
-                                    )}
-                                    {confirmedNeeds.length === 0 && confirmedInterests.length === 0 && (
-                                      <span className="text-xs text-muted-foreground italic">No matching criteria confirmed</span>
-                                    )}
+                                        {confirmedInterests.map(interest => <Badge key={interest} variant="outline" className="text-xs bg-blue-100">{interest}</Badge>)}
+                                      </div>}
+                                    {confirmedNeeds.length === 0 && confirmedInterests.length === 0 && <span className="text-xs text-muted-foreground italic">No matching criteria confirmed</span>}
                                   </div>
                                 </TableCell>
-                              </TableRow>
-                            );
+                              </TableRow>;
                           })}
 
                           {/* Backup Staff Rows */}
                           {user.backupStaffIds.map(staffId => {
                             const staffMember = getStaffById(staffId);
                             if (!staffMember) return null;
-                            return (
-                              <TableRow key={`${user.id}-${staffId}-backup`} className="bg-gray-50">
+                            return <TableRow key={`${user.id}-${staffId}-backup`} className="bg-gray-50">
                                 <TableCell className="sticky left-0 bg-gray-50 pl-6">
                                   <div className="flex items-center gap-2">
                                     <Badge variant="outline" className="text-xs">Backup</Badge>
@@ -1621,8 +1596,7 @@ export const Matching = () => {
                                 <TableCell className="bg-gray-50">
                                   <span className="text-xs text-muted-foreground italic">Backup - no criteria confirmed</span>
                                 </TableCell>
-                              </TableRow>
-                            );
+                              </TableRow>;
                           })}
                           
                           {/* Add Staff Row */}
@@ -1630,21 +1604,21 @@ export const Matching = () => {
                             <TableCell className="sticky left-0 bg-background pl-6" colSpan={2}>
                               <div className="flex gap-2">
                                 <SearchableStaffSelect options={getRankedStaff(user, [...user.primaryStaffIds, ...user.backupStaffIds]).map(({
-                                staff: s,
-                                score
-                              }) => ({
-                                id: s.id,
-                                name: s.name,
-                                score
-                              }))} onSelect={value => checkGenderAndOpenDialog(user.id, value, 'primary')} placeholder="+ Add Primary Staff" triggerClassName="w-[160px]" className="w-[200px]" />
+                                  staff: s,
+                                  score
+                                }) => ({
+                                  id: s.id,
+                                  name: s.name,
+                                  score
+                                }))} onSelect={value => checkGenderAndOpenDialog(user.id, value, 'primary')} placeholder="+ Add Primary Staff" triggerClassName="w-[160px]" className="w-[200px]" />
                                 <SearchableStaffSelect options={getRankedStaff(user, [...user.primaryStaffIds, ...user.backupStaffIds]).map(({
-                                staff: s,
-                                score
-                              }) => ({
-                                id: s.id,
-                                name: s.name,
-                                score
-                              }))} onSelect={value => checkGenderAndOpenDialog(user.id, value, 'backup')} placeholder="+ Add Backup Staff" triggerClassName="w-[160px]" className="w-[200px]" />
+                                  staff: s,
+                                  score
+                                }) => ({
+                                  id: s.id,
+                                  name: s.name,
+                                  score
+                                }))} onSelect={value => checkGenderAndOpenDialog(user.id, value, 'backup')} placeholder="+ Add Backup Staff" triggerClassName="w-[160px]" className="w-[200px]" />
                               </div>
                             </TableCell>
                           </TableRow>
