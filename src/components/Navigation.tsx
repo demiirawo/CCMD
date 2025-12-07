@@ -23,8 +23,7 @@ export const Navigation = () => {
   const isChildContactCentre = currentCompany?.services?.includes("Child Contact Centre") || false;
 
   const navItems = [
-    { name: "Dashboard", path: "/" },
-    { name: "Forecast", path: "/forecast" }
+    { name: "Dashboard", path: "/" }
   ];
 
   // Show settings to any user with a selected company
