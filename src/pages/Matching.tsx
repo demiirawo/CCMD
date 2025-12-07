@@ -547,7 +547,7 @@ export const Matching = () => {
 
         <Tabs defaultValue="diagram" className="space-y-6">
           <TabsList>
-            <TabsTrigger value="diagram">Visual Diagram</TabsTrigger>
+            <TabsTrigger value="diagram">Matching</TabsTrigger>
             <TabsTrigger value="utilisation">Utilisation</TabsTrigger>
             <TabsTrigger value="users">Service Users</TabsTrigger>
             <TabsTrigger value="staff">Staff</TabsTrigger>
