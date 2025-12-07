@@ -62,6 +62,8 @@ export const Matching = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [locationFilter, setLocationFilter] = useState<string>("all");
   const [supportTypeFilter, setSupportTypeFilter] = useState<string>("all");
+  const [userLocationFilter, setUserLocationFilter] = useState<string>("all");
+  const [staffLocationFilter, setStaffLocationFilter] = useState<string>("all");
   const [selectedServiceUser, setSelectedServiceUser] = useState<ServiceUser | null>(null);
   const [selectedStaff, setSelectedStaff] = useState<Staff | null>(null);
   const [hoveredConnection, setHoveredConnection] = useState<{
@@ -1036,10 +1038,24 @@ export const Matching = () => {
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between border-b">
                   <CardTitle>Service Users Directory</CardTitle>
-                  <Button onClick={() => setIsAddUserOpen(true)}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Service User
-                  </Button>
+                  <div className="flex items-center gap-3">
+                    <Select value={userLocationFilter} onValueChange={setUserLocationFilter}>
+                      <SelectTrigger className="w-40 bg-white">
+                        <MapPin className="h-4 w-4 mr-2" />
+                        <SelectValue placeholder="All Locations" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-white z-50">
+                        <SelectItem value="all">All Locations</SelectItem>
+                        {locations.map(loc => (
+                          <SelectItem key={loc} value={loc}>{loc}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Button onClick={() => setIsAddUserOpen(true)}>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Service User
+                    </Button>
+                  </div>
                 </CardHeader>
                 <CardContent className="pt-6">
                   <div className="overflow-x-auto">
@@ -1056,7 +1072,7 @@ export const Matching = () => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {serviceUsers.map(user => <TableRow key={user.id}>
+                      {serviceUsers.filter(user => userLocationFilter === "all" || user.location === userLocationFilter).map(user => <TableRow key={user.id}>
                           {/* Name */}
                           <TableCell className="font-medium cursor-pointer hover:bg-muted/50" onDoubleClick={() => {
                         setEditingCell({
@@ -1520,10 +1536,24 @@ export const Matching = () => {
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between border-b">
                   <CardTitle>Staff Directory</CardTitle>
-                  <Button onClick={() => setIsAddStaffOpen(true)}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Staff Member
-                  </Button>
+                  <div className="flex items-center gap-3">
+                    <Select value={staffLocationFilter} onValueChange={setStaffLocationFilter}>
+                      <SelectTrigger className="w-40 bg-white">
+                        <MapPin className="h-4 w-4 mr-2" />
+                        <SelectValue placeholder="All Locations" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-white z-50">
+                        <SelectItem value="all">All Locations</SelectItem>
+                        {locations.map(loc => (
+                          <SelectItem key={loc} value={loc}>{loc}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Button onClick={() => setIsAddStaffOpen(true)}>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Staff Member
+                    </Button>
+                  </div>
                 </CardHeader>
                 <CardContent className="pt-6">
                   <div className="overflow-x-auto">
@@ -1540,7 +1570,7 @@ export const Matching = () => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {staff.map(s => <TableRow key={s.id}>
+                      {staff.filter(s => staffLocationFilter === "all" || s.location === staffLocationFilter).map(s => <TableRow key={s.id}>
                           <TableCell className="font-medium">{s.name}</TableCell>
                           <TableCell>
                             <Select 
