@@ -506,10 +506,10 @@ export const Matching = () => {
         ) : (
         <Tabs defaultValue="diagram" className="space-y-6">
           <div className="flex items-center justify-between">
-            <TabsList>
-              <TabsTrigger value="diagram">Summary</TabsTrigger>
-              <TabsTrigger value="users">Service Users</TabsTrigger>
-              <TabsTrigger value="staff">Staff</TabsTrigger>
+            <TabsList className="bg-gray-100 p-1 rounded-lg">
+              <TabsTrigger value="diagram" className="data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-md px-4 py-2">Summary</TabsTrigger>
+              <TabsTrigger value="users" className="data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-md px-4 py-2">Service Users</TabsTrigger>
+              <TabsTrigger value="staff" className="data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-md px-4 py-2">Staff</TabsTrigger>
             </TabsList>
             {saving && (
               <div className="flex items-center text-sm text-muted-foreground">
