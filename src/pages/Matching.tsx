@@ -46,11 +46,18 @@ interface StaffAllocation {
   confirmedInterests: string[]; // Shared interests confirmed
 }
 
+type GenderPreference = "No Preference" | "Male" | "Female";
+const GENDER_PREFERENCES: GenderPreference[] = ["No Preference", "Male", "Female"];
+
+type Gender = "Male" | "Female" | "Non-Binary" | "Prefer not to say";
+const GENDERS: Gender[] = ["Male", "Female", "Non-Binary", "Prefer not to say"];
+
 interface ServiceUser {
   id: string;
   name: string;
   supportNeeds: string[];
   preferences: string[];
+  genderPreference: GenderPreference;
   location: string;
   typicalWeeklyHours: number;
   primaryStaffIds: string[];
@@ -84,6 +91,7 @@ const CONTRACT_TYPES: ContractType[] = [
 interface Staff {
   id: string;
   name: string;
+  gender: Gender;
   location: string;
   availability: string;
   status: "Active" | "On Leave" | "Inactive";
@@ -104,7 +112,8 @@ const INITIAL_SERVICE_USERS: ServiceUser[] = [{
   id: "su1",
   name: "John Smith",
   supportNeeds: ["Autism", "Personal Care", "Community Access"],
-  preferences: ["Prefers male staff", "Enjoys gardening", "Likes quiet environments"],
+  preferences: ["Enjoys gardening", "Likes quiet environments"],
+  genderPreference: "Male",
   location: "North London",
   typicalWeeklyHours: 21,
   primaryStaffIds: ["s1"],
@@ -115,7 +124,8 @@ const INITIAL_SERVICE_USERS: ServiceUser[] = [{
   id: "su2",
   name: "Mary Johnson",
   supportNeeds: ["Hoisting", "PEG Feeding", "Dementia Care"],
-  preferences: ["Prefers female staff", "Enjoys music", "Likes pets"],
+  preferences: ["Enjoys music", "Likes pets"],
+  genderPreference: "Female",
   location: "South London",
   typicalWeeklyHours: 30,
   primaryStaffIds: ["s2"],
@@ -126,7 +136,8 @@ const INITIAL_SERVICE_USERS: ServiceUser[] = [{
   id: "su3",
   name: "David Williams",
   supportNeeds: ["Learning Disability", "Behaviour Support", "Community Access"],
-  preferences: ["Enjoys sports", "Likes cooking", "Prefers consistent routines"],
+  preferences: ["Enjoys sports", "Likes cooking"],
+  genderPreference: "No Preference",
   location: "East London",
   typicalWeeklyHours: 25,
   primaryStaffIds: [],
@@ -137,6 +148,7 @@ const INITIAL_SERVICE_USERS: ServiceUser[] = [{
 const INITIAL_STAFF: Staff[] = [{
   id: "s1",
   name: "Sarah Brown",
+  gender: "Female",
   location: "North London",
   availability: "Full-time",
   status: "Active",
@@ -146,6 +158,7 @@ const INITIAL_STAFF: Staff[] = [{
 }, {
   id: "s2",
   name: "Emma Wilson",
+  gender: "Female",
   location: "South London",
   availability: "Full-time",
   status: "Active",
@@ -155,6 +168,7 @@ const INITIAL_STAFF: Staff[] = [{
 }, {
   id: "s3",
   name: "James Taylor",
+  gender: "Male",
   location: "North London",
   availability: "Part-time",
   status: "Active",
@@ -164,6 +178,7 @@ const INITIAL_STAFF: Staff[] = [{
 }, {
   id: "s4",
   name: "Lisa Anderson",
+  gender: "Female",
   location: "South London",
   availability: "Full-time",
   status: "Active",
@@ -173,6 +188,7 @@ const INITIAL_STAFF: Staff[] = [{
 }, {
   id: "s5",
   name: "Michael Chen",
+  gender: "Male",
   location: "East London",
   availability: "Full-time",
   status: "Active",
@@ -484,6 +500,7 @@ export const Matching = () => {
       name: newUserForm.name,
       supportNeeds: newUserForm.supportNeeds.split(",").map(s => s.trim()).filter(Boolean),
       preferences: newUserForm.preferences.split(",").map(s => s.trim()).filter(Boolean),
+      genderPreference: "No Preference",
       location: newUserForm.location,
       typicalWeeklyHours: 0,
       primaryStaffIds: [],
@@ -514,6 +531,7 @@ export const Matching = () => {
     const newStaffMember: Staff = {
       id: `s${Date.now()}`,
       name: newStaffForm.name,
+      gender: "Prefer not to say",
       location: newStaffForm.location,
       availability: newStaffForm.availability,
       status: "Active",
@@ -831,6 +849,7 @@ export const Matching = () => {
                         <TableHead>Name</TableHead>
                         <TableHead>Location</TableHead>
                         <TableHead>Typical Weekly Hours</TableHead>
+                        <TableHead>Gender Preference</TableHead>
                         <TableHead>Support Needs</TableHead>
                         <TableHead>Interests</TableHead>
                         <TableHead className="w-[50px]"></TableHead>
@@ -930,6 +949,24 @@ export const Matching = () => {
                               }} 
                               className="h-8 w-20 text-center bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" 
                             />
+                          </TableCell>
+                          {/* Gender Preference */}
+                          <TableCell>
+                            <Select value={user.genderPreference} onValueChange={(value: GenderPreference) => {
+                              setServiceUsers(prev => prev.map(u => u.id === user.id ? {
+                                ...u,
+                                genderPreference: value
+                              } : u));
+                            }}>
+                              <SelectTrigger className="h-8 w-32 bg-white">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent className="bg-white z-50">
+                                {GENDER_PREFERENCES.map(pref => (
+                                  <SelectItem key={pref} value={pref}>{pref}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
                           </TableCell>
                           {/* Support Needs */}
                           <TableCell>
@@ -1284,6 +1321,7 @@ export const Matching = () => {
                         <TableHead>Name</TableHead>
                         <TableHead>Location</TableHead>
                         <TableHead>Typical Weekly Hours</TableHead>
+                        <TableHead>Gender</TableHead>
                         <TableHead>Contract Type</TableHead>
                         <TableHead>Status</TableHead>
                         <TableHead className="w-[50px]"></TableHead>
@@ -1307,6 +1345,24 @@ export const Matching = () => {
                               }} 
                               className="h-8 w-20 text-center bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" 
                             />
+                          </TableCell>
+                          {/* Gender */}
+                          <TableCell>
+                            <Select value={s.gender} onValueChange={(value: Gender) => {
+                              setStaff(prev => prev.map(staff => staff.id === s.id ? {
+                                ...staff,
+                                gender: value
+                              } : staff));
+                            }}>
+                              <SelectTrigger className="h-8 w-36 bg-white">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent className="bg-white z-50">
+                                {GENDERS.map(gender => (
+                                  <SelectItem key={gender} value={gender}>{gender}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
                           </TableCell>
                           <TableCell>
                             <Select value={s.contractType} onValueChange={(value: ContractType) => {
