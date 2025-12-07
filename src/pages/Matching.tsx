@@ -1784,6 +1784,7 @@ export const Matching = () => {
                   <Select 
                     value={newUserForm.location} 
                     onValueChange={v => {
+                      console.log('Location select onValueChange:', v);
                       if (v === '__add_new__') {
                         setIsAddingUserLocation(true);
                       } else {
@@ -1794,7 +1795,7 @@ export const Matching = () => {
                     <SelectTrigger className="bg-white border-gray-800">
                       <SelectValue placeholder="Select location" />
                     </SelectTrigger>
-                    <SelectContent className="bg-white z-50">
+                    <SelectContent className="bg-white z-[100]" position="popper" sideOffset={4}>
                       {locations.map(loc => (
                         <SelectItem key={loc} value={loc}>{loc}</SelectItem>
                       ))}
