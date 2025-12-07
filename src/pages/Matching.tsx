@@ -629,8 +629,20 @@ export const Matching = () => {
           {/* Matching View */}
           <TabsContent value="diagram" className="space-y-6">
             <div className="grid grid-cols-1 gap-6">
-              {/* Print Button at Top */}
-              <div className="flex justify-end print:hidden">
+              {/* Location Filter and Print Button */}
+              <div className="flex justify-end gap-3 print:hidden">
+                <Select value={locationFilter} onValueChange={setLocationFilter}>
+                  <SelectTrigger className="w-48 bg-white">
+                    <MapPin className="h-4 w-4 mr-2" />
+                    <SelectValue placeholder="All Locations" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white z-50">
+                    <SelectItem value="all">All Locations</SelectItem>
+                    {locations.map(loc => (
+                      <SelectItem key={loc} value={loc}>{loc}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <Button variant="outline" size="sm" onClick={() => window.print()}>
                   <Printer className="h-4 w-4 mr-2" />
                   Print
@@ -669,14 +681,22 @@ export const Matching = () => {
                       </TableHeader>
                       <TableBody>
                         {WEEKS.map((week) => {
-                          const requiredHours = serviceUsers.reduce((sum, u) => sum + (u.forecastHours[week] || 0), 0);
+                          // Filter by location if a specific location is selected
+                          const filteredUsers = locationFilter === "all" 
+                            ? serviceUsers 
+                            : serviceUsers.filter(u => u.location === locationFilter);
+                          const filteredStaff = locationFilter === "all"
+                            ? staff
+                            : staff.filter(s => s.location === locationFilter);
+                          
+                          const requiredHours = filteredUsers.reduce((sum, u) => sum + (u.forecastHours[week] || 0), 0);
                           // Allocated hours = sum of all staff allocations across service users for this week
-                          const allocatedHours = serviceUsers.reduce((sum, u) => 
+                          const allocatedHours = filteredUsers.reduce((sum, u) => 
                             sum + u.staffAllocations.reduce((staffSum, alloc) => 
                               staffSum + (alloc.allocatedHours[week] || 0), 0), 0);
                           // Unallocated hours = sum of hours from staff NOT assigned as PRIMARY to any service user
-                          const primaryStaffIds = new Set(serviceUsers.flatMap(u => u.primaryStaffIds));
-                          const unallocatedHours = staff
+                          const primaryStaffIds = new Set(filteredUsers.flatMap(u => u.primaryStaffIds));
+                          const unallocatedHours = filteredStaff
                             .filter(s => s.status === "Active" && !primaryStaffIds.has(s.id))
                             .reduce((sum, s) => sum + (s.forecastHours[week] || 0), 0);
                           const totalAvailableHours = allocatedHours + unallocatedHours;
@@ -709,13 +729,18 @@ export const Matching = () => {
                       </TableBody>
                     </Table>
                     <div className="mt-2 text-xs text-muted-foreground">
-                      {serviceUsers.length} service users • Sum of forecasted hours shown above
+                      {locationFilter === "all" 
+                        ? `${serviceUsers.length} service users` 
+                        : `${serviceUsers.filter(u => u.location === locationFilter).length} service users in ${locationFilter}`
+                      } • Sum of forecasted hours shown above
                     </div>
                   </CardContent>
                 </Card>
 
                   
-                  {locations.map(location => {
+                  {locations
+                    .filter(location => locationFilter === "all" || location === locationFilter)
+                    .map(location => {
                 const locationUsers = serviceUsers.filter(u => u.location === location);
                 const locationStaff = staff.filter(s => s.location === location);
                 if (locationUsers.length === 0 && locationStaff.length === 0) return null;
