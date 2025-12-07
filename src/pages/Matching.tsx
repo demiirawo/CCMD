@@ -102,14 +102,18 @@ export const Matching = () => {
   // Form states
   const [newUserForm, setNewUserForm] = useState({
     name: "",
+    location: "",
+    typicalWeeklyHours: 0,
     supportNeeds: "",
-    preferences: "",
-    location: ""
+    interests: "",
+    genderPreference: "No Preference" as GenderPreference
   });
   const [newStaffForm, setNewStaffForm] = useState({
     name: "",
     location: "",
-    availability: "Full-time"
+    typicalWeeklyHours: 40,
+    gender: "Prefer not to say" as Gender,
+    contractType: "Full-Time Contract" as ContractType
   });
   const locations = useMemo(() => {
     const allLocations = [...new Set([...serviceUsers.map(u => u.location), ...staff.map(s => s.location)])];
@@ -393,20 +397,22 @@ export const Matching = () => {
       await addServiceUserToDb({
         name: newUserForm.name,
         supportNeeds: newUserForm.supportNeeds.split(",").map(s => s.trim()).filter(Boolean),
-        preferences: newUserForm.preferences.split(",").map(s => s.trim()).filter(Boolean),
-        genderPreference: "No Preference",
+        preferences: newUserForm.interests.split(",").map(s => s.trim()).filter(Boolean),
+        genderPreference: newUserForm.genderPreference,
         location: newUserForm.location,
-        typicalWeeklyHours: 0,
+        typicalWeeklyHours: newUserForm.typicalWeeklyHours,
         primaryStaffIds: [],
         backupStaffIds: [],
-        forecastHours: createDefaultForecast(0),
+        forecastHours: createDefaultForecast(newUserForm.typicalWeeklyHours),
         staffAllocations: []
       });
       setNewUserForm({
         name: "",
+        location: "",
+        typicalWeeklyHours: 0,
         supportNeeds: "",
-        preferences: "",
-        location: ""
+        interests: "",
+        genderPreference: "No Preference"
       });
       setIsAddUserOpen(false);
       toast({
@@ -430,18 +436,20 @@ export const Matching = () => {
     try {
       await addStaffToDb({
         name: newStaffForm.name,
-        gender: "Prefer not to say",
+        gender: newStaffForm.gender,
         location: newStaffForm.location,
-        availability: newStaffForm.availability,
+        availability: "Full-time",
         status: "Active",
-        typicalWeeklyHours: 40,
-        contractType: "Full-Time Contract",
-        forecastHours: createDefaultForecast(40)
+        typicalWeeklyHours: newStaffForm.typicalWeeklyHours,
+        contractType: newStaffForm.contractType,
+        forecastHours: createDefaultForecast(newStaffForm.typicalWeeklyHours)
       });
       setNewStaffForm({
         name: "",
         location: "",
-        availability: "Full-time"
+        typicalWeeklyHours: 40,
+        gender: "Prefer not to say",
+        contractType: "Full-Time Contract"
       });
       setIsAddStaffOpen(false);
       toast({
@@ -1520,25 +1528,53 @@ export const Matching = () => {
               }))} className="bg-white" />
               </div>
               <div>
-                <Label>Support Needs (comma separated)</Label>
-                <Textarea value={newUserForm.supportNeeds} onChange={e => setNewUserForm(f => ({
-                ...f,
-                supportNeeds: e.target.value
-              }))} placeholder="Autism, Personal Care, Community Access" className="bg-white" />
-              </div>
-              <div>
-                <Label>Preferences (comma separated)</Label>
-                <Textarea value={newUserForm.preferences} onChange={e => setNewUserForm(f => ({
-                ...f,
-                preferences: e.target.value
-              }))} placeholder="Prefers male staff, Enjoys gardening" className="bg-white" />
-              </div>
-              <div>
                 <Label>Location</Label>
                 <Input value={newUserForm.location} onChange={e => setNewUserForm(f => ({
                 ...f,
                 location: e.target.value
               }))} className="bg-white" />
+              </div>
+              <div>
+                <Label>Typical Weekly Hours</Label>
+                <Input 
+                  type="number" 
+                  value={newUserForm.typicalWeeklyHours} 
+                  onChange={e => setNewUserForm(f => ({
+                    ...f,
+                    typicalWeeklyHours: parseInt(e.target.value) || 0
+                  }))} 
+                  className="bg-white" 
+                />
+              </div>
+              <div>
+                <Label>Support Needs (comma separated)</Label>
+                <Textarea value={newUserForm.supportNeeds} onChange={e => setNewUserForm(f => ({
+                ...f,
+                supportNeeds: e.target.value
+              }))} placeholder="Personal Care, Community Access" className="bg-white" />
+              </div>
+              <div>
+                <Label>Interests (comma separated)</Label>
+                <Textarea value={newUserForm.interests} onChange={e => setNewUserForm(f => ({
+                ...f,
+                interests: e.target.value
+              }))} placeholder="Gardening, Music, Reading" className="bg-white" />
+              </div>
+              <div>
+                <Label>Gender Preference</Label>
+                <Select value={newUserForm.genderPreference} onValueChange={v => setNewUserForm(f => ({
+                  ...f,
+                  genderPreference: v as GenderPreference
+                }))}>
+                  <SelectTrigger className="bg-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white">
+                    {GENDER_PREFERENCES.map(pref => (
+                      <SelectItem key={pref} value={pref}>{pref}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <Button onClick={handleAddUser} className="w-full">Add Service User</Button>
             </div>
@@ -1566,23 +1602,49 @@ export const Matching = () => {
                 location: e.target.value
               }))} className="bg-white" />
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label>Availability</Label>
-                  <Select value={newStaffForm.availability} onValueChange={v => setNewStaffForm(f => ({
+              <div>
+                <Label>Typical Weekly Hours</Label>
+                <Input 
+                  type="number" 
+                  value={newStaffForm.typicalWeeklyHours} 
+                  onChange={e => setNewStaffForm(f => ({
+                    ...f,
+                    typicalWeeklyHours: parseInt(e.target.value) || 0
+                  }))} 
+                  className="bg-white" 
+                />
+              </div>
+              <div>
+                <Label>Gender</Label>
+                <Select value={newStaffForm.gender} onValueChange={v => setNewStaffForm(f => ({
                   ...f,
-                  availability: v
+                  gender: v as Gender
                 }))}>
-                    <SelectTrigger className="bg-white">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="bg-white">
-                      <SelectItem value="Full-time">Full-time</SelectItem>
-                      <SelectItem value="Part-time">Part-time</SelectItem>
-                      <SelectItem value="Flexible">Flexible</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+                  <SelectTrigger className="bg-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white">
+                    {GENDERS.map(g => (
+                      <SelectItem key={g} value={g}>{g}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Contract Type</Label>
+                <Select value={newStaffForm.contractType} onValueChange={v => setNewStaffForm(f => ({
+                  ...f,
+                  contractType: v as ContractType
+                }))}>
+                  <SelectTrigger className="bg-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white">
+                    {CONTRACT_TYPES.map(ct => (
+                      <SelectItem key={ct} value={ct}>{ct}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <Button onClick={handleAddStaff} className="w-full">Add Staff Member</Button>
             </div>
