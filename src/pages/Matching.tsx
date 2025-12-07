@@ -1382,7 +1382,7 @@ export const Matching = () => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {serviceUsers.map(user => (
+                      {serviceUsers.filter(user => userLocationFilter === "all" || user.location === userLocationFilter).map(user => (
                         <>
                           {/* Service User Row - Required Hours */}
                           <TableRow key={user.id} className="bg-blue-50">
@@ -1707,7 +1707,7 @@ export const Matching = () => {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {staff.map(s => (
+                        {staff.filter(s => staffLocationFilter === "all" || s.location === staffLocationFilter).map(s => (
                           <TableRow key={s.id} className="bg-green-50">
                             <TableCell className="font-medium sticky left-0 bg-green-50">
                               <div className="flex flex-col">
@@ -1742,7 +1742,7 @@ export const Matching = () => {
                           </TableCell>
                           {WEEKS.map(week => (
                             <TableCell key={week} className="text-center font-semibold">
-                              {staff.reduce((sum, s) => sum + (s.forecastHours[week] || 0), 0)}
+                              {staff.filter(s => staffLocationFilter === "all" || s.location === staffLocationFilter).reduce((sum, s) => sum + (s.forecastHours[week] || 0), 0)}
                             </TableCell>
                           ))}
                         </TableRow>
