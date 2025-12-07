@@ -308,27 +308,35 @@ export const useMatchingData = () => {
   const addServiceUser = useCallback(async (newUser: Omit<ServiceUser, 'id'>) => {
     if (!companyId) return null;
 
+    console.log('addServiceUser called with:', JSON.stringify(newUser, null, 2));
+    
     try {
+      const insertData = {
+        company_id: companyId,
+        name: newUser.name,
+        manager: newUser.manager || '',
+        location: newUser.location || '',
+        gender_preference: newUser.genderPreference,
+        support_needs: newUser.supportNeeds as unknown as null,
+        preferences: newUser.preferences as unknown as null,
+        typical_weekly_hours: newUser.typicalWeeklyHours,
+        forecast_hours: newUser.forecastHours as unknown as null,
+        primary_staff_ids: newUser.primaryStaffIds as unknown as null,
+        backup_staff_ids: newUser.backupStaffIds as unknown as null,
+        staff_allocations: newUser.staffAllocations as unknown as null
+      };
+      
+      console.log('Inserting to database:', JSON.stringify(insertData, null, 2));
+      
       const { data, error } = await supabase
         .from('matching_service_users')
-        .insert({
-          company_id: companyId,
-          name: newUser.name,
-          manager: newUser.manager,
-          location: newUser.location,
-          gender_preference: newUser.genderPreference,
-          support_needs: newUser.supportNeeds as unknown as null,
-          preferences: newUser.preferences as unknown as null,
-          typical_weekly_hours: newUser.typicalWeeklyHours,
-          forecast_hours: newUser.forecastHours as unknown as null,
-          primary_staff_ids: newUser.primaryStaffIds as unknown as null,
-          backup_staff_ids: newUser.backupStaffIds as unknown as null,
-          staff_allocations: newUser.staffAllocations as unknown as null
-        })
+        .insert(insertData)
         .select()
         .single();
 
       if (error) throw error;
+      
+      console.log('Database returned:', JSON.stringify(data, null, 2));
 
       const user: ServiceUser = {
         id: data.id,
