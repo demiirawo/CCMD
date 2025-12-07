@@ -285,14 +285,59 @@ export const Matching = () => {
     });
   };
 
-  const updateStaffAllocation = (userId: string, staffId: string, month: string, hours: number) => {
+  const updateStaffAllocation = (userId: string, staffId: string, week: string, hours: number) => {
+    // Find the staff member to check their available hours
+    const staffMember = getStaffById(staffId);
+    if (!staffMember) return;
+
+    // Calculate how many hours this staff is already allocated to OTHER service users for this week
+    const otherAllocations = serviceUsers
+      .filter(u => u.id !== userId)
+      .reduce((sum, u) => {
+        const alloc = u.staffAllocations.find(a => a.staffId === staffId);
+        return sum + (alloc?.allocatedHours[week] || 0);
+      }, 0);
+
+    // Get current allocation for this service user
+    const currentUser = serviceUsers.find(u => u.id === userId);
+    if (!currentUser) return;
+
+    // Check 1: Don't exceed staff's available hours for this week
+    const staffAvailableHours = staffMember.forecastHours[week] || 0;
+    const maxStaffHours = staffAvailableHours - otherAllocations;
+    
+    // Check 2: Don't exceed service user's required hours for this week
+    const userRequiredHours = currentUser.forecastHours[week] || 0;
+    
+    // Get total allocated hours from OTHER staff for this service user
+    const otherStaffAllocations = currentUser.staffAllocations
+      .filter(a => a.staffId !== staffId)
+      .reduce((sum, a) => sum + (a.allocatedHours[week] || 0), 0);
+    
+    const maxUserHours = userRequiredHours - otherStaffAllocations;
+
+    // Apply the minimum of both constraints
+    const validatedHours = Math.max(0, Math.min(hours, maxStaffHours, maxUserHours));
+
+    // Show toast if hours were capped
+    if (hours > validatedHours && hours > 0) {
+      const reason = hours > maxStaffHours 
+        ? `${staffMember.name} only has ${maxStaffHours}h available this week`
+        : `${currentUser.name} only needs ${maxUserHours}h more this week`;
+      toast({
+        title: "Hours adjusted",
+        description: reason,
+        variant: "destructive"
+      });
+    }
+
     setServiceUsers(prev => prev.map(user => {
       if (user.id !== userId) return user;
       const updatedAllocations = user.staffAllocations.map(alloc => {
         if (alloc.staffId !== staffId) return alloc;
         return {
           ...alloc,
-          allocatedHours: { ...alloc.allocatedHours, [month]: hours }
+          allocatedHours: { ...alloc.allocatedHours, [week]: validatedHours }
         };
       });
       return { ...user, staffAllocations: updatedAllocations };
