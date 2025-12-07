@@ -7,11 +7,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Search, Plus, MapPin, X, Edit2, Trash2, BarChart3, Printer, Check, Loader2 } from "lucide-react";
+import { Search, Plus, MapPin, X, Edit2, Trash2, BarChart3, Printer, Check, Loader2, HelpCircle } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Progress } from "@/components/ui/progress";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { SearchableStaffSelect } from "@/components/SearchableStaffSelect";
 import { 
   useMatchingData, 
@@ -578,8 +579,36 @@ export const Matching = () => {
                           <TableHead className="text-xs py-1 text-right">Allocated Hours</TableHead>
                           <TableHead className="text-xs py-1 text-right">Unallocated Hours</TableHead>
                           <TableHead className="text-xs py-1 text-right">Utilisation Percentage</TableHead>
-                          <TableHead className="text-xs py-1 text-right">Required FTE</TableHead>
-                          <TableHead className="text-xs py-1 text-right">Available FTE</TableHead>
+                          <TableHead className="text-xs py-1 text-right">
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <span className="inline-flex items-center gap-1 cursor-help">
+                                    Required FTE
+                                    <HelpCircle className="h-3 w-3 text-muted-foreground" />
+                                  </span>
+                                </TooltipTrigger>
+                                <TooltipContent className="bg-white max-w-xs">
+                                  <p className="text-sm">FTE = Required Hours ÷ 35 hours per week</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          </TableHead>
+                          <TableHead className="text-xs py-1 text-right">
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <span className="inline-flex items-center gap-1 cursor-help">
+                                    Available FTE
+                                    <HelpCircle className="h-3 w-3 text-muted-foreground" />
+                                  </span>
+                                </TooltipTrigger>
+                                <TooltipContent className="bg-white max-w-xs">
+                                  <p className="text-sm">FTE = (Allocated + Unallocated Hours) ÷ 35 hours per week</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          </TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -603,7 +632,8 @@ export const Matching = () => {
                             .filter(s => s.status === "Active" && !primaryStaffIds.has(s.id))
                             .reduce((sum, s) => sum + (s.forecastHours[week] || 0), 0);
                           const totalAvailableHours = allocatedHours + unallocatedHours;
-                          const utilisation = totalAvailableHours > 0 ? requiredHours / totalAvailableHours * 100 : 0;
+                          // Utilisation = allocated hours / total available hours (what % of available capacity is being used)
+                          const utilisation = totalAvailableHours > 0 ? allocatedHours / totalAvailableHours * 100 : 0;
                           
                           // Calculate FTE based on 35 hour week
                           const FTE_HOURS = 35;
