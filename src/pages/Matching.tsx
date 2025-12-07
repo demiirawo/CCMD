@@ -578,7 +578,21 @@ export const Matching = () => {
                           <TableHead className="text-xs py-1 text-right">Required Hours</TableHead>
                           <TableHead className="text-xs py-1 text-right">Allocated Hours</TableHead>
                           <TableHead className="text-xs py-1 text-right">Unallocated Hours</TableHead>
-                          <TableHead className="text-xs py-1 text-right">Utilisation Percentage</TableHead>
+                          <TableHead className="text-xs py-1 text-right">
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <span className="inline-flex items-center gap-1 cursor-help">
+                                    Utilisation Percentage
+                                    <HelpCircle className="h-3 w-3 text-muted-foreground" />
+                                  </span>
+                                </TooltipTrigger>
+                                <TooltipContent className="bg-white max-w-xs">
+                                  <p className="text-sm">Utilisation = Allocated Hours ÷ (Allocated + Unallocated Hours) × 100</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          </TableHead>
                           <TableHead className="text-xs py-1 text-right">
                             <TooltipProvider>
                               <Tooltip>
