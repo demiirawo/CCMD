@@ -53,7 +53,8 @@ export const Matching = () => {
     type: 'primary' | 'backup';
   } | null>(null);
   const [compactView, setCompactView] = useState(false);
-  const [summaryView, setSummaryView] = useState<'utilisation' | 'matchmaking'>('utilisation');
+  const [showUtilisation, setShowUtilisation] = useState(true);
+  const [showMatchmaking, setShowMatchmaking] = useState(true);
   // Dialog states
   const [isAddUserOpen, setIsAddUserOpen] = useState(false);
   const [isAddStaffOpen, setIsAddStaffOpen] = useState(false);
@@ -598,28 +599,38 @@ export const Matching = () => {
             <div className="grid grid-cols-1 gap-6">
               {/* Toggle and Filters */}
               <div className="flex justify-between items-center gap-3 print:hidden">
-                {/* View Toggle */}
-                <div className="flex items-center bg-muted rounded-lg p-1">
-                  <button
-                    onClick={() => setSummaryView('utilisation')}
-                    className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                      summaryView === 'utilisation' 
-                        ? 'bg-background text-foreground shadow-sm' 
-                        : 'bg-[#1F2937] text-white hover:bg-[#374151]'
-                    }`}
-                  >
-                    Utilisation Forecast
-                  </button>
-                  <button
-                    onClick={() => setSummaryView('matchmaking')}
-                    className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                      summaryView === 'matchmaking' 
-                        ? 'bg-background text-foreground shadow-sm' 
-                        : 'bg-[#1F2937] text-white hover:bg-[#374151]'
-                    }`}
-                  >
-                    Matchmaking
-                  </button>
+                {/* View Toggles */}
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium">Utilisation Forecast</span>
+                    <button
+                      onClick={() => setShowUtilisation(!showUtilisation)}
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                        showUtilisation ? 'bg-primary' : 'bg-muted'
+                      }`}
+                    >
+                      <span
+                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                          showUtilisation ? 'translate-x-6' : 'translate-x-1'
+                        }`}
+                      />
+                    </button>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium">Matchmaking</span>
+                    <button
+                      onClick={() => setShowMatchmaking(!showMatchmaking)}
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                        showMatchmaking ? 'bg-primary' : 'bg-muted'
+                      }`}
+                    >
+                      <span
+                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                          showMatchmaking ? 'translate-x-6' : 'translate-x-1'
+                        }`}
+                      />
+                    </button>
+                  </div>
                 </div>
 
                 {/* Filters and Export */}
@@ -667,7 +678,7 @@ export const Matching = () => {
                 `}</style>
                 <div ref={printAreaRef} className="print-area grid grid-cols-1 gap-6">
                   {/* Staff Utilisation Forecast */}
-                  {summaryView === 'utilisation' && (
+                  {showUtilisation && (
                   <div className="rounded-2xl overflow-hidden shadow-md bg-white border border-border">
                     <div className="px-6 py-4" style={{
                     backgroundColor: '#202A38'
@@ -848,7 +859,7 @@ export const Matching = () => {
                   )}
 
                   {/* Matchmaking View */}
-                  {summaryView === 'matchmaking' && (
+                  {showMatchmaking && (
                   <>
                   {locations.filter(location => locationFilter === "all" || location === locationFilter).map(location => {
                   let locationUsers = serviceUsers.filter(u => u.location === location);
