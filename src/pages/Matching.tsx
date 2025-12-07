@@ -17,7 +17,7 @@ import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import { SearchableStaffSelect } from "@/components/SearchableStaffSelect";
 import { ForecastAISummary } from "@/components/ForecastAISummary";
-import { useMatchingData, WEEKS, createDefaultForecast, type ServiceUser, type Staff, type Gender, type GenderPreference, type ContractType, type StaffAllocation, type WeeklyForecast } from "@/hooks/useMatchingData";
+import { useMatchingData, WEEKS, createDefaultForecast, createDefaultHoursSplit, type ServiceUser, type Staff, type Gender, type GenderPreference, type ContractType, type StaffAllocation, type WeeklyForecast, type WeeklyAllocation } from "@/hooks/useMatchingData";
 const GENDER_PREFERENCES: GenderPreference[] = ["No Preference", "Male", "Female"];
 const GENDERS: Gender[] = ["Male", "Female", "Non-Binary", "Prefer not to say"];
 const CONTRACT_TYPES: ContractType[] = ["Full-Time Contract", "Part-Time Contract", "Zero-Hours Contract", "Fixed-Term Contract", "Agency or Temporary Contract", "Self-Employed/Independent Contractor", "Apprenticeship Agreement", "Bank Contract (Casual Staff)", "Volunteer"];
@@ -343,6 +343,7 @@ export const Matching = () => {
         const newAllocation: StaffAllocation = {
           staffId,
           allocatedHours: createDefaultForecast(0),
+          hoursSplit: createDefaultHoursSplit(),
           confirmedNeeds: selectedNeeds,
           confirmedInterests: selectedInterests
         };
@@ -410,53 +411,80 @@ export const Matching = () => {
       };
     });
   };
-  const updateStaffAllocation = (userId: string, staffId: string, week: string, hours: number) => {
+  const updateStaffAllocationSplit = (userId: string, staffId: string, week: string, type: 'solo' | 'doubleUp', hours: number) => {
     // Find the staff member to check their available hours
     const staffMember = getStaffById(staffId);
     if (!staffMember) return;
-
-    // Calculate how many hours this staff is already allocated to OTHER service users for this week
-    const otherAllocations = serviceUsers.filter(u => u.id !== userId).reduce((sum, u) => {
-      const alloc = u.staffAllocations.find(a => a.staffId === staffId);
-      return sum + (alloc?.allocatedHours[week] || 0);
-    }, 0);
 
     // Get current allocation for this service user
     const currentUser = serviceUsers.find(u => u.id === userId);
     if (!currentUser) return;
 
+    const currentAlloc = currentUser.staffAllocations.find(a => a.staffId === staffId);
+    const currentSplit = currentAlloc?.hoursSplit?.[week] || { solo: 0, doubleUp: 0 };
+    const otherTypeHours = type === 'solo' ? currentSplit.doubleUp : currentSplit.solo;
+    const newTotalForThisStaff = hours + otherTypeHours;
+
+    // Calculate how many hours this staff is already allocated to OTHER service users for this week
+    const otherUserAllocations = serviceUsers.filter(u => u.id !== userId).reduce((sum, u) => {
+      const alloc = u.staffAllocations.find(a => a.staffId === staffId);
+      if (!alloc) return sum;
+      const split = alloc.hoursSplit?.[week] || { solo: 0, doubleUp: 0 };
+      return sum + split.solo + split.doubleUp;
+    }, 0);
+
     // Check 1: Don't exceed staff's available hours for this week
     const staffAvailableHours = staffMember.forecastHours[week] || 0;
-    const maxStaffHours = staffAvailableHours - otherAllocations;
+    const maxStaffHours = staffAvailableHours - otherUserAllocations - otherTypeHours;
 
     // Check 2: Don't exceed service user's required hours for this week
+    // For double-up hours, they count once toward user's needs (not per staff)
     const userRequiredHours = currentUser.forecastHours[week] || 0;
-
-    // Get total allocated hours from OTHER staff for this service user
-    const otherStaffAllocations = currentUser.staffAllocations.filter(a => a.staffId !== staffId).reduce((sum, a) => sum + (a.allocatedHours[week] || 0), 0);
-    const maxUserHours = userRequiredHours - otherStaffAllocations;
+    
+    // Calculate hours already allocated by other staff (for user's needs check)
+    const otherStaffAllocations = currentUser.staffAllocations
+      .filter(a => a.staffId !== staffId)
+      .reduce((sum, a) => {
+        const split = a.hoursSplit?.[week] || { solo: 0, doubleUp: 0 };
+        return sum + split.solo + split.doubleUp;
+      }, 0);
+    
+    // Current staff's other type hours also count toward user's total
+    const maxUserHours = userRequiredHours - otherStaffAllocations - otherTypeHours;
 
     // Apply the minimum of both constraints
     const validatedHours = Math.max(0, Math.min(hours, maxStaffHours, maxUserHours));
 
     // Show toast if hours were capped
     if (hours > validatedHours && hours > 0) {
-      const reason = hours > maxStaffHours ? `${staffMember.name} only has ${maxStaffHours}h available this week` : `${currentUser.name} only needs ${maxUserHours}h more this week`;
+      const reason = hours > maxStaffHours 
+        ? `${staffMember.name} only has ${maxStaffHours}h available for ${type === 'solo' ? 'solo' : 'double-up'} this week` 
+        : `${currentUser.name} only needs ${maxUserHours}h more this week`;
       toast({
         title: "Hours adjusted",
         description: reason,
         variant: "destructive"
       });
     }
+
     setServiceUsers(prev => prev.map(user => {
       if (user.id !== userId) return user;
       const updatedAllocations = user.staffAllocations.map(alloc => {
         if (alloc.staffId !== staffId) return alloc;
+        const newSplit = {
+          ...(alloc.hoursSplit?.[week] || { solo: 0, doubleUp: 0 }),
+          [type]: validatedHours
+        };
+        const newTotal = newSplit.solo + newSplit.doubleUp;
         return {
           ...alloc,
           allocatedHours: {
             ...alloc.allocatedHours,
-            [week]: validatedHours
+            [week]: newTotal
+          },
+          hoursSplit: {
+            ...(alloc.hoursSplit || createDefaultHoursSplit()),
+            [week]: newSplit
           }
         };
       });
@@ -466,6 +494,12 @@ export const Matching = () => {
       };
     }));
   };
+
+  const getStaffAllocationSplit = (user: ServiceUser, staffId: string, week: string): { solo: number; doubleUp: number } => {
+    const allocation = user.staffAllocations.find(a => a.staffId === staffId);
+    return allocation?.hoursSplit?.[week] || { solo: 0, doubleUp: 0 };
+  };
+
   const getStaffAllocation = (user: ServiceUser, staffId: string, month: string): number => {
     const allocation = user.staffAllocations.find(a => a.staffId === staffId);
     return allocation?.allocatedHours[month] || 0;
@@ -1454,8 +1488,14 @@ export const Matching = () => {
                     <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead className="sticky left-0 bg-background min-w-[200px]">Service User / Staff</TableHead>
-                        {WEEKS.map(week => <TableHead key={week} className="text-center min-w-[100px]">{week}</TableHead>)}
+                        <TableHead rowSpan={2} className="sticky left-0 bg-background min-w-[200px] align-bottom">Service User / Staff</TableHead>
+                        {WEEKS.map(week => <TableHead key={week} colSpan={2} className="text-center border-l">{week}</TableHead>)}
+                      </TableRow>
+                      <TableRow>
+                        {WEEKS.map(week => <>
+                          <TableHead key={`${week}-solo`} className="text-center text-xs border-l px-1 min-w-[50px]">Solo</TableHead>
+                          <TableHead key={`${week}-double`} className="text-center text-xs px-1 min-w-[50px]">Double</TableHead>
+                        </>)}
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -1468,21 +1508,23 @@ export const Matching = () => {
                                 <span className="text-xs text-muted-foreground">Required Hours</span>
                               </div>
                             </TableCell>
-                            {WEEKS.map(week => <TableCell key={week} className="text-center">
-                                <Input type="number" value={user.forecastHours[week] || 0} onChange={e => {
-                              const value = parseFloat(e.target.value) || 0;
-                              setServiceUsers(prev => prev.map(u => u.id === user.id ? {
-                                ...u,
-                                forecastHours: {
-                                  ...u.forecastHours,
-                                  [week]: value
-                                }
-                              } : u));
-                            }} className="h-8 w-16 text-center bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
-                              </TableCell>)}
+                            {WEEKS.map(week => <>
+                                <TableCell key={`${week}-solo`} colSpan={2} className="text-center border-l">
+                                  <Input type="number" value={user.forecastHours[week] || 0} onChange={e => {
+                                    const value = parseFloat(e.target.value) || 0;
+                                    setServiceUsers(prev => prev.map(u => u.id === user.id ? {
+                                      ...u,
+                                      forecastHours: {
+                                        ...u.forecastHours,
+                                        [week]: value
+                                      }
+                                    } : u));
+                                  }} className="h-8 w-16 mx-auto text-center bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+                                </TableCell>
+                              </>)}
                           </TableRow>
                           
-                          {/* Primary Staff Rows - with hours allocation */}
+                          {/* Primary Staff Rows - with solo/double-up allocation */}
                           {user.primaryStaffIds.map(staffId => {
                           const staffMember = getStaffById(staffId);
                           if (!staffMember) return null;
@@ -1494,9 +1536,27 @@ export const Matching = () => {
                                     <X className="h-3 w-3 cursor-pointer text-red-500 hover:text-red-700" onClick={() => unassignStaff(user.id, staffId, 'primary')} />
                                   </div>
                                 </TableCell>
-                                {WEEKS.map(week => <TableCell key={week} className="text-center">
-                                    <Input type="number" value={getStaffAllocation(user, staffId, week)} onChange={e => updateStaffAllocation(user.id, staffId, week, parseFloat(e.target.value) || 0)} className="h-8 w-16 text-center bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
-                                  </TableCell>)}
+                                {WEEKS.map(week => {
+                                  const split = getStaffAllocationSplit(user, staffId, week);
+                                  return <>
+                                    <TableCell key={`${week}-solo`} className="text-center border-l px-1">
+                                      <Input 
+                                        type="number" 
+                                        value={split.solo} 
+                                        onChange={e => updateStaffAllocationSplit(user.id, staffId, week, 'solo', parseFloat(e.target.value) || 0)} 
+                                        className="h-7 w-12 text-center bg-white text-xs [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" 
+                                      />
+                                    </TableCell>
+                                    <TableCell key={`${week}-double`} className="text-center px-1">
+                                      <Input 
+                                        type="number" 
+                                        value={split.doubleUp} 
+                                        onChange={e => updateStaffAllocationSplit(user.id, staffId, week, 'doubleUp', parseFloat(e.target.value) || 0)} 
+                                        className="h-7 w-12 text-center bg-purple-50 text-xs [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" 
+                                      />
+                                    </TableCell>
+                                  </>;
+                                })}
                               </TableRow>;
                         })}
                           
@@ -1509,7 +1569,7 @@ export const Matching = () => {
                             const requiredHours = user.forecastHours[week] || 0;
                             const allocatedHours = user.staffAllocations.reduce((sum, alloc) => sum + (alloc.allocatedHours[week] || 0), 0);
                             const unallocatedHours = requiredHours - allocatedHours;
-                            return <TableCell key={week} className="text-center">
+                            return <TableCell key={week} colSpan={2} className="text-center border-l">
                                   <span className={`text-sm font-medium ${unallocatedHours > 0 ? 'text-orange-700' : unallocatedHours < 0 ? 'text-red-700' : 'text-green-700'}`}>
                                     {unallocatedHours}
                                   </span>
@@ -1529,7 +1589,7 @@ export const Matching = () => {
                                     <X className="h-3 w-3 cursor-pointer text-red-500 hover:text-red-700" onClick={() => unassignStaff(user.id, staffId, 'backup')} />
                                   </div>
                                 </TableCell>
-                                {WEEKS.map(week => <TableCell key={week} className="text-center text-xs text-muted-foreground">
+                                {WEEKS.map(week => <TableCell key={week} colSpan={2} className="text-center text-xs text-muted-foreground border-l">
                                     {staffMember.forecastHours[week] || 0}h avail
                                   </TableCell>)}
                               </TableRow>;
@@ -1537,7 +1597,7 @@ export const Matching = () => {
                           
                           {/* Add Staff Row */}
                           <TableRow key={`${user.id}-add-staff`} className="border-b-2">
-                            <TableCell className="sticky left-0 bg-background pl-6" colSpan={WEEKS.length + 1}>
+                            <TableCell className="sticky left-0 bg-background pl-6" colSpan={WEEKS.length * 2 + 1}>
                               <div className="flex gap-2">
                                 <SearchableStaffSelect options={getRankedStaff(user, [...user.primaryStaffIds, ...user.backupStaffIds]).map(({
                                 staff: s,
