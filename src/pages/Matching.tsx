@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,12 +7,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Search, Plus, MapPin, X, Edit2, Trash2, BarChart3, Printer, Check, Loader2, HelpCircle } from "lucide-react";
+import { Search, Plus, MapPin, X, Edit2, Trash2, BarChart3, Printer, Check, Loader2, HelpCircle, FileDown } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Progress } from "@/components/ui/progress";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 import { SearchableStaffSelect } from "@/components/SearchableStaffSelect";
 import { 
   useMatchingData, 
@@ -43,6 +45,7 @@ const CONTRACT_TYPES: ContractType[] = [
 ];
 export const Matching = () => {
   const { toast } = useToast();
+  const printAreaRef = useRef<HTMLDivElement>(null);
   const { 
     serviceUsers, 
     staff, 
@@ -120,6 +123,8 @@ export const Matching = () => {
   const [newStaffLocationInput, setNewStaffLocationInput] = useState("");
   const [isAddingUserLocation, setIsAddingUserLocation] = useState(false);
   const [isAddingStaffLocation, setIsAddingStaffLocation] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+  
   const locations = useMemo(() => {
     const allLocations = [...new Set([...serviceUsers.map(u => u.location), ...staff.map(s => s.location)])];
     return allLocations.filter(Boolean);
@@ -128,6 +133,77 @@ export const Matching = () => {
     const allNeeds = serviceUsers.flatMap(u => u.supportNeeds);
     return [...new Set(allNeeds)];
   }, [serviceUsers]);
+
+  const handleExportPDF = async () => {
+    if (!printAreaRef.current) return;
+    
+    setIsExporting(true);
+    try {
+      const element = printAreaRef.current;
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff'
+      });
+      
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      });
+      
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      const imgWidth = canvas.width;
+      const imgHeight = canvas.height;
+      const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
+      const imgX = (pdfWidth - imgWidth * ratio) / 2;
+      const imgY = 10;
+      
+      // Handle multi-page if content is too tall
+      const scaledHeight = imgHeight * ratio;
+      const pageHeight = pdfHeight - 20; // margins
+      
+      if (scaledHeight <= pageHeight) {
+        pdf.addImage(imgData, 'PNG', imgX, imgY, imgWidth * ratio, scaledHeight);
+      } else {
+        let remainingHeight = scaledHeight;
+        let sourceY = 0;
+        let pageNum = 0;
+        
+        while (remainingHeight > 0) {
+          if (pageNum > 0) pdf.addPage();
+          
+          const sliceHeight = Math.min(pageHeight, remainingHeight);
+          const sourceSliceHeight = sliceHeight / ratio;
+          
+          pdf.addImage(
+            imgData, 'PNG',
+            imgX, imgY,
+            imgWidth * ratio, scaledHeight,
+            undefined, 'FAST',
+            0
+          );
+          
+          remainingHeight -= pageHeight;
+          sourceY += sourceSliceHeight;
+          pageNum++;
+          
+          if (pageNum > 20) break; // Safety limit
+        }
+      }
+      
+      pdf.save('staff-forecast.pdf');
+      toast({ title: "PDF exported successfully" });
+    } catch (error) {
+      console.error('PDF export error:', error);
+      toast({ title: "Failed to export PDF", variant: "destructive" });
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   // All interests/preferences for dropdowns
   const allInterests = useMemo(() => {
@@ -549,6 +625,14 @@ export const Matching = () => {
                     ))}
                   </SelectContent>
                 </Select>
+                <Button variant="outline" size="sm" onClick={handleExportPDF} disabled={isExporting}>
+                  {isExporting ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <FileDown className="h-4 w-4 mr-2" />
+                  )}
+                  Export PDF
+                </Button>
                 <Button variant="outline" size="sm" onClick={() => window.print()}>
                   <Printer className="h-4 w-4 mr-2" />
                   Print
@@ -566,7 +650,7 @@ export const Matching = () => {
                     @page { size: A4; margin: 10mm; }
                   }
                 `}</style>
-                <div className="print-area grid grid-cols-1 gap-6">
+                <div ref={printAreaRef} className="print-area grid grid-cols-1 gap-6">
                   {/* Staff Utilisation Forecast */}
                   <div className="rounded-2xl overflow-hidden shadow-md bg-white">
                     <div className="px-6 py-4" style={{ backgroundColor: '#202A38' }}>
