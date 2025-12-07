@@ -50,6 +50,7 @@ interface ServiceUser {
   supportNeeds: string[];
   preferences: string[];
   location: string;
+  typicalWeeklyHours: number;
   primaryStaffIds: string[];
   backupStaffIds: string[];
   forecastHours: WeeklyForecast;
@@ -80,6 +81,7 @@ const INITIAL_SERVICE_USERS: ServiceUser[] = [{
   supportNeeds: ["Autism", "Personal Care", "Community Access"],
   preferences: ["Prefers male staff", "Enjoys gardening", "Likes quiet environments"],
   location: "North London",
+  typicalWeeklyHours: 21,
   primaryStaffIds: ["s1"],
   backupStaffIds: ["s3"],
   forecastHours: createDefaultForecast(21),
@@ -90,6 +92,7 @@ const INITIAL_SERVICE_USERS: ServiceUser[] = [{
   supportNeeds: ["Hoisting", "PEG Feeding", "Dementia Care"],
   preferences: ["Prefers female staff", "Enjoys music", "Likes pets"],
   location: "South London",
+  typicalWeeklyHours: 30,
   primaryStaffIds: ["s2"],
   backupStaffIds: ["s4"],
   forecastHours: createDefaultForecast(30),
@@ -100,6 +103,7 @@ const INITIAL_SERVICE_USERS: ServiceUser[] = [{
   supportNeeds: ["Learning Disability", "Behaviour Support", "Community Access"],
   preferences: ["Enjoys sports", "Likes cooking", "Prefers consistent routines"],
   location: "East London",
+  typicalWeeklyHours: 25,
   primaryStaffIds: [],
   backupStaffIds: [],
   forecastHours: createDefaultForecast(25),
@@ -334,6 +338,7 @@ export const Matching = () => {
       supportNeeds: newUserForm.supportNeeds.split(",").map(s => s.trim()).filter(Boolean),
       preferences: newUserForm.preferences.split(",").map(s => s.trim()).filter(Boolean),
       location: newUserForm.location,
+      typicalWeeklyHours: 0,
       primaryStaffIds: [],
       backupStaffIds: [],
       forecastHours: createDefaultForecast(0),
@@ -690,14 +695,16 @@ export const Matching = () => {
                     <TableHeader>
                       <TableRow>
                         <TableHead>Name</TableHead>
+                        <TableHead>Location</TableHead>
+                        <TableHead>Typical Weekly Hours</TableHead>
                         <TableHead>Support Needs</TableHead>
                         <TableHead>Interests</TableHead>
-                        <TableHead>Location</TableHead>
                         <TableHead className="w-[50px]"></TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {serviceUsers.map(user => <TableRow key={user.id}>
+                          {/* Name */}
                           <TableCell className="font-medium cursor-pointer hover:bg-muted/50" onDoubleClick={() => {
                         setEditingCell({
                           id: user.id,
@@ -724,41 +731,7 @@ export const Matching = () => {
                           }
                         }} autoFocus className="h-8 bg-white" /> : user.name}
                           </TableCell>
-                          <TableCell className="cursor-pointer hover:bg-muted/50" onDoubleClick={() => {
-                        setEditingCell({
-                          id: user.id,
-                          field: 'supportNeeds',
-                          type: 'user'
-                        });
-                        setEditValue(user.supportNeeds.join(', '));
-                      }}>
-                            {editingCell?.id === user.id && editingCell?.field === 'supportNeeds' && editingCell?.type === 'user' ? <Input value={editValue} onChange={e => setEditValue(e.target.value)} onBlur={() => {
-                          setServiceUsers(prev => prev.map(u => u.id === user.id ? {
-                            ...u,
-                            supportNeeds: editValue.split(',').map(s => s.trim()).filter(Boolean)
-                          } : u));
-                          setEditingCell(null);
-                        }} onKeyDown={e => {
-                          if (e.key === 'Enter') {
-                            setServiceUsers(prev => prev.map(u => u.id === user.id ? {
-                              ...u,
-                              supportNeeds: editValue.split(',').map(s => s.trim()).filter(Boolean)
-                            } : u));
-                            setEditingCell(null);
-                          } else if (e.key === 'Escape') {
-                            setEditingCell(null);
-                          }
-                        }} autoFocus placeholder="Comma-separated needs..." className="h-8 bg-white min-w-[200px]" /> : <div className="flex flex-wrap gap-1">
-                                {user.supportNeeds.slice(0, 2).map(need => <Badge key={need} variant="secondary" className="text-xs">{need}</Badge>)}
-                                {user.supportNeeds.length > 2 && <Badge variant="outline" className="text-xs">+{user.supportNeeds.length - 2}</Badge>}
-                              </div>}
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex flex-wrap gap-1">
-                              {user.preferences.slice(0, 2).map(pref => <Badge key={pref} variant="outline" className="text-xs">{pref}</Badge>)}
-                              {user.preferences.length > 2 && <Badge variant="outline" className="text-xs">+{user.preferences.length - 2}</Badge>}
-                            </div>
-                          </TableCell>
+                          {/* Location */}
                           <TableCell>
                             {editingCell?.id === user.id && editingCell?.field === 'location' && editingCell?.type === 'user' ? <div className="flex gap-1">
                                 <Input value={editValue} onChange={e => setEditValue(e.target.value)} onBlur={() => {
@@ -809,6 +782,59 @@ export const Matching = () => {
                                 </SelectContent>
                               </Select>}
                           </TableCell>
+                          {/* Typical Weekly Hours */}
+                          <TableCell>
+                            <Input 
+                              type="number" 
+                              value={user.typicalWeeklyHours} 
+                              onChange={e => {
+                                const value = parseFloat(e.target.value) || 0;
+                                setServiceUsers(prev => prev.map(u => u.id === user.id ? {
+                                  ...u,
+                                  typicalWeeklyHours: value
+                                } : u));
+                              }} 
+                              className="h-8 w-20 text-center bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" 
+                            />
+                          </TableCell>
+                          {/* Support Needs */}
+                          <TableCell className="cursor-pointer hover:bg-muted/50" onDoubleClick={() => {
+                        setEditingCell({
+                          id: user.id,
+                          field: 'supportNeeds',
+                          type: 'user'
+                        });
+                        setEditValue(user.supportNeeds.join(', '));
+                      }}>
+                            {editingCell?.id === user.id && editingCell?.field === 'supportNeeds' && editingCell?.type === 'user' ? <Input value={editValue} onChange={e => setEditValue(e.target.value)} onBlur={() => {
+                          setServiceUsers(prev => prev.map(u => u.id === user.id ? {
+                            ...u,
+                            supportNeeds: editValue.split(',').map(s => s.trim()).filter(Boolean)
+                          } : u));
+                          setEditingCell(null);
+                        }} onKeyDown={e => {
+                          if (e.key === 'Enter') {
+                            setServiceUsers(prev => prev.map(u => u.id === user.id ? {
+                              ...u,
+                              supportNeeds: editValue.split(',').map(s => s.trim()).filter(Boolean)
+                            } : u));
+                            setEditingCell(null);
+                          } else if (e.key === 'Escape') {
+                            setEditingCell(null);
+                          }
+                        }} autoFocus placeholder="Comma-separated needs..." className="h-8 bg-white min-w-[200px]" /> : <div className="flex flex-wrap gap-1">
+                                {user.supportNeeds.slice(0, 2).map(need => <Badge key={need} variant="secondary" className="text-xs">{need}</Badge>)}
+                                {user.supportNeeds.length > 2 && <Badge variant="outline" className="text-xs">+{user.supportNeeds.length - 2}</Badge>}
+                              </div>}
+                          </TableCell>
+                          {/* Interests */}
+                          <TableCell>
+                            <div className="flex flex-wrap gap-1">
+                              {user.preferences.slice(0, 2).map(pref => <Badge key={pref} variant="outline" className="text-xs">{pref}</Badge>)}
+                              {user.preferences.length > 2 && <Badge variant="outline" className="text-xs">+{user.preferences.length - 2}</Badge>}
+                            </div>
+                          </TableCell>
+                          {/* Delete */}
                           <TableCell>
                             <Button variant="ghost" size="icon" onClick={() => handleDeleteUser(user.id)}>
                               <Trash2 className="h-4 w-4" />
@@ -861,7 +887,7 @@ export const Matching = () => {
                                       forecastHours: { ...u.forecastHours, [week]: value }
                                     } : u));
                                   }} 
-                                  className="h-8 w-16 text-center bg-white" 
+                                  className="h-8 w-16 text-center bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" 
                                 />
                               </TableCell>
                             ))}
@@ -889,7 +915,7 @@ export const Matching = () => {
                                       type="number" 
                                       value={getStaffAllocation(user, staffId, week)} 
                                       onChange={e => updateStaffAllocation(user.id, staffId, week, parseFloat(e.target.value) || 0)} 
-                                      className="h-8 w-16 text-center bg-white" 
+                                      className="h-8 w-16 text-center bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" 
                                     />
                                   </TableCell>
                                 ))}
@@ -921,6 +947,25 @@ export const Matching = () => {
                               </TableRow>
                             );
                           })}
+
+                          {/* Unallocated Hours Row */}
+                          <TableRow key={`${user.id}-unallocated`} className="bg-orange-50">
+                            <TableCell className="sticky left-0 bg-orange-50 pl-6">
+                              <span className="text-sm font-medium text-orange-700">Unallocated Hours</span>
+                            </TableCell>
+                            {WEEKS.map(week => {
+                              const requiredHours = user.forecastHours[week] || 0;
+                              const allocatedHours = user.staffAllocations.reduce((sum, alloc) => sum + (alloc.allocatedHours[week] || 0), 0);
+                              const unallocatedHours = requiredHours - allocatedHours;
+                              return (
+                                <TableCell key={week} className="text-center">
+                                  <span className={`text-sm font-medium ${unallocatedHours > 0 ? 'text-orange-700' : unallocatedHours < 0 ? 'text-red-700' : 'text-green-700'}`}>
+                                    {unallocatedHours}
+                                  </span>
+                                </TableCell>
+                              );
+                            })}
+                          </TableRow>
                           
                           {/* Add Staff Row */}
                           <TableRow key={`${user.id}-add-staff`} className="border-b-2">
