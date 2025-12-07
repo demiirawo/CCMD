@@ -355,7 +355,6 @@ export const Matching = () => {
       };
     });
   };
-  };
 
   const updateStaffAllocation = (userId: string, staffId: string, week: string, hours: number) => {
     // Find the staff member to check their available hours
