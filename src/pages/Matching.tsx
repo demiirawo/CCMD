@@ -1339,10 +1339,9 @@ export const Matching = () => {
             {/* Staff Forecast Hours Table */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  
-                  Staff Hours Forecast (12 Months)
-                </CardTitle>
+                <CardTitle className="flex items-center gap-2">Available Hours
+
+              </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="overflow-x-auto">
