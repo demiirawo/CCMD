@@ -1740,9 +1740,15 @@ export const Matching = () => {
                   <div className="flex gap-2">
                     <Input 
                       value={newUserLocationInput} 
-                      onChange={e => setNewUserLocationInput(e.target.value)} 
+                      onChange={e => {
+                        console.log('Location input changing to:', e.target.value);
+                        setNewUserLocationInput(e.target.value);
+                      }} 
                       onKeyDown={e => {
+                        console.log('Key pressed:', e.key, 'Value:', newUserLocationInput);
                         if (e.key === 'Enter' && newUserLocationInput.trim()) {
+                          e.preventDefault();
+                          console.log('Saving new location:', newUserLocationInput.trim());
                           setNewUserForm(f => ({ ...f, location: newUserLocationInput.trim() }));
                           setNewUserLocationInput('');
                           setIsAddingUserLocation(false);
@@ -1759,7 +1765,9 @@ export const Matching = () => {
                       type="button" 
                       size="sm"
                       onClick={() => {
+                        console.log('Check button clicked, value:', newUserLocationInput);
                         if (newUserLocationInput.trim()) {
+                          console.log('Saving new location via button:', newUserLocationInput.trim());
                           setNewUserForm(f => ({ ...f, location: newUserLocationInput.trim() }));
                           setNewUserLocationInput('');
                           setIsAddingUserLocation(false);
