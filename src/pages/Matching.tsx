@@ -64,7 +64,9 @@ export const Matching = () => {
   const [managerFilter, setManagerFilter] = useState<string>("all");
   const [supportTypeFilter, setSupportTypeFilter] = useState<string>("all");
   const [userLocationFilter, setUserLocationFilter] = useState<string>("all");
+  const [userManagerFilter, setUserManagerFilter] = useState<string>("all");
   const [staffLocationFilter, setStaffLocationFilter] = useState<string>("all");
+  const [staffManagerFilter, setStaffManagerFilter] = useState<string>("all");
   const [selectedServiceUser, setSelectedServiceUser] = useState<ServiceUser | null>(null);
   const [selectedStaff, setSelectedStaff] = useState<Staff | null>(null);
   const [hoveredConnection, setHoveredConnection] = useState<{
@@ -1085,9 +1087,20 @@ export const Matching = () => {
             <div className="grid grid-cols-1 gap-6">
               {/* Service Users Directory */}
               <Card>
-                <CardHeader className="flex flex-row items-center justify-between border-b">
+              <CardHeader className="flex flex-row items-center justify-between border-b">
                   <CardTitle>Service Users Directory</CardTitle>
                   <div className="flex items-center gap-3">
+                    <Select value={userManagerFilter} onValueChange={setUserManagerFilter}>
+                      <SelectTrigger className="w-40 bg-white">
+                        <SelectValue placeholder="All Managers" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-white z-50">
+                        <SelectItem value="all">All Managers</SelectItem>
+                        {managers.map(mgr => (
+                          <SelectItem key={mgr} value={mgr}>{mgr}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <Select value={userLocationFilter} onValueChange={setUserLocationFilter}>
                       <SelectTrigger className="w-40 bg-white">
                         <MapPin className="h-4 w-4 mr-2" />
@@ -1122,7 +1135,7 @@ export const Matching = () => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {serviceUsers.filter(user => userLocationFilter === "all" || user.location === userLocationFilter).map(user => <TableRow key={user.id}>
+                      {serviceUsers.filter(user => (userLocationFilter === "all" || user.location === userLocationFilter) && (userManagerFilter === "all" || user.manager === userManagerFilter)).map(user => <TableRow key={user.id}>
                           {/* Name */}
                           <TableCell className="font-medium cursor-pointer hover:bg-muted/50" onDoubleClick={() => {
                         setEditingCell({
@@ -1498,7 +1511,7 @@ export const Matching = () => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {serviceUsers.filter(user => userLocationFilter === "all" || user.location === userLocationFilter).map(user => (
+                      {serviceUsers.filter(user => (userLocationFilter === "all" || user.location === userLocationFilter) && (userManagerFilter === "all" || user.manager === userManagerFilter)).map(user => (
                         <>
                           {/* Service User Row - Required Hours */}
                           <TableRow key={user.id} className="bg-blue-50">
@@ -1653,6 +1666,17 @@ export const Matching = () => {
                 <CardHeader className="flex flex-row items-center justify-between border-b">
                   <CardTitle>Staff Directory</CardTitle>
                   <div className="flex items-center gap-3">
+                    <Select value={staffManagerFilter} onValueChange={setStaffManagerFilter}>
+                      <SelectTrigger className="w-40 bg-white">
+                        <SelectValue placeholder="All Managers" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-white z-50">
+                        <SelectItem value="all">All Managers</SelectItem>
+                        {managers.map(mgr => (
+                          <SelectItem key={mgr} value={mgr}>{mgr}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <Select value={staffLocationFilter} onValueChange={setStaffLocationFilter}>
                       <SelectTrigger className="w-40 bg-white">
                         <MapPin className="h-4 w-4 mr-2" />
@@ -1687,7 +1711,7 @@ export const Matching = () => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {staff.filter(s => staffLocationFilter === "all" || s.location === staffLocationFilter).map(s => <TableRow key={s.id}>
+                      {staff.filter(s => (staffLocationFilter === "all" || s.location === staffLocationFilter) && (staffManagerFilter === "all" || s.manager === staffManagerFilter)).map(s => <TableRow key={s.id}>
                           <TableCell className="font-medium">{s.name}</TableCell>
                           {/* Manager */}
                           <TableCell>
