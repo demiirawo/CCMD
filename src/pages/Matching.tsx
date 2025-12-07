@@ -31,6 +31,11 @@ const MONTHS = getNext12Months();
 interface MonthlyForecast {
   [month: string]: number;
 }
+interface StaffAllocation {
+  staffId: string;
+  allocatedHours: MonthlyForecast;
+}
+
 interface ServiceUser {
   id: string;
   name: string;
@@ -40,6 +45,7 @@ interface ServiceUser {
   primaryStaffIds: string[];
   backupStaffIds: string[];
   forecastHours: MonthlyForecast;
+  staffAllocations: StaffAllocation[];
 }
 interface Staff {
   id: string;
@@ -76,7 +82,8 @@ const INITIAL_SERVICE_USERS: ServiceUser[] = [{
     [MONTHS[4]]: 50,
     [MONTHS[5]]: 55,
     ...createDefaultForecast(40)
-  }
+  },
+  staffAllocations: [{ staffId: "s1", allocatedHours: { [MONTHS[0]]: 21, ...createDefaultForecast(40) } }]
 }, {
   id: "su2",
   name: "Mary Johnson",
@@ -93,7 +100,8 @@ const INITIAL_SERVICE_USERS: ServiceUser[] = [{
     [MONTHS[4]]: 65,
     [MONTHS[5]]: 70,
     ...createDefaultForecast(50)
-  }
+  },
+  staffAllocations: [{ staffId: "s2", allocatedHours: { [MONTHS[0]]: 124, ...createDefaultForecast(50) } }]
 }, {
   id: "su3",
   name: "David Williams",
@@ -110,7 +118,8 @@ const INITIAL_SERVICE_USERS: ServiceUser[] = [{
     [MONTHS[4]]: 35,
     [MONTHS[5]]: 40,
     ...createDefaultForecast(35)
-  }
+  },
+  staffAllocations: []
 }];
 const INITIAL_STAFF: Staff[] = [{
   id: "s1",
@@ -305,9 +314,15 @@ export const Matching = () => {
       if (user.id !== userId) return user;
       if (type === 'primary') {
         if (user.primaryStaffIds.includes(staffId)) return user;
+        // Add staff allocation with default 0 hours for current month
+        const newAllocation: StaffAllocation = {
+          staffId,
+          allocatedHours: createDefaultForecast(0)
+        };
         return {
           ...user,
-          primaryStaffIds: [...user.primaryStaffIds, staffId]
+          primaryStaffIds: [...user.primaryStaffIds, staffId],
+          staffAllocations: [...user.staffAllocations, newAllocation]
         };
       } else {
         if (user.backupStaffIds.includes(staffId)) return user;
@@ -321,13 +336,34 @@ export const Matching = () => {
       title: "Staff assigned successfully"
     });
   };
+
+  const updateStaffAllocation = (userId: string, staffId: string, month: string, hours: number) => {
+    setServiceUsers(prev => prev.map(user => {
+      if (user.id !== userId) return user;
+      const updatedAllocations = user.staffAllocations.map(alloc => {
+        if (alloc.staffId !== staffId) return alloc;
+        return {
+          ...alloc,
+          allocatedHours: { ...alloc.allocatedHours, [month]: hours }
+        };
+      });
+      return { ...user, staffAllocations: updatedAllocations };
+    }));
+  };
+
+  const getStaffAllocation = (user: ServiceUser, staffId: string, month: string): number => {
+    const allocation = user.staffAllocations.find(a => a.staffId === staffId);
+    return allocation?.allocatedHours[month] || 0;
+  };
+
   const unassignStaff = (userId: string, staffId: string, type: 'primary' | 'backup') => {
     setServiceUsers(prev => prev.map(user => {
       if (user.id !== userId) return user;
       if (type === 'primary') {
         return {
           ...user,
-          primaryStaffIds: user.primaryStaffIds.filter(id => id !== staffId)
+          primaryStaffIds: user.primaryStaffIds.filter(id => id !== staffId),
+          staffAllocations: user.staffAllocations.filter(a => a.staffId !== staffId)
         };
       } else {
         return {
@@ -356,7 +392,8 @@ export const Matching = () => {
       location: newUserForm.location,
       primaryStaffIds: [],
       backupStaffIds: [],
-      forecastHours: createDefaultForecast(0)
+      forecastHours: createDefaultForecast(0),
+      staffAllocations: []
     };
     setServiceUsers(prev => [...prev, newUser]);
     setNewUserForm({
@@ -512,13 +549,12 @@ export const Matching = () => {
                       <TableBody>
                         {MONTHS.slice(0, 6).map((month) => {
                           const requiredHours = serviceUsers.reduce((sum, u) => sum + (u.forecastHours[month] || 0), 0);
-                          // Get all staff IDs assigned as PRIMARY to any service user
+                          // Allocated hours = sum of all staff allocations across service users for this month
+                          const allocatedHours = serviceUsers.reduce((sum, u) => 
+                            sum + u.staffAllocations.reduce((staffSum, alloc) => 
+                              staffSum + (alloc.allocatedHours[month] || 0), 0), 0);
+                          // Unallocated hours = sum of hours from staff NOT assigned as PRIMARY to any service user
                           const primaryStaffIds = new Set(serviceUsers.flatMap(u => u.primaryStaffIds));
-                          // Allocated hours = sum of hours from staff assigned as PRIMARY
-                          const allocatedHours = staff
-                            .filter(s => s.status === "Active" && primaryStaffIds.has(s.id))
-                            .reduce((sum, s) => sum + (s.forecastHours[month] || 0), 0);
-                          // Unallocated hours = sum of hours from staff NOT assigned as PRIMARY
                           const unallocatedHours = staff
                             .filter(s => s.status === "Active" && !primaryStaffIds.has(s.id))
                             .reduce((sum, s) => sum + (s.forecastHours[month] || 0), 0);
@@ -630,7 +666,11 @@ export const Matching = () => {
                           }) => {
                             const s = getStaffById(sid);
                             if (!s) return null;
-                            const staffAllocatedHours = s.forecastHours[currentMonth] || 0;
+                            // For primary staff, show allocated hours; for backup, show available hours
+                            const displayHours = type === 'Primary' 
+                              ? getStaffAllocation(user, sid, currentMonth)
+                              : (s.forecastHours[currentMonth] || 0);
+                            const hoursLabel = type === 'Primary' ? 'allocated' : 'available';
 
                             // Build narrative matching criteria
                             const buildMatchingNarrative = () => {
@@ -657,7 +697,7 @@ export const Matching = () => {
                                               {type}
                                             </span>
                                             <span className="text-[9px] bg-purple-100 text-purple-800 px-1 rounded">
-                                              {staffAllocatedHours}h available
+                                              {displayHours}h {hoursLabel}
                                             </span>
                                           </div>
                                           {narrative && <div className="text-[9px] text-muted-foreground mt-0.5 italic">
@@ -714,13 +754,12 @@ export const Matching = () => {
                   <TableBody>
                     {MONTHS.slice(0, 6).map((month, index) => {
                     const requiredHours = serviceUsers.reduce((sum, u) => sum + (u.forecastHours[month] || 0), 0);
-                    // Get all staff IDs assigned as PRIMARY to any service user
+                    // Allocated hours = sum of all staff allocations across service users for this month
+                    const allocatedHours = serviceUsers.reduce((sum, u) => 
+                      sum + u.staffAllocations.reduce((staffSum, alloc) => 
+                        staffSum + (alloc.allocatedHours[month] || 0), 0), 0);
+                    // Unallocated hours = sum of hours from staff NOT assigned as PRIMARY to any service user
                     const primaryStaffIds = new Set(serviceUsers.flatMap(u => u.primaryStaffIds));
-                    // Allocated hours = sum of hours from staff assigned as PRIMARY
-                    const allocatedHours = staff
-                      .filter(s => s.status === "Active" && primaryStaffIds.has(s.id))
-                      .reduce((sum, s) => sum + (s.forecastHours[month] || 0), 0);
-                    // Unallocated hours = sum of hours from staff NOT assigned as PRIMARY
                     const unallocatedHours = staff
                       .filter(s => s.status === "Active" && !primaryStaffIds.has(s.id))
                       .reduce((sum, s) => sum + (s.forecastHours[month] || 0), 0);
@@ -910,10 +949,27 @@ export const Matching = () => {
                           <TableCell>
                             <div className="space-y-1">
                               <div className="flex flex-wrap gap-1">
-                                {user.primaryStaffIds.map(sid => <Badge key={sid} className="cursor-pointer text-xs bg-green-100 text-green-800 hover:bg-green-200" onClick={() => unassignStaff(user.id, sid, 'primary')}>
-                                    {getStaffById(sid)?.name}
-                                    <X className="h-3 w-3 ml-1" />
-                                  </Badge>)}
+                                {user.primaryStaffIds.map(sid => {
+                                  const currentMonth = MONTHS[0];
+                                  const allocatedHours = getStaffAllocation(user, sid, currentMonth);
+                                  return (
+                                    <div key={sid} className="flex items-center gap-1 bg-green-100 text-green-800 rounded px-1.5 py-0.5">
+                                      <span className="text-xs">{getStaffById(sid)?.name}</span>
+                                      <Input
+                                        type="number"
+                                        value={allocatedHours}
+                                        onChange={e => updateStaffAllocation(user.id, sid, currentMonth, parseFloat(e.target.value) || 0)}
+                                        className="h-5 w-14 text-xs text-right bg-white px-1"
+                                        placeholder="hrs"
+                                      />
+                                      <span className="text-[10px]">h</span>
+                                      <X 
+                                        className="h-3 w-3 cursor-pointer hover:text-green-900" 
+                                        onClick={() => unassignStaff(user.id, sid, 'primary')}
+                                      />
+                                    </div>
+                                  );
+                                })}
                               </div>
                               <SearchableStaffSelect options={getRankedStaff(user, [...user.primaryStaffIds, ...user.backupStaffIds]).map(({
                             staff: s,
