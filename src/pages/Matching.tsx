@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Progress } from "@/components/ui/progress";
+import { SearchableStaffSelect } from "@/components/SearchableStaffSelect";
 
 // Generate month names for the next 12 months
 const getNext12Months = () => {
@@ -661,24 +662,16 @@ export const Matching = () => {
                                 <X className="h-3 w-3 ml-1" />
                               </Badge>)}
                           </div>
-                          <Select value="" onValueChange={value => {
-                          if (value) assignStaff(user.id, value, 'primary');
-                        }}>
-                            <SelectTrigger className="h-8 text-xs bg-white">
-                              <SelectValue placeholder="Add primary staff..." />
-                            </SelectTrigger>
-                            <SelectContent className="bg-white z-50">
-                              {getRankedStaff(user, [...user.primaryStaffIds, ...user.backupStaffIds]).map(({
-                              staff: s,
+                          <SearchableStaffSelect
+                            options={getRankedStaff(user, [...user.primaryStaffIds, ...user.backupStaffIds]).map(({ staff: s, score }) => ({
+                              id: s.id,
+                              name: s.name,
                               score
-                            }) => <SelectItem key={s.id} value={s.id}>
-                                  <div className="flex items-center justify-between gap-2 w-full">
-                                    <span>{s.name}</span>
-                                    <Badge variant="outline" className="text-[10px] ml-2">{score}%</Badge>
-                                  </div>
-                                </SelectItem>)}
-                            </SelectContent>
-                          </Select>
+                            }))}
+                            onSelect={(value) => assignStaff(user.id, value, 'primary')}
+                            placeholder="Add primary staff..."
+                            className="w-[200px]"
+                          />
                         </div>
                         
                         {/* Backup Staff Multi-Select */}
@@ -690,24 +683,16 @@ export const Matching = () => {
                                 <X className="h-3 w-3 ml-1" />
                               </Badge>)}
                           </div>
-                          <Select value="" onValueChange={value => {
-                          if (value) assignStaff(user.id, value, 'backup');
-                        }}>
-                            <SelectTrigger className="h-8 text-xs bg-white">
-                              <SelectValue placeholder="Add backup staff..." />
-                            </SelectTrigger>
-                            <SelectContent className="bg-white z-50">
-                              {getRankedStaff(user, [...user.primaryStaffIds, ...user.backupStaffIds]).map(({
-                              staff: s,
+                          <SearchableStaffSelect
+                            options={getRankedStaff(user, [...user.primaryStaffIds, ...user.backupStaffIds]).map(({ staff: s, score }) => ({
+                              id: s.id,
+                              name: s.name,
                               score
-                            }) => <SelectItem key={s.id} value={s.id}>
-                                  <div className="flex items-center justify-between gap-2 w-full">
-                                    <span>{s.name}</span>
-                                    <Badge variant="outline" className="text-[10px] ml-2">{score}%</Badge>
-                                  </div>
-                                </SelectItem>)}
-                            </SelectContent>
-                          </Select>
+                            }))}
+                            onSelect={(value) => assignStaff(user.id, value, 'backup')}
+                            placeholder="Add backup staff..."
+                            className="w-[200px]"
+                          />
                         </div>
                       </div>
                       </CardContent>
@@ -1103,26 +1088,17 @@ export const Matching = () => {
                                   </Badge>
                                 ))}
                               </div>
-                              <Select value="" onValueChange={value => {
-                                if (value) assignStaff(user.id, value, 'primary');
-                              }}>
-                                <SelectTrigger className="h-7 text-xs bg-white w-[140px]">
-                                  <SelectValue placeholder={user.primaryStaffIds.length > 0 ? "Add more..." : "Select staff..."} />
-                                </SelectTrigger>
-                                <SelectContent className="bg-white z-50">
-                                  {getRankedStaff(user, [...user.primaryStaffIds, ...user.backupStaffIds]).map(({
-                                    staff: s,
-                                    score
-                                  }) => (
-                                    <SelectItem key={s.id} value={s.id}>
-                                      <div className="flex items-center justify-between gap-2 w-full">
-                                        <span>{s.name}</span>
-                                        <Badge variant="outline" className="text-[10px] ml-2">{score}%</Badge>
-                                      </div>
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
+                              <SearchableStaffSelect
+                                options={getRankedStaff(user, [...user.primaryStaffIds, ...user.backupStaffIds]).map(({ staff: s, score }) => ({
+                                  id: s.id,
+                                  name: s.name,
+                                  score
+                                }))}
+                                onSelect={(value) => assignStaff(user.id, value, 'primary')}
+                                placeholder={user.primaryStaffIds.length > 0 ? "Add more..." : "Select staff..."}
+                                triggerClassName="w-[140px]"
+                                className="w-[200px]"
+                              />
                             </div>
                           </TableCell>
                           <TableCell>
@@ -1135,26 +1111,17 @@ export const Matching = () => {
                                   </Badge>
                                 ))}
                               </div>
-                              <Select value="" onValueChange={value => {
-                                if (value) assignStaff(user.id, value, 'backup');
-                              }}>
-                                <SelectTrigger className="h-7 text-xs bg-white w-[140px]">
-                                  <SelectValue placeholder={user.backupStaffIds.length > 0 ? "Add more..." : "Select staff..."} />
-                                </SelectTrigger>
-                                <SelectContent className="bg-white z-50">
-                                  {getRankedStaff(user, [...user.primaryStaffIds, ...user.backupStaffIds]).map(({
-                                    staff: s,
-                                    score
-                                  }) => (
-                                    <SelectItem key={s.id} value={s.id}>
-                                      <div className="flex items-center justify-between gap-2 w-full">
-                                        <span>{s.name}</span>
-                                        <Badge variant="outline" className="text-[10px] ml-2">{score}%</Badge>
-                                      </div>
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
+                              <SearchableStaffSelect
+                                options={getRankedStaff(user, [...user.primaryStaffIds, ...user.backupStaffIds]).map(({ staff: s, score }) => ({
+                                  id: s.id,
+                                  name: s.name,
+                                  score
+                                }))}
+                                onSelect={(value) => assignStaff(user.id, value, 'backup')}
+                                placeholder={user.backupStaffIds.length > 0 ? "Add more..." : "Select staff..."}
+                                triggerClassName="w-[140px]"
+                                className="w-[200px]"
+                              />
                             </div>
                           </TableCell>
                           <TableCell>
