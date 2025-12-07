@@ -30,9 +30,19 @@ export interface WeeklyForecast {
   [week: string]: number;
 }
 
+export interface WeeklyHoursSplit {
+  solo: number;
+  doubleUp: number;
+}
+
+export interface WeeklyAllocation {
+  [week: string]: WeeklyHoursSplit;
+}
+
 export interface StaffAllocation {
   staffId: string;
-  allocatedHours: WeeklyForecast;
+  allocatedHours: WeeklyForecast; // Keep for backward compatibility, total hours
+  hoursSplit: WeeklyAllocation; // New: solo vs double-up breakdown
   confirmedNeeds: string[];
   confirmedInterests: string[];
 }
@@ -87,6 +97,15 @@ export const createDefaultForecast = (baseHours: number = 0): WeeklyForecast => 
   return forecast;
 };
 
+// Helper to create default hours split (solo/double-up breakdown)
+export const createDefaultHoursSplit = (): WeeklyAllocation => {
+  const allocation: WeeklyAllocation = {};
+  WEEKS.forEach(week => {
+    allocation[week] = { solo: 0, doubleUp: 0 };
+  });
+  return allocation;
+};
+
 export const useMatchingData = () => {
   const { profile } = useAuth();
   const { toast } = useToast();
@@ -138,20 +157,29 @@ export const useMatchingData = () => {
       }));
 
       // Transform service users data
-      const transformedUsers: ServiceUser[] = (usersData || []).map(u => ({
-        id: u.id,
-        name: u.name,
-        manager: u.manager || '',
-        location: u.location,
-        genderPreference: u.gender_preference as GenderPreference,
-        supportNeeds: (u.support_needs as string[]) || [],
-        preferences: (u.preferences as string[]) || [],
-        typicalWeeklyHours: Number(u.typical_weekly_hours),
-        forecastHours: (u.forecast_hours as WeeklyForecast) || createDefaultForecast(Number(u.typical_weekly_hours)),
-        primaryStaffIds: (u.primary_staff_ids as string[]) || [],
-        backupStaffIds: (u.backup_staff_ids as string[]) || [],
-        staffAllocations: (u.staff_allocations as unknown as StaffAllocation[]) || []
-      }));
+      const transformedUsers: ServiceUser[] = (usersData || []).map(u => {
+        // Migrate existing staffAllocations to include hoursSplit if missing
+        const rawAllocations = (u.staff_allocations as unknown as StaffAllocation[]) || [];
+        const migratedAllocations: StaffAllocation[] = rawAllocations.map(alloc => ({
+          ...alloc,
+          hoursSplit: alloc.hoursSplit || createDefaultHoursSplit()
+        }));
+        
+        return {
+          id: u.id,
+          name: u.name,
+          manager: u.manager || '',
+          location: u.location,
+          genderPreference: u.gender_preference as GenderPreference,
+          supportNeeds: (u.support_needs as string[]) || [],
+          preferences: (u.preferences as string[]) || [],
+          typicalWeeklyHours: Number(u.typical_weekly_hours),
+          forecastHours: (u.forecast_hours as WeeklyForecast) || createDefaultForecast(Number(u.typical_weekly_hours)),
+          primaryStaffIds: (u.primary_staff_ids as string[]) || [],
+          backupStaffIds: (u.backup_staff_ids as string[]) || [],
+          staffAllocations: migratedAllocations
+        };
+      });
 
       setStaff(transformedStaff);
       setServiceUsers(transformedUsers);
