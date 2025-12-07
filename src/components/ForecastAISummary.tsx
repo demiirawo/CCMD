@@ -173,21 +173,88 @@ Instructions:
       setIsGenerating(false);
     }
   };
-  return <Card className="mb-6 border border-border shadow-md">
+  const [isEditing, setIsEditing] = useState(false);
+  const textareaRef = React.useRef<HTMLTextAreaElement>(null);
+
+  const handleEdit = () => {
+    setIsEditing(true);
+    setTimeout(() => textareaRef.current?.focus(), 0);
+  };
+
+  const handleBlur = () => {
+    setIsEditing(false);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      setIsEditing(false);
+    }
+  };
+
+  return (
+    <Card className="mb-6 border border-border shadow-md">
       <CardContent className="p-6">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold">Summary</h3>
-          <Button variant="outline" size="sm" onClick={generateAISummary} disabled={isLoading || isGenerating} className="gap-2 bg-primary/5">
-            {isGenerating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={generateAISummary}
+            disabled={isLoading || isGenerating}
+            className="gap-2 bg-primary/5"
+          >
+            {isGenerating ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Sparkles className="h-4 w-4" />
+            )}
             {summary ? "Regenerate" : "Generate Summary"}
           </Button>
         </div>
-        
-        {summary ? <div className="prose prose-sm max-w-none text-muted-foreground">
-            <p className="whitespace-pre-wrap leading-relaxed">{summary}</p>
-          </div> : <p className="text-sm text-muted-foreground italic">
-            Click "Generate Summary" to create an AI-powered analysis of your {showUtilisation && showMatchmaking ? "utilisation forecast and matchmaking data" : showUtilisation ? "utilisation forecast" : showMatchmaking ? "matchmaking data" : "forecast data (enable at least one toggle)"}.
-          </p>}
+
+        {isEditing ? (
+          <textarea
+            ref={textareaRef}
+            value={summary}
+            onChange={(e) => setSummary(e.target.value)}
+            onBlur={handleBlur}
+            onKeyDown={handleKeyDown}
+            placeholder={`Click to add your own summary, or use "Generate Summary" for an AI-powered analysis of your ${
+              showUtilisation && showMatchmaking
+                ? "utilisation forecast and matchmaking data"
+                : showUtilisation
+                ? "utilisation forecast"
+                : showMatchmaking
+                ? "matchmaking data"
+                : "forecast data"
+            }.`}
+            className="w-full min-h-[120px] p-3 text-sm bg-white border border-input rounded-md resize-y focus:outline-none focus:ring-2 focus:ring-ring"
+          />
+        ) : (
+          <div
+            onClick={handleEdit}
+            className="cursor-text min-h-[60px] p-3 rounded-md hover:bg-muted/50 transition-colors"
+          >
+            {summary ? (
+              <p className="text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed">
+                {summary}
+              </p>
+            ) : (
+              <p className="text-sm text-muted-foreground italic">
+                Click to add your own summary, or use "Generate Summary" for an AI-powered analysis of your{" "}
+                {showUtilisation && showMatchmaking
+                  ? "utilisation forecast and matchmaking data"
+                  : showUtilisation
+                  ? "utilisation forecast"
+                  : showMatchmaking
+                  ? "matchmaking data"
+                  : "forecast data (enable at least one toggle)"}
+                .
+              </p>
+            )}
+          </div>
+        )}
       </CardContent>
-    </Card>;
+    </Card>
+  );
 };
