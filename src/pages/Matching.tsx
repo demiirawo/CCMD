@@ -569,7 +569,9 @@ export const Matching = () => {
                           <TableHead className="text-xs py-1 text-right">Required Hours</TableHead>
                           <TableHead className="text-xs py-1 text-right">Allocated Hours</TableHead>
                           <TableHead className="text-xs py-1 text-right">Unallocated Hours</TableHead>
-                          <TableHead className="text-xs py-1">Utilisation Status</TableHead>
+                          <TableHead className="text-xs py-1 text-right">Required FTE</TableHead>
+                          <TableHead className="text-xs py-1 text-right">Available FTE</TableHead>
+                          <TableHead className="text-xs py-1 text-right">Utilisation Percentage</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -594,28 +596,21 @@ export const Matching = () => {
                             .reduce((sum, s) => sum + (s.forecastHours[week] || 0), 0);
                           const totalAvailableHours = allocatedHours + unallocatedHours;
                           const utilisation = totalAvailableHours > 0 ? requiredHours / totalAvailableHours * 100 : 0;
-                          let statusColor = "bg-orange-100 text-orange-800";
-                          let statusText = "Underused – Moderate staff underutilisation";
-                          if (utilisation >= 70 && utilisation <= 100) {
-                            statusColor = "bg-green-100 text-green-800";
-                            statusText = "Optimal – Staff well utilised";
-                          } else if (utilisation > 100) {
-                            statusColor = "bg-red-100 text-red-800";
-                            statusText = "Overworked – Staff shortage risk";
-                          }
+                          
+                          // Calculate FTE based on 35 hour week
+                          const FTE_HOURS = 35;
+                          const requiredFTE = requiredHours / FTE_HOURS;
+                          const availableFTE = totalAvailableHours / FTE_HOURS;
+                          
                           return (
                             <TableRow key={week}>
                               <TableCell className="font-medium text-xs py-1">{week}</TableCell>
                               <TableCell className="text-right text-xs py-1">{requiredHours.toFixed(1)}</TableCell>
                               <TableCell className="text-right text-xs py-1">{allocatedHours.toFixed(1)}</TableCell>
                               <TableCell className="text-right text-xs py-1">{unallocatedHours.toFixed(1)}</TableCell>
-                              <TableCell className="py-1">
-                                <div className="flex items-center gap-2">
-                                  <span className="text-xs">Utilisation: {utilisation.toFixed(1)}%</span>
-                                  <span className="text-muted-foreground">—</span>
-                                  <Badge className={`${statusColor} text-xs`}>{statusText}</Badge>
-                                </div>
-                              </TableCell>
+                              <TableCell className="text-right text-xs py-1">{requiredFTE.toFixed(2)}</TableCell>
+                              <TableCell className="text-right text-xs py-1">{availableFTE.toFixed(2)}</TableCell>
+                              <TableCell className="text-right text-xs py-1">{utilisation.toFixed(1)}%</TableCell>
                             </TableRow>
                           );
                         })}
