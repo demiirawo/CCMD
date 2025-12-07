@@ -621,7 +621,7 @@ export const Matching = () => {
 
         <Tabs defaultValue="diagram" className="space-y-6">
           <TabsList>
-            <TabsTrigger value="diagram">Matching</TabsTrigger>
+            <TabsTrigger value="diagram">Summary</TabsTrigger>
             <TabsTrigger value="users">Service Users</TabsTrigger>
             <TabsTrigger value="staff">Staff</TabsTrigger>
           </TabsList>
@@ -761,16 +761,25 @@ export const Matching = () => {
                   }
                   return reasons;
                 };
-                return <div key={location} className="border rounded-lg p-3 print:border-black print:p-2 bg-primary-foreground">
-                        <div className="flex items-center gap-2 mb-2 pb-2 border-b">
-                          <h3 className="font-semibold text-sm print:text-xs">{location}</h3>
-                          <span className="text-xs text-muted-foreground">
-                            ({locationUsers.length} service users, {locationStaff.length} staff)
+                // Generate a consistent color based on location name
+                const locationColors = [
+                  'bg-blue-600', 'bg-green-600', 'bg-purple-600', 'bg-orange-600', 
+                  'bg-teal-600', 'bg-pink-600', 'bg-indigo-600', 'bg-red-600'
+                ];
+                const colorIndex = location.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % locationColors.length;
+                const bannerColor = locationColors[colorIndex];
+                
+                return <div key={location} className="rounded-2xl overflow-hidden shadow-md print:border-black bg-white">
+                        {/* Colored Banner Header */}
+                        <div className={`${bannerColor} px-6 py-4`}>
+                          <h3 className="font-bold text-xl text-white print:text-sm">{location}</h3>
+                          <span className="text-sm text-white/80">
+                            {locationUsers.length} service users • {locationStaff.length} staff
                           </span>
                         </div>
                         
-                        {/* Service User to Staff Allocations */}
-                        <div className="space-y-2">
+                        {/* Card Content */}
+                        <div className="p-6 space-y-4">
                           {locationUsers.map(user => {
                       const allAssignedStaff = [...user.primaryStaffIds.map(id => ({
                         id,
@@ -781,23 +790,23 @@ export const Matching = () => {
                       }))];
                       const currentWeek = WEEKS[0]; // Current week for display
                       const userRequiredHours = user.forecastHours[currentWeek] || 0;
-                      return <div key={user.id} className="rounded p-2 print:p-1.5 bg-primary-foreground">
-                                <div className="flex items-start justify-between mb-1">
+                      return <div key={user.id} className="rounded-lg p-4 print:p-2 bg-gray-50 border">
+                                <div className="flex items-start justify-between mb-2">
                                   <div className="flex-1">
-                                    <div className="flex items-center gap-2">
-                                      <span className="font-medium text-xs">{user.name}</span>
-                                      <span className="text-[9px] bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded font-medium">
+                                    <div className="flex items-center gap-3">
+                                      <span className="font-semibold text-base">{user.name}</span>
+                                      <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full font-medium">
                                         {userRequiredHours}h required ({currentWeek})
                                       </span>
                                     </div>
-                                    <div className="text-[10px] text-muted-foreground">
+                                    <div className="text-sm text-muted-foreground mt-1">
                                       Needs: {user.supportNeeds.slice(0, 3).join(', ')}
                                       {user.supportNeeds.length > 3 && ` +${user.supportNeeds.length - 3}`}
                                     </div>
                                   </div>
                                 </div>
                                 
-                                {allAssignedStaff.length > 0 ? <div className="mt-1.5 space-y-1">
+                                {allAssignedStaff.length > 0 ? <div className="mt-3 space-y-2">
                                     {allAssignedStaff.map(({
                             id: sid,
                             type
@@ -862,25 +871,25 @@ export const Matching = () => {
                               return `${staffFirstName} ${firstSentence}, ${restSentences.join(', ')}.`;
                             };
                             const narrative = buildMatchingNarrative();
-                            return <div key={sid} className={`text-[10px] pl-2 border-l-2 ${type === 'Primary' ? 'border-green-500 bg-green-50' : 'border-gray-400 bg-gray-50'} rounded-r p-1`}>
-                                          <div className="flex items-center gap-1">
-                                            <span className="font-medium">{s.name}</span>
-                                            <span className={`text-[9px] px-1 rounded ${type === 'Primary' ? 'bg-green-200 text-green-800' : 'bg-gray-200 text-gray-600'}`}>
+                            return <div key={sid} className={`pl-3 border-l-4 ${type === 'Primary' ? 'border-green-500 bg-green-50' : 'border-gray-400 bg-gray-100'} rounded-r-lg p-3`}>
+                                          <div className="flex items-center gap-2 flex-wrap">
+                                            <span className="font-semibold text-sm">{s.name}</span>
+                                            <span className={`text-xs px-2 py-0.5 rounded-full ${type === 'Primary' ? 'bg-green-200 text-green-800' : 'bg-gray-200 text-gray-600'}`}>
                                               {type}
                                             </span>
-                                            <span className="text-[9px] bg-purple-100 text-purple-800 px-1 rounded">
+                                            <span className="text-xs bg-purple-100 text-purple-800 px-2 py-0.5 rounded-full">
                                               {displayHours}h {hoursLabel}
                                             </span>
                                           </div>
-                                          {narrative && <div className="text-[9px] text-muted-foreground mt-0.5 italic">
+                                          {narrative && <div className="text-sm text-muted-foreground mt-1 italic">
                                               {narrative}
                                             </div>}
                                         </div>;
                           })}
-                                  </div> : <div className="text-[9px] text-orange-600 mt-1">No staff assigned</div>}
+                                  </div> : <div className="text-sm text-orange-600 mt-2">No staff assigned</div>}
                               </div>;
                     })}
-                          {locationUsers.length === 0 && <div className="text-[10px] text-muted-foreground italic">No service users in this location</div>}
+                          {locationUsers.length === 0 && <div className="text-sm text-muted-foreground italic">No service users in this location</div>}
                         </div>
                         
                         {/* Unassigned Staff in this location */}
@@ -889,20 +898,20 @@ export const Matching = () => {
                     if (unassignedStaff.length === 0) return null;
                     const currentWeek = WEEKS[0];
                     const totalUnallocatedHours = unassignedStaff.reduce((sum, s) => sum + (s.forecastHours[currentWeek] || 0), 0);
-                    return <div className="mt-3 pt-3 border-t border-dashed">
-                              <div className="flex items-center justify-between mb-2">
-                                <div className="text-[10px] font-medium text-muted-foreground">Unallocated Carers:</div>
-                                <span className="text-[9px] bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded font-medium">
+                    return <div className="mt-4 pt-4 border-t border-dashed">
+                              <div className="flex items-center justify-between mb-3">
+                                <div className="text-sm font-semibold text-muted-foreground">Unallocated Carers</div>
+                                <span className="text-xs bg-orange-100 text-orange-700 px-3 py-1 rounded-full font-medium">
                                   {totalUnallocatedHours}h total available ({currentWeek})
                                 </span>
                               </div>
-                              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                                 {unassignedStaff.map(s => {
                                   const availableHours = s.forecastHours[currentWeek] || 0;
                                   return (
-                                    <div key={s.id} className="flex items-center justify-between bg-orange-50 border border-orange-200 rounded px-2 py-1.5">
-                                      <span className="text-[10px] font-medium text-orange-800 truncate">{s.name}</span>
-                                      <span className="text-[9px] bg-orange-200 text-orange-900 px-1.5 py-0.5 rounded ml-2 shrink-0">
+                                    <div key={s.id} className="flex items-center justify-between bg-orange-50 border border-orange-200 rounded-lg px-3 py-2">
+                                      <span className="text-sm font-medium text-orange-800 truncate">{s.name}</span>
+                                      <span className="text-xs bg-orange-200 text-orange-900 px-2 py-1 rounded-full ml-2 shrink-0">
                                         {availableHours}h
                                       </span>
                                     </div>
