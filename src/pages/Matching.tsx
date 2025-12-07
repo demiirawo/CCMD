@@ -377,13 +377,10 @@ export const Matching = () => {
 
   // Get all staff ranked by match score for dropdowns
   const getRankedStaff = useCallback((user: ServiceUser, excludeIds: string[] = []) => {
-    return staff
-      .filter(s => !excludeIds.includes(s.id))
-      .map(s => ({
-        staff: s,
-        score: calculateMatchScore(user, s)
-      }))
-      .sort((a, b) => b.score - a.score);
+    return staff.filter(s => !excludeIds.includes(s.id)).map(s => ({
+      staff: s,
+      score: calculateMatchScore(user, s)
+    })).sort((a, b) => b.score - a.score);
   }, [staff, calculateMatchScore]);
   const getStaffById = (id: string) => staff.find(s => s.id === id);
   const assignStaff = (userId: string, staffId: string, type: 'primary' | 'backup') => {
@@ -608,35 +605,27 @@ export const Matching = () => {
                         <div className="space-y-1">
                           <span className="text-xs font-medium text-muted-foreground">Primary Staff:</span>
                           <div className="flex flex-wrap gap-1 mb-1">
-                            {user.primaryStaffIds.map(sid => (
-                              <Badge 
-                                key={sid} 
-                                className="cursor-pointer text-xs bg-green-100 text-green-800 hover:bg-green-200"
-                                onClick={() => unassignStaff(user.id, sid, 'primary')}
-                              >
+                            {user.primaryStaffIds.map(sid => <Badge key={sid} className="cursor-pointer text-xs bg-green-100 text-green-800 hover:bg-green-200" onClick={() => unassignStaff(user.id, sid, 'primary')}>
                                 {getStaffById(sid)?.name}
                                 <X className="h-3 w-3 ml-1" />
-                              </Badge>
-                            ))}
+                              </Badge>)}
                           </div>
-                          <Select
-                            value=""
-                            onValueChange={(value) => {
-                              if (value) assignStaff(user.id, value, 'primary');
-                            }}
-                          >
+                          <Select value="" onValueChange={value => {
+                        if (value) assignStaff(user.id, value, 'primary');
+                      }}>
                             <SelectTrigger className="h-8 text-xs bg-white">
                               <SelectValue placeholder="Add primary staff..." />
                             </SelectTrigger>
                             <SelectContent className="bg-white z-50">
-                              {getRankedStaff(user, [...user.primaryStaffIds, ...user.backupStaffIds]).map(({ staff: s, score }) => (
-                                <SelectItem key={s.id} value={s.id}>
+                              {getRankedStaff(user, [...user.primaryStaffIds, ...user.backupStaffIds]).map(({
+                            staff: s,
+                            score
+                          }) => <SelectItem key={s.id} value={s.id}>
                                   <div className="flex items-center justify-between gap-2 w-full">
                                     <span>{s.name}</span>
                                     <Badge variant="outline" className="text-[10px] ml-2">{score}%</Badge>
                                   </div>
-                                </SelectItem>
-                              ))}
+                                </SelectItem>)}
                             </SelectContent>
                           </Select>
                         </div>
@@ -645,36 +634,27 @@ export const Matching = () => {
                         <div className="space-y-1">
                           <span className="text-xs font-medium text-muted-foreground">Backup Staff:</span>
                           <div className="flex flex-wrap gap-1 mb-1">
-                            {user.backupStaffIds.map(sid => (
-                              <Badge 
-                                key={sid} 
-                                variant="outline" 
-                                className="cursor-pointer text-xs"
-                                onClick={() => unassignStaff(user.id, sid, 'backup')}
-                              >
+                            {user.backupStaffIds.map(sid => <Badge key={sid} variant="outline" className="cursor-pointer text-xs" onClick={() => unassignStaff(user.id, sid, 'backup')}>
                                 {getStaffById(sid)?.name}
                                 <X className="h-3 w-3 ml-1" />
-                              </Badge>
-                            ))}
+                              </Badge>)}
                           </div>
-                          <Select
-                            value=""
-                            onValueChange={(value) => {
-                              if (value) assignStaff(user.id, value, 'backup');
-                            }}
-                          >
+                          <Select value="" onValueChange={value => {
+                        if (value) assignStaff(user.id, value, 'backup');
+                      }}>
                             <SelectTrigger className="h-8 text-xs bg-white">
                               <SelectValue placeholder="Add backup staff..." />
                             </SelectTrigger>
                             <SelectContent className="bg-white z-50">
-                              {getRankedStaff(user, [...user.primaryStaffIds, ...user.backupStaffIds]).map(({ staff: s, score }) => (
-                                <SelectItem key={s.id} value={s.id}>
+                              {getRankedStaff(user, [...user.primaryStaffIds, ...user.backupStaffIds]).map(({
+                            staff: s,
+                            score
+                          }) => <SelectItem key={s.id} value={s.id}>
                                   <div className="flex items-center justify-between gap-2 w-full">
                                     <span>{s.name}</span>
                                     <Badge variant="outline" className="text-[10px] ml-2">{score}%</Badge>
                                   </div>
-                                </SelectItem>
-                              ))}
+                                </SelectItem>)}
                             </SelectContent>
                           </Select>
                         </div>
@@ -686,31 +666,8 @@ export const Matching = () => {
               {/* Connection Diagram (Middle) */}
               <div className="relative min-h-[400px] flex flex-col items-center justify-center">
                 {selectedServiceUser && <Card className="text-left">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm flex items-center gap-2">
-                      <Lightbulb className="h-4 w-4 text-yellow-500" />
-                      Suggested Matches
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="pt-0">
-                    {getSuggestedStaff(selectedServiceUser).length > 0 ? <div className="space-y-2">
-                      {getSuggestedStaff(selectedServiceUser).map(({
-                      staff: s,
-                      score
-                    }) => <div key={s.id} className="flex items-center justify-between gap-2 text-sm">
-                        <span>{s.name}</span>
-                        <div className="flex items-center gap-2">
-                          <Badge variant="outline" className="text-xs">{score}% match</Badge>
-                          <Button size="sm" variant="ghost" className="h-6 text-xs" onClick={() => assignStaff(selectedServiceUser.id, s.id, 'primary')}>
-                            Set Primary
-                          </Button>
-                          <Button size="sm" variant="ghost" className="h-6 text-xs" onClick={() => assignStaff(selectedServiceUser.id, s.id, 'backup')}>
-                            Add Backup
-                          </Button>
-                        </div>
-                      </div>)}
-                    </div> : <p className="text-xs text-muted-foreground">No strong matches found</p>}
-                  </CardContent>
+                  
+                  
                 </Card>}
               </div>
 
@@ -956,13 +913,9 @@ export const Matching = () => {
                           </TableCell>
                           <TableCell>{user.location}</TableCell>
                           <TableCell>
-                            {user.primaryStaffIds.length > 0 ? (
-                              <div className="flex flex-wrap gap-1">
-                                {user.primaryStaffIds.map(id => (
-                                  <Badge key={id} className="bg-green-100 text-green-800">{getStaffById(id)?.name}</Badge>
-                                ))}
-                              </div>
-                            ) : <span className="text-orange-600 text-sm">Unassigned</span>}
+                            {user.primaryStaffIds.length > 0 ? <div className="flex flex-wrap gap-1">
+                                {user.primaryStaffIds.map(id => <Badge key={id} className="bg-green-100 text-green-800">{getStaffById(id)?.name}</Badge>)}
+                              </div> : <span className="text-orange-600 text-sm">Unassigned</span>}
                           </TableCell>
                           <TableCell>
                             <div className="flex flex-wrap gap-1">
