@@ -1705,7 +1705,7 @@ export const Matching = () => {
 
         {/* Add Service User Dialog - rendered at top level for immediate display */}
         <Dialog open={isAddUserOpen} onOpenChange={setIsAddUserOpen}>
-          <DialogContent className="bg-white">
+          <DialogContent style={{ backgroundColor: '#F4F5F6' }}>
             <DialogHeader>
               <DialogTitle>Add Service User</DialogTitle>
             </DialogHeader>
@@ -1715,7 +1715,7 @@ export const Matching = () => {
                 <Input value={newUserForm.name} onChange={e => setNewUserForm(f => ({
                 ...f,
                 name: e.target.value
-              }))} className="bg-white" />
+              }))} className="bg-white border-gray-800" />
               </div>
               <div>
                 <Label>Location</Label>
@@ -1736,7 +1736,7 @@ export const Matching = () => {
                       }}
                       autoFocus
                       placeholder="Enter new location..."
-                      className="bg-white flex-1" 
+                      className="bg-white border-gray-800 flex-1"
                     />
                     <Button 
                       type="button" 
@@ -1774,7 +1774,7 @@ export const Matching = () => {
                       }
                     }}
                   >
-                    <SelectTrigger className="bg-white">
+                    <SelectTrigger className="bg-white border-gray-800">
                       <SelectValue placeholder="Select location" />
                     </SelectTrigger>
                     <SelectContent className="bg-white z-50">
@@ -1800,7 +1800,7 @@ export const Matching = () => {
                     ...f,
                     typicalWeeklyHours: parseInt(e.target.value) || 0
                   }))} 
-                  className="bg-white" 
+                  className="bg-white border-gray-800"
                 />
               </div>
               <div>
@@ -1808,14 +1808,14 @@ export const Matching = () => {
                 <Textarea value={newUserForm.supportNeeds} onChange={e => setNewUserForm(f => ({
                 ...f,
                 supportNeeds: e.target.value
-              }))} placeholder="Personal Care, Community Access" className="bg-white" />
+              }))} placeholder="Personal Care, Community Access" className="bg-white border-gray-800" />
               </div>
               <div>
                 <Label>Interests (comma separated)</Label>
                 <Textarea value={newUserForm.interests} onChange={e => setNewUserForm(f => ({
                 ...f,
                 interests: e.target.value
-              }))} placeholder="Gardening, Music, Reading" className="bg-white" />
+              }))} placeholder="Gardening, Music, Reading" className="bg-white border-gray-800" />
               </div>
               <div>
                 <Label>Gender Preference</Label>
@@ -1823,7 +1823,7 @@ export const Matching = () => {
                   ...f,
                   genderPreference: v as GenderPreference
                 }))}>
-                  <SelectTrigger className="bg-white">
+                  <SelectTrigger className="bg-white border-gray-800">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="bg-white">
@@ -1840,7 +1840,7 @@ export const Matching = () => {
 
         {/* Add Staff Dialog - rendered at top level for immediate display */}
         <Dialog open={isAddStaffOpen} onOpenChange={setIsAddStaffOpen}>
-          <DialogContent className="bg-white">
+          <DialogContent style={{ backgroundColor: '#F4F5F6' }}>
             <DialogHeader>
               <DialogTitle>Add Staff Member</DialogTitle>
             </DialogHeader>
@@ -1850,7 +1850,7 @@ export const Matching = () => {
                 <Input value={newStaffForm.name} onChange={e => setNewStaffForm(f => ({
                 ...f,
                 name: e.target.value
-              }))} className="bg-white" />
+              }))} className="bg-white border-gray-800" />
               </div>
               <div>
                 <Label>Location</Label>
@@ -1871,7 +1871,7 @@ export const Matching = () => {
                       }}
                       autoFocus
                       placeholder="Enter new location..."
-                      className="bg-white flex-1" 
+                      className="bg-white border-gray-800 flex-1" 
                     />
                     <Button 
                       type="button" 
@@ -1909,7 +1909,7 @@ export const Matching = () => {
                       }
                     }}
                   >
-                    <SelectTrigger className="bg-white">
+                    <SelectTrigger className="bg-white border-gray-800">
                       <SelectValue placeholder="Select location" />
                     </SelectTrigger>
                     <SelectContent className="bg-white z-50">
@@ -1935,7 +1935,7 @@ export const Matching = () => {
                     ...f,
                     typicalWeeklyHours: parseInt(e.target.value) || 0
                   }))} 
-                  className="bg-white" 
+                  className="bg-white border-gray-800"
                 />
               </div>
               <div>
@@ -1944,7 +1944,7 @@ export const Matching = () => {
                   ...f,
                   gender: v as Gender
                 }))}>
-                  <SelectTrigger className="bg-white">
+                  <SelectTrigger className="bg-white border-gray-800">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="bg-white">
@@ -1960,7 +1960,7 @@ export const Matching = () => {
                   ...f,
                   contractType: v as ContractType
                 }))}>
-                  <SelectTrigger className="bg-white">
+                  <SelectTrigger className="bg-white border-gray-800">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="bg-white">
