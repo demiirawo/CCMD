@@ -496,7 +496,9 @@ export const Matching = () => {
       });
       return;
     }
-    console.log('Adding service user with data:', newUserForm);
+    console.log('handleAddUser - newUserForm state:', JSON.stringify(newUserForm, null, 2));
+    console.log('handleAddUser - location value:', newUserForm.location);
+    console.log('handleAddUser - manager value:', newUserForm.manager);
     try {
       await addServiceUserToDb({
         name: newUserForm.name,
