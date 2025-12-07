@@ -638,7 +638,7 @@ export const Matching = () => {
                     @page { size: A4; margin: 10mm; }
                   }
                 `}</style>
-                <div ref={printAreaRef} className="print-area grid grid-cols-1 gap-6 bg-white">
+                <div ref={printAreaRef} className="print-area grid grid-cols-1 gap-6">
                   {/* Staff Utilisation Forecast */}
                   <div className="rounded-2xl overflow-hidden shadow-md bg-white border border-border">
                     <div className="px-6 py-4" style={{
