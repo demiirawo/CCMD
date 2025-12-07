@@ -617,10 +617,6 @@ export const Matching = () => {
                     <Card className={`cursor-pointer transition-all rounded-3xl overflow-hidden ${selectedServiceUser?.id === user.id ? 'ring-2 ring-primary' : 'hover:shadow-md'}`} onClick={() => setSelectedServiceUser(user)}>
                       {/* Header Section with color background */}
                       <div className="pt-8 pb-3 px-4 bg-[#ffbf9f]">
-                        <div className="flex flex-wrap gap-1 justify-center">
-                          {user.supportNeeds.slice(0, 2).map(need => <Badge key={need} variant="secondary" className="text-xs">{need}</Badge>)}
-                          {user.supportNeeds.length > 2 && <Badge variant="outline" className="text-xs bg-background">+{user.supportNeeds.length - 2}</Badge>}
-                        </div>
                       </div>
                       
                       {/* Content Section */}
@@ -636,9 +632,14 @@ export const Matching = () => {
                             </Button>
                           </div>
                         </div>
-                        <div className="flex items-center gap-1 text-sm text-muted-foreground mb-3">
+                        <div className="flex items-center gap-1 text-sm text-muted-foreground mb-2">
                           <MapPin className="h-3 w-3" />
                           {user.location}
+                        </div>
+                        {/* Support needs tags - two rows */}
+                        <div className="flex flex-wrap gap-1 justify-center mb-3">
+                          {user.supportNeeds.slice(0, 4).map(need => <Badge key={need} variant="secondary" className="text-xs">{need}</Badge>)}
+                          {user.supportNeeds.length > 4 && <Badge variant="outline" className="text-xs bg-background">+{user.supportNeeds.length - 4}</Badge>}
                         </div>
                       
                       {/* Staff assignments with dropdowns */}
