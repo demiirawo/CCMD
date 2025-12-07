@@ -1663,7 +1663,6 @@ export const Matching = () => {
                         <TableHead>Name</TableHead>
                         <TableHead>Manager</TableHead>
                         <TableHead>Location</TableHead>
-                        <TableHead>Typical Weekly Hours</TableHead>
                         <TableHead>Gender</TableHead>
                         <TableHead>Contract Type</TableHead>
                         <TableHead>Status</TableHead>
@@ -1750,25 +1749,6 @@ export const Matching = () => {
                               </SelectContent>
                             </Select>
                           </TableCell>
-                          <TableCell>
-                            <Input type="number" value={s.typicalWeeklyHours} onChange={e => {
-                            const value = parseFloat(e.target.value) || 0;
-                            // Update staff hours
-                            setStaff(prev => prev.map(staff => staff.id === s.id ? {
-                              ...staff,
-                              typicalWeeklyHours: value,
-                              forecastHours: createDefaultForecast(value)
-                            } : staff));
-                            // Zero out allocations for this staff member across all service users
-                            setServiceUsers(prev => prev.map(user => ({
-                              ...user,
-                              staffAllocations: user.staffAllocations.map(alloc => alloc.staffId === s.id ? {
-                                ...alloc,
-                                allocatedHours: createDefaultForecast(0)
-                              } : alloc)
-                            })));
-                          }} className="h-8 w-20 text-center bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
-                          </TableCell>
                           {/* Gender */}
                           <TableCell>
                             <Select value={s.gender} onValueChange={(value: Gender) => {
@@ -1829,57 +1809,6 @@ export const Matching = () => {
               </CardContent>
             </Card>
 
-              {/* Available Hours Grid */}
-              <Card>
-                <CardHeader className="border-b">
-                  <CardTitle>Available Hours (8 Weeks)</CardTitle>
-                </CardHeader>
-                <CardContent className="pt-6">
-                  <div className="overflow-x-auto">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead className="sticky left-0 bg-background min-w-[200px]">Name</TableHead>
-                          {WEEKS.map(week => <TableHead key={week} className="text-center min-w-[100px]">{week}</TableHead>)}
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {staff.filter(s => staffLocationFilter === "all" || s.location === staffLocationFilter).map(s => <TableRow key={s.id} className="bg-green-50">
-                            <TableCell className="font-medium sticky left-0 bg-green-50">
-                              <div className="flex flex-col">
-                                <span>{s.name}</span>
-                                <span className="text-xs text-muted-foreground">{s.location}</span>
-                              </div>
-                            </TableCell>
-                            {WEEKS.map(week => <TableCell key={week} className="text-center">
-                                <Input type="number" value={s.forecastHours[week] || 0} onChange={e => {
-                            const value = parseFloat(e.target.value) || 0;
-                            setStaff(prev => prev.map(staff => staff.id === s.id ? {
-                              ...staff,
-                              forecastHours: {
-                                ...staff.forecastHours,
-                                [week]: value
-                              }
-                            } : staff));
-                          }} className="h-8 w-16 text-center bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
-                              </TableCell>)}
-                          </TableRow>)}
-                        <TableRow className="bg-blue-50 font-semibold">
-                          <TableCell className="sticky left-0 bg-blue-50">
-                            <div className="flex flex-col">
-                              <span>Total Available</span>
-                              <span className="text-xs text-muted-foreground">All Staff</span>
-                            </div>
-                          </TableCell>
-                          {WEEKS.map(week => <TableCell key={week} className="text-center font-semibold">
-                              {staff.filter(s => staffLocationFilter === "all" || s.location === staffLocationFilter).reduce((sum, s) => sum + (s.forecastHours[week] || 0), 0)}
-                            </TableCell>)}
-                        </TableRow>
-                      </TableBody>
-                    </Table>
-                  </div>
-              </CardContent>
-            </Card>
             </div>
           </TabsContent>
         </Tabs>}
