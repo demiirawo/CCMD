@@ -599,6 +599,46 @@ export const Matching = () => {
                     const locationStaff = staff.filter(s => s.location === location);
                     if (locationUsers.length === 0 && locationStaff.length === 0) return null;
                     
+                    // Helper to get match reasons between user and staff
+                    const getMatchReasons = (user: ServiceUser, staffMember: Staff): string[] => {
+                      const reasons: string[] = [];
+                      
+                      // Skills matching support needs
+                      const matchingSkills = user.supportNeeds.filter(need =>
+                        staffMember.skills.some(skill => 
+                          skill.toLowerCase().includes(need.toLowerCase()) || 
+                          need.toLowerCase().includes(skill.toLowerCase())
+                        )
+                      );
+                      if (matchingSkills.length > 0) {
+                        reasons.push(`Skills: ${matchingSkills.slice(0, 2).join(', ')}`);
+                      }
+                      
+                      // Interests matching preferences
+                      const matchingInterests = user.preferences.filter(pref =>
+                        staffMember.interests.some(interest => 
+                          pref.toLowerCase().includes(interest.toLowerCase()) || 
+                          interest.toLowerCase().includes(pref.toLowerCase())
+                        )
+                      );
+                      if (matchingInterests.length > 0) {
+                        const interestMatches = staffMember.interests.filter(interest =>
+                          user.preferences.some(pref => 
+                            pref.toLowerCase().includes(interest.toLowerCase()) || 
+                            interest.toLowerCase().includes(pref.toLowerCase())
+                          )
+                        );
+                        reasons.push(`Interests: ${interestMatches.slice(0, 2).join(', ')}`);
+                      }
+                      
+                      // Location match
+                      if (user.location === staffMember.location) {
+                        reasons.push('Same location');
+                      }
+                      
+                      return reasons;
+                    };
+                    
                     return (
                       <div key={location} className="border rounded-lg p-3 print:border-black print:p-2">
                         <div className="flex items-center gap-2 mb-2 pb-2 border-b">
@@ -609,77 +649,80 @@ export const Matching = () => {
                           </span>
                         </div>
                         
-                        <div className="grid grid-cols-2 gap-3 print:gap-2">
-                          {/* Service Users Column */}
-                          <div>
-                            <div className="text-xs font-medium text-muted-foreground mb-1">Service Users</div>
-                            <div className="space-y-1">
-                              {locationUsers.map(user => (
-                                <div key={user.id} className="bg-muted/50 rounded p-1.5 print:p-1">
-                                  <div className="font-medium text-xs">{user.name}</div>
-                                  <div className="text-[10px] text-muted-foreground leading-tight">
-                                    {user.supportNeeds.slice(0, 2).join(', ')}
-                                    {user.supportNeeds.length > 2 && ` +${user.supportNeeds.length - 2}`}
-                                  </div>
-                                  <div className="flex flex-wrap gap-0.5 mt-1">
-                                    {user.primaryStaffIds.map(sid => {
-                                      const s = getStaffById(sid);
-                                      return s ? (
-                                        <span key={sid} className="text-[9px] bg-green-100 text-green-800 px-1 rounded">
-                                          {s.name.split(' ')[0]}
-                                        </span>
-                                      ) : null;
-                                    })}
-                                    {user.backupStaffIds.map(sid => {
-                                      const s = getStaffById(sid);
-                                      return s ? (
-                                        <span key={sid} className="text-[9px] bg-gray-100 text-gray-600 px-1 rounded">
-                                          {s.name.split(' ')[0]} (B)
-                                        </span>
-                                      ) : null;
-                                    })}
-                                    {user.primaryStaffIds.length === 0 && user.backupStaffIds.length === 0 && (
-                                      <span className="text-[9px] text-orange-600">Unassigned</span>
-                                    )}
+                        {/* Service User to Staff Allocations */}
+                        <div className="space-y-2">
+                          {locationUsers.map(user => {
+                            const allAssignedStaff = [
+                              ...user.primaryStaffIds.map(id => ({ id, type: 'Primary' as const })),
+                              ...user.backupStaffIds.map(id => ({ id, type: 'Backup' as const }))
+                            ];
+                            
+                            return (
+                              <div key={user.id} className="bg-muted/50 rounded p-2 print:p-1.5">
+                                <div className="flex items-start justify-between mb-1">
+                                  <div>
+                                    <div className="font-medium text-xs">{user.name}</div>
+                                    <div className="text-[10px] text-muted-foreground">
+                                      Needs: {user.supportNeeds.slice(0, 3).join(', ')}
+                                      {user.supportNeeds.length > 3 && ` +${user.supportNeeds.length - 3}`}
+                                    </div>
                                   </div>
                                 </div>
-                              ))}
-                              {locationUsers.length === 0 && (
-                                <div className="text-[10px] text-muted-foreground italic">No service users</div>
-                              )}
-                            </div>
-                          </div>
-                          
-                          {/* Staff Column */}
-                          <div>
-                            <div className="text-xs font-medium text-muted-foreground mb-1">Staff</div>
-                            <div className="space-y-1">
-                              {locationStaff.map(s => {
-                                const assignedUsers = serviceUsers.filter(
-                                  u => u.primaryStaffIds.includes(s.id) || u.backupStaffIds.includes(s.id)
-                                );
-                                return (
-                                  <div key={s.id} className="bg-muted/50 rounded p-1.5 print:p-1">
-                                    <div className="flex items-center justify-between">
-                                      <span className="font-medium text-xs">{s.name}</span>
-                                      <span className="text-[9px] bg-primary/10 px-1 rounded">{s.roleType}</span>
-                                    </div>
-                                    <div className="text-[10px] text-muted-foreground">{s.availability}</div>
-                                    <div className="text-[9px] text-muted-foreground mt-0.5">
-                                      {assignedUsers.length > 0 
-                                        ? `→ ${assignedUsers.map(u => u.name.split(' ')[0]).join(', ')}`
-                                        : <span className="text-orange-600">Not assigned</span>
-                                      }
-                                    </div>
+                                
+                                {allAssignedStaff.length > 0 ? (
+                                  <div className="mt-1.5 space-y-1">
+                                    {allAssignedStaff.map(({ id: sid, type }) => {
+                                      const s = getStaffById(sid);
+                                      if (!s) return null;
+                                      const matchReasons = getMatchReasons(user, s);
+                                      
+                                      return (
+                                        <div key={sid} className={`text-[10px] pl-2 border-l-2 ${type === 'Primary' ? 'border-green-500 bg-green-50' : 'border-gray-400 bg-gray-50'} rounded-r p-1`}>
+                                          <div className="flex items-center gap-1">
+                                            <span className="font-medium">{s.name}</span>
+                                            <span className={`text-[9px] px-1 rounded ${type === 'Primary' ? 'bg-green-200 text-green-800' : 'bg-gray-200 text-gray-600'}`}>
+                                              {type}
+                                            </span>
+                                          </div>
+                                          {matchReasons.length > 0 && (
+                                            <div className="text-[9px] text-muted-foreground mt-0.5">
+                                              Match: {matchReasons.join(' • ')}
+                                            </div>
+                                          )}
+                                        </div>
+                                      );
+                                    })}
                                   </div>
-                                );
-                              })}
-                              {locationStaff.length === 0 && (
-                                <div className="text-[10px] text-muted-foreground italic">No staff</div>
-                              )}
-                            </div>
-                          </div>
+                                ) : (
+                                  <div className="text-[9px] text-orange-600 mt-1">No staff assigned</div>
+                                )}
+                              </div>
+                            );
+                          })}
+                          {locationUsers.length === 0 && (
+                            <div className="text-[10px] text-muted-foreground italic">No service users in this location</div>
+                          )}
                         </div>
+                        
+                        {/* Unassigned Staff in this location */}
+                        {(() => {
+                          const unassignedStaff = locationStaff.filter(s => 
+                            !serviceUsers.some(u => u.primaryStaffIds.includes(s.id) || u.backupStaffIds.includes(s.id))
+                          );
+                          if (unassignedStaff.length === 0) return null;
+                          return (
+                            <div className="mt-2 pt-2 border-t border-dashed">
+                              <div className="text-[10px] font-medium text-muted-foreground mb-1">Unassigned Staff:</div>
+                              <div className="flex flex-wrap gap-1">
+                                {unassignedStaff.map(s => (
+                                  <span key={s.id} className="text-[9px] bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded">
+                                    {s.name} ({s.roleType})
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          );
+                        })()}
                       </div>
                     );
                   })}
