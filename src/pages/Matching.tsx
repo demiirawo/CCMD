@@ -783,21 +783,23 @@ export const Matching = () => {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Month</TableHead>
-                      <TableHead className="text-right">Forecasted Hours</TableHead>
-                      <TableHead className="text-right">Required FTE</TableHead>
-                      <TableHead className="text-right">Available Staff Hours</TableHead>
-                      <TableHead className="text-right">Available FTE</TableHead>
+                      <TableHead className="text-right">Required Hours</TableHead>
+                      <TableHead className="text-right">Allocated Hours</TableHead>
+                      <TableHead className="text-right">Available Hours</TableHead>
                       <TableHead>Utilisation Status</TableHead>
-                      <TableHead>Comment</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {MONTHS.slice(0, 6).map((month, index) => {
-                    const forecastedHours = serviceUsers.reduce((sum, u) => sum + (u.forecastHours[month] || 0), 0);
+                    const requiredHours = serviceUsers.reduce((sum, u) => sum + (u.forecastHours[month] || 0), 0);
                     const availableHours = staff.filter(s => s.status === "Active").reduce((sum, s) => sum + (s.forecastHours[month] || 0), 0);
-                    const requiredFTE = Math.ceil(forecastedHours / 160);
-                    const availableFTE = staff.filter(s => s.status === "Active").length;
-                    const utilisation = availableHours > 0 ? forecastedHours / availableHours * 100 : 0;
+                    // Allocated hours = sum of hours from staff assigned to service users
+                    const allocatedHours = serviceUsers.reduce((sum, u) => {
+                      const assignedStaffIds = [...u.primaryStaffIds, ...u.backupStaffIds];
+                      const assignedStaff = staff.filter(s => assignedStaffIds.includes(s.id) && s.status === "Active");
+                      return sum + assignedStaff.reduce((staffSum, s) => staffSum + (s.forecastHours[month] || 0), 0);
+                    }, 0);
+                    const utilisation = availableHours > 0 ? requiredHours / availableHours * 100 : 0;
                     let statusColor = "bg-green-100 text-green-800";
                     let statusText = "Optimal – Staff well utilised";
                     if (utilisation < 70) {
@@ -809,19 +811,15 @@ export const Matching = () => {
                     }
                     return <TableRow key={month}>
                           <TableCell className="font-medium">{month}</TableCell>
-                          <TableCell className="text-right">{forecastedHours.toFixed(1)}</TableCell>
-                          <TableCell className="text-right">{requiredFTE}</TableCell>
+                          <TableCell className="text-right">{requiredHours.toFixed(1)}</TableCell>
+                          <TableCell className="text-right">{allocatedHours.toFixed(1)}</TableCell>
                           <TableCell className="text-right">{availableHours.toFixed(1)}</TableCell>
-                          <TableCell className="text-right">{availableFTE}</TableCell>
                           <TableCell>
                             <div className="flex items-center gap-2">
                               <span className="text-sm">Utilisation: {utilisation.toFixed(1)}%</span>
                               <span className="text-muted-foreground">—</span>
                               <Badge className={statusColor}>{statusText}</Badge>
                             </div>
-                          </TableCell>
-                          <TableCell>
-                            <Input placeholder="Add comment..." className="h-8 bg-white text-sm" />
                           </TableCell>
                         </TableRow>;
                   })}
