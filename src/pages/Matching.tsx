@@ -587,7 +587,7 @@ export const Matching = () => {
                     
                     <Card className={`cursor-pointer transition-all rounded-3xl overflow-hidden ${selectedServiceUser?.id === user.id ? 'ring-2 ring-primary' : 'hover:shadow-md'}`} onClick={() => setSelectedServiceUser(user)}>
                       {/* Header Section with color background */}
-                      <div className="bg-primary/10 pt-8 pb-3 px-4">
+                      <div className="pt-8 pb-3 px-4 bg-[#ffbf9f]">
                         <div className="flex flex-wrap gap-1 justify-center">
                           {user.supportNeeds.slice(0, 2).map(need => <Badge key={need} variant="secondary" className="text-xs">{need}</Badge>)}
                           {user.supportNeeds.length > 2 && <Badge variant="outline" className="text-xs bg-background">+{user.supportNeeds.length - 2}</Badge>}
@@ -624,16 +624,16 @@ export const Matching = () => {
                               </Badge>)}
                           </div>
                           <Select value="" onValueChange={value => {
-                        if (value) assignStaff(user.id, value, 'primary');
-                      }}>
+                          if (value) assignStaff(user.id, value, 'primary');
+                        }}>
                             <SelectTrigger className="h-8 text-xs bg-white">
                               <SelectValue placeholder="Add primary staff..." />
                             </SelectTrigger>
                             <SelectContent className="bg-white z-50">
                               {getRankedStaff(user, [...user.primaryStaffIds, ...user.backupStaffIds]).map(({
-                            staff: s,
-                            score
-                          }) => <SelectItem key={s.id} value={s.id}>
+                              staff: s,
+                              score
+                            }) => <SelectItem key={s.id} value={s.id}>
                                   <div className="flex items-center justify-between gap-2 w-full">
                                     <span>{s.name}</span>
                                     <Badge variant="outline" className="text-[10px] ml-2">{score}%</Badge>
@@ -653,16 +653,16 @@ export const Matching = () => {
                               </Badge>)}
                           </div>
                           <Select value="" onValueChange={value => {
-                        if (value) assignStaff(user.id, value, 'backup');
-                      }}>
+                          if (value) assignStaff(user.id, value, 'backup');
+                        }}>
                             <SelectTrigger className="h-8 text-xs bg-white">
                               <SelectValue placeholder="Add backup staff..." />
                             </SelectTrigger>
                             <SelectContent className="bg-white z-50">
                               {getRankedStaff(user, [...user.primaryStaffIds, ...user.backupStaffIds]).map(({
-                            staff: s,
-                            score
-                          }) => <SelectItem key={s.id} value={s.id}>
+                              staff: s,
+                              score
+                            }) => <SelectItem key={s.id} value={s.id}>
                                   <div className="flex items-center justify-between gap-2 w-full">
                                     <span>{s.name}</span>
                                     <Badge variant="outline" className="text-[10px] ml-2">{score}%</Badge>
