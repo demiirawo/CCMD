@@ -1734,6 +1734,14 @@ const Index = () => {
                 </>
               )}
             </Button>
+            <Button 
+              onClick={() => navigate('/reports')} 
+              variant="outline" 
+              className="gap-2"
+            >
+              <FileText className="w-4 h-4" />
+              Report
+            </Button>
           </div>
         </div>
         
