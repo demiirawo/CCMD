@@ -628,34 +628,35 @@ export const Matching = () => {
 
           {/* Matching View */}
           <TabsContent value="diagram" className="space-y-6">
-            {/* Print Button at Top */}
-            <div className="flex justify-end print:hidden">
-              <Button variant="outline" size="sm" onClick={() => window.print()}>
-                <Printer className="h-4 w-4 mr-2" />
-                Print
-              </Button>
-            </div>
+            <div className="grid grid-cols-1 gap-6">
+              {/* Print Button at Top */}
+              <div className="flex justify-end print:hidden">
+                <Button variant="outline" size="sm" onClick={() => window.print()}>
+                  <Printer className="h-4 w-4 mr-2" />
+                  Print
+                </Button>
+              </div>
 
-            {/* Print Area - includes both Utilisation Forecast and Matching View */}
-            <div className="print:p-0" style={{ fontSize: '10px' }}>
-              <style>{`
-                @media print {
-                  body * { visibility: hidden; }
-                  .print-area, .print-area * { visibility: visible; }
-                  .print-area { position: absolute; left: 0; top: 0; width: 100%; }
-                  .print-hidden { display: none !important; }
-                  @page { size: A4; margin: 10mm; }
-                }
-              `}</style>
-              <div className="print-area space-y-4">
-                {/* Staff Utilisation Forecast */}
-                <Card>
-                  <CardHeader className="py-2">
-                    <CardTitle className="text-sm">
-                      Staff Utilisation Forecast (8 Weeks)
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="py-2">
+              {/* Print Area - includes both Utilisation Forecast and Matching View */}
+              <div className="print:p-0" style={{ fontSize: '10px' }}>
+                <style>{`
+                  @media print {
+                    body * { visibility: hidden; }
+                    .print-area, .print-area * { visibility: visible; }
+                    .print-area { position: absolute; left: 0; top: 0; width: 100%; }
+                    .print-hidden { display: none !important; }
+                    @page { size: A4; margin: 10mm; }
+                  }
+                `}</style>
+                <div className="print-area grid grid-cols-1 gap-6">
+                  {/* Staff Utilisation Forecast */}
+                  <Card>
+                    <CardHeader className="py-2 border-b">
+                      <CardTitle className="text-sm">
+                        Staff Utilisation Forecast (8 Weeks)
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="py-4">
                     <Table>
                       <TableHeader>
                         <TableRow>
@@ -874,22 +875,25 @@ export const Matching = () => {
               })}
                 </div>
               </div>
+            </div>
           </TabsContent>
 
 
           {/* Service Users Table */}
           <TabsContent value="users" className="space-y-6">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle>Service Users</CardTitle>
-                <Button onClick={() => setIsAddUserOpen(true)}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Service User
-                </Button>
-              </CardHeader>
-              <CardContent>
-                <div className="overflow-x-auto">
-                  <Table>
+            <div className="grid grid-cols-1 gap-6">
+              {/* Service Users Directory */}
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between border-b">
+                  <CardTitle>Service Users Directory</CardTitle>
+                  <Button onClick={() => setIsAddUserOpen(true)}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Service User
+                  </Button>
+                </CardHeader>
+                <CardContent className="pt-6">
+                  <div className="overflow-x-auto">
+                    <Table>
                     <TableHeader>
                       <TableRow>
                         <TableHead>Name</TableHead>
@@ -1185,14 +1189,14 @@ export const Matching = () => {
               </CardContent>
             </Card>
 
-            {/* Service Users Forecast Hours Table with Staff Allocation */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Service User Weekly Allocation (8 Weeks)</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="overflow-x-auto">
-                  <Table>
+              {/* Weekly Allocation Grid */}
+              <Card>
+                <CardHeader className="border-b">
+                  <CardTitle>Weekly Allocation (8 Weeks)</CardTitle>
+                </CardHeader>
+                <CardContent className="pt-6">
+                  <div className="overflow-x-auto">
+                    <Table>
                     <TableHeader>
                       <TableRow>
                         <TableHead className="sticky left-0 bg-background min-w-[200px]">Service User / Staff</TableHead>
@@ -1344,21 +1348,24 @@ export const Matching = () => {
                 </div>
               </CardContent>
             </Card>
+            </div>
           </TabsContent>
 
           {/* Staff Table */}
           <TabsContent value="staff" className="space-y-6">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle>Staff</CardTitle>
-                <Button onClick={() => setIsAddStaffOpen(true)}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Staff Member
-                </Button>
-              </CardHeader>
-              <CardContent>
-                <div className="overflow-x-auto">
-                  <Table>
+            <div className="grid grid-cols-1 gap-6">
+              {/* Staff Directory */}
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between border-b">
+                  <CardTitle>Staff Directory</CardTitle>
+                  <Button onClick={() => setIsAddStaffOpen(true)}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Staff Member
+                  </Button>
+                </CardHeader>
+                <CardContent className="pt-6">
+                  <div className="overflow-x-auto">
+                    <Table>
                     <TableHeader>
                       <TableRow>
                         <TableHead>Name</TableHead>
@@ -1453,14 +1460,14 @@ export const Matching = () => {
               </CardContent>
             </Card>
 
-            {/* Staff Forecast Hours Table */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Available Hours</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="overflow-x-auto">
-                  <Table>
+              {/* Available Hours Grid */}
+              <Card>
+                <CardHeader className="border-b">
+                  <CardTitle>Available Hours (8 Weeks)</CardTitle>
+                </CardHeader>
+                <CardContent className="pt-6">
+                  <div className="overflow-x-auto">
+                    <Table>
                     <TableHeader>
                       <TableRow>
                         <TableHead className="sticky left-0 bg-background">Name</TableHead>
@@ -1494,6 +1501,7 @@ export const Matching = () => {
                 </div>
               </CardContent>
             </Card>
+            </div>
           </TabsContent>
         </Tabs>
 
