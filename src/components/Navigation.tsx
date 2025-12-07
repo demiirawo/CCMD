@@ -25,7 +25,7 @@ export const Navigation = () => {
   let navItems = [
     { name: "Dashboard", path: "/" },
     { name: "Compliance", path: "/inspection" },
-    { name: "Matching", path: "/matching" }
+    { name: "Forecast", path: "/forecast" }
   ];
 
   // Hide Compliance page for Child Contact Centre
