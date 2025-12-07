@@ -136,7 +136,7 @@ export const Matching = () => {
     const allManagers = [...new Set([...serviceUsers.map(u => u.manager), ...staff.map(s => s.manager), ...customManagers])];
     return allManagers.filter(Boolean);
   }, [serviceUsers, staff, customManagers]);
-  
+
   // Add a custom manager to the shared pool
   const addCustomManager = (manager: string) => {
     if (manager.trim() && !customManagers.includes(manager.trim())) {
@@ -155,9 +155,9 @@ export const Matching = () => {
 
       // Add temporary padding for PDF export
       element.style.padding = '15px';
-      
       const canvas = await html2canvas(element, {
-        scale: 1.5, // Reduced from 2 for smaller file size
+        scale: 1.5,
+        // Reduced from 2 for smaller file size
         useCORS: true,
         logging: false,
         backgroundColor: '#ffffff'
@@ -169,25 +169,22 @@ export const Matching = () => {
 
       // Use JPEG for smaller file size
       const imgData = canvas.toDataURL('image/jpeg', 0.85);
-      
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
         format: 'a4'
       });
-      
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = pdf.internal.pageSize.getHeight();
       const margin = 10; // 10mm margins
       const contentWidth = pdfWidth - margin * 2;
       const contentHeight = pdfHeight - margin * 2;
-      
+
       // Calculate scaled dimensions maintaining aspect ratio
       const imgWidth = canvas.width;
       const imgHeight = canvas.height;
       const ratio = contentWidth / imgWidth;
       const scaledHeight = imgHeight * ratio;
-
       if (scaledHeight <= contentHeight) {
         // Single page - fits on one page
         pdf.addImage(imgData, 'JPEG', margin, margin, contentWidth, scaledHeight);
@@ -196,36 +193,28 @@ export const Matching = () => {
         const pxPerPage = contentHeight / ratio; // pixels of source per PDF page
         let yOffset = 0;
         let pageNum = 0;
-        
         while (yOffset < imgHeight && pageNum < 20) {
           if (pageNum > 0) pdf.addPage();
-          
+
           // Height of this slice in source pixels
           const sliceHeight = Math.min(pxPerPage, imgHeight - yOffset);
           // Height of this slice in PDF mm
           const sliceHeightMM = sliceHeight * ratio;
-          
+
           // Create slice canvas
           const sliceCanvas = document.createElement('canvas');
           sliceCanvas.width = imgWidth;
           sliceCanvas.height = sliceHeight;
           const ctx = sliceCanvas.getContext('2d');
-          
           if (ctx) {
-            ctx.drawImage(
-              canvas,
-              0, yOffset, imgWidth, sliceHeight,
-              0, 0, imgWidth, sliceHeight
-            );
+            ctx.drawImage(canvas, 0, yOffset, imgWidth, sliceHeight, 0, 0, imgWidth, sliceHeight);
             const sliceData = sliceCanvas.toDataURL('image/jpeg', 0.85);
             pdf.addImage(sliceData, 'JPEG', margin, margin, contentWidth, sliceHeightMM);
           }
-          
           yOffset += pxPerPage;
           pageNum++;
         }
       }
-      
       pdf.save('staff-forecast.pdf');
       toast({
         title: "PDF exported successfully"
@@ -419,16 +408,21 @@ export const Matching = () => {
     // Get current allocation for this service user
     const currentUser = serviceUsers.find(u => u.id === userId);
     if (!currentUser) return;
-
     const currentAlloc = currentUser.staffAllocations.find(a => a.staffId === staffId);
-    const currentSplit = currentAlloc?.hoursSplit?.[week] || { solo: 0, doubleUp: 0 };
+    const currentSplit = currentAlloc?.hoursSplit?.[week] || {
+      solo: 0,
+      doubleUp: 0
+    };
     const otherTypeHours = type === 'solo' ? currentSplit.doubleUp : currentSplit.solo;
 
     // Calculate how many hours this staff is already allocated to OTHER service users for this week
     const otherUserAllocations = serviceUsers.filter(u => u.id !== userId).reduce((sum, u) => {
       const alloc = u.staffAllocations.find(a => a.staffId === staffId);
       if (!alloc) return sum;
-      const split = alloc.hoursSplit?.[week] || { solo: 0, doubleUp: 0 };
+      const split = alloc.hoursSplit?.[week] || {
+        solo: 0,
+        doubleUp: 0
+      };
       return sum + split.solo + split.doubleUp;
     }, 0);
 
@@ -440,33 +434,37 @@ export const Matching = () => {
     // Check 2: Don't exceed service user's required hours for this week
     // For service user needs: solo hours sum normally, double hours count once (max across staff)
     const userRequiredHours = currentUser.forecastHours[week] || 0;
-    
+
     // Calculate current allocated hours to service user using the new logic
     // Solo: sum from all staff (excluding current staff's current type)
-    const otherStaffSoloHours = currentUser.staffAllocations
-      .filter(a => a.staffId !== staffId)
-      .reduce((sum, a) => {
-        const split = a.hoursSplit?.[week] || { solo: 0, doubleUp: 0 };
-        return sum + split.solo;
-      }, 0);
-    
+    const otherStaffSoloHours = currentUser.staffAllocations.filter(a => a.staffId !== staffId).reduce((sum, a) => {
+      const split = a.hoursSplit?.[week] || {
+        solo: 0,
+        doubleUp: 0
+      };
+      return sum + split.solo;
+    }, 0);
+
     // Double: max across all staff
     const allDoubleHours = currentUser.staffAllocations.map(a => {
-      const split = a.hoursSplit?.[week] || { solo: 0, doubleUp: 0 };
-      return a.staffId === staffId 
-        ? (type === 'doubleUp' ? hours : split.doubleUp) // Use the new value if we're updating double
-        : split.doubleUp;
+      const split = a.hoursSplit?.[week] || {
+        solo: 0,
+        doubleUp: 0
+      };
+      return a.staffId === staffId ? type === 'doubleUp' ? hours : split.doubleUp // Use the new value if we're updating double
+      : split.doubleUp;
     });
-    const maxDoubleFromOthers = currentUser.staffAllocations
-      .filter(a => a.staffId !== staffId)
-      .reduce((max, a) => {
-        const split = a.hoursSplit?.[week] || { solo: 0, doubleUp: 0 };
-        return Math.max(max, split.doubleUp);
-      }, 0);
+    const maxDoubleFromOthers = currentUser.staffAllocations.filter(a => a.staffId !== staffId).reduce((max, a) => {
+      const split = a.hoursSplit?.[week] || {
+        solo: 0,
+        doubleUp: 0
+      };
+      return Math.max(max, split.doubleUp);
+    }, 0);
 
     // Current staff's solo hours (not the one we're changing if type is solo)
     const currentStaffSolo = type === 'solo' ? 0 : currentSplit.solo;
-    
+
     // Calculate max hours for this input based on type
     let maxUserHours: number;
     if (type === 'solo') {
@@ -492,22 +490,22 @@ export const Matching = () => {
 
     // Show toast if hours were capped
     if (hours > validatedHours && hours > 0) {
-      const reason = hours > maxStaffHours 
-        ? `${staffMember.name} only has ${maxStaffHours}h available this week` 
-        : `${currentUser.name} only needs ${Math.round(maxUserHours)}h more this week`;
+      const reason = hours > maxStaffHours ? `${staffMember.name} only has ${maxStaffHours}h available this week` : `${currentUser.name} only needs ${Math.round(maxUserHours)}h more this week`;
       toast({
         title: "Hours adjusted",
         description: reason,
         variant: "destructive"
       });
     }
-
     setServiceUsers(prev => prev.map(user => {
       if (user.id !== userId) return user;
       const updatedAllocations = user.staffAllocations.map(alloc => {
         if (alloc.staffId !== staffId) return alloc;
         const newSplit = {
-          ...(alloc.hoursSplit?.[week] || { solo: 0, doubleUp: 0 }),
+          ...(alloc.hoursSplit?.[week] || {
+            solo: 0,
+            doubleUp: 0
+          }),
           [type]: validatedHours
         };
         const newTotal = newSplit.solo + newSplit.doubleUp;
@@ -529,12 +527,16 @@ export const Matching = () => {
       };
     }));
   };
-
-  const getStaffAllocationSplit = (user: ServiceUser, staffId: string, week: string): { solo: number; doubleUp: number } => {
+  const getStaffAllocationSplit = (user: ServiceUser, staffId: string, week: string): {
+    solo: number;
+    doubleUp: number;
+  } => {
     const allocation = user.staffAllocations.find(a => a.staffId === staffId);
-    return allocation?.hoursSplit?.[week] || { solo: 0, doubleUp: 0 };
+    return allocation?.hoursSplit?.[week] || {
+      solo: 0,
+      doubleUp: 0
+    };
   };
-
   const getStaffAllocation = (user: ServiceUser, staffId: string, month: string): number => {
     const allocation = user.staffAllocations.find(a => a.staffId === staffId);
     return allocation?.allocatedHours[month] || 0;
@@ -773,13 +775,7 @@ export const Matching = () => {
                 `}</style>
                 <div ref={printAreaRef} className="print-area grid grid-cols-1 gap-6">
                   {/* AI Forecast Summary */}
-                  <ForecastAISummary
-                    serviceUsers={serviceUsers}
-                    staff={staff}
-                    weeks={WEEKS}
-                    showUtilisation={showUtilisation}
-                    showMatchmaking={showMatchmaking}
-                  />
+                  <ForecastAISummary serviceUsers={serviceUsers} staff={staff} weeks={WEEKS} showUtilisation={showUtilisation} showMatchmaking={showMatchmaking} />
 
                   {/* Staff Utilisation Forecast */}
                   {showUtilisation && <div className="rounded-2xl overflow-hidden shadow-md bg-white border border-border">
@@ -1546,15 +1542,15 @@ export const Matching = () => {
                             {WEEKS.map(week => <>
                                 <TableCell key={`${week}-solo`} colSpan={2} className="text-center border-l">
                                   <Input type="number" value={user.forecastHours[week] || 0} onChange={e => {
-                                    const value = parseFloat(e.target.value) || 0;
-                                    setServiceUsers(prev => prev.map(u => u.id === user.id ? {
-                                      ...u,
-                                      forecastHours: {
-                                        ...u.forecastHours,
-                                        [week]: value
-                                      }
-                                    } : u));
-                                  }} className="h-8 w-16 mx-auto text-center bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+                                const value = parseFloat(e.target.value) || 0;
+                                setServiceUsers(prev => prev.map(u => u.id === user.id ? {
+                                  ...u,
+                                  forecastHours: {
+                                    ...u.forecastHours,
+                                    [week]: value
+                                  }
+                                } : u));
+                              }} className="h-8 w-16 mx-auto text-center bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
                                 </TableCell>
                               </>)}
                           </TableRow>
@@ -1572,55 +1568,51 @@ export const Matching = () => {
                                   </div>
                                 </TableCell>
                                 {WEEKS.map(week => {
-                                  const split = getStaffAllocationSplit(user, staffId, week);
-                                  return <>
+                              const split = getStaffAllocationSplit(user, staffId, week);
+                              return <>
                                     <TableCell key={`${week}-solo`} className="text-center border-l px-1">
                                       <div className="flex flex-col items-center gap-0.5">
                                         <span className="text-[10px] text-muted-foreground">Single</span>
-                                        <Input 
-                                          type="number" 
-                                          value={split.solo} 
-                                          onChange={e => updateStaffAllocationSplit(user.id, staffId, week, 'solo', parseFloat(e.target.value) || 0)} 
-                                          className="h-7 w-12 text-center bg-white text-xs [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" 
-                                        />
+                                        <Input type="number" value={split.solo} onChange={e => updateStaffAllocationSplit(user.id, staffId, week, 'solo', parseFloat(e.target.value) || 0)} className="h-7 w-12 text-center bg-white text-xs [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
                                       </div>
                                     </TableCell>
                                     <TableCell key={`${week}-double`} className="text-center px-1">
                                       <div className="flex flex-col items-center gap-0.5">
                                         <span className="text-[10px] text-muted-foreground">Double</span>
-                                        <Input 
-                                          type="number" 
-                                          value={split.doubleUp} 
-                                          onChange={e => updateStaffAllocationSplit(user.id, staffId, week, 'doubleUp', parseFloat(e.target.value) || 0)} 
-                                          className="h-7 w-12 text-center bg-purple-50 text-xs [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" 
-                                        />
+                                        <Input type="number" value={split.doubleUp} onChange={e => updateStaffAllocationSplit(user.id, staffId, week, 'doubleUp', parseFloat(e.target.value) || 0)} className="h-7 w-12 text-center bg-purple-50 text-xs [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
                                       </div>
                                     </TableCell>
                                   </>;
-                                })}
+                            })}
                               </TableRow>;
                         })}
                           
                           {/* Unallocated Hours Row */}
                           <TableRow key={`${user.id}-unallocated`} className="bg-orange-50">
-                            <TableCell className="sticky left-0 bg-orange-50 pl-6">
-                              <span className="text-sm font-medium text-orange-700">Unallocated Hours</span>
+                            <TableCell className="sticky left-0 pl-6 bg-destructive text-primary-foreground">
+                              <span className="text-sm font-medium text-primary-foreground">Outstanding Hours</span>
                             </TableCell>
                             {WEEKS.map(week => {
                             const requiredHours = user.forecastHours[week] || 0;
                             // Single hours sum normally across all staff
                             const totalSingleHours = user.staffAllocations.reduce((sum, alloc) => {
-                              const split = alloc.hoursSplit?.[week] || { solo: 0, doubleUp: 0 };
+                              const split = alloc.hoursSplit?.[week] || {
+                                solo: 0,
+                                doubleUp: 0
+                              };
                               return sum + split.solo;
                             }, 0);
                             // Double hours only count once (max across all staff since they work together)
                             const maxDoubleHours = user.staffAllocations.reduce((max, alloc) => {
-                              const split = alloc.hoursSplit?.[week] || { solo: 0, doubleUp: 0 };
+                              const split = alloc.hoursSplit?.[week] || {
+                                solo: 0,
+                                doubleUp: 0
+                              };
                               return Math.max(max, split.doubleUp);
                             }, 0);
                             const allocatedHours = totalSingleHours + maxDoubleHours;
                             const unallocatedHours = requiredHours - allocatedHours;
-                            return <TableCell key={week} colSpan={2} className="text-center border-l">
+                            return <TableCell key={week} colSpan={2} className="text-center border-l bg-destructive">
                                   <span className={`text-sm font-medium ${unallocatedHours > 0 ? 'text-orange-700' : unallocatedHours < 0 ? 'text-red-700' : 'text-green-700'}`}>
                                     {unallocatedHours}
                                   </span>
