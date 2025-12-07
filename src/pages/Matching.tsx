@@ -941,9 +941,15 @@ export const Matching = () => {
                               value={user.typicalWeeklyHours} 
                               onChange={e => {
                                 const value = parseFloat(e.target.value) || 0;
+                                // Update typical hours and sync all weeks in forecastHours
+                                const updatedForecast: WeeklyForecast = {};
+                                WEEKS.forEach(week => {
+                                  updatedForecast[week] = value;
+                                });
                                 setServiceUsers(prev => prev.map(u => u.id === user.id ? {
                                   ...u,
-                                  typicalWeeklyHours: value
+                                  typicalWeeklyHours: value,
+                                  forecastHours: updatedForecast
                                 } : u));
                               }} 
                               className="h-8 w-20 text-center bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" 
