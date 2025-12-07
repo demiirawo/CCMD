@@ -560,7 +560,36 @@ export const Matching = () => {
               <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{
               zIndex: 10
             }}>
-                {linePositions.map(line => <line key={line.id} x1={line.x1} y1={line.y1} x2={line.x2} y2={line.y2} stroke={line.type === 'primary' ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground))'} strokeWidth={line.type === 'primary' ? 4 : 1.5} strokeDasharray={line.type === 'backup' ? '5,5' : undefined} className="transition-all duration-300" />)}
+                {linePositions.map(line => (
+                  <g key={line.id}>
+                    <line 
+                      x1={line.x1} 
+                      y1={line.y1} 
+                      x2={line.x2} 
+                      y2={line.y2} 
+                      stroke="#3b82f6"
+                      strokeWidth={line.type === 'primary' ? 3 : 2}
+                      strokeDasharray={line.type === 'backup' ? '5,5' : undefined} 
+                      className="transition-all duration-300" 
+                    />
+                    {/* Start circle connector */}
+                    <circle 
+                      cx={line.x1} 
+                      cy={line.y1} 
+                      r={6} 
+                      fill="#3b82f6"
+                      className="transition-all duration-300"
+                    />
+                    {/* End circle connector */}
+                    <circle 
+                      cx={line.x2} 
+                      cy={line.y2} 
+                      r={6} 
+                      fill="#3b82f6"
+                      className="transition-all duration-300"
+                    />
+                  </g>
+                ))}
               </svg>
 
               {/* Service Users Column */}
