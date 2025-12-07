@@ -16,49 +16,27 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import { SearchableStaffSelect } from "@/components/SearchableStaffSelect";
-import { 
-  useMatchingData, 
-  WEEKS, 
-  createDefaultForecast,
-  type ServiceUser, 
-  type Staff, 
-  type Gender, 
-  type GenderPreference,
-  type ContractType,
-  type StaffAllocation,
-  type WeeklyForecast
-} from "@/hooks/useMatchingData";
-
+import { useMatchingData, WEEKS, createDefaultForecast, type ServiceUser, type Staff, type Gender, type GenderPreference, type ContractType, type StaffAllocation, type WeeklyForecast } from "@/hooks/useMatchingData";
 const GENDER_PREFERENCES: GenderPreference[] = ["No Preference", "Male", "Female"];
 const GENDERS: Gender[] = ["Male", "Female", "Non-Binary", "Prefer not to say"];
-
-const CONTRACT_TYPES: ContractType[] = [
-  "Full-Time Contract",
-  "Part-Time Contract",
-  "Zero-Hours Contract",
-  "Fixed-Term Contract",
-  "Agency or Temporary Contract",
-  "Self-Employed/Independent Contractor",
-  "Apprenticeship Agreement",
-  "Bank Contract (Casual Staff)",
-  "Volunteer"
-];
+const CONTRACT_TYPES: ContractType[] = ["Full-Time Contract", "Part-Time Contract", "Zero-Hours Contract", "Fixed-Term Contract", "Agency or Temporary Contract", "Self-Employed/Independent Contractor", "Apprenticeship Agreement", "Bank Contract (Casual Staff)", "Volunteer"];
 export const Matching = () => {
-  const { toast } = useToast();
+  const {
+    toast
+  } = useToast();
   const printAreaRef = useRef<HTMLDivElement>(null);
-  const { 
-    serviceUsers, 
-    staff, 
-    loading, 
+  const {
+    serviceUsers,
+    staff,
+    loading,
     saving,
-    setServiceUsers, 
+    setServiceUsers,
     setStaff,
     addStaff: addStaffToDb,
     addServiceUser: addServiceUserToDb,
     deleteStaff: deleteStaffFromDb,
     deleteServiceUser: deleteServiceUserFromDb
   } = useMatchingData();
-  
   const [searchTerm, setSearchTerm] = useState("");
   const [locationFilter, setLocationFilter] = useState<string>("all");
   const [managerFilter, setManagerFilter] = useState<string>("all");
@@ -132,110 +110,89 @@ export const Matching = () => {
   const [isAddingStaffLocation, setIsAddingStaffLocation] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [customLocations, setCustomLocations] = useState<string[]>([]);
-  
+
   // Add a custom location to the shared pool
   const addCustomLocation = (location: string) => {
     if (location.trim() && !customLocations.includes(location.trim())) {
       setCustomLocations(prev => [...prev, location.trim()]);
     }
   };
-  
   const locations = useMemo(() => {
-    const allLocations = [...new Set([
-      ...serviceUsers.map(u => u.location), 
-      ...staff.map(s => s.location),
-      ...customLocations
-    ])];
+    const allLocations = [...new Set([...serviceUsers.map(u => u.location), ...staff.map(s => s.location), ...customLocations])];
     return allLocations.filter(Boolean);
   }, [serviceUsers, staff, customLocations]);
   const supportTypes = useMemo(() => {
     const allNeeds = serviceUsers.flatMap(u => u.supportNeeds);
     return [...new Set(allNeeds)];
   }, [serviceUsers]);
-
   const managers = useMemo(() => {
-    const allManagers = [...new Set([
-      ...serviceUsers.map(u => u.manager),
-      ...staff.map(s => s.manager)
-    ])];
+    const allManagers = [...new Set([...serviceUsers.map(u => u.manager), ...staff.map(s => s.manager)])];
     return allManagers.filter(Boolean);
   }, [serviceUsers, staff]);
-
   const handleExportPDF = async () => {
     if (!printAreaRef.current) return;
-    
     setIsExporting(true);
     try {
       const element = printAreaRef.current;
-      
+
       // Add temporary padding for PDF export
       element.style.padding = '20px';
-      
       const canvas = await html2canvas(element, {
         scale: 2,
         useCORS: true,
         logging: false,
         backgroundColor: '#ffffff'
       });
-      
+
       // Remove temporary padding
       element.style.padding = '';
-      
       const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
         format: 'a4'
       });
-      
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = pdf.internal.pageSize.getHeight();
       const margin = 15; // 15mm margins
-      const contentWidth = pdfWidth - (margin * 2);
+      const contentWidth = pdfWidth - margin * 2;
       const imgWidth = canvas.width;
       const imgHeight = canvas.height;
       const ratio = contentWidth / imgWidth;
       const imgX = margin;
       const imgY = margin;
-      
+
       // Handle multi-page if content is too tall
       const scaledHeight = imgHeight * ratio;
       const pageHeight = pdfHeight - 20; // margins
-      
+
       if (scaledHeight <= pageHeight) {
         pdf.addImage(imgData, 'PNG', imgX, imgY, imgWidth * ratio, scaledHeight);
       } else {
         let remainingHeight = scaledHeight;
         let sourceY = 0;
         let pageNum = 0;
-        
         while (remainingHeight > 0) {
           if (pageNum > 0) pdf.addPage();
-          
           const sliceHeight = Math.min(pageHeight, remainingHeight);
           const sourceSliceHeight = sliceHeight / ratio;
-          
-          pdf.addImage(
-            imgData, 'PNG',
-            imgX, imgY,
-            imgWidth * ratio, scaledHeight,
-            undefined, 'FAST',
-            0
-          );
-          
+          pdf.addImage(imgData, 'PNG', imgX, imgY, imgWidth * ratio, scaledHeight, undefined, 'FAST', 0);
           remainingHeight -= pageHeight;
           sourceY += sourceSliceHeight;
           pageNum++;
-          
           if (pageNum > 20) break; // Safety limit
         }
       }
-      
       pdf.save('staff-forecast.pdf');
-      toast({ title: "PDF exported successfully" });
+      toast({
+        title: "PDF exported successfully"
+      });
     } catch (error) {
       console.error('PDF export error:', error);
-      toast({ title: "Failed to export PDF", variant: "destructive" });
+      toast({
+        title: "Failed to export PDF",
+        variant: "destructive"
+      });
     } finally {
       setIsExporting(false);
     }
@@ -254,19 +211,17 @@ export const Matching = () => {
       return matchesSearch && matchesLocation && matchesSupportType;
     });
   }, [serviceUsers, searchTerm, locationFilter, supportTypeFilter]);
-
   const calculateMatchScore = useCallback((user: ServiceUser, staffMember: Staff): number => {
     let score = 0;
 
     // Location match (highest priority)
     if (user.location === staffMember.location) score += 50;
-    
+
     // Check if staff has confirmed needs for this user
     const allocation = user.staffAllocations.find(a => a.staffId === staffMember.id);
     if (allocation && allocation.confirmedNeeds.length > 0) {
       score += allocation.confirmedNeeds.length * 10;
     }
-
     return Math.min(score, 100);
   }, []);
   const getSuggestedStaff = useCallback((user: ServiceUser) => {
@@ -285,7 +240,7 @@ export const Matching = () => {
     })).sort((a, b) => b.score - a.score);
   }, [staff, calculateMatchScore]);
   const getStaffById = (id: string) => staff.find(s => s.id === id);
-  
+
   // Check for gender mismatch before opening needs confirmation
   const checkGenderAndOpenDialog = (userId: string, staffId: string, type: 'primary' | 'backup') => {
     const user = serviceUsers.find(u => u.id === userId);
@@ -293,11 +248,7 @@ export const Matching = () => {
     if (!user || !staffMember) return;
 
     // Check if there's a gender preference mismatch
-    const hasGenderMismatch = user.genderPreference !== "No Preference" && 
-      staffMember.gender !== user.genderPreference &&
-      staffMember.gender !== "Non-Binary" &&
-      staffMember.gender !== "Prefer not to say";
-
+    const hasGenderMismatch = user.genderPreference !== "No Preference" && staffMember.gender !== user.genderPreference && staffMember.gender !== "Non-Binary" && staffMember.gender !== "Prefer not to say";
     if (hasGenderMismatch) {
       setGenderMismatchDialog({
         userId,
@@ -323,18 +274,25 @@ export const Matching = () => {
       selectedInterests: []
     });
   };
-
   const confirmGenderMismatch = () => {
     if (!genderMismatchDialog) return;
-    const { userId, staffId, type } = genderMismatchDialog;
+    const {
+      userId,
+      staffId,
+      type
+    } = genderMismatchDialog;
     setGenderMismatchDialog(null);
     openNeedsConfirmDialog(userId, staffId, type);
   };
-
   const confirmAssignStaff = () => {
     if (!needsConfirmDialog) return;
-    const { userId, staffId, type, selectedNeeds, selectedInterests } = needsConfirmDialog;
-    
+    const {
+      userId,
+      staffId,
+      type,
+      selectedNeeds,
+      selectedInterests
+    } = needsConfirmDialog;
     setServiceUsers(prev => prev.map(user => {
       if (user.id !== userId) return user;
       if (type === 'primary') {
@@ -363,7 +321,6 @@ export const Matching = () => {
     });
     setNeedsConfirmDialog(null);
   };
-
   const toggleNeed = (need: string) => {
     if (!needsConfirmDialog) return;
     setNeedsConfirmDialog(prev => {
@@ -371,13 +328,10 @@ export const Matching = () => {
       const isSelected = prev.selectedNeeds.includes(need);
       return {
         ...prev,
-        selectedNeeds: isSelected 
-          ? prev.selectedNeeds.filter(n => n !== need)
-          : [...prev.selectedNeeds, need]
+        selectedNeeds: isSelected ? prev.selectedNeeds.filter(n => n !== need) : [...prev.selectedNeeds, need]
       };
     });
   };
-
   const toggleInterest = (interest: string) => {
     if (!needsConfirmDialog) return;
     setNeedsConfirmDialog(prev => {
@@ -385,13 +339,10 @@ export const Matching = () => {
       const isSelected = prev.selectedInterests.includes(interest);
       return {
         ...prev,
-        selectedInterests: isSelected 
-          ? prev.selectedInterests.filter(i => i !== interest)
-          : [...prev.selectedInterests, interest]
+        selectedInterests: isSelected ? prev.selectedInterests.filter(i => i !== interest) : [...prev.selectedInterests, interest]
       };
     });
   };
-
   const selectAllNeeds = () => {
     if (!needsConfirmDialog) return;
     const user = serviceUsers.find(u => u.id === needsConfirmDialog.userId);
@@ -404,7 +355,6 @@ export const Matching = () => {
       };
     });
   };
-
   const selectAllInterests = () => {
     if (!needsConfirmDialog) return;
     const user = serviceUsers.find(u => u.id === needsConfirmDialog.userId);
@@ -417,19 +367,16 @@ export const Matching = () => {
       };
     });
   };
-
   const updateStaffAllocation = (userId: string, staffId: string, week: string, hours: number) => {
     // Find the staff member to check their available hours
     const staffMember = getStaffById(staffId);
     if (!staffMember) return;
 
     // Calculate how many hours this staff is already allocated to OTHER service users for this week
-    const otherAllocations = serviceUsers
-      .filter(u => u.id !== userId)
-      .reduce((sum, u) => {
-        const alloc = u.staffAllocations.find(a => a.staffId === staffId);
-        return sum + (alloc?.allocatedHours[week] || 0);
-      }, 0);
+    const otherAllocations = serviceUsers.filter(u => u.id !== userId).reduce((sum, u) => {
+      const alloc = u.staffAllocations.find(a => a.staffId === staffId);
+      return sum + (alloc?.allocatedHours[week] || 0);
+    }, 0);
 
     // Get current allocation for this service user
     const currentUser = serviceUsers.find(u => u.id === userId);
@@ -438,15 +385,12 @@ export const Matching = () => {
     // Check 1: Don't exceed staff's available hours for this week
     const staffAvailableHours = staffMember.forecastHours[week] || 0;
     const maxStaffHours = staffAvailableHours - otherAllocations;
-    
+
     // Check 2: Don't exceed service user's required hours for this week
     const userRequiredHours = currentUser.forecastHours[week] || 0;
-    
+
     // Get total allocated hours from OTHER staff for this service user
-    const otherStaffAllocations = currentUser.staffAllocations
-      .filter(a => a.staffId !== staffId)
-      .reduce((sum, a) => sum + (a.allocatedHours[week] || 0), 0);
-    
+    const otherStaffAllocations = currentUser.staffAllocations.filter(a => a.staffId !== staffId).reduce((sum, a) => sum + (a.allocatedHours[week] || 0), 0);
     const maxUserHours = userRequiredHours - otherStaffAllocations;
 
     // Apply the minimum of both constraints
@@ -454,34 +398,35 @@ export const Matching = () => {
 
     // Show toast if hours were capped
     if (hours > validatedHours && hours > 0) {
-      const reason = hours > maxStaffHours 
-        ? `${staffMember.name} only has ${maxStaffHours}h available this week`
-        : `${currentUser.name} only needs ${maxUserHours}h more this week`;
+      const reason = hours > maxStaffHours ? `${staffMember.name} only has ${maxStaffHours}h available this week` : `${currentUser.name} only needs ${maxUserHours}h more this week`;
       toast({
         title: "Hours adjusted",
         description: reason,
         variant: "destructive"
       });
     }
-
     setServiceUsers(prev => prev.map(user => {
       if (user.id !== userId) return user;
       const updatedAllocations = user.staffAllocations.map(alloc => {
         if (alloc.staffId !== staffId) return alloc;
         return {
           ...alloc,
-          allocatedHours: { ...alloc.allocatedHours, [week]: validatedHours }
+          allocatedHours: {
+            ...alloc.allocatedHours,
+            [week]: validatedHours
+          }
         };
       });
-      return { ...user, staffAllocations: updatedAllocations };
+      return {
+        ...user,
+        staffAllocations: updatedAllocations
+      };
     }));
   };
-
   const getStaffAllocation = (user: ServiceUser, staffId: string, month: string): number => {
     const allocation = user.staffAllocations.find(a => a.staffId === staffId);
     return allocation?.allocatedHours[month] || 0;
   };
-
   const unassignStaff = (userId: string, staffId: string, type: 'primary' | 'backup') => {
     setServiceUsers(prev => prev.map(user => {
       if (user.id !== userId) return user;
@@ -632,25 +577,20 @@ export const Matching = () => {
           </div>
         </div>
 
-        {loading ? (
-          <div className="flex items-center justify-center py-20">
+        {loading ? <div className="flex items-center justify-center py-20">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
             <span className="ml-2">Loading matching data...</span>
-          </div>
-        ) : (
-        <Tabs defaultValue="diagram" className="space-y-6">
+          </div> : <Tabs defaultValue="diagram" className="space-y-6">
           <div className="flex items-center justify-between">
             <TabsList className="bg-gray-100 p-1 rounded-lg">
               <TabsTrigger value="diagram" className="data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-md px-4 py-2">Summary</TabsTrigger>
               <TabsTrigger value="users" className="data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-md px-4 py-2">Service Users</TabsTrigger>
               <TabsTrigger value="staff" className="data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-md px-4 py-2">Staff</TabsTrigger>
             </TabsList>
-            {saving && (
-              <div className="flex items-center text-sm text-muted-foreground">
+            {saving && <div className="flex items-center text-sm text-muted-foreground">
                 <Loader2 className="h-4 w-4 animate-spin mr-2" />
                 Saving...
-              </div>
-            )}
+              </div>}
           </div>
 
           {/* Matching View */}
@@ -664,9 +604,7 @@ export const Matching = () => {
                   </SelectTrigger>
                   <SelectContent className="bg-white z-50">
                     <SelectItem value="all">All Managers</SelectItem>
-                    {managers.map(mgr => (
-                      <SelectItem key={mgr} value={mgr}>{mgr}</SelectItem>
-                    ))}
+                    {managers.map(mgr => <SelectItem key={mgr} value={mgr}>{mgr}</SelectItem>)}
                   </SelectContent>
                 </Select>
                 <Select value={locationFilter} onValueChange={setLocationFilter}>
@@ -676,29 +614,21 @@ export const Matching = () => {
                   </SelectTrigger>
                   <SelectContent className="bg-white z-50">
                     <SelectItem value="all">All Locations</SelectItem>
-                    {locations.map(loc => (
-                      <SelectItem key={loc} value={loc}>{loc}</SelectItem>
-                    ))}
+                    {locations.map(loc => <SelectItem key={loc} value={loc}>{loc}</SelectItem>)}
                   </SelectContent>
                 </Select>
-                <Button 
-                  size="sm" 
-                  onClick={handleExportPDF} 
-                  disabled={isExporting}
-                  className="text-white"
-                  style={{ backgroundColor: '#202A38' }}
-                >
-                  {isExporting ? (
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  ) : (
-                    <FileDown className="h-4 w-4 mr-2" />
-                  )}
+                <Button size="sm" onClick={handleExportPDF} disabled={isExporting} className="text-white" style={{
+                backgroundColor: '#202A38'
+              }}>
+                  {isExporting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <FileDown className="h-4 w-4 mr-2" />}
                   Export PDF
                 </Button>
               </div>
 
               {/* Print Area - includes both Utilisation Forecast and Matching View */}
-              <div className="print:p-0" style={{ fontSize: '10px' }}>
+              <div className="print:p-0" style={{
+              fontSize: '10px'
+            }}>
                 <style>{`
                   @media print {
                     body * { visibility: hidden; }
@@ -711,30 +641,32 @@ export const Matching = () => {
                 <div ref={printAreaRef} className="print-area grid grid-cols-1 gap-6 bg-white">
                   {/* Staff Utilisation Forecast */}
                   <div className="rounded-2xl overflow-hidden shadow-md bg-white border border-border">
-                    <div className="px-6 py-4" style={{ backgroundColor: '#202A38' }}>
+                    <div className="px-6 py-4" style={{
+                    backgroundColor: '#202A38'
+                  }}>
                       <h3 className="font-bold text-xl text-white print:text-sm">
                         Staff Utilisation Forecast (8 Weeks)
                       </h3>
                       <span className="text-sm text-white/80">
                         {(() => {
-                          let count = serviceUsers.length;
-                          let staffCount = staff.length;
-                          if (managerFilter !== "all" || locationFilter !== "all") {
-                            let filteredUsers = serviceUsers;
-                            let filteredStaff = staff;
-                            if (managerFilter !== "all") {
-                              filteredUsers = filteredUsers.filter(u => u.manager === managerFilter);
-                              filteredStaff = filteredStaff.filter(s => s.manager === managerFilter);
-                            }
-                            if (locationFilter !== "all") {
-                              filteredUsers = filteredUsers.filter(u => u.location === locationFilter);
-                              filteredStaff = filteredStaff.filter(s => s.location === locationFilter);
-                            }
-                            count = filteredUsers.length;
-                            staffCount = filteredStaff.length;
+                        let count = serviceUsers.length;
+                        let staffCount = staff.length;
+                        if (managerFilter !== "all" || locationFilter !== "all") {
+                          let filteredUsers = serviceUsers;
+                          let filteredStaff = staff;
+                          if (managerFilter !== "all") {
+                            filteredUsers = filteredUsers.filter(u => u.manager === managerFilter);
+                            filteredStaff = filteredStaff.filter(s => s.manager === managerFilter);
                           }
-                          return `${count} service users • ${staffCount} staff`;
-                        })()}
+                          if (locationFilter !== "all") {
+                            filteredUsers = filteredUsers.filter(u => u.location === locationFilter);
+                            filteredStaff = filteredStaff.filter(s => s.location === locationFilter);
+                          }
+                          count = filteredUsers.length;
+                          staffCount = filteredStaff.length;
+                        }
+                        return `${count} service users • ${staffCount} staff`;
+                      })()}
                       </span>
                     </div>
                     <div className="p-6">
@@ -835,11 +767,10 @@ export const Matching = () => {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {WEEKS.map((week) => {
+                        {WEEKS.map(week => {
                           // Filter by manager and location
                           let filteredUsers = serviceUsers;
                           let filteredStaff = staff;
-                          
                           if (managerFilter !== "all") {
                             filteredUsers = filteredUsers.filter(u => u.manager === managerFilter);
                             filteredStaff = filteredStaff.filter(s => s.manager === managerFilter);
@@ -848,26 +779,21 @@ export const Matching = () => {
                             filteredUsers = filteredUsers.filter(u => u.location === locationFilter);
                             filteredStaff = filteredStaff.filter(s => s.location === locationFilter);
                           }
-                          
                           const requiredHours = filteredUsers.reduce((sum, u) => sum + (u.forecastHours[week] || 0), 0);
                           // Allocated hours = sum of all staff allocations across service users for this week
-                          const allocatedHours = filteredUsers.reduce((sum, u) => 
-                            sum + u.staffAllocations.reduce((staffSum, alloc) => 
-                              staffSum + (alloc.allocatedHours[week] || 0), 0), 0);
+                          const allocatedHours = filteredUsers.reduce((sum, u) => sum + u.staffAllocations.reduce((staffSum, alloc) => staffSum + (alloc.allocatedHours[week] || 0), 0), 0);
                           // Unallocated hours = sum of hours from staff NOT assigned as PRIMARY to any service user
                           const primaryStaffIds = new Set(filteredUsers.flatMap(u => u.primaryStaffIds));
-                          const unallocatedHours = filteredStaff
-                            .filter(s => s.status === "Active" && !primaryStaffIds.has(s.id))
-                            .reduce((sum, s) => sum + (s.forecastHours[week] || 0), 0);
+                          const unallocatedHours = filteredStaff.filter(s => s.status === "Active" && !primaryStaffIds.has(s.id)).reduce((sum, s) => sum + (s.forecastHours[week] || 0), 0);
                           const totalAvailableHours = allocatedHours + unallocatedHours;
                           // Utilisation = allocated hours / total available hours (what % of available capacity is being used)
                           const utilisation = totalAvailableHours > 0 ? allocatedHours / totalAvailableHours * 100 : 0;
-                          
+
                           // Calculate FTE based on 35 hour week
                           const FTE_HOURS = 35;
                           const requiredFTE = requiredHours / FTE_HOURS;
                           const availableFTE = totalAvailableHours / FTE_HOURS;
-                          
+
                           // Determine utilisation color based on thresholds
                           let utilisationColor = "text-amber-600"; // default: under-utilised (<70%)
                           if (utilisation >= 70 && utilisation < 80) {
@@ -877,9 +803,7 @@ export const Matching = () => {
                           } else if (utilisation >= 90) {
                             utilisationColor = "text-red-600"; // over-utilised (>90%)
                           }
-                          
-                          return (
-                            <TableRow key={week}>
+                          return <TableRow key={week}>
                               <TableCell className="font-medium text-xs py-1">{week}</TableCell>
                               <TableCell className="text-right text-xs py-1">{requiredHours.toFixed(1)}</TableCell>
                               <TableCell className="text-right text-xs py-1">{allocatedHours.toFixed(1)}</TableCell>
@@ -887,8 +811,7 @@ export const Matching = () => {
                               <TableCell className={`text-right text-xs py-1 font-semibold ${utilisationColor}`}>{utilisation.toFixed(1)}%</TableCell>
                               <TableCell className="text-right text-xs py-1">{requiredFTE.toFixed(2)}</TableCell>
                               <TableCell className="text-right text-xs py-1">{availableFTE.toFixed(2)}</TableCell>
-                            </TableRow>
-                          );
+                            </TableRow>;
                         })}
                       </TableBody>
                     </Table>
@@ -897,40 +820,38 @@ export const Matching = () => {
 
 
                   
-                  {locations
-                    .filter(location => locationFilter === "all" || location === locationFilter)
-                    .map(location => {
-                let locationUsers = serviceUsers.filter(u => u.location === location);
-                let locationStaff = staff.filter(s => s.location === location);
-                
-                // Also filter by manager if selected
-                if (managerFilter !== "all") {
-                  locationUsers = locationUsers.filter(u => u.manager === managerFilter);
-                  locationStaff = locationStaff.filter(s => s.manager === managerFilter);
-                }
-                
-                if (locationUsers.length === 0 && locationStaff.length === 0) return null;
+                  {locations.filter(location => locationFilter === "all" || location === locationFilter).map(location => {
+                  let locationUsers = serviceUsers.filter(u => u.location === location);
+                  let locationStaff = staff.filter(s => s.location === location);
 
-                // Helper to get match reasons between user and staff (based on confirmed needs)
-                const getMatchReasons = (user: ServiceUser, staffMember: Staff): string[] => {
-                  const reasons: string[] = [];
-
-                  // Get confirmed needs for this staff-user pairing
-                  const allocation = user.staffAllocations.find(a => a.staffId === staffMember.id);
-                  if (allocation && allocation.confirmedNeeds.length > 0) {
-                    reasons.push(`Confirmed for: ${allocation.confirmedNeeds.slice(0, 3).join(', ')}`);
+                  // Also filter by manager if selected
+                  if (managerFilter !== "all") {
+                    locationUsers = locationUsers.filter(u => u.manager === managerFilter);
+                    locationStaff = locationStaff.filter(s => s.manager === managerFilter);
                   }
+                  if (locationUsers.length === 0 && locationStaff.length === 0) return null;
 
-                  // Location match
-                  if (user.location === staffMember.location) {
-                    reasons.push('Same location');
-                  }
-                  return reasons;
-                };
-                
-                return <div key={location} className="rounded-2xl overflow-hidden shadow-md bg-white border border-border">
+                  // Helper to get match reasons between user and staff (based on confirmed needs)
+                  const getMatchReasons = (user: ServiceUser, staffMember: Staff): string[] => {
+                    const reasons: string[] = [];
+
+                    // Get confirmed needs for this staff-user pairing
+                    const allocation = user.staffAllocations.find(a => a.staffId === staffMember.id);
+                    if (allocation && allocation.confirmedNeeds.length > 0) {
+                      reasons.push(`Confirmed for: ${allocation.confirmedNeeds.slice(0, 3).join(', ')}`);
+                    }
+
+                    // Location match
+                    if (user.location === staffMember.location) {
+                      reasons.push('Same location');
+                    }
+                    return reasons;
+                  };
+                  return <div key={location} className="rounded-2xl overflow-hidden shadow-md bg-white border border-border">
                         {/* Colored Banner Header */}
-                        <div className="px-6 py-4" style={{ backgroundColor: '#202A38' }}>
+                        <div className="px-6 py-4" style={{
+                      backgroundColor: '#202A38'
+                    }}>
                           <h3 className="font-bold text-xl text-white print:text-sm">{location}</h3>
                           <span className="text-sm text-white/80">
                             {locationUsers.length} service users • {locationStaff.length} staff
@@ -940,19 +861,18 @@ export const Matching = () => {
                         {/* Card Content */}
                         <div className="p-6 space-y-4">
                           {locationUsers.map(user => {
-                      const allAssignedStaff = [...user.primaryStaffIds.map(id => ({
-                        id,
-                        type: 'Primary' as const
-                      })), ...user.backupStaffIds.map(id => ({
-                        id,
-                        type: 'Backup' as const
-                      }))];
-                      const currentWeek = WEEKS[0]; // Current week for display
-                      const userRequiredHours = user.forecastHours[currentWeek] || 0;
-                      // Calculate total allocated hours for this user
-                      const userAllocatedHours = user.staffAllocations.reduce((sum, alloc) => 
-                        sum + (alloc.allocatedHours[currentWeek] || 0), 0);
-                      return <div key={user.id} className="rounded-lg p-4 print:p-2 bg-gray-50 border">
+                        const allAssignedStaff = [...user.primaryStaffIds.map(id => ({
+                          id,
+                          type: 'Primary' as const
+                        })), ...user.backupStaffIds.map(id => ({
+                          id,
+                          type: 'Backup' as const
+                        }))];
+                        const currentWeek = WEEKS[0]; // Current week for display
+                        const userRequiredHours = user.forecastHours[currentWeek] || 0;
+                        // Calculate total allocated hours for this user
+                        const userAllocatedHours = user.staffAllocations.reduce((sum, alloc) => sum + (alloc.allocatedHours[currentWeek] || 0), 0);
+                        return <div key={user.id} className="rounded-lg p-4 print:p-2 bg-gray-50 border">
                                 <div className="flex items-start justify-between mb-2">
                                   <div className="flex-1">
                                     <div className="flex items-center gap-3">
@@ -970,70 +890,61 @@ export const Matching = () => {
                                 
                                 {allAssignedStaff.length > 0 ? <div className="mt-3 space-y-2">
                                     {allAssignedStaff.map(({
-                            id: sid,
-                            type
-                          }) => {
-                            const s = getStaffById(sid);
-                            if (!s) return null;
-                            // For primary staff, show allocated hours; for backup, show available hours
-                            const displayHours = type === 'Primary' 
-                              ? getStaffAllocation(user, sid, currentWeek)
-                              : (s.forecastHours[currentWeek] || 0);
-                            const hoursLabel = type === 'Primary' ? 'allocated' : 'available';
+                              id: sid,
+                              type
+                            }) => {
+                              const s = getStaffById(sid);
+                              if (!s) return null;
+                              // For primary staff, show allocated hours; for backup, show available hours
+                              const displayHours = type === 'Primary' ? getStaffAllocation(user, sid, currentWeek) : s.forecastHours[currentWeek] || 0;
+                              const hoursLabel = type === 'Primary' ? 'allocated' : 'available';
 
-                            // Build commentary-driven narrative
-                            const buildMatchingNarrative = () => {
-                              const allocation = user.staffAllocations.find(a => a.staffId === sid);
-                              const staffFirstName = s.name.split(' ')[0];
-                              const userFirstName = user.name.split(' ')[0];
-                              const sentences: string[] = [];
+                              // Build commentary-driven narrative
+                              const buildMatchingNarrative = () => {
+                                const allocation = user.staffAllocations.find(a => a.staffId === sid);
+                                const staffFirstName = s.name.split(' ')[0];
+                                const userFirstName = user.name.split(' ')[0];
+                                const sentences: string[] = [];
 
-                              // Gender preference match
-                              if (user.genderPreference !== "No Preference") {
-                                if (s.gender === user.genderPreference) {
-                                  sentences.push(`matches ${userFirstName}'s preference for a ${user.genderPreference.toLowerCase()} carer`);
-                                } else {
-                                  sentences.push(`(${s.gender.toLowerCase()}) does not match ${userFirstName}'s preference for a ${user.genderPreference.toLowerCase()} carer`);
+                                // Gender preference match
+                                if (user.genderPreference !== "No Preference") {
+                                  if (s.gender === user.genderPreference) {
+                                    sentences.push(`matches ${userFirstName}'s preference for a ${user.genderPreference.toLowerCase()} carer`);
+                                  } else {
+                                    sentences.push(`(${s.gender.toLowerCase()}) does not match ${userFirstName}'s preference for a ${user.genderPreference.toLowerCase()} carer`);
+                                  }
                                 }
-                              }
 
-                              // Location match
-                              if (user.location === s.location) {
-                                sentences.push(`is based in the same area (${s.location})`);
-                              } else {
-                                sentences.push(`is based in ${s.location}`);
-                              }
+                                // Location match
+                                if (user.location === s.location) {
+                                  sentences.push(`is based in the same area (${s.location})`);
+                                } else {
+                                  sentences.push(`is based in ${s.location}`);
+                                }
 
-                              // Support needs alignment
-                              if (allocation && allocation.confirmedNeeds.length > 0) {
-                                const needsList = allocation.confirmedNeeds.length <= 3 
-                                  ? allocation.confirmedNeeds.join(', ')
-                                  : allocation.confirmedNeeds.slice(0, 3).join(', ') + ` and ${allocation.confirmedNeeds.length - 3} more`;
-                                sentences.push(`has the skills and experience to support with ${needsList}`);
-                              }
+                                // Support needs alignment
+                                if (allocation && allocation.confirmedNeeds.length > 0) {
+                                  const needsList = allocation.confirmedNeeds.length <= 3 ? allocation.confirmedNeeds.join(', ') : allocation.confirmedNeeds.slice(0, 3).join(', ') + ` and ${allocation.confirmedNeeds.length - 3} more`;
+                                  sentences.push(`has the skills and experience to support with ${needsList}`);
+                                }
 
-                              // Shared interests
-                              if (allocation && allocation.confirmedInterests && allocation.confirmedInterests.length > 0) {
-                                const interestsList = allocation.confirmedInterests.length <= 2
-                                  ? allocation.confirmedInterests.join(' and ')
-                                  : allocation.confirmedInterests.slice(0, 2).join(', ') + ` and ${allocation.confirmedInterests.length - 2} more`;
-                                sentences.push(`shares interests in ${interestsList}`);
-                              }
+                                // Shared interests
+                                if (allocation && allocation.confirmedInterests && allocation.confirmedInterests.length > 0) {
+                                  const interestsList = allocation.confirmedInterests.length <= 2 ? allocation.confirmedInterests.join(' and ') : allocation.confirmedInterests.slice(0, 2).join(', ') + ` and ${allocation.confirmedInterests.length - 2} more`;
+                                  sentences.push(`shares interests in ${interestsList}`);
+                                }
+                                if (sentences.length === 0) return null;
 
-                              if (sentences.length === 0) return null;
-
-                              // Build flowing narrative
-                              const firstSentence = sentences[0];
-                              const restSentences = sentences.slice(1);
-                              
-                              if (restSentences.length === 0) {
-                                return `${staffFirstName} ${firstSentence}.`;
-                              }
-                              
-                              return `${staffFirstName} ${firstSentence}, ${restSentences.join(', ')}.`;
-                            };
-                            const narrative = buildMatchingNarrative();
-                            return <div key={sid} className={`pl-3 border-l-4 ${type === 'Primary' ? 'border-green-500 bg-green-50' : 'border-gray-400 bg-gray-100'} rounded-r-lg p-3`}>
+                                // Build flowing narrative
+                                const firstSentence = sentences[0];
+                                const restSentences = sentences.slice(1);
+                                if (restSentences.length === 0) {
+                                  return `${staffFirstName} ${firstSentence}.`;
+                                }
+                                return `${staffFirstName} ${firstSentence}, ${restSentences.join(', ')}.`;
+                              };
+                              const narrative = buildMatchingNarrative();
+                              return <div key={sid} className={`pl-3 border-l-4 ${type === 'Primary' ? 'border-green-500 bg-green-50' : 'border-gray-400 bg-gray-100'} rounded-r-lg p-3`}>
                                           <div className="flex items-center gap-2 flex-wrap">
                                             <span className="font-semibold text-sm">{s.name}</span>
                                             <span className={`text-xs px-2 py-0.5 rounded-full ${type === 'Primary' ? 'bg-green-200 text-green-800' : 'bg-gray-200 text-gray-600'}`}>
@@ -1047,64 +958,43 @@ export const Matching = () => {
                                               {narrative}
                                             </div>}
                                         </div>;
-                          })}
+                            })}
                                   </div> : <div className="text-sm text-orange-600 mt-2">No staff assigned</div>}
                               </div>;
-                    })}
+                      })}
                           {locationUsers.length === 0 && <div className="text-sm text-muted-foreground italic">No service users in this location</div>}
                         </div>
                         
                         {/* Unassigned Staff in this location */}
                         {(() => {
-                    const unassignedStaff = locationStaff.filter(s => !serviceUsers.some(u => u.primaryStaffIds.includes(s.id) || u.backupStaffIds.includes(s.id)));
-                    if (unassignedStaff.length === 0) return null;
-                    const currentWeek = WEEKS[0];
-                    const totalUnallocatedHours = unassignedStaff.reduce((sum, s) => sum + (s.forecastHours[currentWeek] || 0), 0);
-                    return <div className="mt-4 pt-4 border-t border-dashed">
-                              <div className="flex items-center justify-between mb-3">
-                                <div className="text-sm font-semibold text-muted-foreground">Unallocated Carers</div>
-                              </div>
-                              <div className="flex flex-wrap gap-2">
-                                {unassignedStaff.map(s => {
-                                  const availableHours = s.forecastHours[currentWeek] || 0;
-                                  return (
-                                    <div key={s.id} className="inline-flex items-center bg-orange-50 border border-orange-200 rounded-full px-3 py-1.5 gap-2">
-                                      <span className="text-xs font-medium text-orange-800">{s.name}</span>
-                                      <span className="text-xs bg-orange-200 text-orange-900 px-1.5 py-0.5 rounded-full">
-                                        {availableHours}h
-                                      </span>
-                                    </div>
-                                  );
-                                })}
-                              </div>
-                            </div>;
-                  })()}
+                      const unassignedStaff = locationStaff.filter(s => !serviceUsers.some(u => u.primaryStaffIds.includes(s.id) || u.backupStaffIds.includes(s.id)));
+                      if (unassignedStaff.length === 0) return null;
+                      const currentWeek = WEEKS[0];
+                      const totalUnallocatedHours = unassignedStaff.reduce((sum, s) => sum + (s.forecastHours[currentWeek] || 0), 0);
+                      return;
+                    })()}
                       </div>;
                 })}
 
                   {/* Unallocated Staff Section at the Bottom */}
                   {(() => {
-                    // Get all staff that aren't assigned to any service user (primary or backup)
-                    let unallocatedStaff = staff.filter(s => 
-                      !serviceUsers.some(u => u.primaryStaffIds.includes(s.id) || u.backupStaffIds.includes(s.id))
-                    );
-                    
-                    // Apply filters
-                    if (managerFilter !== "all") {
-                      unallocatedStaff = unallocatedStaff.filter(s => s.manager === managerFilter);
-                    }
-                    if (locationFilter !== "all") {
-                      unallocatedStaff = unallocatedStaff.filter(s => s.location === locationFilter);
-                    }
-                    
-                    if (unallocatedStaff.length === 0) return null;
-                    
-                    const currentWeek = WEEKS[0];
-                    const totalUnallocatedHours = unallocatedStaff.reduce((sum, s) => sum + (s.forecastHours[currentWeek] || 0), 0);
-                    
-                    return (
-                      <div className="rounded-2xl overflow-hidden shadow-md bg-white border border-border mt-6">
-                        <div className="px-6 py-4" style={{ backgroundColor: '#f97316' }}>
+                  // Get all staff that aren't assigned to any service user (primary or backup)
+                  let unallocatedStaff = staff.filter(s => !serviceUsers.some(u => u.primaryStaffIds.includes(s.id) || u.backupStaffIds.includes(s.id)));
+
+                  // Apply filters
+                  if (managerFilter !== "all") {
+                    unallocatedStaff = unallocatedStaff.filter(s => s.manager === managerFilter);
+                  }
+                  if (locationFilter !== "all") {
+                    unallocatedStaff = unallocatedStaff.filter(s => s.location === locationFilter);
+                  }
+                  if (unallocatedStaff.length === 0) return null;
+                  const currentWeek = WEEKS[0];
+                  const totalUnallocatedHours = unallocatedStaff.reduce((sum, s) => sum + (s.forecastHours[currentWeek] || 0), 0);
+                  return <div className="rounded-2xl overflow-hidden shadow-md bg-white border border-border mt-6">
+                        <div className="px-6 py-4" style={{
+                      backgroundColor: '#f97316'
+                    }}>
                           <h3 className="font-bold text-xl text-white print:text-sm">Unallocated Staff</h3>
                           <span className="text-sm text-white/80">
                             {unallocatedStaff.length} staff • {totalUnallocatedHours}h available this week
@@ -1113,9 +1003,8 @@ export const Matching = () => {
                         <div className="p-6">
                           <div className="flex flex-wrap gap-3">
                             {unallocatedStaff.map(s => {
-                              const availableHours = s.forecastHours[currentWeek] || 0;
-                              return (
-                                <div key={s.id} className="inline-flex items-center bg-orange-50 border border-orange-200 rounded-lg px-4 py-2 gap-3">
+                          const availableHours = s.forecastHours[currentWeek] || 0;
+                          return <div key={s.id} className="inline-flex items-center bg-orange-50 border border-orange-200 rounded-lg px-4 py-2 gap-3">
                                   <div className="flex flex-col">
                                     <span className="text-sm font-medium text-orange-800">{s.name}</span>
                                     <span className="text-xs text-orange-600">{s.location}</span>
@@ -1123,14 +1012,12 @@ export const Matching = () => {
                                   <span className="text-sm bg-orange-200 text-orange-900 px-2 py-1 rounded-full font-medium">
                                     {availableHours}h available
                                   </span>
-                                </div>
-                              );
-                            })}
+                                </div>;
+                        })}
                           </div>
                         </div>
-                      </div>
-                    );
-                  })()}
+                      </div>;
+                })()}
                 </div>
               </div>
             </div>
@@ -1151,9 +1038,7 @@ export const Matching = () => {
                       </SelectTrigger>
                       <SelectContent className="bg-white z-50">
                         <SelectItem value="all">All Managers</SelectItem>
-                        {managers.map(mgr => (
-                          <SelectItem key={mgr} value={mgr}>{mgr}</SelectItem>
-                        ))}
+                        {managers.map(mgr => <SelectItem key={mgr} value={mgr}>{mgr}</SelectItem>)}
                       </SelectContent>
                     </Select>
                     <Select value={userLocationFilter} onValueChange={setUserLocationFilter}>
@@ -1163,9 +1048,7 @@ export const Matching = () => {
                       </SelectTrigger>
                       <SelectContent className="bg-white z-50">
                         <SelectItem value="all">All Locations</SelectItem>
-                        {locations.map(loc => (
-                          <SelectItem key={loc} value={loc}>{loc}</SelectItem>
-                        ))}
+                        {locations.map(loc => <SelectItem key={loc} value={loc}>{loc}</SelectItem>)}
                       </SelectContent>
                     </Select>
                     <Button onClick={() => setIsAddUserOpen(true)}>
@@ -1193,82 +1076,68 @@ export const Matching = () => {
                       {serviceUsers.filter(user => (userLocationFilter === "all" || user.location === userLocationFilter) && (userManagerFilter === "all" || user.manager === userManagerFilter)).map(user => <TableRow key={user.id}>
                           {/* Name */}
                           <TableCell className="font-medium cursor-pointer hover:bg-muted/50" onDoubleClick={() => {
-                        setEditingCell({
-                          id: user.id,
-                          field: 'name',
-                          type: 'user'
-                        });
-                        setEditValue(user.name);
-                      }}>
+                          setEditingCell({
+                            id: user.id,
+                            field: 'name',
+                            type: 'user'
+                          });
+                          setEditValue(user.name);
+                        }}>
                             {editingCell?.id === user.id && editingCell?.field === 'name' && editingCell?.type === 'user' ? <Input value={editValue} onChange={e => setEditValue(e.target.value)} onBlur={() => {
-                          setServiceUsers(prev => prev.map(u => u.id === user.id ? {
-                            ...u,
-                            name: editValue
-                          } : u));
-                          setEditingCell(null);
-                        }} onKeyDown={e => {
-                          if (e.key === 'Enter') {
                             setServiceUsers(prev => prev.map(u => u.id === user.id ? {
                               ...u,
                               name: editValue
                             } : u));
                             setEditingCell(null);
-                          } else if (e.key === 'Escape') {
-                            setEditingCell(null);
-                          }
-                        }} autoFocus className="h-8 bg-white" /> : user.name}
+                          }} onKeyDown={e => {
+                            if (e.key === 'Enter') {
+                              setServiceUsers(prev => prev.map(u => u.id === user.id ? {
+                                ...u,
+                                name: editValue
+                              } : u));
+                              setEditingCell(null);
+                            } else if (e.key === 'Escape') {
+                              setEditingCell(null);
+                            }
+                          }} autoFocus className="h-8 bg-white" /> : user.name}
                           </TableCell>
                           {/* Manager */}
                           <TableCell>
-                            {editingCell?.id === user.id && editingCell?.field === 'manager' && editingCell?.type === 'user' ? (
-                              <div className="flex gap-1">
-                                <Input 
-                                  value={editValue} 
-                                  onChange={e => setEditValue(e.target.value)} 
-                                  onBlur={() => {
-                                    if (editValue.trim()) {
-                                      setServiceUsers(prev => prev.map(u => u.id === user.id ? {
-                                        ...u,
-                                        manager: editValue.trim()
-                                      } : u));
-                                    }
-                                    setEditingCell(null);
-                                  }} 
-                                  onKeyDown={e => {
-                                    if (e.key === 'Enter' && editValue.trim()) {
-                                      setServiceUsers(prev => prev.map(u => u.id === user.id ? {
-                                        ...u,
-                                        manager: editValue.trim()
-                                      } : u));
-                                      setEditingCell(null);
-                                    } else if (e.key === 'Escape') {
-                                      setEditingCell(null);
-                                    }
-                                  }} 
-                                  autoFocus 
-                                  placeholder="Enter new manager..." 
-                                  className="h-8 bg-white min-w-[150px]" 
-                                />
-                              </div>
-                            ) : (
-                              <Select 
-                                value={user.manager || ''} 
-                                onValueChange={value => {
-                                  if (value === '__add_new__') {
-                                    setEditingCell({
-                                      id: user.id,
-                                      field: 'manager',
-                                      type: 'user'
-                                    });
-                                    setEditValue('');
-                                  } else {
-                                    setServiceUsers(prev => prev.map(u => u.id === user.id ? {
-                                      ...u,
-                                      manager: value
-                                    } : u));
-                                  }
-                                }}
-                              >
+                            {editingCell?.id === user.id && editingCell?.field === 'manager' && editingCell?.type === 'user' ? <div className="flex gap-1">
+                                <Input value={editValue} onChange={e => setEditValue(e.target.value)} onBlur={() => {
+                              if (editValue.trim()) {
+                                setServiceUsers(prev => prev.map(u => u.id === user.id ? {
+                                  ...u,
+                                  manager: editValue.trim()
+                                } : u));
+                              }
+                              setEditingCell(null);
+                            }} onKeyDown={e => {
+                              if (e.key === 'Enter' && editValue.trim()) {
+                                setServiceUsers(prev => prev.map(u => u.id === user.id ? {
+                                  ...u,
+                                  manager: editValue.trim()
+                                } : u));
+                                setEditingCell(null);
+                              } else if (e.key === 'Escape') {
+                                setEditingCell(null);
+                              }
+                            }} autoFocus placeholder="Enter new manager..." className="h-8 bg-white min-w-[150px]" />
+                              </div> : <Select value={user.manager || ''} onValueChange={value => {
+                            if (value === '__add_new__') {
+                              setEditingCell({
+                                id: user.id,
+                                field: 'manager',
+                                type: 'user'
+                              });
+                              setEditValue('');
+                            } else {
+                              setServiceUsers(prev => prev.map(u => u.id === user.id ? {
+                                ...u,
+                                manager: value
+                              } : u));
+                            }
+                          }}>
                                 <SelectTrigger className="h-8 bg-white min-w-[130px]">
                                   <SelectValue placeholder="Select manager" />
                                 </SelectTrigger>
@@ -1281,46 +1150,45 @@ export const Matching = () => {
                                     </div>
                                   </SelectItem>
                                 </SelectContent>
-                              </Select>
-                            )}
+                              </Select>}
                           </TableCell>
                           {/* Location */}
                           <TableCell>
                             {editingCell?.id === user.id && editingCell?.field === 'location' && editingCell?.type === 'user' ? <div className="flex gap-1">
                                 <Input value={editValue} onChange={e => setEditValue(e.target.value)} onBlur={() => {
-                            if (editValue.trim()) {
-                              setServiceUsers(prev => prev.map(u => u.id === user.id ? {
-                                ...u,
-                                location: editValue.trim()
-                              } : u));
-                            }
-                            setEditingCell(null);
-                          }} onKeyDown={e => {
-                            if (e.key === 'Enter' && editValue.trim()) {
-                              setServiceUsers(prev => prev.map(u => u.id === user.id ? {
-                                ...u,
-                                location: editValue.trim()
-                              } : u));
+                              if (editValue.trim()) {
+                                setServiceUsers(prev => prev.map(u => u.id === user.id ? {
+                                  ...u,
+                                  location: editValue.trim()
+                                } : u));
+                              }
                               setEditingCell(null);
-                            } else if (e.key === 'Escape') {
-                              setEditingCell(null);
-                            }
-                          }} autoFocus placeholder="Enter new location..." className="h-8 bg-white min-w-[150px]" />
+                            }} onKeyDown={e => {
+                              if (e.key === 'Enter' && editValue.trim()) {
+                                setServiceUsers(prev => prev.map(u => u.id === user.id ? {
+                                  ...u,
+                                  location: editValue.trim()
+                                } : u));
+                                setEditingCell(null);
+                              } else if (e.key === 'Escape') {
+                                setEditingCell(null);
+                              }
+                            }} autoFocus placeholder="Enter new location..." className="h-8 bg-white min-w-[150px]" />
                               </div> : <Select value={user.location} onValueChange={value => {
-                          if (value === '__add_new__') {
-                            setEditingCell({
-                              id: user.id,
-                              field: 'location',
-                              type: 'user'
-                            });
-                            setEditValue('');
-                          } else {
-                            setServiceUsers(prev => prev.map(u => u.id === user.id ? {
-                              ...u,
-                              location: value
-                            } : u));
-                          }
-                        }}>
+                            if (value === '__add_new__') {
+                              setEditingCell({
+                                id: user.id,
+                                field: 'location',
+                                type: 'user'
+                              });
+                              setEditValue('');
+                            } else {
+                              setServiceUsers(prev => prev.map(u => u.id === user.id ? {
+                                ...u,
+                                location: value
+                              } : u));
+                            }
+                          }}>
                                 <SelectTrigger className="h-8 bg-white min-w-[130px]">
                                   <SelectValue placeholder="Select location" />
                                 </SelectTrigger>
@@ -1337,114 +1205,88 @@ export const Matching = () => {
                           </TableCell>
                           {/* Typical Weekly Hours */}
                           <TableCell>
-                            <Input 
-                              type="number" 
-                              value={user.typicalWeeklyHours} 
-                              onChange={e => {
-                                const value = parseFloat(e.target.value) || 0;
-                                // Update typical hours and sync all weeks in forecastHours
-                                const updatedForecast: WeeklyForecast = {};
-                                WEEKS.forEach(week => {
-                                  updatedForecast[week] = value;
-                                });
-                                setServiceUsers(prev => prev.map(u => u.id === user.id ? {
-                                  ...u,
-                                  typicalWeeklyHours: value,
-                                  forecastHours: updatedForecast
-                                } : u));
-                              }} 
-                              className="h-8 w-20 text-center bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" 
-                            />
+                            <Input type="number" value={user.typicalWeeklyHours} onChange={e => {
+                            const value = parseFloat(e.target.value) || 0;
+                            // Update typical hours and sync all weeks in forecastHours
+                            const updatedForecast: WeeklyForecast = {};
+                            WEEKS.forEach(week => {
+                              updatedForecast[week] = value;
+                            });
+                            setServiceUsers(prev => prev.map(u => u.id === user.id ? {
+                              ...u,
+                              typicalWeeklyHours: value,
+                              forecastHours: updatedForecast
+                            } : u));
+                          }} className="h-8 w-20 text-center bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
                           </TableCell>
                           {/* Gender Preference */}
                           <TableCell>
                             <Select value={user.genderPreference} onValueChange={(value: GenderPreference) => {
-                              setServiceUsers(prev => prev.map(u => u.id === user.id ? {
-                                ...u,
-                                genderPreference: value
-                              } : u));
-                            }}>
+                            setServiceUsers(prev => prev.map(u => u.id === user.id ? {
+                              ...u,
+                              genderPreference: value
+                            } : u));
+                          }}>
                               <SelectTrigger className="h-8 w-32 bg-white">
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent className="bg-white z-50">
-                                {GENDER_PREFERENCES.map(pref => (
-                                  <SelectItem key={pref} value={pref}>{pref}</SelectItem>
-                                ))}
+                                {GENDER_PREFERENCES.map(pref => <SelectItem key={pref} value={pref}>{pref}</SelectItem>)}
                               </SelectContent>
                             </Select>
                           </TableCell>
                           {/* Support Needs */}
                           <TableCell>
-                            {editingCell?.id === user.id && editingCell?.field === 'supportNeeds' && editingCell?.type === 'user' ? (
-                              <Input 
-                                value={editValue} 
-                                onChange={e => setEditValue(e.target.value)} 
-                                onBlur={() => {
-                                  if (editValue.trim()) {
-                                    setServiceUsers(prev => prev.map(u => u.id === user.id ? {
-                                      ...u,
-                                      supportNeeds: [...u.supportNeeds, editValue.trim()]
-                                    } : u));
-                                  }
-                                  setEditingCell(null);
-                                }} 
-                                onKeyDown={e => {
-                                  if (e.key === 'Enter' && editValue.trim()) {
-                                    setServiceUsers(prev => prev.map(u => u.id === user.id ? {
-                                      ...u,
-                                      supportNeeds: [...u.supportNeeds, editValue.trim()]
-                                    } : u));
-                                    setEditingCell(null);
-                                  } else if (e.key === 'Escape') {
-                                    setEditingCell(null);
-                                  }
-                                }} 
-                                autoFocus 
-                                placeholder="Enter new support need..." 
-                                className="h-8 bg-white min-w-[150px]" 
-                              />
-                            ) : (
-                              <div className="flex flex-wrap gap-1 items-center">
-                                {user.supportNeeds.slice(0, 9).map(need => (
-                                  <Badge key={need} variant="secondary" className="text-xs flex items-center gap-1">
+                            {editingCell?.id === user.id && editingCell?.field === 'supportNeeds' && editingCell?.type === 'user' ? <Input value={editValue} onChange={e => setEditValue(e.target.value)} onBlur={() => {
+                            if (editValue.trim()) {
+                              setServiceUsers(prev => prev.map(u => u.id === user.id ? {
+                                ...u,
+                                supportNeeds: [...u.supportNeeds, editValue.trim()]
+                              } : u));
+                            }
+                            setEditingCell(null);
+                          }} onKeyDown={e => {
+                            if (e.key === 'Enter' && editValue.trim()) {
+                              setServiceUsers(prev => prev.map(u => u.id === user.id ? {
+                                ...u,
+                                supportNeeds: [...u.supportNeeds, editValue.trim()]
+                              } : u));
+                              setEditingCell(null);
+                            } else if (e.key === 'Escape') {
+                              setEditingCell(null);
+                            }
+                          }} autoFocus placeholder="Enter new support need..." className="h-8 bg-white min-w-[150px]" /> : <div className="flex flex-wrap gap-1 items-center">
+                                {user.supportNeeds.slice(0, 9).map(need => <Badge key={need} variant="secondary" className="text-xs flex items-center gap-1">
                                     {need}
-                                    <X 
-                                      className="h-3 w-3 cursor-pointer hover:text-destructive" 
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        setServiceUsers(prev => prev.map(u => u.id === user.id ? {
-                                          ...u,
-                                          supportNeeds: u.supportNeeds.filter(n => n !== need)
-                                        } : u));
-                                      }}
-                                    />
-                                  </Badge>
-                                ))}
-                                {user.supportNeeds.length > 9 && (
-                                  <Badge variant="outline" className="text-xs">+{user.supportNeeds.length - 9}</Badge>
-                                )}
-                                <Select 
-                                  value="" 
-                                  onValueChange={value => {
-                                    if (value === '__add_new__') {
-                                      setEditingCell({ id: user.id, field: 'supportNeeds', type: 'user' });
-                                      setEditValue('');
-                                    } else if (!user.supportNeeds.includes(value)) {
-                                      setServiceUsers(prev => prev.map(u => u.id === user.id ? {
-                                        ...u,
-                                        supportNeeds: [...u.supportNeeds, value]
-                                      } : u));
-                                    }
-                                  }}
-                                >
+                                    <X className="h-3 w-3 cursor-pointer hover:text-destructive" onClick={e => {
+                                e.stopPropagation();
+                                setServiceUsers(prev => prev.map(u => u.id === user.id ? {
+                                  ...u,
+                                  supportNeeds: u.supportNeeds.filter(n => n !== need)
+                                } : u));
+                              }} />
+                                  </Badge>)}
+                                {user.supportNeeds.length > 9 && <Badge variant="outline" className="text-xs">+{user.supportNeeds.length - 9}</Badge>}
+                                <Select value="" onValueChange={value => {
+                              if (value === '__add_new__') {
+                                setEditingCell({
+                                  id: user.id,
+                                  field: 'supportNeeds',
+                                  type: 'user'
+                                });
+                                setEditValue('');
+                              } else if (!user.supportNeeds.includes(value)) {
+                                setServiceUsers(prev => prev.map(u => u.id === user.id ? {
+                                  ...u,
+                                  supportNeeds: [...u.supportNeeds, value]
+                                } : u));
+                              }
+                            }}>
                                   <SelectTrigger className="h-6 w-6 p-0 border-dashed">
                                     <Plus className="h-3 w-3" />
                                   </SelectTrigger>
                                   <SelectContent className="bg-white z-50">
-                                    {supportTypes.filter(t => !user.supportNeeds.includes(t)).map(type => (
-                                      <SelectItem key={type} value={type}>{type}</SelectItem>
-                                    ))}
+                                    {supportTypes.filter(t => !user.supportNeeds.includes(t)).map(type => <SelectItem key={type} value={type}>{type}</SelectItem>)}
                                     <SelectItem value="__add_new__" className="text-primary font-medium">
                                       <div className="flex items-center gap-1">
                                         <Plus className="h-3 w-3" />
@@ -1453,80 +1295,60 @@ export const Matching = () => {
                                     </SelectItem>
                                   </SelectContent>
                                 </Select>
-                              </div>
-                            )}
+                              </div>}
                           </TableCell>
                           {/* Interests */}
                           <TableCell>
-                            {editingCell?.id === user.id && editingCell?.field === 'interests' && editingCell?.type === 'user' ? (
-                              <Input 
-                                value={editValue} 
-                                onChange={e => setEditValue(e.target.value)} 
-                                onBlur={() => {
-                                  if (editValue.trim()) {
-                                    setServiceUsers(prev => prev.map(u => u.id === user.id ? {
-                                      ...u,
-                                      preferences: [...u.preferences, editValue.trim()]
-                                    } : u));
-                                  }
-                                  setEditingCell(null);
-                                }} 
-                                onKeyDown={e => {
-                                  if (e.key === 'Enter' && editValue.trim()) {
-                                    setServiceUsers(prev => prev.map(u => u.id === user.id ? {
-                                      ...u,
-                                      preferences: [...u.preferences, editValue.trim()]
-                                    } : u));
-                                    setEditingCell(null);
-                                  } else if (e.key === 'Escape') {
-                                    setEditingCell(null);
-                                  }
-                                }} 
-                                autoFocus 
-                                placeholder="Enter new interest..." 
-                                className="h-8 bg-white min-w-[150px]" 
-                              />
-                            ) : (
-                              <div className="flex flex-wrap gap-1 items-center">
-                                {user.preferences.slice(0, 9).map(pref => (
-                                  <Badge key={pref} variant="outline" className="text-xs flex items-center gap-1">
+                            {editingCell?.id === user.id && editingCell?.field === 'interests' && editingCell?.type === 'user' ? <Input value={editValue} onChange={e => setEditValue(e.target.value)} onBlur={() => {
+                            if (editValue.trim()) {
+                              setServiceUsers(prev => prev.map(u => u.id === user.id ? {
+                                ...u,
+                                preferences: [...u.preferences, editValue.trim()]
+                              } : u));
+                            }
+                            setEditingCell(null);
+                          }} onKeyDown={e => {
+                            if (e.key === 'Enter' && editValue.trim()) {
+                              setServiceUsers(prev => prev.map(u => u.id === user.id ? {
+                                ...u,
+                                preferences: [...u.preferences, editValue.trim()]
+                              } : u));
+                              setEditingCell(null);
+                            } else if (e.key === 'Escape') {
+                              setEditingCell(null);
+                            }
+                          }} autoFocus placeholder="Enter new interest..." className="h-8 bg-white min-w-[150px]" /> : <div className="flex flex-wrap gap-1 items-center">
+                                {user.preferences.slice(0, 9).map(pref => <Badge key={pref} variant="outline" className="text-xs flex items-center gap-1">
                                     {pref}
-                                    <X 
-                                      className="h-3 w-3 cursor-pointer hover:text-destructive" 
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        setServiceUsers(prev => prev.map(u => u.id === user.id ? {
-                                          ...u,
-                                          preferences: u.preferences.filter(p => p !== pref)
-                                        } : u));
-                                      }}
-                                    />
-                                  </Badge>
-                                ))}
-                                {user.preferences.length > 9 && (
-                                  <Badge variant="outline" className="text-xs">+{user.preferences.length - 9}</Badge>
-                                )}
-                                <Select 
-                                  value="" 
-                                  onValueChange={value => {
-                                    if (value === '__add_new__') {
-                                      setEditingCell({ id: user.id, field: 'interests', type: 'user' });
-                                      setEditValue('');
-                                    } else if (!user.preferences.includes(value)) {
-                                      setServiceUsers(prev => prev.map(u => u.id === user.id ? {
-                                        ...u,
-                                        preferences: [...u.preferences, value]
-                                      } : u));
-                                    }
-                                  }}
-                                >
+                                    <X className="h-3 w-3 cursor-pointer hover:text-destructive" onClick={e => {
+                                e.stopPropagation();
+                                setServiceUsers(prev => prev.map(u => u.id === user.id ? {
+                                  ...u,
+                                  preferences: u.preferences.filter(p => p !== pref)
+                                } : u));
+                              }} />
+                                  </Badge>)}
+                                {user.preferences.length > 9 && <Badge variant="outline" className="text-xs">+{user.preferences.length - 9}</Badge>}
+                                <Select value="" onValueChange={value => {
+                              if (value === '__add_new__') {
+                                setEditingCell({
+                                  id: user.id,
+                                  field: 'interests',
+                                  type: 'user'
+                                });
+                                setEditValue('');
+                              } else if (!user.preferences.includes(value)) {
+                                setServiceUsers(prev => prev.map(u => u.id === user.id ? {
+                                  ...u,
+                                  preferences: [...u.preferences, value]
+                                } : u));
+                              }
+                            }}>
                                   <SelectTrigger className="h-6 w-6 p-0 border-dashed">
                                     <Plus className="h-3 w-3" />
                                   </SelectTrigger>
                                   <SelectContent className="bg-white z-50">
-                                    {allInterests.filter(i => !user.preferences.includes(i)).map(interest => (
-                                      <SelectItem key={interest} value={interest}>{interest}</SelectItem>
-                                    ))}
+                                    {allInterests.filter(i => !user.preferences.includes(i)).map(interest => <SelectItem key={interest} value={interest}>{interest}</SelectItem>)}
                                     <SelectItem value="__add_new__" className="text-primary font-medium">
                                       <div className="flex items-center gap-1">
                                         <Plus className="h-3 w-3" />
@@ -1535,8 +1357,7 @@ export const Matching = () => {
                                     </SelectItem>
                                   </SelectContent>
                                 </Select>
-                              </div>
-                            )}
+                              </div>}
                           </TableCell>
                           {/* Delete */}
                           <TableCell>
@@ -1566,8 +1387,7 @@ export const Matching = () => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {serviceUsers.filter(user => (userLocationFilter === "all" || user.location === userLocationFilter) && (userManagerFilter === "all" || user.manager === userManagerFilter)).map(user => (
-                        <>
+                      {serviceUsers.filter(user => (userLocationFilter === "all" || user.location === userLocationFilter) && (userManagerFilter === "all" || user.manager === userManagerFilter)).map(user => <>
                           {/* Service User Row - Required Hours */}
                           <TableRow key={user.id} className="bg-blue-50">
                             <TableCell className="font-medium sticky left-0 bg-blue-50">
@@ -1576,53 +1396,37 @@ export const Matching = () => {
                                 <span className="text-xs text-muted-foreground">Required Hours</span>
                               </div>
                             </TableCell>
-                            {WEEKS.map(week => (
-                              <TableCell key={week} className="text-center">
-                                <Input 
-                                  type="number" 
-                                  value={user.forecastHours[week] || 0} 
-                                  onChange={e => {
-                                    const value = parseFloat(e.target.value) || 0;
-                                    setServiceUsers(prev => prev.map(u => u.id === user.id ? {
-                                      ...u,
-                                      forecastHours: { ...u.forecastHours, [week]: value }
-                                    } : u));
-                                  }} 
-                                  className="h-8 w-16 text-center bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" 
-                                />
-                              </TableCell>
-                            ))}
+                            {WEEKS.map(week => <TableCell key={week} className="text-center">
+                                <Input type="number" value={user.forecastHours[week] || 0} onChange={e => {
+                              const value = parseFloat(e.target.value) || 0;
+                              setServiceUsers(prev => prev.map(u => u.id === user.id ? {
+                                ...u,
+                                forecastHours: {
+                                  ...u.forecastHours,
+                                  [week]: value
+                                }
+                              } : u));
+                            }} className="h-8 w-16 text-center bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+                              </TableCell>)}
                           </TableRow>
                           
                           {/* Primary Staff Rows - with hours allocation */}
                           {user.primaryStaffIds.map(staffId => {
-                            const staffMember = getStaffById(staffId);
-                            if (!staffMember) return null;
-                            return (
-                              <TableRow key={`${user.id}-${staffId}-primary`} className="bg-green-50">
+                          const staffMember = getStaffById(staffId);
+                          if (!staffMember) return null;
+                          return <TableRow key={`${user.id}-${staffId}-primary`} className="bg-green-50">
                                 <TableCell className="sticky left-0 bg-green-50 pl-6">
                                   <div className="flex items-center gap-2">
                                     <Badge className="bg-green-200 text-green-800 text-xs">Primary</Badge>
                                     <span className="text-sm">{staffMember.name}</span>
-                                    <X 
-                                      className="h-3 w-3 cursor-pointer text-red-500 hover:text-red-700" 
-                                      onClick={() => unassignStaff(user.id, staffId, 'primary')}
-                                    />
+                                    <X className="h-3 w-3 cursor-pointer text-red-500 hover:text-red-700" onClick={() => unassignStaff(user.id, staffId, 'primary')} />
                                   </div>
                                 </TableCell>
-                                {WEEKS.map(week => (
-                                  <TableCell key={week} className="text-center">
-                                    <Input 
-                                      type="number" 
-                                      value={getStaffAllocation(user, staffId, week)} 
-                                      onChange={e => updateStaffAllocation(user.id, staffId, week, parseFloat(e.target.value) || 0)} 
-                                      className="h-8 w-16 text-center bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" 
-                                    />
-                                  </TableCell>
-                                ))}
-                              </TableRow>
-                            );
-                          })}
+                                {WEEKS.map(week => <TableCell key={week} className="text-center">
+                                    <Input type="number" value={getStaffAllocation(user, staffId, week)} onChange={e => updateStaffAllocation(user.id, staffId, week, parseFloat(e.target.value) || 0)} className="h-8 w-16 text-center bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+                                  </TableCell>)}
+                              </TableRow>;
+                        })}
                           
                           {/* Unallocated Hours Row */}
                           <TableRow key={`${user.id}-unallocated`} className="bg-orange-50">
@@ -1630,81 +1434,59 @@ export const Matching = () => {
                               <span className="text-sm font-medium text-orange-700">Unallocated Hours</span>
                             </TableCell>
                             {WEEKS.map(week => {
-                              const requiredHours = user.forecastHours[week] || 0;
-                              const allocatedHours = user.staffAllocations.reduce((sum, alloc) => sum + (alloc.allocatedHours[week] || 0), 0);
-                              const unallocatedHours = requiredHours - allocatedHours;
-                              return (
-                                <TableCell key={week} className="text-center">
+                            const requiredHours = user.forecastHours[week] || 0;
+                            const allocatedHours = user.staffAllocations.reduce((sum, alloc) => sum + (alloc.allocatedHours[week] || 0), 0);
+                            const unallocatedHours = requiredHours - allocatedHours;
+                            return <TableCell key={week} className="text-center">
                                   <span className={`text-sm font-medium ${unallocatedHours > 0 ? 'text-orange-700' : unallocatedHours < 0 ? 'text-red-700' : 'text-green-700'}`}>
                                     {unallocatedHours}
                                   </span>
-                                </TableCell>
-                              );
-                            })}
+                                </TableCell>;
+                          })}
                           </TableRow>
 
                           {/* Backup Staff Rows - no hours allocation */}
                           {user.backupStaffIds.map(staffId => {
-                            const staffMember = getStaffById(staffId);
-                            if (!staffMember) return null;
-                            return (
-                              <TableRow key={`${user.id}-${staffId}-backup`} className="bg-gray-50">
+                          const staffMember = getStaffById(staffId);
+                          if (!staffMember) return null;
+                          return <TableRow key={`${user.id}-${staffId}-backup`} className="bg-gray-50">
                                 <TableCell className="sticky left-0 bg-gray-50 pl-6">
                                   <div className="flex items-center gap-2">
                                     <Badge variant="outline" className="text-xs">Backup</Badge>
                                     <span className="text-sm">{staffMember.name}</span>
-                                    <X 
-                                      className="h-3 w-3 cursor-pointer text-red-500 hover:text-red-700" 
-                                      onClick={() => unassignStaff(user.id, staffId, 'backup')}
-                                    />
+                                    <X className="h-3 w-3 cursor-pointer text-red-500 hover:text-red-700" onClick={() => unassignStaff(user.id, staffId, 'backup')} />
                                   </div>
                                 </TableCell>
-                                {WEEKS.map(week => (
-                                  <TableCell key={week} className="text-center text-xs text-muted-foreground">
+                                {WEEKS.map(week => <TableCell key={week} className="text-center text-xs text-muted-foreground">
                                     {staffMember.forecastHours[week] || 0}h avail
-                                  </TableCell>
-                                ))}
-                              </TableRow>
-                            );
-                          })}
+                                  </TableCell>)}
+                              </TableRow>;
+                        })}
                           
                           {/* Add Staff Row */}
                           <TableRow key={`${user.id}-add-staff`} className="border-b-2">
                             <TableCell className="sticky left-0 bg-background pl-6" colSpan={WEEKS.length + 1}>
                               <div className="flex gap-2">
-                                <SearchableStaffSelect 
-                                  options={getRankedStaff(user, [...user.primaryStaffIds, ...user.backupStaffIds]).map(({
-                                    staff: s,
-                                    score
-                                  }) => ({
-                                    id: s.id,
-                                    name: s.name,
-                                    score
-                                  }))} 
-                                  onSelect={value => checkGenderAndOpenDialog(user.id, value, 'primary')} 
-                                  placeholder="+ Add Primary Staff" 
-                                  triggerClassName="w-[160px]" 
-                                  className="w-[200px]" 
-                                />
-                                <SearchableStaffSelect 
-                                  options={getRankedStaff(user, [...user.primaryStaffIds, ...user.backupStaffIds]).map(({
-                                    staff: s,
-                                    score
-                                  }) => ({
-                                    id: s.id,
-                                    name: s.name,
-                                    score
-                                  }))} 
-                                  onSelect={value => checkGenderAndOpenDialog(user.id, value, 'backup')} 
-                                  placeholder="+ Add Backup Staff" 
-                                  triggerClassName="w-[160px]" 
-                                  className="w-[200px]" 
-                                />
+                                <SearchableStaffSelect options={getRankedStaff(user, [...user.primaryStaffIds, ...user.backupStaffIds]).map(({
+                                staff: s,
+                                score
+                              }) => ({
+                                id: s.id,
+                                name: s.name,
+                                score
+                              }))} onSelect={value => checkGenderAndOpenDialog(user.id, value, 'primary')} placeholder="+ Add Primary Staff" triggerClassName="w-[160px]" className="w-[200px]" />
+                                <SearchableStaffSelect options={getRankedStaff(user, [...user.primaryStaffIds, ...user.backupStaffIds]).map(({
+                                staff: s,
+                                score
+                              }) => ({
+                                id: s.id,
+                                name: s.name,
+                                score
+                              }))} onSelect={value => checkGenderAndOpenDialog(user.id, value, 'backup')} placeholder="+ Add Backup Staff" triggerClassName="w-[160px]" className="w-[200px]" />
                               </div>
                             </TableCell>
                           </TableRow>
-                        </>
-                      ))}
+                        </>)}
                     </TableBody>
                   </Table>
                 </div>
@@ -1727,9 +1509,7 @@ export const Matching = () => {
                       </SelectTrigger>
                       <SelectContent className="bg-white z-50">
                         <SelectItem value="all">All Managers</SelectItem>
-                        {managers.map(mgr => (
-                          <SelectItem key={mgr} value={mgr}>{mgr}</SelectItem>
-                        ))}
+                        {managers.map(mgr => <SelectItem key={mgr} value={mgr}>{mgr}</SelectItem>)}
                       </SelectContent>
                     </Select>
                     <Select value={staffLocationFilter} onValueChange={setStaffLocationFilter}>
@@ -1739,9 +1519,7 @@ export const Matching = () => {
                       </SelectTrigger>
                       <SelectContent className="bg-white z-50">
                         <SelectItem value="all">All Locations</SelectItem>
-                        {locations.map(loc => (
-                          <SelectItem key={loc} value={loc}>{loc}</SelectItem>
-                        ))}
+                        {locations.map(loc => <SelectItem key={loc} value={loc}>{loc}</SelectItem>)}
                       </SelectContent>
                     </Select>
                     <Button onClick={() => setIsAddStaffOpen(true)}>
@@ -1770,55 +1548,41 @@ export const Matching = () => {
                           <TableCell className="font-medium">{s.name}</TableCell>
                           {/* Manager */}
                           <TableCell>
-                            {editingCell?.id === s.id && editingCell?.field === 'manager' && editingCell?.type === 'staff' ? (
-                              <div className="flex gap-1">
-                                <Input 
-                                  value={editValue} 
-                                  onChange={e => setEditValue(e.target.value)} 
-                                  onBlur={() => {
-                                    if (editValue.trim()) {
-                                      setStaff(prev => prev.map(staff => staff.id === s.id ? {
-                                        ...staff,
-                                        manager: editValue.trim()
-                                      } : staff));
-                                    }
-                                    setEditingCell(null);
-                                  }} 
-                                  onKeyDown={e => {
-                                    if (e.key === 'Enter' && editValue.trim()) {
-                                      setStaff(prev => prev.map(staff => staff.id === s.id ? {
-                                        ...staff,
-                                        manager: editValue.trim()
-                                      } : staff));
-                                      setEditingCell(null);
-                                    } else if (e.key === 'Escape') {
-                                      setEditingCell(null);
-                                    }
-                                  }} 
-                                  autoFocus 
-                                  placeholder="Enter new manager..." 
-                                  className="h-8 bg-white min-w-[150px]" 
-                                />
-                              </div>
-                            ) : (
-                              <Select 
-                                value={s.manager || ''} 
-                                onValueChange={value => {
-                                  if (value === '__add_new__') {
-                                    setEditingCell({
-                                      id: s.id,
-                                      field: 'manager',
-                                      type: 'staff'
-                                    });
-                                    setEditValue('');
-                                  } else {
-                                    setStaff(prev => prev.map(staff => staff.id === s.id ? {
-                                      ...staff,
-                                      manager: value
-                                    } : staff));
-                                  }
-                                }}
-                              >
+                            {editingCell?.id === s.id && editingCell?.field === 'manager' && editingCell?.type === 'staff' ? <div className="flex gap-1">
+                                <Input value={editValue} onChange={e => setEditValue(e.target.value)} onBlur={() => {
+                              if (editValue.trim()) {
+                                setStaff(prev => prev.map(staff => staff.id === s.id ? {
+                                  ...staff,
+                                  manager: editValue.trim()
+                                } : staff));
+                              }
+                              setEditingCell(null);
+                            }} onKeyDown={e => {
+                              if (e.key === 'Enter' && editValue.trim()) {
+                                setStaff(prev => prev.map(staff => staff.id === s.id ? {
+                                  ...staff,
+                                  manager: editValue.trim()
+                                } : staff));
+                                setEditingCell(null);
+                              } else if (e.key === 'Escape') {
+                                setEditingCell(null);
+                              }
+                            }} autoFocus placeholder="Enter new manager..." className="h-8 bg-white min-w-[150px]" />
+                              </div> : <Select value={s.manager || ''} onValueChange={value => {
+                            if (value === '__add_new__') {
+                              setEditingCell({
+                                id: s.id,
+                                field: 'manager',
+                                type: 'staff'
+                              });
+                              setEditValue('');
+                            } else {
+                              setStaff(prev => prev.map(staff => staff.id === s.id ? {
+                                ...staff,
+                                manager: value
+                              } : staff));
+                            }
+                          }}>
                                 <SelectTrigger className="h-8 bg-white min-w-[130px]">
                                   <SelectValue placeholder="Select manager" />
                                 </SelectTrigger>
@@ -1831,107 +1595,91 @@ export const Matching = () => {
                                     </div>
                                   </SelectItem>
                                 </SelectContent>
-                              </Select>
-                            )}
+                              </Select>}
                           </TableCell>
                           <TableCell>
-                            <Select 
-                              value={s.location} 
-                              onValueChange={(value) => {
-                                if (value === "__add_new__") {
-                                  const newLocation = prompt("Enter new location:");
-                                  if (newLocation && newLocation.trim()) {
-                                    setStaff(prev => prev.map(staff => staff.id === s.id ? {
-                                      ...staff,
-                                      location: newLocation.trim()
-                                    } : staff));
-                                  }
-                                } else {
-                                  setStaff(prev => prev.map(staff => staff.id === s.id ? {
-                                    ...staff,
-                                    location: value
-                                  } : staff));
-                                }
-                              }}
-                            >
+                            <Select value={s.location} onValueChange={value => {
+                            if (value === "__add_new__") {
+                              const newLocation = prompt("Enter new location:");
+                              if (newLocation && newLocation.trim()) {
+                                setStaff(prev => prev.map(staff => staff.id === s.id ? {
+                                  ...staff,
+                                  location: newLocation.trim()
+                                } : staff));
+                              }
+                            } else {
+                              setStaff(prev => prev.map(staff => staff.id === s.id ? {
+                                ...staff,
+                                location: value
+                              } : staff));
+                            }
+                          }}>
                               <SelectTrigger className="h-8 w-40 bg-white">
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent className="bg-white z-50">
-                                {locations.map(loc => (
-                                  <SelectItem key={loc} value={loc}>{loc}</SelectItem>
-                                ))}
+                                {locations.map(loc => <SelectItem key={loc} value={loc}>{loc}</SelectItem>)}
                                 <SelectItem value="__add_new__">+ Add New Location</SelectItem>
                               </SelectContent>
                             </Select>
                           </TableCell>
                           <TableCell>
-                            <Input 
-                              type="number" 
-                              value={s.typicalWeeklyHours} 
-                              onChange={e => {
-                                const value = parseFloat(e.target.value) || 0;
-                                // Update staff hours
-                                setStaff(prev => prev.map(staff => staff.id === s.id ? {
-                                  ...staff,
-                                  typicalWeeklyHours: value,
-                                  forecastHours: createDefaultForecast(value)
-                                } : staff));
-                                // Zero out allocations for this staff member across all service users
-                                setServiceUsers(prev => prev.map(user => ({
-                                  ...user,
-                                  staffAllocations: user.staffAllocations.map(alloc => 
-                                    alloc.staffId === s.id 
-                                      ? { ...alloc, allocatedHours: createDefaultForecast(0) }
-                                      : alloc
-                                  )
-                                })));
-                              }} 
-                              className="h-8 w-20 text-center bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" 
-                            />
+                            <Input type="number" value={s.typicalWeeklyHours} onChange={e => {
+                            const value = parseFloat(e.target.value) || 0;
+                            // Update staff hours
+                            setStaff(prev => prev.map(staff => staff.id === s.id ? {
+                              ...staff,
+                              typicalWeeklyHours: value,
+                              forecastHours: createDefaultForecast(value)
+                            } : staff));
+                            // Zero out allocations for this staff member across all service users
+                            setServiceUsers(prev => prev.map(user => ({
+                              ...user,
+                              staffAllocations: user.staffAllocations.map(alloc => alloc.staffId === s.id ? {
+                                ...alloc,
+                                allocatedHours: createDefaultForecast(0)
+                              } : alloc)
+                            })));
+                          }} className="h-8 w-20 text-center bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
                           </TableCell>
                           {/* Gender */}
                           <TableCell>
                             <Select value={s.gender} onValueChange={(value: Gender) => {
-                              setStaff(prev => prev.map(staff => staff.id === s.id ? {
-                                ...staff,
-                                gender: value
-                              } : staff));
-                            }}>
+                            setStaff(prev => prev.map(staff => staff.id === s.id ? {
+                              ...staff,
+                              gender: value
+                            } : staff));
+                          }}>
                               <SelectTrigger className="h-8 w-36 bg-white">
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent className="bg-white z-50">
-                                {GENDERS.map(gender => (
-                                  <SelectItem key={gender} value={gender}>{gender}</SelectItem>
-                                ))}
+                                {GENDERS.map(gender => <SelectItem key={gender} value={gender}>{gender}</SelectItem>)}
                               </SelectContent>
                             </Select>
                           </TableCell>
                           <TableCell>
                             <Select value={s.contractType} onValueChange={(value: ContractType) => {
-                              setStaff(prev => prev.map(staff => staff.id === s.id ? {
-                                ...staff,
-                                contractType: value
-                              } : staff));
-                            }}>
+                            setStaff(prev => prev.map(staff => staff.id === s.id ? {
+                              ...staff,
+                              contractType: value
+                            } : staff));
+                          }}>
                               <SelectTrigger className="h-8 w-48 bg-white">
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent className="bg-white z-50">
-                                {CONTRACT_TYPES.map(type => (
-                                  <SelectItem key={type} value={type}>{type}</SelectItem>
-                                ))}
+                                {CONTRACT_TYPES.map(type => <SelectItem key={type} value={type}>{type}</SelectItem>)}
                               </SelectContent>
                             </Select>
                           </TableCell>
                           <TableCell>
                             <Select value={s.status} onValueChange={(value: "Active" | "On Leave" | "Inactive") => {
-                          setStaff(prev => prev.map(staff => staff.id === s.id ? {
-                            ...staff,
-                            status: value
-                          } : staff));
-                        }}>
+                            setStaff(prev => prev.map(staff => staff.id === s.id ? {
+                              ...staff,
+                              status: value
+                            } : staff));
+                          }}>
                               <SelectTrigger className="h-8 w-24 bg-white">
                                 <SelectValue />
                               </SelectTrigger>
@@ -1969,32 +1717,26 @@ export const Matching = () => {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {staff.filter(s => staffLocationFilter === "all" || s.location === staffLocationFilter).map(s => (
-                          <TableRow key={s.id} className="bg-green-50">
+                        {staff.filter(s => staffLocationFilter === "all" || s.location === staffLocationFilter).map(s => <TableRow key={s.id} className="bg-green-50">
                             <TableCell className="font-medium sticky left-0 bg-green-50">
                               <div className="flex flex-col">
                                 <span>{s.name}</span>
                                 <span className="text-xs text-muted-foreground">{s.location}</span>
                               </div>
                             </TableCell>
-                            {WEEKS.map(week => (
-                              <TableCell key={week} className="text-center">
-                                <Input 
-                                  type="number" 
-                                  value={s.forecastHours[week] || 0} 
-                                  onChange={e => {
-                                    const value = parseFloat(e.target.value) || 0;
-                                    setStaff(prev => prev.map(staff => staff.id === s.id ? {
-                                      ...staff,
-                                      forecastHours: { ...staff.forecastHours, [week]: value }
-                                    } : staff));
-                                  }} 
-                                  className="h-8 w-16 text-center bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" 
-                                />
-                              </TableCell>
-                            ))}
-                          </TableRow>
-                        ))}
+                            {WEEKS.map(week => <TableCell key={week} className="text-center">
+                                <Input type="number" value={s.forecastHours[week] || 0} onChange={e => {
+                            const value = parseFloat(e.target.value) || 0;
+                            setStaff(prev => prev.map(staff => staff.id === s.id ? {
+                              ...staff,
+                              forecastHours: {
+                                ...staff.forecastHours,
+                                [week]: value
+                              }
+                            } : staff));
+                          }} className="h-8 w-16 text-center bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+                              </TableCell>)}
+                          </TableRow>)}
                         <TableRow className="bg-blue-50 font-semibold">
                           <TableCell className="sticky left-0 bg-blue-50">
                             <div className="flex flex-col">
@@ -2002,11 +1744,9 @@ export const Matching = () => {
                               <span className="text-xs text-muted-foreground">All Staff</span>
                             </div>
                           </TableCell>
-                          {WEEKS.map(week => (
-                            <TableCell key={week} className="text-center font-semibold">
+                          {WEEKS.map(week => <TableCell key={week} className="text-center font-semibold">
                               {staff.filter(s => staffLocationFilter === "all" || s.location === staffLocationFilter).reduce((sum, s) => sum + (s.forecastHours[week] || 0), 0)}
-                            </TableCell>
-                          ))}
+                            </TableCell>)}
                         </TableRow>
                       </TableBody>
                     </Table>
@@ -2015,12 +1755,13 @@ export const Matching = () => {
             </Card>
             </div>
           </TabsContent>
-        </Tabs>
-        )}
+        </Tabs>}
 
         {/* Add Service User Dialog - rendered at top level for immediate display */}
         <Dialog open={isAddUserOpen} onOpenChange={setIsAddUserOpen}>
-          <DialogContent style={{ backgroundColor: '#F4F5F6' }}>
+          <DialogContent style={{
+          backgroundColor: '#F4F5F6'
+        }}>
             <DialogHeader>
               <DialogTitle>Add Service User</DialogTitle>
             </DialogHeader>
@@ -2034,77 +1775,62 @@ export const Matching = () => {
               </div>
               <div>
                 <Label>Location</Label>
-                {isAddingUserLocation ? (
-                  <div className="flex gap-2">
-                    <Input 
-                      value={newUserLocationInput} 
-                      onChange={e => {
-                        console.log('Location input changing to:', e.target.value);
-                        setNewUserLocationInput(e.target.value);
-                      }} 
-                      onKeyDown={e => {
-                        if (e.key === 'Enter' && newUserLocationInput.trim()) {
-                          e.preventDefault();
-                          const newLoc = newUserLocationInput.trim();
-                          addCustomLocation(newLoc);
-                          setNewUserForm(f => ({ ...f, location: newLoc }));
-                          setNewUserLocationInput('');
-                          setIsAddingUserLocation(false);
-                        } else if (e.key === 'Escape') {
-                          setNewUserLocationInput('');
-                          setIsAddingUserLocation(false);
-                        }
-                      }}
-                      autoFocus
-                      placeholder="Enter new location..."
-                      className="bg-white border-gray-800 flex-1"
-                    />
-                    <Button 
-                      type="button" 
-                      size="sm"
-                      onClick={() => {
-                        if (newUserLocationInput.trim()) {
-                          const newLoc = newUserLocationInput.trim();
-                          addCustomLocation(newLoc);
-                          setNewUserForm(f => ({ ...f, location: newLoc }));
-                          setNewUserLocationInput('');
-                          setIsAddingUserLocation(false);
-                        }
-                      }}
-                    >
+                {isAddingUserLocation ? <div className="flex gap-2">
+                    <Input value={newUserLocationInput} onChange={e => {
+                  console.log('Location input changing to:', e.target.value);
+                  setNewUserLocationInput(e.target.value);
+                }} onKeyDown={e => {
+                  if (e.key === 'Enter' && newUserLocationInput.trim()) {
+                    e.preventDefault();
+                    const newLoc = newUserLocationInput.trim();
+                    addCustomLocation(newLoc);
+                    setNewUserForm(f => ({
+                      ...f,
+                      location: newLoc
+                    }));
+                    setNewUserLocationInput('');
+                    setIsAddingUserLocation(false);
+                  } else if (e.key === 'Escape') {
+                    setNewUserLocationInput('');
+                    setIsAddingUserLocation(false);
+                  }
+                }} autoFocus placeholder="Enter new location..." className="bg-white border-gray-800 flex-1" />
+                    <Button type="button" size="sm" onClick={() => {
+                  if (newUserLocationInput.trim()) {
+                    const newLoc = newUserLocationInput.trim();
+                    addCustomLocation(newLoc);
+                    setNewUserForm(f => ({
+                      ...f,
+                      location: newLoc
+                    }));
+                    setNewUserLocationInput('');
+                    setIsAddingUserLocation(false);
+                  }
+                }}>
                       <Check className="h-4 w-4" />
                     </Button>
-                    <Button 
-                      type="button" 
-                      size="sm"
-                      variant="outline"
-                      onClick={() => {
-                        setNewUserLocationInput('');
-                        setIsAddingUserLocation(false);
-                      }}
-                    >
+                    <Button type="button" size="sm" variant="outline" onClick={() => {
+                  setNewUserLocationInput('');
+                  setIsAddingUserLocation(false);
+                }}>
                       <X className="h-4 w-4" />
                     </Button>
-                  </div>
-                ) : (
-                  <Select 
-                    value={newUserForm.location} 
-                    onValueChange={v => {
-                      console.log('Location select onValueChange:', v);
-                      if (v === '__add_new__') {
-                        setIsAddingUserLocation(true);
-                      } else {
-                        setNewUserForm(f => ({ ...f, location: v }));
-                      }
-                    }}
-                  >
+                  </div> : <Select value={newUserForm.location} onValueChange={v => {
+                console.log('Location select onValueChange:', v);
+                if (v === '__add_new__') {
+                  setIsAddingUserLocation(true);
+                } else {
+                  setNewUserForm(f => ({
+                    ...f,
+                    location: v
+                  }));
+                }
+              }}>
                     <SelectTrigger className="bg-white border-gray-800">
                       <SelectValue placeholder="Select location" />
                     </SelectTrigger>
                     <SelectContent className="bg-white z-[100]" position="popper" sideOffset={4}>
-                      {locations.map(loc => (
-                        <SelectItem key={loc} value={loc}>{loc}</SelectItem>
-                      ))}
+                      {locations.map(loc => <SelectItem key={loc} value={loc}>{loc}</SelectItem>)}
                       <SelectItem value="__add_new__" className="text-primary font-medium">
                         <div className="flex items-center gap-1">
                           <Plus className="h-3 w-3" />
@@ -2112,20 +1838,14 @@ export const Matching = () => {
                         </div>
                       </SelectItem>
                     </SelectContent>
-                  </Select>
-                )}
+                  </Select>}
               </div>
               <div>
                 <Label>Typical Weekly Hours</Label>
-                <Input 
-                  type="number" 
-                  value={newUserForm.typicalWeeklyHours} 
-                  onChange={e => setNewUserForm(f => ({
-                    ...f,
-                    typicalWeeklyHours: parseInt(e.target.value) || 0
-                  }))} 
-                  className="bg-white border-gray-800"
-                />
+                <Input type="number" value={newUserForm.typicalWeeklyHours} onChange={e => setNewUserForm(f => ({
+                ...f,
+                typicalWeeklyHours: parseInt(e.target.value) || 0
+              }))} className="bg-white border-gray-800" />
               </div>
               <div>
                 <Label>Support Needs (comma separated)</Label>
@@ -2144,16 +1864,14 @@ export const Matching = () => {
               <div>
                 <Label>Gender Preference</Label>
                 <Select value={newUserForm.genderPreference} onValueChange={v => setNewUserForm(f => ({
-                  ...f,
-                  genderPreference: v as GenderPreference
-                }))}>
+                ...f,
+                genderPreference: v as GenderPreference
+              }))}>
                   <SelectTrigger className="bg-white border-gray-800">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="bg-white">
-                    {GENDER_PREFERENCES.map(pref => (
-                      <SelectItem key={pref} value={pref}>{pref}</SelectItem>
-                    ))}
+                    {GENDER_PREFERENCES.map(pref => <SelectItem key={pref} value={pref}>{pref}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
@@ -2164,7 +1882,9 @@ export const Matching = () => {
 
         {/* Add Staff Dialog - rendered at top level for immediate display */}
         <Dialog open={isAddStaffOpen} onOpenChange={setIsAddStaffOpen}>
-          <DialogContent style={{ backgroundColor: '#F4F5F6' }}>
+          <DialogContent style={{
+          backgroundColor: '#F4F5F6'
+        }}>
             <DialogHeader>
               <DialogTitle>Add Staff Member</DialogTitle>
             </DialogHeader>
@@ -2178,73 +1898,58 @@ export const Matching = () => {
               </div>
               <div>
                 <Label>Location</Label>
-                {isAddingStaffLocation ? (
-                  <div className="flex gap-2">
-                    <Input 
-                      value={newStaffLocationInput} 
-                      onChange={e => setNewStaffLocationInput(e.target.value)} 
-                      onKeyDown={e => {
-                        if (e.key === 'Enter' && newStaffLocationInput.trim()) {
-                          e.preventDefault();
-                          const newLoc = newStaffLocationInput.trim();
-                          addCustomLocation(newLoc);
-                          setNewStaffForm(f => ({ ...f, location: newLoc }));
-                          setNewStaffLocationInput('');
-                          setIsAddingStaffLocation(false);
-                        } else if (e.key === 'Escape') {
-                          setNewStaffLocationInput('');
-                          setIsAddingStaffLocation(false);
-                        }
-                      }}
-                      autoFocus
-                      placeholder="Enter new location..."
-                      className="bg-white border-gray-800 flex-1" 
-                    />
-                    <Button 
-                      type="button" 
-                      size="sm"
-                      onClick={() => {
-                        if (newStaffLocationInput.trim()) {
-                          const newLoc = newStaffLocationInput.trim();
-                          addCustomLocation(newLoc);
-                          setNewStaffForm(f => ({ ...f, location: newLoc }));
-                          setNewStaffLocationInput('');
-                          setIsAddingStaffLocation(false);
-                        }
-                      }}
-                    >
+                {isAddingStaffLocation ? <div className="flex gap-2">
+                    <Input value={newStaffLocationInput} onChange={e => setNewStaffLocationInput(e.target.value)} onKeyDown={e => {
+                  if (e.key === 'Enter' && newStaffLocationInput.trim()) {
+                    e.preventDefault();
+                    const newLoc = newStaffLocationInput.trim();
+                    addCustomLocation(newLoc);
+                    setNewStaffForm(f => ({
+                      ...f,
+                      location: newLoc
+                    }));
+                    setNewStaffLocationInput('');
+                    setIsAddingStaffLocation(false);
+                  } else if (e.key === 'Escape') {
+                    setNewStaffLocationInput('');
+                    setIsAddingStaffLocation(false);
+                  }
+                }} autoFocus placeholder="Enter new location..." className="bg-white border-gray-800 flex-1" />
+                    <Button type="button" size="sm" onClick={() => {
+                  if (newStaffLocationInput.trim()) {
+                    const newLoc = newStaffLocationInput.trim();
+                    addCustomLocation(newLoc);
+                    setNewStaffForm(f => ({
+                      ...f,
+                      location: newLoc
+                    }));
+                    setNewStaffLocationInput('');
+                    setIsAddingStaffLocation(false);
+                  }
+                }}>
                       <Check className="h-4 w-4" />
                     </Button>
-                    <Button 
-                      type="button" 
-                      size="sm"
-                      variant="outline"
-                      onClick={() => {
-                        setNewStaffLocationInput('');
-                        setIsAddingStaffLocation(false);
-                      }}
-                    >
+                    <Button type="button" size="sm" variant="outline" onClick={() => {
+                  setNewStaffLocationInput('');
+                  setIsAddingStaffLocation(false);
+                }}>
                       <X className="h-4 w-4" />
                     </Button>
-                  </div>
-                ) : (
-                  <Select 
-                    value={newStaffForm.location} 
-                    onValueChange={v => {
-                      if (v === '__add_new__') {
-                        setIsAddingStaffLocation(true);
-                      } else {
-                        setNewStaffForm(f => ({ ...f, location: v }));
-                      }
-                    }}
-                  >
+                  </div> : <Select value={newStaffForm.location} onValueChange={v => {
+                if (v === '__add_new__') {
+                  setIsAddingStaffLocation(true);
+                } else {
+                  setNewStaffForm(f => ({
+                    ...f,
+                    location: v
+                  }));
+                }
+              }}>
                     <SelectTrigger className="bg-white border-gray-800">
                       <SelectValue placeholder="Select location" />
                     </SelectTrigger>
                     <SelectContent className="bg-white z-50">
-                      {locations.map(loc => (
-                        <SelectItem key={loc} value={loc}>{loc}</SelectItem>
-                      ))}
+                      {locations.map(loc => <SelectItem key={loc} value={loc}>{loc}</SelectItem>)}
                       <SelectItem value="__add_new__" className="text-primary font-medium">
                         <div className="flex items-center gap-1">
                           <Plus className="h-3 w-3" />
@@ -2252,50 +1957,40 @@ export const Matching = () => {
                         </div>
                       </SelectItem>
                     </SelectContent>
-                  </Select>
-                )}
+                  </Select>}
               </div>
               <div>
                 <Label>Typical Weekly Hours</Label>
-                <Input 
-                  type="number" 
-                  value={newStaffForm.typicalWeeklyHours} 
-                  onChange={e => setNewStaffForm(f => ({
-                    ...f,
-                    typicalWeeklyHours: parseInt(e.target.value) || 0
-                  }))} 
-                  className="bg-white border-gray-800"
-                />
+                <Input type="number" value={newStaffForm.typicalWeeklyHours} onChange={e => setNewStaffForm(f => ({
+                ...f,
+                typicalWeeklyHours: parseInt(e.target.value) || 0
+              }))} className="bg-white border-gray-800" />
               </div>
               <div>
                 <Label>Gender</Label>
                 <Select value={newStaffForm.gender} onValueChange={v => setNewStaffForm(f => ({
-                  ...f,
-                  gender: v as Gender
-                }))}>
+                ...f,
+                gender: v as Gender
+              }))}>
                   <SelectTrigger className="bg-white border-gray-800">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="bg-white">
-                    {GENDERS.map(g => (
-                      <SelectItem key={g} value={g}>{g}</SelectItem>
-                    ))}
+                    {GENDERS.map(g => <SelectItem key={g} value={g}>{g}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
               <div>
                 <Label>Contract Type</Label>
                 <Select value={newStaffForm.contractType} onValueChange={v => setNewStaffForm(f => ({
-                  ...f,
-                  contractType: v as ContractType
-                }))}>
+                ...f,
+                contractType: v as ContractType
+              }))}>
                   <SelectTrigger className="bg-white border-gray-800">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="bg-white">
-                    {CONTRACT_TYPES.map(ct => (
-                      <SelectItem key={ct} value={ct}>{ct}</SelectItem>
-                    ))}
+                    {CONTRACT_TYPES.map(ct => <SelectItem key={ct} value={ct}>{ct}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
@@ -2305,17 +2000,16 @@ export const Matching = () => {
         </Dialog>
 
         {/* Gender Mismatch Confirmation Dialog */}
-        <Dialog open={!!genderMismatchDialog} onOpenChange={(open) => !open && setGenderMismatchDialog(null)}>
+        <Dialog open={!!genderMismatchDialog} onOpenChange={open => !open && setGenderMismatchDialog(null)}>
           <DialogContent className="bg-white max-w-md">
             <DialogHeader>
               <DialogTitle>Gender Preference Mismatch</DialogTitle>
             </DialogHeader>
             {genderMismatchDialog && (() => {
-              const user = serviceUsers.find(u => u.id === genderMismatchDialog.userId);
-              const staffMember = getStaffById(genderMismatchDialog.staffId);
-              if (!user || !staffMember) return null;
-              return (
-                <div className="space-y-4 pt-4">
+            const user = serviceUsers.find(u => u.id === genderMismatchDialog.userId);
+            const staffMember = getStaffById(genderMismatchDialog.staffId);
+            if (!user || !staffMember) return null;
+            return <div className="space-y-4 pt-4">
                   <p className="text-sm text-muted-foreground">
                     <strong>{user.name}</strong> has a gender preference for <strong>{genderMismatchDialog.userPreference}</strong> carers, 
                     but <strong>{staffMember.name}</strong> is <strong>{genderMismatchDialog.staffGender}</strong>.
@@ -2331,24 +2025,22 @@ export const Matching = () => {
                       Proceed Anyway
                     </Button>
                   </div>
-                </div>
-              );
-            })()}
+                </div>;
+          })()}
           </DialogContent>
         </Dialog>
 
         {/* Support Needs & Interests Confirmation Dialog */}
-        <Dialog open={!!needsConfirmDialog} onOpenChange={(open) => !open && setNeedsConfirmDialog(null)}>
+        <Dialog open={!!needsConfirmDialog} onOpenChange={open => !open && setNeedsConfirmDialog(null)}>
           <DialogContent className="bg-white max-w-2xl">
             <DialogHeader>
               <DialogTitle>Confirm Matching Criteria</DialogTitle>
             </DialogHeader>
             {needsConfirmDialog && (() => {
-              const user = serviceUsers.find(u => u.id === needsConfirmDialog.userId);
-              const staffMember = getStaffById(needsConfirmDialog.staffId);
-              if (!user || !staffMember) return null;
-              return (
-                <div className="space-y-4 pt-4">
+            const user = serviceUsers.find(u => u.id === needsConfirmDialog.userId);
+            const staffMember = getStaffById(needsConfirmDialog.staffId);
+            if (!user || !staffMember) return null;
+            return <div className="space-y-4 pt-4">
                   <p className="text-sm text-muted-foreground">
                     Select which of <strong>{user.name}'s</strong> needs and interests <strong>{staffMember.name}</strong> can meet:
                   </p>
@@ -2363,20 +2055,14 @@ export const Matching = () => {
                       </div>
                       <div className="space-y-2 max-h-60 overflow-y-auto border rounded p-2">
                         {user.supportNeeds.map(need => {
-                          const isSelected = needsConfirmDialog.selectedNeeds.includes(need);
-                          return (
-                            <div 
-                              key={need} 
-                              className={`flex items-center gap-3 p-2 rounded border cursor-pointer hover:bg-muted/50 ${isSelected ? 'bg-green-50 border-green-300' : ''}`}
-                              onClick={() => toggleNeed(need)}
-                            >
+                      const isSelected = needsConfirmDialog.selectedNeeds.includes(need);
+                      return <div key={need} className={`flex items-center gap-3 p-2 rounded border cursor-pointer hover:bg-muted/50 ${isSelected ? 'bg-green-50 border-green-300' : ''}`} onClick={() => toggleNeed(need)}>
                               <div className={`h-4 w-4 rounded border flex items-center justify-center ${isSelected ? 'bg-primary border-primary' : 'border-gray-300'}`}>
                                 {isSelected && <Check className="h-3 w-3 text-white" />}
                               </div>
                               <span className="text-sm">{need}</span>
-                            </div>
-                          );
-                        })}
+                            </div>;
+                    })}
                       </div>
                     </div>
                     
@@ -2390,20 +2076,14 @@ export const Matching = () => {
                       </div>
                       <div className="space-y-2 max-h-60 overflow-y-auto border rounded p-2">
                         {user.preferences.map(interest => {
-                          const isSelected = needsConfirmDialog.selectedInterests.includes(interest);
-                          return (
-                            <div 
-                              key={interest} 
-                              className={`flex items-center gap-3 p-2 rounded border cursor-pointer hover:bg-muted/50 ${isSelected ? 'bg-blue-50 border-blue-300' : ''}`}
-                              onClick={() => toggleInterest(interest)}
-                            >
+                      const isSelected = needsConfirmDialog.selectedInterests.includes(interest);
+                      return <div key={interest} className={`flex items-center gap-3 p-2 rounded border cursor-pointer hover:bg-muted/50 ${isSelected ? 'bg-blue-50 border-blue-300' : ''}`} onClick={() => toggleInterest(interest)}>
                               <div className={`h-4 w-4 rounded border flex items-center justify-center ${isSelected ? 'bg-blue-600 border-blue-600' : 'border-gray-300'}`}>
                                 {isSelected && <Check className="h-3 w-3 text-white" />}
                               </div>
                               <span className="text-sm">{interest}</span>
-                            </div>
-                          );
-                        })}
+                            </div>;
+                    })}
                       </div>
                     </div>
                   </div>
@@ -2411,20 +2091,15 @@ export const Matching = () => {
                     <Button variant="outline" onClick={() => setNeedsConfirmDialog(null)}>
                       Cancel
                     </Button>
-                    <Button 
-                      onClick={confirmAssignStaff}
-                      disabled={needsConfirmDialog.selectedNeeds.length === 0}
-                    >
+                    <Button onClick={confirmAssignStaff} disabled={needsConfirmDialog.selectedNeeds.length === 0}>
                       Assign as {needsConfirmDialog.type === 'primary' ? 'Primary' : 'Backup'}
                     </Button>
                   </div>
-                </div>
-              );
-            })()}
+                </div>;
+          })()}
           </DialogContent>
         </Dialog>
       </div>
     </div>;
 };
-
 export default Matching;
