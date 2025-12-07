@@ -124,17 +124,23 @@ export const Matching = () => {
   const [isAddingUserLocation, setIsAddingUserLocation] = useState(false);
   const [isAddingStaffLocation, setIsAddingStaffLocation] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const [customLocations, setCustomLocations] = useState<string[]>([]);
+  
+  // Add a custom location to the shared pool
+  const addCustomLocation = (location: string) => {
+    if (location.trim() && !customLocations.includes(location.trim())) {
+      setCustomLocations(prev => [...prev, location.trim()]);
+    }
+  };
   
   const locations = useMemo(() => {
     const allLocations = [...new Set([
       ...serviceUsers.map(u => u.location), 
       ...staff.map(s => s.location),
-      // Include custom locations from forms so newly added locations appear immediately
-      newUserForm.location,
-      newStaffForm.location
+      ...customLocations
     ])];
     return allLocations.filter(Boolean);
-  }, [serviceUsers, staff, newUserForm.location, newStaffForm.location]);
+  }, [serviceUsers, staff, customLocations]);
   const supportTypes = useMemo(() => {
     const allNeeds = serviceUsers.flatMap(u => u.supportNeeds);
     return [...new Set(allNeeds)];
@@ -1745,11 +1751,11 @@ export const Matching = () => {
                         setNewUserLocationInput(e.target.value);
                       }} 
                       onKeyDown={e => {
-                        console.log('Key pressed:', e.key, 'Value:', newUserLocationInput);
                         if (e.key === 'Enter' && newUserLocationInput.trim()) {
                           e.preventDefault();
-                          console.log('Saving new location:', newUserLocationInput.trim());
-                          setNewUserForm(f => ({ ...f, location: newUserLocationInput.trim() }));
+                          const newLoc = newUserLocationInput.trim();
+                          addCustomLocation(newLoc);
+                          setNewUserForm(f => ({ ...f, location: newLoc }));
                           setNewUserLocationInput('');
                           setIsAddingUserLocation(false);
                         } else if (e.key === 'Escape') {
@@ -1765,10 +1771,10 @@ export const Matching = () => {
                       type="button" 
                       size="sm"
                       onClick={() => {
-                        console.log('Check button clicked, value:', newUserLocationInput);
                         if (newUserLocationInput.trim()) {
-                          console.log('Saving new location via button:', newUserLocationInput.trim());
-                          setNewUserForm(f => ({ ...f, location: newUserLocationInput.trim() }));
+                          const newLoc = newUserLocationInput.trim();
+                          addCustomLocation(newLoc);
+                          setNewUserForm(f => ({ ...f, location: newLoc }));
                           setNewUserLocationInput('');
                           setIsAddingUserLocation(false);
                         }
@@ -1887,7 +1893,10 @@ export const Matching = () => {
                       onChange={e => setNewStaffLocationInput(e.target.value)} 
                       onKeyDown={e => {
                         if (e.key === 'Enter' && newStaffLocationInput.trim()) {
-                          setNewStaffForm(f => ({ ...f, location: newStaffLocationInput.trim() }));
+                          e.preventDefault();
+                          const newLoc = newStaffLocationInput.trim();
+                          addCustomLocation(newLoc);
+                          setNewStaffForm(f => ({ ...f, location: newLoc }));
                           setNewStaffLocationInput('');
                           setIsAddingStaffLocation(false);
                         } else if (e.key === 'Escape') {
@@ -1904,7 +1913,9 @@ export const Matching = () => {
                       size="sm"
                       onClick={() => {
                         if (newStaffLocationInput.trim()) {
-                          setNewStaffForm(f => ({ ...f, location: newStaffLocationInput.trim() }));
+                          const newLoc = newStaffLocationInput.trim();
+                          addCustomLocation(newLoc);
+                          setNewStaffForm(f => ({ ...f, location: newLoc }));
                           setNewStaffLocationInput('');
                           setIsAddingStaffLocation(false);
                         }
