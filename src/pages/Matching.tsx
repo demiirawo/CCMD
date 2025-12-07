@@ -137,6 +137,10 @@ export const Matching = () => {
     try {
       const element = printAreaRef.current;
 
+      // Hide elements with pdf-hidden class during export
+      const hiddenElements = element.querySelectorAll('.pdf-hidden');
+      hiddenElements.forEach(el => (el as HTMLElement).style.display = 'none');
+
       // Add temporary padding for PDF export
       element.style.padding = '20px';
       const canvas = await html2canvas(element, {
@@ -146,8 +150,10 @@ export const Matching = () => {
         backgroundColor: '#ffffff'
       });
 
-      // Remove temporary padding
+      // Remove temporary padding and restore hidden elements
       element.style.padding = '';
+      hiddenElements.forEach(el => (el as HTMLElement).style.display = '');
+
       const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF({
         orientation: 'portrait',
@@ -166,23 +172,36 @@ export const Matching = () => {
 
       // Handle multi-page if content is too tall
       const scaledHeight = imgHeight * ratio;
-      const pageHeight = pdfHeight - 20; // margins
+      const pageContentHeight = pdfHeight - margin * 2;
 
-      if (scaledHeight <= pageHeight) {
+      if (scaledHeight <= pageContentHeight) {
         pdf.addImage(imgData, 'PNG', imgX, imgY, imgWidth * ratio, scaledHeight);
       } else {
-        let remainingHeight = scaledHeight;
-        let sourceY = 0;
-        let pageNum = 0;
-        while (remainingHeight > 0) {
-          if (pageNum > 0) pdf.addPage();
-          const sliceHeight = Math.min(pageHeight, remainingHeight);
-          const sourceSliceHeight = sliceHeight / ratio;
-          pdf.addImage(imgData, 'PNG', imgX, imgY, imgWidth * ratio, scaledHeight, undefined, 'FAST', 0);
-          remainingHeight -= pageHeight;
-          sourceY += sourceSliceHeight;
-          pageNum++;
-          if (pageNum > 20) break; // Safety limit
+        // For multi-page, we need to slice the canvas properly
+        const totalPages = Math.ceil(scaledHeight / pageContentHeight);
+        const sourcePageHeight = canvas.height / totalPages;
+        
+        for (let page = 0; page < totalPages; page++) {
+          if (page > 0) pdf.addPage();
+          
+          // Create a temporary canvas for this page slice
+          const pageCanvas = document.createElement('canvas');
+          pageCanvas.width = canvas.width;
+          pageCanvas.height = sourcePageHeight;
+          const ctx = pageCanvas.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(
+              canvas,
+              0, page * sourcePageHeight,
+              canvas.width, sourcePageHeight,
+              0, 0,
+              canvas.width, sourcePageHeight
+            );
+            const pageImgData = pageCanvas.toDataURL('image/png');
+            pdf.addImage(pageImgData, 'PNG', imgX, imgY, contentWidth, pageContentHeight);
+          }
+          
+          if (page > 20) break; // Safety limit
         }
       }
       pdf.save('staff-forecast.pdf');
@@ -660,8 +679,8 @@ export const Matching = () => {
                   }
                 `}</style>
                 <div ref={printAreaRef} className="print-area grid grid-cols-1 gap-6">
-                  {/* AI Forecast Summary */}
-                  <div className="print:hidden">
+                  {/* AI Forecast Summary - Hidden from PDF export */}
+                  <div className="pdf-hidden">
                     <ForecastAISummary
                       serviceUsers={serviceUsers}
                       staff={staff}
