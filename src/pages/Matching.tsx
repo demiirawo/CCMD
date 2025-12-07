@@ -140,12 +140,19 @@ export const Matching = () => {
     setIsExporting(true);
     try {
       const element = printAreaRef.current;
+      
+      // Add temporary padding for PDF export
+      element.style.padding = '20px';
+      
       const canvas = await html2canvas(element, {
         scale: 2,
         useCORS: true,
         logging: false,
         backgroundColor: '#ffffff'
       });
+      
+      // Remove temporary padding
+      element.style.padding = '';
       
       const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF({
@@ -156,11 +163,13 @@ export const Matching = () => {
       
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = pdf.internal.pageSize.getHeight();
+      const margin = 15; // 15mm margins
+      const contentWidth = pdfWidth - (margin * 2);
       const imgWidth = canvas.width;
       const imgHeight = canvas.height;
-      const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
-      const imgX = (pdfWidth - imgWidth * ratio) / 2;
-      const imgY = 10;
+      const ratio = contentWidth / imgWidth;
+      const imgX = margin;
+      const imgY = margin;
       
       // Handle multi-page if content is too tall
       const scaledHeight = imgHeight * ratio;
@@ -650,9 +659,9 @@ export const Matching = () => {
                     @page { size: A4; margin: 10mm; }
                   }
                 `}</style>
-                <div ref={printAreaRef} className="print-area grid grid-cols-1 gap-6">
+                <div ref={printAreaRef} className="print-area grid grid-cols-1 gap-6 bg-white">
                   {/* Staff Utilisation Forecast */}
-                  <div className="rounded-2xl overflow-hidden shadow-md bg-white">
+                  <div className="rounded-2xl overflow-hidden shadow-md bg-white border border-border">
                     <div className="px-6 py-4" style={{ backgroundColor: '#202A38' }}>
                       <h3 className="font-bold text-xl text-white print:text-sm">
                         Staff Utilisation Forecast (8 Weeks)
@@ -842,7 +851,7 @@ export const Matching = () => {
                   return reasons;
                 };
                 
-                return <div key={location} className="rounded-2xl overflow-hidden shadow-md print:border-black bg-white">
+                return <div key={location} className="rounded-2xl overflow-hidden shadow-md bg-white border border-border">
                         {/* Colored Banner Header */}
                         <div className="px-6 py-4" style={{ backgroundColor: '#202A38' }}>
                           <h3 className="font-bold text-xl text-white print:text-sm">{location}</h3>
