@@ -1540,20 +1540,26 @@ export const Matching = () => {
                                   const split = getStaffAllocationSplit(user, staffId, week);
                                   return <>
                                     <TableCell key={`${week}-solo`} className="text-center border-l px-1">
-                                      <Input 
-                                        type="number" 
-                                        value={split.solo} 
-                                        onChange={e => updateStaffAllocationSplit(user.id, staffId, week, 'solo', parseFloat(e.target.value) || 0)} 
-                                        className="h-7 w-12 text-center bg-white text-xs [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" 
-                                      />
+                                      <div className="flex flex-col items-center gap-0.5">
+                                        <span className="text-[10px] text-muted-foreground">Single</span>
+                                        <Input 
+                                          type="number" 
+                                          value={split.solo} 
+                                          onChange={e => updateStaffAllocationSplit(user.id, staffId, week, 'solo', parseFloat(e.target.value) || 0)} 
+                                          className="h-7 w-12 text-center bg-white text-xs [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" 
+                                        />
+                                      </div>
                                     </TableCell>
                                     <TableCell key={`${week}-double`} className="text-center px-1">
-                                      <Input 
-                                        type="number" 
-                                        value={split.doubleUp} 
-                                        onChange={e => updateStaffAllocationSplit(user.id, staffId, week, 'doubleUp', parseFloat(e.target.value) || 0)} 
-                                        className="h-7 w-12 text-center bg-purple-50 text-xs [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" 
-                                      />
+                                      <div className="flex flex-col items-center gap-0.5">
+                                        <span className="text-[10px] text-muted-foreground">Double</span>
+                                        <Input 
+                                          type="number" 
+                                          value={split.doubleUp} 
+                                          onChange={e => updateStaffAllocationSplit(user.id, staffId, week, 'doubleUp', parseFloat(e.target.value) || 0)} 
+                                          className="h-7 w-12 text-center bg-purple-50 text-xs [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" 
+                                        />
+                                      </div>
                                     </TableCell>
                                   </>;
                                 })}
