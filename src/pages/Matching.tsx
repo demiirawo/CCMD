@@ -483,6 +483,7 @@ export const Matching = () => {
       });
       return;
     }
+    console.log('Adding service user with data:', newUserForm);
     try {
       await addServiceUserToDb({
         name: newUserForm.name,
@@ -509,8 +510,10 @@ export const Matching = () => {
         title: "Service user added"
       });
     } catch (error) {
+      console.error('Error adding service user:', error);
       toast({
         title: "Error adding service user",
+        description: String(error),
         variant: "destructive"
       });
     }
@@ -546,8 +549,10 @@ export const Matching = () => {
         title: "Staff member added"
       });
     } catch (error) {
+      console.error('Error adding staff member:', error);
       toast({
         title: "Error adding staff member",
+        description: String(error),
         variant: "destructive"
       });
     }
