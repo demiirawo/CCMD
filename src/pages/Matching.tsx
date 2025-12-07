@@ -7,74 +7,27 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Search, Plus, MapPin, X, Edit2, Trash2, BarChart3, Printer, Check } from "lucide-react";
+import { Search, Plus, MapPin, X, Edit2, Trash2, BarChart3, Printer, Check, Loader2 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Progress } from "@/components/ui/progress";
 import { SearchableStaffSelect } from "@/components/SearchableStaffSelect";
+import { 
+  useMatchingData, 
+  WEEKS, 
+  createDefaultForecast,
+  type ServiceUser, 
+  type Staff, 
+  type Gender, 
+  type GenderPreference,
+  type ContractType,
+  type StaffAllocation,
+  type WeeklyForecast
+} from "@/hooks/useMatchingData";
 
-// Generate week labels for the next 8 weeks
-const getNext8Weeks = () => {
-  const weeks: string[] = [];
-  const now = new Date();
-  // Start from the beginning of the current week (Monday)
-  const startOfWeek = new Date(now);
-  const day = startOfWeek.getDay();
-  const diff = startOfWeek.getDate() - day + (day === 0 ? -6 : 1); // Adjust when day is Sunday
-  startOfWeek.setDate(diff);
-  startOfWeek.setHours(0, 0, 0, 0);
-  
-  for (let i = 0; i < 8; i++) {
-    const weekStart = new Date(startOfWeek);
-    weekStart.setDate(startOfWeek.getDate() + (i * 7));
-    weeks.push(weekStart.toLocaleDateString('en-GB', {
-      day: '2-digit',
-      month: 'short'
-    }));
-  }
-  return weeks;
-};
-const WEEKS = getNext8Weeks();
-interface WeeklyForecast {
-  [week: string]: number;
-}
-interface StaffAllocation {
-  staffId: string;
-  allocatedHours: WeeklyForecast;
-  confirmedNeeds: string[]; // Support needs this staff is confirmed to meet
-  confirmedInterests: string[]; // Shared interests confirmed
-}
-
-type GenderPreference = "No Preference" | "Male" | "Female";
 const GENDER_PREFERENCES: GenderPreference[] = ["No Preference", "Male", "Female"];
-
-type Gender = "Male" | "Female" | "Non-Binary" | "Prefer not to say";
 const GENDERS: Gender[] = ["Male", "Female", "Non-Binary", "Prefer not to say"];
-
-interface ServiceUser {
-  id: string;
-  name: string;
-  supportNeeds: string[];
-  preferences: string[];
-  genderPreference: GenderPreference;
-  location: string;
-  typicalWeeklyHours: number;
-  primaryStaffIds: string[];
-  backupStaffIds: string[];
-  forecastHours: WeeklyForecast;
-  staffAllocations: StaffAllocation[];
-}
-type ContractType = 
-  | "Full-Time Contract"
-  | "Part-Time Contract"
-  | "Zero-Hours Contract"
-  | "Fixed-Term Contract"
-  | "Agency or Temporary Contract"
-  | "Self-Employed/Independent Contractor"
-  | "Apprenticeship Agreement"
-  | "Bank Contract (Casual Staff)"
-  | "Volunteer";
 
 const CONTRACT_TYPES: ContractType[] = [
   "Full-Time Contract",
@@ -87,121 +40,21 @@ const CONTRACT_TYPES: ContractType[] = [
   "Bank Contract (Casual Staff)",
   "Volunteer"
 ];
-
-interface Staff {
-  id: string;
-  name: string;
-  gender: Gender;
-  location: string;
-  availability: string;
-  status: "Active" | "On Leave" | "Inactive";
-  typicalWeeklyHours: number;
-  contractType: ContractType;
-  forecastHours: WeeklyForecast;
-}
-
-// Helper to create default forecast hours
-const createDefaultForecast = (baseHours: number = 0): WeeklyForecast => {
-  const forecast: WeeklyForecast = {};
-  WEEKS.forEach(week => {
-    forecast[week] = baseHours;
-  });
-  return forecast;
-};
-const INITIAL_SERVICE_USERS: ServiceUser[] = [{
-  id: "su1",
-  name: "John Smith",
-  supportNeeds: ["Autism", "Personal Care", "Community Access"],
-  preferences: ["Enjoys gardening", "Likes quiet environments"],
-  genderPreference: "Male",
-  location: "North London",
-  typicalWeeklyHours: 21,
-  primaryStaffIds: ["s1"],
-  backupStaffIds: ["s3"],
-  forecastHours: createDefaultForecast(21),
-  staffAllocations: [{ staffId: "s1", allocatedHours: createDefaultForecast(21), confirmedNeeds: ["Autism", "Personal Care", "Community Access"], confirmedInterests: ["Enjoys gardening"] }]
-}, {
-  id: "su2",
-  name: "Mary Johnson",
-  supportNeeds: ["Hoisting", "PEG Feeding", "Dementia Care"],
-  preferences: ["Enjoys music", "Likes pets"],
-  genderPreference: "Female",
-  location: "South London",
-  typicalWeeklyHours: 30,
-  primaryStaffIds: ["s2"],
-  backupStaffIds: ["s4"],
-  forecastHours: createDefaultForecast(30),
-  staffAllocations: [{ staffId: "s2", allocatedHours: createDefaultForecast(30), confirmedNeeds: ["Hoisting", "PEG Feeding", "Dementia Care"], confirmedInterests: ["Enjoys music"] }]
-}, {
-  id: "su3",
-  name: "David Williams",
-  supportNeeds: ["Learning Disability", "Behaviour Support", "Community Access"],
-  preferences: ["Enjoys sports", "Likes cooking"],
-  genderPreference: "No Preference",
-  location: "East London",
-  typicalWeeklyHours: 25,
-  primaryStaffIds: [],
-  backupStaffIds: [],
-  forecastHours: createDefaultForecast(25),
-  staffAllocations: []
-}];
-const INITIAL_STAFF: Staff[] = [{
-  id: "s1",
-  name: "Sarah Brown",
-  gender: "Female",
-  location: "North London",
-  availability: "Full-time",
-  status: "Active",
-  typicalWeeklyHours: 40,
-  contractType: "Full-Time Contract",
-  forecastHours: createDefaultForecast(40)
-}, {
-  id: "s2",
-  name: "Emma Wilson",
-  gender: "Female",
-  location: "South London",
-  availability: "Full-time",
-  status: "Active",
-  typicalWeeklyHours: 40,
-  contractType: "Full-Time Contract",
-  forecastHours: createDefaultForecast(40)
-}, {
-  id: "s3",
-  name: "James Taylor",
-  gender: "Male",
-  location: "North London",
-  availability: "Part-time",
-  status: "Active",
-  typicalWeeklyHours: 20,
-  contractType: "Part-Time Contract",
-  forecastHours: createDefaultForecast(20)
-}, {
-  id: "s4",
-  name: "Lisa Anderson",
-  gender: "Female",
-  location: "South London",
-  availability: "Full-time",
-  status: "Active",
-  typicalWeeklyHours: 40,
-  contractType: "Full-Time Contract",
-  forecastHours: createDefaultForecast(40)
-}, {
-  id: "s5",
-  name: "Michael Chen",
-  gender: "Male",
-  location: "East London",
-  availability: "Full-time",
-  status: "Active",
-  typicalWeeklyHours: 40,
-  contractType: "Full-Time Contract",
-  forecastHours: createDefaultForecast(40)
-}];
 export const Matching = () => {
-  const {
-    toast
-  } = useToast();
-  const [serviceUsers, setServiceUsers] = useState<ServiceUser[]>(INITIAL_SERVICE_USERS);
-  const [staff, setStaff] = useState<Staff[]>(INITIAL_STAFF);
+  const { toast } = useToast();
+  const { 
+    serviceUsers, 
+    staff, 
+    loading, 
+    saving,
+    setServiceUsers, 
+    setStaff,
+    addStaff: addStaffToDb,
+    addServiceUser: addServiceUserToDb,
+    deleteStaff: deleteStaffFromDb,
+    deleteServiceUser: deleteServiceUserFromDb
+  } = useMatchingData();
+  
   const [searchTerm, setSearchTerm] = useState("");
   const [locationFilter, setLocationFilter] = useState<string>("all");
   const [supportTypeFilter, setSupportTypeFilter] = useState<string>("all");
@@ -528,7 +381,7 @@ export const Matching = () => {
       title: "Staff unassigned"
     });
   };
-  const handleAddUser = () => {
+  const handleAddUser = async () => {
     if (!newUserForm.name.trim()) {
       toast({
         title: "Please enter a name",
@@ -536,32 +389,37 @@ export const Matching = () => {
       });
       return;
     }
-    const newUser: ServiceUser = {
-      id: `su${Date.now()}`,
-      name: newUserForm.name,
-      supportNeeds: newUserForm.supportNeeds.split(",").map(s => s.trim()).filter(Boolean),
-      preferences: newUserForm.preferences.split(",").map(s => s.trim()).filter(Boolean),
-      genderPreference: "No Preference",
-      location: newUserForm.location,
-      typicalWeeklyHours: 0,
-      primaryStaffIds: [],
-      backupStaffIds: [],
-      forecastHours: createDefaultForecast(0),
-      staffAllocations: []
-    };
-    setServiceUsers(prev => [...prev, newUser]);
-    setNewUserForm({
-      name: "",
-      supportNeeds: "",
-      preferences: "",
-      location: ""
-    });
-    setIsAddUserOpen(false);
-    toast({
-      title: "Service user added"
-    });
+    try {
+      await addServiceUserToDb({
+        name: newUserForm.name,
+        supportNeeds: newUserForm.supportNeeds.split(",").map(s => s.trim()).filter(Boolean),
+        preferences: newUserForm.preferences.split(",").map(s => s.trim()).filter(Boolean),
+        genderPreference: "No Preference",
+        location: newUserForm.location,
+        typicalWeeklyHours: 0,
+        primaryStaffIds: [],
+        backupStaffIds: [],
+        forecastHours: createDefaultForecast(0),
+        staffAllocations: []
+      });
+      setNewUserForm({
+        name: "",
+        supportNeeds: "",
+        preferences: "",
+        location: ""
+      });
+      setIsAddUserOpen(false);
+      toast({
+        title: "Service user added"
+      });
+    } catch (error) {
+      toast({
+        title: "Error adding service user",
+        variant: "destructive"
+      });
+    }
   };
-  const handleAddStaff = () => {
+  const handleAddStaff = async () => {
     if (!newStaffForm.name.trim()) {
       toast({
         title: "Please enter a name",
@@ -569,45 +427,66 @@ export const Matching = () => {
       });
       return;
     }
-    const newStaffMember: Staff = {
-      id: `s${Date.now()}`,
-      name: newStaffForm.name,
-      gender: "Prefer not to say",
-      location: newStaffForm.location,
-      availability: newStaffForm.availability,
-      status: "Active",
-      typicalWeeklyHours: 40,
-      contractType: "Full-Time Contract",
-      forecastHours: createDefaultForecast(40)
-    };
-    setStaff(prev => [...prev, newStaffMember]);
-    setNewStaffForm({
-      name: "",
-      location: "",
-      availability: "Full-time"
-    });
-    setIsAddStaffOpen(false);
-    toast({
-      title: "Staff member added"
-    });
+    try {
+      await addStaffToDb({
+        name: newStaffForm.name,
+        gender: "Prefer not to say",
+        location: newStaffForm.location,
+        availability: newStaffForm.availability,
+        status: "Active",
+        typicalWeeklyHours: 40,
+        contractType: "Full-Time Contract",
+        forecastHours: createDefaultForecast(40)
+      });
+      setNewStaffForm({
+        name: "",
+        location: "",
+        availability: "Full-time"
+      });
+      setIsAddStaffOpen(false);
+      toast({
+        title: "Staff member added"
+      });
+    } catch (error) {
+      toast({
+        title: "Error adding staff member",
+        variant: "destructive"
+      });
+    }
   };
-  const handleDeleteUser = (id: string) => {
-    setServiceUsers(prev => prev.filter(u => u.id !== id));
-    toast({
-      title: "Service user removed"
-    });
+  const handleDeleteUser = async (id: string) => {
+    try {
+      await deleteServiceUserFromDb(id);
+      setServiceUsers(prev => prev.filter(u => u.id !== id));
+      toast({
+        title: "Service user removed"
+      });
+    } catch (error) {
+      toast({
+        title: "Error removing service user",
+        variant: "destructive"
+      });
+    }
   };
-  const handleDeleteStaff = (id: string) => {
-    // Also unassign from any service users
-    setServiceUsers(prev => prev.map(u => ({
-      ...u,
-      primaryStaffIds: u.primaryStaffIds.filter(sid => sid !== id),
-      backupStaffIds: u.backupStaffIds.filter(sid => sid !== id)
-    })));
-    setStaff(prev => prev.filter(s => s.id !== id));
-    toast({
-      title: "Staff member removed"
-    });
+  const handleDeleteStaff = async (id: string) => {
+    try {
+      // Also unassign from any service users
+      setServiceUsers(prev => prev.map(u => ({
+        ...u,
+        primaryStaffIds: u.primaryStaffIds.filter(sid => sid !== id),
+        backupStaffIds: u.backupStaffIds.filter(sid => sid !== id)
+      })));
+      await deleteStaffFromDb(id);
+      setStaff(prev => prev.filter(s => s.id !== id));
+      toast({
+        title: "Staff member removed"
+      });
+    } catch (error) {
+      toast({
+        title: "Error removing staff member",
+        variant: "destructive"
+      });
+    }
   };
   return <div className="min-h-screen bg-background pt-24 pb-8 px-6">
       <div className="max-w-7xl mx-auto space-y-6">
@@ -619,12 +498,26 @@ export const Matching = () => {
           </div>
         </div>
 
+        {loading ? (
+          <div className="flex items-center justify-center py-20">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <span className="ml-2">Loading matching data...</span>
+          </div>
+        ) : (
         <Tabs defaultValue="diagram" className="space-y-6">
-          <TabsList>
-            <TabsTrigger value="diagram">Summary</TabsTrigger>
-            <TabsTrigger value="users">Service Users</TabsTrigger>
-            <TabsTrigger value="staff">Staff</TabsTrigger>
-          </TabsList>
+          <div className="flex items-center justify-between">
+            <TabsList>
+              <TabsTrigger value="diagram">Summary</TabsTrigger>
+              <TabsTrigger value="users">Service Users</TabsTrigger>
+              <TabsTrigger value="staff">Staff</TabsTrigger>
+            </TabsList>
+            {saving && (
+              <div className="flex items-center text-sm text-muted-foreground">
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                Saving...
+              </div>
+            )}
+          </div>
 
           {/* Matching View */}
           <TabsContent value="diagram" className="space-y-6">
@@ -1611,6 +1504,7 @@ export const Matching = () => {
             </div>
           </TabsContent>
         </Tabs>
+        )}
 
         {/* Add Service User Dialog - rendered at top level for immediate display */}
         <Dialog open={isAddUserOpen} onOpenChange={setIsAddUserOpen}>
