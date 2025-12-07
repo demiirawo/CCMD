@@ -862,12 +862,27 @@ export const Matching = () => {
                         {(() => {
                     const unassignedStaff = locationStaff.filter(s => !serviceUsers.some(u => u.primaryStaffIds.includes(s.id) || u.backupStaffIds.includes(s.id)));
                     if (unassignedStaff.length === 0) return null;
-                    return <div className="mt-2 pt-2 border-t border-dashed">
-                              <div className="text-[10px] font-medium text-muted-foreground mb-1">Unassigned Staff:</div>
-                              <div className="flex flex-wrap gap-1">
-                                {unassignedStaff.map(s => <span key={s.id} className="text-[9px] bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded">
-                                    {s.name}
-                                  </span>)}
+                    const currentWeek = WEEKS[0];
+                    const totalUnallocatedHours = unassignedStaff.reduce((sum, s) => sum + (s.forecastHours[currentWeek] || 0), 0);
+                    return <div className="mt-3 pt-3 border-t border-dashed">
+                              <div className="flex items-center justify-between mb-2">
+                                <div className="text-[10px] font-medium text-muted-foreground">Unallocated Carers:</div>
+                                <span className="text-[9px] bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded font-medium">
+                                  {totalUnallocatedHours}h total available ({currentWeek})
+                                </span>
+                              </div>
+                              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                                {unassignedStaff.map(s => {
+                                  const availableHours = s.forecastHours[currentWeek] || 0;
+                                  return (
+                                    <div key={s.id} className="flex items-center justify-between bg-orange-50 border border-orange-200 rounded px-2 py-1.5">
+                                      <span className="text-[10px] font-medium text-orange-800 truncate">{s.name}</span>
+                                      <span className="text-[9px] bg-orange-200 text-orange-900 px-1.5 py-0.5 rounded ml-2 shrink-0">
+                                        {availableHours}h
+                                      </span>
+                                    </div>
+                                  );
+                                })}
                               </div>
                             </div>;
                   })()}
