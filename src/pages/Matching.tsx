@@ -1014,7 +1014,7 @@ export const Matching = () => {
                     return <div className="rounded-2xl overflow-hidden shadow-md bg-white border border-border mt-6">
                         <div style={{
                         backgroundColor: '#f97316'
-                      }} className="px-6 py-4 bg-[#ef2525]">
+                      }} className="px-6 py-4 bg-[#f02424]">
                           <h3 className="font-bold text-xl text-white print:text-sm">Unallocated Staff</h3>
                           <span className="text-sm text-white/80">
                             {unallocatedStaff.length} staff • {totalUnallocatedHours}h available this week
