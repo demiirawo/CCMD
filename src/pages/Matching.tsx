@@ -569,9 +569,9 @@ export const Matching = () => {
                           <TableHead className="text-xs py-1 text-right">Required Hours</TableHead>
                           <TableHead className="text-xs py-1 text-right">Allocated Hours</TableHead>
                           <TableHead className="text-xs py-1 text-right">Unallocated Hours</TableHead>
+                          <TableHead className="text-xs py-1 text-right">Utilisation Percentage</TableHead>
                           <TableHead className="text-xs py-1 text-right">Required FTE</TableHead>
                           <TableHead className="text-xs py-1 text-right">Available FTE</TableHead>
-                          <TableHead className="text-xs py-1 text-right">Utilisation Percentage</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -602,15 +602,23 @@ export const Matching = () => {
                           const requiredFTE = requiredHours / FTE_HOURS;
                           const availableFTE = totalAvailableHours / FTE_HOURS;
                           
+                          // Determine utilisation color: green = good (70-100%), amber = risk (<70%), red = bad (>100%)
+                          let utilisationColor = "text-amber-600"; // default: risk (under-utilised)
+                          if (utilisation >= 70 && utilisation <= 100) {
+                            utilisationColor = "text-green-600"; // good
+                          } else if (utilisation > 100) {
+                            utilisationColor = "text-red-600"; // bad (overworked)
+                          }
+                          
                           return (
                             <TableRow key={week}>
                               <TableCell className="font-medium text-xs py-1">{week}</TableCell>
                               <TableCell className="text-right text-xs py-1">{requiredHours.toFixed(1)}</TableCell>
                               <TableCell className="text-right text-xs py-1">{allocatedHours.toFixed(1)}</TableCell>
                               <TableCell className="text-right text-xs py-1">{unallocatedHours.toFixed(1)}</TableCell>
+                              <TableCell className={`text-right text-xs py-1 font-semibold ${utilisationColor}`}>{utilisation.toFixed(1)}%</TableCell>
                               <TableCell className="text-right text-xs py-1">{requiredFTE.toFixed(2)}</TableCell>
                               <TableCell className="text-right text-xs py-1">{availableFTE.toFixed(2)}</TableCell>
-                              <TableCell className="text-right text-xs py-1">{utilisation.toFixed(1)}%</TableCell>
                             </TableRow>
                           );
                         })}
