@@ -715,6 +715,27 @@ export const Matching = () => {
                       <h3 className="font-bold text-xl text-white print:text-sm">
                         Staff Utilisation Forecast (8 Weeks)
                       </h3>
+                      <span className="text-sm text-white/80">
+                        {(() => {
+                          let count = serviceUsers.length;
+                          let staffCount = staff.length;
+                          if (managerFilter !== "all" || locationFilter !== "all") {
+                            let filteredUsers = serviceUsers;
+                            let filteredStaff = staff;
+                            if (managerFilter !== "all") {
+                              filteredUsers = filteredUsers.filter(u => u.manager === managerFilter);
+                              filteredStaff = filteredStaff.filter(s => s.manager === managerFilter);
+                            }
+                            if (locationFilter !== "all") {
+                              filteredUsers = filteredUsers.filter(u => u.location === locationFilter);
+                              filteredStaff = filteredStaff.filter(s => s.location === locationFilter);
+                            }
+                            count = filteredUsers.length;
+                            staffCount = filteredStaff.length;
+                          }
+                          return `${count} service users • ${staffCount} staff`;
+                        })()}
+                      </span>
                     </div>
                     <div className="p-6">
                     <Table>
@@ -873,24 +894,7 @@ export const Matching = () => {
                     </Table>
                     </div>
                   </div>
-                  
-                  <div className="text-xs text-muted-foreground">
-                    {(() => {
-                      let count = serviceUsers.length;
-                      let label = `${count} service users`;
-                      if (managerFilter !== "all" || locationFilter !== "all") {
-                        let filtered = serviceUsers;
-                        if (managerFilter !== "all") filtered = filtered.filter(u => u.manager === managerFilter);
-                        if (locationFilter !== "all") filtered = filtered.filter(u => u.location === locationFilter);
-                        count = filtered.length;
-                        const filters = [];
-                        if (managerFilter !== "all") filters.push(`manager: ${managerFilter}`);
-                        if (locationFilter !== "all") filters.push(`location: ${locationFilter}`);
-                        label = `${count} service users (${filters.join(', ')})`;
-                      }
-                      return label;
-                    })()} • Sum of forecasted hours shown above
-                  </div>
+
 
                   
                   {locations
