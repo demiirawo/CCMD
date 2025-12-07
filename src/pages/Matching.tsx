@@ -61,6 +61,7 @@ export const Matching = () => {
   
   const [searchTerm, setSearchTerm] = useState("");
   const [locationFilter, setLocationFilter] = useState<string>("all");
+  const [managerFilter, setManagerFilter] = useState<string>("all");
   const [supportTypeFilter, setSupportTypeFilter] = useState<string>("all");
   const [userLocationFilter, setUserLocationFilter] = useState<string>("all");
   const [staffLocationFilter, setStaffLocationFilter] = useState<string>("all");
@@ -653,8 +654,19 @@ export const Matching = () => {
           {/* Matching View */}
           <TabsContent value="diagram" className="space-y-6">
             <div className="grid grid-cols-1 gap-6">
-              {/* Location Filter and Print Button */}
+              {/* Manager, Location Filter and Print Button */}
               <div className="flex justify-end gap-3 print:hidden">
+                <Select value={managerFilter} onValueChange={setManagerFilter}>
+                  <SelectTrigger className="w-48 bg-white">
+                    <SelectValue placeholder="All Managers" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white z-50">
+                    <SelectItem value="all">All Managers</SelectItem>
+                    {managers.map(mgr => (
+                      <SelectItem key={mgr} value={mgr}>{mgr}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <Select value={locationFilter} onValueChange={setLocationFilter}>
                   <SelectTrigger className="w-48 bg-white">
                     <MapPin className="h-4 w-4 mr-2" />
@@ -801,13 +813,18 @@ export const Matching = () => {
                       </TableHeader>
                       <TableBody>
                         {WEEKS.map((week) => {
-                          // Filter by location if a specific location is selected
-                          const filteredUsers = locationFilter === "all" 
-                            ? serviceUsers 
-                            : serviceUsers.filter(u => u.location === locationFilter);
-                          const filteredStaff = locationFilter === "all"
-                            ? staff
-                            : staff.filter(s => s.location === locationFilter);
+                          // Filter by manager and location
+                          let filteredUsers = serviceUsers;
+                          let filteredStaff = staff;
+                          
+                          if (managerFilter !== "all") {
+                            filteredUsers = filteredUsers.filter(u => u.manager === managerFilter);
+                            filteredStaff = filteredStaff.filter(s => s.manager === managerFilter);
+                          }
+                          if (locationFilter !== "all") {
+                            filteredUsers = filteredUsers.filter(u => u.location === locationFilter);
+                            filteredStaff = filteredStaff.filter(s => s.location === locationFilter);
+                          }
                           
                           const requiredHours = filteredUsers.reduce((sum, u) => sum + (u.forecastHours[week] || 0), 0);
                           // Allocated hours = sum of all staff allocations across service users for this week
@@ -853,10 +870,21 @@ export const Matching = () => {
                       </TableBody>
                     </Table>
                     <div className="mt-2 text-xs text-muted-foreground">
-                      {locationFilter === "all" 
-                        ? `${serviceUsers.length} service users` 
-                        : `${serviceUsers.filter(u => u.location === locationFilter).length} service users in ${locationFilter}`
-                      } • Sum of forecasted hours shown above
+                      {(() => {
+                        let count = serviceUsers.length;
+                        let label = `${count} service users`;
+                        if (managerFilter !== "all" || locationFilter !== "all") {
+                          let filtered = serviceUsers;
+                          if (managerFilter !== "all") filtered = filtered.filter(u => u.manager === managerFilter);
+                          if (locationFilter !== "all") filtered = filtered.filter(u => u.location === locationFilter);
+                          count = filtered.length;
+                          const filters = [];
+                          if (managerFilter !== "all") filters.push(`manager: ${managerFilter}`);
+                          if (locationFilter !== "all") filters.push(`location: ${locationFilter}`);
+                          label = `${count} service users (${filters.join(', ')})`;
+                        }
+                        return label;
+                      })()} • Sum of forecasted hours shown above
                     </div>
                     </div>
                   </div>
@@ -865,8 +893,15 @@ export const Matching = () => {
                   {locations
                     .filter(location => locationFilter === "all" || location === locationFilter)
                     .map(location => {
-                const locationUsers = serviceUsers.filter(u => u.location === location);
-                const locationStaff = staff.filter(s => s.location === location);
+                let locationUsers = serviceUsers.filter(u => u.location === location);
+                let locationStaff = staff.filter(s => s.location === location);
+                
+                // Also filter by manager if selected
+                if (managerFilter !== "all") {
+                  locationUsers = locationUsers.filter(u => u.manager === managerFilter);
+                  locationStaff = locationStaff.filter(s => s.manager === managerFilter);
+                }
+                
                 if (locationUsers.length === 0 && locationStaff.length === 0) return null;
 
                 // Helper to get match reasons between user and staff (based on confirmed needs)
