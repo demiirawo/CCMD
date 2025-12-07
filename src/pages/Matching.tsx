@@ -1375,8 +1375,8 @@ export const Matching = () => {
                             } else if (e.key === 'Escape') {
                               setEditingCell(null);
                             }
-                          }} autoFocus placeholder="Enter new support need..." className="h-8 bg-white min-w-[150px]" /> : <div className="flex flex-wrap gap-1 items-center">
-                                {user.supportNeeds.slice(0, 9).map(need => <Badge key={need} variant="secondary" className="text-xs flex items-center gap-1">
+          }} autoFocus placeholder="Enter new support need..." className="h-8 bg-white min-w-[150px]" /> : <div className="flex flex-wrap gap-1 items-center">
+                                {user.supportNeeds.map(need => <Badge key={need} variant="secondary" className="text-xs flex items-center gap-1">
                                     {need}
                                     <X className="h-3 w-3 cursor-pointer hover:text-destructive" onClick={e => {
                                 e.stopPropagation();
@@ -1386,7 +1386,6 @@ export const Matching = () => {
                                 } : u));
                               }} />
                                   </Badge>)}
-                                {user.supportNeeds.length > 9 && <Badge variant="outline" className="text-xs">+{user.supportNeeds.length - 9}</Badge>}
                                 <Select value="" onValueChange={value => {
                               if (value === '__add_new__') {
                                 setEditingCell({
@@ -1437,8 +1436,8 @@ export const Matching = () => {
                             } else if (e.key === 'Escape') {
                               setEditingCell(null);
                             }
-                          }} autoFocus placeholder="Enter new interest..." className="h-8 bg-white min-w-[150px]" /> : <div className="flex flex-wrap gap-1 items-center">
-                                {user.preferences.slice(0, 9).map(pref => <Badge key={pref} variant="outline" className="text-xs flex items-center gap-1">
+          }} autoFocus placeholder="Enter new interest..." className="h-8 bg-white min-w-[150px]" /> : <div className="flex flex-wrap gap-1 items-center">
+                                {user.preferences.map(pref => <Badge key={pref} variant="outline" className="text-xs flex items-center gap-1">
                                     {pref}
                                     <X className="h-3 w-3 cursor-pointer hover:text-destructive" onClick={e => {
                                 e.stopPropagation();
@@ -1448,7 +1447,6 @@ export const Matching = () => {
                                 } : u));
                               }} />
                                   </Badge>)}
-                                {user.preferences.length > 9 && <Badge variant="outline" className="text-xs">+{user.preferences.length - 9}</Badge>}
                                 <Select value="" onValueChange={value => {
                               if (value === '__add_new__') {
                                 setEditingCell({
@@ -1520,12 +1518,9 @@ export const Matching = () => {
                             </TableCell>
                             <TableCell className="bg-blue-50">
                               <div className="flex flex-wrap gap-1">
-                                {user.supportNeeds.slice(0, 3).map(need => (
+                                {user.supportNeeds.map(need => (
                                   <Badge key={need} variant="secondary" className="text-xs">{need}</Badge>
                                 ))}
-                                {user.supportNeeds.length > 3 && (
-                                  <Badge variant="outline" className="text-xs">+{user.supportNeeds.length - 3} more</Badge>
-                                )}
                               </div>
                             </TableCell>
                           </TableRow>
@@ -1552,23 +1547,17 @@ export const Matching = () => {
                                     {confirmedNeeds.length > 0 && (
                                       <div className="flex flex-wrap gap-1 items-center">
                                         <span className="text-xs text-muted-foreground mr-1">Needs:</span>
-                                        {confirmedNeeds.slice(0, 3).map(need => (
+                                        {confirmedNeeds.map(need => (
                                           <Badge key={need} variant="outline" className="text-xs bg-green-100">{need}</Badge>
                                         ))}
-                                        {confirmedNeeds.length > 3 && (
-                                          <span className="text-xs text-muted-foreground">+{confirmedNeeds.length - 3}</span>
-                                        )}
                                       </div>
                                     )}
                                     {confirmedInterests.length > 0 && (
                                       <div className="flex flex-wrap gap-1 items-center">
                                         <span className="text-xs text-muted-foreground mr-1">Interests:</span>
-                                        {confirmedInterests.slice(0, 3).map(interest => (
+                                        {confirmedInterests.map(interest => (
                                           <Badge key={interest} variant="outline" className="text-xs bg-blue-100">{interest}</Badge>
                                         ))}
-                                        {confirmedInterests.length > 3 && (
-                                          <span className="text-xs text-muted-foreground">+{confirmedInterests.length - 3}</span>
-                                        )}
                                       </div>
                                     )}
                                     {confirmedNeeds.length === 0 && confirmedInterests.length === 0 && (
