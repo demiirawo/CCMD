@@ -696,12 +696,14 @@ export const Matching = () => {
                           const requiredFTE = requiredHours / FTE_HOURS;
                           const availableFTE = totalAvailableHours / FTE_HOURS;
                           
-                          // Determine utilisation color: green = good (70-100%), amber = risk (<70%), red = bad (>100%)
-                          let utilisationColor = "text-amber-600"; // default: risk (under-utilised)
-                          if (utilisation >= 70 && utilisation <= 100) {
-                            utilisationColor = "text-green-600"; // good
-                          } else if (utilisation > 100) {
-                            utilisationColor = "text-red-600"; // bad (overworked)
+                          // Determine utilisation color based on thresholds
+                          let utilisationColor = "text-amber-600"; // default: under-utilised (<70%)
+                          if (utilisation >= 70 && utilisation < 80) {
+                            utilisationColor = "text-green-600"; // safe zone (70-80%)
+                          } else if (utilisation >= 80 && utilisation < 90) {
+                            utilisationColor = "text-amber-600"; // high zone (80-90%)
+                          } else if (utilisation >= 90) {
+                            utilisationColor = "text-red-600"; // over-utilised (>90%)
                           }
                           
                           return (
