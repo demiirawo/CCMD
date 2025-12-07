@@ -638,8 +638,8 @@ export const Matching = () => {
                         </div>
                         {/* Support needs tags - two rows */}
                         <div className="flex flex-wrap gap-1 justify-center mb-3">
-                          {user.supportNeeds.slice(0, 4).map(need => <Badge key={need} variant="secondary" className="text-xs">{need}</Badge>)}
-                          {user.supportNeeds.length > 4 && <Badge variant="outline" className="text-xs bg-background">+{user.supportNeeds.length - 4}</Badge>}
+                          {user.supportNeeds.slice(0, 6).map(need => <Badge key={need} variant="secondary" className="text-xs">{need}</Badge>)}
+                          {user.supportNeeds.length > 6 && <Badge variant="outline" className="text-xs bg-background">+{user.supportNeeds.length - 6}</Badge>}
                         </div>
                       
                       {/* Staff assignments with dropdowns */}
@@ -765,8 +765,8 @@ export const Matching = () => {
                         <p className="text-xs text-muted-foreground mb-2">{s.availability}</p>
                         {/* Skills tags - two rows */}
                         <div className="flex flex-wrap gap-1 justify-center">
-                          {s.skills.slice(0, 4).map(skill => <Badge key={skill} variant="outline" className="text-xs bg-primary/10">{skill}</Badge>)}
-                          {s.skills.length > 4 && <Badge variant="outline" className="text-xs bg-primary/10">+{s.skills.length - 4}</Badge>}
+                          {s.skills.slice(0, 6).map(skill => <Badge key={skill} variant="outline" className="text-xs bg-primary/10">{skill}</Badge>)}
+                          {s.skills.length > 6 && <Badge variant="outline" className="text-xs bg-primary/10">+{s.skills.length - 6}</Badge>}
                         </div>
                       </CardContent>
                     </Card>
