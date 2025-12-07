@@ -88,7 +88,7 @@ const AppContent = () => {
           </>
         </ProtectedRoute>
       } />
-      <Route path="/matching" element={
+      <Route path="/forecast" element={
         <ProtectedRoute requireCompany>
           <>
             <Navigation />
