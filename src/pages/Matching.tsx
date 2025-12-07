@@ -942,99 +942,14 @@ export const Matching = () => {
 
             {/* Service User Needs Summary */}
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  
-                  Service User Needs Tracker
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="sticky left-0 bg-background">Name</TableHead>
-                        {MONTHS.slice(0, 6).map(month => <TableHead key={month} className="text-right min-w-[100px]">{month} Forecast Hours</TableHead>)}
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {serviceUsers.map(user => <TableRow key={user.id}>
-                          <TableCell className="font-medium sticky left-0 bg-background">{user.name}</TableCell>
-                          {MONTHS.slice(0, 6).map(month => <TableCell key={month} className="text-right">
-                              <Input type="number" value={user.forecastHours[month] || 0} onChange={e => {
-                          const value = parseFloat(e.target.value) || 0;
-                          setServiceUsers(prev => prev.map(u => u.id === user.id ? {
-                            ...u,
-                            forecastHours: {
-                              ...u.forecastHours,
-                              [month]: value
-                            }
-                          } : u));
-                        }} className="h-8 w-20 text-right bg-white" />
-                            </TableCell>)}
-                        </TableRow>)}
-                      <TableRow className="bg-muted/50 font-semibold">
-                        <TableCell className="sticky left-0 bg-muted/50">Total</TableCell>
-                        {MONTHS.slice(0, 6).map(month => <TableCell key={month} className="text-right">
-                            Sum {serviceUsers.reduce((sum, u) => sum + (u.forecastHours[month] || 0), 0)}
-                          </TableCell>)}
-                      </TableRow>
-                    </TableBody>
-                  </Table>
-                </div>
-              </CardContent>
+              
+              
             </Card>
 
             {/* Staff Capability Summary */}
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  
-                  Staff Capability Tracker
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="sticky left-0 bg-background">Employee Name</TableHead>
-                        <TableHead>Status</TableHead>
-                        {MONTHS.slice(0, 6).map(month => <TableHead key={month} className="text-right min-w-[100px]">{month} Forecast Hours</TableHead>)}
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {staff.map(s => <TableRow key={s.id}>
-                          <TableCell className="font-medium sticky left-0 bg-background">{s.name}</TableCell>
-                          <TableCell>
-                            <Badge className={s.status === "Active" ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"}>
-                              {s.status}
-                            </Badge>
-                          </TableCell>
-                          {MONTHS.slice(0, 6).map(month => <TableCell key={month} className="text-right">
-                              <Input type="number" value={s.forecastHours[month] || 0} onChange={e => {
-                          const value = parseFloat(e.target.value) || 0;
-                          setStaff(prev => prev.map(staff => staff.id === s.id ? {
-                            ...staff,
-                            forecastHours: {
-                              ...staff.forecastHours,
-                              [month]: value
-                            }
-                          } : staff));
-                        }} className="h-8 w-20 text-right bg-white" />
-                            </TableCell>)}
-                        </TableRow>)}
-                      <TableRow className="bg-muted/50 font-semibold">
-                        <TableCell className="sticky left-0 bg-muted/50">Total</TableCell>
-                        <TableCell></TableCell>
-                        {MONTHS.slice(0, 6).map(month => <TableCell key={month} className="text-right">
-                            Sum {staff.reduce((sum, s) => sum + (s.forecastHours[month] || 0), 0)}
-                          </TableCell>)}
-                      </TableRow>
-                    </TableBody>
-                  </Table>
-                </div>
-              </CardContent>
+              
+              
             </Card>
           </TabsContent>
 
