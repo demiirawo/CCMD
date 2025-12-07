@@ -1402,11 +1402,21 @@ export const Matching = () => {
                               value={s.typicalWeeklyHours} 
                               onChange={e => {
                                 const value = parseFloat(e.target.value) || 0;
+                                // Update staff hours
                                 setStaff(prev => prev.map(staff => staff.id === s.id ? {
                                   ...staff,
                                   typicalWeeklyHours: value,
                                   forecastHours: createDefaultForecast(value)
                                 } : staff));
+                                // Zero out allocations for this staff member across all service users
+                                setServiceUsers(prev => prev.map(user => ({
+                                  ...user,
+                                  staffAllocations: user.staffAllocations.map(alloc => 
+                                    alloc.staffId === s.id 
+                                      ? { ...alloc, allocatedHours: createDefaultForecast(0) }
+                                      : alloc
+                                  )
+                                })));
                               }} 
                               className="h-8 w-20 text-center bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" 
                             />
