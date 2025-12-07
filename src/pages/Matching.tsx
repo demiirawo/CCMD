@@ -82,7 +82,7 @@ export const Matching = () => {
   // Inline editing states
   const [editingCell, setEditingCell] = useState<{
     id: string;
-    field: 'name' | 'supportNeeds' | 'location' | 'interests';
+    field: 'name' | 'supportNeeds' | 'location' | 'interests' | 'manager';
     type: 'user' | 'staff';
   } | null>(null);
   const [editValue, setEditValue] = useState<string>("");
@@ -1117,35 +1117,69 @@ export const Matching = () => {
                           </TableCell>
                           {/* Manager */}
                           <TableCell>
-                            <Select 
-                              value={user.manager || ''} 
-                              onValueChange={(value) => {
-                                if (value === "__add_new__") {
-                                  const newManager = prompt("Enter new manager name:");
-                                  if (newManager && newManager.trim()) {
+                            {editingCell?.id === user.id && editingCell?.field === 'manager' && editingCell?.type === 'user' ? (
+                              <div className="flex gap-1">
+                                <Input 
+                                  value={editValue} 
+                                  onChange={e => setEditValue(e.target.value)} 
+                                  onBlur={() => {
+                                    if (editValue.trim()) {
+                                      setServiceUsers(prev => prev.map(u => u.id === user.id ? {
+                                        ...u,
+                                        manager: editValue.trim()
+                                      } : u));
+                                    }
+                                    setEditingCell(null);
+                                  }} 
+                                  onKeyDown={e => {
+                                    if (e.key === 'Enter' && editValue.trim()) {
+                                      setServiceUsers(prev => prev.map(u => u.id === user.id ? {
+                                        ...u,
+                                        manager: editValue.trim()
+                                      } : u));
+                                      setEditingCell(null);
+                                    } else if (e.key === 'Escape') {
+                                      setEditingCell(null);
+                                    }
+                                  }} 
+                                  autoFocus 
+                                  placeholder="Enter new manager..." 
+                                  className="h-8 bg-white min-w-[150px]" 
+                                />
+                              </div>
+                            ) : (
+                              <Select 
+                                value={user.manager || ''} 
+                                onValueChange={value => {
+                                  if (value === '__add_new__') {
+                                    setEditingCell({
+                                      id: user.id,
+                                      field: 'manager',
+                                      type: 'user'
+                                    });
+                                    setEditValue('');
+                                  } else {
                                     setServiceUsers(prev => prev.map(u => u.id === user.id ? {
                                       ...u,
-                                      manager: newManager.trim()
+                                      manager: value
                                     } : u));
                                   }
-                                } else {
-                                  setServiceUsers(prev => prev.map(u => u.id === user.id ? {
-                                    ...u,
-                                    manager: value
-                                  } : u));
-                                }
-                              }}
-                            >
-                              <SelectTrigger className="h-8 w-40 bg-white">
-                                <SelectValue placeholder="Select manager" />
-                              </SelectTrigger>
-                              <SelectContent className="bg-white z-50">
-                                {managers.map(mgr => (
-                                  <SelectItem key={mgr} value={mgr}>{mgr}</SelectItem>
-                                ))}
-                                <SelectItem value="__add_new__">+ Add New Manager</SelectItem>
-                              </SelectContent>
-                            </Select>
+                                }}
+                              >
+                                <SelectTrigger className="h-8 bg-white min-w-[130px]">
+                                  <SelectValue placeholder="Select manager" />
+                                </SelectTrigger>
+                                <SelectContent className="bg-white z-50">
+                                  {managers.map(mgr => <SelectItem key={mgr} value={mgr}>{mgr}</SelectItem>)}
+                                  <SelectItem value="__add_new__" className="text-primary font-medium">
+                                    <div className="flex items-center gap-1">
+                                      <Plus className="h-3 w-3" />
+                                      Add new manager
+                                    </div>
+                                  </SelectItem>
+                                </SelectContent>
+                              </Select>
+                            )}
                           </TableCell>
                           {/* Location */}
                           <TableCell>
@@ -1622,35 +1656,69 @@ export const Matching = () => {
                           <TableCell className="font-medium">{s.name}</TableCell>
                           {/* Manager */}
                           <TableCell>
-                            <Select 
-                              value={s.manager || ''} 
-                              onValueChange={(value) => {
-                                if (value === "__add_new__") {
-                                  const newManager = prompt("Enter new manager name:");
-                                  if (newManager && newManager.trim()) {
+                            {editingCell?.id === s.id && editingCell?.field === 'manager' && editingCell?.type === 'staff' ? (
+                              <div className="flex gap-1">
+                                <Input 
+                                  value={editValue} 
+                                  onChange={e => setEditValue(e.target.value)} 
+                                  onBlur={() => {
+                                    if (editValue.trim()) {
+                                      setStaff(prev => prev.map(staff => staff.id === s.id ? {
+                                        ...staff,
+                                        manager: editValue.trim()
+                                      } : staff));
+                                    }
+                                    setEditingCell(null);
+                                  }} 
+                                  onKeyDown={e => {
+                                    if (e.key === 'Enter' && editValue.trim()) {
+                                      setStaff(prev => prev.map(staff => staff.id === s.id ? {
+                                        ...staff,
+                                        manager: editValue.trim()
+                                      } : staff));
+                                      setEditingCell(null);
+                                    } else if (e.key === 'Escape') {
+                                      setEditingCell(null);
+                                    }
+                                  }} 
+                                  autoFocus 
+                                  placeholder="Enter new manager..." 
+                                  className="h-8 bg-white min-w-[150px]" 
+                                />
+                              </div>
+                            ) : (
+                              <Select 
+                                value={s.manager || ''} 
+                                onValueChange={value => {
+                                  if (value === '__add_new__') {
+                                    setEditingCell({
+                                      id: s.id,
+                                      field: 'manager',
+                                      type: 'staff'
+                                    });
+                                    setEditValue('');
+                                  } else {
                                     setStaff(prev => prev.map(staff => staff.id === s.id ? {
                                       ...staff,
-                                      manager: newManager.trim()
+                                      manager: value
                                     } : staff));
                                   }
-                                } else {
-                                  setStaff(prev => prev.map(staff => staff.id === s.id ? {
-                                    ...staff,
-                                    manager: value
-                                  } : staff));
-                                }
-                              }}
-                            >
-                              <SelectTrigger className="h-8 w-40 bg-white">
-                                <SelectValue placeholder="Select manager" />
-                              </SelectTrigger>
-                              <SelectContent className="bg-white z-50">
-                                {managers.map(mgr => (
-                                  <SelectItem key={mgr} value={mgr}>{mgr}</SelectItem>
-                                ))}
-                                <SelectItem value="__add_new__">+ Add New Manager</SelectItem>
-                              </SelectContent>
-                            </Select>
+                                }}
+                              >
+                                <SelectTrigger className="h-8 bg-white min-w-[130px]">
+                                  <SelectValue placeholder="Select manager" />
+                                </SelectTrigger>
+                                <SelectContent className="bg-white z-50">
+                                  {managers.map(mgr => <SelectItem key={mgr} value={mgr}>{mgr}</SelectItem>)}
+                                  <SelectItem value="__add_new__" className="text-primary font-medium">
+                                    <div className="flex items-center gap-1">
+                                      <Plus className="h-3 w-3" />
+                                      Add new manager
+                                    </div>
+                                  </SelectItem>
+                                </SelectContent>
+                              </Select>
+                            )}
                           </TableCell>
                           <TableCell>
                             <Select 
