@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Search, Plus, User, Users, MapPin, Lightbulb, X, Edit2, Trash2, TrendingUp, BarChart3 } from "lucide-react";
+import { Search, Plus, MapPin, Lightbulb, X, Edit2, Trash2, TrendingUp, BarChart3 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
@@ -274,18 +274,15 @@ export const Matching = () => {
   // Calculate line positions based on actual DOM elements
   const updateLinePositions = useCallback(() => {
     if (!containerRef.current) return;
-    
     const containerRect = containerRef.current.getBoundingClientRect();
     const newLines: typeof linePositions = [];
-    
     filteredServiceUsers.forEach(user => {
       const userCard = userCardRefs.current.get(user.id);
       if (!userCard) return;
-      
       const userRect = userCard.getBoundingClientRect();
       const userY = userRect.top + userRect.height / 2 - containerRect.top;
       const userX = userRect.right - containerRect.left;
-      
+
       // Primary staff connection
       if (user.primaryStaffId) {
         const staffCard = staffCardRefs.current.get(user.primaryStaffId);
@@ -293,7 +290,6 @@ export const Matching = () => {
           const staffRect = staffCard.getBoundingClientRect();
           const staffY = staffRect.top + staffRect.height / 2 - containerRect.top;
           const staffX = staffRect.left - containerRect.left;
-          
           newLines.push({
             id: `primary-${user.id}-${user.primaryStaffId}`,
             x1: userX,
@@ -304,7 +300,7 @@ export const Matching = () => {
           });
         }
       }
-      
+
       // Backup staff connections
       user.backupStaffIds.forEach(backupId => {
         const staffCard = staffCardRefs.current.get(backupId);
@@ -312,7 +308,6 @@ export const Matching = () => {
           const staffRect = staffCard.getBoundingClientRect();
           const staffY = staffRect.top + staffRect.height / 2 - containerRect.top;
           const staffX = staffRect.left - containerRect.left;
-          
           newLines.push({
             id: `backup-${user.id}-${backupId}`,
             x1: userX,
@@ -324,26 +319,22 @@ export const Matching = () => {
         }
       });
     });
-    
     setLinePositions(newLines);
   }, [filteredServiceUsers, linePositions]);
 
   // Update lines when data changes or on resize
   useEffect(() => {
     updateLinePositions();
-    
     const handleResize = () => {
       requestAnimationFrame(updateLinePositions);
     };
-    
     window.addEventListener('resize', handleResize);
-    
+
     // Use ResizeObserver for container size changes
     const resizeObserver = new ResizeObserver(handleResize);
     if (containerRef.current) {
       resizeObserver.observe(containerRef.current);
     }
-    
     return () => {
       window.removeEventListener('resize', handleResize);
       resizeObserver.disconnect();
@@ -556,20 +547,10 @@ export const Matching = () => {
           <TabsContent value="diagram" className="space-y-6">
             <div ref={containerRef} className="grid grid-cols-1 lg:grid-cols-3 gap-6 relative">
               {/* SVG for connection lines - spans the entire grid */}
-              <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ zIndex: 10 }}>
-                {linePositions.map(line => (
-                  <line
-                    key={line.id}
-                    x1={line.x1}
-                    y1={line.y1}
-                    x2={line.x2}
-                    y2={line.y2}
-                    stroke={line.type === 'primary' ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground))'}
-                    strokeWidth={line.type === 'primary' ? 2 : 1.5}
-                    strokeDasharray={line.type === 'backup' ? '5,5' : undefined}
-                    className="transition-all duration-300"
-                  />
-                ))}
+              <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{
+              zIndex: 10
+            }}>
+                {linePositions.map(line => <line key={line.id} x1={line.x1} y1={line.y1} x2={line.x2} y2={line.y2} stroke={line.type === 'primary' ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground))'} strokeWidth={line.type === 'primary' ? 2 : 1.5} strokeDasharray={line.type === 'backup' ? '5,5' : undefined} className="transition-all duration-300" />)}
               </svg>
 
               {/* Service Users Column */}
@@ -584,24 +565,17 @@ export const Matching = () => {
                   </Button>
                 </div>
                 
-                {filteredServiceUsers.map(user => (
-                  <Card 
-                    key={user.id} 
-                    ref={(el) => {
-                      if (el) userCardRefs.current.set(user.id, el);
-                      else userCardRefs.current.delete(user.id);
-                    }}
-                    className={`cursor-pointer transition-all ${selectedServiceUser?.id === user.id ? 'ring-2 ring-primary' : 'hover:shadow-md'}`} 
-                    onClick={() => setSelectedServiceUser(user)}
-                  >
+                {filteredServiceUsers.map(user => <Card key={user.id} ref={el => {
+                if (el) userCardRefs.current.set(user.id, el);else userCardRefs.current.delete(user.id);
+              }} className={`cursor-pointer transition-all ${selectedServiceUser?.id === user.id ? 'ring-2 ring-primary' : 'hover:shadow-md'}`} onClick={() => setSelectedServiceUser(user)}>
                     <CardContent className="pt-4">
                       <div className="flex items-start justify-between mb-2">
                         <h3 className="font-semibold">{user.name}</h3>
                         <div className="flex gap-1">
                           <Button variant="ghost" size="icon" className="h-6 w-6" onClick={e => {
-                            e.stopPropagation();
-                            handleDeleteUser(user.id);
-                          }}>
+                        e.stopPropagation();
+                        handleDeleteUser(user.id);
+                      }}>
                             <Trash2 className="h-3 w-3" />
                           </Button>
                         </div>
@@ -620,9 +594,9 @@ export const Matching = () => {
                         <div className="flex items-center gap-2">
                           <span className="text-xs font-medium text-muted-foreground">Primary:</span>
                           {user.primaryStaffId ? <Badge className="bg-green-100 text-green-800 hover:bg-green-200 cursor-pointer" onClick={e => {
-                            e.stopPropagation();
-                            unassignStaff(user.id, user.primaryStaffId!, 'primary');
-                          }}>
+                        e.stopPropagation();
+                        unassignStaff(user.id, user.primaryStaffId!, 'primary');
+                      }}>
                             {getStaffById(user.primaryStaffId)?.name}
                             <X className="h-3 w-3 ml-1" />
                           </Badge> : <span className="text-xs text-orange-600">Unassigned</span>}
@@ -630,17 +604,16 @@ export const Matching = () => {
                         <div className="flex items-center gap-2 flex-wrap">
                           <span className="text-xs font-medium text-muted-foreground">Backup:</span>
                           {user.backupStaffIds.length > 0 ? user.backupStaffIds.map(sid => <Badge key={sid} variant="outline" className="cursor-pointer" onClick={e => {
-                            e.stopPropagation();
-                            unassignStaff(user.id, sid, 'backup');
-                          }}>
+                        e.stopPropagation();
+                        unassignStaff(user.id, sid, 'backup');
+                      }}>
                             {getStaffById(sid)?.name}
                             <X className="h-3 w-3 ml-1" />
                           </Badge>) : <span className="text-xs text-muted-foreground">None</span>}
                         </div>
                       </div>
                     </CardContent>
-                  </Card>
-                ))}
+                  </Card>)}
               </div>
 
               {/* Connection Diagram (Middle) */}
@@ -655,9 +628,9 @@ export const Matching = () => {
                   <CardContent className="pt-0">
                     {getSuggestedStaff(selectedServiceUser).length > 0 ? <div className="space-y-2">
                       {getSuggestedStaff(selectedServiceUser).map(({
-                        staff: s,
-                        score
-                      }) => <div key={s.id} className="flex items-center justify-between gap-2 text-sm">
+                      staff: s,
+                      score
+                    }) => <div key={s.id} className="flex items-center justify-between gap-2 text-sm">
                         <span>{s.name}</span>
                         <div className="flex items-center gap-2">
                           <Badge variant="outline" className="text-xs">{score}% match</Badge>
@@ -686,16 +659,9 @@ export const Matching = () => {
                   </Button>
                 </div>
                 
-                {staff.map(s => (
-                  <Card 
-                    key={s.id} 
-                    ref={(el) => {
-                      if (el) staffCardRefs.current.set(s.id, el);
-                      else staffCardRefs.current.delete(s.id);
-                    }}
-                    className={`cursor-pointer transition-all ${selectedStaff?.id === s.id ? 'ring-2 ring-primary' : 'hover:shadow-md'}`} 
-                    onClick={() => setSelectedStaff(s)}
-                  >
+                {staff.map(s => <Card key={s.id} ref={el => {
+                if (el) staffCardRefs.current.set(s.id, el);else staffCardRefs.current.delete(s.id);
+              }} className={`cursor-pointer transition-all ${selectedStaff?.id === s.id ? 'ring-2 ring-primary' : 'hover:shadow-md'}`} onClick={() => setSelectedStaff(s)}>
                     <CardContent className="pt-4">
                       <div className="flex items-start justify-between mb-2">
                         <h3 className="font-semibold">{s.name}</h3>
@@ -704,9 +670,9 @@ export const Matching = () => {
                             {s.roleType}
                           </Badge>
                           <Button variant="ghost" size="icon" className="h-6 w-6" onClick={e => {
-                            e.stopPropagation();
-                            handleDeleteStaff(s.id);
-                          }}>
+                        e.stopPropagation();
+                        handleDeleteStaff(s.id);
+                      }}>
                             <Trash2 className="h-3 w-3" />
                           </Button>
                         </div>
@@ -721,8 +687,7 @@ export const Matching = () => {
                         {s.skills.length > 2 && <Badge variant="outline" className="text-xs">+{s.skills.length - 2}</Badge>}
                       </div>
                     </CardContent>
-                  </Card>
-                ))}
+                  </Card>)}
               </div>
             </div>
           </TabsContent>
@@ -796,7 +761,7 @@ export const Matching = () => {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <User className="h-5 w-5" />
+                  
                   Service User Needs Tracker
                 </CardTitle>
               </CardHeader>
@@ -841,7 +806,7 @@ export const Matching = () => {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Users className="h-5 w-5" />
+                  
                   Staff Capability Tracker
                 </CardTitle>
               </CardHeader>
