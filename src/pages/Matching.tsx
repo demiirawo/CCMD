@@ -461,7 +461,7 @@ export const Matching = () => {
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <h2 className="text-lg font-semibold flex items-center gap-2">
-                    <User className="h-5 w-5" />
+                    
                     Service Users
                   </h2>
                   <Button size="sm" variant="outline" onClick={() => setIsAddUserOpen(true)}>
@@ -537,19 +537,7 @@ export const Matching = () => {
                 </svg>
                 
                 <div className="text-center space-y-4 relative z-10">
-                  <div className="p-4 bg-card rounded-lg border shadow-sm">
-                    <h3 className="font-medium text-sm mb-2">Connection Legend</h3>
-                    <div className="flex flex-col gap-2 text-xs">
-                      <div className="flex items-center gap-2">
-                        <div className="w-8 h-0.5 bg-primary"></div>
-                        <span>Primary Staff</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="w-8 h-0.5 border-t-2 border-dashed border-muted-foreground"></div>
-                        <span>Backup Staff</span>
-                      </div>
-                    </div>
-                  </div>
+                  
                   
                   {selectedServiceUser && <Card className="text-left">
                       <CardHeader className="pb-2">
@@ -585,7 +573,7 @@ export const Matching = () => {
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <h2 className="text-lg font-semibold flex items-center gap-2">
-                    <Users className="h-5 w-5" />
+                    
                     Support Staff
                   </h2>
                   <Button size="sm" variant="outline" onClick={() => setIsAddStaffOpen(true)}>
