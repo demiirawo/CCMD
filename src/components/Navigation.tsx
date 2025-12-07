@@ -22,16 +22,10 @@ export const Navigation = () => {
   const currentCompany = companies.find(c => c.id === profile?.company_id);
   const isChildContactCentre = currentCompany?.services?.includes("Child Contact Centre") || false;
 
-  let navItems = [
+  const navItems = [
     { name: "Dashboard", path: "/" },
-    { name: "Compliance", path: "/inspection" },
     { name: "Forecast", path: "/forecast" }
   ];
-
-  // Hide Compliance page for Child Contact Centre
-  if (isChildContactCentre) {
-    navItems = navItems.filter(item => item.name !== "Compliance");
-  }
 
   // Show settings to any user with a selected company
   const canAccessSettings = Boolean(profile?.company_id);
