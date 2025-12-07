@@ -605,10 +605,17 @@ export const Matching = () => {
                         id,
                         type: 'Backup' as const
                       }))];
+                      const currentMonth = MONTHS[0]; // Current month for display
+                      const userRequiredHours = user.forecastHours[currentMonth] || 0;
                       return <div key={user.id} className="rounded p-2 print:p-1.5 bg-primary-foreground">
                                 <div className="flex items-start justify-between mb-1">
-                                  <div>
-                                    <div className="font-medium text-xs">{user.name}</div>
+                                  <div className="flex-1">
+                                    <div className="flex items-center gap-2">
+                                      <span className="font-medium text-xs">{user.name}</span>
+                                      <span className="text-[9px] bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded font-medium">
+                                        {userRequiredHours}h required ({currentMonth})
+                                      </span>
+                                    </div>
                                     <div className="text-[10px] text-muted-foreground">
                                       Needs: {user.supportNeeds.slice(0, 3).join(', ')}
                                       {user.supportNeeds.length > 3 && ` +${user.supportNeeds.length - 3}`}
@@ -623,7 +630,7 @@ export const Matching = () => {
                           }) => {
                             const s = getStaffById(sid);
                             if (!s) return null;
-                            const matchReasons = getMatchReasons(user, s);
+                            const staffAllocatedHours = s.forecastHours[currentMonth] || 0;
 
                             // Build narrative matching criteria
                             const buildMatchingNarrative = () => {
@@ -648,6 +655,9 @@ export const Matching = () => {
                                             <span className="font-medium">{s.name}</span>
                                             <span className={`text-[9px] px-1 rounded ${type === 'Primary' ? 'bg-green-200 text-green-800' : 'bg-gray-200 text-gray-600'}`}>
                                               {type}
+                                            </span>
+                                            <span className="text-[9px] bg-purple-100 text-purple-800 px-1 rounded">
+                                              {staffAllocatedHours}h available
                                             </span>
                                           </div>
                                           {narrative && <div className="text-[9px] text-muted-foreground mt-0.5 italic">
