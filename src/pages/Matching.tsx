@@ -634,17 +634,19 @@ export const Matching = () => {
                     ))}
                   </SelectContent>
                 </Select>
-                <Button variant="outline" size="sm" onClick={handleExportPDF} disabled={isExporting}>
+                <Button 
+                  size="sm" 
+                  onClick={handleExportPDF} 
+                  disabled={isExporting}
+                  className="text-white"
+                  style={{ backgroundColor: '#202A38' }}
+                >
                   {isExporting ? (
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                   ) : (
                     <FileDown className="h-4 w-4 mr-2" />
                   )}
                   Export PDF
-                </Button>
-                <Button variant="outline" size="sm" onClick={() => window.print()}>
-                  <Printer className="h-4 w-4 mr-2" />
-                  Print
                 </Button>
               </div>
 
