@@ -923,6 +923,25 @@ export const Matching = () => {
                             );
                           })}
                           
+                          {/* Unallocated Hours Row */}
+                          <TableRow key={`${user.id}-unallocated`} className="bg-orange-50">
+                            <TableCell className="sticky left-0 bg-orange-50 pl-6">
+                              <span className="text-sm font-medium text-orange-700">Unallocated Hours</span>
+                            </TableCell>
+                            {WEEKS.map(week => {
+                              const requiredHours = user.forecastHours[week] || 0;
+                              const allocatedHours = user.staffAllocations.reduce((sum, alloc) => sum + (alloc.allocatedHours[week] || 0), 0);
+                              const unallocatedHours = requiredHours - allocatedHours;
+                              return (
+                                <TableCell key={week} className="text-center">
+                                  <span className={`text-sm font-medium ${unallocatedHours > 0 ? 'text-orange-700' : unallocatedHours < 0 ? 'text-red-700' : 'text-green-700'}`}>
+                                    {unallocatedHours}
+                                  </span>
+                                </TableCell>
+                              );
+                            })}
+                          </TableRow>
+
                           {/* Backup Staff Rows - no hours allocation */}
                           {user.backupStaffIds.map(staffId => {
                             const staffMember = getStaffById(staffId);
@@ -947,25 +966,6 @@ export const Matching = () => {
                               </TableRow>
                             );
                           })}
-
-                          {/* Unallocated Hours Row */}
-                          <TableRow key={`${user.id}-unallocated`} className="bg-orange-50">
-                            <TableCell className="sticky left-0 bg-orange-50 pl-6">
-                              <span className="text-sm font-medium text-orange-700">Unallocated Hours</span>
-                            </TableCell>
-                            {WEEKS.map(week => {
-                              const requiredHours = user.forecastHours[week] || 0;
-                              const allocatedHours = user.staffAllocations.reduce((sum, alloc) => sum + (alloc.allocatedHours[week] || 0), 0);
-                              const unallocatedHours = requiredHours - allocatedHours;
-                              return (
-                                <TableCell key={week} className="text-center">
-                                  <span className={`text-sm font-medium ${unallocatedHours > 0 ? 'text-orange-700' : unallocatedHours < 0 ? 'text-red-700' : 'text-green-700'}`}>
-                                    {unallocatedHours}
-                                  </span>
-                                </TableCell>
-                              );
-                            })}
-                          </TableRow>
                           
                           {/* Add Staff Row */}
                           <TableRow key={`${user.id}-add-staff`} className="border-b-2">
