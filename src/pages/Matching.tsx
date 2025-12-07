@@ -1509,57 +1509,54 @@ export const Matching = () => {
               </CardContent>
             </Card>
 
-              {/* Weekly Allocation Grid */}
+              {/* Matching Matrix */}
               <Card>
                 <CardHeader className="border-b">
-                  <CardTitle>Weekly Allocation (8 Weeks)</CardTitle>
+                  <CardTitle>Matching Matrix</CardTitle>
                 </CardHeader>
                 <CardContent className="pt-6">
                   <div className="overflow-x-auto">
                     <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead rowSpan={2} className="sticky left-0 bg-background min-w-[200px] align-bottom">Service User / Staff</TableHead>
-                        {WEEKS.map(week => <TableHead key={week} colSpan={2} className="text-center border-l">{week}</TableHead>)}
-                      </TableRow>
-                      <TableRow>
-                        {WEEKS.map(week => <>
-                          <TableHead key={`${week}-solo`} className="text-center text-xs border-l px-1 min-w-[50px]">Solo</TableHead>
-                          <TableHead key={`${week}-double`} className="text-center text-xs px-1 min-w-[50px]">Double</TableHead>
-                        </>)}
+                        <TableHead className="sticky left-0 bg-background min-w-[200px]">Service User / Staff</TableHead>
+                        <TableHead className="min-w-[300px]">Matching Criteria</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {serviceUsers.filter(user => (userLocationFilter === "all" || user.location === userLocationFilter) && (userManagerFilter === "all" || user.manager === userManagerFilter)).map(user => <>
-                          {/* Service User Row - Required Hours */}
+                      {serviceUsers.filter(user => (userLocationFilter === "all" || user.location === userLocationFilter) && (userManagerFilter === "all" || user.manager === userManagerFilter)).map(user => {
+                        const staffMemberObj = staff.find(s => s.id === user.primaryStaffIds[0]);
+                        return <>
+                          {/* Service User Row */}
                           <TableRow key={user.id} className="bg-blue-50">
                             <TableCell className="font-medium sticky left-0 bg-blue-50">
                               <div className="flex flex-col">
-                                <span>{user.name}</span>
-                                <span className="text-xs text-muted-foreground">Required Hours</span>
+                                <span className="font-semibold">{user.name}</span>
+                                <span className="text-xs text-muted-foreground">{user.location}</span>
                               </div>
                             </TableCell>
-                            {WEEKS.map(week => <>
-                                <TableCell key={`${week}-solo`} colSpan={2} className="text-center border-l">
-                                  <Input type="number" value={user.forecastHours[week] || 0} onChange={e => {
-                                const value = parseFloat(e.target.value) || 0;
-                                setServiceUsers(prev => prev.map(u => u.id === user.id ? {
-                                  ...u,
-                                  forecastHours: {
-                                    ...u.forecastHours,
-                                    [week]: value
-                                  }
-                                } : u));
-                              }} className="h-8 w-16 mx-auto text-center bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
-                                </TableCell>
-                              </>)}
+                            <TableCell className="bg-blue-50">
+                              <div className="flex flex-wrap gap-1">
+                                {user.supportNeeds.slice(0, 3).map(need => (
+                                  <Badge key={need} variant="secondary" className="text-xs">{need}</Badge>
+                                ))}
+                                {user.supportNeeds.length > 3 && (
+                                  <Badge variant="outline" className="text-xs">+{user.supportNeeds.length - 3} more</Badge>
+                                )}
+                              </div>
+                            </TableCell>
                           </TableRow>
                           
-                          {/* Primary Staff Rows - with solo/double-up allocation */}
+                          {/* Primary Staff Rows */}
                           {user.primaryStaffIds.map(staffId => {
-                          const staffMember = getStaffById(staffId);
-                          if (!staffMember) return null;
-                          return <TableRow key={`${user.id}-${staffId}-primary`} className="bg-green-50">
+                            const staffMember = getStaffById(staffId);
+                            if (!staffMember) return null;
+                            const allocation = user.staffAllocations.find(a => a.staffId === staffId);
+                            const confirmedNeeds = allocation?.confirmedNeeds || [];
+                            const confirmedInterests = allocation?.confirmedInterests || [];
+                            
+                            return (
+                              <TableRow key={`${user.id}-${staffId}-primary`} className="bg-green-50">
                                 <TableCell className="sticky left-0 bg-green-50 pl-6">
                                   <div className="flex items-center gap-2">
                                     <Badge className="bg-green-200 text-green-800 text-xs">Primary</Badge>
@@ -1567,64 +1564,45 @@ export const Matching = () => {
                                     <X className="h-3 w-3 cursor-pointer text-red-500 hover:text-red-700" onClick={() => unassignStaff(user.id, staffId, 'primary')} />
                                   </div>
                                 </TableCell>
-                                {WEEKS.map(week => {
-                              const split = getStaffAllocationSplit(user, staffId, week);
-                              return <>
-                                    <TableCell key={`${week}-solo`} className="text-center border-l px-1">
-                                      <div className="flex flex-col items-center gap-0.5">
-                                        <span className="text-[10px] text-muted-foreground">Single</span>
-                                        <Input type="number" value={split.solo} onChange={e => updateStaffAllocationSplit(user.id, staffId, week, 'solo', parseFloat(e.target.value) || 0)} className="h-7 w-12 text-center bg-white text-xs [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+                                <TableCell className="bg-green-50">
+                                  <div className="flex flex-col gap-1">
+                                    {confirmedNeeds.length > 0 && (
+                                      <div className="flex flex-wrap gap-1 items-center">
+                                        <span className="text-xs text-muted-foreground mr-1">Needs:</span>
+                                        {confirmedNeeds.slice(0, 3).map(need => (
+                                          <Badge key={need} variant="outline" className="text-xs bg-green-100">{need}</Badge>
+                                        ))}
+                                        {confirmedNeeds.length > 3 && (
+                                          <span className="text-xs text-muted-foreground">+{confirmedNeeds.length - 3}</span>
+                                        )}
                                       </div>
-                                    </TableCell>
-                                    <TableCell key={`${week}-double`} className="text-center px-1">
-                                      <div className="flex flex-col items-center gap-0.5">
-                                        <span className="text-[10px] text-muted-foreground">Double</span>
-                                        <Input type="number" value={split.doubleUp} onChange={e => updateStaffAllocationSplit(user.id, staffId, week, 'doubleUp', parseFloat(e.target.value) || 0)} className="h-7 w-12 text-center bg-purple-50 text-xs [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+                                    )}
+                                    {confirmedInterests.length > 0 && (
+                                      <div className="flex flex-wrap gap-1 items-center">
+                                        <span className="text-xs text-muted-foreground mr-1">Interests:</span>
+                                        {confirmedInterests.slice(0, 3).map(interest => (
+                                          <Badge key={interest} variant="outline" className="text-xs bg-blue-100">{interest}</Badge>
+                                        ))}
+                                        {confirmedInterests.length > 3 && (
+                                          <span className="text-xs text-muted-foreground">+{confirmedInterests.length - 3}</span>
+                                        )}
                                       </div>
-                                    </TableCell>
-                                  </>;
-                            })}
-                              </TableRow>;
-                        })}
-                          
-                          {/* Unallocated Hours Row */}
-                          <TableRow key={`${user.id}-unallocated`} className="bg-orange-50">
-                            <TableCell className="sticky left-0 pl-6 bg-destructive text-primary-foreground">
-                              <span className="text-sm font-medium text-primary-foreground">Outstanding Hours</span>
-                            </TableCell>
-                            {WEEKS.map(week => {
-                            const requiredHours = user.forecastHours[week] || 0;
-                            // Single hours sum normally across all staff
-                            const totalSingleHours = user.staffAllocations.reduce((sum, alloc) => {
-                              const split = alloc.hoursSplit?.[week] || {
-                                solo: 0,
-                                doubleUp: 0
-                              };
-                              return sum + split.solo;
-                            }, 0);
-                            // Double hours only count once (max across all staff since they work together)
-                            const maxDoubleHours = user.staffAllocations.reduce((max, alloc) => {
-                              const split = alloc.hoursSplit?.[week] || {
-                                solo: 0,
-                                doubleUp: 0
-                              };
-                              return Math.max(max, split.doubleUp);
-                            }, 0);
-                            const allocatedHours = totalSingleHours + maxDoubleHours;
-                            const unallocatedHours = requiredHours - allocatedHours;
-                            return <TableCell key={week} colSpan={2} className="text-center border-l bg-destructive">
-                                  <span className="text-sm font-medium text-white">
-                                    {unallocatedHours}
-                                  </span>
-                                </TableCell>;
+                                    )}
+                                    {confirmedNeeds.length === 0 && confirmedInterests.length === 0 && (
+                                      <span className="text-xs text-muted-foreground italic">No matching criteria confirmed</span>
+                                    )}
+                                  </div>
+                                </TableCell>
+                              </TableRow>
+                            );
                           })}
-                          </TableRow>
 
-                          {/* Backup Staff Rows - no hours allocation */}
+                          {/* Backup Staff Rows */}
                           {user.backupStaffIds.map(staffId => {
-                          const staffMember = getStaffById(staffId);
-                          if (!staffMember) return null;
-                          return <TableRow key={`${user.id}-${staffId}-backup`} className="bg-gray-50">
+                            const staffMember = getStaffById(staffId);
+                            if (!staffMember) return null;
+                            return (
+                              <TableRow key={`${user.id}-${staffId}-backup`} className="bg-gray-50">
                                 <TableCell className="sticky left-0 bg-gray-50 pl-6">
                                   <div className="flex items-center gap-2">
                                     <Badge variant="outline" className="text-xs">Backup</Badge>
@@ -1632,15 +1610,16 @@ export const Matching = () => {
                                     <X className="h-3 w-3 cursor-pointer text-red-500 hover:text-red-700" onClick={() => unassignStaff(user.id, staffId, 'backup')} />
                                   </div>
                                 </TableCell>
-                                {WEEKS.map(week => <TableCell key={week} colSpan={2} className="text-center text-xs text-muted-foreground border-l">
-                                    {staffMember.forecastHours[week] || 0}h avail
-                                  </TableCell>)}
-                              </TableRow>;
-                        })}
+                                <TableCell className="bg-gray-50">
+                                  <span className="text-xs text-muted-foreground italic">Backup - no criteria confirmed</span>
+                                </TableCell>
+                              </TableRow>
+                            );
+                          })}
                           
                           {/* Add Staff Row */}
                           <TableRow key={`${user.id}-add-staff`} className="border-b-2">
-                            <TableCell className="sticky left-0 bg-background pl-6" colSpan={WEEKS.length * 2 + 1}>
+                            <TableCell className="sticky left-0 bg-background pl-6" colSpan={2}>
                               <div className="flex gap-2">
                                 <SearchableStaffSelect options={getRankedStaff(user, [...user.primaryStaffIds, ...user.backupStaffIds]).map(({
                                 staff: s,
@@ -1661,7 +1640,8 @@ export const Matching = () => {
                               </div>
                             </TableCell>
                           </TableRow>
-                        </>)}
+                        </>;
+                      })}
                     </TableBody>
                   </Table>
                 </div>
