@@ -512,13 +512,18 @@ export const Matching = () => {
                       <TableBody>
                         {MONTHS.slice(0, 6).map((month) => {
                           const requiredHours = serviceUsers.reduce((sum, u) => sum + (u.forecastHours[month] || 0), 0);
-                          const availableHours = staff.filter(s => s.status === "Active").reduce((sum, s) => sum + (s.forecastHours[month] || 0), 0);
-                          const allocatedHours = serviceUsers.reduce((sum, u) => {
-                            const assignedStaffIds = [...u.primaryStaffIds, ...u.backupStaffIds];
-                            const assignedStaff = staff.filter(s => assignedStaffIds.includes(s.id) && s.status === "Active");
-                            return sum + assignedStaff.reduce((staffSum, s) => staffSum + (s.forecastHours[month] || 0), 0);
-                          }, 0);
-                          const utilisation = availableHours > 0 ? requiredHours / availableHours * 100 : 0;
+                          // Get all staff IDs assigned as PRIMARY to any service user
+                          const primaryStaffIds = new Set(serviceUsers.flatMap(u => u.primaryStaffIds));
+                          // Allocated hours = sum of hours from staff assigned as PRIMARY
+                          const allocatedHours = staff
+                            .filter(s => s.status === "Active" && primaryStaffIds.has(s.id))
+                            .reduce((sum, s) => sum + (s.forecastHours[month] || 0), 0);
+                          // Unallocated hours = sum of hours from staff NOT assigned as PRIMARY
+                          const unallocatedHours = staff
+                            .filter(s => s.status === "Active" && !primaryStaffIds.has(s.id))
+                            .reduce((sum, s) => sum + (s.forecastHours[month] || 0), 0);
+                          const totalAvailableHours = allocatedHours + unallocatedHours;
+                          const utilisation = totalAvailableHours > 0 ? requiredHours / totalAvailableHours * 100 : 0;
                           let statusColor = "bg-orange-100 text-orange-800";
                           let statusText = "Underused – Moderate staff underutilisation";
                           if (utilisation >= 70 && utilisation <= 100) {
@@ -533,7 +538,7 @@ export const Matching = () => {
                               <TableCell className="font-medium text-xs py-1">{month}</TableCell>
                               <TableCell className="text-right text-xs py-1">{requiredHours.toFixed(1)}</TableCell>
                               <TableCell className="text-right text-xs py-1">{allocatedHours.toFixed(1)}</TableCell>
-                              <TableCell className="text-right text-xs py-1">{availableHours.toFixed(1)}</TableCell>
+                              <TableCell className="text-right text-xs py-1">{unallocatedHours.toFixed(1)}</TableCell>
                               <TableCell className="py-1">
                                 <div className="flex items-center gap-2">
                                   <span className="text-xs">Utilisation: {utilisation.toFixed(1)}%</span>
@@ -699,14 +704,18 @@ export const Matching = () => {
                   <TableBody>
                     {MONTHS.slice(0, 6).map((month, index) => {
                     const requiredHours = serviceUsers.reduce((sum, u) => sum + (u.forecastHours[month] || 0), 0);
-                    const availableHours = staff.filter(s => s.status === "Active").reduce((sum, s) => sum + (s.forecastHours[month] || 0), 0);
-                    // Allocated hours = sum of hours from staff assigned to service users
-                    const allocatedHours = serviceUsers.reduce((sum, u) => {
-                      const assignedStaffIds = [...u.primaryStaffIds, ...u.backupStaffIds];
-                      const assignedStaff = staff.filter(s => assignedStaffIds.includes(s.id) && s.status === "Active");
-                      return sum + assignedStaff.reduce((staffSum, s) => staffSum + (s.forecastHours[month] || 0), 0);
-                    }, 0);
-                    const utilisation = availableHours > 0 ? requiredHours / availableHours * 100 : 0;
+                    // Get all staff IDs assigned as PRIMARY to any service user
+                    const primaryStaffIds = new Set(serviceUsers.flatMap(u => u.primaryStaffIds));
+                    // Allocated hours = sum of hours from staff assigned as PRIMARY
+                    const allocatedHours = staff
+                      .filter(s => s.status === "Active" && primaryStaffIds.has(s.id))
+                      .reduce((sum, s) => sum + (s.forecastHours[month] || 0), 0);
+                    // Unallocated hours = sum of hours from staff NOT assigned as PRIMARY
+                    const unallocatedHours = staff
+                      .filter(s => s.status === "Active" && !primaryStaffIds.has(s.id))
+                      .reduce((sum, s) => sum + (s.forecastHours[month] || 0), 0);
+                    const totalAvailableHours = allocatedHours + unallocatedHours;
+                    const utilisation = totalAvailableHours > 0 ? requiredHours / totalAvailableHours * 100 : 0;
                     let statusColor = "bg-green-100 text-green-800";
                     let statusText = "Optimal – Staff well utilised";
                     if (utilisation < 70) {
@@ -720,7 +729,7 @@ export const Matching = () => {
                           <TableCell className="font-medium">{month}</TableCell>
                           <TableCell className="text-right">{requiredHours.toFixed(1)}</TableCell>
                           <TableCell className="text-right">{allocatedHours.toFixed(1)}</TableCell>
-                          <TableCell className="text-right">{availableHours.toFixed(1)}</TableCell>
+                          <TableCell className="text-right">{unallocatedHours.toFixed(1)}</TableCell>
                           <TableCell>
                             <div className="flex items-center gap-2">
                               <span className="text-sm">Utilisation: {utilisation.toFixed(1)}%</span>
