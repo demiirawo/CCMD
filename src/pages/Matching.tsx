@@ -118,6 +118,8 @@ export const Matching = () => {
   });
   const [newUserLocationInput, setNewUserLocationInput] = useState("");
   const [newStaffLocationInput, setNewStaffLocationInput] = useState("");
+  const [isAddingUserLocation, setIsAddingUserLocation] = useState(false);
+  const [isAddingStaffLocation, setIsAddingStaffLocation] = useState(false);
   const locations = useMemo(() => {
     const allLocations = [...new Set([...serviceUsers.map(u => u.location), ...staff.map(s => s.location)])];
     return allLocations.filter(Boolean);
@@ -1622,34 +1624,56 @@ export const Matching = () => {
               </div>
               <div>
                 <Label>Location</Label>
-                {newUserForm.location === '__adding_new__' ? (
-                  <Input 
-                    value={newUserLocationInput} 
-                    onChange={e => setNewUserLocationInput(e.target.value)} 
-                    onBlur={e => {
-                      if (e.target.value.trim()) {
-                        setNewUserForm(f => ({ ...f, location: e.target.value.trim() }));
-                      } else {
-                        setNewUserForm(f => ({ ...f, location: '' }));
-                      }
-                      setNewUserLocationInput('');
-                    }}
-                    onKeyDown={e => {
-                      if (e.key === 'Enter' && newUserLocationInput.trim()) {
-                        setNewUserForm(f => ({ ...f, location: newUserLocationInput.trim() }));
+                {isAddingUserLocation ? (
+                  <div className="flex gap-2">
+                    <Input 
+                      value={newUserLocationInput} 
+                      onChange={e => setNewUserLocationInput(e.target.value)} 
+                      onKeyDown={e => {
+                        if (e.key === 'Enter' && newUserLocationInput.trim()) {
+                          setNewUserForm(f => ({ ...f, location: newUserLocationInput.trim() }));
+                          setNewUserLocationInput('');
+                          setIsAddingUserLocation(false);
+                        } else if (e.key === 'Escape') {
+                          setNewUserLocationInput('');
+                          setIsAddingUserLocation(false);
+                        }
+                      }}
+                      autoFocus
+                      placeholder="Enter new location..."
+                      className="bg-white flex-1" 
+                    />
+                    <Button 
+                      type="button" 
+                      size="sm"
+                      onClick={() => {
+                        if (newUserLocationInput.trim()) {
+                          setNewUserForm(f => ({ ...f, location: newUserLocationInput.trim() }));
+                          setNewUserLocationInput('');
+                          setIsAddingUserLocation(false);
+                        }
+                      }}
+                    >
+                      <Check className="h-4 w-4" />
+                    </Button>
+                    <Button 
+                      type="button" 
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
                         setNewUserLocationInput('');
-                      }
-                    }}
-                    autoFocus
-                    placeholder="Enter new location..."
-                    className="bg-white" 
-                  />
+                        setIsAddingUserLocation(false);
+                      }}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
                 ) : (
                   <Select 
                     value={newUserForm.location} 
                     onValueChange={v => {
                       if (v === '__add_new__') {
-                        setNewUserForm(f => ({ ...f, location: '__adding_new__' }));
+                        setIsAddingUserLocation(true);
                       } else {
                         setNewUserForm(f => ({ ...f, location: v }));
                       }
@@ -1735,34 +1759,56 @@ export const Matching = () => {
               </div>
               <div>
                 <Label>Location</Label>
-                {newStaffForm.location === '__adding_new__' ? (
-                  <Input 
-                    value={newStaffLocationInput} 
-                    onChange={e => setNewStaffLocationInput(e.target.value)} 
-                    onBlur={e => {
-                      if (e.target.value.trim()) {
-                        setNewStaffForm(f => ({ ...f, location: e.target.value.trim() }));
-                      } else {
-                        setNewStaffForm(f => ({ ...f, location: '' }));
-                      }
-                      setNewStaffLocationInput('');
-                    }}
-                    onKeyDown={e => {
-                      if (e.key === 'Enter' && newStaffLocationInput.trim()) {
-                        setNewStaffForm(f => ({ ...f, location: newStaffLocationInput.trim() }));
+                {isAddingStaffLocation ? (
+                  <div className="flex gap-2">
+                    <Input 
+                      value={newStaffLocationInput} 
+                      onChange={e => setNewStaffLocationInput(e.target.value)} 
+                      onKeyDown={e => {
+                        if (e.key === 'Enter' && newStaffLocationInput.trim()) {
+                          setNewStaffForm(f => ({ ...f, location: newStaffLocationInput.trim() }));
+                          setNewStaffLocationInput('');
+                          setIsAddingStaffLocation(false);
+                        } else if (e.key === 'Escape') {
+                          setNewStaffLocationInput('');
+                          setIsAddingStaffLocation(false);
+                        }
+                      }}
+                      autoFocus
+                      placeholder="Enter new location..."
+                      className="bg-white flex-1" 
+                    />
+                    <Button 
+                      type="button" 
+                      size="sm"
+                      onClick={() => {
+                        if (newStaffLocationInput.trim()) {
+                          setNewStaffForm(f => ({ ...f, location: newStaffLocationInput.trim() }));
+                          setNewStaffLocationInput('');
+                          setIsAddingStaffLocation(false);
+                        }
+                      }}
+                    >
+                      <Check className="h-4 w-4" />
+                    </Button>
+                    <Button 
+                      type="button" 
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
                         setNewStaffLocationInput('');
-                      }
-                    }}
-                    autoFocus
-                    placeholder="Enter new location..."
-                    className="bg-white" 
-                  />
+                        setIsAddingStaffLocation(false);
+                      }}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
                 ) : (
                   <Select 
                     value={newStaffForm.location} 
                     onValueChange={v => {
                       if (v === '__add_new__') {
-                        setNewStaffForm(f => ({ ...f, location: '__adding_new__' }));
+                        setIsAddingStaffLocation(true);
                       } else {
                         setNewStaffForm(f => ({ ...f, location: v }));
                       }
