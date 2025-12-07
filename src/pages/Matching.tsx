@@ -1000,7 +1000,7 @@ export const Matching = () => {
                             {unallocatedStaff.length} staff • {totalUnallocatedHours}h available this week
                           </span>
                         </div>
-                        <div className="p-6">
+                        <div className="p-6 bg-transparent">
                           <div className="flex flex-wrap gap-3">
                             {unallocatedStaff.map(s => {
                           const availableHours = s.forecastHours[currentWeek] || 0;
