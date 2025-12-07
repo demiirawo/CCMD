@@ -1531,8 +1531,13 @@ export const Matching = () => {
                       </TableHeader>
                       <TableBody>
                         {staff.map(s => (
-                          <TableRow key={s.id}>
-                            <TableCell className="font-medium sticky left-0 bg-background">{s.name}</TableCell>
+                          <TableRow key={s.id} className="bg-green-50">
+                            <TableCell className="font-medium sticky left-0 bg-green-50">
+                              <div className="flex flex-col">
+                                <span>{s.name}</span>
+                                <span className="text-xs text-muted-foreground">{s.location}</span>
+                              </div>
+                            </TableCell>
                             {WEEKS.map(week => (
                               <TableCell key={week} className="text-center">
                                 <Input 
@@ -1551,10 +1556,15 @@ export const Matching = () => {
                             ))}
                           </TableRow>
                         ))}
-                        <TableRow className="bg-muted/50 font-semibold">
-                          <TableCell className="sticky left-0 bg-muted/50">Total</TableCell>
+                        <TableRow className="bg-blue-50 font-semibold">
+                          <TableCell className="sticky left-0 bg-blue-50">
+                            <div className="flex flex-col">
+                              <span>Total Available</span>
+                              <span className="text-xs text-muted-foreground">All Staff</span>
+                            </div>
+                          </TableCell>
                           {WEEKS.map(week => (
-                            <TableCell key={week} className="text-center">
+                            <TableCell key={week} className="text-center font-semibold">
                               {staff.reduce((sum, s) => sum + (s.forecastHours[week] || 0), 0)}
                             </TableCell>
                           ))}
