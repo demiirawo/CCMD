@@ -801,15 +801,12 @@ export const Matching = () => {
                     return <div className="mt-4 pt-4 border-t border-dashed">
                               <div className="flex items-center justify-between mb-3">
                                 <div className="text-sm font-semibold text-muted-foreground">Unallocated Carers</div>
-                                <span className="text-xs bg-orange-100 text-orange-700 px-3 py-1 rounded-full font-medium">
-                                  {totalUnallocatedHours}h total available ({currentWeek})
-                                </span>
                               </div>
                               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                                 {unassignedStaff.map(s => {
                                   const availableHours = s.forecastHours[currentWeek] || 0;
                                   return (
-                                    <div key={s.id} className="flex items-center justify-between bg-orange-50 border border-orange-200 rounded-lg px-3 py-2">
+                                    <div key={s.id} className="flex items-center justify-between bg-orange-50 border border-orange-200 rounded-lg px-4 py-3">
                                       <span className="text-sm font-medium text-orange-800 truncate">{s.name}</span>
                                       <span className="text-xs bg-orange-200 text-orange-900 px-2 py-1 rounded-full ml-2 shrink-0">
                                         {availableHours}h
