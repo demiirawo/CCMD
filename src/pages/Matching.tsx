@@ -828,6 +828,8 @@ export const Matching = () => {
                               if (user.genderPreference !== "No Preference") {
                                 if (s.gender === user.genderPreference) {
                                   sentences.push(`${staffFirstName} matches ${userFirstName}'s preference for a ${user.genderPreference.toLowerCase()} carer`);
+                                } else {
+                                  sentences.push(`${staffFirstName} (${s.gender.toLowerCase()}) does not match ${userFirstName}'s preference for a ${user.genderPreference.toLowerCase()} carer`);
                                 }
                               }
 
