@@ -6,6 +6,7 @@ import { AuthProvider } from "./components/AuthProvider";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { DataIsolationWrapper } from "./components/DataIsolationWrapper";
 import { RootRedirect } from "./components/RootRedirect";
+import { Toaster } from "./components/ui/toaster";
 
 import { useTheme } from "./hooks/useTheme";
 import Index from "./pages/Index";
@@ -111,6 +112,7 @@ const App = () => (
         </BrowserRouter>
       </AuthProvider>
     </TooltipProvider>
+    <Toaster />
   </QueryClientProvider>
 );
 
