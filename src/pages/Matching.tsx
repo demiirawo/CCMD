@@ -894,7 +894,7 @@ export const Matching = () => {
                       <TableHead>Month</TableHead>
                       <TableHead className="text-right">Required Hours</TableHead>
                       <TableHead className="text-right">Allocated Hours</TableHead>
-                      <TableHead className="text-right">Available Hours</TableHead>
+                      <TableHead className="text-right">Unallocated Hours</TableHead>
                       <TableHead>Utilisation Status</TableHead>
                     </TableRow>
                   </TableHeader>
