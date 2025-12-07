@@ -575,9 +575,51 @@ export const Matching = () => {
                       <TableHeader>
                         <TableRow>
                           <TableHead className="text-xs py-1">Week</TableHead>
-                          <TableHead className="text-xs py-1 text-right">Required Hours</TableHead>
-                          <TableHead className="text-xs py-1 text-right">Allocated Hours</TableHead>
-                          <TableHead className="text-xs py-1 text-right">Unallocated Hours</TableHead>
+                          <TableHead className="text-xs py-1 text-right">
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <span className="inline-flex items-center gap-1 cursor-help">
+                                    Required Hours
+                                    <HelpCircle className="h-3 w-3 text-muted-foreground" />
+                                  </span>
+                                </TooltipTrigger>
+                                <TooltipContent className="bg-white max-w-xs">
+                                  <p className="text-sm">Total hours needed by all service users for the week</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          </TableHead>
+                          <TableHead className="text-xs py-1 text-right">
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <span className="inline-flex items-center gap-1 cursor-help">
+                                    Allocated Hours
+                                    <HelpCircle className="h-3 w-3 text-muted-foreground" />
+                                  </span>
+                                </TooltipTrigger>
+                                <TooltipContent className="bg-white max-w-xs">
+                                  <p className="text-sm">Total hours assigned to primary staff across all service users</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          </TableHead>
+                          <TableHead className="text-xs py-1 text-right">
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <span className="inline-flex items-center gap-1 cursor-help">
+                                    Unallocated Hours
+                                    <HelpCircle className="h-3 w-3 text-muted-foreground" />
+                                  </span>
+                                </TooltipTrigger>
+                                <TooltipContent className="bg-white max-w-xs">
+                                  <p className="text-sm">Available hours from staff not assigned as primary to any service user</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          </TableHead>
                           <TableHead className="text-xs py-1 text-right">
                             <TooltipProvider>
                               <Tooltip>
