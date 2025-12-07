@@ -619,37 +619,6 @@ export const Matching = () => {
           </div>
         </div>
 
-        {/* Filters */}
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex flex-wrap gap-4 items-center">
-              <div className="relative flex-1 min-w-[200px]">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input placeholder="Search by name or support need..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="pl-10 bg-white" />
-              </div>
-              <Select value={locationFilter} onValueChange={setLocationFilter}>
-                <SelectTrigger className="w-[180px] bg-white">
-                  <MapPin className="h-4 w-4 mr-2" />
-                  <SelectValue placeholder="Location" />
-                </SelectTrigger>
-                <SelectContent className="bg-white">
-                  <SelectItem value="all">All Locations</SelectItem>
-                  {locations.map(loc => <SelectItem key={loc} value={loc}>{loc}</SelectItem>)}
-                </SelectContent>
-              </Select>
-              <Select value={supportTypeFilter} onValueChange={setSupportTypeFilter}>
-                <SelectTrigger className="w-[200px] bg-white">
-                  <SelectValue placeholder="Support Type" />
-                </SelectTrigger>
-                <SelectContent className="bg-white">
-                  <SelectItem value="all">All Support Types</SelectItem>
-                  {supportTypes.map(type => <SelectItem key={type} value={type}>{type}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-          </CardContent>
-        </Card>
-
         <Tabs defaultValue="diagram" className="space-y-6">
           <TabsList>
             <TabsTrigger value="diagram">Matching</TabsTrigger>
