@@ -138,21 +138,21 @@ export const ForecastAISummary = ({
       }
       const messages = [{
         role: "system" as const,
-        content: `You are an AI assistant that creates workforce planning summaries for care organizations. Create a concise, actionable summary focusing on ${focusArea}.
+        content: `You are an AI assistant that creates professional workforce planning summaries for care organizations. Create a balanced, constructive summary focusing on ${focusArea}.
 
 Instructions:
-- Write a narrative summary in 250 words or less
-- Start with an overall assessment of how well-resourced ${companyName} is for the next 8 weeks
-- ${showUtilisation ? "Include insights on utilisation rates - highlight weeks with concerning utilisation (under 70% or over 90%)" : ""}
-- ${showMatchmaking ? "Include assessment of staff-to-service-user matching effectiveness, coverage gaps, and location-based distribution" : ""}
-- Highlight any critical gaps or risks
-- Use professional, clear language suitable for care management
-- Be specific about numbers and percentages where relevant
-- End with 1-2 key recommendations
-- Do not use bullet points, write in flowing paragraphs`
+- Write a narrative summary in 150 words or less
+- Use positive, professional language suitable for regulatory review
+- Start with strengths and what is working well for ${companyName} over the next 8 weeks
+- ${showUtilisation ? "Mention utilisation levels constructively, framing any areas for improvement as opportunities rather than problems" : ""}
+- ${showMatchmaking ? "Highlight effective staff-to-service-user matching and note areas where additional coverage would strengthen the team" : ""}
+- Frame any gaps as "areas for development" or "opportunities to enhance" rather than risks or concerns
+- Use measured, balanced language - avoid words like "critical", "failing", "inadequate", or "concerning"
+- End with a brief, positive forward-looking statement
+- Write in flowing paragraphs, no bullet points`
       }, {
         role: "user" as const,
-        content: `Create a workforce planning summary for ${companyName} based on this forecast data:\n\n${collectedData}`
+        content: `Create a balanced workforce planning summary for ${companyName} based on this forecast data:\n\n${collectedData}`
       }];
       const generatedSummary = await generateResponse(messages, 'gpt-4.1-2025-04-14');
       if (generatedSummary) {
