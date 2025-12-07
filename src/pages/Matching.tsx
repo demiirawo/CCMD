@@ -226,6 +226,14 @@ export const Matching = () => {
   const [editingUser, setEditingUser] = useState<ServiceUser | null>(null);
   const [editingStaff, setEditingStaff] = useState<Staff | null>(null);
 
+  // Inline editing states
+  const [editingCell, setEditingCell] = useState<{
+    id: string;
+    field: 'name' | 'supportNeeds' | 'location';
+    type: 'user' | 'staff';
+  } | null>(null);
+  const [editValue, setEditValue] = useState<string>("");
+
   // Refs for line drawing
   const containerRef = useRef<HTMLDivElement>(null);
   const userCardRefs = useRef<Map<string, HTMLDivElement>>(new Map());
@@ -963,14 +971,102 @@ export const Matching = () => {
                     </TableHeader>
                     <TableBody>
                       {serviceUsers.map(user => <TableRow key={user.id}>
-                          <TableCell className="font-medium">{user.name}</TableCell>
-                          <TableCell>
-                            <div className="flex flex-wrap gap-1">
-                              {user.supportNeeds.slice(0, 2).map(need => <Badge key={need} variant="secondary" className="text-xs">{need}</Badge>)}
-                              {user.supportNeeds.length > 2 && <Badge variant="outline" className="text-xs">+{user.supportNeeds.length - 2}</Badge>}
-                            </div>
+                          <TableCell 
+                            className="font-medium cursor-pointer hover:bg-muted/50"
+                            onDoubleClick={() => {
+                              setEditingCell({ id: user.id, field: 'name', type: 'user' });
+                              setEditValue(user.name);
+                            }}
+                          >
+                            {editingCell?.id === user.id && editingCell?.field === 'name' && editingCell?.type === 'user' ? (
+                              <Input
+                                value={editValue}
+                                onChange={(e) => setEditValue(e.target.value)}
+                                onBlur={() => {
+                                  setServiceUsers(prev => prev.map(u => u.id === user.id ? { ...u, name: editValue } : u));
+                                  setEditingCell(null);
+                                }}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') {
+                                    setServiceUsers(prev => prev.map(u => u.id === user.id ? { ...u, name: editValue } : u));
+                                    setEditingCell(null);
+                                  } else if (e.key === 'Escape') {
+                                    setEditingCell(null);
+                                  }
+                                }}
+                                autoFocus
+                                className="h-8 bg-white"
+                              />
+                            ) : user.name}
                           </TableCell>
-                          <TableCell>{user.location}</TableCell>
+                          <TableCell
+                            className="cursor-pointer hover:bg-muted/50"
+                            onDoubleClick={() => {
+                              setEditingCell({ id: user.id, field: 'supportNeeds', type: 'user' });
+                              setEditValue(user.supportNeeds.join(', '));
+                            }}
+                          >
+                            {editingCell?.id === user.id && editingCell?.field === 'supportNeeds' && editingCell?.type === 'user' ? (
+                              <Input
+                                value={editValue}
+                                onChange={(e) => setEditValue(e.target.value)}
+                                onBlur={() => {
+                                  setServiceUsers(prev => prev.map(u => u.id === user.id ? { 
+                                    ...u, 
+                                    supportNeeds: editValue.split(',').map(s => s.trim()).filter(Boolean)
+                                  } : u));
+                                  setEditingCell(null);
+                                }}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') {
+                                    setServiceUsers(prev => prev.map(u => u.id === user.id ? { 
+                                      ...u, 
+                                      supportNeeds: editValue.split(',').map(s => s.trim()).filter(Boolean)
+                                    } : u));
+                                    setEditingCell(null);
+                                  } else if (e.key === 'Escape') {
+                                    setEditingCell(null);
+                                  }
+                                }}
+                                autoFocus
+                                placeholder="Comma-separated needs..."
+                                className="h-8 bg-white min-w-[200px]"
+                              />
+                            ) : (
+                              <div className="flex flex-wrap gap-1">
+                                {user.supportNeeds.slice(0, 2).map(need => <Badge key={need} variant="secondary" className="text-xs">{need}</Badge>)}
+                                {user.supportNeeds.length > 2 && <Badge variant="outline" className="text-xs">+{user.supportNeeds.length - 2}</Badge>}
+                              </div>
+                            )}
+                          </TableCell>
+                          <TableCell
+                            className="cursor-pointer hover:bg-muted/50"
+                            onDoubleClick={() => {
+                              setEditingCell({ id: user.id, field: 'location', type: 'user' });
+                              setEditValue(user.location);
+                            }}
+                          >
+                            {editingCell?.id === user.id && editingCell?.field === 'location' && editingCell?.type === 'user' ? (
+                              <Input
+                                value={editValue}
+                                onChange={(e) => setEditValue(e.target.value)}
+                                onBlur={() => {
+                                  setServiceUsers(prev => prev.map(u => u.id === user.id ? { ...u, location: editValue } : u));
+                                  setEditingCell(null);
+                                }}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') {
+                                    setServiceUsers(prev => prev.map(u => u.id === user.id ? { ...u, location: editValue } : u));
+                                    setEditingCell(null);
+                                  } else if (e.key === 'Escape') {
+                                    setEditingCell(null);
+                                  }
+                                }}
+                                autoFocus
+                                className="h-8 bg-white"
+                              />
+                            ) : user.location}
+                          </TableCell>
                           <TableCell>
                             {user.primaryStaffIds.length > 0 ? <div className="flex flex-wrap gap-1">
                                 {user.primaryStaffIds.map(id => <Badge key={id} className="bg-green-100 text-green-800">{getStaffById(id)?.name}</Badge>)}
