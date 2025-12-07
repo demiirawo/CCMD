@@ -237,6 +237,15 @@ export const Matching = () => {
     selectedInterests: string[];
   } | null>(null);
 
+  // Gender mismatch confirmation dialog state
+  const [genderMismatchDialog, setGenderMismatchDialog] = useState<{
+    userId: string;
+    staffId: string;
+    type: 'primary' | 'backup';
+    staffGender: string;
+    userPreference: string;
+  } | null>(null);
+
   // Form states
   const [newUserForm, setNewUserForm] = useState({
     name: "",
@@ -303,6 +312,31 @@ export const Matching = () => {
   }, [staff, calculateMatchScore]);
   const getStaffById = (id: string) => staff.find(s => s.id === id);
   
+  // Check for gender mismatch before opening needs confirmation
+  const checkGenderAndOpenDialog = (userId: string, staffId: string, type: 'primary' | 'backup') => {
+    const user = serviceUsers.find(u => u.id === userId);
+    const staffMember = staff.find(s => s.id === staffId);
+    if (!user || !staffMember) return;
+
+    // Check if there's a gender preference mismatch
+    const hasGenderMismatch = user.genderPreference !== "No Preference" && 
+      staffMember.gender !== user.genderPreference &&
+      staffMember.gender !== "Non-Binary" &&
+      staffMember.gender !== "Prefer not to say";
+
+    if (hasGenderMismatch) {
+      setGenderMismatchDialog({
+        userId,
+        staffId,
+        type,
+        staffGender: staffMember.gender,
+        userPreference: user.genderPreference
+      });
+    } else {
+      openNeedsConfirmDialog(userId, staffId, type);
+    }
+  };
+
   // Open the needs confirmation dialog before assigning staff
   const openNeedsConfirmDialog = (userId: string, staffId: string, type: 'primary' | 'backup') => {
     const user = serviceUsers.find(u => u.id === userId);
@@ -314,6 +348,13 @@ export const Matching = () => {
       selectedNeeds: [],
       selectedInterests: []
     });
+  };
+
+  const confirmGenderMismatch = () => {
+    if (!genderMismatchDialog) return;
+    const { userId, staffId, type } = genderMismatchDialog;
+    setGenderMismatchDialog(null);
+    openNeedsConfirmDialog(userId, staffId, type);
   };
 
   const confirmAssignStaff = () => {
@@ -1272,7 +1313,7 @@ export const Matching = () => {
                                     name: s.name,
                                     score
                                   }))} 
-                                  onSelect={value => openNeedsConfirmDialog(user.id, value, 'primary')} 
+                                  onSelect={value => checkGenderAndOpenDialog(user.id, value, 'primary')} 
                                   placeholder="+ Add Primary Staff" 
                                   triggerClassName="w-[160px]" 
                                   className="w-[200px]" 
@@ -1286,7 +1327,7 @@ export const Matching = () => {
                                     name: s.name,
                                     score
                                   }))} 
-                                  onSelect={value => openNeedsConfirmDialog(user.id, value, 'backup')} 
+                                  onSelect={value => checkGenderAndOpenDialog(user.id, value, 'backup')} 
                                   placeholder="+ Add Backup Staff" 
                                   triggerClassName="w-[160px]" 
                                   className="w-[200px]" 
@@ -1537,6 +1578,39 @@ export const Matching = () => {
               </div>
               <Button onClick={handleAddStaff} className="w-full">Add Staff Member</Button>
             </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Gender Mismatch Confirmation Dialog */}
+        <Dialog open={!!genderMismatchDialog} onOpenChange={(open) => !open && setGenderMismatchDialog(null)}>
+          <DialogContent className="bg-white max-w-md">
+            <DialogHeader>
+              <DialogTitle>Gender Preference Mismatch</DialogTitle>
+            </DialogHeader>
+            {genderMismatchDialog && (() => {
+              const user = serviceUsers.find(u => u.id === genderMismatchDialog.userId);
+              const staffMember = getStaffById(genderMismatchDialog.staffId);
+              if (!user || !staffMember) return null;
+              return (
+                <div className="space-y-4 pt-4">
+                  <p className="text-sm text-muted-foreground">
+                    <strong>{user.name}</strong> has a gender preference for <strong>{genderMismatchDialog.userPreference}</strong> carers, 
+                    but <strong>{staffMember.name}</strong> is <strong>{genderMismatchDialog.staffGender}</strong>.
+                  </p>
+                  <p className="text-sm text-amber-600 font-medium">
+                    Do you want to proceed with this assignment anyway?
+                  </p>
+                  <div className="flex gap-2 justify-end pt-2">
+                    <Button variant="outline" onClick={() => setGenderMismatchDialog(null)}>
+                      Cancel
+                    </Button>
+                    <Button onClick={confirmGenderMismatch}>
+                      Proceed Anyway
+                    </Button>
+                  </div>
+                </div>
+              );
+            })()}
           </DialogContent>
         </Dialog>
 
