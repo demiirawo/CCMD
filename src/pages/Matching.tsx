@@ -444,7 +444,6 @@ export const Matching = () => {
         <Tabs defaultValue="diagram" className="space-y-6">
           <TabsList>
             <TabsTrigger value="diagram">Matching</TabsTrigger>
-            <TabsTrigger value="utilisation">Utilisation</TabsTrigger>
             <TabsTrigger value="users">Service Users</TabsTrigger>
             <TabsTrigger value="staff">Staff</TabsTrigger>
           </TabsList>
@@ -674,84 +673,6 @@ export const Matching = () => {
               </div>
           </TabsContent>
 
-          {/* Utilisation Tab */}
-          <TabsContent value="utilisation" className="space-y-6">
-            {/* Staff Dependency Overview - 6 Month Forecast */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <BarChart3 className="h-5 w-5" />
-                  Staff Utilisation Forecast (8 Weeks)
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Week</TableHead>
-                      <TableHead className="text-right">Required Hours</TableHead>
-                      <TableHead className="text-right">Allocated Hours</TableHead>
-                      <TableHead className="text-right">Unallocated Hours</TableHead>
-                      <TableHead>Utilisation Status</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {WEEKS.map((week, index) => {
-                    const requiredHours = serviceUsers.reduce((sum, u) => sum + (u.forecastHours[week] || 0), 0);
-                    // Allocated hours = sum of all staff allocations across service users for this week
-                    const allocatedHours = serviceUsers.reduce((sum, u) => 
-                      sum + u.staffAllocations.reduce((staffSum, alloc) => 
-                        staffSum + (alloc.allocatedHours[week] || 0), 0), 0);
-                    // Unallocated hours = sum of hours from staff NOT assigned as PRIMARY to any service user
-                    const primaryStaffIds = new Set(serviceUsers.flatMap(u => u.primaryStaffIds));
-                    const unallocatedHours = staff
-                      .filter(s => s.status === "Active" && !primaryStaffIds.has(s.id))
-                      .reduce((sum, s) => sum + (s.forecastHours[week] || 0), 0);
-                    const totalAvailableHours = allocatedHours + unallocatedHours;
-                    const utilisation = totalAvailableHours > 0 ? requiredHours / totalAvailableHours * 100 : 0;
-                    let statusColor = "bg-green-100 text-green-800";
-                    let statusText = "Optimal – Staff well utilised";
-                    if (utilisation < 70) {
-                      statusColor = "bg-orange-100 text-orange-800";
-                      statusText = "Underused – Moderate staff underutilisation";
-                    } else if (utilisation > 100) {
-                      statusColor = "bg-red-100 text-red-800";
-                      statusText = "Overworked – Staff shortage risk";
-                    }
-                    return <TableRow key={week}>
-                          <TableCell className="font-medium">{week}</TableCell>
-                          <TableCell className="text-right">{requiredHours.toFixed(1)}</TableCell>
-                          <TableCell className="text-right">{allocatedHours.toFixed(1)}</TableCell>
-                          <TableCell className="text-right">{unallocatedHours.toFixed(1)}</TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              <span className="text-sm">Utilisation: {utilisation.toFixed(1)}%</span>
-                              <span className="text-muted-foreground">—</span>
-                              <Badge className={statusColor}>{statusText}</Badge>
-                            </div>
-                          </TableCell>
-                        </TableRow>;
-                  })}
-                  </TableBody>
-                </Table>
-                <div className="mt-4 text-sm text-muted-foreground">
-                  {serviceUsers.length} service users • Sum of forecasted hours shown above
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Service User Needs Summary */}
-            <Card>
-              
-              
-            </Card>
-
-            {/* Staff Capability Summary */}
-            <Card>
-              
-              
-            </Card>
-          </TabsContent>
 
           {/* Service Users Table */}
           <TabsContent value="users" className="space-y-6">
@@ -772,8 +693,6 @@ export const Matching = () => {
                         <TableHead>Support Needs</TableHead>
                         <TableHead>Interests</TableHead>
                         <TableHead>Location</TableHead>
-                        <TableHead>Primary Staff</TableHead>
-                        <TableHead>Backup Staff</TableHead>
                         <TableHead className="w-[50px]"></TableHead>
                       </TableRow>
                     </TableHeader>
@@ -889,59 +808,6 @@ export const Matching = () => {
                                   </SelectItem>
                                 </SelectContent>
                               </Select>}
-                          </TableCell>
-                          <TableCell>
-                            <div className="space-y-1">
-                              <div className="flex flex-wrap gap-1">
-                                {user.primaryStaffIds.map(sid => {
-                                  const currentWeek = WEEKS[0];
-                                  const allocatedHours = getStaffAllocation(user, sid, currentWeek);
-                                  return (
-                                    <div key={sid} className="flex items-center gap-1 bg-green-100 text-green-800 rounded px-1.5 py-0.5">
-                                      <span className="text-xs">{getStaffById(sid)?.name}</span>
-                                      <Input
-                                        type="number"
-                                        value={allocatedHours}
-                                        onChange={e => updateStaffAllocation(user.id, sid, currentWeek, parseFloat(e.target.value) || 0)}
-                                        className="h-5 w-14 text-xs text-right bg-white px-1"
-                                        placeholder="hrs"
-                                      />
-                                      <span className="text-[10px]">h</span>
-                                      <X 
-                                        className="h-3 w-3 cursor-pointer hover:text-green-900" 
-                                        onClick={() => unassignStaff(user.id, sid, 'primary')}
-                                      />
-                                    </div>
-                                  );
-                                })}
-                              </div>
-                              <SearchableStaffSelect options={getRankedStaff(user, [...user.primaryStaffIds, ...user.backupStaffIds]).map(({
-                            staff: s,
-                            score
-                          }) => ({
-                            id: s.id,
-                            name: s.name,
-                            score
-                          }))} onSelect={value => assignStaff(user.id, value, 'primary')} placeholder={user.primaryStaffIds.length > 0 ? "Add more..." : "Select staff..."} triggerClassName="w-[140px]" className="w-[200px]" />
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="space-y-1">
-                              <div className="flex flex-wrap gap-1">
-                                {user.backupStaffIds.map(sid => <Badge key={sid} variant="outline" className="cursor-pointer text-xs hover:bg-muted" onClick={() => unassignStaff(user.id, sid, 'backup')}>
-                                    {getStaffById(sid)?.name}
-                                    <X className="h-3 w-3 ml-1" />
-                                  </Badge>)}
-                              </div>
-                              <SearchableStaffSelect options={getRankedStaff(user, [...user.primaryStaffIds, ...user.backupStaffIds]).map(({
-                            staff: s,
-                            score
-                          }) => ({
-                            id: s.id,
-                            name: s.name,
-                            score
-                          }))} onSelect={value => assignStaff(user.id, value, 'backup')} placeholder={user.backupStaffIds.length > 0 ? "Add more..." : "Select staff..."} triggerClassName="w-[140px]" className="w-[200px]" />
-                            </div>
                           </TableCell>
                           <TableCell>
                             <Button variant="ghost" size="icon" onClick={() => handleDeleteUser(user.id)}>
