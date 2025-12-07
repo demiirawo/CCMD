@@ -217,7 +217,7 @@ export const Matching = () => {
   // Inline editing states
   const [editingCell, setEditingCell] = useState<{
     id: string;
-    field: 'name' | 'supportNeeds' | 'location';
+    field: 'name' | 'supportNeeds' | 'location' | 'interests' | 'skills';
     type: 'user' | 'staff';
   } | null>(null);
   const [editValue, setEditValue] = useState<string>("");
@@ -246,6 +246,19 @@ export const Matching = () => {
     const allNeeds = serviceUsers.flatMap(u => u.supportNeeds);
     return [...new Set(allNeeds)];
   }, [serviceUsers]);
+
+  // All interests/preferences for dropdowns
+  const allInterests = useMemo(() => {
+    const userPrefs = serviceUsers.flatMap(u => u.preferences);
+    const staffInterests = staff.flatMap(s => s.interests);
+    return [...new Set([...userPrefs, ...staffInterests])].filter(Boolean);
+  }, [serviceUsers, staff]);
+
+  // All skills for dropdown
+  const allSkills = useMemo(() => {
+    const staffSkills = staff.flatMap(s => s.skills);
+    return [...new Set(staffSkills)].filter(Boolean);
+  }, [staff]);
   const filteredServiceUsers = useMemo(() => {
     return serviceUsers.filter(user => {
       const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) || user.supportNeeds.some(need => need.toLowerCase().includes(searchTerm.toLowerCase()));
@@ -880,41 +893,162 @@ export const Matching = () => {
                             />
                           </TableCell>
                           {/* Support Needs */}
-                          <TableCell className="cursor-pointer hover:bg-muted/50" onDoubleClick={() => {
-                        setEditingCell({
-                          id: user.id,
-                          field: 'supportNeeds',
-                          type: 'user'
-                        });
-                        setEditValue(user.supportNeeds.join(', '));
-                      }}>
-                            {editingCell?.id === user.id && editingCell?.field === 'supportNeeds' && editingCell?.type === 'user' ? <Input value={editValue} onChange={e => setEditValue(e.target.value)} onBlur={() => {
-                          setServiceUsers(prev => prev.map(u => u.id === user.id ? {
-                            ...u,
-                            supportNeeds: editValue.split(',').map(s => s.trim()).filter(Boolean)
-                          } : u));
-                          setEditingCell(null);
-                        }} onKeyDown={e => {
-                          if (e.key === 'Enter') {
-                            setServiceUsers(prev => prev.map(u => u.id === user.id ? {
-                              ...u,
-                              supportNeeds: editValue.split(',').map(s => s.trim()).filter(Boolean)
-                            } : u));
-                            setEditingCell(null);
-                          } else if (e.key === 'Escape') {
-                            setEditingCell(null);
-                          }
-                        }} autoFocus placeholder="Comma-separated needs..." className="h-8 bg-white min-w-[200px]" /> : <div className="flex flex-wrap gap-1">
-                                {user.supportNeeds.slice(0, 2).map(need => <Badge key={need} variant="secondary" className="text-xs">{need}</Badge>)}
-                                {user.supportNeeds.length > 2 && <Badge variant="outline" className="text-xs">+{user.supportNeeds.length - 2}</Badge>}
-                              </div>}
+                          <TableCell>
+                            {editingCell?.id === user.id && editingCell?.field === 'supportNeeds' && editingCell?.type === 'user' ? (
+                              <Input 
+                                value={editValue} 
+                                onChange={e => setEditValue(e.target.value)} 
+                                onBlur={() => {
+                                  if (editValue.trim()) {
+                                    setServiceUsers(prev => prev.map(u => u.id === user.id ? {
+                                      ...u,
+                                      supportNeeds: [...u.supportNeeds, editValue.trim()]
+                                    } : u));
+                                  }
+                                  setEditingCell(null);
+                                }} 
+                                onKeyDown={e => {
+                                  if (e.key === 'Enter' && editValue.trim()) {
+                                    setServiceUsers(prev => prev.map(u => u.id === user.id ? {
+                                      ...u,
+                                      supportNeeds: [...u.supportNeeds, editValue.trim()]
+                                    } : u));
+                                    setEditingCell(null);
+                                  } else if (e.key === 'Escape') {
+                                    setEditingCell(null);
+                                  }
+                                }} 
+                                autoFocus 
+                                placeholder="Enter new support need..." 
+                                className="h-8 bg-white min-w-[150px]" 
+                              />
+                            ) : (
+                              <div className="flex flex-wrap gap-1 items-center">
+                                {user.supportNeeds.map(need => (
+                                  <Badge key={need} variant="secondary" className="text-xs flex items-center gap-1">
+                                    {need}
+                                    <X 
+                                      className="h-3 w-3 cursor-pointer hover:text-destructive" 
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setServiceUsers(prev => prev.map(u => u.id === user.id ? {
+                                          ...u,
+                                          supportNeeds: u.supportNeeds.filter(n => n !== need)
+                                        } : u));
+                                      }}
+                                    />
+                                  </Badge>
+                                ))}
+                                <Select 
+                                  value="" 
+                                  onValueChange={value => {
+                                    if (value === '__add_new__') {
+                                      setEditingCell({ id: user.id, field: 'supportNeeds', type: 'user' });
+                                      setEditValue('');
+                                    } else if (!user.supportNeeds.includes(value)) {
+                                      setServiceUsers(prev => prev.map(u => u.id === user.id ? {
+                                        ...u,
+                                        supportNeeds: [...u.supportNeeds, value]
+                                      } : u));
+                                    }
+                                  }}
+                                >
+                                  <SelectTrigger className="h-6 w-6 p-0 border-dashed">
+                                    <Plus className="h-3 w-3" />
+                                  </SelectTrigger>
+                                  <SelectContent className="bg-white z-50">
+                                    {supportTypes.filter(t => !user.supportNeeds.includes(t)).map(type => (
+                                      <SelectItem key={type} value={type}>{type}</SelectItem>
+                                    ))}
+                                    <SelectItem value="__add_new__" className="text-primary font-medium">
+                                      <div className="flex items-center gap-1">
+                                        <Plus className="h-3 w-3" />
+                                        Add new
+                                      </div>
+                                    </SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            )}
                           </TableCell>
                           {/* Interests */}
                           <TableCell>
-                            <div className="flex flex-wrap gap-1">
-                              {user.preferences.slice(0, 2).map(pref => <Badge key={pref} variant="outline" className="text-xs">{pref}</Badge>)}
-                              {user.preferences.length > 2 && <Badge variant="outline" className="text-xs">+{user.preferences.length - 2}</Badge>}
-                            </div>
+                            {editingCell?.id === user.id && editingCell?.field === 'interests' && editingCell?.type === 'user' ? (
+                              <Input 
+                                value={editValue} 
+                                onChange={e => setEditValue(e.target.value)} 
+                                onBlur={() => {
+                                  if (editValue.trim()) {
+                                    setServiceUsers(prev => prev.map(u => u.id === user.id ? {
+                                      ...u,
+                                      preferences: [...u.preferences, editValue.trim()]
+                                    } : u));
+                                  }
+                                  setEditingCell(null);
+                                }} 
+                                onKeyDown={e => {
+                                  if (e.key === 'Enter' && editValue.trim()) {
+                                    setServiceUsers(prev => prev.map(u => u.id === user.id ? {
+                                      ...u,
+                                      preferences: [...u.preferences, editValue.trim()]
+                                    } : u));
+                                    setEditingCell(null);
+                                  } else if (e.key === 'Escape') {
+                                    setEditingCell(null);
+                                  }
+                                }} 
+                                autoFocus 
+                                placeholder="Enter new interest..." 
+                                className="h-8 bg-white min-w-[150px]" 
+                              />
+                            ) : (
+                              <div className="flex flex-wrap gap-1 items-center">
+                                {user.preferences.map(pref => (
+                                  <Badge key={pref} variant="outline" className="text-xs flex items-center gap-1">
+                                    {pref}
+                                    <X 
+                                      className="h-3 w-3 cursor-pointer hover:text-destructive" 
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setServiceUsers(prev => prev.map(u => u.id === user.id ? {
+                                          ...u,
+                                          preferences: u.preferences.filter(p => p !== pref)
+                                        } : u));
+                                      }}
+                                    />
+                                  </Badge>
+                                ))}
+                                <Select 
+                                  value="" 
+                                  onValueChange={value => {
+                                    if (value === '__add_new__') {
+                                      setEditingCell({ id: user.id, field: 'interests', type: 'user' });
+                                      setEditValue('');
+                                    } else if (!user.preferences.includes(value)) {
+                                      setServiceUsers(prev => prev.map(u => u.id === user.id ? {
+                                        ...u,
+                                        preferences: [...u.preferences, value]
+                                      } : u));
+                                    }
+                                  }}
+                                >
+                                  <SelectTrigger className="h-6 w-6 p-0 border-dashed">
+                                    <Plus className="h-3 w-3" />
+                                  </SelectTrigger>
+                                  <SelectContent className="bg-white z-50">
+                                    {allInterests.filter(i => !user.preferences.includes(i)).map(interest => (
+                                      <SelectItem key={interest} value={interest}>{interest}</SelectItem>
+                                    ))}
+                                    <SelectItem value="__add_new__" className="text-primary font-medium">
+                                      <div className="flex items-center gap-1">
+                                        <Plus className="h-3 w-3" />
+                                        Add new
+                                      </div>
+                                    </SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            )}
                           </TableCell>
                           {/* Delete */}
                           <TableCell>
@@ -1154,17 +1288,163 @@ export const Matching = () => {
                               </SelectContent>
                             </Select>
                           </TableCell>
+                          {/* Skills */}
                           <TableCell>
-                            <div className="flex flex-wrap gap-1">
-                              {s.skills.slice(0, 2).map(skill => <Badge key={skill} variant="secondary" className="text-xs">{skill}</Badge>)}
-                              {s.skills.length > 2 && <Badge variant="outline" className="text-xs">+{s.skills.length - 2}</Badge>}
-                            </div>
+                            {editingCell?.id === s.id && editingCell?.field === 'skills' && editingCell?.type === 'staff' ? (
+                              <Input 
+                                value={editValue} 
+                                onChange={e => setEditValue(e.target.value)} 
+                                onBlur={() => {
+                                  if (editValue.trim()) {
+                                    setStaff(prev => prev.map(staff => staff.id === s.id ? {
+                                      ...staff,
+                                      skills: [...staff.skills, editValue.trim()]
+                                    } : staff));
+                                  }
+                                  setEditingCell(null);
+                                }} 
+                                onKeyDown={e => {
+                                  if (e.key === 'Enter' && editValue.trim()) {
+                                    setStaff(prev => prev.map(staff => staff.id === s.id ? {
+                                      ...staff,
+                                      skills: [...staff.skills, editValue.trim()]
+                                    } : staff));
+                                    setEditingCell(null);
+                                  } else if (e.key === 'Escape') {
+                                    setEditingCell(null);
+                                  }
+                                }} 
+                                autoFocus 
+                                placeholder="Enter new skill..." 
+                                className="h-8 bg-white min-w-[150px]" 
+                              />
+                            ) : (
+                              <div className="flex flex-wrap gap-1 items-center">
+                                {s.skills.map(skill => (
+                                  <Badge key={skill} variant="secondary" className="text-xs flex items-center gap-1">
+                                    {skill}
+                                    <X 
+                                      className="h-3 w-3 cursor-pointer hover:text-destructive" 
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setStaff(prev => prev.map(staff => staff.id === s.id ? {
+                                          ...staff,
+                                          skills: staff.skills.filter(sk => sk !== skill)
+                                        } : staff));
+                                      }}
+                                    />
+                                  </Badge>
+                                ))}
+                                <Select 
+                                  value="" 
+                                  onValueChange={value => {
+                                    if (value === '__add_new__') {
+                                      setEditingCell({ id: s.id, field: 'skills', type: 'staff' });
+                                      setEditValue('');
+                                    } else if (!s.skills.includes(value)) {
+                                      setStaff(prev => prev.map(staff => staff.id === s.id ? {
+                                        ...staff,
+                                        skills: [...staff.skills, value]
+                                      } : staff));
+                                    }
+                                  }}
+                                >
+                                  <SelectTrigger className="h-6 w-6 p-0 border-dashed">
+                                    <Plus className="h-3 w-3" />
+                                  </SelectTrigger>
+                                  <SelectContent className="bg-white z-50">
+                                    {allSkills.filter(sk => !s.skills.includes(sk)).map(skill => (
+                                      <SelectItem key={skill} value={skill}>{skill}</SelectItem>
+                                    ))}
+                                    <SelectItem value="__add_new__" className="text-primary font-medium">
+                                      <div className="flex items-center gap-1">
+                                        <Plus className="h-3 w-3" />
+                                        Add new
+                                      </div>
+                                    </SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            )}
                           </TableCell>
+                          {/* Interests */}
                           <TableCell>
-                            <div className="flex flex-wrap gap-1">
-                              {s.interests.slice(0, 2).map(interest => <Badge key={interest} variant="outline" className="text-xs">{interest}</Badge>)}
-                              {s.interests.length > 2 && <Badge variant="outline" className="text-xs">+{s.interests.length - 2}</Badge>}
-                            </div>
+                            {editingCell?.id === s.id && editingCell?.field === 'interests' && editingCell?.type === 'staff' ? (
+                              <Input 
+                                value={editValue} 
+                                onChange={e => setEditValue(e.target.value)} 
+                                onBlur={() => {
+                                  if (editValue.trim()) {
+                                    setStaff(prev => prev.map(staff => staff.id === s.id ? {
+                                      ...staff,
+                                      interests: [...staff.interests, editValue.trim()]
+                                    } : staff));
+                                  }
+                                  setEditingCell(null);
+                                }} 
+                                onKeyDown={e => {
+                                  if (e.key === 'Enter' && editValue.trim()) {
+                                    setStaff(prev => prev.map(staff => staff.id === s.id ? {
+                                      ...staff,
+                                      interests: [...staff.interests, editValue.trim()]
+                                    } : staff));
+                                    setEditingCell(null);
+                                  } else if (e.key === 'Escape') {
+                                    setEditingCell(null);
+                                  }
+                                }} 
+                                autoFocus 
+                                placeholder="Enter new interest..." 
+                                className="h-8 bg-white min-w-[150px]" 
+                              />
+                            ) : (
+                              <div className="flex flex-wrap gap-1 items-center">
+                                {s.interests.map(interest => (
+                                  <Badge key={interest} variant="outline" className="text-xs flex items-center gap-1">
+                                    {interest}
+                                    <X 
+                                      className="h-3 w-3 cursor-pointer hover:text-destructive" 
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setStaff(prev => prev.map(staff => staff.id === s.id ? {
+                                          ...staff,
+                                          interests: staff.interests.filter(i => i !== interest)
+                                        } : staff));
+                                      }}
+                                    />
+                                  </Badge>
+                                ))}
+                                <Select 
+                                  value="" 
+                                  onValueChange={value => {
+                                    if (value === '__add_new__') {
+                                      setEditingCell({ id: s.id, field: 'interests', type: 'staff' });
+                                      setEditValue('');
+                                    } else if (!s.interests.includes(value)) {
+                                      setStaff(prev => prev.map(staff => staff.id === s.id ? {
+                                        ...staff,
+                                        interests: [...staff.interests, value]
+                                      } : staff));
+                                    }
+                                  }}
+                                >
+                                  <SelectTrigger className="h-6 w-6 p-0 border-dashed">
+                                    <Plus className="h-3 w-3" />
+                                  </SelectTrigger>
+                                  <SelectContent className="bg-white z-50">
+                                    {allInterests.filter(i => !s.interests.includes(i)).map(interest => (
+                                      <SelectItem key={interest} value={interest}>{interest}</SelectItem>
+                                    ))}
+                                    <SelectItem value="__add_new__" className="text-primary font-medium">
+                                      <div className="flex items-center gap-1">
+                                        <Plus className="h-3 w-3" />
+                                        Add new
+                                      </div>
+                                    </SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            )}
                           </TableCell>
                           <TableCell>
                             <Select value={s.status} onValueChange={(value: "Active" | "On Leave" | "Inactive") => {
