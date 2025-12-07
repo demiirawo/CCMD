@@ -126,9 +126,15 @@ export const Matching = () => {
   const [isExporting, setIsExporting] = useState(false);
   
   const locations = useMemo(() => {
-    const allLocations = [...new Set([...serviceUsers.map(u => u.location), ...staff.map(s => s.location)])];
+    const allLocations = [...new Set([
+      ...serviceUsers.map(u => u.location), 
+      ...staff.map(s => s.location),
+      // Include custom locations from forms so newly added locations appear immediately
+      newUserForm.location,
+      newStaffForm.location
+    ])];
     return allLocations.filter(Boolean);
-  }, [serviceUsers, staff]);
+  }, [serviceUsers, staff, newUserForm.location, newStaffForm.location]);
   const supportTypes = useMemo(() => {
     const allNeeds = serviceUsers.flatMap(u => u.supportNeeds);
     return [...new Set(allNeeds)];
