@@ -1226,7 +1226,9 @@ export const Matching = () => {
             {/* Service Users Forecast Hours Table */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">Required Hours<TrendingUp className="h-5 w-5" />
+                <CardTitle className="flex items-center gap-2">Required Hours
+
+                <TrendingUp className="h-5 w-5" />
                   Service User Hours Forecast (12 Months)
                 </CardTitle>
               </CardHeader>
