@@ -1229,6 +1229,7 @@ export const Matching = () => {
                         <TableHead>Name</TableHead>
                         <TableHead>Manager</TableHead>
                         <TableHead>Location</TableHead>
+                        <TableHead>Avg Weekly Hours</TableHead>
                         <TableHead>Gender Preference</TableHead>
                         <TableHead>Support Needs</TableHead>
                         <TableHead>Interests</TableHead>
@@ -1365,6 +1366,22 @@ export const Matching = () => {
                                   </SelectItem>
                                 </SelectContent>
                               </Select>}
+                          </TableCell>
+                          {/* Average Weekly Hours */}
+                          <TableCell>
+                            <Input
+                              type="number"
+                              value={user.typicalWeeklyHours || 0}
+                              onChange={(e) => {
+                                const newValue = parseFloat(e.target.value) || 0;
+                                setServiceUsers(prev => prev.map(u => u.id === user.id ? {
+                                  ...u,
+                                  typicalWeeklyHours: newValue
+                                } : u));
+                              }}
+                              className="h-8 w-20 bg-white"
+                              min={0}
+                            />
                           </TableCell>
                           {/* Gender Preference */}
                           <TableCell>
@@ -1673,6 +1690,7 @@ export const Matching = () => {
                         <TableHead>Name</TableHead>
                         <TableHead>Manager</TableHead>
                         <TableHead>Location</TableHead>
+                        <TableHead>Avg Weekly Hours</TableHead>
                         <TableHead>Gender</TableHead>
                         <TableHead>Contract Type</TableHead>
                         <TableHead>Status</TableHead>
@@ -1758,6 +1776,22 @@ export const Matching = () => {
                                 <SelectItem value="__add_new__">+ Add New Location</SelectItem>
                               </SelectContent>
                             </Select>
+                          </TableCell>
+                          {/* Average Weekly Hours */}
+                          <TableCell>
+                            <Input
+                              type="number"
+                              value={s.typicalWeeklyHours || 0}
+                              onChange={(e) => {
+                                const newValue = parseFloat(e.target.value) || 0;
+                                setStaff(prev => prev.map(staff => staff.id === s.id ? {
+                                  ...staff,
+                                  typicalWeeklyHours: newValue
+                                } : staff));
+                              }}
+                              className="h-8 w-20 bg-white"
+                              min={0}
+                            />
                           </TableCell>
                           {/* Gender */}
                           <TableCell>
