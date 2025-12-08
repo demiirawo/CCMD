@@ -137,19 +137,20 @@ export const Matching = () => {
   const getCalculatedUtilisation = (week: string) => {
     // Required hours = sum of all service users' forecast hours for that week
     const required = serviceUsers.reduce((sum, user) => sum + (user.forecastHours[week] || 0), 0);
-    
+
     // Allocated hours = sum of all primary staff allocations across all service users
     const allocated = serviceUsers.reduce((sum, user) => {
-      return sum + user.staffAllocations
-        .filter(a => user.primaryStaffIds.includes(a.staffId))
-        .reduce((allocSum, a) => allocSum + (a.allocatedHours[week] || 0), 0);
+      return sum + user.staffAllocations.filter(a => user.primaryStaffIds.includes(a.staffId)).reduce((allocSum, a) => allocSum + (a.allocatedHours[week] || 0), 0);
     }, 0);
-    
+
     // Unallocated hours = total staff available hours - allocated hours
     const totalStaffAvailable = staff.reduce((sum, s) => sum + (s.forecastHours[week] || 0), 0);
     const unallocated = totalStaffAvailable - allocated;
-    
-    return { required, allocated, unallocated };
+    return {
+      required,
+      allocated,
+      unallocated
+    };
   };
 
   // Get utilisation value (override if exists, otherwise calculated)
@@ -987,7 +988,6 @@ export const Matching = () => {
                           } else if (utilisation >= 90) {
                             utilisationColor = "text-red-600"; // over-utilised (>90%)
                           }
-
                           const handleOverride = (field: 'required' | 'allocated' | 'unallocated', value: number) => {
                             setUtilisationOverrides(prev => ({
                               ...prev,
@@ -998,46 +998,27 @@ export const Matching = () => {
                             }));
                             setEditingUtilisationCell(null);
                           };
-
                           const isOverridden = (field: 'required' | 'allocated' | 'unallocated') => {
                             return utilisationOverrides[week]?.[field] !== undefined;
                           };
-
                           const renderCell = (field: 'required' | 'allocated' | 'unallocated', value: number) => {
                             const isEditing = editingUtilisationCell?.week === week && editingUtilisationCell?.field === field;
-                            
                             if (isEditing) {
-                              return (
-                                <Input
-                                  type="number"
-                                  defaultValue={value}
-                                  onBlur={(e) => handleOverride(field, parseFloat(e.target.value) || 0)}
-                                  onKeyDown={(e) => {
-                                    if (e.key === 'Enter') {
-                                      handleOverride(field, parseFloat((e.target as HTMLInputElement).value) || 0);
-                                    } else if (e.key === 'Escape') {
-                                      setEditingUtilisationCell(null);
-                                    }
-                                  }}
-                                  autoFocus
-                                  className="w-20 h-6 text-xs text-right bg-white"
-                                  min={0}
-                                  step={0.5}
-                                />
-                              );
+                              return <Input type="number" defaultValue={value} onBlur={e => handleOverride(field, parseFloat(e.target.value) || 0)} onKeyDown={e => {
+                                if (e.key === 'Enter') {
+                                  handleOverride(field, parseFloat((e.target as HTMLInputElement).value) || 0);
+                                } else if (e.key === 'Escape') {
+                                  setEditingUtilisationCell(null);
+                                }
+                              }} autoFocus className="w-20 h-6 text-xs text-right bg-white" min={0} step={0.5} />;
                             }
-                            
-                            return (
-                              <span
-                                className={`cursor-pointer hover:bg-muted px-2 py-1 rounded ${isOverridden(field) ? 'bg-yellow-100 font-medium' : ''}`}
-                                onDoubleClick={() => setEditingUtilisationCell({ week, field })}
-                                title="Double-click to override"
-                              >
+                            return <span className={`cursor-pointer hover:bg-muted px-2 py-1 rounded ${isOverridden(field) ? 'bg-yellow-100 font-medium' : ''}`} onDoubleClick={() => setEditingUtilisationCell({
+                              week,
+                              field
+                            })} title="Double-click to override">
                                 {value}
-                              </span>
-                            );
+                              </span>;
                           };
-
                           return <TableRow key={week}>
                               <TableCell className="font-medium text-xs py-1">{week}</TableCell>
                               <TableCell className="text-right text-xs py-1">{availableStaffHours}</TableCell>
@@ -1121,10 +1102,7 @@ export const Matching = () => {
                                       <span className="font-semibold text-base">{user.name}</span>
                                       
                                     </div>
-                                    <div className="text-sm text-muted-foreground mt-1">
-                                      Needs: {user.supportNeeds.slice(0, 3).join(', ')}
-                                      {user.supportNeeds.length > 3 && ` +${user.supportNeeds.length - 3}`}
-                                    </div>
+                                    
                                   </div>
                                 </div>
                                 
@@ -1442,25 +1420,21 @@ export const Matching = () => {
                           </TableCell>
                           {/* Average Weekly Hours */}
                           <TableCell>
-                            <Input
-                              type="number"
-                              value={user.typicalWeeklyHours || 0}
-                              onChange={(e) => {
-                                const newValue = parseFloat(e.target.value) || 0;
-                                // Update typicalWeeklyHours and overwrite all 8 weeks in forecastHours
-                                const newForecastHours: { [week: string]: number } = {};
-                                WEEKS.forEach(week => {
-                                  newForecastHours[week] = newValue;
-                                });
-                                setServiceUsers(prev => prev.map(u => u.id === user.id ? {
-                                  ...u,
-                                  typicalWeeklyHours: newValue,
-                                  forecastHours: newForecastHours
-                                } : u));
-                              }}
-                              className="h-8 w-20 bg-white"
-                              min={0}
-                            />
+                            <Input type="number" value={user.typicalWeeklyHours || 0} onChange={e => {
+                            const newValue = parseFloat(e.target.value) || 0;
+                            // Update typicalWeeklyHours and overwrite all 8 weeks in forecastHours
+                            const newForecastHours: {
+                              [week: string]: number;
+                            } = {};
+                            WEEKS.forEach(week => {
+                              newForecastHours[week] = newValue;
+                            });
+                            setServiceUsers(prev => prev.map(u => u.id === user.id ? {
+                              ...u,
+                              typicalWeeklyHours: newValue,
+                              forecastHours: newForecastHours
+                            } : u));
+                          }} className="h-8 w-20 bg-white" min={0} />
                           </TableCell>
                           {/* Gender Preference */}
                           <TableCell>
@@ -1624,9 +1598,7 @@ export const Matching = () => {
                     <TableHeader>
                       <TableRow>
                         <TableHead className="sticky left-0 bg-background min-w-[200px]">Service User / Staff</TableHead>
-                        {WEEKS.map(week => (
-                          <TableHead key={week} className="text-center min-w-[80px]">{week}</TableHead>
-                        ))}
+                        {WEEKS.map(week => <TableHead key={week} className="text-center min-w-[80px]">{week}</TableHead>)}
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -1641,23 +1613,18 @@ export const Matching = () => {
                                 <span className="text-xs text-muted-foreground">{user.typicalWeeklyHours || 0} hrs/week</span>
                               </div>
                             </TableCell>
-                            {WEEKS.map(week => (
-                              <TableCell key={week} className="bg-blue-50 text-center">
-                                <Input
-                                  type="number"
-                                  value={user.forecastHours[week] || 0}
-                                  onChange={(e) => {
-                                    const newValue = parseFloat(e.target.value) || 0;
-                                    setServiceUsers(prev => prev.map(u => u.id === user.id ? {
-                                      ...u,
-                                      forecastHours: { ...u.forecastHours, [week]: newValue }
-                                    } : u));
-                                  }}
-                                  className="h-8 w-16 text-center bg-white"
-                                  min={0}
-                                />
-                              </TableCell>
-                            ))}
+                            {WEEKS.map(week => <TableCell key={week} className="bg-blue-50 text-center">
+                                <Input type="number" value={user.forecastHours[week] || 0} onChange={e => {
+                                const newValue = parseFloat(e.target.value) || 0;
+                                setServiceUsers(prev => prev.map(u => u.id === user.id ? {
+                                  ...u,
+                                  forecastHours: {
+                                    ...u.forecastHours,
+                                    [week]: newValue
+                                  }
+                                } : u));
+                              }} className="h-8 w-16 text-center bg-white" min={0} />
+                              </TableCell>)}
                           </TableRow>
                           
                           {/* Primary Staff Rows */}
@@ -1674,73 +1641,63 @@ export const Matching = () => {
                                   </div>
                                 </TableCell>
                                 {WEEKS.map(week => {
-                                  // Calculate staff's total allocated hours across all service users for this week (excluding current allocation)
-                                  const staffTotalAllocatedElsewhere = serviceUsers.reduce((total, su) => {
-                                    if (su.id === user.id) return total; // Skip current service user
-                                    const alloc = su.staffAllocations.find(a => a.staffId === staffId);
-                                    return total + (alloc?.allocatedHours[week] || 0);
-                                  }, 0);
-                                  const currentAllocation = allocation?.allocatedHours[week] || 0;
-                                  const staffAvailableHours = staffMember.forecastHours[week] || 0;
-                                  const staffRemainingAvailable = staffAvailableHours - staffTotalAllocatedElsewhere;
-                                  
-                                  // Calculate service user's remaining required hours for this week
-                                  const userRequiredHours = user.forecastHours[week] || 0;
-                                  const userAllocatedByOthers = user.staffAllocations
-                                    .filter(a => a.staffId !== staffId && user.primaryStaffIds.includes(a.staffId))
-                                    .reduce((sum, a) => sum + (a.allocatedHours[week] || 0), 0);
-                                  const userRemainingRequired = userRequiredHours - userAllocatedByOthers;
+                                // Calculate staff's total allocated hours across all service users for this week (excluding current allocation)
+                                const staffTotalAllocatedElsewhere = serviceUsers.reduce((total, su) => {
+                                  if (su.id === user.id) return total; // Skip current service user
+                                  const alloc = su.staffAllocations.find(a => a.staffId === staffId);
+                                  return total + (alloc?.allocatedHours[week] || 0);
+                                }, 0);
+                                const currentAllocation = allocation?.allocatedHours[week] || 0;
+                                const staffAvailableHours = staffMember.forecastHours[week] || 0;
+                                const staffRemainingAvailable = staffAvailableHours - staffTotalAllocatedElsewhere;
 
-                                  return (
-                                    <TableCell key={week} className="bg-green-50 text-center">
-                                      <Input
-                                        type="number"
-                                        value={currentAllocation}
-                                        onChange={(e) => {
-                                          let newValue = parseFloat(e.target.value) || 0;
-                                          
-                                          // Constraint 1: Can't exceed staff's remaining available hours
-                                          if (newValue > staffRemainingAvailable) {
-                                            newValue = Math.max(0, staffRemainingAvailable);
-                                            toast({
-                                              title: "Hours capped",
-                                              description: `${staffMember.name} only has ${staffRemainingAvailable} hours available for ${week}`,
-                                              variant: "destructive"
-                                            });
-                                          }
-                                          
-                                          // Constraint 2: Can't exceed service user's remaining required hours
-                                          if (newValue > userRemainingRequired) {
-                                            newValue = Math.max(0, userRemainingRequired);
-                                            toast({
-                                              title: "Hours capped",
-                                              description: `${user.name} only requires ${userRemainingRequired} more hours for ${week}`,
-                                              variant: "destructive"
-                                            });
-                                          }
-                                          
-                                          setServiceUsers(prev => prev.map(u => {
-                                            if (u.id !== user.id) return u;
-                                            const existingAllocation = u.staffAllocations.find(a => a.staffId === staffId);
-                                            if (existingAllocation) {
-                                              return {
-                                                ...u,
-                                                staffAllocations: u.staffAllocations.map(a => 
-                                                  a.staffId === staffId 
-                                                    ? { ...a, allocatedHours: { ...a.allocatedHours, [week]: newValue } }
-                                                    : a
-                                                )
-                                              };
+                                // Calculate service user's remaining required hours for this week
+                                const userRequiredHours = user.forecastHours[week] || 0;
+                                const userAllocatedByOthers = user.staffAllocations.filter(a => a.staffId !== staffId && user.primaryStaffIds.includes(a.staffId)).reduce((sum, a) => sum + (a.allocatedHours[week] || 0), 0);
+                                const userRemainingRequired = userRequiredHours - userAllocatedByOthers;
+                                return <TableCell key={week} className="bg-green-50 text-center">
+                                      <Input type="number" value={currentAllocation} onChange={e => {
+                                    let newValue = parseFloat(e.target.value) || 0;
+
+                                    // Constraint 1: Can't exceed staff's remaining available hours
+                                    if (newValue > staffRemainingAvailable) {
+                                      newValue = Math.max(0, staffRemainingAvailable);
+                                      toast({
+                                        title: "Hours capped",
+                                        description: `${staffMember.name} only has ${staffRemainingAvailable} hours available for ${week}`,
+                                        variant: "destructive"
+                                      });
+                                    }
+
+                                    // Constraint 2: Can't exceed service user's remaining required hours
+                                    if (newValue > userRemainingRequired) {
+                                      newValue = Math.max(0, userRemainingRequired);
+                                      toast({
+                                        title: "Hours capped",
+                                        description: `${user.name} only requires ${userRemainingRequired} more hours for ${week}`,
+                                        variant: "destructive"
+                                      });
+                                    }
+                                    setServiceUsers(prev => prev.map(u => {
+                                      if (u.id !== user.id) return u;
+                                      const existingAllocation = u.staffAllocations.find(a => a.staffId === staffId);
+                                      if (existingAllocation) {
+                                        return {
+                                          ...u,
+                                          staffAllocations: u.staffAllocations.map(a => a.staffId === staffId ? {
+                                            ...a,
+                                            allocatedHours: {
+                                              ...a.allocatedHours,
+                                              [week]: newValue
                                             }
-                                            return u;
-                                          }));
-                                        }}
-                                        className="h-8 w-16 text-center bg-white"
-                                        min={0}
-                                      />
-                                    </TableCell>
-                                  );
-                                })}
+                                          } : a)
+                                        };
+                                      }
+                                      return u;
+                                    }));
+                                  }} className="h-8 w-16 text-center bg-white" min={0} />
+                                    </TableCell>;
+                              })}
                               </TableRow>;
                           })}
 
@@ -1751,17 +1708,13 @@ export const Matching = () => {
                             </TableCell>
                             {WEEKS.map(week => {
                               const requiredHours = user.forecastHours[week] || 0;
-                              const allocatedHours = user.staffAllocations
-                                .filter(a => user.primaryStaffIds.includes(a.staffId))
-                                .reduce((sum, a) => sum + (a.allocatedHours[week] || 0), 0);
+                              const allocatedHours = user.staffAllocations.filter(a => user.primaryStaffIds.includes(a.staffId)).reduce((sum, a) => sum + (a.allocatedHours[week] || 0), 0);
                               const outstanding = requiredHours - allocatedHours;
-                              return (
-                                <TableCell key={week} className="bg-orange-50 text-center">
+                              return <TableCell key={week} className="bg-orange-50 text-center">
                                   <span className={`text-sm font-medium ${outstanding > 0 ? 'text-orange-600' : outstanding < 0 ? 'text-red-600' : 'text-green-600'}`}>
                                     {outstanding}
                                   </span>
-                                </TableCell>
-                              );
+                                </TableCell>;
                             })}
                           </TableRow>
 
@@ -1777,11 +1730,9 @@ export const Matching = () => {
                                     <X className="h-3 w-3 cursor-pointer text-red-500 hover:text-red-700" onClick={() => unassignStaff(user.id, staffId, 'backup')} />
                                   </div>
                                 </TableCell>
-                                {WEEKS.map(week => (
-                                  <TableCell key={week} className="bg-gray-50 text-center">
+                                {WEEKS.map(week => <TableCell key={week} className="bg-gray-50 text-center">
                                     <span className="text-xs text-muted-foreground">-</span>
-                                  </TableCell>
-                                ))}
+                                  </TableCell>)}
                               </TableRow>;
                           })}
                           
@@ -1948,25 +1899,21 @@ export const Matching = () => {
                           </TableCell>
                           {/* Average Weekly Hours */}
                           <TableCell>
-                            <Input
-                              type="number"
-                              value={s.typicalWeeklyHours || 0}
-                              onChange={(e) => {
-                                const newValue = parseFloat(e.target.value) || 0;
-                                // Update typicalWeeklyHours and overwrite all 8 weeks in forecastHours
-                                const newForecastHours: { [week: string]: number } = {};
-                                WEEKS.forEach(week => {
-                                  newForecastHours[week] = newValue;
-                                });
-                                setStaff(prev => prev.map(staff => staff.id === s.id ? {
-                                  ...staff,
-                                  typicalWeeklyHours: newValue,
-                                  forecastHours: newForecastHours
-                                } : staff));
-                              }}
-                              className="h-8 w-20 bg-white"
-                              min={0}
-                            />
+                            <Input type="number" value={s.typicalWeeklyHours || 0} onChange={e => {
+                            const newValue = parseFloat(e.target.value) || 0;
+                            // Update typicalWeeklyHours and overwrite all 8 weeks in forecastHours
+                            const newForecastHours: {
+                              [week: string]: number;
+                            } = {};
+                            WEEKS.forEach(week => {
+                              newForecastHours[week] = newValue;
+                            });
+                            setStaff(prev => prev.map(staff => staff.id === s.id ? {
+                              ...staff,
+                              typicalWeeklyHours: newValue,
+                              forecastHours: newForecastHours
+                            } : staff));
+                          }} className="h-8 w-20 bg-white" min={0} />
                           </TableCell>
                           {/* Gender */}
                           <TableCell>
@@ -2039,39 +1986,30 @@ export const Matching = () => {
                       <TableHeader>
                         <TableRow>
                           <TableHead className="sticky left-0 bg-background min-w-[200px]">Staff Member</TableHead>
-                          {WEEKS.map(week => (
-                            <TableHead key={week} className="text-center min-w-[80px]">{week}</TableHead>
-                          ))}
+                          {WEEKS.map(week => <TableHead key={week} className="text-center min-w-[80px]">{week}</TableHead>)}
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {staff.filter(s => (staffLocationFilter === "all" || s.location === staffLocationFilter) && (staffManagerFilter === "all" || s.manager === staffManagerFilter)).map(s => (
-                          <TableRow key={s.id}>
+                        {staff.filter(s => (staffLocationFilter === "all" || s.location === staffLocationFilter) && (staffManagerFilter === "all" || s.manager === staffManagerFilter)).map(s => <TableRow key={s.id}>
                             <TableCell className="font-medium sticky left-0 bg-background">
                               <div className="flex flex-col">
                                 <span>{s.name}</span>
                                 <span className="text-xs text-muted-foreground">{s.location}</span>
                               </div>
                             </TableCell>
-                            {WEEKS.map(week => (
-                              <TableCell key={week} className="text-center">
-                                <Input
-                                  type="number"
-                                  value={s.forecastHours[week] || 0}
-                                  onChange={(e) => {
-                                    const newValue = parseFloat(e.target.value) || 0;
-                                    setStaff(prev => prev.map(staff => staff.id === s.id ? {
-                                      ...staff,
-                                      forecastHours: { ...staff.forecastHours, [week]: newValue }
-                                    } : staff));
-                                  }}
-                                  className="h-8 w-16 text-center bg-white"
-                                  min={0}
-                                />
-                              </TableCell>
-                            ))}
-                          </TableRow>
-                        ))}
+                            {WEEKS.map(week => <TableCell key={week} className="text-center">
+                                <Input type="number" value={s.forecastHours[week] || 0} onChange={e => {
+                            const newValue = parseFloat(e.target.value) || 0;
+                            setStaff(prev => prev.map(staff => staff.id === s.id ? {
+                              ...staff,
+                              forecastHours: {
+                                ...staff.forecastHours,
+                                [week]: newValue
+                              }
+                            } : staff));
+                          }} className="h-8 w-16 text-center bg-white" min={0} />
+                              </TableCell>)}
+                          </TableRow>)}
                       </TableBody>
                     </Table>
                   </div>
