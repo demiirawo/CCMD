@@ -425,10 +425,7 @@ export const useMatchingData = () => {
       for (const u of serviceUsers) {
         await saveServiceUser(u);
       }
-      toast({
-        title: "Changes saved",
-        description: "All matching data has been saved"
-      });
+      // Silent save - no toast notification
     } catch (error) {
       console.error('Error saving changes:', error);
       toast({
