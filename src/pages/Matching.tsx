@@ -1631,11 +1631,31 @@ export const Matching = () => {
                               </TableRow>;
                           })}
 
+                          {/* Outstanding Hours Row */}
+                          <TableRow key={`${user.id}-outstanding`} className="bg-orange-50">
+                            <TableCell className="sticky left-0 bg-orange-50 pl-6">
+                              <span className="text-sm font-medium text-orange-700">Outstanding Hours</span>
+                            </TableCell>
+                            {WEEKS.map(week => {
+                              const requiredHours = user.forecastHours[week] || 0;
+                              const allocatedHours = user.staffAllocations
+                                .filter(a => user.primaryStaffIds.includes(a.staffId))
+                                .reduce((sum, a) => sum + (a.allocatedHours[week] || 0), 0);
+                              const outstanding = requiredHours - allocatedHours;
+                              return (
+                                <TableCell key={week} className="bg-orange-50 text-center">
+                                  <span className={`text-sm font-medium ${outstanding > 0 ? 'text-orange-600' : outstanding < 0 ? 'text-red-600' : 'text-green-600'}`}>
+                                    {outstanding}
+                                  </span>
+                                </TableCell>
+                              );
+                            })}
+                          </TableRow>
+
                           {/* Backup Staff Rows */}
                           {user.backupStaffIds.map(staffId => {
                             const staffMember = getStaffById(staffId);
                             if (!staffMember) return null;
-                            const allocation = user.staffAllocations.find(a => a.staffId === staffId);
                             return <TableRow key={`${user.id}-${staffId}-backup`} className="bg-gray-50">
                                 <TableCell className="sticky left-0 bg-gray-50 pl-6">
                                   <div className="flex items-center gap-2">
@@ -1646,30 +1666,7 @@ export const Matching = () => {
                                 </TableCell>
                                 {WEEKS.map(week => (
                                   <TableCell key={week} className="bg-gray-50 text-center">
-                                    <Input
-                                      type="number"
-                                      value={allocation?.allocatedHours[week] || 0}
-                                      onChange={(e) => {
-                                        const newValue = parseFloat(e.target.value) || 0;
-                                        setServiceUsers(prev => prev.map(u => {
-                                          if (u.id !== user.id) return u;
-                                          const existingAllocation = u.staffAllocations.find(a => a.staffId === staffId);
-                                          if (existingAllocation) {
-                                            return {
-                                              ...u,
-                                              staffAllocations: u.staffAllocations.map(a => 
-                                                a.staffId === staffId 
-                                                  ? { ...a, allocatedHours: { ...a.allocatedHours, [week]: newValue } }
-                                                  : a
-                                              )
-                                            };
-                                          }
-                                          return u;
-                                        }));
-                                      }}
-                                      className="h-8 w-16 text-center bg-white"
-                                      min={0}
-                                    />
+                                    <span className="text-xs text-muted-foreground">-</span>
                                   </TableCell>
                                 ))}
                               </TableRow>;
