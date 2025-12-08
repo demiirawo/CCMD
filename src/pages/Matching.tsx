@@ -1545,7 +1545,9 @@ export const Matching = () => {
                     <TableHeader>
                       <TableRow>
                         <TableHead className="sticky left-0 bg-background min-w-[200px]">Service User / Staff</TableHead>
-                        <TableHead className="min-w-[300px]">Matching Criteria</TableHead>
+                        {WEEKS.map(week => (
+                          <TableHead key={week} className="text-center min-w-[80px]">{week}</TableHead>
+                        ))}
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -1560,11 +1562,23 @@ export const Matching = () => {
                                 <span className="text-xs text-muted-foreground">{user.typicalWeeklyHours || 0} hrs/week</span>
                               </div>
                             </TableCell>
-                            <TableCell className="bg-blue-50">
-                              <div className="flex flex-wrap gap-1">
-                                {user.supportNeeds.map(need => <Badge key={need} variant="secondary" className="text-xs">{need}</Badge>)}
-                              </div>
-                            </TableCell>
+                            {WEEKS.map(week => (
+                              <TableCell key={week} className="bg-blue-50 text-center">
+                                <Input
+                                  type="number"
+                                  value={user.forecastHours[week] || 0}
+                                  onChange={(e) => {
+                                    const newValue = parseFloat(e.target.value) || 0;
+                                    setServiceUsers(prev => prev.map(u => u.id === user.id ? {
+                                      ...u,
+                                      forecastHours: { ...u.forecastHours, [week]: newValue }
+                                    } : u));
+                                  }}
+                                  className="h-8 w-16 text-center bg-white"
+                                  min={0}
+                                />
+                              </TableCell>
+                            ))}
                           </TableRow>
                           
                           {/* Primary Staff Rows */}
@@ -1572,8 +1586,6 @@ export const Matching = () => {
                             const staffMember = getStaffById(staffId);
                             if (!staffMember) return null;
                             const allocation = user.staffAllocations.find(a => a.staffId === staffId);
-                            const confirmedNeeds = allocation?.confirmedNeeds || [];
-                            const confirmedInterests = allocation?.confirmedInterests || [];
                             return <TableRow key={`${user.id}-${staffId}-primary`} className="bg-green-50">
                                 <TableCell className="sticky left-0 bg-green-50 pl-6">
                                   <div className="flex items-center gap-2">
@@ -1582,19 +1594,34 @@ export const Matching = () => {
                                     <X className="h-3 w-3 cursor-pointer text-red-500 hover:text-red-700" onClick={() => unassignStaff(user.id, staffId, 'primary')} />
                                   </div>
                                 </TableCell>
-                                <TableCell className="bg-green-50">
-                                  <div className="flex flex-col gap-1">
-                                    {confirmedNeeds.length > 0 && <div className="flex flex-wrap gap-1 items-center">
-                                        <span className="text-xs text-muted-foreground mr-1">Needs:</span>
-                                        {confirmedNeeds.map(need => <Badge key={need} variant="outline" className="text-xs bg-green-100">{need}</Badge>)}
-                                      </div>}
-                                    {confirmedInterests.length > 0 && <div className="flex flex-wrap gap-1 items-center">
-                                        <span className="text-xs text-muted-foreground mr-1">Interests:</span>
-                                        {confirmedInterests.map(interest => <Badge key={interest} variant="outline" className="text-xs bg-blue-100">{interest}</Badge>)}
-                                      </div>}
-                                    {confirmedNeeds.length === 0 && confirmedInterests.length === 0 && <span className="text-xs text-muted-foreground italic">No matching criteria confirmed</span>}
-                                  </div>
-                                </TableCell>
+                                {WEEKS.map(week => (
+                                  <TableCell key={week} className="bg-green-50 text-center">
+                                    <Input
+                                      type="number"
+                                      value={allocation?.allocatedHours[week] || 0}
+                                      onChange={(e) => {
+                                        const newValue = parseFloat(e.target.value) || 0;
+                                        setServiceUsers(prev => prev.map(u => {
+                                          if (u.id !== user.id) return u;
+                                          const existingAllocation = u.staffAllocations.find(a => a.staffId === staffId);
+                                          if (existingAllocation) {
+                                            return {
+                                              ...u,
+                                              staffAllocations: u.staffAllocations.map(a => 
+                                                a.staffId === staffId 
+                                                  ? { ...a, allocatedHours: { ...a.allocatedHours, [week]: newValue } }
+                                                  : a
+                                              )
+                                            };
+                                          }
+                                          return u;
+                                        }));
+                                      }}
+                                      className="h-8 w-16 text-center bg-white"
+                                      min={0}
+                                    />
+                                  </TableCell>
+                                ))}
                               </TableRow>;
                           })}
 
@@ -1602,6 +1629,7 @@ export const Matching = () => {
                           {user.backupStaffIds.map(staffId => {
                             const staffMember = getStaffById(staffId);
                             if (!staffMember) return null;
+                            const allocation = user.staffAllocations.find(a => a.staffId === staffId);
                             return <TableRow key={`${user.id}-${staffId}-backup`} className="bg-gray-50">
                                 <TableCell className="sticky left-0 bg-gray-50 pl-6">
                                   <div className="flex items-center gap-2">
@@ -1610,15 +1638,40 @@ export const Matching = () => {
                                     <X className="h-3 w-3 cursor-pointer text-red-500 hover:text-red-700" onClick={() => unassignStaff(user.id, staffId, 'backup')} />
                                   </div>
                                 </TableCell>
-                                <TableCell className="bg-gray-50">
-                                  <span className="text-xs text-muted-foreground italic">Backup - no criteria confirmed</span>
-                                </TableCell>
+                                {WEEKS.map(week => (
+                                  <TableCell key={week} className="bg-gray-50 text-center">
+                                    <Input
+                                      type="number"
+                                      value={allocation?.allocatedHours[week] || 0}
+                                      onChange={(e) => {
+                                        const newValue = parseFloat(e.target.value) || 0;
+                                        setServiceUsers(prev => prev.map(u => {
+                                          if (u.id !== user.id) return u;
+                                          const existingAllocation = u.staffAllocations.find(a => a.staffId === staffId);
+                                          if (existingAllocation) {
+                                            return {
+                                              ...u,
+                                              staffAllocations: u.staffAllocations.map(a => 
+                                                a.staffId === staffId 
+                                                  ? { ...a, allocatedHours: { ...a.allocatedHours, [week]: newValue } }
+                                                  : a
+                                              )
+                                            };
+                                          }
+                                          return u;
+                                        }));
+                                      }}
+                                      className="h-8 w-16 text-center bg-white"
+                                      min={0}
+                                    />
+                                  </TableCell>
+                                ))}
                               </TableRow>;
                           })}
                           
                           {/* Add Staff Row */}
                           <TableRow key={`${user.id}-add-staff`} className="border-b-2">
-                            <TableCell className="sticky left-0 bg-background pl-6" colSpan={2}>
+                            <TableCell className="sticky left-0 bg-background pl-6" colSpan={9}>
                               <div className="flex gap-2">
                                 <SearchableStaffSelect options={getRankedStaff(user, [...user.primaryStaffIds, ...user.backupStaffIds]).map(({
                                   staff: s,
