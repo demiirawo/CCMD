@@ -860,6 +860,21 @@ export const Matching = () => {
                               <Tooltip>
                                 <TooltipTrigger asChild>
                                   <span className="inline-flex items-center gap-1 cursor-help">
+                                    Available Staff Hours
+                                    <HelpCircle className="h-3 w-3 text-muted-foreground" />
+                                  </span>
+                                </TooltipTrigger>
+                                <TooltipContent className="bg-white max-w-xs">
+                                  <p className="text-sm">Total available hours from all staff for the week</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          </TableHead>
+                          <TableHead className="text-xs py-1 text-right">
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <span className="inline-flex items-center gap-1 cursor-help">
                                     Required Hours
                                     <HelpCircle className="h-3 w-3 text-muted-foreground" />
                                   </span>
@@ -953,6 +968,8 @@ export const Matching = () => {
                           const allocatedHours = getUtilisationValue(week, 'allocated');
                           const unallocatedHours = getUtilisationValue(week, 'unallocated');
                           const totalAvailableHours = allocatedHours + unallocatedHours;
+                          // Available Staff Hours = sum of all staff forecast hours for that week
+                          const availableStaffHours = staff.reduce((sum, s) => sum + (s.forecastHours[week] || 0), 0);
                           // Utilisation = allocated hours / total available hours (what % of available capacity is being used)
                           const utilisation = totalAvailableHours > 0 ? allocatedHours / totalAvailableHours * 100 : 0;
 
@@ -1023,6 +1040,7 @@ export const Matching = () => {
 
                           return <TableRow key={week}>
                               <TableCell className="font-medium text-xs py-1">{week}</TableCell>
+                              <TableCell className="text-right text-xs py-1">{availableStaffHours}</TableCell>
                               <TableCell className="text-right text-xs py-1">
                                 {renderCell('required', requiredHours)}
                               </TableCell>
