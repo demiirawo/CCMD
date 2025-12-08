@@ -1164,13 +1164,13 @@ export const Matching = () => {
 
                                   // Support needs alignment
                                   if (allocation && allocation.confirmedNeeds.length > 0) {
-                                    const needsList = allocation.confirmedNeeds.length <= 3 ? allocation.confirmedNeeds.join(', ') : allocation.confirmedNeeds.slice(0, 3).join(', ') + ` and ${allocation.confirmedNeeds.length - 3} more`;
+                                    const needsList = allocation.confirmedNeeds.join(', ');
                                     sentences.push(`has the skills and experience to support with ${needsList}`);
                                   }
 
                                   // Shared interests
                                   if (allocation && allocation.confirmedInterests && allocation.confirmedInterests.length > 0) {
-                                    const interestsList = allocation.confirmedInterests.length <= 2 ? allocation.confirmedInterests.join(' and ') : allocation.confirmedInterests.slice(0, 2).join(', ') + ` and ${allocation.confirmedInterests.length - 2} more`;
+                                    const interestsList = allocation.confirmedInterests.join(', ');
                                     sentences.push(`shares interests in ${interestsList}`);
                                   }
                                   if (sentences.length === 0) return null;
