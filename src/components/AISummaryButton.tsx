@@ -238,29 +238,25 @@ export const AISummaryButton = ({ onSummaryGenerated, meetingData }: AISummaryBu
         return;
       }
 
+      const currentDate = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+      
       const messages = [
         {
           role: "system" as const,
-          content: `You are an AI assistant that creates meeting summaries for care management meetings. Create a factual summary focusing ONLY on what was discussed in THIS meeting - do not include historical data or information from previous meetings.
+          content: `You are an AI assistant that creates concise meeting summaries. Create a brief summary focusing ONLY on updates reviewed as of today (${currentDate}).
 
 Instructions:
-- Create TWO sections only: "Overview" and "Key Areas Reviewed"
-- DO NOT include meeting title, date, or actions/next steps sections
-- In Overview: Brief summary of the meeting focus and purpose
-- In Key Areas Reviewed: Cover ALL topic areas and sub-topics that were reviewed, organized by section
-- Include specific observations, trends, challenges, and lessons learned that were discussed
-- Highlight any areas requiring attention (amber/red status items)
-- Include updates on key documents and compliance matters if reviewed
+- Create TWO sections: "Overview" and "Key Areas Reviewed"
+- DO NOT include meeting title, date, or actions/next steps
+- ONLY include topics with "Last Reviewed" dates matching today (${currentDate})
+- Skip any topics not reviewed today
 - When referring to the company, use "${companyName}"
-- ONLY summarize content that has actual observations, notes, or updates entered - skip sub-topics with no content
-- Use clear, professional language suitable for care management
-- Focus on operational updates and what was reviewed in this meeting session
-- Keep summary concise (200-300 words total)
+- Keep summary to 100 words MAXIMUM
 - Write in paragraph form, not bullet points`
         },
         {
           role: "user" as const,
-          content: `Create a meeting summary for ${companyName} based on the current meeting data. Only summarize topics where observations, trends, challenges, lessons learned, or actions were recorded:\n\n${collectedData}`
+          content: `Create a 100-word max summary for ${companyName}. Only include topics reviewed today (${currentDate}):\n\n${collectedData}`
         }
       ];
 
