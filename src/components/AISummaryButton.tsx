@@ -36,7 +36,7 @@ export const AISummaryButton = ({ onSummaryGenerated, meetingData }: AISummaryBu
 
     let allData = "";
     
-    // Attendees information (but not title or date)
+    // Attendees information
     if (meetingData.attendees && meetingData.attendees.length > 0) {
       const attendeeNames = meetingData.attendees
         .map(attendee => typeof attendee === 'string' ? attendee : attendee.name || attendee.email)
@@ -51,183 +51,126 @@ export const AISummaryButton = ({ onSummaryGenerated, meetingData }: AISummaryBu
       allData += `Meeting Purpose: ${meetingData.purpose}\n`;
     }
 
-    // Get meeting date for filtering relevant updates
-    const meetingDate = meetingData.date ? new Date(meetingData.date) : new Date();
-    const todayStart = new Date(meetingDate);
-    todayStart.setHours(0, 0, 0, 0);
-    const todayEnd = new Date(meetingDate);
-    todayEnd.setHours(23, 59, 59, 999);
-    
-    console.log('📅 Meeting date range:', { start: todayStart, end: todayEnd });
-
-    // Enhanced dashboard data collection
+    // Get ALL dashboard sections and ALL items - no filtering
     const dashboardSections = meetingData.dashboardData?.sections || meetingData.sections || [];
     
     if (dashboardSections.length > 0) {
-      console.log('📋 Processing dashboard sections:', dashboardSections.map(s => s.title));
+      console.log('📋 Processing ALL dashboard sections:', dashboardSections.map((s: any) => s.title));
       
       dashboardSections.forEach((section: any) => {
         if (!section.items || section.items.length === 0) return;
         
-        // Helper function to check if content is meaningful and relevant
-        const hasRelevantContent = (item: any) => {
-          // Check for meaningful observations, trends, or lessons learned
-          const hasObservation = item.observation?.trim() && item.observation.length > 10;
-          const hasTrends = item.trendsThemes?.trim() && item.trendsThemes.length > 10;
-          const hasLessons = item.lessonsLearned?.trim() && item.lessonsLearned.length > 10;
-          const hasDetails = item.details?.trim() && item.details.length > 10;
-          
-          // Check for recent updates based on timestamps
-          const isRecentlyUpdated = () => {
-            if (item.lastUpdated) {
-              const itemDate = new Date(item.lastUpdated);
-              return itemDate >= todayStart && itemDate <= todayEnd;
-            }
-            if (item.lastReviewed) {
-              const reviewDate = new Date(item.lastReviewed);
-              return reviewDate >= todayStart && reviewDate <= todayEnd;
-            }
-            return hasObservation || hasTrends || hasLessons || hasDetails;
-          };
-          
-          // Check for new actions
-          const hasNewActions = item.actions && item.actions.length > 0;
-          
-          // Check for status changes (non-green status indicates attention needed)
-          const hasStatusChange = item.status && item.status !== 'green';
-          
-          return isRecentlyUpdated() || hasNewActions || hasStatusChange;
-        };
+        allData += `\n=== ${section.title} ===\n`;
         
-        // Filter items with relevant content
-        const relevantItems = section.items.filter(hasRelevantContent);
-        
-        if (relevantItems.length > 0) {
-          allData += `\n=== ${section.title} ===\n`;
+        // Process ALL items in the section - no filtering
+        section.items.forEach((item: any) => {
+          allData += `\n• ${item.title}`;
           
-          relevantItems.forEach((item: any) => {
-            allData += `\n• ${item.title}`;
-            
-            // Status information
-            if (item.status && item.status !== 'green') {
-              const statusLabels = {
-                'amber': 'Needs Attention',
-                'red': 'Critical',
-                'na': 'Not Applicable'
-              };
-              allData += ` [${statusLabels[item.status as keyof typeof statusLabels] || item.status.toUpperCase()}]`;
-            }
-            
-            // Last reviewed information
-            if (item.lastReviewed) {
-              allData += ` (Last Reviewed: ${item.lastReviewed})`;
-            }
-            
-            allData += '\n';
-            
-            // Current observations
-            if (item.observation?.trim() && item.observation.length > 10) {
-              allData += `  Current Observation: ${item.observation.trim()}\n`;
-            }
-            
-            // Trends and themes
-            if (item.trendsThemes?.trim() && item.trendsThemes.length > 10) {
-              allData += `  Trends & Themes: ${item.trendsThemes.trim()}\n`;
-            }
-            
-            // Lessons learned
-            if (item.lessonsLearned?.trim() && item.lessonsLearned.length > 10) {
-              allData += `  Lessons Learned: ${item.lessonsLearned.trim()}\n`;
-            }
-            
-            // Additional details
-            if (item.details?.trim() && item.details.length > 10) {
-              allData += `  Details: ${item.details.trim()}\n`;
-            }
-            
-            // Actions associated with this item
-            if (item.actions && item.actions.length > 0) {
-              allData += `  Actions Identified:\n`;
-              item.actions.forEach((action: any) => {
-                const actionText = action.text || action.action || action.description;
-                const assignedTo = action.assignedTo || action.assignee || action.owner;
-                const dueDate = action.targetDate || action.dueDate || action.due_date;
-                
-                if (actionText) {
-                  allData += `    - ${actionText}`;
-                  if (assignedTo) allData += ` (Assigned: ${assignedTo})`;
-                  if (dueDate) allData += ` (Due: ${dueDate})`;
-                  if (action.status) allData += ` [${action.status}]`;
-                  allData += '\n';
-                }
-              });
-            }
-          });
-        }
+          // Status information
+          if (item.status) {
+            const statusLabels: Record<string, string> = {
+              'green': 'On Track',
+              'amber': 'Needs Attention',
+              'red': 'Critical',
+              'na': 'Not Applicable'
+            };
+            allData += ` [${statusLabels[item.status] || item.status.toUpperCase()}]`;
+          }
+          
+          // Last reviewed
+          if (item.lastReviewed) {
+            allData += ` (Last Reviewed: ${item.lastReviewed})`;
+          }
+          
+          allData += '\n';
+          
+          // Current observations - include all content
+          if (item.observation?.trim()) {
+            allData += `  Current Observation: ${item.observation.trim()}\n`;
+          }
+          
+          // Trends and themes
+          if (item.trendsThemes?.trim()) {
+            allData += `  Trends & Themes: ${item.trendsThemes.trim()}\n`;
+          }
+          
+          // Lessons learned
+          if (item.lessonsLearned?.trim()) {
+            allData += `  Lessons Learned: ${item.lessonsLearned.trim()}\n`;
+          }
+          
+          // Challenges
+          if (item.challenges?.trim()) {
+            allData += `  Challenges: ${item.challenges.trim()}\n`;
+          }
+          
+          // Additional details
+          if (item.details?.trim()) {
+            allData += `  Details: ${item.details.trim()}\n`;
+          }
+          
+          // Actions associated with this item
+          if (item.actions && item.actions.length > 0) {
+            allData += `  Actions Identified:\n`;
+            item.actions.forEach((action: any) => {
+              const actionText = action.text || action.action || action.description;
+              const assignedTo = action.assignedTo || action.assignee || action.owner;
+              const dueDate = action.targetDate || action.dueDate || action.due_date;
+              
+              if (actionText) {
+                allData += `    - ${actionText}`;
+                if (assignedTo) allData += ` (Assigned: ${assignedTo})`;
+                if (dueDate) allData += ` (Due: ${dueDate})`;
+                if (action.status) allData += ` [${action.status}]`;
+                allData += '\n';
+              }
+            });
+          }
+        });
       });
     }
     
-    // Centralized actions log from meeting
+    // Actions log - only from current meeting session
     if (meetingData.actionsLog && meetingData.actionsLog.length > 0) {
       console.log('📋 Processing actions log:', meetingData.actionsLog.length, 'actions');
       
-      const relevantActions = meetingData.actionsLog.filter((action: any) => {
-        // Include actions created today or still active
-        if (action.createdDate || action.dateAdded || action.timestamp) {
-          const actionDate = new Date(action.createdDate || action.dateAdded || action.timestamp);
-          const isFromToday = actionDate >= todayStart && actionDate <= todayEnd;
-          const isActive = !action.closed && !action.isCompleted;
-          return isFromToday || isActive;
-        }
-        // Include actions without dates (assumed relevant)
-        return !action.closed && !action.isCompleted;
-      });
-
-      if (relevantActions.length > 0) {
-        allData += '\n=== Action Items Status ===\n';
-        relevantActions.forEach((action: any) => {
-          const actionText = action.action_text || action.action || action.text;
-          const assignee = action.mentioned_attendee || action.assignee || action.owner;
-          const dueDate = action.due_date || action.dueDate || action.targetDate;
-          const status = action.status || (action.closed ? 'Completed' : 'Open');
-          const sourceItem = action.item_title;
+      allData += '\n=== Action Items ===\n';
+      meetingData.actionsLog.forEach((action: any) => {
+        const actionText = action.action_text || action.action || action.text;
+        const assignee = action.mentioned_attendee || action.assignee || action.owner;
+        const dueDate = action.due_date || action.dueDate || action.targetDate;
+        const status = action.status || (action.closed ? 'Completed' : 'Open');
+        const sourceItem = action.item_title;
+        
+        if (actionText) {
+          allData += `• ${actionText}`;
+          if (assignee) allData += ` (Owner: ${assignee})`;
+          if (sourceItem) allData += ` (From: ${sourceItem})`;
+          if (dueDate) allData += ` (Due: ${dueDate})`;
+          allData += ` [${status}]\n`;
           
-          if (actionText) {
-            allData += `• ${actionText}`;
-            if (assignee) allData += ` (Owner: ${assignee})`;
-            if (sourceItem) allData += ` (From: ${sourceItem})`;
-            if (dueDate) allData += ` (Due: ${dueDate})`;
-            allData += ` [${status}]\n`;
-            
-            if (action.comment?.trim()) {
-              allData += `  Context: ${action.comment.trim()}\n`;
-            }
+          if (action.comment?.trim()) {
+            allData += `  Context: ${action.comment.trim()}\n`;
           }
-        });
-      }
+        }
+      });
     }
 
     // Key documents status
     if (meetingData.keyDocuments && meetingData.keyDocuments.length > 0) {
       console.log('📄 Processing key documents:', meetingData.keyDocuments.length, 'documents');
       
-      const documentsNeedingAttention = meetingData.keyDocuments.filter((doc: any) => {
-        return doc.status !== 'complete' || doc.comment?.trim();
+      allData += '\n=== Key Documents ===\n';
+      meetingData.keyDocuments.forEach((doc: any) => {
+        allData += `• ${doc.name}`;
+        if (doc.status) allData += ` [${doc.status}]`;
+        if (doc.due_date || doc.nextReviewDate) allData += ` (Due: ${doc.due_date || doc.nextReviewDate})`;
+        allData += '\n';
+        
+        if (doc.comment?.trim()) {
+          allData += `  Notes: ${doc.comment.trim()}\n`;
+        }
       });
-      
-      if (documentsNeedingAttention.length > 0) {
-        allData += '\n=== Key Documents Update ===\n';
-        documentsNeedingAttention.forEach((doc: any) => {
-          allData += `• ${doc.name}`;
-          if (doc.status) allData += ` [${doc.status}]`;
-          if (doc.due_date || doc.nextReviewDate) allData += ` (Due: ${doc.due_date || doc.nextReviewDate})`;
-          allData += '\n';
-          
-          if (doc.comment?.trim()) {
-            allData += `  Notes: ${doc.comment.trim()}\n`;
-          }
-        });
-      }
     }
 
     console.log('✅ Data collection completed. Total data length:', allData.length);
@@ -298,25 +241,26 @@ export const AISummaryButton = ({ onSummaryGenerated, meetingData }: AISummaryBu
       const messages = [
         {
           role: "system" as const,
-          content: `You are an AI assistant that creates meeting summaries for care management meetings. Create a factual summary focusing ONLY on what was reviewed and discussed in today's meeting.
+          content: `You are an AI assistant that creates meeting summaries for care management meetings. Create a factual summary focusing ONLY on what was discussed in THIS meeting - do not include historical data or information from previous meetings.
 
 Instructions:
 - Create TWO sections only: "Overview" and "Key Areas Reviewed"
 - DO NOT include meeting title, date, or actions/next steps sections
 - In Overview: Brief summary of the meeting focus and purpose
-- In Key Areas Reviewed: Summarize all sections that were reviewed with their current status
-- Include specific observations, trends, and lessons learned discussed
+- In Key Areas Reviewed: Cover ALL topic areas and sub-topics that were reviewed, organized by section
+- Include specific observations, trends, challenges, and lessons learned that were discussed
 - Highlight any areas requiring attention (amber/red status items)
-- Include updates on key documents and compliance matters
-- When referring to the company, use "${companyName}" 
+- Include updates on key documents and compliance matters if reviewed
+- When referring to the company, use "${companyName}"
+- ONLY summarize content that has actual observations, notes, or updates entered - skip sub-topics with no content
 - Use clear, professional language suitable for care management
-- Focus on operational updates and what was reviewed
-- Keep summary concise (150-200 words total)
+- Focus on operational updates and what was reviewed in this meeting session
+- Keep summary concise (200-300 words total)
 - Write in paragraph form, not bullet points`
         },
         {
           role: "user" as const,
-          content: `Create a meeting summary for ${companyName} based on today's meeting data:\n\n${collectedData}`
+          content: `Create a meeting summary for ${companyName} based on the current meeting data. Only summarize topics where observations, trends, challenges, lessons learned, or actions were recorded:\n\n${collectedData}`
         }
       ];
 
