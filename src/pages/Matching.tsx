@@ -1600,34 +1600,74 @@ export const Matching = () => {
                                     <X className="h-3 w-3 cursor-pointer text-red-500 hover:text-red-700" onClick={() => unassignStaff(user.id, staffId, 'primary')} />
                                   </div>
                                 </TableCell>
-                                {WEEKS.map(week => (
-                                  <TableCell key={week} className="bg-green-50 text-center">
-                                    <Input
-                                      type="number"
-                                      value={allocation?.allocatedHours[week] || 0}
-                                      onChange={(e) => {
-                                        const newValue = parseFloat(e.target.value) || 0;
-                                        setServiceUsers(prev => prev.map(u => {
-                                          if (u.id !== user.id) return u;
-                                          const existingAllocation = u.staffAllocations.find(a => a.staffId === staffId);
-                                          if (existingAllocation) {
-                                            return {
-                                              ...u,
-                                              staffAllocations: u.staffAllocations.map(a => 
-                                                a.staffId === staffId 
-                                                  ? { ...a, allocatedHours: { ...a.allocatedHours, [week]: newValue } }
-                                                  : a
-                                              )
-                                            };
+                                {WEEKS.map(week => {
+                                  // Calculate staff's total allocated hours across all service users for this week (excluding current allocation)
+                                  const staffTotalAllocatedElsewhere = serviceUsers.reduce((total, su) => {
+                                    if (su.id === user.id) return total; // Skip current service user
+                                    const alloc = su.staffAllocations.find(a => a.staffId === staffId);
+                                    return total + (alloc?.allocatedHours[week] || 0);
+                                  }, 0);
+                                  const currentAllocation = allocation?.allocatedHours[week] || 0;
+                                  const staffAvailableHours = staffMember.forecastHours[week] || 0;
+                                  const staffRemainingAvailable = staffAvailableHours - staffTotalAllocatedElsewhere;
+                                  
+                                  // Calculate service user's remaining required hours for this week
+                                  const userRequiredHours = user.forecastHours[week] || 0;
+                                  const userAllocatedByOthers = user.staffAllocations
+                                    .filter(a => a.staffId !== staffId && user.primaryStaffIds.includes(a.staffId))
+                                    .reduce((sum, a) => sum + (a.allocatedHours[week] || 0), 0);
+                                  const userRemainingRequired = userRequiredHours - userAllocatedByOthers;
+
+                                  return (
+                                    <TableCell key={week} className="bg-green-50 text-center">
+                                      <Input
+                                        type="number"
+                                        value={currentAllocation}
+                                        onChange={(e) => {
+                                          let newValue = parseFloat(e.target.value) || 0;
+                                          
+                                          // Constraint 1: Can't exceed staff's remaining available hours
+                                          if (newValue > staffRemainingAvailable) {
+                                            newValue = Math.max(0, staffRemainingAvailable);
+                                            toast({
+                                              title: "Hours capped",
+                                              description: `${staffMember.name} only has ${staffRemainingAvailable} hours available for ${week}`,
+                                              variant: "destructive"
+                                            });
                                           }
-                                          return u;
-                                        }));
-                                      }}
-                                      className="h-8 w-16 text-center bg-white"
-                                      min={0}
-                                    />
-                                  </TableCell>
-                                ))}
+                                          
+                                          // Constraint 2: Can't exceed service user's remaining required hours
+                                          if (newValue > userRemainingRequired) {
+                                            newValue = Math.max(0, userRemainingRequired);
+                                            toast({
+                                              title: "Hours capped",
+                                              description: `${user.name} only requires ${userRemainingRequired} more hours for ${week}`,
+                                              variant: "destructive"
+                                            });
+                                          }
+                                          
+                                          setServiceUsers(prev => prev.map(u => {
+                                            if (u.id !== user.id) return u;
+                                            const existingAllocation = u.staffAllocations.find(a => a.staffId === staffId);
+                                            if (existingAllocation) {
+                                              return {
+                                                ...u,
+                                                staffAllocations: u.staffAllocations.map(a => 
+                                                  a.staffId === staffId 
+                                                    ? { ...a, allocatedHours: { ...a.allocatedHours, [week]: newValue } }
+                                                    : a
+                                                )
+                                              };
+                                            }
+                                            return u;
+                                          }));
+                                        }}
+                                        className="h-8 w-16 text-center bg-white"
+                                        min={0}
+                                      />
+                                    </TableCell>
+                                  );
+                                })}
                               </TableRow>;
                           })}
 
