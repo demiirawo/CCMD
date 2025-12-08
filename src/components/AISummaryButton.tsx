@@ -243,9 +243,10 @@ export const AISummaryButton = ({ onSummaryGenerated, meetingData }: AISummaryBu
       const messages = [
         {
           role: "system" as const,
-          content: `You are an AI assistant that creates concise meeting summaries. Create a brief summary focusing ONLY on updates reviewed as of today (${currentDate}).
+          content: `You are an AI assistant that creates concise meeting summaries in British English. Create a brief summary focusing ONLY on updates reviewed as of today (${currentDate}).
 
 Instructions:
+- Write in British English (use spellings like organisation, colour, behaviour, recognised, etc.)
 - Create TWO sections: "Overview" and "Key Areas Reviewed"
 - DO NOT include meeting title, date, or actions/next steps
 - ONLY include topics with "Last Reviewed" dates matching today (${currentDate})
@@ -256,7 +257,7 @@ Instructions:
         },
         {
           role: "user" as const,
-          content: `Create a 100-word max summary for ${companyName}. Only include topics reviewed today (${currentDate}):\n\n${collectedData}`
+          content: `Create a 100-word max summary in British English for ${companyName}. Only include topics reviewed today (${currentDate}):\n\n${collectedData}`
         }
       ];
 
