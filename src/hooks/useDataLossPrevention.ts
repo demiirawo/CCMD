@@ -96,33 +96,7 @@ export const useDataLossPrevention = ({
     }
   }, [location.pathname, autoSave]);
 
-  // Show notification for unsaved changes
-  useEffect(() => {
-    let toastId: string | number | undefined;
-    
-    if (hasUnsavedChanges) {
-      toastId = toast.info('You have unsaved changes', {
-        duration: Infinity,
-        action: {
-          label: 'Save Now',
-          onClick: () => {
-            onSaveData();
-            toast.dismiss(toastId);
-          }
-        }
-      });
-    } else {
-      if (toastId) {
-        toast.dismiss(toastId);
-      }
-    }
-
-    return () => {
-      if (toastId) {
-        toast.dismiss(toastId);
-      }
-    };
-  }, [hasUnsavedChanges, onSaveData]);
+  // Silent save - no toast notification for unsaved changes
 
   // Keyboard shortcuts for saving
   useEffect(() => {
@@ -132,7 +106,7 @@ export const useDataLossPrevention = ({
         event.preventDefault();
         if (hasUnsavedChanges) {
           onSaveData();
-          toast.success('Data saved manually');
+          // Silent save - no toast notification
         }
       }
       
