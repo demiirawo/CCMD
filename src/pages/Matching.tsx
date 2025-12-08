@@ -861,12 +861,12 @@ export const Matching = () => {
                               <Tooltip>
                                 <TooltipTrigger asChild>
                                   <span className="inline-flex items-center gap-1 cursor-help">
-                                    Available Staff Hours
+                                    Required Hours
                                     <HelpCircle className="h-3 w-3 text-muted-foreground" />
                                   </span>
                                 </TooltipTrigger>
                                 <TooltipContent className="bg-white max-w-xs">
-                                  <p className="text-sm">Total available hours from all staff for the week</p>
+                                  <p className="text-sm">Total hours needed by all service users for the week</p>
                                 </TooltipContent>
                               </Tooltip>
                             </TooltipProvider>
@@ -876,12 +876,12 @@ export const Matching = () => {
                               <Tooltip>
                                 <TooltipTrigger asChild>
                                   <span className="inline-flex items-center gap-1 cursor-help">
-                                    Required Hours
+                                    Available Staff Hours
                                     <HelpCircle className="h-3 w-3 text-muted-foreground" />
                                   </span>
                                 </TooltipTrigger>
                                 <TooltipContent className="bg-white max-w-xs">
-                                  <p className="text-sm">Total hours needed by all service users for the week</p>
+                                  <p className="text-sm">Total available hours from all staff for the week</p>
                                 </TooltipContent>
                               </Tooltip>
                             </TooltipProvider>
@@ -1009,10 +1009,10 @@ export const Matching = () => {
                           
                           return <TableRow key={week}>
                               <TableCell className="font-medium text-xs py-1">{week}</TableCell>
-                              <TableCell className="text-right text-xs py-1">{availableStaffHours}</TableCell>
                               <TableCell className={`text-right text-xs py-1 ${requiredHoursColor}`}>
                                 {renderCell('required', requiredHours)}
                               </TableCell>
+                              <TableCell className="text-right text-xs py-1">{availableStaffHours}</TableCell>
                               <TableCell className="text-right text-xs py-1">
                                 {renderCell('allocated', allocatedHours)}
                               </TableCell>
