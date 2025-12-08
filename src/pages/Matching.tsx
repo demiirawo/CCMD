@@ -1557,7 +1557,7 @@ export const Matching = () => {
                             <TableCell className="font-medium sticky left-0 bg-blue-50">
                               <div className="flex flex-col">
                                 <span className="font-semibold">{user.name}</span>
-                                <span className="text-xs text-muted-foreground">{user.location}</span>
+                                <span className="text-xs text-muted-foreground">{user.typicalWeeklyHours || 0} hrs/week</span>
                               </div>
                             </TableCell>
                             <TableCell className="bg-blue-50">
