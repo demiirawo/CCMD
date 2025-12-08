@@ -876,21 +876,6 @@ export const Matching = () => {
                               <Tooltip>
                                 <TooltipTrigger asChild>
                                   <span className="inline-flex items-center gap-1 cursor-help">
-                                    Required Hours
-                                    <HelpCircle className="h-3 w-3 text-muted-foreground" />
-                                  </span>
-                                </TooltipTrigger>
-                                <TooltipContent className="bg-white max-w-xs">
-                                  <p className="text-sm">Total hours needed by all service users for the week</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
-                          </TableHead>
-                          <TableHead className="text-xs py-1 text-right">
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <span className="inline-flex items-center gap-1 cursor-help">
                                     Allocated Hours
                                     <HelpCircle className="h-3 w-3 text-muted-foreground" />
                                   </span>
@@ -906,12 +891,12 @@ export const Matching = () => {
                               <Tooltip>
                                 <TooltipTrigger asChild>
                                   <span className="inline-flex items-center gap-1 cursor-help">
-                                    Unallocated Hours
+                                    Required Hours
                                     <HelpCircle className="h-3 w-3 text-muted-foreground" />
                                   </span>
                                 </TooltipTrigger>
                                 <TooltipContent className="bg-white max-w-xs">
-                                  <p className="text-sm">Available hours from staff not assigned as primary to any service user</p>
+                                  <p className="text-sm">Total hours needed by all service users for the week</p>
                                 </TooltipContent>
                               </Tooltip>
                             </TooltipProvider>
@@ -1019,17 +1004,17 @@ export const Matching = () => {
                                 {value}
                               </span>;
                           };
+                          // Determine required hours color: green if required > allocated, red if required < allocated
+                          const requiredHoursColor = requiredHours > allocatedHours ? 'text-green-600' : requiredHours < allocatedHours ? 'text-red-600' : '';
+                          
                           return <TableRow key={week}>
                               <TableCell className="font-medium text-xs py-1">{week}</TableCell>
                               <TableCell className="text-right text-xs py-1">{availableStaffHours}</TableCell>
                               <TableCell className="text-right text-xs py-1">
-                                {renderCell('required', requiredHours)}
-                              </TableCell>
-                              <TableCell className="text-right text-xs py-1">
                                 {renderCell('allocated', allocatedHours)}
                               </TableCell>
-                              <TableCell className="text-right text-xs py-1">
-                                {renderCell('unallocated', unallocatedHours)}
+                              <TableCell className={`text-right text-xs py-1 ${requiredHoursColor}`}>
+                                {renderCell('required', requiredHours)}
                               </TableCell>
                               <TableCell className={`text-right text-xs py-1 font-semibold ${utilisationColor}`}>{utilisation.toFixed(1)}%</TableCell>
                               <TableCell className="text-right text-xs py-1">{requiredFTE.toFixed(2)}</TableCell>
