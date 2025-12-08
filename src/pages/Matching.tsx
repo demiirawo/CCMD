@@ -1590,7 +1590,7 @@ export const Matching = () => {
               {/* Matching Matrix */}
               <Card>
                 <CardHeader className="border-b">
-                  <CardTitle>Matching Matrix</CardTitle>
+                  <CardTitle>Required Hours Forecast (8 Weeks)</CardTitle>
                 </CardHeader>
                 <CardContent className="pt-6">
                   <div className="overflow-x-auto">
