@@ -1906,6 +1906,56 @@ export const Matching = () => {
               </CardContent>
             </Card>
 
+              {/* Staff Available Hours Forecast */}
+              <Card>
+                <CardHeader className="border-b">
+                  <CardTitle>Available Hours Forecast (8 Weeks)</CardTitle>
+                </CardHeader>
+                <CardContent className="pt-6">
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="sticky left-0 bg-background min-w-[200px]">Staff Member</TableHead>
+                          {WEEKS.map(week => (
+                            <TableHead key={week} className="text-center min-w-[80px]">{week}</TableHead>
+                          ))}
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {staff.filter(s => (staffLocationFilter === "all" || s.location === staffLocationFilter) && (staffManagerFilter === "all" || s.manager === staffManagerFilter)).map(s => (
+                          <TableRow key={s.id}>
+                            <TableCell className="font-medium sticky left-0 bg-background">
+                              <div className="flex flex-col">
+                                <span>{s.name}</span>
+                                <span className="text-xs text-muted-foreground">{s.location}</span>
+                              </div>
+                            </TableCell>
+                            {WEEKS.map(week => (
+                              <TableCell key={week} className="text-center">
+                                <Input
+                                  type="number"
+                                  value={s.forecastHours[week] || 0}
+                                  onChange={(e) => {
+                                    const newValue = parseFloat(e.target.value) || 0;
+                                    setStaff(prev => prev.map(staff => staff.id === s.id ? {
+                                      ...staff,
+                                      forecastHours: { ...staff.forecastHours, [week]: newValue }
+                                    } : staff));
+                                  }}
+                                  className="h-8 w-16 text-center bg-white"
+                                  min={0}
+                                />
+                              </TableCell>
+                            ))}
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </CardContent>
+              </Card>
+
             </div>
           </TabsContent>
         </Tabs>}
