@@ -118,30 +118,48 @@ export const Matching = () => {
   const [customLocations, setCustomLocations] = useState<string[]>([]);
   const [customManagers, setCustomManagers] = useState<string[]>([]);
 
-  // Manual utilisation forecast data (replaces calculated values)
-  const [utilisationForecast, setUtilisationForecast] = useState<{
+  // Manual overrides for utilisation forecast (only stores overridden values)
+  const [utilisationOverrides, setUtilisationOverrides] = useState<{
     [week: string]: {
-      required: number;
-      allocated: number;
-      unallocated: number;
+      required?: number;
+      allocated?: number;
+      unallocated?: number;
     };
-  }>(() => {
-    const initial: {
-      [week: string]: {
-        required: number;
-        allocated: number;
-        unallocated: number;
-      };
-    } = {};
-    WEEKS.forEach(week => {
-      initial[week] = {
-        required: 0,
-        allocated: 0,
-        unallocated: 0
-      };
-    });
-    return initial;
-  });
+  }>({});
+
+  // Track which cell is being edited
+  const [editingUtilisationCell, setEditingUtilisationCell] = useState<{
+    week: string;
+    field: 'required' | 'allocated' | 'unallocated';
+  } | null>(null);
+
+  // Calculate utilisation forecast from matrices
+  const getCalculatedUtilisation = (week: string) => {
+    // Required hours = sum of all service users' forecast hours for that week
+    const required = serviceUsers.reduce((sum, user) => sum + (user.forecastHours[week] || 0), 0);
+    
+    // Allocated hours = sum of all primary staff allocations across all service users
+    const allocated = serviceUsers.reduce((sum, user) => {
+      return sum + user.staffAllocations
+        .filter(a => user.primaryStaffIds.includes(a.staffId))
+        .reduce((allocSum, a) => allocSum + (a.allocatedHours[week] || 0), 0);
+    }, 0);
+    
+    // Unallocated hours = total staff available hours - allocated hours
+    const totalStaffAvailable = staff.reduce((sum, s) => sum + (s.forecastHours[week] || 0), 0);
+    const unallocated = totalStaffAvailable - allocated;
+    
+    return { required, allocated, unallocated };
+  };
+
+  // Get utilisation value (override if exists, otherwise calculated)
+  const getUtilisationValue = (week: string, field: 'required' | 'allocated' | 'unallocated') => {
+    const override = utilisationOverrides[week]?.[field];
+    if (override !== undefined) {
+      return override;
+    }
+    return getCalculatedUtilisation(week)[field];
+  };
 
   // Add a custom location to the shared pool
   const addCustomLocation = (location: string) => {
@@ -931,14 +949,9 @@ export const Matching = () => {
                       </TableHeader>
                       <TableBody>
                         {WEEKS.map(week => {
-                          const weekData = utilisationForecast[week] || {
-                            required: 0,
-                            allocated: 0,
-                            unallocated: 0
-                          };
-                          const requiredHours = weekData.required;
-                          const allocatedHours = weekData.allocated;
-                          const unallocatedHours = weekData.unallocated;
+                          const requiredHours = getUtilisationValue(week, 'required');
+                          const allocatedHours = getUtilisationValue(week, 'allocated');
+                          const unallocatedHours = getUtilisationValue(week, 'unallocated');
                           const totalAvailableHours = allocatedHours + unallocatedHours;
                           // Utilisation = allocated hours / total available hours (what % of available capacity is being used)
                           const utilisation = totalAvailableHours > 0 ? allocatedHours / totalAvailableHours * 100 : 0;
@@ -957,25 +970,67 @@ export const Matching = () => {
                           } else if (utilisation >= 90) {
                             utilisationColor = "text-red-600"; // over-utilised (>90%)
                           }
-                          const handleUpdateForecast = (field: 'required' | 'allocated' | 'unallocated', value: number) => {
-                            setUtilisationForecast(prev => ({
+
+                          const handleOverride = (field: 'required' | 'allocated' | 'unallocated', value: number) => {
+                            setUtilisationOverrides(prev => ({
                               ...prev,
                               [week]: {
                                 ...prev[week],
                                 [field]: value
                               }
                             }));
+                            setEditingUtilisationCell(null);
                           };
+
+                          const isOverridden = (field: 'required' | 'allocated' | 'unallocated') => {
+                            return utilisationOverrides[week]?.[field] !== undefined;
+                          };
+
+                          const renderCell = (field: 'required' | 'allocated' | 'unallocated', value: number) => {
+                            const isEditing = editingUtilisationCell?.week === week && editingUtilisationCell?.field === field;
+                            
+                            if (isEditing) {
+                              return (
+                                <Input
+                                  type="number"
+                                  defaultValue={value}
+                                  onBlur={(e) => handleOverride(field, parseFloat(e.target.value) || 0)}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                      handleOverride(field, parseFloat((e.target as HTMLInputElement).value) || 0);
+                                    } else if (e.key === 'Escape') {
+                                      setEditingUtilisationCell(null);
+                                    }
+                                  }}
+                                  autoFocus
+                                  className="w-20 h-6 text-xs text-right bg-white"
+                                  min={0}
+                                  step={0.5}
+                                />
+                              );
+                            }
+                            
+                            return (
+                              <span
+                                className={`cursor-pointer hover:bg-muted px-2 py-1 rounded ${isOverridden(field) ? 'bg-yellow-100 font-medium' : ''}`}
+                                onDoubleClick={() => setEditingUtilisationCell({ week, field })}
+                                title="Double-click to override"
+                              >
+                                {value}
+                              </span>
+                            );
+                          };
+
                           return <TableRow key={week}>
                               <TableCell className="font-medium text-xs py-1">{week}</TableCell>
                               <TableCell className="text-right text-xs py-1">
-                                <Input type="number" value={requiredHours} onChange={e => handleUpdateForecast('required', parseFloat(e.target.value) || 0)} className="w-20 h-6 text-xs text-right bg-white" min={0} step={0.5} />
+                                {renderCell('required', requiredHours)}
                               </TableCell>
                               <TableCell className="text-right text-xs py-1">
-                                <Input type="number" value={allocatedHours} onChange={e => handleUpdateForecast('allocated', parseFloat(e.target.value) || 0)} className="w-20 h-6 text-xs text-right bg-white" min={0} step={0.5} />
+                                {renderCell('allocated', allocatedHours)}
                               </TableCell>
                               <TableCell className="text-right text-xs py-1">
-                                <Input type="number" value={unallocatedHours} onChange={e => handleUpdateForecast('unallocated', parseFloat(e.target.value) || 0)} className="w-20 h-6 text-xs text-right bg-white" min={0} step={0.5} />
+                                {renderCell('unallocated', unallocatedHours)}
                               </TableCell>
                               <TableCell className={`text-right text-xs py-1 font-semibold ${utilisationColor}`}>{utilisation.toFixed(1)}%</TableCell>
                               <TableCell className="text-right text-xs py-1">{requiredFTE.toFixed(2)}</TableCell>
