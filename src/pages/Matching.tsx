@@ -1374,9 +1374,15 @@ export const Matching = () => {
                               value={user.typicalWeeklyHours || 0}
                               onChange={(e) => {
                                 const newValue = parseFloat(e.target.value) || 0;
+                                // Update typicalWeeklyHours and overwrite all 8 weeks in forecastHours
+                                const newForecastHours: { [week: string]: number } = {};
+                                WEEKS.forEach(week => {
+                                  newForecastHours[week] = newValue;
+                                });
                                 setServiceUsers(prev => prev.map(u => u.id === user.id ? {
                                   ...u,
-                                  typicalWeeklyHours: newValue
+                                  typicalWeeklyHours: newValue,
+                                  forecastHours: newForecastHours
                                 } : u));
                               }}
                               className="h-8 w-20 bg-white"
@@ -1837,9 +1843,15 @@ export const Matching = () => {
                               value={s.typicalWeeklyHours || 0}
                               onChange={(e) => {
                                 const newValue = parseFloat(e.target.value) || 0;
+                                // Update typicalWeeklyHours and overwrite all 8 weeks in forecastHours
+                                const newForecastHours: { [week: string]: number } = {};
+                                WEEKS.forEach(week => {
+                                  newForecastHours[week] = newValue;
+                                });
                                 setStaff(prev => prev.map(staff => staff.id === s.id ? {
                                   ...staff,
-                                  typicalWeeklyHours: newValue
+                                  typicalWeeklyHours: newValue,
+                                  forecastHours: newForecastHours
                                 } : staff));
                               }}
                               className="h-8 w-20 bg-white"
