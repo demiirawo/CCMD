@@ -876,11 +876,6 @@ const Index = () => {
     
     // Save the updated header data using the same mechanism as feedback analytics
     await saveHeaderData(updatedHeaderData);
-    
-    toast({
-      title: "Field Updated",
-      description: `${field.charAt(0).toUpperCase() + field.slice(1)} has been updated and saved`
-    });
   };
   const handleAttendeesChange = async (attendees: Attendee[]) => {
     const updatedHeaderData = { ...headerData, attendees };
@@ -924,10 +919,6 @@ const Index = () => {
         console.error('Failed to save status to database:', error);
       }
     }
-    toast({
-      title: "Status Updated",
-      description: `Item status changed to ${newStatus} and saved`
-    });
   };
   const handleObservationChange = async (sectionId: string, itemId: string, newObservation: string) => {
     const lastReviewed = new Date().toLocaleDateString('en-GB');
@@ -991,10 +982,6 @@ const Index = () => {
         console.error('❌ [Observation Change] Failed to save to database:', error);
       }
     }
-    toast({
-      title: "Observation Updated",
-      description: "Item observation has been saved"
-    });
   };
   const handleTrendsThemesChange = async (sectionId: string, itemId: string, newTrendsThemes: string) => {
     // Update local state
@@ -1032,10 +1019,6 @@ const Index = () => {
         console.error('Failed to save trends & themes to database:', error);
       }
     }
-    toast({
-      title: "Trends & Themes Updated",
-      description: "Item trends & themes have been saved"
-    });
   };
 
   const handleLessonsLearnedChange = async (sectionId: string, itemId: string, newLessonsLearned: string) => {
@@ -1072,10 +1055,6 @@ const Index = () => {
         console.error('Failed to save lessons learned to database:', error);
       }
     }
-    toast({
-      title: "Lessons Learned Updated",
-      description: "Lessons learned have been saved"
-    });
   };
   const handleActionsChange = async (sectionId: string, itemId: string, newActions: ActionItem[]) => {
     // Update local state
@@ -1113,10 +1092,6 @@ const Index = () => {
         console.error('Failed to save actions to database:', error);
       }
     }
-    toast({
-      title: "Actions Updated",
-      description: "Item actions have been saved"
-    });
   };
 
   const handleActionComplete = async (sectionId: string, itemId: string, actionId: string) => {
@@ -1171,11 +1146,6 @@ const Index = () => {
         console.error('Failed to save completed action to database:', error);
       }
     }
-
-    toast({
-      title: "Action Completed",
-      description: "Action has been marked as completed"
-    });
   };
 
   const handleActionDelete = async (sectionId: string, itemId: string, actionId: string) => {
@@ -1220,11 +1190,6 @@ const Index = () => {
         console.error('Failed to save after action deletion to database:', error);
       }
     }
-
-    toast({
-      title: "Action Deleted",
-      description: "Action has been removed"
-    });
   };
   const handleDocumentsChange = (sectionId: string, itemId: string, newDocuments: import("@/components/StatusItem").DocumentData[]) => {
     setDashboardData(prev => ({
@@ -1238,10 +1203,6 @@ const Index = () => {
         } : item)
       } : section)
     }));
-    toast({
-      title: "Documents Updated",
-      description: "Item documents have been saved"
-    });
   };
   const handleMetadataChange = async (sectionId: string, itemId: string, metadata: SubsectionMetadata) => {
     const lastReviewed = new Date().toLocaleDateString('en-GB');
@@ -1280,10 +1241,6 @@ const Index = () => {
         console.error('Failed to save metadata to database:', error);
       }
     }
-    toast({
-      title: "Subsection Updated",
-      description: "Subsection details have been saved"
-    });
   };
   const handleActionCreated = async (itemTitle: string, mentionedAttendee: string, comment: string, action: string, dueDate: string, subsectionActionId?: string) => {
     console.log('Index: handleActionCreated called with meetingIds:', {
@@ -1291,10 +1248,6 @@ const Index = () => {
       tempMeetingId
     });
     const actionId = subsectionActionId || `action-${Date.now()}`;
-    toast({
-      title: "Action Created",
-      description: `Action assigned to @${mentionedAttendee} for ${itemTitle} and saved`
-    });
   };
 
   const getAttendeesList = () => {
