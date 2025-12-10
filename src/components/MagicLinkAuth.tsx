@@ -73,7 +73,8 @@ export const MagicLinkAuth = () => {
       } = await supabase.auth.signInWithOtp({
         email: email.trim().toLowerCase(),
         options: {
-          emailRedirectTo: `${window.location.origin}/`
+          emailRedirectTo: `${window.location.origin}/`,
+          shouldCreateUser: true
         }
       });
       console.log('Magic link send result:', {
