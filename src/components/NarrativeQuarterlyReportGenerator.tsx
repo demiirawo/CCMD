@@ -83,36 +83,42 @@ export const NarrativeQuarterlyReportGenerator: React.FC<NarrativeQuarterlyRepor
     }
   };
 
+  // Condense meeting data to reduce token count - only keep essential information
   const extractMeetingNarratives = (meetings: any[]): MeetingNarrative[] => {
-    console.log('🔍 Extracting narratives from meetings:', meetings.length);
+    console.log('🔍 Extracting condensed narratives from meetings:', meetings.length);
     return meetings.map(meeting => {
-      console.log('📋 Processing meeting:', meeting.title, meeting.date);
       const sectionUpdates = meeting.sections?.map((section: any) => {
-        console.log(`📝 Section: ${section.title}, Items: ${section.items?.length || 0}`);
+        // Filter out items with no meaningful content
+        const meaningfulItems = section.items?.filter((item: any) => {
+          const hasObservation = item.observation && item.observation.trim().length > 0;
+          const hasTrend = item.trendAnalysis && item.trendAnalysis.trim().length > 0;
+          const hasActions = item.actions && item.actions.length > 0;
+          return hasObservation || hasTrend || hasActions;
+        }) || [];
+        
         return {
           sectionName: section.title || section.name || 'Unknown Section',
-          subsectionUpdates: section.items?.map((item: any) => {
-            if (item.observation) {
-              console.log(`✏️ Found observation in ${item.title}: "${item.observation}"`);
-            }
-            return {
-              name: item.title || item.name || 'Unknown Item',
-              status: item.status || 'unknown',
-              latestUpdate: item.observation || item.latest_update || '',
-              trendAnalysis: item.trendAnalysis || item.trend_analysis || '',
-              lastReviewed: item.lastReviewed || '',
-              actions: item.actions || []
-            };
-          }) || []
+          subsectionUpdates: meaningfulItems.map((item: any) => ({
+            name: item.title || item.name || 'Unknown Item',
+            status: item.status || 'unknown',
+            // Truncate very long observations to 500 chars
+            latestUpdate: (item.observation || item.latest_update || '').slice(0, 500),
+            trendAnalysis: (item.trendAnalysis || item.trend_analysis || '').slice(0, 300),
+            // Simplify actions to just text and assignee
+            actions: (item.actions || []).slice(0, 5).map((a: any) => ({
+              text: typeof a === 'string' ? a : (a.text || a.action_text || ''),
+              assignee: a.assignee || a.mentioned_attendee || ''
+            }))
+          }))
         };
-      }) || [];
+      }).filter((s: any) => s.subsectionUpdates.length > 0) || []; // Remove empty sections
+      
       return {
         date: meeting.date,
         title: meeting.title,
-        documentUrl: meeting.document_url,
         sectionUpdates
       };
-    });
+    }).filter(m => m.sectionUpdates.length > 0); // Remove meetings with no content
   };
 
   const generateNarrativeReport = async () => {
@@ -255,122 +261,42 @@ export const NarrativeQuarterlyReportGenerator: React.FC<NarrativeQuarterlyRepor
 
       const combinedDashboardTotals = sumCounts(sumCounts(dashboardItemCounts, actionsCounts), keyDocsCounts);
 
-      // Build explicit context to guide the AI
+      // Build simplified context - only include non-zero counts
       const context = {
-        clarification: {
-          dashboard: 'The Dashboard is a recording of our management meetings (decisions, updates, actions).',
-          inspection: 'The Inspection page is a checklist to verify our readiness for a CQC inspection (evidence categories and compliance).',
-        },
-        dashboardRAG: {
-          items: dashboardItemCounts,
-          actions: actionsCounts,
-          keyReviewDates: keyDocsCounts,
-          combinedTotals: combinedDashboardTotals,
-        },
-        inspectionRAG: {
-          totals: inspectionTotals,
-          categories: inspectionCategoriesSummary,
-        },
+        dashboardRAG: combinedDashboardTotals,
+        inspectionRAG: inspectionTotals,
       };
 
-      const prompt = `You are an expert in care service compliance reporting for UK regulatory bodies including CQC, Ofsted, and local authorities.
+      // Simplified, concise prompt to reduce token count
+      const prompt = `Create a quarterly narrative report for ${quarter} ${year} for a UK care service.
 
-Create a compelling quarterly narrative report for ${quarter} ${year} that tells the story of how this care service performed during this period.
+RAG STATUS: ${JSON.stringify(context)}
 
-SOURCE CONTEXT (do not repeat verbatim, use it to inform analysis):
-${JSON.stringify(context, null, 2)}
+MEETING DATA:
+${JSON.stringify(narratives)}
 
-MEETING DATA TO ANALYZE (Dashboard = management meetings record):
-${JSON.stringify(narratives, null, 2)}
+STRUCTURE (use # for major headings, ## for sub-headings):
+# Executive Summary
+# Staff (Resourcing, Documents, Training, Spot Checks, Supervisions, Meetings)
+# Care Planning & Delivery (Care Plans, Service User Documents, Medication, Care Notes, Call Monitoring, Transportation)
+# Safety (Incidents/Safeguarding, Risk Register, Infection Control, Information Governance)
+# Continuous Improvement (Feedback, Audits)
+# Successes and Achievements
+# Learning Opportunities and Challenges
+# Next Steps
 
-CRITICAL INSTRUCTIONS FOR USING MEETING DATA:
+RULES:
+- Use SPECIFIC names, dates, actions from the data
+- If a section has no data, write: "No discussion recorded for ${quarter} ${year}."
+- Never invent content or use generic phrases
+- Write 1500-2500 words in narrative paragraphs
+- Never use words "red", "amber", "green"`;
 
-1. **USE ACTUAL HEADINGS FROM MEETINGS**: The report structure MUST be based on the section and subsection headings found in the meeting data. If a meeting has sections like "Staff", "Care Planning", "Safety", etc., use those exact headings.
-
-2. **REFERENCE SPECIFIC NAMES AND DATES**: When the meeting data mentions specific staff names, service user references, dates, deadlines, or document names - USE THEM in the report. For example:
-   - If an action mentions "John to complete DBS check by 15th January" - reference this specifically
-   - If a training record mentions "Sarah completed medication training on 12/12/2024" - include this detail
-   - If a meeting was held on a specific date with specific attendees - reference this
-
-3. **HANDLE EMPTY SECTIONS HONESTLY**: If a section or subsection has NO latestUpdate, NO trendAnalysis, NO actions, and NO observations recorded for this quarter, you MUST write: "There was no discussion recorded for this area during ${quarter} ${year}." DO NOT invent or assume content.
-
-4. **AVOID GENERIC LANGUAGE**: Do NOT use phrases like:
-   - "The team continues to perform well"
-   - "Good progress has been made"
-   - "Training remains a priority"
-   Unless there is SPECIFIC data to support these statements. Instead, cite actual updates, actions, or observations from the meetings.
-
-REPORT REQUIREMENTS:
-
-1. AUDIENCE: Internal stakeholders, CQC, Ofsted, and local authorities
-2. STYLE: Professional, narrative-driven, regulatory compliance focused
-3. STRUCTURE: Follow the structure below, but ONLY include sections that have actual data from meetings
-4. FORMAT: Use markdown formatting for headings only - # for major sections, ## for subsections
-
-DATA INPUTS TO CONSIDER:
-- Latest Update, Trend Analysis, Actions, and any attached documents from meetings
-- RAG summaries from the Dashboard (items, actions, key review dates) — convert to professional language (do not say "red/amber/green")
-- Inspection checklist (CQC readiness) category statuses to evidence preparedness
-- SPECIFIC dates, names, and details mentioned in meeting observations
-
-REQUIRED REPORT STRUCTURE (in this exact order):
-
-Executive Summary
-
-Staff
-- Resourcing
-- Staff Documents  
-- Training
-- Spot Checks
-- Staff Supervisions
-- Staff Meetings
-
-Care Planning & Delivery (Changes to "Support Planning & Delivery" for companies with only Supported Housing services)
-- Care Plans & Risk Assessments (becomes "Support Plans & Risk Assessments" for supported housing)
-- Service User Documents
-- Medication Management
-- Care Notes
-- Call Monitoring
-- Transportation
-
-Safety
-- Incidents, Accidents and Safeguarding
-- Risk Register
-- Infection Control
-- Information Governance
-
-Continuous Improvement
-- Feedback
-- Audits
-
-Successes and Achievements
-
-Learning Opportunities and Challenges
-
-Next Steps
-
-CRITICAL WRITING INSTRUCTIONS:
-1. Use ONLY the headings and subheadings provided above
-2. Format major section headings with # and minor headings with ##
-3. Write all content in natural paragraph format without other markdown
-4. Tell a compelling narrative about the service's overall journey through the quarter
-5. Focus on progression showing how challenges evolved and what actions were taken
-6. Frame everything through the lens of quality, safety, and person-centered care
-7. Base all content STRICTLY on the provided data — NEVER invent information or make assumptions
-8. Use professional language appropriate for regulatory and senior stakeholder audiences
-9. Show relationships between different areas and demonstrate continuous improvement
-10. Transform RAG indicators into meaningful insights — DO NOT use the words "red", "amber", or "green"
-11. Reference SPECIFIC staff names, dates, and actions mentioned in the meeting data
-12. DO NOT mention anything related to Supported Housing unless explicitly present in the data
-13. If a subsection has no recorded discussion or updates for this quarter, explicitly state: "There was no discussion recorded for this area during ${quarter} ${year}."
-14. NOTE: Interactive 12-month analytics charts will be automatically included in Feedback and Incidents sections — do not reference charts explicitly.
-
-Write approximately 1500-2500 words using only plain text. Be specific, cite actual data, and acknowledge when information is not available.`;
-
+      // Use GPT-4.1 which doesn't have reasoning token overhead
       const reportContent = await generateResponse([
-        { role: 'system', content: 'You are an expert care service compliance report writer. You ONLY use data that is explicitly provided to you. You NEVER invent, assume, or generate generic content. When sections have no data, you clearly state that no discussion was recorded. You always reference specific names, dates, and details from the provided meeting data.' },
+        { role: 'system', content: 'Expert UK care service compliance report writer. Only use provided data. Never invent content.' },
         { role: 'user', content: prompt }
-      ], 'gpt-5-2025-08-07');
+      ], 'gpt-4.1-2025-04-14');
 
       if (reportContent) {
         // Save to Supabase with additional analytics/context

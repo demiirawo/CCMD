@@ -69,8 +69,16 @@ const { messages, model = 'gpt-5-2025-08-07' } = await req.json();
     const data = await response.json();
     const generatedText = data.choices?.[0]?.message?.content;
 
-    if (!generatedText) {
-      console.error('No content in OpenAI response:', data);
+    // Check if reasoning consumed all tokens (GPT-5 specific issue)
+    const usage = data.usage || {};
+    const reasoningTokens = usage.completion_tokens_details?.reasoning_tokens || 0;
+    const completionTokens = usage.completion_tokens || 0;
+    
+    if (!generatedText || generatedText.trim() === '') {
+      console.error('No content in OpenAI response. Usage:', JSON.stringify(usage));
+      if (reasoningTokens > 0 && reasoningTokens >= completionTokens * 0.9) {
+        throw new Error('Model used all tokens for reasoning. Try using gpt-4.1 model or reduce prompt size.');
+      }
       throw new Error('No content returned from OpenAI');
     }
 
