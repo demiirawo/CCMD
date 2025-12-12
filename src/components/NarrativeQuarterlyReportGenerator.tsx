@@ -290,7 +290,9 @@ RULES:
 - If a section has no data, write: "No discussion recorded for ${quarter} ${year}."
 - Never invent content or use generic phrases
 - Write 1500-2500 words in narrative paragraphs
-- Never use words "red", "amber", "green"`;
+- Never use words "red", "amber", "green"
+- Avoid unexplained KPI references like "234 indicators" or "11 inspection lines" - only include figures if you clearly explain what they mean and why they matter
+- Use plain language: state what happened, how it was measured, and why it matters`;
 
       // Use GPT-4.1 which doesn't have reasoning token overhead
       const reportContent = await generateResponse([
