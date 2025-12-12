@@ -30,7 +30,11 @@ const { messages, model = 'gpt-5-2025-08-07' } = await req.json();
     }
 
     // Determine if this is a newer model that requires max_completion_tokens
-    const isNewerModel = model.includes('gpt-5') || model.includes('o3') || model.includes('o4');
+    const isNewerModel =
+      model.includes('gpt-5') ||
+      model.includes('gpt-4.1') ||
+      model.includes('o3') ||
+      model.includes('o4');
     
     console.log('Calling OpenAI API...');
     const requestBody: any = {
@@ -38,12 +42,12 @@ const { messages, model = 'gpt-5-2025-08-07' } = await req.json();
       messages,
     };
     
-    // Newer models (GPT-5, O3, O4) use max_completion_tokens and don't support temperature
+    // Newer models (GPT-5, GPT-4.1, O3, O4) use max_completion_tokens and don't support temperature
     if (isNewerModel) {
-      requestBody.max_completion_tokens = 16000;
+      requestBody.max_completion_tokens = 4000;
     } else {
       requestBody.temperature = 0.7;
-      requestBody.max_tokens = 16000;
+      requestBody.max_tokens = 4000;
     }
     
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
