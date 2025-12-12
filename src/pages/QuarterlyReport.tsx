@@ -384,8 +384,8 @@ Analytics Data: ${JSON.stringify(processedAnalytics, null, 2)}
 
 Remember: This report tells the factual story of ${companyName}'s quarter. Write it as a readable narrative that stakeholders will find informative and engaging, not as a list of disconnected data points.`
       }];
-      console.log('🚀 Calling OpenAI API with enhanced model...');
-      const generatedContent = await generateResponse(messages, 'gpt-4.1-2025-04-14');
+      console.log('🚀 Calling OpenAI API with flagship model...');
+      const generatedContent = await generateResponse(messages, 'gpt-5-2025-08-07');
       console.log('📝 OpenAI API response received');
       console.log('📏 Content length:', generatedContent?.length || 0);
       console.log('📄 Content preview:', generatedContent?.substring(0, 100) || 'No content');
