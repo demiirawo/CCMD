@@ -15,7 +15,7 @@ serve(async (req) => {
   }
 
   try {
-    const { messages, model = 'gpt-4.1-2025-04-14' } = await req.json();
+const { messages, model = 'gpt-5-2025-08-07' } = await req.json();
 
     console.log('OpenAI function called with model:', model);
     console.log('Messages count:', messages?.length);
@@ -29,19 +29,30 @@ serve(async (req) => {
       throw new Error('Messages array is required and must not be empty');
     }
 
+    // Determine if this is a newer model that requires max_completion_tokens
+    const isNewerModel = model.includes('gpt-5') || model.includes('o3') || model.includes('o4');
+    
     console.log('Calling OpenAI API...');
+    const requestBody: any = {
+      model,
+      messages,
+    };
+    
+    // Newer models (GPT-5, O3, O4) use max_completion_tokens and don't support temperature
+    if (isNewerModel) {
+      requestBody.max_completion_tokens = 16000;
+    } else {
+      requestBody.temperature = 0.7;
+      requestBody.max_tokens = 16000;
+    }
+    
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${openAIApiKey}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        model,
-        messages,
-        temperature: 0.7,
-        max_tokens: 16000,
-      }),
+      body: JSON.stringify(requestBody),
     });
 
     if (!response.ok) {

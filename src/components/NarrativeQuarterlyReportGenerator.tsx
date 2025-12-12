@@ -7,6 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { FileText, Eye, Trash2, Loader2 } from 'lucide-react';
+
 interface NarrativeQuarterlyReportGeneratorProps {
   quarter: string;
   year: string;
@@ -19,6 +20,7 @@ interface NarrativeQuarterlyReportGeneratorProps {
     document_url?: string;
   }>;
 }
+
 interface MeetingNarrative {
   date: string;
   title: string;
@@ -34,6 +36,7 @@ interface MeetingNarrative {
     }[];
   }[];
 }
+
 export const NarrativeQuarterlyReportGenerator: React.FC<NarrativeQuarterlyReportGeneratorProps> = ({
   quarter,
   year,
@@ -52,9 +55,11 @@ export const NarrativeQuarterlyReportGenerator: React.FC<NarrativeQuarterlyRepor
   const {
     toast
   } = useToast();
+
   useEffect(() => {
     checkExistingReport();
   }, [quarter, year, profile?.company_id]);
+
   const checkExistingReport = async () => {
     if (!profile?.company_id) return;
     try {
@@ -77,6 +82,7 @@ export const NarrativeQuarterlyReportGenerator: React.FC<NarrativeQuarterlyRepor
       setHasGeneratedReport(false);
     }
   };
+
   const extractMeetingNarratives = (meetings: any[]): MeetingNarrative[] => {
     console.log('🔍 Extracting narratives from meetings:', meetings.length);
     return meetings.map(meeting => {
@@ -108,6 +114,7 @@ export const NarrativeQuarterlyReportGenerator: React.FC<NarrativeQuarterlyRepor
       };
     });
   };
+
   const generateNarrativeReport = async () => {
     console.log('🚀 Generate report button clicked');
     console.log('📋 Profile:', profile);
@@ -174,7 +181,7 @@ export const NarrativeQuarterlyReportGenerator: React.FC<NarrativeQuarterlyRepor
 
       // 5) Inspection evidence category RAG (CQC readiness checklist)
       const inspectionTotals = initCounts();
-      let inspectionCategoriesSummary: Array<{ id: string; name: string; status: 'green' | 'amber' | 'red' } > = [];
+      let inspectionCategoriesSummary: Array<{ id: string; name: string; status: 'green' | 'amber' | 'red' }> = [];
 
       // Fetch in parallel for efficiency
       const [actionsRes, keyDocsRes, categoriesRes, evidenceRes, responsesRes] = await Promise.all([
@@ -266,12 +273,104 @@ export const NarrativeQuarterlyReportGenerator: React.FC<NarrativeQuarterlyRepor
         },
       };
 
-      const prompt = `You are an expert in care service compliance reporting for UK regulatory bodies including CQC, Ofsted, and local authorities.\n\nCreate a compelling quarterly narrative report for ${quarter} ${year} that tells the story of how this care service performed during this period.\n\nSOURCE CONTEXT (do not repeat verbatim, use it to inform analysis):\\n${JSON.stringify(context, null, 2)}\n\nMEETING DATA TO ANALYZE (Dashboard = management meetings record):\n${JSON.stringify(narratives, null, 2)}\n\nREPORT REQUIREMENTS:\n\n1. AUDIENCE: Internal stakeholders, CQC, Ofsted, and local authorities\n2. STYLE: Professional, narrative-driven, regulatory compliance focused\n3. STRUCTURE: Follow the exact structure below with these headings and subheadings\n4. FORMAT: Use markdown formatting for headings only - # for major sections, ## for subsections\n5. FORMATTING: Major headings use # and minor headings use ##\n\nDATA INPUTS TO CONSIDER:\n- Latest Update, Trend Analysis, Actions, and any attached documents from meetings\n- RAG summaries from the Dashboard (items, actions, key review dates) — convert to professional language (do not say “red/amber/green”)\n- Inspection checklist (CQC readiness) category statuses to evidence preparedness\n\n6. ANALYSIS APPROACH: Synthesize all these data inputs to create a comprehensive narrative that shows the full picture of service performance and quality improvements\n\nREQUIRED REPORT STRUCTURE (in this exact order):\n\nExecutive Summary\n\nStaff\n- Resourcing\n- Staff Documents  \n- Training\n- Spot Checks\n- Staff Supervisions\n- Staff Meetings\n\nCare Planning & Delivery (Changes to \"Support Planning & Delivery\" for companies with only Supported Housing services)\n- Care Plans & Risk Assessments (becomes \"Support Plans & Risk Assessments\" for supported housing)\n- Service User Documents\n- Medication Management\n- Care Notes\n- Call Monitoring\n- Transportation\n\nSafety\n- Incidents, Accidents and Safeguarding\n- Risk Register\n- Infection Control\n- Information Governance\n\nContinuous Improvement\n- Feedback\n- Audits\n\nSuccesses and Achievements\n\nLearning Opportunities and Challenges\n\nNext Steps\n\nCRITICAL WRITING INSTRUCTIONS:\n1. Use ONLY the headings and subheadings provided above\n2. Format major section headings with # and minor headings with ##\n3. Write all content in natural paragraph format without other markdown\n4. Tell a compelling narrative about the service's overall journey through the quarter\n5. Focus on progression showing how challenges evolved and what actions were taken\n6. Frame everything through the lens of quality, safety, and person-centered care\n7. Base all content strictly on the provided data — never invent information\n8. Use professional language appropriate for regulatory and senior stakeholder audiences\n9. Show relationships between different areas and demonstrate continuous improvement\n10. Transform RAG indicators into meaningful insights — DO NOT use the words \"red\", \"amber\", or \"green\"\n11. DO NOT make specific references to individual names\n12. DO NOT mention anything related to Supported Housing unless explicitly present in the data\n13. If information is not available for a section, simply omit that section\n14. NOTE: Interactive 12-month analytics charts will be automatically included in Feedback and Incidents sections — do not reference charts explicitly.\n\nWrite approximately 1500-2500 words using only plain text.`;
+      const prompt = `You are an expert in care service compliance reporting for UK regulatory bodies including CQC, Ofsted, and local authorities.
+
+Create a compelling quarterly narrative report for ${quarter} ${year} that tells the story of how this care service performed during this period.
+
+SOURCE CONTEXT (do not repeat verbatim, use it to inform analysis):
+${JSON.stringify(context, null, 2)}
+
+MEETING DATA TO ANALYZE (Dashboard = management meetings record):
+${JSON.stringify(narratives, null, 2)}
+
+CRITICAL INSTRUCTIONS FOR USING MEETING DATA:
+
+1. **USE ACTUAL HEADINGS FROM MEETINGS**: The report structure MUST be based on the section and subsection headings found in the meeting data. If a meeting has sections like "Staff", "Care Planning", "Safety", etc., use those exact headings.
+
+2. **REFERENCE SPECIFIC NAMES AND DATES**: When the meeting data mentions specific staff names, service user references, dates, deadlines, or document names - USE THEM in the report. For example:
+   - If an action mentions "John to complete DBS check by 15th January" - reference this specifically
+   - If a training record mentions "Sarah completed medication training on 12/12/2024" - include this detail
+   - If a meeting was held on a specific date with specific attendees - reference this
+
+3. **HANDLE EMPTY SECTIONS HONESTLY**: If a section or subsection has NO latestUpdate, NO trendAnalysis, NO actions, and NO observations recorded for this quarter, you MUST write: "There was no discussion recorded for this area during ${quarter} ${year}." DO NOT invent or assume content.
+
+4. **AVOID GENERIC LANGUAGE**: Do NOT use phrases like:
+   - "The team continues to perform well"
+   - "Good progress has been made"
+   - "Training remains a priority"
+   Unless there is SPECIFIC data to support these statements. Instead, cite actual updates, actions, or observations from the meetings.
+
+REPORT REQUIREMENTS:
+
+1. AUDIENCE: Internal stakeholders, CQC, Ofsted, and local authorities
+2. STYLE: Professional, narrative-driven, regulatory compliance focused
+3. STRUCTURE: Follow the structure below, but ONLY include sections that have actual data from meetings
+4. FORMAT: Use markdown formatting for headings only - # for major sections, ## for subsections
+
+DATA INPUTS TO CONSIDER:
+- Latest Update, Trend Analysis, Actions, and any attached documents from meetings
+- RAG summaries from the Dashboard (items, actions, key review dates) — convert to professional language (do not say "red/amber/green")
+- Inspection checklist (CQC readiness) category statuses to evidence preparedness
+- SPECIFIC dates, names, and details mentioned in meeting observations
+
+REQUIRED REPORT STRUCTURE (in this exact order):
+
+Executive Summary
+
+Staff
+- Resourcing
+- Staff Documents  
+- Training
+- Spot Checks
+- Staff Supervisions
+- Staff Meetings
+
+Care Planning & Delivery (Changes to "Support Planning & Delivery" for companies with only Supported Housing services)
+- Care Plans & Risk Assessments (becomes "Support Plans & Risk Assessments" for supported housing)
+- Service User Documents
+- Medication Management
+- Care Notes
+- Call Monitoring
+- Transportation
+
+Safety
+- Incidents, Accidents and Safeguarding
+- Risk Register
+- Infection Control
+- Information Governance
+
+Continuous Improvement
+- Feedback
+- Audits
+
+Successes and Achievements
+
+Learning Opportunities and Challenges
+
+Next Steps
+
+CRITICAL WRITING INSTRUCTIONS:
+1. Use ONLY the headings and subheadings provided above
+2. Format major section headings with # and minor headings with ##
+3. Write all content in natural paragraph format without other markdown
+4. Tell a compelling narrative about the service's overall journey through the quarter
+5. Focus on progression showing how challenges evolved and what actions were taken
+6. Frame everything through the lens of quality, safety, and person-centered care
+7. Base all content STRICTLY on the provided data — NEVER invent information or make assumptions
+8. Use professional language appropriate for regulatory and senior stakeholder audiences
+9. Show relationships between different areas and demonstrate continuous improvement
+10. Transform RAG indicators into meaningful insights — DO NOT use the words "red", "amber", or "green"
+11. Reference SPECIFIC staff names, dates, and actions mentioned in the meeting data
+12. DO NOT mention anything related to Supported Housing unless explicitly present in the data
+13. If a subsection has no recorded discussion or updates for this quarter, explicitly state: "There was no discussion recorded for this area during ${quarter} ${year}."
+14. NOTE: Interactive 12-month analytics charts will be automatically included in Feedback and Incidents sections — do not reference charts explicitly.
+
+Write approximately 1500-2500 words using only plain text. Be specific, cite actual data, and acknowledge when information is not available.`;
 
       const reportContent = await generateResponse([
-        { role: 'system', content: 'You are an expert care service compliance report writer.' },
+        { role: 'system', content: 'You are an expert care service compliance report writer. You ONLY use data that is explicitly provided to you. You NEVER invent, assume, or generate generic content. When sections have no data, you clearly state that no discussion was recorded. You always reference specific names, dates, and details from the provided meeting data.' },
         { role: 'user', content: prompt }
-      ], 'gpt-4.1-2025-04-14');
+      ], 'gpt-5-2025-08-07');
 
       if (reportContent) {
         // Save to Supabase with additional analytics/context
@@ -313,9 +412,11 @@ export const NarrativeQuarterlyReportGenerator: React.FC<NarrativeQuarterlyRepor
       setIsGenerating(false);
     }
   };
+
   const viewReport = () => {
     navigate(`/quarterly-report?quarter=${quarter}&year=${year}`);
   };
+
   const deleteReport = async () => {
     if (!profile?.company_id) return;
     try {
@@ -342,11 +443,11 @@ export const NarrativeQuarterlyReportGenerator: React.FC<NarrativeQuarterlyRepor
       });
     }
   };
+
   if (hasGeneratedReport) {
-    return <Card className="bg-transparent border-0 shadow-none">
-        
+    return (
+      <Card className="bg-transparent border-0 shadow-none">
         <CardContent className="">
-          
           <div className="flex justify-evenly items-start gap-2 w-full">
             <Button onClick={viewReport} className="flex items-center gap-2">
               <Eye className="h-4 w-4" />
@@ -358,22 +459,27 @@ export const NarrativeQuarterlyReportGenerator: React.FC<NarrativeQuarterlyRepor
             </Button>
           </div>
         </CardContent>
-      </Card>;
+      </Card>
+    );
   }
-  return <Card className="bg-transparent border-0 shadow-none">
-      
+
+  return (
+    <Card className="bg-transparent border-0 shadow-none">
       <CardContent className="p-0">
-        
-        
         <Button onClick={generateNarrativeReport} disabled={isGenerating || isLoading} className="w-full">
-          {isGenerating || isLoading ? <>
+          {isGenerating || isLoading ? (
+            <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               Generating Report...
-            </> : <>
+            </>
+          ) : (
+            <>
               <FileText className="mr-2 h-4 w-4" />
               Generate Report
-            </>}
+            </>
+          )}
         </Button>
       </CardContent>
-    </Card>;
+    </Card>
+  );
 };
