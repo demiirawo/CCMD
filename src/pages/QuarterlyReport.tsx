@@ -299,68 +299,37 @@ export const QuarterlyReport = () => {
       const hasSupportedHousing = companyInfo?.services?.includes('Supported Housing');
       const messages = [{
         role: 'system' as const,
-        content: 'You are a professional report writer specializing in objective, factual quarterly reports. You NEVER create fictional content and strictly adhere to provided data. You maintain complete objectivity and clearly state when information is not available. You follow exact heading structures and use specified terminology.'
+        content: 'You are a professional report writer specializing in factual, narrative-driven quarterly reports written in flowing prose. You write in paragraph format - NEVER use bullet points or lists. You transform data into readable stories that internal and external stakeholders can easily understand.'
       }, {
         role: 'user' as const,
-content: `You are a seasoned care management consultant crafting a compelling quarterly narrative report. Your mission is to transform raw meeting data into an engaging story that captures the journey, challenges, triumphs, and evolution of ${companyName} during ${quarter} ${year}.
+content: `Write a comprehensive quarterly report for ${companyName} covering ${quarter} ${year}. This report must provide a clear, factual account of the service that both internal and external stakeholders can read to obtain a complete picture of the quarter.
 
-CRITICAL WRITING REQUIREMENTS:
+CRITICAL FORMAT REQUIREMENTS:
+1. Write ENTIRELY in flowing paragraph format - NO bullet points, NO numbered lists, NO dashes
+2. Each section should read like a professional narrative, telling the story of what happened
+3. Use specific dates (e.g., "On 15th November 2025..." or "During the week of 3rd December...")
+4. Reference specific staff names, service user references, and action owners where they appear in the data
+5. Connect events chronologically to show progression through the quarter
+6. The report must be readable and understandable by a human audience - not a data dump
+
+COMPANY NAME REQUIREMENTS:
 1. ALWAYS refer to the organization as "${companyName}" throughout the report
-2. NEVER use generic terms like "the service", "the organization", "the care provider", or "the agency"  
-3. Use "${companyName}" consistently in every section when referring to the company
-4. When discussing staff, refer to them as "${companyName} staff" or "${companyName} team members"
-5. When discussing management, refer to them as "${companyName} management" or "${companyName} leadership team"
-6. Format major section headings with # (e.g., "# Executive Summary")
-7. Format minor headings (subheadings) with ## (e.g., "## Resourcing")
+2. NEVER use generic terms like "the service", "the organization", "the care provider"
+3. When discussing staff, refer to them as "${companyName} staff" or "the ${companyName} team"
 
-REQUIRED SECTION STRUCTURE (in this exact order):
-1. Executive Summary
-2. Staff
-3. ${careOrSupport} Planning & Delivery
-4. Safety
-5. Continuous Improvement
-${hasSupportedHousing ? '6. Supported Housing Section' : ''}
-${hasSupportedHousing ? '7. Successes and Achievements' : '6. Successes and Achievements'}
-${hasSupportedHousing ? '8. Learning Opportunities and Challenges' : '7. Learning Opportunities and Challenges'}
-${hasSupportedHousing ? '9. Next Steps' : '8. Next Steps'}
+HEADING FORMAT:
+- Use # for main sections (e.g., "# Executive Summary")
+- Use ## for subsections (e.g., "## Resourcing")
 
-NARRATIVE STORYTELLING APPROACH:
-1. NEVER mention field names, data sources, or technical references (avoid terms like "LATEST UPDATE", "TREND ANALYSIS", "dashboard", etc.)
-2. WEAVE insights naturally into flowing prose that tells ${companyName}'s story
-3. ANALYZE patterns, trends, and developments to provide meaningful insights rather than just reporting facts
-4. CREATE a compelling narrative arc that shows ${companyName}'s progression, challenges overcome, and areas of growth
-5. USE vivid, descriptive language that brings the quarter's events to life for ${companyName}
-6. CONNECT different elements to show how various aspects of ${companyName} interrelate and influence each other
-
-CRITICAL CONTENT RULES:
-1. Base ALL content strictly on the meeting data provided - never invent or assume information
-2. If no relevant information exists for a section, simply omit that section from the report
-3. Transform raw data into meaningful insights and analysis rather than simple reporting
-4. Focus on the human story behind the data - what it means for staff, service users, and the organization
-
-ANALYTICAL FOCUS:
-- Look for patterns and trends across the quarter for ${companyName}
-- Identify cause-and-effect relationships between different developments at ${companyName}
-- Highlight improvements, challenges, and strategic shifts for ${companyName}
-- Provide context for why certain developments matter to ${companyName}
-- Draw connections between different areas of ${companyName}
-
-COMPANY: ${companyName}
-REPORTING PERIOD: ${quarter} ${year}
-
-DATA PROVIDED:
-${additionalContext ? `Additional Context: ${additionalContext}` : ''}
-Analytics Data: ${JSON.stringify(processedAnalytics, null, 2)}
-
-IMPORTANT: Transform the meeting content into narrative insights - analyze what the updates and observations reveal about the organization's journey, rather than simply reporting what was recorded.
-
-REQUIRED HEADING STRUCTURE (use exactly as shown):
-
+REQUIRED STRUCTURE:
 # Executive Summary
+(2-3 paragraphs providing a high-level narrative overview of the quarter's key developments, achievements, and challenges)
 
 # Successes and Achievements
+(Narrative paragraphs describing what went well, with specific examples and dates)
 
 # Learning Opportunities and Strategic Challenges
+(Narrative paragraphs describing challenges faced and lessons learned, with specific context)
 
 # Staff
 ## Resourcing
@@ -380,14 +349,12 @@ REQUIRED HEADING STRUCTURE (use exactly as shown):
 
 # Safety
 ## Incidents, Accidents & Safeguarding
-(Include reference to 12-month incident analytics graph here when data available)
 ## Risk Register
 ## Infection Control
 ## Information Governance
 
 # Continuous Improvement
 ## Feedback
-(Include reference to 12-month feedback analytics graph here when data available)
 ## Audits
 
 ${hasSupportedHousing ? `# Supported Housing
@@ -395,18 +362,27 @@ ${hasSupportedHousing ? `# Supported Housing
 ## Property Safety & Maintenance
 
 ` : ''}# Next Steps and Future Planning
+(Narrative paragraphs outlining planned activities and priorities for the coming quarter)
 
-REPORTING INSTRUCTIONS:
-- Base all content strictly on the provided meeting data and analytics
-- If a section has no corresponding data, write "No information available for this area during ${quarter} ${year}"
-- When referencing statistics, specify the source (e.g., "Based on analytics data from [specific source]")
-- Maintain professional, objective tone throughout
-- Do not speculate, assume, or create hypothetical scenarios
-- Focus on factual observations rather than interpretative conclusions
-- Write in flowing paragraph format, not bullet points or lists
-- Each section should be substantive (minimum 200 words) when data is available
-- REMEMBER: Always use "${companyName}" instead of generic terms when referring to the organization
-- Ensure ${companyName} is mentioned prominently throughout the report to maintain organizational identity`
+CONTENT RULES:
+1. Base ALL content strictly on the provided meeting data - do not invent information
+2. If a section has no corresponding data, write a single sentence: "There was no discussion recorded for this area during ${quarter} ${year}."
+3. When data exists, write substantive narrative paragraphs (minimum 150 words per section)
+4. Include specific dates, names, and deadlines mentioned in the meeting data
+5. Avoid vague statements - every claim should be traceable to the provided data
+6. Write in past tense for events that occurred, present tense for ongoing situations
+
+NARRATIVE STYLE:
+- Professional but accessible tone suitable for regulators, management, and staff
+- Flow naturally from one point to the next within paragraphs
+- Use transitional phrases to connect ideas (e.g., "Following this...", "As a result...", "During the same period...")
+- Provide context for why developments matter
+
+DATA PROVIDED:
+${additionalContext ? `Additional Context: ${additionalContext}` : ''}
+Analytics Data: ${JSON.stringify(processedAnalytics, null, 2)}
+
+Remember: This report tells the factual story of ${companyName}'s quarter. Write it as a readable narrative that stakeholders will find informative and engaging, not as a list of disconnected data points.`
       }];
       console.log('🚀 Calling OpenAI API with enhanced model...');
       const generatedContent = await generateResponse(messages, 'gpt-4.1-2025-04-14');
