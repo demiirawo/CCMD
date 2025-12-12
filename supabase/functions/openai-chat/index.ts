@@ -44,7 +44,8 @@ const { messages, model = 'gpt-5-2025-08-07' } = await req.json();
     
     // Newer models (GPT-5, GPT-4.1, O3, O4) use max_completion_tokens and don't support temperature
     if (isNewerModel) {
-      requestBody.max_completion_tokens = 4000;
+      // Give the model enough headroom to perform internal reasoning *and* return user-visible content
+      requestBody.max_completion_tokens = 16000;
     } else {
       requestBody.temperature = 0.7;
       requestBody.max_tokens = 4000;
