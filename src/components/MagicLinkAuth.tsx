@@ -1,20 +1,17 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
-import { CheckCircle } from "lucide-react";
+
 export const MagicLinkAuth = () => {
-  const {
-    toast
-  } = useToast();
+  const { toast } = useToast();
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+
   const handleMagicLink = async (e: React.FormEvent) => {
     e.preventDefault();
     console.log('Form submitted! handleMagicLink called');
@@ -29,23 +26,17 @@ export const MagicLinkAuth = () => {
     setLoading(true);
     try {
       console.log('Magic link request for email:', email.trim().toLowerCase());
-      console.log('About to check if super admin...');
 
       // Check if this is the super admin email
       const isSuperAdmin = email.trim().toLowerCase() === 'demi.irawo@care-cuddle.co.uk';
-      console.log('Is super admin?', isSuperAdmin);
-      console.log('About to enter team member check branch...');
+      
       if (!isSuperAdmin) {
         // Check if email exists in team members for regular users
-        const {
-          data: teamMembers,
-          error: checkError
-        } = await supabase.from('team_members').select('email, name').ilike('email', email.trim());
-        console.log('Team member check result:', {
-          teamMembers,
-          checkError
-        });
-        console.log('Team members found:', teamMembers?.length || 0);
+        const { data: teamMembers, error: checkError } = await supabase
+          .from('team_members')
+          .select('email, name')
+          .ilike('email', email.trim());
+        
         if (checkError) {
           console.error('Team member check error:', checkError);
           toast({
@@ -56,30 +47,20 @@ export const MagicLinkAuth = () => {
           return;
         }
         if (!teamMembers || teamMembers.length === 0) {
-          console.log('No team members found for email:', email.trim().toLowerCase());
           setErrorMessage("This email address is not registered with any company. Please check your email address or contact your administrator for access.");
           return;
         }
-        console.log('Team member found, proceeding with magic link');
-      } else {
-        console.log('Super admin email detected, proceeding with magic link');
       }
 
       // Send magic link
-      console.log('Sending magic link to:', email.trim().toLowerCase());
-      console.log('Redirect URL:', `${window.location.origin}/`);
-      const {
-        error
-      } = await supabase.auth.signInWithOtp({
+      const { error } = await supabase.auth.signInWithOtp({
         email: email.trim().toLowerCase(),
         options: {
           emailRedirectTo: `${window.location.origin}/`,
           shouldCreateUser: true
         }
       });
-      console.log('Magic link send result:', {
-        error
-      });
+      
       if (error) {
         console.error('Magic link send error:', error);
         throw error;
@@ -100,74 +81,93 @@ export const MagicLinkAuth = () => {
       setLoading(false);
     }
   };
+
   if (sent) {
-    return <div className="min-h-screen flex items-center justify-center bg-cover bg-center bg-no-repeat" style={{backgroundImage: 'url(/lovable-uploads/c284f1d4-0ce1-4b48-914f-b68e0ba31623.png)'}}>
-        <Card className="w-full max-w-md shadow-xl">
-          <CardHeader className="text-center">
-            <div className="mx-auto mb-4">
-              
-            </div>
-            <CardTitle>Check Your Email</CardTitle>
-            <CardDescription>
-              We've sent a secure sign-in link to <strong>{email}</strong>
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="text-sm text-muted-foreground text-center">
-              <p>Click the link in your email to sign in securely.</p>
-              <p className="mt-2">The link will expire in 1 hour for security.</p>
-            </div>
-            
-            <Button variant="outline" className="w-full" onClick={() => {
-            setSent(false);
-            setEmail("");
-          }}>
-              Use Different Email
-            </Button>
-          </CardContent>
-        </Card>
-      </div>;
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[hsl(258,85%,55%)]">
+        {/* Logo above card */}
+        <div className="mb-8">
+          <img 
+            src="/lovable-uploads/eefb4933-6c9b-4dce-99ea-5a226304b377.png" 
+            alt="CCMD Logo" 
+            className="h-16 w-auto"
+          />
+        </div>
+        
+        {/* White card */}
+        <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl p-8">
+          <div className="text-center mb-6">
+            <h2 className="text-xl font-semibold text-gray-900">Check Your Email</h2>
+            <p className="text-gray-500 mt-2">
+              We've sent a secure sign-in link to <strong className="text-gray-900">{email}</strong>
+            </p>
+          </div>
+          
+          <div className="text-sm text-gray-500 text-center mb-6">
+            <p>Click the link in your email to sign in securely.</p>
+            <p className="mt-2">The link will expire in 1 hour for security.</p>
+          </div>
+          
+          <Button 
+            variant="outline" 
+            className="w-full h-12 rounded-xl border-gray-200 text-gray-700 hover:bg-gray-50" 
+            onClick={() => {
+              setSent(false);
+              setEmail("");
+            }}
+          >
+            Use Different Email
+          </Button>
+        </div>
+      </div>
+    );
   }
-  return <div className="min-h-screen flex items-center justify-center bg-cover bg-center bg-no-repeat" style={{backgroundImage: 'url(/lovable-uploads/c284f1d4-0ce1-4b48-914f-b68e0ba31623.png)'}}>
-      <Card className="w-full max-w-md shadow-xl">
-        <CardHeader className="text-center">
-          <div className="mx-auto mb-4">
-            <img src="/lovable-uploads/eefb4933-6c9b-4dce-99ea-5a226304b377.png" alt="CCMD Logo" className="h-32 w-auto" />
+
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center bg-[hsl(258,85%,55%)]">
+      {/* Logo above card */}
+      <div className="mb-8">
+        <img 
+          src="/lovable-uploads/eefb4933-6c9b-4dce-99ea-5a226304b377.png" 
+          alt="CCMD Logo" 
+          className="h-16 w-auto"
+        />
+      </div>
+      
+      {/* White card */}
+      <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl p-8">
+        {errorMessage && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl">
+            <p className="text-sm text-red-600">{errorMessage}</p>
+          </div>
+        )}
+        
+        <form onSubmit={handleMagicLink} className="space-y-5">
+          <div className="space-y-2">
+            <Label htmlFor="email" className="text-gray-900 font-medium">Email</Label>
+            <Input 
+              id="email" 
+              type="email" 
+              placeholder="Enter your email" 
+              value={email} 
+              onChange={(e) => {
+                setEmail(e.target.value);
+                if (errorMessage) setErrorMessage("");
+              }} 
+              required 
+              className="h-12 rounded-xl border-gray-200 bg-white placeholder:text-gray-400 focus-visible:ring-[hsl(258,85%,55%)]" 
+            />
           </div>
           
-          
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="text-center mb-4">
-            <h2 className="text-2xl font-semibold text-foreground">Welcome Back!</h2>
-            {errorMessage && (
-              <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-md">
-                <p className="text-sm text-red-600">{errorMessage}</p>
-              </div>
-            )}
-          </div>
-          <form onSubmit={handleMagicLink} className="space-y-4">
-            <div className="space-y-2">
-              
-              <Input 
-                id="email" 
-                type="email" 
-                placeholder="Enter your email" 
-                value={email} 
-                onChange={(e) => {
-                  setEmail(e.target.value);
-                  // Clear error message when user starts typing
-                  if (errorMessage) setErrorMessage("");
-                }} 
-                required 
-                className="focus-visible:ring-stone-50 bg-neutral-100" 
-              />
-            </div>
-            <Button type="submit" disabled={loading} className="w-full text-base bg-neutral-400 hover:bg-neutral-300 text-black">
-              {loading ? "Sending..." : "Send Magic Link"}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
-    </div>;
+          <Button 
+            type="submit" 
+            disabled={loading} 
+            className="w-full h-12 rounded-xl text-base font-medium bg-[hsl(345,65%,60%)] hover:bg-[hsl(345,65%,55%)] text-white shadow-lg"
+          >
+            {loading ? "Sending..." : "Sign In"}
+          </Button>
+        </form>
+      </div>
+    </div>
+  );
 };
