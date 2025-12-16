@@ -39,26 +39,16 @@ export const AISummaryButton = ({ onSummaryGenerated, meetingData }: AISummaryBu
     
     // Parse the meeting date for comparison
     const meetingDate = new Date(meetingDateStr);
-    const meetingDateFormatted = meetingDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
     
-    // Helper to check if a date matches the meeting date
-    const isReviewedToday = (lastReviewed: string | undefined): boolean => {
-      if (!lastReviewed) return false;
+    // Simple helper to check if subsection was updated on meeting date
+    const wasUpdatedToday = (item: any): boolean => {
+      const updatedAt = item.updated_at || item.updatedAt;
+      if (!updatedAt) return false;
       
-      // Try various date formats
-      const reviewDate = new Date(lastReviewed);
-      if (isNaN(reviewDate.getTime())) {
-        // Try parsing dd/MM/yyyy format
-        const parts = lastReviewed.split('/');
-        if (parts.length === 3) {
-          const parsed = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
-          if (!isNaN(parsed.getTime())) {
-            return parsed.toDateString() === meetingDate.toDateString();
-          }
-        }
-        return false;
-      }
-      return reviewDate.toDateString() === meetingDate.toDateString();
+      const updateDate = new Date(updatedAt);
+      if (isNaN(updateDate.getTime())) return false;
+      
+      return updateDate.toDateString() === meetingDate.toDateString();
     };
     
     // Attendees information
@@ -76,30 +66,30 @@ export const AISummaryButton = ({ onSummaryGenerated, meetingData }: AISummaryBu
       allData += `Meeting Purpose: ${meetingData.purpose}\n`;
     }
 
-    // Get ALL dashboard sections but ONLY include items reviewed today
+    // Get dashboard sections but ONLY include items updated today
     const dashboardSections = meetingData.dashboardData?.sections || meetingData.sections || [];
     
     let topicsReviewedCount = 0;
     
     if (dashboardSections.length > 0) {
-      console.log('📋 Processing dashboard sections, filtering for items reviewed on:', meetingDateFormatted);
+      console.log('📋 Processing dashboard sections, filtering for items updated on:', meetingDate.toDateString());
       
       dashboardSections.forEach((section: any) => {
         if (!section.items || section.items.length === 0) return;
         
-        // Filter items to only those reviewed on the meeting date
-        const reviewedItems = section.items.filter((item: any) => isReviewedToday(item.lastReviewed));
+        // Filter items to only those updated on the meeting date
+        const updatedItems = section.items.filter((item: any) => wasUpdatedToday(item));
         
-        if (reviewedItems.length === 0) {
-          console.log(`⏭️ Skipping section "${section.title}" - no items reviewed today`);
+        if (updatedItems.length === 0) {
+          console.log(`⏭️ Skipping section "${section.title}" - no items updated today`);
           return;
         }
         
-        console.log(`✅ Section "${section.title}" has ${reviewedItems.length} items reviewed today`);
+        console.log(`✅ Section "${section.title}" has ${updatedItems.length} items updated today`);
         allData += `\n=== ${section.title} ===\n`;
         
-        // Process ONLY items reviewed today
-        reviewedItems.forEach((item: any) => {
+        // Process ONLY items updated today
+        updatedItems.forEach((item: any) => {
           topicsReviewedCount++;
           allData += `\n• ${item.title}`;
           
@@ -193,17 +183,15 @@ export const AISummaryButton = ({ onSummaryGenerated, meetingData }: AISummaryBu
       });
     }
 
-    // Key documents status - only if reviewed today
+    // Key documents status - only if updated today
     if (meetingData.keyDocuments && meetingData.keyDocuments.length > 0) {
-      const reviewedDocs = meetingData.keyDocuments.filter((doc: any) => 
-        isReviewedToday(doc.lastReviewed) || isReviewedToday(doc.updated_at)
-      );
+      const updatedDocs = meetingData.keyDocuments.filter((doc: any) => wasUpdatedToday(doc));
       
-      if (reviewedDocs.length > 0) {
-        console.log('📄 Processing key documents reviewed today:', reviewedDocs.length, 'documents');
+      if (updatedDocs.length > 0) {
+        console.log('📄 Processing key documents updated today:', updatedDocs.length, 'documents');
         
         allData += '\n=== Key Documents ===\n';
-        reviewedDocs.forEach((doc: any) => {
+        updatedDocs.forEach((doc: any) => {
           allData += `• ${doc.name}`;
           if (doc.status) allData += ` [${doc.status}]`;
           if (doc.due_date || doc.nextReviewDate) allData += ` (Due: ${doc.due_date || doc.nextReviewDate})`;
