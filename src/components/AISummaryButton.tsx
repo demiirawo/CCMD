@@ -40,15 +40,32 @@ export const AISummaryButton = ({ onSummaryGenerated, meetingData }: AISummaryBu
     // Parse the meeting date for comparison
     const meetingDate = new Date(meetingDateStr);
     
-    // Simple helper to check if subsection was updated on meeting date
+    // Helper to check if subsection was updated on meeting date
+    // Checks both updated_at (from DB) and lastReviewed (set in local state)
     const wasUpdatedToday = (item: any): boolean => {
+      // Check updated_at from database
       const updatedAt = item.updated_at || item.updatedAt;
-      if (!updatedAt) return false;
+      if (updatedAt) {
+        const updateDate = new Date(updatedAt);
+        if (!isNaN(updateDate.getTime()) && updateDate.toDateString() === meetingDate.toDateString()) {
+          return true;
+        }
+      }
       
-      const updateDate = new Date(updatedAt);
-      if (isNaN(updateDate.getTime())) return false;
+      // Check lastReviewed (set in local state when user makes changes)
+      const lastReviewed = item.lastReviewed;
+      if (lastReviewed) {
+        // Parse dd/MM/yyyy format
+        const parts = lastReviewed.split('/');
+        if (parts.length === 3) {
+          const reviewDate = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
+          if (!isNaN(reviewDate.getTime()) && reviewDate.toDateString() === meetingDate.toDateString()) {
+            return true;
+          }
+        }
+      }
       
-      return updateDate.toDateString() === meetingDate.toDateString();
+      return false;
     };
     
     // Attendees information

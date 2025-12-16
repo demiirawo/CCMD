@@ -838,7 +838,8 @@ const Index = () => {
                     lessonsLearned: (savedData as any).lessons_learned as string || item.lessonsLearned || "",
                     actions: savedData.actions ? typeof savedData.actions === 'string' ? JSON.parse(savedData.actions) : savedData.actions : item.actions,
                     metadata: savedData.metadata ? typeof savedData.metadata === 'string' ? JSON.parse(savedData.metadata) : savedData.metadata : item.metadata || {},
-                    lastReviewed: (savedData as any).last_reviewed || item.lastReviewed
+                    lastReviewed: (savedData as any).last_reviewed || item.lastReviewed,
+                    updated_at: savedData.updated_at // Include the updated_at field for AI summary filtering
                   };
                 }
                 return item;
