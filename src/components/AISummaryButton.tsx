@@ -26,9 +26,41 @@ export const AISummaryButton = ({ onSummaryGenerated, meetingData }: AISummaryBu
   const { toast } = useToast();
   const [isGenerating, setIsGenerating] = useState(false);
 
+  const parseMeetingDate = (value: string): Date => {
+    if (!value) return new Date();
+
+    // dd/MM/yyyy HH:mm
+    const withTime = value.match(/^(\d{2})\/(\d{2})\/(\d{4})\s+(\d{2}):(\d{2})$/);
+    if (withTime) {
+      const [, dd, mm, yyyy, hh, min] = withTime;
+      const parsed = new Date(
+        parseInt(yyyy, 10),
+        parseInt(mm, 10) - 1,
+        parseInt(dd, 10),
+        parseInt(hh, 10),
+        parseInt(min, 10)
+      );
+      if (!isNaN(parsed.getTime())) return parsed;
+    }
+
+    // dd/MM/yyyy
+    const dateOnly = value.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+    if (dateOnly) {
+      const [, dd, mm, yyyy] = dateOnly;
+      const parsed = new Date(parseInt(yyyy, 10), parseInt(mm, 10) - 1, parseInt(dd, 10));
+      if (!isNaN(parsed.getTime())) return parsed;
+    }
+
+    // ISO fallback
+    const isoParsed = new Date(value);
+    if (!isNaN(isoParsed.getTime())) return isoParsed;
+
+    return new Date();
+  };
+
   const collectMeetingData = async (meetingDateStr: string) => {
     console.log('🔍 Starting comprehensive data collection for AI summary...');
-    console.log('📅 Meeting date for filtering:', meetingDateStr);
+    console.log('📅 Meeting date field value (ignored for filtering):', meetingDateStr);
     
     if (!meetingData) {
       console.log('No meeting data provided, falling back to DOM scraping');
@@ -37,34 +69,37 @@ export const AISummaryButton = ({ onSummaryGenerated, meetingData }: AISummaryBu
 
     let allData = "";
     
-    // Parse the meeting date for comparison
-    const meetingDate = new Date(meetingDateStr);
+    // Filter against TODAY (not the meeting date field)
+    const referenceDate = new Date();
+    referenceDate.setHours(0, 0, 0, 0);
+    console.log('📅 Using today for filtering:', referenceDate.toDateString());
     
-    // Helper to check if subsection was updated on meeting date
+    // Helper to check if subsection was updated TODAY
     // Checks both updated_at (from DB) and lastReviewed (set in local state)
     const wasUpdatedToday = (item: any): boolean => {
       // Check updated_at from database
       const updatedAt = item.updated_at || item.updatedAt;
       if (updatedAt) {
         const updateDate = new Date(updatedAt);
-        if (!isNaN(updateDate.getTime()) && updateDate.toDateString() === meetingDate.toDateString()) {
+        updateDate.setHours(0, 0, 0, 0);
+        if (!isNaN(updateDate.getTime()) && updateDate.getTime() === referenceDate.getTime()) {
           return true;
         }
       }
-      
-      // Check lastReviewed (set in local state when user makes changes)
+
+      // Check lastReviewed (set in local state when user makes changes) in dd/MM/yyyy
       const lastReviewed = item.lastReviewed;
       if (lastReviewed) {
-        // Parse dd/MM/yyyy format
-        const parts = lastReviewed.split('/');
+        const parts = String(lastReviewed).split('/');
         if (parts.length === 3) {
           const reviewDate = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
-          if (!isNaN(reviewDate.getTime()) && reviewDate.toDateString() === meetingDate.toDateString()) {
+          reviewDate.setHours(0, 0, 0, 0);
+          if (!isNaN(reviewDate.getTime()) && reviewDate.getTime() === referenceDate.getTime()) {
             return true;
           }
         }
       }
-      
+
       return false;
     };
     
@@ -89,7 +124,7 @@ export const AISummaryButton = ({ onSummaryGenerated, meetingData }: AISummaryBu
     let topicsReviewedCount = 0;
     
     if (dashboardSections.length > 0) {
-      console.log('📋 Processing dashboard sections, filtering for items updated on:', meetingDate.toDateString());
+      console.log('📋 Processing dashboard sections, filtering for items updated TODAY:', referenceDate.toDateString());
       
       dashboardSections.forEach((section: any) => {
         if (!section.items || section.items.length === 0) return;
@@ -221,7 +256,7 @@ export const AISummaryButton = ({ onSummaryGenerated, meetingData }: AISummaryBu
       }
     }
 
-    console.log('✅ Data collection completed. Topics reviewed today:', topicsReviewedCount);
+    console.log('✅ Data collection completed. Topics updated on meeting date:', topicsReviewedCount);
     console.log('📝 Total data length:', allData.length);
     console.log('📝 Collected data preview:', allData.substring(0, 500) + '...');
     return { data: allData, topicsCount: topicsReviewedCount };
@@ -282,21 +317,18 @@ export const AISummaryButton = ({ onSummaryGenerated, meetingData }: AISummaryBu
       const topicsCount = typeof result === 'string' ? -1 : result.topicsCount;
       
       console.log('📊 Collected meeting data length:', collectedData.length);
-      console.log('📊 Topics reviewed today:', topicsCount);
+      console.log('📊 Topics updated on meeting date:', topicsCount);
       
       if (!collectedData.trim() || topicsCount === 0) {
-        console.log('No meeting data found for today');
+        console.log('No topic updates found for today');
         toast({
           title: "No Updates Found",
-          description: "No topics were reviewed on the meeting date. Update topic 'Last Reviewed' dates to include them in the summary.",
+          description: "No dashboard topics show an update date matching today.",
           variant: "destructive",
         });
         return;
       }
 
-      const meetingDate = new Date(meetingDateStr);
-      const formattedDate = meetingDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
-      
       const messages = [
         {
           role: "system" as const,
