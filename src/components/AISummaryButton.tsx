@@ -26,8 +26,9 @@ export const AISummaryButton = ({ onSummaryGenerated, meetingData }: AISummaryBu
   const { toast } = useToast();
   const [isGenerating, setIsGenerating] = useState(false);
 
-  const collectMeetingData = async () => {
+  const collectMeetingData = async (meetingDateStr: string) => {
     console.log('🔍 Starting comprehensive data collection for AI summary...');
+    console.log('📅 Meeting date for filtering:', meetingDateStr);
     
     if (!meetingData) {
       console.log('No meeting data provided, falling back to DOM scraping');
@@ -35,6 +36,30 @@ export const AISummaryButton = ({ onSummaryGenerated, meetingData }: AISummaryBu
     }
 
     let allData = "";
+    
+    // Parse the meeting date for comparison
+    const meetingDate = new Date(meetingDateStr);
+    const meetingDateFormatted = meetingDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+    
+    // Helper to check if a date matches the meeting date
+    const isReviewedToday = (lastReviewed: string | undefined): boolean => {
+      if (!lastReviewed) return false;
+      
+      // Try various date formats
+      const reviewDate = new Date(lastReviewed);
+      if (isNaN(reviewDate.getTime())) {
+        // Try parsing dd/MM/yyyy format
+        const parts = lastReviewed.split('/');
+        if (parts.length === 3) {
+          const parsed = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
+          if (!isNaN(parsed.getTime())) {
+            return parsed.toDateString() === meetingDate.toDateString();
+          }
+        }
+        return false;
+      }
+      return reviewDate.toDateString() === meetingDate.toDateString();
+    };
     
     // Attendees information
     if (meetingData.attendees && meetingData.attendees.length > 0) {
@@ -51,19 +76,31 @@ export const AISummaryButton = ({ onSummaryGenerated, meetingData }: AISummaryBu
       allData += `Meeting Purpose: ${meetingData.purpose}\n`;
     }
 
-    // Get ALL dashboard sections and ALL items - no filtering
+    // Get ALL dashboard sections but ONLY include items reviewed today
     const dashboardSections = meetingData.dashboardData?.sections || meetingData.sections || [];
     
+    let topicsReviewedCount = 0;
+    
     if (dashboardSections.length > 0) {
-      console.log('📋 Processing ALL dashboard sections:', dashboardSections.map((s: any) => s.title));
+      console.log('📋 Processing dashboard sections, filtering for items reviewed on:', meetingDateFormatted);
       
       dashboardSections.forEach((section: any) => {
         if (!section.items || section.items.length === 0) return;
         
+        // Filter items to only those reviewed on the meeting date
+        const reviewedItems = section.items.filter((item: any) => isReviewedToday(item.lastReviewed));
+        
+        if (reviewedItems.length === 0) {
+          console.log(`⏭️ Skipping section "${section.title}" - no items reviewed today`);
+          return;
+        }
+        
+        console.log(`✅ Section "${section.title}" has ${reviewedItems.length} items reviewed today`);
         allData += `\n=== ${section.title} ===\n`;
         
-        // Process ALL items in the section - no filtering
-        section.items.forEach((item: any) => {
+        // Process ONLY items reviewed today
+        reviewedItems.forEach((item: any) => {
+          topicsReviewedCount++;
           allData += `\n• ${item.title}`;
           
           // Status information
@@ -156,26 +193,33 @@ export const AISummaryButton = ({ onSummaryGenerated, meetingData }: AISummaryBu
       });
     }
 
-    // Key documents status
+    // Key documents status - only if reviewed today
     if (meetingData.keyDocuments && meetingData.keyDocuments.length > 0) {
-      console.log('📄 Processing key documents:', meetingData.keyDocuments.length, 'documents');
+      const reviewedDocs = meetingData.keyDocuments.filter((doc: any) => 
+        isReviewedToday(doc.lastReviewed) || isReviewedToday(doc.updated_at)
+      );
       
-      allData += '\n=== Key Documents ===\n';
-      meetingData.keyDocuments.forEach((doc: any) => {
-        allData += `• ${doc.name}`;
-        if (doc.status) allData += ` [${doc.status}]`;
-        if (doc.due_date || doc.nextReviewDate) allData += ` (Due: ${doc.due_date || doc.nextReviewDate})`;
-        allData += '\n';
+      if (reviewedDocs.length > 0) {
+        console.log('📄 Processing key documents reviewed today:', reviewedDocs.length, 'documents');
         
-        if (doc.comment?.trim()) {
-          allData += `  Notes: ${doc.comment.trim()}\n`;
-        }
-      });
+        allData += '\n=== Key Documents ===\n';
+        reviewedDocs.forEach((doc: any) => {
+          allData += `• ${doc.name}`;
+          if (doc.status) allData += ` [${doc.status}]`;
+          if (doc.due_date || doc.nextReviewDate) allData += ` (Due: ${doc.due_date || doc.nextReviewDate})`;
+          allData += '\n';
+          
+          if (doc.comment?.trim()) {
+            allData += `  Notes: ${doc.comment.trim()}\n`;
+          }
+        });
+      }
     }
 
-    console.log('✅ Data collection completed. Total data length:', allData.length);
+    console.log('✅ Data collection completed. Topics reviewed today:', topicsReviewedCount);
+    console.log('📝 Total data length:', allData.length);
     console.log('📝 Collected data preview:', allData.substring(0, 500) + '...');
-    return allData;
+    return { data: allData, topicsCount: topicsReviewedCount };
   };
 
   // Fallback DOM scraping method (simplified)
@@ -225,39 +269,50 @@ export const AISummaryButton = ({ onSummaryGenerated, meetingData }: AISummaryBu
     setIsGenerating(true);
     try {
       const companyName = meetingData?.companyName || "the organization";
-      const collectedData = await collectMeetingData();
-      console.log('📊 Collected meeting data length:', collectedData.length);
+      const meetingDateStr = meetingData?.date || new Date().toISOString();
+      const result = await collectMeetingData(meetingDateStr);
       
-      if (!collectedData.trim()) {
-        console.log('No meeting data found');
+      // Handle both old string return and new object return
+      const collectedData = typeof result === 'string' ? result : result.data;
+      const topicsCount = typeof result === 'string' ? -1 : result.topicsCount;
+      
+      console.log('📊 Collected meeting data length:', collectedData.length);
+      console.log('📊 Topics reviewed today:', topicsCount);
+      
+      if (!collectedData.trim() || topicsCount === 0) {
+        console.log('No meeting data found for today');
         toast({
-          title: "No Data Found",
-          description: "No meeting data available to summarize",
+          title: "No Updates Found",
+          description: "No topics were reviewed on the meeting date. Update topic 'Last Reviewed' dates to include them in the summary.",
           variant: "destructive",
         });
         return;
       }
 
-      const currentDate = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+      const meetingDate = new Date(meetingDateStr);
+      const formattedDate = meetingDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
       
       const messages = [
         {
           role: "system" as const,
-          content: `You are an AI assistant that creates concise meeting summaries in British English. Create a brief summary focusing ONLY on updates reviewed as of today (${currentDate}).
+          content: `You are an AI assistant that creates concise meeting summaries in British English. 
 
-Instructions:
-- Write in British English (use spellings like organisation, colour, behaviour, recognised, etc.)
+CRITICAL INSTRUCTIONS:
+- Write in British English (organisation, colour, behaviour, recognised, etc.)
 - Create TWO sections: "Overview" and "Key Areas Reviewed"
 - DO NOT include meeting title, date, or actions/next steps
-- ONLY include topics with "Last Reviewed" dates matching today (${currentDate})
-- Skip any topics not reviewed today
+- ONLY summarise information that is EXPLICITLY provided in the data below
+- DO NOT invent, fabricate, or assume any information not in the data
+- DO NOT mention specific numbers (e.g., "2 staff overdue") unless that exact figure appears in the data
+- If data for a topic is sparse or vague, summarise what IS there without elaboration
 - When referring to the company, use "${companyName}"
 - Keep summary to 100 words MAXIMUM
-- Write in paragraph form, not bullet points`
+- Write in paragraph form, not bullet points
+- If unsure about something, omit it rather than guess`
         },
         {
           role: "user" as const,
-          content: `Create a 100-word max summary in British English for ${companyName}. Only include topics reviewed today (${currentDate}):\n\n${collectedData}`
+          content: `Create a 100-word max summary in British English for ${companyName}. ONLY summarise the information explicitly provided below - do not add any information that is not in this data:\n\n${collectedData}`
         }
       ];
 
