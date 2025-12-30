@@ -123,24 +123,40 @@ export const KeyDocumentTracker = ({
   const isDynamicPanelColourEnabled = true;
   const isChildContactCentre = currentCompany?.services?.includes("Child Contact Centre") || false;
 
-  // Initialize default documents if none exist
+  // CQC default documents
+  const CQC_DEFAULT_DOCUMENTS = [
+    'Statement of Purpose',
+    'CQC Rating Displayed on Website',
+    'Business Continuity Plan',
+    'Insurance Certificates (Employer\'s Liability, Public Liability)',
+    'Organisational Structure Chart',
+    'Key Contacts List'
+  ];
+
+  // Initialize default documents based on compliance settings
   const initializeDefaultDocuments = () => {
-    // Don't initialize "Statement of purpose" for Child Contact Centre
+    // Only initialize if no documents exist and not Child Contact Centre
     if (documents.length === 0 && !isChildContactCentre) {
-      const defaultDocument: DocumentData = {
-        id: `doc-default-${Date.now()}`,
-        name: 'Statement of purpose',
-        owner: 'TBC',
-        category: 'Governance and Compliance',
-        lastReviewDate: '',
-        reviewFrequency: 'annual',
-        reviewFrequencyNumber: '1',
-        reviewFrequencyPeriod: 'years',
-        nextReviewDate: null,
-        comment: '',
-        updatedAt: new Date().toISOString()
-      };
-      onDocumentsChange?.([defaultDocument]);
+      const hasCQC = currentCompany?.cqc_personal_care === true;
+      
+      if (hasCQC) {
+        // Add CQC compliance documents
+        const defaultDocs: DocumentData[] = CQC_DEFAULT_DOCUMENTS.map((name, index) => ({
+          id: `doc-default-${Date.now()}-${index}`,
+          name,
+          owner: 'TBC',
+          category: 'Governance and Compliance',
+          lastReviewDate: '',
+          reviewFrequency: 'annual',
+          reviewFrequencyNumber: '1',
+          reviewFrequencyPeriod: 'years',
+          nextReviewDate: null,
+          comment: '',
+          updatedAt: new Date().toISOString()
+        }));
+        onDocumentsChange?.(defaultDocs);
+      }
+      // If no compliance settings selected, don't add any default documents
     }
   };
 
