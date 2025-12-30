@@ -133,37 +133,37 @@ export const KeyDocumentTracker = ({
     'Key Contacts List'
   ];
 
-  // Initialize default documents based on compliance settings
-  const initializeDefaultDocuments = () => {
-    // Only initialize if no documents exist and not Child Contact Centre
-    if (documents.length === 0 && !isChildContactCentre) {
-      const hasCQC = currentCompany?.cqc_personal_care === true;
-      
-      if (hasCQC) {
-        // Add CQC compliance documents
-        const defaultDocs: DocumentData[] = CQC_DEFAULT_DOCUMENTS.map((name, index) => ({
-          id: `doc-default-${Date.now()}-${index}`,
-          name,
-          owner: 'TBC',
-          category: 'Governance and Compliance',
-          lastReviewDate: '',
-          reviewFrequency: 'annual',
-          reviewFrequencyNumber: '1',
-          reviewFrequencyPeriod: 'years',
-          nextReviewDate: null,
-          comment: '',
-          updatedAt: new Date().toISOString()
-        }));
-        onDocumentsChange?.(defaultDocs);
-      }
-      // If no compliance settings selected, don't add any default documents
-    }
-  };
+  // Check if CQC documents are missing (need to be added when setting is enabled)
+  const hasCQC = currentCompany?.cqc_personal_care === true;
+  
+  // Check if any CQC default documents already exist
+  const hasCQCDocuments = documents.some(doc => 
+    CQC_DEFAULT_DOCUMENTS.includes(doc.name)
+  );
 
-  // Initialize default documents on mount if needed
+  // Initialize CQC documents when CQC is enabled and documents don't exist yet
   useEffect(() => {
-    initializeDefaultDocuments();
-  }, []);
+    if (hasCQC && !hasCQCDocuments && !isChildContactCentre && onDocumentsChange) {
+      // Add CQC compliance documents - merge with any existing documents
+      const newCQCDocs: DocumentData[] = CQC_DEFAULT_DOCUMENTS.map((name, index) => ({
+        id: `doc-cqc-${Date.now()}-${index}`,
+        name,
+        owner: 'TBC',
+        category: 'Governance and Compliance',
+        lastReviewDate: '',
+        reviewFrequency: 'annual',
+        reviewFrequencyNumber: '1',
+        reviewFrequencyPeriod: 'years',
+        nextReviewDate: null,
+        comment: '',
+        updatedAt: new Date().toISOString()
+      }));
+      
+      // Merge with existing documents (put CQC docs first)
+      const mergedDocs = [...newCQCDocs, ...documents];
+      onDocumentsChange(mergedDocs);
+    }
+  }, [hasCQC, hasCQCDocuments, isChildContactCentre]);
   const [isExpanded, setIsExpanded] = useState(() => {
     const tabId = sessionStorage.getItem('__tab_id') || `tab_${Date.now()}`;
     const isolatedStorageKey = `key_documents_expanded_${tabId}`;
