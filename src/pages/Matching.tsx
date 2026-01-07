@@ -1010,9 +1010,12 @@ export const Matching = () => {
                                 {value}
                               </span>;
                           };
+                          // Determine required hours color: green if required > allocated, red if required < allocated
+                          const requiredHoursColor = requiredHours > allocatedHours ? 'text-green-600' : requiredHours < allocatedHours ? 'text-red-600' : '';
+                          
                           return <TableRow key={week}>
                               <TableCell className="font-medium text-xs py-1">{week}</TableCell>
-                              <TableCell className="text-right text-xs py-1">
+                              <TableCell className={`text-right text-xs py-1 ${requiredHoursColor}`}>
                                 {renderCell('required', requiredHours)}
                               </TableCell>
                               <TableCell className="text-right text-xs py-1">{availableStaffHours}</TableCell>
