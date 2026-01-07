@@ -835,7 +835,7 @@ export const Matching = () => {
                     backgroundColor: '#202A38'
                   }}>
                       <h3 className="font-bold text-xl text-white print:text-sm">
-                        Staff Utilisation Forecast (8 Weeks)
+                        Staff Utilisation Forecast {WEEKS[0]} - {WEEKS[WEEKS.length - 1]}
                       </h3>
                       <span className="text-sm text-white/80">
                         {(() => {
