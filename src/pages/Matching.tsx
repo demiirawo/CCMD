@@ -86,6 +86,15 @@ export const Matching = () => {
     userPreference: string;
   } | null>(null);
 
+  // Location mismatch confirmation dialog state
+  const [locationMismatchDialog, setLocationMismatchDialog] = useState<{
+    userId: string;
+    staffId: string;
+    type: 'primary' | 'backup';
+    staffLocation: string;
+    userLocation: string;
+  } | null>(null);
+
   // Form states
   const [newUserForm, setNewUserForm] = useState({
     name: "",
@@ -297,13 +306,35 @@ export const Matching = () => {
   }, [staff, calculateMatchScore]);
   const getStaffById = (id: string) => staff.find(s => s.id === id);
 
-  // Check for gender mismatch before opening needs confirmation
+  // Check for location mismatch first, then gender mismatch before opening needs confirmation
   const checkGenderAndOpenDialog = (userId: string, staffId: string, type: 'primary' | 'backup') => {
     const user = serviceUsers.find(u => u.id === userId);
     const staffMember = staff.find(s => s.id === staffId);
     if (!user || !staffMember) return;
 
-    // Check if there's a gender preference mismatch
+    // Check if there's a location mismatch first
+    const hasLocationMismatch = user.location && staffMember.location && user.location !== staffMember.location;
+    if (hasLocationMismatch) {
+      setLocationMismatchDialog({
+        userId,
+        staffId,
+        type,
+        staffLocation: staffMember.location,
+        userLocation: user.location
+      });
+      return;
+    }
+
+    // Then check for gender preference mismatch
+    checkGenderMismatch(userId, staffId, type);
+  };
+
+  // Check gender mismatch and proceed
+  const checkGenderMismatch = (userId: string, staffId: string, type: 'primary' | 'backup') => {
+    const user = serviceUsers.find(u => u.id === userId);
+    const staffMember = staff.find(s => s.id === staffId);
+    if (!user || !staffMember) return;
+
     const hasGenderMismatch = user.genderPreference !== "No Preference" && staffMember.gender !== user.genderPreference && staffMember.gender !== "Non-Binary" && staffMember.gender !== "Prefer not to say";
     if (hasGenderMismatch) {
       setGenderMismatchDialog({
@@ -330,6 +361,15 @@ export const Matching = () => {
       selectedInterests: []
     });
   };
+
+  // Confirm location mismatch and proceed to gender check
+  const confirmLocationMismatch = () => {
+    if (!locationMismatchDialog) return;
+    const { userId, staffId, type } = locationMismatchDialog;
+    setLocationMismatchDialog(null);
+    checkGenderMismatch(userId, staffId, type);
+  };
+
   const confirmGenderMismatch = () => {
     if (!genderMismatchDialog) return;
     const {
@@ -2090,6 +2130,37 @@ export const Matching = () => {
               </div>
               <Button onClick={handleAddStaff} className="w-full">Add Staff Member</Button>
             </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Location Mismatch Confirmation Dialog */}
+        <Dialog open={!!locationMismatchDialog} onOpenChange={open => !open && setLocationMismatchDialog(null)}>
+          <DialogContent className="bg-white max-w-md">
+            <DialogHeader>
+              <DialogTitle>Different Location</DialogTitle>
+            </DialogHeader>
+            {locationMismatchDialog && (() => {
+            const user = serviceUsers.find(u => u.id === locationMismatchDialog.userId);
+            const staffMember = getStaffById(locationMismatchDialog.staffId);
+            if (!user || !staffMember) return null;
+            return <div className="space-y-4 pt-4">
+                  <p className="text-sm text-muted-foreground">
+                    <strong>{staffMember.name}</strong> is based in <strong>{locationMismatchDialog.staffLocation}</strong>, 
+                    but <strong>{user.name}</strong> is in <strong>{locationMismatchDialog.userLocation}</strong>.
+                  </p>
+                  <p className="text-sm text-amber-600 font-medium">
+                    Do you want to assign this carer anyway?
+                  </p>
+                  <div className="flex gap-2 justify-end pt-2">
+                    <Button variant="outline" onClick={() => setLocationMismatchDialog(null)}>
+                      Cancel
+                    </Button>
+                    <Button onClick={confirmLocationMismatch}>
+                      Proceed Anyway
+                    </Button>
+                  </div>
+                </div>;
+          })()}
           </DialogContent>
         </Dialog>
 
