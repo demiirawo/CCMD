@@ -1068,7 +1068,7 @@ export const Matching = () => {
                         <div className="px-6 py-4" style={{
                         backgroundColor: '#202A38'
                       }}>
-                          <h3 className="font-bold text-xl text-white print:text-sm">{location}</h3>
+                          <h3 className="font-bold text-xl text-white print:text-sm">Service User Matching for {location}</h3>
                           <span className="text-sm text-white/80">
                             {locationUsers.length} service users • {locationStaff.length} staff
                           </span>
