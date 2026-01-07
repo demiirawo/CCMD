@@ -874,7 +874,8 @@ export const Matching = () => {
                                   </span>
                                 </TooltipTrigger>
                                 <TooltipContent className="bg-white max-w-xs">
-                                  <p className="text-sm">Total hours needed by all service users for the week</p>
+                                  <p className="text-sm font-semibold mb-1">Total hours needed by all service users for the week</p>
+                                  <p className="text-xs text-muted-foreground">Colour logic: <span className="text-green-600">Green</span> = Required &gt; Allocated (capacity available), <span className="text-red-600">Red</span> = Required &lt; Allocated (over-allocated)</p>
                                 </TooltipContent>
                               </Tooltip>
                             </TooltipProvider>
@@ -919,7 +920,8 @@ export const Matching = () => {
                                   </span>
                                 </TooltipTrigger>
                                 <TooltipContent className="bg-white max-w-xs">
-                                  <p className="text-sm">Utilisation = Allocated Hours ÷ (Allocated + Unallocated Hours) × 100</p>
+                                  <p className="text-sm font-semibold mb-1">Utilisation = Allocated Hours ÷ (Allocated + Unallocated Hours) × 100</p>
+                                  <p className="text-xs text-muted-foreground">Colour logic: <span className="text-green-600">Green</span> = Below 80%, <span className="text-amber-600">Amber</span> = 80-95%, <span className="text-red-600">Red</span> = Above 95%</p>
                                 </TooltipContent>
                               </Tooltip>
                             </TooltipProvider>
@@ -1015,7 +1017,7 @@ export const Matching = () => {
                           
                           return <TableRow key={week}>
                               <TableCell className="font-medium text-xs py-1">{week}</TableCell>
-                              <TableCell className={`text-right text-xs py-1 ${requiredHoursColor}`}>
+                              <TableCell className={`text-right text-xs py-1 font-semibold ${requiredHoursColor}`}>
                                 {renderCell('required', requiredHours)}
                               </TableCell>
                               <TableCell className="text-right text-xs py-1">{availableStaffHours}</TableCell>
