@@ -334,7 +334,6 @@ export const Matching = () => {
     const user = serviceUsers.find(u => u.id === userId);
     const staffMember = staff.find(s => s.id === staffId);
     if (!user || !staffMember) return;
-
     const hasGenderMismatch = user.genderPreference !== "No Preference" && staffMember.gender !== user.genderPreference && staffMember.gender !== "Non-Binary" && staffMember.gender !== "Prefer not to say";
     if (hasGenderMismatch) {
       setGenderMismatchDialog({
@@ -365,11 +364,14 @@ export const Matching = () => {
   // Confirm location mismatch and proceed to gender check
   const confirmLocationMismatch = () => {
     if (!locationMismatchDialog) return;
-    const { userId, staffId, type } = locationMismatchDialog;
+    const {
+      userId,
+      staffId,
+      type
+    } = locationMismatchDialog;
     setLocationMismatchDialog(null);
     checkGenderMismatch(userId, staffId, type);
   };
-
   const confirmGenderMismatch = () => {
     if (!genderMismatchDialog) return;
     const {
@@ -1014,7 +1016,6 @@ export const Matching = () => {
                           };
                           // Determine required hours color: green if required > allocated, red if required < allocated
                           const requiredHoursColor = requiredHours > allocatedHours ? 'text-green-600' : requiredHours < allocatedHours ? 'text-red-600' : '';
-                          
                           return <TableRow key={week}>
                               <TableCell className="font-medium text-xs py-1">{week}</TableCell>
                               <TableCell className={`text-right text-xs py-1 font-semibold ${requiredHoursColor}`}>
@@ -1203,9 +1204,7 @@ export const Matching = () => {
                     return <div className="rounded-2xl overflow-hidden shadow-md bg-white border border-border mt-6">
                         <div className="px-6 py-4 bg-red-600">
                           <h3 className="font-bold text-xl text-white print:text-sm">Unallocated Staff</h3>
-                          <span className="text-sm text-white/80">
-                            {unallocatedStaff.length} staff • {totalUnallocatedHours}h available this week
-                          </span>
+                          
                         </div>
                         <div className="p-6 bg-transparent">
                           <div className="flex flex-wrap gap-3">
@@ -1271,7 +1270,7 @@ export const Matching = () => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {serviceUsers.filter(user => (userLocationFilter === "all" || user.location === userLocationFilter)).map(user => <TableRow key={user.id}>
+                      {serviceUsers.filter(user => userLocationFilter === "all" || user.location === userLocationFilter).map(user => <TableRow key={user.id}>
                           {/* Name */}
                           <TableCell className="font-medium cursor-pointer hover:bg-muted/50" onDoubleClick={() => {
                           setEditingCell({
@@ -1534,7 +1533,7 @@ export const Matching = () => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {serviceUsers.filter(user => (userLocationFilter === "all" || user.location === userLocationFilter)).map(user => {
+                      {serviceUsers.filter(user => userLocationFilter === "all" || user.location === userLocationFilter).map(user => {
                         const staffMemberObj = staff.find(s => s.id === user.primaryStaffIds[0]);
                         return <>
                           {/* Service User Row */}
@@ -1740,7 +1739,7 @@ export const Matching = () => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {staff.filter(s => (staffLocationFilter === "all" || s.location === staffLocationFilter)).map(s => <TableRow key={s.id}>
+                      {staff.filter(s => staffLocationFilter === "all" || s.location === staffLocationFilter).map(s => <TableRow key={s.id}>
                           <TableCell className="font-medium">{s.name}</TableCell>
                           <TableCell>
                             <Select value={s.location} onValueChange={value => {
@@ -1861,7 +1860,7 @@ export const Matching = () => {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {staff.filter(s => (staffLocationFilter === "all" || s.location === staffLocationFilter)).map(s => <TableRow key={s.id}>
+                        {staff.filter(s => staffLocationFilter === "all" || s.location === staffLocationFilter).map(s => <TableRow key={s.id}>
                             <TableCell className="font-medium sticky left-0 bg-background">
                               <div className="flex flex-col">
                                 <span>{s.name}</span>
