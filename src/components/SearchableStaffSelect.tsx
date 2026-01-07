@@ -31,9 +31,9 @@ export const SearchableStaffSelect = ({
   const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Sort alphabetically and filter by search
+  // Sort by score (highest first for best match) and filter by search
   const filteredOptions = useMemo(() => {
-    const sorted = [...options].sort((a, b) => a.name.localeCompare(b.name));
+    const sorted = [...options].sort((a, b) => b.score - a.score);
     if (!searchQuery.trim()) return sorted;
     return sorted.filter(opt => 
       opt.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -84,10 +84,7 @@ export const SearchableStaffSelect = ({
                   onSelect={() => handleSelect(opt.id)}
                   className="cursor-pointer text-xs"
                 >
-                  <div className="flex items-center justify-between gap-2 w-full">
-                    <span>{opt.name}</span>
-                    <Badge variant="outline" className="text-[10px]">{opt.score}%</Badge>
-                  </div>
+                  <span>{opt.name}</span>
                 </CommandItem>
               ))}
             </CommandGroup>
