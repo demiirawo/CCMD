@@ -973,13 +973,11 @@ export const Matching = () => {
                           const availableFTE = totalAvailableHours / FTE_HOURS;
 
                           // Determine utilisation color based on thresholds
-                          let utilisationColor = "text-amber-600"; // default: under-utilised (<70%)
-                          if (utilisation >= 70 && utilisation < 80) {
-                            utilisationColor = "text-green-600"; // safe zone (70-80%)
-                          } else if (utilisation >= 80 && utilisation < 90) {
-                            utilisationColor = "text-amber-600"; // high zone (80-90%)
-                          } else if (utilisation >= 90) {
-                            utilisationColor = "text-red-600"; // over-utilised (>90%)
+                          let utilisationColor = "text-green-600"; // default: under 80%
+                          if (utilisation >= 80 && utilisation < 95) {
+                            utilisationColor = "text-amber-600"; // amber zone (80-95%)
+                          } else if (utilisation >= 95) {
+                            utilisationColor = "text-red-600"; // over-utilised (>95%)
                           }
                           const handleOverride = (field: 'required' | 'allocated' | 'unallocated', value: number) => {
                             setUtilisationOverrides(prev => ({
