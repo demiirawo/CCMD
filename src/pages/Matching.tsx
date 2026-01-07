@@ -43,9 +43,7 @@ export const Matching = () => {
   const [managerFilter, setManagerFilter] = useState<string>("all");
   const [supportTypeFilter, setSupportTypeFilter] = useState<string>("all");
   const [userLocationFilter, setUserLocationFilter] = useState<string>("all");
-  const [userManagerFilter, setUserManagerFilter] = useState<string>("all");
   const [staffLocationFilter, setStaffLocationFilter] = useState<string>("all");
-  const [staffManagerFilter, setStaffManagerFilter] = useState<string>("all");
   const [selectedServiceUser, setSelectedServiceUser] = useState<ServiceUser | null>(null);
   const [selectedStaff, setSelectedStaff] = useState<Staff | null>(null);
   const [hoveredConnection, setHoveredConnection] = useState<{
@@ -65,7 +63,7 @@ export const Matching = () => {
   // Inline editing states
   const [editingCell, setEditingCell] = useState<{
     id: string;
-    field: 'name' | 'supportNeeds' | 'location' | 'interests' | 'manager';
+    field: 'name' | 'supportNeeds' | 'location' | 'interests';
     type: 'user' | 'staff';
   } | null>(null);
   const [editValue, setEditValue] = useState<string>("");
@@ -91,7 +89,6 @@ export const Matching = () => {
   // Form states
   const [newUserForm, setNewUserForm] = useState({
     name: "",
-    manager: "",
     location: "",
     typicalWeeklyHours: 0,
     supportNeeds: "",
@@ -100,7 +97,6 @@ export const Matching = () => {
   });
   const [newStaffForm, setNewStaffForm] = useState({
     name: "",
-    manager: "",
     location: "",
     typicalWeeklyHours: 40,
     gender: "Prefer not to say" as Gender,
@@ -108,15 +104,10 @@ export const Matching = () => {
   });
   const [newUserLocationInput, setNewUserLocationInput] = useState("");
   const [newStaffLocationInput, setNewStaffLocationInput] = useState("");
-  const [newUserManagerInput, setNewUserManagerInput] = useState("");
-  const [newStaffManagerInput, setNewStaffManagerInput] = useState("");
   const [isAddingUserLocation, setIsAddingUserLocation] = useState(false);
   const [isAddingStaffLocation, setIsAddingStaffLocation] = useState(false);
-  const [isAddingUserManager, setIsAddingUserManager] = useState(false);
-  const [isAddingStaffManager, setIsAddingStaffManager] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [customLocations, setCustomLocations] = useState<string[]>([]);
-  const [customManagers, setCustomManagers] = useState<string[]>([]);
 
   // Manual overrides for utilisation forecast (only stores overridden values)
   const [utilisationOverrides, setUtilisationOverrides] = useState<{
@@ -176,17 +167,6 @@ export const Matching = () => {
     const allNeeds = serviceUsers.flatMap(u => u.supportNeeds);
     return [...new Set(allNeeds)];
   }, [serviceUsers]);
-  const managers = useMemo(() => {
-    const allManagers = [...new Set([...serviceUsers.map(u => u.manager), ...staff.map(s => s.manager), ...customManagers])];
-    return allManagers.filter(Boolean);
-  }, [serviceUsers, staff, customManagers]);
-
-  // Add a custom manager to the shared pool
-  const addCustomManager = (manager: string) => {
-    if (manager.trim() && !customManagers.includes(manager.trim())) {
-      setCustomManagers(prev => [...prev, manager.trim()]);
-    }
-  };
   const handleExportPDF = async () => {
     if (!printAreaRef.current) return;
     setIsExporting(true);
@@ -615,11 +595,10 @@ export const Matching = () => {
     }
     console.log('handleAddUser - newUserForm state:', JSON.stringify(newUserForm, null, 2));
     console.log('handleAddUser - location value:', newUserForm.location);
-    console.log('handleAddUser - manager value:', newUserForm.manager);
     try {
       await addServiceUserToDb({
         name: newUserForm.name,
-        manager: newUserForm.manager || '',
+        manager: '',
         supportNeeds: newUserForm.supportNeeds.split(",").map(s => s.trim()).filter(Boolean),
         preferences: newUserForm.interests.split(",").map(s => s.trim()).filter(Boolean),
         genderPreference: newUserForm.genderPreference,
@@ -632,7 +611,6 @@ export const Matching = () => {
       });
       setNewUserForm({
         name: "",
-        manager: "",
         location: "",
         typicalWeeklyHours: 0,
         supportNeeds: "",
@@ -663,7 +641,7 @@ export const Matching = () => {
     try {
       await addStaffToDb({
         name: newStaffForm.name,
-        manager: newStaffForm.manager || '',
+        manager: '',
         gender: newStaffForm.gender,
         location: newStaffForm.location,
         availability: "Full-time",
@@ -674,7 +652,6 @@ export const Matching = () => {
       });
       setNewStaffForm({
         name: "",
-        manager: "",
         location: "",
         typicalWeeklyHours: 40,
         gender: "Prefer not to say",
@@ -776,15 +753,6 @@ export const Matching = () => {
 
                 {/* Filters and Export */}
                 <div className="flex items-center gap-3">
-                  <Select value={managerFilter} onValueChange={setManagerFilter}>
-                    <SelectTrigger className="w-48 bg-white">
-                      <SelectValue placeholder="All Managers" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-white z-50">
-                      <SelectItem value="all">All Managers</SelectItem>
-                      {managers.map(mgr => <SelectItem key={mgr} value={mgr}>{mgr}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
                   <Select value={locationFilter} onValueChange={setLocationFilter}>
                     <SelectTrigger className="w-48 bg-white">
                       <MapPin className="h-4 w-4 mr-2" />
@@ -1232,15 +1200,6 @@ export const Matching = () => {
               <CardHeader className="flex flex-row items-center justify-between border-b">
                   <CardTitle>Service Users Directory</CardTitle>
                   <div className="flex items-center gap-3">
-                    <Select value={userManagerFilter} onValueChange={setUserManagerFilter}>
-                      <SelectTrigger className="w-40 bg-white">
-                        <SelectValue placeholder="All Managers" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-white z-50">
-                        <SelectItem value="all">All Managers</SelectItem>
-                        {managers.map(mgr => <SelectItem key={mgr} value={mgr}>{mgr}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
                     <Select value={userLocationFilter} onValueChange={setUserLocationFilter}>
                       <SelectTrigger className="w-40 bg-white">
                         
@@ -1263,7 +1222,6 @@ export const Matching = () => {
                     <TableHeader>
                       <TableRow>
                         <TableHead>Name</TableHead>
-                        <TableHead>Manager</TableHead>
                         <TableHead>Location</TableHead>
                         <TableHead>Avg Weekly Hours</TableHead>
                         <TableHead>Gender Preference</TableHead>
@@ -1273,7 +1231,7 @@ export const Matching = () => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {serviceUsers.filter(user => (userLocationFilter === "all" || user.location === userLocationFilter) && (userManagerFilter === "all" || user.manager === userManagerFilter)).map(user => <TableRow key={user.id}>
+                      {serviceUsers.filter(user => (userLocationFilter === "all" || user.location === userLocationFilter)).map(user => <TableRow key={user.id}>
                           {/* Name */}
                           <TableCell className="font-medium cursor-pointer hover:bg-muted/50" onDoubleClick={() => {
                           setEditingCell({
@@ -1300,57 +1258,6 @@ export const Matching = () => {
                               setEditingCell(null);
                             }
                           }} autoFocus className="h-8 bg-white" /> : user.name}
-                          </TableCell>
-                          {/* Manager */}
-                          <TableCell>
-                            {editingCell?.id === user.id && editingCell?.field === 'manager' && editingCell?.type === 'user' ? <div className="flex gap-1">
-                                <Input value={editValue} onChange={e => setEditValue(e.target.value)} onBlur={() => {
-                              if (editValue.trim()) {
-                                setServiceUsers(prev => prev.map(u => u.id === user.id ? {
-                                  ...u,
-                                  manager: editValue.trim()
-                                } : u));
-                              }
-                              setEditingCell(null);
-                            }} onKeyDown={e => {
-                              if (e.key === 'Enter' && editValue.trim()) {
-                                setServiceUsers(prev => prev.map(u => u.id === user.id ? {
-                                  ...u,
-                                  manager: editValue.trim()
-                                } : u));
-                                setEditingCell(null);
-                              } else if (e.key === 'Escape') {
-                                setEditingCell(null);
-                              }
-                            }} autoFocus placeholder="Enter new manager..." className="h-8 bg-white min-w-[150px]" />
-                              </div> : <Select value={user.manager || ''} onValueChange={value => {
-                            if (value === '__add_new__') {
-                              setEditingCell({
-                                id: user.id,
-                                field: 'manager',
-                                type: 'user'
-                              });
-                              setEditValue('');
-                            } else {
-                              setServiceUsers(prev => prev.map(u => u.id === user.id ? {
-                                ...u,
-                                manager: value
-                              } : u));
-                            }
-                          }}>
-                                <SelectTrigger className="h-8 bg-white min-w-[130px]">
-                                  <SelectValue placeholder="Select manager" />
-                                </SelectTrigger>
-                                <SelectContent className="bg-white z-50">
-                                  {managers.map(mgr => <SelectItem key={mgr} value={mgr}>{mgr}</SelectItem>)}
-                                  <SelectItem value="__add_new__" className="text-primary font-medium">
-                                    <div className="flex items-center gap-1">
-                                      <Plus className="h-3 w-3" />
-                                      Add new manager
-                                    </div>
-                                  </SelectItem>
-                                </SelectContent>
-                              </Select>}
                           </TableCell>
                           {/* Location */}
                           <TableCell>
@@ -1587,7 +1494,7 @@ export const Matching = () => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {serviceUsers.filter(user => (userLocationFilter === "all" || user.location === userLocationFilter) && (userManagerFilter === "all" || user.manager === userManagerFilter)).map(user => {
+                      {serviceUsers.filter(user => (userLocationFilter === "all" || user.location === userLocationFilter)).map(user => {
                         const staffMemberObj = staff.find(s => s.id === user.primaryStaffIds[0]);
                         return <>
                           {/* Service User Row */}
@@ -1762,15 +1669,6 @@ export const Matching = () => {
                 <CardHeader className="flex flex-row items-center justify-between border-b">
                   <CardTitle>Staff Directory</CardTitle>
                   <div className="flex items-center gap-3">
-                    <Select value={staffManagerFilter} onValueChange={setStaffManagerFilter}>
-                      <SelectTrigger className="w-40 bg-white">
-                        <SelectValue placeholder="All Managers" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-white z-50">
-                        <SelectItem value="all">All Managers</SelectItem>
-                        {managers.map(mgr => <SelectItem key={mgr} value={mgr}>{mgr}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
                     <Select value={staffLocationFilter} onValueChange={setStaffLocationFilter}>
                       <SelectTrigger className="w-40 bg-white">
                         
@@ -1793,7 +1691,6 @@ export const Matching = () => {
                     <TableHeader>
                       <TableRow>
                         <TableHead>Name</TableHead>
-                        <TableHead>Manager</TableHead>
                         <TableHead>Location</TableHead>
                         <TableHead>Avg Weekly Hours</TableHead>
                         <TableHead>Gender</TableHead>
@@ -1803,59 +1700,8 @@ export const Matching = () => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {staff.filter(s => (staffLocationFilter === "all" || s.location === staffLocationFilter) && (staffManagerFilter === "all" || s.manager === staffManagerFilter)).map(s => <TableRow key={s.id}>
+                      {staff.filter(s => (staffLocationFilter === "all" || s.location === staffLocationFilter)).map(s => <TableRow key={s.id}>
                           <TableCell className="font-medium">{s.name}</TableCell>
-                          {/* Manager */}
-                          <TableCell>
-                            {editingCell?.id === s.id && editingCell?.field === 'manager' && editingCell?.type === 'staff' ? <div className="flex gap-1">
-                                <Input value={editValue} onChange={e => setEditValue(e.target.value)} onBlur={() => {
-                              if (editValue.trim()) {
-                                setStaff(prev => prev.map(staff => staff.id === s.id ? {
-                                  ...staff,
-                                  manager: editValue.trim()
-                                } : staff));
-                              }
-                              setEditingCell(null);
-                            }} onKeyDown={e => {
-                              if (e.key === 'Enter' && editValue.trim()) {
-                                setStaff(prev => prev.map(staff => staff.id === s.id ? {
-                                  ...staff,
-                                  manager: editValue.trim()
-                                } : staff));
-                                setEditingCell(null);
-                              } else if (e.key === 'Escape') {
-                                setEditingCell(null);
-                              }
-                            }} autoFocus placeholder="Enter new manager..." className="h-8 bg-white min-w-[150px]" />
-                              </div> : <Select value={s.manager || ''} onValueChange={value => {
-                            if (value === '__add_new__') {
-                              setEditingCell({
-                                id: s.id,
-                                field: 'manager',
-                                type: 'staff'
-                              });
-                              setEditValue('');
-                            } else {
-                              setStaff(prev => prev.map(staff => staff.id === s.id ? {
-                                ...staff,
-                                manager: value
-                              } : staff));
-                            }
-                          }}>
-                                <SelectTrigger className="h-8 bg-white min-w-[130px]">
-                                  <SelectValue placeholder="Select manager" />
-                                </SelectTrigger>
-                                <SelectContent className="bg-white z-50">
-                                  {managers.map(mgr => <SelectItem key={mgr} value={mgr}>{mgr}</SelectItem>)}
-                                  <SelectItem value="__add_new__" className="text-primary font-medium">
-                                    <div className="flex items-center gap-1">
-                                      <Plus className="h-3 w-3" />
-                                      Add new manager
-                                    </div>
-                                  </SelectItem>
-                                </SelectContent>
-                              </Select>}
-                          </TableCell>
                           <TableCell>
                             <Select value={s.location} onValueChange={value => {
                             if (value === "__add_new__") {
@@ -1975,7 +1821,7 @@ export const Matching = () => {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {staff.filter(s => (staffLocationFilter === "all" || s.location === staffLocationFilter) && (staffManagerFilter === "all" || s.manager === staffManagerFilter)).map(s => <TableRow key={s.id}>
+                        {staff.filter(s => (staffLocationFilter === "all" || s.location === staffLocationFilter)).map(s => <TableRow key={s.id}>
                             <TableCell className="font-medium sticky left-0 bg-background">
                               <div className="flex flex-col">
                                 <span>{s.name}</span>
@@ -2083,71 +1929,6 @@ export const Matching = () => {
                         <div className="flex items-center gap-1">
                           <Plus className="h-3 w-3" />
                           Add new location
-                        </div>
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>}
-              </div>
-              <div>
-                <Label>Manager</Label>
-                {isAddingUserManager ? <div className="flex gap-2">
-                    <Input value={newUserManagerInput} onChange={e => {
-                  setNewUserManagerInput(e.target.value);
-                }} onKeyDown={e => {
-                  if (e.key === 'Enter' && newUserManagerInput.trim()) {
-                    e.preventDefault();
-                    const newMgr = newUserManagerInput.trim();
-                    addCustomManager(newMgr);
-                    setNewUserForm(f => ({
-                      ...f,
-                      manager: newMgr
-                    }));
-                    setNewUserManagerInput('');
-                    setIsAddingUserManager(false);
-                  } else if (e.key === 'Escape') {
-                    setNewUserManagerInput('');
-                    setIsAddingUserManager(false);
-                  }
-                }} autoFocus placeholder="Enter new manager..." className="bg-white border-gray-800 flex-1" />
-                    <Button type="button" size="sm" onClick={() => {
-                  if (newUserManagerInput.trim()) {
-                    const newMgr = newUserManagerInput.trim();
-                    addCustomManager(newMgr);
-                    setNewUserForm(f => ({
-                      ...f,
-                      manager: newMgr
-                    }));
-                    setNewUserManagerInput('');
-                    setIsAddingUserManager(false);
-                  }
-                }}>
-                      <Check className="h-4 w-4" />
-                    </Button>
-                    <Button type="button" size="sm" variant="outline" onClick={() => {
-                  setNewUserManagerInput('');
-                  setIsAddingUserManager(false);
-                }}>
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div> : <Select value={newUserForm.manager} onValueChange={v => {
-                if (v === '__add_new__') {
-                  setIsAddingUserManager(true);
-                } else {
-                  setNewUserForm(f => ({
-                    ...f,
-                    manager: v
-                  }));
-                }
-              }}>
-                    <SelectTrigger className="bg-white border-gray-800">
-                      <SelectValue placeholder="Select manager" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-white z-[100]" position="popper" sideOffset={4}>
-                      {managers.map(mgr => <SelectItem key={mgr} value={mgr}>{mgr}</SelectItem>)}
-                      <SelectItem value="__add_new__" className="text-primary font-medium">
-                        <div className="flex items-center gap-1">
-                          <Plus className="h-3 w-3" />
-                          Add new manager
                         </div>
                       </SelectItem>
                     </SelectContent>
@@ -2267,71 +2048,6 @@ export const Matching = () => {
                         <div className="flex items-center gap-1">
                           <Plus className="h-3 w-3" />
                           Add new location
-                        </div>
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>}
-              </div>
-              <div>
-                <Label>Manager</Label>
-                {isAddingStaffManager ? <div className="flex gap-2">
-                    <Input value={newStaffManagerInput} onChange={e => {
-                  setNewStaffManagerInput(e.target.value);
-                }} onKeyDown={e => {
-                  if (e.key === 'Enter' && newStaffManagerInput.trim()) {
-                    e.preventDefault();
-                    const newMgr = newStaffManagerInput.trim();
-                    addCustomManager(newMgr);
-                    setNewStaffForm(f => ({
-                      ...f,
-                      manager: newMgr
-                    }));
-                    setNewStaffManagerInput('');
-                    setIsAddingStaffManager(false);
-                  } else if (e.key === 'Escape') {
-                    setNewStaffManagerInput('');
-                    setIsAddingStaffManager(false);
-                  }
-                }} autoFocus placeholder="Enter new manager..." className="bg-white border-gray-800 flex-1" />
-                    <Button type="button" size="sm" onClick={() => {
-                  if (newStaffManagerInput.trim()) {
-                    const newMgr = newStaffManagerInput.trim();
-                    addCustomManager(newMgr);
-                    setNewStaffForm(f => ({
-                      ...f,
-                      manager: newMgr
-                    }));
-                    setNewStaffManagerInput('');
-                    setIsAddingStaffManager(false);
-                  }
-                }}>
-                      <Check className="h-4 w-4" />
-                    </Button>
-                    <Button type="button" size="sm" variant="outline" onClick={() => {
-                  setNewStaffManagerInput('');
-                  setIsAddingStaffManager(false);
-                }}>
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div> : <Select value={newStaffForm.manager} onValueChange={v => {
-                if (v === '__add_new__') {
-                  setIsAddingStaffManager(true);
-                } else {
-                  setNewStaffForm(f => ({
-                    ...f,
-                    manager: v
-                  }));
-                }
-              }}>
-                    <SelectTrigger className="bg-white border-gray-800">
-                      <SelectValue placeholder="Select manager" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-white z-[100]" position="popper" sideOffset={4}>
-                      {managers.map(mgr => <SelectItem key={mgr} value={mgr}>{mgr}</SelectItem>)}
-                      <SelectItem value="__add_new__" className="text-primary font-medium">
-                        <div className="flex items-center gap-1">
-                          <Plus className="h-3 w-3" />
-                          Add new manager
                         </div>
                       </SelectItem>
                     </SelectContent>
