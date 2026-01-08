@@ -885,9 +885,9 @@ export const Matching = () => {
                       })()}
                       </span>
                     </div>
-                    <div className="p-6">
+                    <div className="p-6 max-h-[500px] overflow-y-auto">
                     <Table>
-                      <TableHeader>
+                      <TableHeader className="sticky top-0 bg-white z-10">
                         <TableRow>
                           <TableHead className="text-xs py-1">Week</TableHead>
                           <TableHead className="text-xs py-1 text-right">
