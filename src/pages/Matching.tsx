@@ -1559,12 +1559,12 @@ export const Matching = () => {
                         const staffMemberObj = staff.find(s => s.id === user.primaryStaffIds[0]);
                         return <>
                           {/* Week Header Row Above Service User */}
-                          <TableRow key={`${user.id}-header`} className="bg-gray-100 border-t-2 border-gray-300">
-                            <TableCell className="sticky left-0 bg-gray-100 py-1 text-xs font-medium text-muted-foreground">
+                          <TableRow key={`${user.id}-header`} className="bg-white border-t-2 border-gray-300">
+                            <TableCell className="sticky left-0 bg-white py-1 text-xs font-medium text-muted-foreground">
                               Service User / Staff
                             </TableCell>
                             {WEEKS.map(week => (
-                              <TableCell key={week} className="bg-gray-100 text-center py-1 text-xs font-medium text-muted-foreground">
+                              <TableCell key={week} className="bg-white text-center py-1 text-xs font-medium text-muted-foreground">
                                 {week}
                               </TableCell>
                             ))}
