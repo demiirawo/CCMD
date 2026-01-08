@@ -1592,19 +1592,6 @@ export const Matching = () => {
                       {serviceUsers.filter(user => userLocationFilter === "all" || user.location === userLocationFilter).map((user, index) => {
                         const staffMemberObj = staff.find(s => s.id === user.primaryStaffIds[0]);
                         return <>
-                          {/* Week Header Row Above Service User (skip for first user as table header already exists) */}
-                          {index > 0 && (
-                            <TableRow key={`${user.id}-header`} className="bg-white border-t-2 border-gray-300">
-                              <TableCell className="sticky left-0 bg-white py-1 text-xs font-medium text-muted-foreground">
-                                Service User / Staff
-                              </TableCell>
-                              {WEEKS.map(week => (
-                                <TableCell key={week} className="bg-white text-center py-1 text-xs font-medium text-muted-foreground">
-                                  {week}
-                                </TableCell>
-                              ))}
-                            </TableRow>
-                          )}
                           {/* Service User Row */}
                           <TableRow key={user.id} className="bg-blue-50 cursor-pointer hover:bg-blue-100" onClick={() => toggleServiceUserExpanded(user.id)}>
                             <TableCell className="font-medium sticky left-0 bg-blue-50">
