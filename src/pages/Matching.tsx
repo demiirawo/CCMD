@@ -1569,6 +1569,34 @@ export const Matching = () => {
                 <CardHeader className="border-b flex flex-row items-center justify-between">
                   <CardTitle>Required Hours Forecast (8 Weeks)</CardTitle>
                   <div className="flex items-center gap-2">
+                    <Select
+                      value=""
+                      onValueChange={(userId) => {
+                        if (userId) {
+                          setExpandedServiceUsers(prev => new Set([...prev, userId]));
+                          // Scroll to the service user row
+                          setTimeout(() => {
+                            const element = document.getElementById(`forecast-user-${userId}`);
+                            if (element) {
+                              element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            }
+                          }, 100);
+                        }
+                      }}
+                    >
+                      <SelectTrigger className="w-[200px] bg-white">
+                        <SelectValue placeholder="Jump to service user..." />
+                      </SelectTrigger>
+                      <SelectContent className="bg-white">
+                        {serviceUsers
+                          .filter(user => userLocationFilter === "all" || user.location === userLocationFilter)
+                          .map(user => (
+                            <SelectItem key={user.id} value={user.id}>
+                              {user.name}
+                            </SelectItem>
+                          ))}
+                      </SelectContent>
+                    </Select>
                     <Button variant="outline" size="sm" onClick={expandAllServiceUsers}>
                       <ChevronDown className="h-4 w-4 mr-1" />
                       Expand All
@@ -1593,7 +1621,7 @@ export const Matching = () => {
                         const staffMemberObj = staff.find(s => s.id === user.primaryStaffIds[0]);
                         return <>
                           {/* Service User Row */}
-                          <TableRow key={user.id} className="bg-blue-50 cursor-pointer hover:bg-blue-100" onClick={() => toggleServiceUserExpanded(user.id)}>
+                          <TableRow id={`forecast-user-${user.id}`} key={user.id} className="bg-blue-50 cursor-pointer hover:bg-blue-100" onClick={() => toggleServiceUserExpanded(user.id)}>
                             <TableCell className="font-medium sticky left-0 bg-blue-50">
                               <div className="flex items-center gap-2">
                                 {expandedServiceUsers.has(user.id) ? (
