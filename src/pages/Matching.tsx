@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Search, Plus, MapPin, X, Edit2, Trash2, BarChart3, Printer, Check, Loader2, HelpCircle, FileDown } from "lucide-react";
+import { Search, Plus, MapPin, X, Edit2, Trash2, BarChart3, Printer, Check, Loader2, HelpCircle, FileDown, ChevronDown, ChevronRight } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { TagInput } from "@/components/TagInput";
 import { Label } from "@/components/ui/label";
@@ -118,6 +118,30 @@ export const Matching = () => {
   const [isAddingStaffLocation, setIsAddingStaffLocation] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [customLocations, setCustomLocations] = useState<string[]>([]);
+  
+  // Track which service users are expanded in the allocation table
+  const [expandedServiceUsers, setExpandedServiceUsers] = useState<Set<string>>(new Set());
+  
+  const toggleServiceUserExpanded = (userId: string) => {
+    setExpandedServiceUsers(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(userId)) {
+        newSet.delete(userId);
+      } else {
+        newSet.add(userId);
+      }
+      return newSet;
+    });
+  };
+  
+  const expandAllServiceUsers = () => {
+    const filteredUsers = serviceUsers.filter(user => userLocationFilter === "all" || user.location === userLocationFilter);
+    setExpandedServiceUsers(new Set(filteredUsers.map(u => u.id)));
+  };
+  
+  const collapseAllServiceUsers = () => {
+    setExpandedServiceUsers(new Set());
+  };
 
   // Manual overrides for utilisation forecast (only stores overridden values)
   const [utilisationOverrides, setUtilisationOverrides] = useState<{
@@ -1542,8 +1566,18 @@ export const Matching = () => {
 
               {/* Matching Matrix */}
               <Card>
-                <CardHeader className="border-b">
+                <CardHeader className="border-b flex flex-row items-center justify-between">
                   <CardTitle>Required Hours Forecast (8 Weeks)</CardTitle>
+                  <div className="flex items-center gap-2">
+                    <Button variant="outline" size="sm" onClick={expandAllServiceUsers}>
+                      <ChevronDown className="h-4 w-4 mr-1" />
+                      Expand All
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={collapseAllServiceUsers}>
+                      <ChevronRight className="h-4 w-4 mr-1" />
+                      Collapse All
+                    </Button>
+                  </div>
                 </CardHeader>
                 <CardContent className="pt-6">
                   <div className="overflow-x-auto">
@@ -1572,14 +1606,21 @@ export const Matching = () => {
                             </TableRow>
                           )}
                           {/* Service User Row */}
-                          <TableRow key={user.id} className="bg-blue-50">
+                          <TableRow key={user.id} className="bg-blue-50 cursor-pointer hover:bg-blue-100" onClick={() => toggleServiceUserExpanded(user.id)}>
                             <TableCell className="font-medium sticky left-0 bg-blue-50">
-                              <div className="flex flex-col">
-                                <span className="font-semibold">{user.name}</span>
-                                <span className="text-xs text-muted-foreground">{user.typicalWeeklyHours || 0} hrs/week</span>
+                              <div className="flex items-center gap-2">
+                                {expandedServiceUsers.has(user.id) ? (
+                                  <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                                ) : (
+                                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                                )}
+                                <div className="flex flex-col">
+                                  <span className="font-semibold">{user.name}</span>
+                                  <span className="text-xs text-muted-foreground">{user.typicalWeeklyHours || 0} hrs/week</span>
+                                </div>
                               </div>
                             </TableCell>
-                            {WEEKS.map(week => <TableCell key={week} className="bg-blue-50 text-center">
+                            {WEEKS.map(week => <TableCell key={week} className="bg-blue-50 text-center" onClick={e => e.stopPropagation()}>
                                 <Input type="number" value={user.forecastHours[week] || 0} onChange={e => {
                                 const newValue = parseFloat(e.target.value) || 0;
                                 setServiceUsers(prev => prev.map(u => u.id === user.id ? {
@@ -1593,13 +1634,13 @@ export const Matching = () => {
                               </TableCell>)}
                           </TableRow>
                           
-                          {/* Primary Staff Rows */}
-                          {user.primaryStaffIds.map(staffId => {
+                          {/* Collapsible Content - Primary Staff Rows */}
+                          {expandedServiceUsers.has(user.id) && user.primaryStaffIds.map(staffId => {
                             const staffMember = getStaffById(staffId);
                             if (!staffMember) return null;
                             const allocation = user.staffAllocations.find(a => a.staffId === staffId);
                             return <TableRow key={`${user.id}-${staffId}-primary`} className="bg-green-50">
-                                <TableCell className="sticky left-0 bg-green-50 pl-6">
+                                <TableCell className="sticky left-0 bg-green-50 pl-8">
                                   <div className="flex items-center gap-2">
                                     <Badge className="bg-green-200 text-green-800 text-xs">Primary</Badge>
                                     <span className="text-sm">{staffMember.name}</span>
@@ -1668,28 +1709,30 @@ export const Matching = () => {
                           })}
 
                           {/* Outstanding Hours Row */}
-                          <TableRow key={`${user.id}-outstanding`} className="bg-orange-50">
-                            <TableCell className="sticky left-0 bg-orange-50 pl-6">
-                              <span className="text-sm font-medium text-orange-700">Outstanding Hours</span>
-                            </TableCell>
-                            {WEEKS.map(week => {
-                              const requiredHours = user.forecastHours[week] || 0;
-                              const allocatedHours = user.staffAllocations.filter(a => user.primaryStaffIds.includes(a.staffId)).reduce((sum, a) => sum + (a.allocatedHours[week] || 0), 0);
-                              const outstanding = requiredHours - allocatedHours;
-                              return <TableCell key={week} className="bg-orange-50 text-center">
-                                  <span className={`text-sm font-medium ${outstanding > 0 ? 'text-orange-600' : outstanding < 0 ? 'text-red-600' : 'text-green-600'}`}>
-                                    {outstanding}
-                                  </span>
-                                </TableCell>;
-                            })}
-                          </TableRow>
+                          {expandedServiceUsers.has(user.id) && (
+                            <TableRow key={`${user.id}-outstanding`} className="bg-orange-50">
+                              <TableCell className="sticky left-0 bg-orange-50 pl-8">
+                                <span className="text-sm font-medium text-orange-700">Outstanding Hours</span>
+                              </TableCell>
+                              {WEEKS.map(week => {
+                                const requiredHours = user.forecastHours[week] || 0;
+                                const allocatedHours = user.staffAllocations.filter(a => user.primaryStaffIds.includes(a.staffId)).reduce((sum, a) => sum + (a.allocatedHours[week] || 0), 0);
+                                const outstanding = requiredHours - allocatedHours;
+                                return <TableCell key={week} className="bg-orange-50 text-center">
+                                    <span className={`text-sm font-medium ${outstanding > 0 ? 'text-orange-600' : outstanding < 0 ? 'text-red-600' : 'text-green-600'}`}>
+                                      {outstanding}
+                                    </span>
+                                  </TableCell>;
+                              })}
+                            </TableRow>
+                          )}
 
                           {/* Backup Staff Rows */}
-                          {user.backupStaffIds.map(staffId => {
+                          {expandedServiceUsers.has(user.id) && user.backupStaffIds.map(staffId => {
                             const staffMember = getStaffById(staffId);
                             if (!staffMember) return null;
                             return <TableRow key={`${user.id}-${staffId}-backup`} className="bg-gray-50">
-                                <TableCell className="sticky left-0 bg-gray-50 pl-6">
+                                <TableCell className="sticky left-0 bg-gray-50 pl-8">
                                   <div className="flex items-center gap-2">
                                     <Badge variant="outline" className="text-xs">Backup</Badge>
                                     <span className="text-sm">{staffMember.name}</span>
@@ -1703,28 +1746,30 @@ export const Matching = () => {
                           })}
                           
                           {/* Add Staff Row */}
-                          <TableRow key={`${user.id}-add-staff`} className="border-b-2">
-                            <TableCell className="sticky left-0 bg-background pl-6" colSpan={9}>
-                              <div className="flex gap-2">
-                                <SearchableStaffSelect options={getRankedStaff(user, [...user.primaryStaffIds, ...user.backupStaffIds]).map(({
-                                  staff: s,
-                                  score
-                                }) => ({
-                                  id: s.id,
-                                  name: s.name,
-                                  score
-                                }))} onSelect={value => checkGenderAndOpenDialog(user.id, value, 'primary')} placeholder="+ Add Primary Staff" triggerClassName="w-[160px]" className="w-[200px]" />
-                                <SearchableStaffSelect options={getRankedStaff(user, [...user.primaryStaffIds, ...user.backupStaffIds]).map(({
-                                  staff: s,
-                                  score
-                                }) => ({
-                                  id: s.id,
-                                  name: s.name,
-                                  score
-                                }))} onSelect={value => checkGenderAndOpenDialog(user.id, value, 'backup')} placeholder="+ Add Backup Staff" triggerClassName="w-[160px]" className="w-[200px]" />
-                              </div>
-                            </TableCell>
-                          </TableRow>
+                          {expandedServiceUsers.has(user.id) && (
+                            <TableRow key={`${user.id}-add-staff`} className="border-b-2">
+                              <TableCell className="sticky left-0 bg-background pl-8" colSpan={9}>
+                                <div className="flex gap-2">
+                                  <SearchableStaffSelect options={getRankedStaff(user, [...user.primaryStaffIds, ...user.backupStaffIds]).map(({
+                                    staff: s,
+                                    score
+                                  }) => ({
+                                    id: s.id,
+                                    name: s.name,
+                                    score
+                                  }))} onSelect={value => checkGenderAndOpenDialog(user.id, value, 'primary')} placeholder="+ Add Primary Staff" triggerClassName="w-[160px]" className="w-[200px]" />
+                                  <SearchableStaffSelect options={getRankedStaff(user, [...user.primaryStaffIds, ...user.backupStaffIds]).map(({
+                                    staff: s,
+                                    score
+                                  }) => ({
+                                    id: s.id,
+                                    name: s.name,
+                                    score
+                                  }))} onSelect={value => checkGenderAndOpenDialog(user.id, value, 'backup')} placeholder="+ Add Backup Staff" triggerClassName="w-[160px]" className="w-[200px]" />
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          )}
                         </>;
                       })}
                     </TableBody>
