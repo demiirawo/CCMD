@@ -18,6 +18,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import { SearchableStaffSelect } from "@/components/SearchableStaffSelect";
+import { SearchableMultiSelect } from "@/components/SearchableMultiSelect";
 import { ForecastAISummary } from "@/components/ForecastAISummary";
 import { useMatchingData, WEEKS, createDefaultForecast, createDefaultHoursSplit, type ServiceUser, type Staff, type Gender, type GenderPreference, type ContractType, type StaffAllocation, type WeeklyForecast, type WeeklyAllocation } from "@/hooks/useMatchingData";
 const GENDER_PREFERENCES: GenderPreference[] = ["No Preference", "Male", "Female"];
@@ -124,8 +125,8 @@ export const Matching = () => {
   const [expandedServiceUsers, setExpandedServiceUsers] = useState<Set<string>>(new Set());
   
   // Filter states for forecast tables
-  const [forecastServiceUserFilter, setForecastServiceUserFilter] = useState<string>("all");
-  const [forecastStaffFilter, setForecastStaffFilter] = useState<string>("all");
+  const [forecastServiceUserFilter, setForecastServiceUserFilter] = useState<string[]>([]);
+  const [forecastStaffFilter, setForecastStaffFilter] = useState<string[]>([]);
   
   // Collapsible states for directories
   const [isStaffDirectoryOpen, setIsStaffDirectoryOpen] = useState(true);
@@ -1577,29 +1578,21 @@ export const Matching = () => {
                 <CardHeader className="border-b flex flex-row items-center justify-between">
                   <CardTitle>Required Hours Forecast (8 Weeks)</CardTitle>
                   <div className="flex items-center gap-2">
-                    <Select
-                      value={forecastServiceUserFilter}
-                      onValueChange={(userId) => {
-                        setForecastServiceUserFilter(userId);
-                        if (userId !== "all") {
-                          setExpandedServiceUsers(prev => new Set([...prev, userId]));
+                    <SearchableMultiSelect
+                      options={serviceUsers
+                        .filter(user => userLocationFilter === "all" || user.location === userLocationFilter)
+                        .map(user => ({ id: user.id, name: user.name, subtitle: user.location }))}
+                      selectedIds={forecastServiceUserFilter}
+                      onSelectionChange={(ids) => {
+                        setForecastServiceUserFilter(ids);
+                        if (ids.length > 0) {
+                          setExpandedServiceUsers(prev => new Set([...prev, ...ids]));
                         }
                       }}
-                    >
-                      <SelectTrigger className="w-[200px] bg-white">
-                        <SelectValue placeholder="Filter service user..." />
-                      </SelectTrigger>
-                      <SelectContent className="bg-white">
-                        <SelectItem value="all">All Service Users</SelectItem>
-                        {serviceUsers
-                          .filter(user => userLocationFilter === "all" || user.location === userLocationFilter)
-                          .map(user => (
-                            <SelectItem key={user.id} value={user.id}>
-                              {user.name}
-                            </SelectItem>
-                          ))}
-                      </SelectContent>
-                    </Select>
+                      placeholder="Filter service users..."
+                      allLabel="All Service Users"
+                      emptyMessage="No service users found."
+                    />
                     <Button variant="outline" size="sm" onClick={expandAllServiceUsers}>
                       <ChevronDown className="h-4 w-4 mr-1" />
                       Expand All
@@ -1622,7 +1615,7 @@ export const Matching = () => {
                     <TableBody>
                       {serviceUsers
                         .filter(user => userLocationFilter === "all" || user.location === userLocationFilter)
-                        .filter(user => forecastServiceUserFilter === "all" || user.id === forecastServiceUserFilter)
+                        .filter(user => forecastServiceUserFilter.length === 0 || forecastServiceUserFilter.includes(user.id))
                         .map((user, index) => {
                         const staffMemberObj = staff.find(s => s.id === user.primaryStaffIds[0]);
                         return <>
@@ -1966,25 +1959,17 @@ export const Matching = () => {
                 <CardHeader className="border-b flex flex-row items-center justify-between">
                   <CardTitle>Available Hours Forecast (8 Weeks)</CardTitle>
                   <div className="flex items-center gap-2">
-                    <Select
-                      value={forecastStaffFilter}
-                      onValueChange={setForecastStaffFilter}
-                    >
-                      <SelectTrigger className="w-[200px] bg-white">
-                        <SelectValue placeholder="Filter staff member..." />
-                      </SelectTrigger>
-                      <SelectContent className="bg-white">
-                        <SelectItem value="all">All Staff Members</SelectItem>
-                        {staff
-                          .filter(s => staffLocationFilter === "all" || s.location === staffLocationFilter)
-                          .sort((a, b) => a.name.localeCompare(b.name))
-                          .map(s => (
-                            <SelectItem key={s.id} value={s.id}>
-                              {s.name}
-                            </SelectItem>
-                          ))}
-                      </SelectContent>
-                    </Select>
+                    <SearchableMultiSelect
+                      options={staff
+                        .filter(s => staffLocationFilter === "all" || s.location === staffLocationFilter)
+                        .sort((a, b) => a.name.localeCompare(b.name))
+                        .map(s => ({ id: s.id, name: s.name, subtitle: s.location }))}
+                      selectedIds={forecastStaffFilter}
+                      onSelectionChange={setForecastStaffFilter}
+                      placeholder="Filter staff..."
+                      allLabel="All Staff Members"
+                      emptyMessage="No staff found."
+                    />
                   </div>
                 </CardHeader>
                 <CardContent className="pt-6">
@@ -1999,7 +1984,7 @@ export const Matching = () => {
                       <TableBody>
                         {staff
                           .filter(s => staffLocationFilter === "all" || s.location === staffLocationFilter)
-                          .filter(s => forecastStaffFilter === "all" || s.id === forecastStaffFilter)
+                          .filter(s => forecastStaffFilter.length === 0 || forecastStaffFilter.includes(s.id))
                           .sort((a, b) => a.name.localeCompare(b.name))
                           .map(s => <TableRow key={s.id} id={`staff-forecast-${s.id}`}>
                             <TableCell className="font-medium sticky left-0 bg-background">
