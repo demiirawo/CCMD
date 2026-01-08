@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Progress } from "@/components/ui/progress";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import { SearchableStaffSelect } from "@/components/SearchableStaffSelect";
@@ -125,6 +126,9 @@ export const Matching = () => {
   // Filter states for forecast tables
   const [forecastServiceUserFilter, setForecastServiceUserFilter] = useState<string>("all");
   const [forecastStaffFilter, setForecastStaffFilter] = useState<string>("all");
+  
+  // Collapsible states for directories
+  const [isStaffDirectoryOpen, setIsStaffDirectoryOpen] = useState(true);
   
   const toggleServiceUserExpanded = (userId: string) => {
     setExpandedServiceUsers(prev => {
@@ -1801,146 +1805,161 @@ export const Matching = () => {
           <TabsContent value="staff" className="space-y-6">
             <div className="grid grid-cols-1 gap-6">
               {/* Staff Directory */}
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between border-b">
-                  <CardTitle>Staff Directory</CardTitle>
-                  <div className="flex items-center gap-3">
-                    <Select value={staffLocationFilter} onValueChange={setStaffLocationFilter}>
-                      <SelectTrigger className="w-40 bg-white">
-                        
-                        <SelectValue placeholder="All Locations" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-white z-50">
-                        <SelectItem value="all">All Locations</SelectItem>
-                        {locations.map(loc => <SelectItem key={loc} value={loc}>{loc}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                    <Button onClick={() => setIsAddStaffOpen(true)}>
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add Staff Member
-                    </Button>
-                  </div>
-                </CardHeader>
-                <CardContent className="pt-6">
-                  <div className="overflow-x-auto">
-                    <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Name</TableHead>
-                        <TableHead>Location</TableHead>
-                        <TableHead>Avg Weekly Hours</TableHead>
-                        <TableHead>Gender</TableHead>
-                        <TableHead>Contract Type</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead className="w-[50px]"></TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {staff.filter(s => staffLocationFilter === "all" || s.location === staffLocationFilter).map(s => <TableRow key={s.id}>
-                          <TableCell className="font-medium">{s.name}</TableCell>
-                          <TableCell>
-                            <Select value={s.location} onValueChange={value => {
-                            if (value === "__add_new__") {
-                              const newLocation = prompt("Enter new location:");
-                              if (newLocation && newLocation.trim()) {
+              <Collapsible open={isStaffDirectoryOpen} onOpenChange={setIsStaffDirectoryOpen}>
+                <Card>
+                  <CollapsibleTrigger asChild>
+                    <CardHeader className="flex flex-row items-center justify-between border-b cursor-pointer hover:bg-muted/50">
+                      <div className="flex items-center gap-2">
+                        {isStaffDirectoryOpen ? (
+                          <ChevronDown className="h-5 w-5 text-muted-foreground" />
+                        ) : (
+                          <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                        )}
+                        <CardTitle>Staff Directory</CardTitle>
+                        <Badge variant="secondary" className="ml-2">
+                          {staff.filter(s => staffLocationFilter === "all" || s.location === staffLocationFilter).length} staff
+                        </Badge>
+                      </div>
+                      <div className="flex items-center gap-3" onClick={(e) => e.stopPropagation()}>
+                        <Select value={staffLocationFilter} onValueChange={setStaffLocationFilter}>
+                          <SelectTrigger className="w-40 bg-white">
+                            <SelectValue placeholder="All Locations" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-white z-50">
+                            <SelectItem value="all">All Locations</SelectItem>
+                            {locations.map(loc => <SelectItem key={loc} value={loc}>{loc}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                        <Button onClick={() => setIsAddStaffOpen(true)}>
+                          <Plus className="h-4 w-4 mr-2" />
+                          Add Staff Member
+                        </Button>
+                      </div>
+                    </CardHeader>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <CardContent className="pt-6">
+                      <div className="overflow-x-auto">
+                        <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Name</TableHead>
+                            <TableHead>Location</TableHead>
+                            <TableHead>Avg Weekly Hours</TableHead>
+                            <TableHead>Gender</TableHead>
+                            <TableHead>Contract Type</TableHead>
+                            <TableHead>Status</TableHead>
+                            <TableHead className="w-[50px]"></TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {staff.filter(s => staffLocationFilter === "all" || s.location === staffLocationFilter).map(s => <TableRow key={s.id}>
+                              <TableCell className="font-medium">{s.name}</TableCell>
+                              <TableCell>
+                                <Select value={s.location} onValueChange={value => {
+                                if (value === "__add_new__") {
+                                  const newLocation = prompt("Enter new location:");
+                                  if (newLocation && newLocation.trim()) {
+                                    setStaff(prev => prev.map(staff => staff.id === s.id ? {
+                                      ...staff,
+                                      location: newLocation.trim()
+                                    } : staff));
+                                  }
+                                } else {
+                                  setStaff(prev => prev.map(staff => staff.id === s.id ? {
+                                    ...staff,
+                                    location: value
+                                  } : staff));
+                                }
+                              }}>
+                                  <SelectTrigger className="h-8 w-40 bg-white">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent className="bg-white z-50">
+                                    {locations.map(loc => <SelectItem key={loc} value={loc}>{loc}</SelectItem>)}
+                                    <SelectItem value="__add_new__">+ Add New Location</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </TableCell>
+                              {/* Average Weekly Hours */}
+                              <TableCell>
+                                <Input type="number" value={s.typicalWeeklyHours || 0} onChange={e => {
+                                const newValue = parseFloat(e.target.value) || 0;
+                                // Update typicalWeeklyHours and overwrite all 8 weeks in forecastHours
+                                const newForecastHours: {
+                                  [week: string]: number;
+                                } = {};
+                                WEEKS.forEach(week => {
+                                  newForecastHours[week] = newValue;
+                                });
                                 setStaff(prev => prev.map(staff => staff.id === s.id ? {
                                   ...staff,
-                                  location: newLocation.trim()
+                                  typicalWeeklyHours: newValue,
+                                  forecastHours: newForecastHours
                                 } : staff));
-                              }
-                            } else {
-                              setStaff(prev => prev.map(staff => staff.id === s.id ? {
-                                ...staff,
-                                location: value
-                              } : staff));
-                            }
-                          }}>
-                              <SelectTrigger className="h-8 w-40 bg-white">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent className="bg-white z-50">
-                                {locations.map(loc => <SelectItem key={loc} value={loc}>{loc}</SelectItem>)}
-                                <SelectItem value="__add_new__">+ Add New Location</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </TableCell>
-                          {/* Average Weekly Hours */}
-                          <TableCell>
-                            <Input type="number" value={s.typicalWeeklyHours || 0} onChange={e => {
-                            const newValue = parseFloat(e.target.value) || 0;
-                            // Update typicalWeeklyHours and overwrite all 8 weeks in forecastHours
-                            const newForecastHours: {
-                              [week: string]: number;
-                            } = {};
-                            WEEKS.forEach(week => {
-                              newForecastHours[week] = newValue;
-                            });
-                            setStaff(prev => prev.map(staff => staff.id === s.id ? {
-                              ...staff,
-                              typicalWeeklyHours: newValue,
-                              forecastHours: newForecastHours
-                            } : staff));
-                          }} className="h-8 w-20 bg-white" min={0} />
-                          </TableCell>
-                          {/* Gender */}
-                          <TableCell>
-                            <Select value={s.gender} onValueChange={(value: Gender) => {
-                            setStaff(prev => prev.map(staff => staff.id === s.id ? {
-                              ...staff,
-                              gender: value
-                            } : staff));
-                          }}>
-                              <SelectTrigger className="h-8 w-36 bg-white">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent className="bg-white z-50">
-                                {GENDERS.map(gender => <SelectItem key={gender} value={gender}>{gender}</SelectItem>)}
-                              </SelectContent>
-                            </Select>
-                          </TableCell>
-                          <TableCell>
-                            <Select value={s.contractType} onValueChange={(value: ContractType) => {
-                            setStaff(prev => prev.map(staff => staff.id === s.id ? {
-                              ...staff,
-                              contractType: value
-                            } : staff));
-                          }}>
-                              <SelectTrigger className="h-8 w-48 bg-white">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent className="bg-white z-50">
-                                {CONTRACT_TYPES.map(type => <SelectItem key={type} value={type}>{type}</SelectItem>)}
-                              </SelectContent>
-                            </Select>
-                          </TableCell>
-                          <TableCell>
-                            <Select value={s.status} onValueChange={(value: "Active" | "On Leave" | "Inactive") => {
-                            setStaff(prev => prev.map(staff => staff.id === s.id ? {
-                              ...staff,
-                              status: value
-                            } : staff));
-                          }}>
-                              <SelectTrigger className="h-8 w-24 bg-white">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent className="bg-white">
-                                <SelectItem value="Active">Active</SelectItem>
-                                <SelectItem value="On Leave">On Leave</SelectItem>
-                                <SelectItem value="Inactive">Inactive</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </TableCell>
-                          <TableCell>
-                            <Button variant="ghost" size="icon" onClick={() => handleDeleteStaff(s.id)}>
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </TableCell>
-                        </TableRow>)}
-                    </TableBody>
-                  </Table>
-                </div>
-              </CardContent>
-            </Card>
+                              }} className="h-8 w-20 bg-white" min={0} />
+                              </TableCell>
+                              {/* Gender */}
+                              <TableCell>
+                                <Select value={s.gender} onValueChange={(value: Gender) => {
+                                setStaff(prev => prev.map(staff => staff.id === s.id ? {
+                                  ...staff,
+                                  gender: value
+                                } : staff));
+                              }}>
+                                  <SelectTrigger className="h-8 w-36 bg-white">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent className="bg-white z-50">
+                                    {GENDERS.map(gender => <SelectItem key={gender} value={gender}>{gender}</SelectItem>)}
+                                  </SelectContent>
+                                </Select>
+                              </TableCell>
+                              <TableCell>
+                                <Select value={s.contractType} onValueChange={(value: ContractType) => {
+                                setStaff(prev => prev.map(staff => staff.id === s.id ? {
+                                  ...staff,
+                                  contractType: value
+                                } : staff));
+                              }}>
+                                  <SelectTrigger className="h-8 w-48 bg-white">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent className="bg-white z-50">
+                                    {CONTRACT_TYPES.map(type => <SelectItem key={type} value={type}>{type}</SelectItem>)}
+                                  </SelectContent>
+                                </Select>
+                              </TableCell>
+                              <TableCell>
+                                <Select value={s.status} onValueChange={(value: "Active" | "On Leave" | "Inactive") => {
+                                setStaff(prev => prev.map(staff => staff.id === s.id ? {
+                                  ...staff,
+                                  status: value
+                                } : staff));
+                              }}>
+                                  <SelectTrigger className="h-8 w-24 bg-white">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent className="bg-white">
+                                    <SelectItem value="Active">Active</SelectItem>
+                                    <SelectItem value="On Leave">On Leave</SelectItem>
+                                    <SelectItem value="Inactive">Inactive</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </TableCell>
+                              <TableCell>
+                                <Button variant="ghost" size="icon" onClick={() => handleDeleteStaff(s.id)}>
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </TableCell>
+                            </TableRow>)}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </CardContent>
+                </CollapsibleContent>
+              </Card>
+            </Collapsible>
 
               {/* Staff Available Hours Forecast */}
               <Card>
