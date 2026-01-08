@@ -133,6 +133,7 @@ export const Matching = () => {
   
   // Collapsible states for directories
   const [isStaffDirectoryOpen, setIsStaffDirectoryOpen] = useState(true);
+  const [isServiceUserDirectoryOpen, setIsServiceUserDirectoryOpen] = useState(true);
   
   const toggleServiceUserExpanded = (userId: string) => {
     setExpandedServiceUsers(prev => {
@@ -1293,32 +1294,49 @@ export const Matching = () => {
           <TabsContent value="users" className="space-y-6">
             <div className="grid grid-cols-1 gap-6">
               {/* Service Users Directory */}
-              <Card>
-              <CardHeader className="flex flex-row items-center justify-between border-b">
-                  <CardTitle>Service Users Directory</CardTitle>
-                  <div className="flex items-center gap-3">
-                    <SearchableMultiSelect
-                      options={staff.map(s => ({ id: s.id, name: s.name, subtitle: s.location }))}
-                      selectedIds={userStaffFilter}
-                      onSelectionChange={setUserStaffFilter}
-                      placeholder="Filter by staff..."
-                      allLabel="All Staff"
-                      emptyMessage="No staff found."
-                    />
-                    <SearchableMultiSelect
-                      options={locations.map(loc => ({ id: loc, name: loc }))}
-                      selectedIds={userLocationFilter}
-                      onSelectionChange={setUserLocationFilter}
-                      placeholder="Filter locations..."
-                      allLabel="All Locations"
-                      emptyMessage="No locations found."
-                    />
-                    <Button onClick={() => setIsAddUserOpen(true)}>
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add Service User
-                    </Button>
-                  </div>
-                </CardHeader>
+              <Collapsible open={isServiceUserDirectoryOpen} onOpenChange={setIsServiceUserDirectoryOpen}>
+                <Card>
+                  <CollapsibleTrigger asChild>
+                    <CardHeader className="flex flex-row items-center justify-between border-b cursor-pointer hover:bg-muted/50">
+                      <div className="flex items-center gap-2">
+                        {isServiceUserDirectoryOpen ? (
+                          <ChevronDown className="h-5 w-5 text-muted-foreground" />
+                        ) : (
+                          <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                        )}
+                        <CardTitle>Service Users Directory</CardTitle>
+                        <Badge variant="secondary" className="ml-2">
+                          {serviceUsers
+                            .filter(user => userLocationFilter.length === 0 || userLocationFilter.includes(user.location))
+                            .filter(user => userStaffFilter.length === 0 || user.primaryStaffIds.some(id => userStaffFilter.includes(id)) || user.backupStaffIds.some(id => userStaffFilter.includes(id)))
+                            .length} users
+                        </Badge>
+                      </div>
+                      <div className="flex items-center gap-3" onClick={(e) => e.stopPropagation()}>
+                        <SearchableMultiSelect
+                          options={staff.map(s => ({ id: s.id, name: s.name, subtitle: s.location }))}
+                          selectedIds={userStaffFilter}
+                          onSelectionChange={setUserStaffFilter}
+                          placeholder="Filter by staff..."
+                          allLabel="All Staff"
+                          emptyMessage="No staff found."
+                        />
+                        <SearchableMultiSelect
+                          options={locations.map(loc => ({ id: loc, name: loc }))}
+                          selectedIds={userLocationFilter}
+                          onSelectionChange={setUserLocationFilter}
+                          placeholder="Filter locations..."
+                          allLabel="All Locations"
+                          emptyMessage="No locations found."
+                        />
+                        <Button onClick={() => setIsAddUserOpen(true)}>
+                          <Plus className="h-4 w-4 mr-2" />
+                          Add Service User
+                        </Button>
+                      </div>
+                    </CardHeader>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
                 <CardContent className="pt-6">
                   <div className="overflow-x-auto">
                     <Table>
@@ -1583,7 +1601,9 @@ export const Matching = () => {
                   </Table>
                 </div>
               </CardContent>
-            </Card>
+                </CollapsibleContent>
+              </Card>
+            </Collapsible>
 
               {/* Matching Matrix */}
               <Card>
