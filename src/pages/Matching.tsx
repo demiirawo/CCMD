@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Search, Plus, MapPin, X, Edit2, Trash2, BarChart3, Printer, Check, Loader2, HelpCircle, FileDown } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
+import { TagInput } from "@/components/TagInput";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Progress } from "@/components/ui/progress";
@@ -100,8 +101,8 @@ export const Matching = () => {
     name: "",
     location: "",
     typicalWeeklyHours: 0,
-    supportNeeds: "",
-    interests: "",
+    supportNeeds: [] as string[],
+    interests: [] as string[],
     genderPreference: "No Preference" as GenderPreference
   });
   const [newStaffForm, setNewStaffForm] = useState({
@@ -641,8 +642,8 @@ export const Matching = () => {
       await addServiceUserToDb({
         name: newUserForm.name,
         manager: '',
-        supportNeeds: newUserForm.supportNeeds.split(",").map(s => s.trim()).filter(Boolean),
-        preferences: newUserForm.interests.split(",").map(s => s.trim()).filter(Boolean),
+        supportNeeds: newUserForm.supportNeeds,
+        preferences: newUserForm.interests,
         genderPreference: newUserForm.genderPreference,
         location: newUserForm.location,
         typicalWeeklyHours: newUserForm.typicalWeeklyHours,
@@ -655,8 +656,8 @@ export const Matching = () => {
         name: "",
         location: "",
         typicalWeeklyHours: 0,
-        supportNeeds: "",
-        interests: "",
+        supportNeeds: [],
+        interests: [],
         genderPreference: "No Preference"
       });
       setIsAddUserOpen(false);
@@ -1979,18 +1980,20 @@ export const Matching = () => {
               }))} className="bg-white border-gray-800" />
               </div>
               <div>
-                <Label>Support Needs (comma separated)</Label>
-                <Textarea value={newUserForm.supportNeeds} onChange={e => setNewUserForm(f => ({
-                ...f,
-                supportNeeds: e.target.value
-              }))} placeholder="Personal Care, Community Access" className="bg-white border-gray-800" />
+                <Label>Support Needs</Label>
+                <TagInput
+                  tags={newUserForm.supportNeeds}
+                  onChange={tags => setNewUserForm(f => ({ ...f, supportNeeds: tags }))}
+                  placeholder="Add support need..."
+                />
               </div>
               <div>
-                <Label>Interests (comma separated)</Label>
-                <Textarea value={newUserForm.interests} onChange={e => setNewUserForm(f => ({
-                ...f,
-                interests: e.target.value
-              }))} placeholder="Gardening, Music, Reading" className="bg-white border-gray-800" />
+                <Label>Interests</Label>
+                <TagInput
+                  tags={newUserForm.interests}
+                  onChange={tags => setNewUserForm(f => ({ ...f, interests: tags }))}
+                  placeholder="Add interest..."
+                />
               </div>
               <div>
                 <Label>Gender Preference</Label>
