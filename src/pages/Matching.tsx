@@ -45,8 +45,8 @@ export const Matching = () => {
   const [locationFilter, setLocationFilter] = useState<string>("all");
   const [managerFilter, setManagerFilter] = useState<string>("all");
   const [supportTypeFilter, setSupportTypeFilter] = useState<string>("all");
-  const [userLocationFilter, setUserLocationFilter] = useState<string>("all");
-  const [staffLocationFilter, setStaffLocationFilter] = useState<string>("all");
+  const [userLocationFilter, setUserLocationFilter] = useState<string[]>([]);
+  const [staffLocationFilter, setStaffLocationFilter] = useState<string[]>([]);
   const [selectedServiceUser, setSelectedServiceUser] = useState<ServiceUser | null>(null);
   const [selectedStaff, setSelectedStaff] = useState<Staff | null>(null);
   const [hoveredConnection, setHoveredConnection] = useState<{
@@ -144,7 +144,7 @@ export const Matching = () => {
   };
   
   const expandAllServiceUsers = () => {
-    const filteredUsers = serviceUsers.filter(user => userLocationFilter === "all" || user.location === userLocationFilter);
+    const filteredUsers = serviceUsers.filter(user => userLocationFilter.length === 0 || userLocationFilter.includes(user.location));
     setExpandedServiceUsers(new Set(filteredUsers.map(u => u.id)));
   };
   
@@ -1294,16 +1294,14 @@ export const Matching = () => {
               <CardHeader className="flex flex-row items-center justify-between border-b">
                   <CardTitle>Service Users Directory</CardTitle>
                   <div className="flex items-center gap-3">
-                    <Select value={userLocationFilter} onValueChange={setUserLocationFilter}>
-                      <SelectTrigger className="w-40 bg-white">
-                        
-                        <SelectValue placeholder="All Locations" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-white z-50">
-                        <SelectItem value="all">All Locations</SelectItem>
-                        {locations.map(loc => <SelectItem key={loc} value={loc}>{loc}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
+                    <SearchableMultiSelect
+                      options={locations.map(loc => ({ id: loc, name: loc }))}
+                      selectedIds={userLocationFilter}
+                      onSelectionChange={setUserLocationFilter}
+                      placeholder="Filter locations..."
+                      allLabel="All Locations"
+                      emptyMessage="No locations found."
+                    />
                     <Button onClick={() => setIsAddUserOpen(true)}>
                       <Plus className="h-4 w-4 mr-2" />
                       Add Service User
@@ -1325,7 +1323,7 @@ export const Matching = () => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {serviceUsers.filter(user => userLocationFilter === "all" || user.location === userLocationFilter).map(user => <TableRow key={user.id}>
+                      {serviceUsers.filter(user => userLocationFilter.length === 0 || userLocationFilter.includes(user.location)).map(user => <TableRow key={user.id}>
                           {/* Name */}
                           <TableCell className="font-medium cursor-pointer hover:bg-muted/50" onDoubleClick={() => {
                           setEditingCell({
@@ -1580,7 +1578,7 @@ export const Matching = () => {
                   <div className="flex items-center gap-2">
                     <SearchableMultiSelect
                       options={serviceUsers
-                        .filter(user => userLocationFilter === "all" || user.location === userLocationFilter)
+                        .filter(user => userLocationFilter.length === 0 || userLocationFilter.includes(user.location))
                         .map(user => ({ id: user.id, name: user.name, subtitle: user.location }))}
                       selectedIds={forecastServiceUserFilter}
                       onSelectionChange={(ids) => {
@@ -1614,7 +1612,7 @@ export const Matching = () => {
                     </TableHeader>
                     <TableBody>
                       {serviceUsers
-                        .filter(user => userLocationFilter === "all" || user.location === userLocationFilter)
+                        .filter(user => userLocationFilter.length === 0 || userLocationFilter.includes(user.location))
                         .filter(user => forecastServiceUserFilter.length === 0 || forecastServiceUserFilter.includes(user.id))
                         .map((user, index) => {
                         const staffMemberObj = staff.find(s => s.id === user.primaryStaffIds[0]);
@@ -1810,19 +1808,18 @@ export const Matching = () => {
                         )}
                         <CardTitle>Staff Directory</CardTitle>
                         <Badge variant="secondary" className="ml-2">
-                          {staff.filter(s => staffLocationFilter === "all" || s.location === staffLocationFilter).length} staff
+                          {staff.filter(s => staffLocationFilter.length === 0 || staffLocationFilter.includes(s.location)).length} staff
                         </Badge>
                       </div>
                       <div className="flex items-center gap-3" onClick={(e) => e.stopPropagation()}>
-                        <Select value={staffLocationFilter} onValueChange={setStaffLocationFilter}>
-                          <SelectTrigger className="w-40 bg-white">
-                            <SelectValue placeholder="All Locations" />
-                          </SelectTrigger>
-                          <SelectContent className="bg-white z-50">
-                            <SelectItem value="all">All Locations</SelectItem>
-                            {locations.map(loc => <SelectItem key={loc} value={loc}>{loc}</SelectItem>)}
-                          </SelectContent>
-                        </Select>
+                        <SearchableMultiSelect
+                          options={locations.map(loc => ({ id: loc, name: loc }))}
+                          selectedIds={staffLocationFilter}
+                          onSelectionChange={setStaffLocationFilter}
+                          placeholder="Filter locations..."
+                          allLabel="All Locations"
+                          emptyMessage="No locations found."
+                        />
                         <Button onClick={() => setIsAddStaffOpen(true)}>
                           <Plus className="h-4 w-4 mr-2" />
                           Add Staff Member
@@ -1846,7 +1843,7 @@ export const Matching = () => {
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {staff.filter(s => staffLocationFilter === "all" || s.location === staffLocationFilter).map(s => <TableRow key={s.id}>
+                          {staff.filter(s => staffLocationFilter.length === 0 || staffLocationFilter.includes(s.location)).map(s => <TableRow key={s.id}>
                               <TableCell className="font-medium">{s.name}</TableCell>
                               <TableCell>
                                 <Select value={s.location} onValueChange={value => {
@@ -1961,7 +1958,7 @@ export const Matching = () => {
                   <div className="flex items-center gap-2">
                     <SearchableMultiSelect
                       options={staff
-                        .filter(s => staffLocationFilter === "all" || s.location === staffLocationFilter)
+                        .filter(s => staffLocationFilter.length === 0 || staffLocationFilter.includes(s.location))
                         .sort((a, b) => a.name.localeCompare(b.name))
                         .map(s => ({ id: s.id, name: s.name, subtitle: s.location }))}
                       selectedIds={forecastStaffFilter}
@@ -1983,7 +1980,7 @@ export const Matching = () => {
                       </TableHeader>
                       <TableBody>
                         {staff
-                          .filter(s => staffLocationFilter === "all" || s.location === staffLocationFilter)
+                          .filter(s => staffLocationFilter.length === 0 || staffLocationFilter.includes(s.location))
                           .filter(s => forecastStaffFilter.length === 0 || forecastStaffFilter.includes(s.id))
                           .sort((a, b) => a.name.localeCompare(b.name))
                           .map(s => <TableRow key={s.id} id={`staff-forecast-${s.id}`}>
