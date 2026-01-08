@@ -134,18 +134,41 @@ export const Matching = () => {
     field: 'required' | 'allocated' | 'unallocated';
   } | null>(null);
 
-  // Calculate utilisation forecast from matrices
-  const getCalculatedUtilisation = (week: string) => {
-    // Required hours = sum of all service users' forecast hours for that week
-    const required = serviceUsers.reduce((sum, user) => sum + (user.forecastHours[week] || 0), 0);
+  // Get filtered service users and staff based on current filters
+  const filteredServiceUsersForUtilisation = useMemo(() => {
+    let filtered = serviceUsers;
+    if (managerFilter !== "all") {
+      filtered = filtered.filter(u => u.manager === managerFilter);
+    }
+    if (locationFilter !== "all") {
+      filtered = filtered.filter(u => u.location === locationFilter);
+    }
+    return filtered;
+  }, [serviceUsers, managerFilter, locationFilter]);
 
-    // Allocated hours = sum of all primary staff allocations across all service users
-    const allocated = serviceUsers.reduce((sum, user) => {
+  const filteredStaffForUtilisation = useMemo(() => {
+    let filtered = staff;
+    if (managerFilter !== "all") {
+      filtered = filtered.filter(s => s.manager === managerFilter);
+    }
+    if (locationFilter !== "all") {
+      filtered = filtered.filter(s => s.location === locationFilter);
+    }
+    return filtered;
+  }, [staff, managerFilter, locationFilter]);
+
+  // Calculate utilisation forecast from matrices (respects current filters)
+  const getCalculatedUtilisation = (week: string) => {
+    // Required hours = sum of filtered service users' forecast hours for that week
+    const required = filteredServiceUsersForUtilisation.reduce((sum, user) => sum + (user.forecastHours[week] || 0), 0);
+
+    // Allocated hours = sum of all primary staff allocations across filtered service users
+    const allocated = filteredServiceUsersForUtilisation.reduce((sum, user) => {
       return sum + user.staffAllocations.filter(a => user.primaryStaffIds.includes(a.staffId)).reduce((allocSum, a) => allocSum + (a.allocatedHours[week] || 0), 0);
     }, 0);
 
-    // Unallocated hours = total staff available hours - allocated hours
-    const totalStaffAvailable = staff.reduce((sum, s) => sum + (s.forecastHours[week] || 0), 0);
+    // Unallocated hours = total filtered staff available hours - allocated hours
+    const totalStaffAvailable = filteredStaffForUtilisation.reduce((sum, s) => sum + (s.forecastHours[week] || 0), 0);
     const unallocated = totalStaffAvailable - allocated;
     return {
       required,
@@ -967,8 +990,8 @@ export const Matching = () => {
                           const allocatedHours = getUtilisationValue(week, 'allocated');
                           const unallocatedHours = getUtilisationValue(week, 'unallocated');
                           const totalAvailableHours = allocatedHours + unallocatedHours;
-                          // Available Staff Hours = sum of all staff forecast hours for that week
-                          const availableStaffHours = staff.reduce((sum, s) => sum + (s.forecastHours[week] || 0), 0);
+                          // Available Staff Hours = sum of filtered staff forecast hours for that week
+                          const availableStaffHours = filteredStaffForUtilisation.reduce((sum, s) => sum + (s.forecastHours[week] || 0), 0);
                           // Utilisation = allocated hours / total available hours (what % of available capacity is being used)
                           const utilisation = totalAvailableHours > 0 ? allocatedHours / totalAvailableHours * 100 : 0;
 
