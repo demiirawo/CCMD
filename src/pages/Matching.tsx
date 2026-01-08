@@ -128,6 +128,9 @@ export const Matching = () => {
   const [forecastServiceUserFilter, setForecastServiceUserFilter] = useState<string[]>([]);
   const [forecastStaffFilter, setForecastStaffFilter] = useState<string[]>([]);
   
+  // Filter state for service user directory by assigned staff
+  const [userStaffFilter, setUserStaffFilter] = useState<string[]>([]);
+  
   // Collapsible states for directories
   const [isStaffDirectoryOpen, setIsStaffDirectoryOpen] = useState(true);
   
@@ -1295,6 +1298,14 @@ export const Matching = () => {
                   <CardTitle>Service Users Directory</CardTitle>
                   <div className="flex items-center gap-3">
                     <SearchableMultiSelect
+                      options={staff.map(s => ({ id: s.id, name: s.name, subtitle: s.location }))}
+                      selectedIds={userStaffFilter}
+                      onSelectionChange={setUserStaffFilter}
+                      placeholder="Filter by staff..."
+                      allLabel="All Staff"
+                      emptyMessage="No staff found."
+                    />
+                    <SearchableMultiSelect
                       options={locations.map(loc => ({ id: loc, name: loc }))}
                       selectedIds={userLocationFilter}
                       onSelectionChange={setUserLocationFilter}
@@ -1323,7 +1334,10 @@ export const Matching = () => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {serviceUsers.filter(user => userLocationFilter.length === 0 || userLocationFilter.includes(user.location)).map(user => <TableRow key={user.id}>
+                      {serviceUsers
+                        .filter(user => userLocationFilter.length === 0 || userLocationFilter.includes(user.location))
+                        .filter(user => userStaffFilter.length === 0 || user.primaryStaffIds.some(id => userStaffFilter.includes(id)) || user.backupStaffIds.some(id => userStaffFilter.includes(id)))
+                        .map(user => <TableRow key={user.id}>
                           {/* Name */}
                           <TableCell className="font-medium cursor-pointer hover:bg-muted/50" onDoubleClick={() => {
                           setEditingCell({
