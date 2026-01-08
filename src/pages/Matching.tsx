@@ -878,7 +878,7 @@ export const Matching = () => {
                                 </TooltipTrigger>
                                 <TooltipContent className="bg-white max-w-xs">
                                   <p className="text-sm font-semibold mb-1">Total hours needed by all service users for the week</p>
-                                  <p className="text-xs text-muted-foreground">Colour logic: <span className="text-green-600">Green</span> = Required &gt; Allocated (capacity available), <span className="text-red-600">Red</span> = Required &lt; Allocated (over-allocated)</p>
+                                  <p className="text-xs text-muted-foreground">Colour logic: <span className="text-green-600">Green</span> = Required ≤ Available Staff Hours (enough capacity), <span className="text-red-600">Red</span> = Required &gt; Available Staff Hours (understaffed)</p>
                                 </TooltipContent>
                               </Tooltip>
                             </TooltipProvider>
