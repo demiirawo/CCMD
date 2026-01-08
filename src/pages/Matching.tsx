@@ -1942,8 +1942,37 @@ export const Matching = () => {
 
               {/* Staff Available Hours Forecast */}
               <Card>
-                <CardHeader className="border-b">
+                <CardHeader className="border-b flex flex-row items-center justify-between">
                   <CardTitle>Available Hours Forecast (8 Weeks)</CardTitle>
+                  <div className="flex items-center gap-2">
+                    <Select
+                      value=""
+                      onValueChange={(staffId) => {
+                        if (staffId) {
+                          setTimeout(() => {
+                            const element = document.getElementById(`staff-forecast-${staffId}`);
+                            if (element) {
+                              element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            }
+                          }, 100);
+                        }
+                      }}
+                    >
+                      <SelectTrigger className="w-[200px] bg-white">
+                        <SelectValue placeholder="Jump to staff member..." />
+                      </SelectTrigger>
+                      <SelectContent className="bg-white">
+                        {staff
+                          .filter(s => staffLocationFilter === "all" || s.location === staffLocationFilter)
+                          .sort((a, b) => a.name.localeCompare(b.name))
+                          .map(s => (
+                            <SelectItem key={s.id} value={s.id}>
+                              {s.name}
+                            </SelectItem>
+                          ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </CardHeader>
                 <CardContent className="pt-6">
                   <div className="overflow-x-auto">
@@ -1955,7 +1984,10 @@ export const Matching = () => {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {staff.filter(s => staffLocationFilter === "all" || s.location === staffLocationFilter).map(s => <TableRow key={s.id}>
+                        {staff
+                          .filter(s => staffLocationFilter === "all" || s.location === staffLocationFilter)
+                          .sort((a, b) => a.name.localeCompare(b.name))
+                          .map(s => <TableRow key={s.id} id={`staff-forecast-${s.id}`}>
                             <TableCell className="font-medium sticky left-0 bg-background">
                               <div className="flex flex-col">
                                 <span>{s.name}</span>
