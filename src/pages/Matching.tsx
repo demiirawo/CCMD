@@ -128,8 +128,11 @@ export const Matching = () => {
   const [forecastServiceUserFilter, setForecastServiceUserFilter] = useState<string[]>([]);
   const [forecastStaffFilter, setForecastStaffFilter] = useState<string[]>([]);
   
-  // Filter state for service user directory by assigned staff
-  const [userStaffFilter, setUserStaffFilter] = useState<string[]>([]);
+  // Filter state for service user directory by service user
+  const [userServiceUserFilter, setUserServiceUserFilter] = useState<string[]>([]);
+  
+  // Filter state for staff directory by assigned service users
+  const [staffServiceUserFilter, setStaffServiceUserFilter] = useState<string[]>([]);
   
   // Collapsible states for directories
   const [isStaffDirectoryOpen, setIsStaffDirectoryOpen] = useState(true);
@@ -1308,18 +1311,18 @@ export const Matching = () => {
                         <Badge variant="secondary" className="ml-2">
                           {serviceUsers
                             .filter(user => userLocationFilter.length === 0 || userLocationFilter.includes(user.location))
-                            .filter(user => userStaffFilter.length === 0 || user.primaryStaffIds.some(id => userStaffFilter.includes(id)) || user.backupStaffIds.some(id => userStaffFilter.includes(id)))
+                            .filter(user => userServiceUserFilter.length === 0 || userServiceUserFilter.includes(user.id))
                             .length} users
                         </Badge>
                       </div>
                       <div className="flex items-center gap-3" onClick={(e) => e.stopPropagation()}>
                         <SearchableMultiSelect
-                          options={staff.map(s => ({ id: s.id, name: s.name, subtitle: s.location }))}
-                          selectedIds={userStaffFilter}
-                          onSelectionChange={setUserStaffFilter}
-                          placeholder="Filter by staff..."
-                          allLabel="All Staff"
-                          emptyMessage="No staff found."
+                          options={serviceUsers.map(u => ({ id: u.id, name: u.name, subtitle: u.location }))}
+                          selectedIds={userServiceUserFilter}
+                          onSelectionChange={setUserServiceUserFilter}
+                          placeholder="Filter by service user..."
+                          allLabel="All Service Users"
+                          emptyMessage="No service users found."
                         />
                         <SearchableMultiSelect
                           options={locations.map(loc => ({ id: loc, name: loc }))}
@@ -1354,7 +1357,7 @@ export const Matching = () => {
                     <TableBody>
                       {serviceUsers
                         .filter(user => userLocationFilter.length === 0 || userLocationFilter.includes(user.location))
-                        .filter(user => userStaffFilter.length === 0 || user.primaryStaffIds.some(id => userStaffFilter.includes(id)) || user.backupStaffIds.some(id => userStaffFilter.includes(id)))
+                        .filter(user => userServiceUserFilter.length === 0 || userServiceUserFilter.includes(user.id))
                         .map(user => <TableRow key={user.id}>
                           {/* Name */}
                           <TableCell className="font-medium cursor-pointer hover:bg-muted/50" onDoubleClick={() => {
@@ -1842,10 +1845,21 @@ export const Matching = () => {
                         )}
                         <CardTitle>Staff Directory</CardTitle>
                         <Badge variant="secondary" className="ml-2">
-                          {staff.filter(s => staffLocationFilter.length === 0 || staffLocationFilter.includes(s.location)).length} staff
+                          {staff
+                            .filter(s => staffLocationFilter.length === 0 || staffLocationFilter.includes(s.location))
+                            .filter(s => staffServiceUserFilter.length === 0 || serviceUsers.some(u => (u.primaryStaffIds.includes(s.id) || u.backupStaffIds.includes(s.id)) && staffServiceUserFilter.includes(u.id)))
+                            .length} staff
                         </Badge>
                       </div>
                       <div className="flex items-center gap-3" onClick={(e) => e.stopPropagation()}>
+                        <SearchableMultiSelect
+                          options={serviceUsers.map(u => ({ id: u.id, name: u.name, subtitle: u.location }))}
+                          selectedIds={staffServiceUserFilter}
+                          onSelectionChange={setStaffServiceUserFilter}
+                          placeholder="Filter by service user..."
+                          allLabel="All Service Users"
+                          emptyMessage="No service users found."
+                        />
                         <SearchableMultiSelect
                           options={locations.map(loc => ({ id: loc, name: loc }))}
                           selectedIds={staffLocationFilter}
@@ -1877,7 +1891,10 @@ export const Matching = () => {
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {staff.filter(s => staffLocationFilter.length === 0 || staffLocationFilter.includes(s.location)).map(s => <TableRow key={s.id}>
+                          {staff
+                            .filter(s => staffLocationFilter.length === 0 || staffLocationFilter.includes(s.location))
+                            .filter(s => staffServiceUserFilter.length === 0 || serviceUsers.some(u => (u.primaryStaffIds.includes(s.id) || u.backupStaffIds.includes(s.id)) && staffServiceUserFilter.includes(u.id)))
+                            .map(s => <TableRow key={s.id}>
                               <TableCell className="font-medium">{s.name}</TableCell>
                               <TableCell>
                                 <Select value={s.location} onValueChange={value => {
