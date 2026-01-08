@@ -885,12 +885,12 @@ export const Matching = () => {
                       })()}
                       </span>
                     </div>
-                    <div className="p-6 max-h-[400px] overflow-y-auto">
+                    <div className="p-6">
                     <Table>
-                      <TableHeader className="sticky top-0 z-10">
-                        <TableRow className="bg-white">
-                          <TableHead className="text-xs py-1 bg-white">Week</TableHead>
-                          <TableHead className="text-xs py-1 text-right bg-white">
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="text-xs py-1">Week</TableHead>
+                          <TableHead className="text-xs py-1 text-right">
                             <TooltipProvider>
                               <Tooltip>
                                 <TooltipTrigger asChild>
@@ -906,7 +906,7 @@ export const Matching = () => {
                               </Tooltip>
                             </TooltipProvider>
                           </TableHead>
-                          <TableHead className="text-xs py-1 text-right bg-white">
+                          <TableHead className="text-xs py-1 text-right">
                             <TooltipProvider>
                               <Tooltip>
                                 <TooltipTrigger asChild>
@@ -921,7 +921,7 @@ export const Matching = () => {
                               </Tooltip>
                             </TooltipProvider>
                           </TableHead>
-                          <TableHead className="text-xs py-1 text-right bg-white">
+                          <TableHead className="text-xs py-1 text-right">
                             <TooltipProvider>
                               <Tooltip>
                                 <TooltipTrigger asChild>
@@ -936,7 +936,7 @@ export const Matching = () => {
                               </Tooltip>
                             </TooltipProvider>
                           </TableHead>
-                          <TableHead className="text-xs py-1 text-right bg-white">
+                          <TableHead className="text-xs py-1 text-right">
                             <TooltipProvider>
                               <Tooltip>
                                 <TooltipTrigger asChild>
@@ -952,7 +952,7 @@ export const Matching = () => {
                               </Tooltip>
                             </TooltipProvider>
                           </TableHead>
-                          <TableHead className="text-xs py-1 text-right bg-white">
+                          <TableHead className="text-xs py-1 text-right">
                             <TooltipProvider>
                               <Tooltip>
                                 <TooltipTrigger asChild>
@@ -967,7 +967,7 @@ export const Matching = () => {
                               </Tooltip>
                             </TooltipProvider>
                           </TableHead>
-                          <TableHead className="text-xs py-1 text-right bg-white">
+                          <TableHead className="text-xs py-1 text-right">
                             <TooltipProvider>
                               <Tooltip>
                                 <TooltipTrigger asChild>
