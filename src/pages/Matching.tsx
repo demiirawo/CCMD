@@ -127,6 +127,8 @@ export const Matching = () => {
   // Filter states for forecast tables
   const [forecastServiceUserFilter, setForecastServiceUserFilter] = useState<string[]>([]);
   const [forecastStaffFilter, setForecastStaffFilter] = useState<string[]>([]);
+  const [forecastServiceUserLocationFilter, setForecastServiceUserLocationFilter] = useState<string[]>([]);
+  const [forecastStaffLocationFilter, setForecastStaffLocationFilter] = useState<string[]>([]);
   
   // Filter state for service user directory by service user
   const [userServiceUserFilter, setUserServiceUserFilter] = useState<string[]>([]);
@@ -1615,7 +1617,7 @@ export const Matching = () => {
                   <div className="flex items-center gap-2">
                     <SearchableMultiSelect
                       options={serviceUsers
-                        .filter(user => userLocationFilter.length === 0 || userLocationFilter.includes(user.location))
+                        .filter(user => forecastServiceUserLocationFilter.length === 0 || forecastServiceUserLocationFilter.includes(user.location))
                         .map(user => ({ id: user.id, name: user.name, subtitle: user.location }))}
                       selectedIds={forecastServiceUserFilter}
                       onSelectionChange={(ids) => {
@@ -1627,6 +1629,14 @@ export const Matching = () => {
                       placeholder="Filter service users..."
                       allLabel="All Service Users"
                       emptyMessage="No service users found."
+                    />
+                    <SearchableMultiSelect
+                      options={locations.map(loc => ({ id: loc, name: loc }))}
+                      selectedIds={forecastServiceUserLocationFilter}
+                      onSelectionChange={setForecastServiceUserLocationFilter}
+                      placeholder="Filter by location..."
+                      allLabel="All Locations"
+                      emptyMessage="No locations found."
                     />
                     <Button variant="outline" size="sm" onClick={expandAllServiceUsers}>
                       <ChevronDown className="h-4 w-4 mr-1" />
@@ -1649,7 +1659,7 @@ export const Matching = () => {
                     </TableHeader>
                     <TableBody>
                       {serviceUsers
-                        .filter(user => userLocationFilter.length === 0 || userLocationFilter.includes(user.location))
+                        .filter(user => forecastServiceUserLocationFilter.length === 0 || forecastServiceUserLocationFilter.includes(user.location))
                         .filter(user => forecastServiceUserFilter.length === 0 || forecastServiceUserFilter.includes(user.id))
                         .map((user, index) => {
                         const staffMemberObj = staff.find(s => s.id === user.primaryStaffIds[0]);
@@ -2009,7 +2019,7 @@ export const Matching = () => {
                   <div className="flex items-center gap-2">
                     <SearchableMultiSelect
                       options={staff
-                        .filter(s => staffLocationFilter.length === 0 || staffLocationFilter.includes(s.location))
+                        .filter(s => forecastStaffLocationFilter.length === 0 || forecastStaffLocationFilter.includes(s.location))
                         .sort((a, b) => a.name.localeCompare(b.name))
                         .map(s => ({ id: s.id, name: s.name, subtitle: s.location }))}
                       selectedIds={forecastStaffFilter}
@@ -2017,6 +2027,14 @@ export const Matching = () => {
                       placeholder="Filter staff..."
                       allLabel="All Staff Members"
                       emptyMessage="No staff found."
+                    />
+                    <SearchableMultiSelect
+                      options={locations.map(loc => ({ id: loc, name: loc }))}
+                      selectedIds={forecastStaffLocationFilter}
+                      onSelectionChange={setForecastStaffLocationFilter}
+                      placeholder="Filter by location..."
+                      allLabel="All Locations"
+                      emptyMessage="No locations found."
                     />
                   </div>
                 </CardHeader>
@@ -2031,7 +2049,7 @@ export const Matching = () => {
                       </TableHeader>
                       <TableBody>
                         {staff
-                          .filter(s => staffLocationFilter.length === 0 || staffLocationFilter.includes(s.location))
+                          .filter(s => forecastStaffLocationFilter.length === 0 || forecastStaffLocationFilter.includes(s.location))
                           .filter(s => forecastStaffFilter.length === 0 || forecastStaffFilter.includes(s.id))
                           .sort((a, b) => a.name.localeCompare(b.name))
                           .map(s => <TableRow key={s.id} id={`staff-forecast-${s.id}`}>
