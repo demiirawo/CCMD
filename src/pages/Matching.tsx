@@ -122,6 +122,10 @@ export const Matching = () => {
   // Track which service users are expanded in the allocation table
   const [expandedServiceUsers, setExpandedServiceUsers] = useState<Set<string>>(new Set());
   
+  // Filter states for forecast tables
+  const [forecastServiceUserFilter, setForecastServiceUserFilter] = useState<string>("all");
+  const [forecastStaffFilter, setForecastStaffFilter] = useState<string>("all");
+  
   const toggleServiceUserExpanded = (userId: string) => {
     setExpandedServiceUsers(prev => {
       const newSet = new Set(prev);
@@ -1570,24 +1574,19 @@ export const Matching = () => {
                   <CardTitle>Required Hours Forecast (8 Weeks)</CardTitle>
                   <div className="flex items-center gap-2">
                     <Select
-                      value=""
+                      value={forecastServiceUserFilter}
                       onValueChange={(userId) => {
-                        if (userId) {
+                        setForecastServiceUserFilter(userId);
+                        if (userId !== "all") {
                           setExpandedServiceUsers(prev => new Set([...prev, userId]));
-                          // Scroll to the service user row
-                          setTimeout(() => {
-                            const element = document.getElementById(`forecast-user-${userId}`);
-                            if (element) {
-                              element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                            }
-                          }, 100);
                         }
                       }}
                     >
                       <SelectTrigger className="w-[200px] bg-white">
-                        <SelectValue placeholder="Jump to service user..." />
+                        <SelectValue placeholder="Filter service user..." />
                       </SelectTrigger>
                       <SelectContent className="bg-white">
+                        <SelectItem value="all">All Service Users</SelectItem>
                         {serviceUsers
                           .filter(user => userLocationFilter === "all" || user.location === userLocationFilter)
                           .map(user => (
@@ -1617,7 +1616,10 @@ export const Matching = () => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {serviceUsers.filter(user => userLocationFilter === "all" || user.location === userLocationFilter).map((user, index) => {
+                      {serviceUsers
+                        .filter(user => userLocationFilter === "all" || user.location === userLocationFilter)
+                        .filter(user => forecastServiceUserFilter === "all" || user.id === forecastServiceUserFilter)
+                        .map((user, index) => {
                         const staffMemberObj = staff.find(s => s.id === user.primaryStaffIds[0]);
                         return <>
                           {/* Service User Row */}
@@ -1946,22 +1948,14 @@ export const Matching = () => {
                   <CardTitle>Available Hours Forecast (8 Weeks)</CardTitle>
                   <div className="flex items-center gap-2">
                     <Select
-                      value=""
-                      onValueChange={(staffId) => {
-                        if (staffId) {
-                          setTimeout(() => {
-                            const element = document.getElementById(`staff-forecast-${staffId}`);
-                            if (element) {
-                              element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                            }
-                          }, 100);
-                        }
-                      }}
+                      value={forecastStaffFilter}
+                      onValueChange={setForecastStaffFilter}
                     >
                       <SelectTrigger className="w-[200px] bg-white">
-                        <SelectValue placeholder="Jump to staff member..." />
+                        <SelectValue placeholder="Filter staff member..." />
                       </SelectTrigger>
                       <SelectContent className="bg-white">
+                        <SelectItem value="all">All Staff Members</SelectItem>
                         {staff
                           .filter(s => staffLocationFilter === "all" || s.location === staffLocationFilter)
                           .sort((a, b) => a.name.localeCompare(b.name))
@@ -1986,6 +1980,7 @@ export const Matching = () => {
                       <TableBody>
                         {staff
                           .filter(s => staffLocationFilter === "all" || s.location === staffLocationFilter)
+                          .filter(s => forecastStaffFilter === "all" || s.id === forecastStaffFilter)
                           .sort((a, b) => a.name.localeCompare(b.name))
                           .map(s => <TableRow key={s.id} id={`staff-forecast-${s.id}`}>
                             <TableCell className="font-medium sticky left-0 bg-background">
