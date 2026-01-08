@@ -34,12 +34,15 @@ export const SearchableMultiSelect = ({
   const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
+  // Ensure selectedIds is always an array
+  const safeSelectedIds = Array.isArray(selectedIds) ? selectedIds : [];
+
   const filteredOptions = options.filter(option =>
     option.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     (option.subtitle && option.subtitle.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
-  const isAllSelected = selectedIds.length === 0;
+  const isAllSelected = safeSelectedIds.length === 0;
 
   const handleSelectAll = () => {
     onSelectionChange([]);
@@ -47,28 +50,28 @@ export const SearchableMultiSelect = ({
   };
 
   const handleToggleItem = (id: string) => {
-    if (selectedIds.includes(id)) {
-      const newIds = selectedIds.filter(i => i !== id);
+    if (safeSelectedIds.includes(id)) {
+      const newIds = safeSelectedIds.filter(i => i !== id);
       onSelectionChange(newIds);
     } else {
-      onSelectionChange([...selectedIds, id]);
+      onSelectionChange([...safeSelectedIds, id]);
     }
   };
 
   const handleRemoveItem = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    onSelectionChange(selectedIds.filter(i => i !== id));
+    onSelectionChange(safeSelectedIds.filter(i => i !== id));
   };
 
   const getDisplayText = () => {
-    if (selectedIds.length === 0) {
+    if (safeSelectedIds.length === 0) {
       return allLabel;
     }
-    if (selectedIds.length === 1) {
-      const item = options.find(o => o.id === selectedIds[0]);
+    if (safeSelectedIds.length === 1) {
+      const item = options.find(o => o.id === safeSelectedIds[0]);
       return item?.name || placeholder;
     }
-    return `${selectedIds.length} selected`;
+    return `${safeSelectedIds.length} selected`;
   };
 
   return (
@@ -116,7 +119,7 @@ export const SearchableMultiSelect = ({
                   <Check
                     className={cn(
                       "mr-2 h-4 w-4",
-                      selectedIds.includes(option.id) ? "opacity-100" : "opacity-0"
+                      safeSelectedIds.includes(option.id) ? "opacity-100" : "opacity-0"
                     )}
                   />
                   <div className="flex flex-col">
@@ -130,9 +133,9 @@ export const SearchableMultiSelect = ({
             </CommandGroup>
           </CommandList>
         </Command>
-        {selectedIds.length > 0 && (
+        {safeSelectedIds.length > 0 && (
           <div className="border-t p-2 flex flex-wrap gap-1">
-            {selectedIds.slice(0, 3).map(id => {
+            {safeSelectedIds.slice(0, 3).map(id => {
               const item = options.find(o => o.id === id);
               return (
                 <Badge key={id} variant="secondary" className="text-xs">
@@ -144,9 +147,9 @@ export const SearchableMultiSelect = ({
                 </Badge>
               );
             })}
-            {selectedIds.length > 3 && (
+            {safeSelectedIds.length > 3 && (
               <Badge variant="secondary" className="text-xs">
-                +{selectedIds.length - 3} more
+                +{safeSelectedIds.length - 3} more
               </Badge>
             )}
           </div>
