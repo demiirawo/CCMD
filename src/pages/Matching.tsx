@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, useRef } from "react";
+import { useState, useCallback, useMemo, useRef, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -167,14 +167,33 @@ export const Matching = () => {
       required?: number;
       allocated?: number;
       unallocated?: number;
+      availableStaffHours?: number;
     };
   }>({});
 
   // Track which cell is being edited
   const [editingUtilisationCell, setEditingUtilisationCell] = useState<{
     week: string;
-    field: 'required' | 'allocated' | 'unallocated';
+    field: 'required' | 'allocated' | 'unallocated' | 'availableStaffHours';
   } | null>(null);
+
+  // Clear availableStaffHours overrides when staff data changes (recalculate from actual data)
+  useEffect(() => {
+    setUtilisationOverrides(prev => {
+      const updated = { ...prev };
+      Object.keys(updated).forEach(week => {
+        if (updated[week]?.availableStaffHours !== undefined) {
+          const { availableStaffHours, ...rest } = updated[week];
+          updated[week] = rest;
+          // Clean up empty week objects
+          if (Object.keys(updated[week]).length === 0) {
+            delete updated[week];
+          }
+        }
+      });
+      return updated;
+    });
+  }, [staff]);
 
   // Get filtered service users and staff based on current filters
   const filteredServiceUsersForUtilisation = useMemo(() => {
@@ -1049,7 +1068,7 @@ export const Matching = () => {
                           } else if (utilisation >= 95) {
                             utilisationColor = "text-red-600"; // over-utilised (>95%)
                           }
-                          const handleOverride = (field: 'required' | 'allocated' | 'unallocated', value: number) => {
+                          const handleOverride = (field: 'required' | 'allocated' | 'unallocated' | 'availableStaffHours', value: number) => {
                             setUtilisationOverrides(prev => ({
                               ...prev,
                               [week]: {
@@ -1059,10 +1078,10 @@ export const Matching = () => {
                             }));
                             setEditingUtilisationCell(null);
                           };
-                          const isOverridden = (field: 'required' | 'allocated' | 'unallocated') => {
+                          const isOverridden = (field: 'required' | 'allocated' | 'unallocated' | 'availableStaffHours') => {
                             return utilisationOverrides[week]?.[field] !== undefined;
                           };
-                          const renderCell = (field: 'required' | 'allocated' | 'unallocated', value: number) => {
+                          const renderCell = (field: 'required' | 'allocated' | 'unallocated' | 'availableStaffHours', value: number) => {
                             const isEditing = editingUtilisationCell?.week === week && editingUtilisationCell?.field === field;
                             if (isEditing) {
                               return <Input type="number" defaultValue={value} onBlur={e => handleOverride(field, parseFloat(e.target.value) || 0)} onKeyDown={e => {
@@ -1080,14 +1099,18 @@ export const Matching = () => {
                                 {value}
                               </span>;
                           };
+                          // Get the actual available staff hours (use override if set, otherwise calculated)
+                          const displayedAvailableStaffHours = utilisationOverrides[week]?.availableStaffHours ?? availableStaffHours;
                           // Determine required hours color: red if required > available (understaffed), green if required <= available (enough capacity)
-                          const requiredHoursColor = requiredHours > availableStaffHours ? 'text-red-600' : 'text-green-600';
+                          const requiredHoursColor = requiredHours > displayedAvailableStaffHours ? 'text-red-600' : 'text-green-600';
                           return <TableRow key={week}>
                               <TableCell className="font-medium text-xs py-1">{week}</TableCell>
                               <TableCell className={`text-right text-xs py-1 font-semibold ${requiredHoursColor}`}>
                                 {renderCell('required', requiredHours)}
                               </TableCell>
-                              <TableCell className="text-right text-xs py-1">{availableStaffHours}</TableCell>
+                              <TableCell className="text-right text-xs py-1">
+                                {renderCell('availableStaffHours', displayedAvailableStaffHours)}
+                              </TableCell>
                               <TableCell className="text-right text-xs py-1">
                                 {renderCell('allocated', allocatedHours)}
                               </TableCell>
