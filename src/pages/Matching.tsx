@@ -1049,17 +1049,18 @@ export const Matching = () => {
                         {WEEKS.map(week => {
                           const requiredHours = getUtilisationValue(week, 'required');
                           const allocatedHours = getUtilisationValue(week, 'allocated');
-                          const unallocatedHours = getUtilisationValue(week, 'unallocated');
-                          const totalAvailableHours = allocatedHours + unallocatedHours;
                           // Available Staff Hours = sum of filtered staff forecast hours for that week
-                          const availableStaffHours = filteredStaffForUtilisation.reduce((sum, s) => sum + (s.forecastHours[week] || 0), 0);
-                          // Utilisation = allocated hours / total available hours (what % of available capacity is being used)
-                          const utilisation = totalAvailableHours > 0 ? allocatedHours / totalAvailableHours * 100 : 0;
+                          const calculatedAvailableStaffHours = filteredStaffForUtilisation.reduce((sum, s) => sum + (s.forecastHours[week] || 0), 0);
+                          // Get the actual available staff hours (use override if set, otherwise calculated)
+                          const displayedAvailableStaffHours = utilisationOverrides[week]?.availableStaffHours ?? calculatedAvailableStaffHours;
+                          
+                          // Utilisation = allocated hours / available staff hours (what % of available capacity is being used)
+                          const utilisation = displayedAvailableStaffHours > 0 ? allocatedHours / displayedAvailableStaffHours * 100 : 0;
 
-                          // Calculate FTE based on 35 hour week
+                          // Calculate FTE based on 35 hour week - use displayed (possibly overridden) available hours
                           const FTE_HOURS = 35;
                           const requiredFTE = requiredHours / FTE_HOURS;
-                          const availableFTE = totalAvailableHours / FTE_HOURS;
+                          const availableFTE = displayedAvailableStaffHours / FTE_HOURS;
 
                           // Determine utilisation color based on thresholds
                           let utilisationColor = "text-green-600"; // default: under 80%
@@ -1099,8 +1100,6 @@ export const Matching = () => {
                                 {value}
                               </span>;
                           };
-                          // Get the actual available staff hours (use override if set, otherwise calculated)
-                          const displayedAvailableStaffHours = utilisationOverrides[week]?.availableStaffHours ?? availableStaffHours;
                           // Determine required hours color: red if required > available (understaffed), green if required <= available (enough capacity)
                           const requiredHoursColor = requiredHours > displayedAvailableStaffHours ? 'text-red-600' : 'text-green-600';
                           return <TableRow key={week}>
