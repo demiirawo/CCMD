@@ -162,6 +162,7 @@ export const Matching = () => {
   };
 
   // Manual overrides for utilisation forecast (only stores overridden values)
+  // Load utilisation overrides from localStorage on mount
   const [utilisationOverrides, setUtilisationOverrides] = useState<{
     [week: string]: {
       required?: number;
@@ -169,7 +170,19 @@ export const Matching = () => {
       unallocated?: number;
       availableStaffHours?: number;
     };
-  }>({});
+  }>(() => {
+    try {
+      const saved = localStorage.getItem('utilisationOverrides');
+      return saved ? JSON.parse(saved) : {};
+    } catch {
+      return {};
+    }
+  });
+
+  // Persist utilisation overrides to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem('utilisationOverrides', JSON.stringify(utilisationOverrides));
+  }, [utilisationOverrides]);
 
   // Track which cell is being edited
   const [editingUtilisationCell, setEditingUtilisationCell] = useState<{
@@ -177,23 +190,29 @@ export const Matching = () => {
     field: 'required' | 'allocated' | 'unallocated' | 'availableStaffHours';
   } | null>(null);
 
-  // Clear availableStaffHours overrides when staff data changes (recalculate from actual data)
+  // Clear all overrides when staff or service user data changes (recalculate from actual data)
+  const staffDataSignature = useMemo(() => 
+    staff.map(s => `${s.id}:${s.typicalWeeklyHours}:${JSON.stringify(s.forecastHours)}`).join('|'), 
+    [staff]
+  );
+  const serviceUserDataSignature = useMemo(() => 
+    serviceUsers.map(u => `${u.id}:${u.typicalWeeklyHours}:${JSON.stringify(u.forecastHours)}:${JSON.stringify(u.staffAllocations)}`).join('|'), 
+    [serviceUsers]
+  );
+  
+  // Track previous signatures to detect actual data changes
+  const prevStaffSignature = useRef(staffDataSignature);
+  const prevServiceUserSignature = useRef(serviceUserDataSignature);
+  
   useEffect(() => {
-    setUtilisationOverrides(prev => {
-      const updated = { ...prev };
-      Object.keys(updated).forEach(week => {
-        if (updated[week]?.availableStaffHours !== undefined) {
-          const { availableStaffHours, ...rest } = updated[week];
-          updated[week] = rest;
-          // Clean up empty week objects
-          if (Object.keys(updated[week]).length === 0) {
-            delete updated[week];
-          }
-        }
-      });
-      return updated;
-    });
-  }, [staff]);
+    // Only clear if signatures actually changed (not on initial load)
+    if (prevStaffSignature.current !== staffDataSignature || prevServiceUserSignature.current !== serviceUserDataSignature) {
+      setUtilisationOverrides({});
+      localStorage.removeItem('utilisationOverrides');
+    }
+    prevStaffSignature.current = staffDataSignature;
+    prevServiceUserSignature.current = serviceUserDataSignature;
+  }, [staffDataSignature, serviceUserDataSignature]);
 
   // Get filtered service users and staff based on current filters
   const filteredServiceUsersForUtilisation = useMemo(() => {
