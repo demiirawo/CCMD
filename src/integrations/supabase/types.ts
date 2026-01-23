@@ -1901,6 +1901,50 @@ export type Database = {
           },
         ]
       }
+      utilisation_overrides: {
+        Row: {
+          allocated: number | null
+          available_staff_hours: number | null
+          company_id: string
+          created_at: string
+          id: string
+          required: number | null
+          unallocated: number | null
+          updated_at: string
+          week: string
+        }
+        Insert: {
+          allocated?: number | null
+          available_staff_hours?: number | null
+          company_id: string
+          created_at?: string
+          id?: string
+          required?: number | null
+          unallocated?: number | null
+          updated_at?: string
+          week: string
+        }
+        Update: {
+          allocated?: number | null
+          available_staff_hours?: number | null
+          company_id?: string
+          created_at?: string
+          id?: string
+          required?: number | null
+          unallocated?: number | null
+          updated_at?: string
+          week?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "utilisation_overrides_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       workspaces: {
         Row: {
           color: string | null

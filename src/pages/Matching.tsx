@@ -21,6 +21,7 @@ import { SearchableStaffSelect } from "@/components/SearchableStaffSelect";
 import { SearchableMultiSelect } from "@/components/SearchableMultiSelect";
 import { ForecastAISummary } from "@/components/ForecastAISummary";
 import { useMatchingData, WEEKS, createDefaultForecast, createDefaultHoursSplit, type ServiceUser, type Staff, type Gender, type GenderPreference, type ContractType, type StaffAllocation, type WeeklyForecast, type WeeklyAllocation } from "@/hooks/useMatchingData";
+import { useUtilisationOverrides } from "@/hooks/useUtilisationOverrides";
 const GENDER_PREFERENCES: GenderPreference[] = ["No Preference", "Male", "Female"];
 const GENDERS: Gender[] = ["Male", "Female", "Non-Binary", "Prefer not to say"];
 const CONTRACT_TYPES: ContractType[] = ["Full-Time Contract", "Part-Time Contract", "Zero-Hours Contract", "Fixed-Term Contract", "Agency or Temporary Contract", "Self-Employed/Independent Contractor", "Apprenticeship Agreement", "Bank Contract (Casual Staff)", "Volunteer"];
@@ -161,28 +162,13 @@ export const Matching = () => {
     setExpandedServiceUsers(new Set());
   };
 
-  // Manual overrides for utilisation forecast (only stores overridden values)
-  // Load utilisation overrides from localStorage on mount
-  const [utilisationOverrides, setUtilisationOverrides] = useState<{
-    [week: string]: {
-      required?: number;
-      allocated?: number;
-      unallocated?: number;
-      availableStaffHours?: number;
-    };
-  }>(() => {
-    try {
-      const saved = localStorage.getItem('utilisationOverrides');
-      return saved ? JSON.parse(saved) : {};
-    } catch {
-      return {};
-    }
-  });
-
-  // Persist utilisation overrides to localStorage whenever they change
-  useEffect(() => {
-    localStorage.setItem('utilisationOverrides', JSON.stringify(utilisationOverrides));
-  }, [utilisationOverrides]);
+  // Manual overrides for utilisation forecast - stored in Supabase
+  const { 
+    overrides: utilisationOverrides, 
+    saveOverride: saveUtilisationOverride,
+    clearAllOverrides,
+    loading: overridesLoading 
+  } = useUtilisationOverrides();
 
   // Track which cell is being edited
   const [editingUtilisationCell, setEditingUtilisationCell] = useState<{
@@ -207,12 +193,11 @@ export const Matching = () => {
   useEffect(() => {
     // Only clear if signatures actually changed (not on initial load)
     if (prevStaffSignature.current !== staffDataSignature || prevServiceUserSignature.current !== serviceUserDataSignature) {
-      setUtilisationOverrides({});
-      localStorage.removeItem('utilisationOverrides');
+      clearAllOverrides();
     }
     prevStaffSignature.current = staffDataSignature;
     prevServiceUserSignature.current = serviceUserDataSignature;
-  }, [staffDataSignature, serviceUserDataSignature]);
+  }, [staffDataSignature, serviceUserDataSignature, clearAllOverrides]);
 
   // Get filtered service users and staff based on current filters
   const filteredServiceUsersForUtilisation = useMemo(() => {
@@ -1089,13 +1074,7 @@ export const Matching = () => {
                             utilisationColor = "text-red-600"; // over-utilised (>95%)
                           }
                           const handleOverride = (field: 'required' | 'allocated' | 'unallocated' | 'availableStaffHours', value: number) => {
-                            setUtilisationOverrides(prev => ({
-                              ...prev,
-                              [week]: {
-                                ...prev[week],
-                                [field]: value
-                              }
-                            }));
+                            saveUtilisationOverride(week, field, value);
                             setEditingUtilisationCell(null);
                           };
                           const isOverridden = (field: 'required' | 'allocated' | 'unallocated' | 'availableStaffHours') => {
