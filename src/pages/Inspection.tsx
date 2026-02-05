@@ -34,7 +34,8 @@ const SortableCategory = ({
   deleteEvidence,
   handleStatusClick,
   isSuperAdmin,
-  evidenceReferenceMap
+  evidenceReferenceMap,
+  isReadOnly = false
 }: any) => {
   const {
     attributes,
@@ -50,16 +51,21 @@ const SortableCategory = ({
     transform: CSS.Transform.toString(transform),
     transition
   };
+  
+  // Determine if editing is allowed (super admin can always edit, others can edit unless read-only)
+  const canEdit = isSuperAdmin || !isReadOnly;
+  const canEditStructure = isSuperAdmin; // Only super admin can add/delete/modify structure
+  
   return <Card ref={setNodeRef} style={style} className={cn("p-4", isDragging && "opacity-50")}>
       <div className="mb-4 cursor-pointer hover:bg-gray-50 rounded p-2 -m-2 transition-colors" onClick={() => onToggle(category.id)}>
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
-              {isSuperAdmin && <div {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing p-1 hover:bg-gray-200 rounded" onClick={e => e.stopPropagation()}>
+              {canEditStructure && <div {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing p-1 hover:bg-gray-200 rounded" onClick={e => e.stopPropagation()}>
                   <GripVertical className="h-4 w-4 text-gray-400" />
                 </div>}
               {isExpanded ? <ChevronDown className="h-5 w-5 text-gray-500" /> : <ChevronRight className="h-5 w-5 text-gray-500" />}
-              {isSuperAdmin ? <DebouncedInput value={category.name} onSave={value => onUpdateCategory(category.id, value)} className="font-medium text-lg max-w-md" placeholder="Category name..." /> : <h3 className="font-medium text-lg">{category.name}</h3>}
+              {canEditStructure ? <DebouncedInput value={category.name} onSave={value => onUpdateCategory(category.id, value)} className="font-medium text-lg max-w-md" placeholder="Category name..." /> : <h3 className="font-medium text-lg">{category.name}</h3>}
             </div>
             <StatusBadge status={getCategoryStatus(category.id)} />
             <span className="text-sm text-muted-foreground">
@@ -67,7 +73,7 @@ const SortableCategory = ({
             </span>
           </div>
           <div className="flex items-center gap-2">
-            {isSuperAdmin && <>
+            {canEditStructure && <>
                 <Button onClick={e => {
               e.stopPropagation();
               onAddEvidence(category.id);
@@ -90,13 +96,13 @@ const SortableCategory = ({
       {isExpanded && getEvidenceForCategory(category.id).length > 0 && <div className="space-y-2">
           {/* Grid Header */}
           <div className="grid gap-4 font-semibold border-b pb-2 text-sm" style={{
-        gridTemplateColumns: isSuperAdmin ? '80px 2fr 2fr 100px 60px' : '80px 2fr 2fr 100px'
+        gridTemplateColumns: canEditStructure ? '80px 2fr 2fr 100px 60px' : '80px 2fr 2fr 100px'
       }}>
              <div>Ref ID</div>
              <div>Evidence</div>
              <div>Comment</div>
              <div>Status</div>
-             {isSuperAdmin && <div></div>}
+             {canEditStructure && <div></div>}
           </div>
 
           {/* Evidence Rows */}
@@ -104,23 +110,33 @@ const SortableCategory = ({
         const response = getResponseForEvidence(evidenceItem.id);
         const referenceId = evidenceReferenceMap?.[evidenceItem.id] || `E${index + 1}`;
         return <div key={evidenceItem.id} className="grid gap-4 items-start py-2 border-b border-gray-100" style={{
-          gridTemplateColumns: isSuperAdmin ? '80px 2fr 2fr 100px 60px' : '80px 2fr 2fr 100px'
+          gridTemplateColumns: canEditStructure ? '80px 2fr 2fr 100px 60px' : '80px 2fr 2fr 100px'
         }}>
                  <div className="text-sm font-mono text-muted-foreground self-center">
                    {referenceId}
                  </div>
                  <div>
-                   {isSuperAdmin ? <DebouncedTextarea value={evidenceItem.evidence_text} onSave={value => updateEvidence(evidenceItem.id, value)} placeholder="Enter evidence..." className="text-sm" /> : <div className="text-sm p-2 bg-gray-50 rounded">
+                   {canEditStructure ? <DebouncedTextarea value={evidenceItem.evidence_text} onSave={value => updateEvidence(evidenceItem.id, value)} placeholder="Enter evidence..." className="text-sm" /> : <div className="text-sm p-2 bg-gray-50 rounded">
                        {evidenceItem.evidence_text || "No evidence provided"}
                      </div>}
                  </div>
                  <div>
-                   <DebouncedTextarea value={response?.comment || ''} onSave={value => updateResponse(evidenceItem.id, 'comment', value)} placeholder="Enter comment..." className="text-sm" />
+                   {canEdit ? (
+                     <DebouncedTextarea value={response?.comment || ''} onSave={value => updateResponse(evidenceItem.id, 'comment', value)} placeholder="Enter comment..." className="text-sm" />
+                   ) : (
+                     <div className="text-sm p-2 bg-gray-50 rounded min-h-[60px]">
+                       {response?.comment || <span className="text-muted-foreground italic">No comment</span>}
+                     </div>
+                   )}
                  </div>
                  <div className="flex justify-center">
-                   <StatusBadge status={(response?.status || 'green') as StatusType} onClick={() => handleStatusClick(evidenceItem.id, (response?.status || 'green') as StatusType)} />
+                   {canEdit ? (
+                     <StatusBadge status={(response?.status || 'green') as StatusType} onClick={() => handleStatusClick(evidenceItem.id, (response?.status || 'green') as StatusType)} />
+                   ) : (
+                     <StatusBadge status={(response?.status || 'green') as StatusType} />
+                   )}
                  </div>
-                 {isSuperAdmin && <div className="flex justify-center">
+                 {canEditStructure && <div className="flex justify-center">
                      <Button onClick={() => deleteEvidence(evidenceItem.id)} size="sm" variant="destructive" className="h-8 w-8 p-0">
                        <Trash2 className="h-4 w-4" />
                      </Button>
@@ -130,7 +146,7 @@ const SortableCategory = ({
         </div>}
 
       {isExpanded && getEvidenceForCategory(category.id).length === 0 && <div className="text-center py-4 text-muted-foreground text-sm">
-          {isSuperAdmin ? "No evidence added yet. Click 'Add Evidence' to get started." : "No evidence available for this category."}
+          {canEditStructure ? "No evidence added yet. Click 'Add Evidence' to get started." : "No evidence available for this category."}
         </div>}
     </Card>;
 };
@@ -544,12 +560,13 @@ const Inspection = () => {
             </Collapsible>}
             
             {/* COS Checklist Section - Only show if Home Office compliance is enabled */}
-            {complianceSettings.home_office_cos && cosCompliancePanel && <Collapsible open={isCOSExpanded} onOpenChange={setIsCOSExpanded}>
+{complianceSettings.home_office_cos && cosCompliancePanel && <Collapsible open={isCOSExpanded} onOpenChange={setIsCOSExpanded}>
                 <CollapsibleTrigger asChild>
                   <div className="bg-primary/10 rounded-lg p-6 cursor-pointer hover:bg-primary/15 transition-colors">
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
                          <h2 className="text-xl font-semibold mb-1">Home Office (Certificate of Sponsorship)</h2>
+                         {!isSuperAdmin && <p className="text-sm text-muted-foreground">Read-only - Contact admin to make changes</p>}
                       </div>
                       <div className="flex items-center gap-4">
                         <MeetingStatusSummary sections={cosSections} />
@@ -571,7 +588,7 @@ const Inspection = () => {
                     {getOrderedCategoriesForPanel(cosCompliancePanel.id).length > 0 && <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={event => handleDragEnd(event, cosCompliancePanel.id)}>
                         <SortableContext items={getOrderedCategoriesForPanel(cosCompliancePanel.id).map(cat => cat.id)} strategy={verticalListSortingStrategy}>
                           <div className="space-y-6">
-                            {getOrderedCategoriesForPanel(cosCompliancePanel.id).map(category => <SortableCategory key={category.id} category={category} isExpanded={expandedCategories.has(category.id)} onToggle={toggleCategory} onUpdateCategory={updateCategory} onAddEvidence={handleAddEvidence} onDeleteCategory={deleteCategory} getEvidenceForCategory={getEvidenceForCategory} getResponseForEvidence={getResponseForEvidence} getCategoryStatus={getCategoryStatus} getCategoryLastUpdated={getCategoryLastUpdated} updateEvidence={updateEvidence} updateResponse={updateResponse} deleteEvidence={deleteEvidence} handleStatusClick={handleStatusClick} isSuperAdmin={isSuperAdmin} evidenceReferenceMap={cosEvidenceReferenceMap} />)}
+                            {getOrderedCategoriesForPanel(cosCompliancePanel.id).map(category => <SortableCategory key={category.id} category={category} isExpanded={expandedCategories.has(category.id)} onToggle={toggleCategory} onUpdateCategory={updateCategory} onAddEvidence={handleAddEvidence} onDeleteCategory={deleteCategory} getEvidenceForCategory={getEvidenceForCategory} getResponseForEvidence={getResponseForEvidence} getCategoryStatus={getCategoryStatus} getCategoryLastUpdated={getCategoryLastUpdated} updateEvidence={updateEvidence} updateResponse={updateResponse} deleteEvidence={deleteEvidence} handleStatusClick={handleStatusClick} isSuperAdmin={isSuperAdmin} evidenceReferenceMap={cosEvidenceReferenceMap} isReadOnly={true} />)}
                           </div>
                         </SortableContext>
                       </DndContext>}
