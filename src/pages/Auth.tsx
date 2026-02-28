@@ -1,7 +1,8 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { MagicLinkAuth } from "@/components/MagicLinkAuth";
+import { ChangePasswordDialog } from "@/components/ChangePasswordDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -10,9 +11,34 @@ export const Auth = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { toast } = useToast();
+  const [showPasswordChange, setShowPasswordChange] = useState(false);
+
+  // Listen for PASSWORD_RECOVERY event
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('Auth page auth event:', event);
+      if (event === 'PASSWORD_RECOVERY') {
+        console.log('PASSWORD_RECOVERY event detected, showing password change dialog');
+        setShowPasswordChange(true);
+      }
+    });
+
+    // Also check URL hash for recovery token (type=recovery)
+    const hash = window.location.hash;
+    if (hash && hash.includes('type=recovery')) {
+      console.log('Recovery token detected in URL hash');
+      setShowPasswordChange(true);
+    }
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   useEffect(() => {
-    console.log('Auth useEffect:', { user: !!user, loading, returnTo: searchParams.get('returnTo') });
+    console.log('Auth useEffect:', { user: !!user, loading, returnTo: searchParams.get('returnTo'), showPasswordChange });
+    
+    // Don't redirect if password change is showing
+    if (showPasswordChange) return;
+    
     if (user && !loading) {
       // Check for pending company selection after re-authentication
       const pendingSelection = sessionStorage.getItem('pendingCompanySelection');
@@ -25,7 +51,13 @@ export const Auth = () => {
         navigate(returnTo || '/');
       }
     }
-  }, [user, loading, navigate, searchParams]);
+  }, [user, loading, navigate, searchParams, showPasswordChange]);
+
+  const handlePasswordChangeComplete = () => {
+    setShowPasswordChange(false);
+    // Navigate to company selection / onboarding
+    navigate('/company-selection');
+  };
 
   const handlePendingCompanySelection = async (pendingSelectionJson: string) => {
     try {
@@ -113,6 +145,11 @@ export const Auth = () => {
         </div>
       </div>
     );
+  }
+
+  // Show password change dialog when recovery event fires
+  if (showPasswordChange) {
+    return <ChangePasswordDialog onComplete={handlePasswordChangeComplete} />;
   }
 
   return <MagicLinkAuth />;
