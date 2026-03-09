@@ -1114,7 +1114,7 @@ export const Matching = () => {
                                 } else if (e.key === 'Escape') {
                                   setEditingUtilisationCell(null);
                                 }
-                              }} autoFocus className="w-20 h-6 text-xs text-right bg-white" min={0} step={0.5} />;
+                              }} autoFocus className="w-20 h-6 text-xs text-right bg-white" min={0} />;
                             }
                             return <span className={`cursor-pointer hover:bg-muted px-2 py-1 rounded ${isOverridden(field) ? 'bg-yellow-100 font-medium' : ''}`} onDoubleClick={() => setEditingUtilisationCell({
                               week,
