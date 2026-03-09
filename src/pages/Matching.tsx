@@ -1766,8 +1766,8 @@ export const Matching = () => {
                                 const userRequiredHours = user.forecastHours[week] || 0;
                                 const userAllocatedByOthers = user.staffAllocations.filter(a => a.staffId !== staffId && user.primaryStaffIds.includes(a.staffId)).reduce((sum, a) => sum + (a.allocatedHours[week] || 0), 0);
                                 const userRemainingRequired = userRequiredHours - userAllocatedByOthers;
-                                return <TableCell key={weestep="0.5" k} className="bg-green-50 text-cestep="0.5" nter">
-                          step="0.5"             <Input type="number" value={currentAllocation} onChange={e => {
+                                return <TableCell key={week} className="bg-green-50 text-center">
+                                      <Input type="number" step="0.5" value={currentAllocation} onChange={e => {
                                     let newValue = parseFloat(e.target.value) || 0;
 
                                     // Constraint 1: Can't exceed staff's remaining available hours
