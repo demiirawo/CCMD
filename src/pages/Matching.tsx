@@ -1108,13 +1108,13 @@ export const Matching = () => {
                           const renderCell = (field: 'required' | 'allocated' | 'unallocated' | 'availableStaffHours', value: number) => {
                             const isEditing = editingUtilisationCell?.week === week && editingUtilisationCell?.field === field;
                             if (isEditing) {
-                              return <Input type="number" defaultValue={value} onBlur={e => handleOverride(field, parseFloat(e.target.value) || 0)} onKeyDown={e => {
+                              return <Input type="number" step="0.5" defaultValue={value} onBlur={e => handleOverride(field, parseFloat(e.target.value) || 0)} onKeyDown={e => {
                                 if (e.key === 'Enter') {
                                   handleOverride(field, parseFloat((e.target as HTMLInputElement).value) || 0);
                                 } else if (e.key === 'Escape') {
                                   setEditingUtilisationCell(null);
                                 }
-                              }} autoFocus className="w-20 h-6 text-xs text-right bg-white" min={0} step={0.5} />;
+                              }} autoFocus className="w-20 h-6 text-xs text-right bg-white" min={0} />;
                             }
                             return <span className={`cursor-pointer hover:bg-muted px-2 py-1 rounded ${isOverridden(field) ? 'bg-yellow-100 font-medium' : ''}`} onDoubleClick={() => setEditingUtilisationCell({
                               week,
@@ -1486,7 +1486,7 @@ export const Matching = () => {
                           </TableCell>
                           {/* Average Weekly Hours */}
                           <TableCell>
-                            <Input type="number" value={user.typicalWeeklyHours || 0} onChange={e => {
+                            <Input type="number" step="0.5" value={user.typicalWeeklyHours || 0} onChange={e => {
                             const newValue = parseFloat(e.target.value) || 0;
                             // Update typicalWeeklyHours and overwrite all 8 weeks in forecastHours
                             const newForecastHours: {
@@ -1725,7 +1725,7 @@ export const Matching = () => {
                               </div>
                             </TableCell>
                             {WEEKS.map(week => <TableCell key={week} className="bg-blue-50 text-center" onClick={e => e.stopPropagation()}>
-                                <Input type="number" value={user.forecastHours[week] || 0} onChange={e => {
+                                <Input type="number" step="0.5" value={user.forecastHours[week] || 0} onChange={e => {
                                 const newValue = parseFloat(e.target.value) || 0;
                                 setServiceUsers(prev => prev.map(u => u.id === user.id ? {
                                   ...u,
@@ -1767,7 +1767,7 @@ export const Matching = () => {
                                 const userAllocatedByOthers = user.staffAllocations.filter(a => a.staffId !== staffId && user.primaryStaffIds.includes(a.staffId)).reduce((sum, a) => sum + (a.allocatedHours[week] || 0), 0);
                                 const userRemainingRequired = userRequiredHours - userAllocatedByOthers;
                                 return <TableCell key={week} className="bg-green-50 text-center">
-                                      <Input type="number" value={currentAllocation} onChange={e => {
+                                      <Input type="number" step="0.5" value={currentAllocation} onChange={e => {
                                     let newValue = parseFloat(e.target.value) || 0;
 
                                     // Constraint 1: Can't exceed staff's remaining available hours
@@ -1979,7 +1979,7 @@ export const Matching = () => {
                               </TableCell>
                               {/* Average Weekly Hours */}
                               <TableCell>
-                                <Input type="number" value={s.typicalWeeklyHours || 0} onChange={e => {
+                                <Input type="number" step="0.5" value={s.typicalWeeklyHours || 0} onChange={e => {
                                 const newValue = parseFloat(e.target.value) || 0;
                                 // Update typicalWeeklyHours and overwrite all 8 weeks in forecastHours
                                 const newForecastHours: {
@@ -2105,7 +2105,7 @@ export const Matching = () => {
                               </div>
                             </TableCell>
                             {WEEKS.map(week => <TableCell key={week} className="text-center">
-                                <Input type="number" value={s.forecastHours[week] || 0} onChange={e => {
+                                <Input type="number" step="0.5" value={s.forecastHours[week] || 0} onChange={e => {
                             const newValue = parseFloat(e.target.value) || 0;
                             setStaff(prev => prev.map(staff => staff.id === s.id ? {
                               ...staff,
@@ -2212,9 +2212,9 @@ export const Matching = () => {
               </div>
               <div>
                 <Label>Typical Weekly Hours</Label>
-                <Input type="number" value={newUserForm.typicalWeeklyHours} onChange={e => setNewUserForm(f => ({
+                <Input type="number" step="0.5" value={newUserForm.typicalWeeklyHours} onChange={e => setNewUserForm(f => ({
                 ...f,
-                typicalWeeklyHours: parseInt(e.target.value) || 0
+                typicalWeeklyHours: parseFloat(e.target.value) || 0
               }))} className="bg-white border-gray-800" />
               </div>
               <div>
@@ -2333,9 +2333,9 @@ export const Matching = () => {
               </div>
               <div>
                 <Label>Typical Weekly Hours</Label>
-                <Input type="number" value={newStaffForm.typicalWeeklyHours} onChange={e => setNewStaffForm(f => ({
+                <Input type="number" step="0.5" value={newStaffForm.typicalWeeklyHours} onChange={e => setNewStaffForm(f => ({
                 ...f,
-                typicalWeeklyHours: parseInt(e.target.value) || 0
+                typicalWeeklyHours: parseFloat(e.target.value) || 0
               }))} className="bg-white border-gray-800" />
               </div>
               <div>
