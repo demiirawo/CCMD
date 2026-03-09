@@ -1108,7 +1108,7 @@ export const Matching = () => {
                           const renderCell = (field: 'required' | 'allocated' | 'unallocated' | 'availableStaffHours', value: number) => {
                             const isEditing = editingUtilisationCell?.week === week && editingUtilisationCell?.field === field;
                             if (isEditing) {
-                              return <Input type="number" step="0.5" step="0.5" step="0.5" defaultValue={value} onBlur={e => handleOverride(field, parseFloat(e.target.value) || 0)} onKeyDown={e => {
+                              return <Input type="number" step="0.5" step="0.5" step="0.5" step="0.5" defaultValue={value} onBlur={e => handleOverride(field, parseFloat(e.target.value) || 0)} onKeyDown={e => {
                                 if (e.key === 'Enter') {
                                   handleOverride(field, parseFloat((e.target as HTMLInputElement).value) || 0);
                                 } else if (e.key === 'Escape') {
@@ -1486,7 +1486,7 @@ export const Matching = () => {
                           </TableCell>
                           {/* Average Weekly Hours */}
                           <TableCell>
-                           step="0.5"  <Input typstep="0.5" e="number" value={user.typicalWeeklyHours || 0} onChange={e => {
+                step="0.5"            step="0.5"  <Input typstep="0.5" e="number" value={user.typicalWeeklyHours || 0} onChange={e => {
                             const newValue = parseFloat(e.target.value) || 0;
                             // Update typicalWeeklyHours and overwrite all 8 weeks in forecastHours
                             const newForecastHours: {
@@ -1725,7 +1725,7 @@ export const Matching = () => {
                               </div>
                             </TableCell>
                             {WEEKS.map(week => <TableCell key={week} className="bg-blue-50 text-center" onClick={e => e.stopPropagation()}>
-                               step="0.5"  <Input type="number" value={user.forecastHours[week] || 0} onChange={e => {
+         step="0.5"                       step="0.5"  <Input type="number" value={user.forecastHours[week] || 0} onChange={e => {
                                 const newValue = parseFloat(e.target.value) || 0;
                                 setServiceUsers(prev => prev.map(u => u.id === user.id ? {
                                   ...u,
@@ -1767,7 +1767,7 @@ export const Matching = () => {
                                 const userAllocatedByOthers = user.staffAllocations.filter(a => a.staffId !== staffId && user.primaryStaffIds.includes(a.staffId)).reduce((sum, a) => sum + (a.allocatedHours[week] || 0), 0);
                                 const userRemainingRequired = userRequiredHours - userAllocatedByOthers;
                                 return <TableCell key={week} className="bg-green-50 text-center">
-                                      <Input type="number" value={currentAllocation} onChange={e => {
+                          step="0.5"             <Input type="number" value={currentAllocation} onChange={e => {
                                     let newValue = parseFloat(e.target.value) || 0;
 
                                     // Constraint 1: Can't exceed staff's remaining available hours
