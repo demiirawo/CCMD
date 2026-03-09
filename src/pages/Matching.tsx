@@ -1108,7 +1108,7 @@ export const Matching = () => {
                           const renderCell = (field: 'required' | 'allocated' | 'unallocated' | 'availableStaffHours', value: number) => {
                             const isEditing = editingUtilisationCell?.week === week && editingUtilisationCell?.field === field;
                             if (isEditing) {
-                              return <Input type="number" step="0.5" step="0.5" step="0.5" step="0.5" step="0.5" step="0.5" defaultValue={value} onBlur={e => handleOverride(field, parseFloat(e.target.value) || 0)} onKeyDown={e => {
+                              return <Input type="number" step="0.5" defaultValue={value} onBlur={e => handleOverride(field, parseFloat(e.target.value) || 0)} onKeyDown={e => {
                                 if (e.key === 'Enter') {
                                   handleOverride(field, parseFloat((e.target as HTMLInputElement).value) || 0);
                                 } else if (e.key === 'Escape') {
