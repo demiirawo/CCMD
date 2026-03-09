@@ -1978,8 +1978,8 @@ export const Matching = () => {
                                 </Select>
                               </TableCell>
                               {/* Average Weekly Hours */}
-       step="0.5"                        <TableCell>
-         step="0.5"                        <Input type="number" value={s.typicalWeeklyHours || 0} onChange={e => {
+                              <TableCell>
+                                <Input type="number" step="0.5" value={s.typicalWeeklyHours || 0} onChange={e => {
                                 const newValue = parseFloat(e.target.value) || 0;
                                 // Update typicalWeeklyHours and overwrite all 8 weeks in forecastHours
                                 const newForecastHours: {
