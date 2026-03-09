@@ -1108,7 +1108,7 @@ export const Matching = () => {
                           const renderCell = (field: 'required' | 'allocated' | 'unallocated' | 'availableStaffHours', value: number) => {
                             const isEditing = editingUtilisationCell?.week === week && editingUtilisationCell?.field === field;
                             if (isEditing) {
-                              return <Input type="number" step="0.5" step="0.5" step="0.5" step="0.5" step="0.5" defaultValue={value} onBlur={e => handleOverride(field, parseFloat(e.target.value) || 0)} onKeyDown={e => {
+                              return <Input type="number" step="0.5" step="0.5" step="0.5" step="0.5" step="0.5" step="0.5" defaultValue={value} onBlur={e => handleOverride(field, parseFloat(e.target.value) || 0)} onKeyDown={e => {
                                 if (e.key === 'Enter') {
                                   handleOverride(field, parseFloat((e.target as HTMLInputElement).value) || 0);
                                 } else if (e.key === 'Escape') {
@@ -1485,7 +1485,7 @@ export const Matching = () => {
                               </Select>}
                           </TableCell>
                           {/* Average Weekly Hours */}
-                          <TableCell>
+                          <Tablestep="0.5" Cell>
      step="0.5"            step="0.5"            step="0.5"  <Input typstep="0.5" e="number" value={user.typicalWeeklyHours || 0} onChange={e => {
                             const newValue = parseFloat(e.target.value) || 0;
                             // Update typicalWeeklyHours and overwrite all 8 weeks in forecastHours
@@ -1724,7 +1724,7 @@ export const Matching = () => {
                                 </div>
                               </div>
                             </TableCell>
-                            {WEEKS.map(week => <TableCell key={week} className="bg-blue-50 text-center" onClick={e => e.stopProstep="0.5" pagation()}>
+                            {WEEKS.map(week => <TableCell key={week} className="bg-blue-50 text-center" ostep="0.5" nClick={e => e.stopProstep="0.5" pagation()}>
          step="0.5"                       step="0.5"  <Input type="number" value={user.forecastHours[week] || 0} onChange={e => {
                                 const newValue = parseFloat(e.target.value) || 0;
                                 setServiceUsers(prev => prev.map(u => u.id === user.id ? {
@@ -1766,7 +1766,7 @@ export const Matching = () => {
                                 const userRequiredHours = user.forecastHours[week] || 0;
                                 const userAllocatedByOthers = user.staffAllocations.filter(a => a.staffId !== staffId && user.primaryStaffIds.includes(a.staffId)).reduce((sum, a) => sum + (a.allocatedHours[week] || 0), 0);
                                 const userRemainingRequired = userRequiredHours - userAllocatedByOthers;
-                                return <TableCell key={week} className="bg-green-50 text-cestep="0.5" nter">
+                                return <TableCell key={weestep="0.5" k} className="bg-green-50 text-cestep="0.5" nter">
                           step="0.5"             <Input type="number" value={currentAllocation} onChange={e => {
                                     let newValue = parseFloat(e.target.value) || 0;
 
@@ -1978,7 +1978,7 @@ export const Matching = () => {
                                 </Select>
                               </TableCell>
                               {/* Average Weekly Hours */}
-                              <TableCell>
+       step="0.5"                        <TableCell>
          step="0.5"                        <Input type="number" value={s.typicalWeeklyHours || 0} onChange={e => {
                                 const newValue = parseFloat(e.target.value) || 0;
                                 // Update typicalWeeklyHours and overwrite all 8 weeks in forecastHours
@@ -2104,7 +2104,7 @@ export const Matching = () => {
                                 <span className="text-xs text-muted-foreground">{s.location}</span>
                               </div>
                             </TableCell>
-                            {WEEKS.map(week => <TableCell key={week} className="text-center">
+                            {WEEKS.map(week => <TableCell key={week} className="text-center"step="0.5" >
                                 <Input type="number" value={s.forecastHours[week] || 0} onChange={e => {
                             const newValue = parseFloat(e.target.value) || 0;
                             setStaff(prev => prev.map(staff => staff.id === s.id ? {
