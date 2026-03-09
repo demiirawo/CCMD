@@ -2104,8 +2104,8 @@ export const Matching = () => {
                                 <span className="text-xs text-muted-foreground">{s.location}</span>
                               </div>
                             </TableCell>
-                            {WEEKS.map(week => <TableCell key={week} className="text-center"step="0.5" >
-                                <Input type="number" value={s.forecastHours[week] || 0} onChange={e => {
+                            {WEEKS.map(week => <TableCell key={week} className="text-center">
+                                <Input type="number" step="0.5" value={s.forecastHours[week] || 0} onChange={e => {
                             const newValue = parseFloat(e.target.value) || 0;
                             setStaff(prev => prev.map(staff => staff.id === s.id ? {
                               ...staff,
