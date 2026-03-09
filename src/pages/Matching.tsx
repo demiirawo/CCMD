@@ -1108,7 +1108,7 @@ export const Matching = () => {
                           const renderCell = (field: 'required' | 'allocated' | 'unallocated' | 'availableStaffHours', value: number) => {
                             const isEditing = editingUtilisationCell?.week === week && editingUtilisationCell?.field === field;
                             if (isEditing) {
-                              return <Input type="number" step="0.5" defaultValue={value} onBlur={e => handleOverride(field, parseFloat(e.target.value) || 0)} onKeyDown={e => {
+                              return <Input type="number" step="0.5" step="0.5" defaultValue={value} onBlur={e => handleOverride(field, parseFloat(e.target.value) || 0)} onKeyDown={e => {
                                 if (e.key === 'Enter') {
                                   handleOverride(field, parseFloat((e.target as HTMLInputElement).value) || 0);
                                 } else if (e.key === 'Escape') {
@@ -1486,7 +1486,7 @@ export const Matching = () => {
                           </TableCell>
                           {/* Average Weekly Hours */}
                           <TableCell>
-                            <Input type="number" value={user.typicalWeeklyHours || 0} onChange={e => {
+                            <Input typstep="0.5" e="number" value={user.typicalWeeklyHours || 0} onChange={e => {
                             const newValue = parseFloat(e.target.value) || 0;
                             // Update typicalWeeklyHours and overwrite all 8 weeks in forecastHours
                             const newForecastHours: {
