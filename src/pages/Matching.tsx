@@ -1724,8 +1724,8 @@ export const Matching = () => {
                                 </div>
                               </div>
                             </TableCell>
-                            {WEEKS.map(week => <TableCell key={week} className="bg-blue-50 text-center" ostep="0.5" nClick={e => e.stopProstep="0.5" pagation()}>
-         step="0.5"                       step="0.5"  <Input type="number" value={user.forecastHours[week] || 0} onChange={e => {
+                            {WEEKS.map(week => <TableCell key={week} className="bg-blue-50 text-center" onClick={e => e.stopPropagation()}>
+                                <Input type="number" step="0.5" value={user.forecastHours[week] || 0} onChange={e => {
                                 const newValue = parseFloat(e.target.value) || 0;
                                 setServiceUsers(prev => prev.map(u => u.id === user.id ? {
                                   ...u,
