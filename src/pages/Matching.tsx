@@ -2212,9 +2212,9 @@ export const Matching = () => {
               </div>
               <div>
                 <Label>Typical Weekly Hours</Label>
-                <Input type="number" value={newUserForm.typicalWeeklyHours} onChange={e => setNewUserForm(f => ({
+                <Input type="number" step="0.5" value={newUserForm.typicalWeeklyHours} onChange={e => setNewUserForm(f => ({
                 ...f,
-                typicalWeeklyHours: parseInt(e.target.value) || 0
+                typicalWeeklyHours: parseFloat(e.target.value) || 0
               }))} className="bg-white border-gray-800" />
               </div>
               <div>
