@@ -15,7 +15,7 @@ serve(async (req) => {
   }
 
   try {
-const { messages, model = 'gpt-5-2025-08-07' } = await req.json();
+const { messages, model = 'gpt-4.1-nano-2025-04-14' } = await req.json();
 
     console.log('OpenAI function called with model:', model);
     console.log('Messages count:', messages?.length);
