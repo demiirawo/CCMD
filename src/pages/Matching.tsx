@@ -166,7 +166,6 @@ export const Matching = () => {
   const { 
     overrides: utilisationOverrides, 
     saveOverride: saveUtilisationOverride,
-    clearAllOverrides,
     loading: overridesLoading 
   } = useUtilisationOverrides();
 
