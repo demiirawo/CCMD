@@ -166,7 +166,6 @@ export const Matching = () => {
   const { 
     overrides: utilisationOverrides, 
     saveOverride: saveUtilisationOverride,
-    clearAllOverrides,
     loading: overridesLoading 
   } = useUtilisationOverrides();
 
@@ -176,53 +175,8 @@ export const Matching = () => {
     field: 'required' | 'allocated' | 'unallocated' | 'availableStaffHours';
   } | null>(null);
 
-  // Signatures for detecting HOURS-ONLY changes (not other fields like name, manager, etc.)
-  // Staff: track typicalWeeklyHours and forecastHours
-  const staffHoursSignature = useMemo(() => 
-    staff.map(s => `${s.id}:${s.typicalWeeklyHours}:${JSON.stringify(s.forecastHours)}`).join('|'), 
-    [staff]
-  );
-  
-  // Service users: track typicalWeeklyHours, forecastHours, and allocated hours from staffAllocations
-  const serviceUserHoursSignature = useMemo(() => 
-    serviceUsers.map(u => {
-      // Only include hours-related data from allocations
-      const allocHours = u.staffAllocations.map(a => 
-        `${a.staffId}:${JSON.stringify(a.allocatedHours)}`
-      ).join(',');
-      return `${u.id}:${u.typicalWeeklyHours}:${JSON.stringify(u.forecastHours)}:${allocHours}`;
-    }).join('|'), 
-    [serviceUsers]
-  );
-  
-  // Track previous signatures - start as null to detect first load
-  const prevStaffHoursSignature = useRef<string | null>(null);
-  const prevServiceUserHoursSignature = useRef<string | null>(null);
-  
-  useEffect(() => {
-    // Don't do anything until both matching data AND overrides have finished loading
-    if (loading || overridesLoading) return;
-    
-    // On first load after data is ready, just store the signatures without clearing
-    if (prevStaffHoursSignature.current === null) {
-      prevStaffHoursSignature.current = staffHoursSignature;
-      prevServiceUserHoursSignature.current = serviceUserHoursSignature;
-      return;
-    }
-    
-    // Check if hours data actually changed
-    const staffHoursChanged = prevStaffHoursSignature.current !== staffHoursSignature;
-    const serviceUserHoursChanged = prevServiceUserHoursSignature.current !== serviceUserHoursSignature;
-    
-    if (staffHoursChanged || serviceUserHoursChanged) {
-      console.log('Hours data changed, clearing overrides');
-      clearAllOverrides();
-    }
-    
-    // Update refs for next comparison
-    prevStaffHoursSignature.current = staffHoursSignature;
-    prevServiceUserHoursSignature.current = serviceUserHoursSignature;
-  }, [staffHoursSignature, serviceUserHoursSignature, loading, overridesLoading, clearAllOverrides]);
+  // Utilisation overrides persist until manually changed by the user.
+  // They are no longer auto-cleared when staff/service user hours change.
 
   // Get filtered service users and staff based on current filters
   const filteredServiceUsersForUtilisation = useMemo(() => {
