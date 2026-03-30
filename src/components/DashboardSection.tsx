@@ -264,7 +264,7 @@ export const DashboardSection = ({
         <div className="flex items-center gap-3">
           <div>
             {(() => {
-              const isHighLevelPanel = ["Staffing", "Case Management", "Care & Support", "Support Planning & Delivery", "Safety", "Continuous Improvement", "Compliance Documents", "Actions", "Supported Housing"].includes(title);
+              const isHighLevelPanel = ["Staffing", "Case Management", "Care & Support", "Support", "Support Planning & Delivery", "Safety", "Continuous Improvement", "Compliance Documents", "Actions", "Supported Housing"].includes(title);
               return (
                 <>
                   <h3 className={cn(
