@@ -237,7 +237,7 @@ export const useMeetingEmailNotification = () => {
           // Special logic for major sections (matching dashboard DashboardSection.tsx)
           const majorSections = isChildContactCentre 
             ? ["Staffing", "Case Management", "Safety", "Continuous Improvement"]
-            : ["Staffing", "Care & Support", "Safety", "Continuous Improvement"];
+            : ["Staffing", "Care & Support", "Support", "Safety", "Continuous Improvement"];
             
           if (majorSections.includes(displayTitle)) {
             // If any subsection is red -> make major section red
