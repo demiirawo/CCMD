@@ -152,6 +152,8 @@ const Index = () => {
   const getInitialDashboardStructure = () => {
     const currentCompany = companies.find(c => c.id === profile?.company_id);
     const isChildContactCentre = currentCompany?.services?.includes("Child Contact Centre") || false;
+    const isOfsted = currentCompany?.ofsted_supported_accommodation || false;
+    const careSupportTitle = isOfsted ? "Support" : "Care & Support";
 
     if (isChildContactCentre) {
       // Child Contact Centre specific structure
@@ -391,7 +393,7 @@ const Index = () => {
       }]
     }, {
       id: "care-planning",
-      title: "Care & Support",
+      title: careSupportTitle,
       icon: <HeartHandshake className="w-6 h-6 text-green-600" />,
       items: [{
         id: "care-plans",
