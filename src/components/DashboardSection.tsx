@@ -203,7 +203,7 @@ export const DashboardSection = ({
   };
 
   const getSectionBackgroundClass = (status: string) => {
-    const isHighLevelPanel = ["Staffing", "Case Management", "Care & Support", "Support Planning & Delivery", "Safety", "Continuous Improvement", "Compliance Documents", "Actions", "Supported Housing"].includes(title);
+    const isHighLevelPanel = ["Staffing", "Case Management", "Care & Support", "Support", "Support Planning & Delivery", "Safety", "Continuous Improvement", "Compliance Documents", "Actions", "Supported Housing"].includes(title);
     const baseClass = isHighLevelPanel 
       ? "-mx-8 px-14 py-6" 
       : "p-6";
