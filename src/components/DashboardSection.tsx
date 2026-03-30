@@ -304,7 +304,7 @@ export const DashboardSection = ({
           
           <div className="p-1 rounded-lg hover:bg-accent/50 transition-colors">
             {(() => {
-              const isHighLevelPanel = ["Staffing", "Case Management", "Care & Support", "Support Planning & Delivery", "Safety", "Continuous Improvement", "Compliance Documents", "Actions", "Supported Housing"].includes(title);
+              const isHighLevelPanel = ["Staffing", "Case Management", "Care & Support", "Support", "Support Planning & Delivery", "Safety", "Continuous Improvement", "Compliance Documents", "Actions", "Supported Housing"].includes(title);
               const iconClass = cn(
                 "w-5 h-5",
                 isHighLevelPanel && isDynamicPanelColourEnabled ? "text-white/80" : "text-muted-foreground"

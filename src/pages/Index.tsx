@@ -393,7 +393,7 @@ const Index = () => {
       }]
     }, {
       id: "care-planning",
-      title: "Care & Support",
+      title: careSupportTitle,
       icon: <HeartHandshake className="w-6 h-6 text-green-600" />,
       items: [{
         id: "care-plans",
