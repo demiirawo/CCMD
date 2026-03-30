@@ -101,7 +101,7 @@ export const DashboardSection = ({
     }, {} as Record<StatusType, number>);
     
     // Special logic for major sections
-    const majorSections = ["Staffing", "Care & Support", "Safety", "Continuous Improvement"];
+    const majorSections = ["Staffing", "Care & Support", "Support", "Safety", "Continuous Improvement"];
     if (majorSections.includes(title)) {
       // If any subsection is red -> make major section red
       if (applicableCounts.red > 0) return 'red';
