@@ -11,6 +11,7 @@ import { useState, memo, useCallback, useEffect } from "react";
 import { CommentEditor } from "./CommentEditor";
 import { ChallengesField } from "./ChallengesField";
 import { LessonsLearnedField } from "./LessonsLearnedField";
+import { TrendAnalysisField } from "./TrendAnalysisField";
 import { ActionForm, ActionItem } from "./ActionForm";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
