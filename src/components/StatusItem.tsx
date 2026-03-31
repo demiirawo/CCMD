@@ -11,6 +11,7 @@ import { useState, memo, useCallback, useEffect } from "react";
 import { CommentEditor } from "./CommentEditor";
 import { ChallengesField } from "./ChallengesField";
 import { LessonsLearnedField } from "./LessonsLearnedField";
+import { TrendAnalysisField } from "./TrendAnalysisField";
 import { ActionForm, ActionItem } from "./ActionForm";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
@@ -382,6 +383,18 @@ export const StatusItem = memo(({
         </div>
         
         <div className="flex-[5] min-w-0 space-y-3">
+          {/* Trend Analysis Field - only for Trends & Insights */}
+          {item.id === "achievements-learning" && (
+            <TrendAnalysisField 
+              value={item.metadata?.trendAnalysis as string || ''} 
+              onChange={value => {
+                const newMetadata = { ...item.metadata, trendAnalysis: value };
+                onMetadataChange?.(item.id, newMetadata);
+              }} 
+              readOnly={readOnly} 
+            />
+          )}
+
           {/* Observation Section */}
           <div>
             <label className="text-xs font-medium text-muted-foreground mb-1 block">
@@ -401,7 +414,7 @@ export const StatusItem = memo(({
           {/* Challenges Field */}
           <ChallengesField value={item.trendsThemes || ''} onChange={value => onTrendsThemesChange?.(item.id, value)} readOnly={readOnly} itemId={item.id} />
 
-          {/* Actions Section / Duplicate LESSONS LEARNED for Achievements & Learning */}
+          {/* Lessons Learned / Actions */}
           <div>
             {item.id === "achievements-learning" ? <>
                 <LessonsLearnedField value={item.lessonsLearned || ''} onChange={value => onLessonsLearnedChange?.(item.id, value)} readOnly={readOnly} />
@@ -417,13 +430,12 @@ export const StatusItem = memo(({
                         No actions
                       </div>}
                   </div> : <ActionForm actions={item.actions} attendees={attendees} sectionStatus={item.status} onActionsChange={handleActionsChange} onActionCreated={handleActionCreated} onActionCompleted={handleActionCompleted} onActionEdit={(actionId, updates) => {
-              // Handle action edit at the section level and sync with main Actions Log
               onSubsectionActionEdit?.(item.id, actionId, updates);
             }} />}
               </>}
           </div>
 
-          {/* Actions section for Achievements & Learning */}
+          {/* Actions section for Trends & Insights */}
           {item.id === "achievements-learning" && <div>
               <label className="text-xs font-medium text-muted-foreground mb-1 block">ACTIONS</label>
               {readOnly ? <div className="space-y-2">
@@ -436,7 +448,6 @@ export const StatusItem = memo(({
                       No actions
                     </div>}
                 </div> : <ActionForm actions={item.actions} attendees={attendees} sectionStatus={item.status} onActionsChange={handleActionsChange} onActionCreated={handleActionCreated} onActionCompleted={handleActionCompleted} onActionEdit={(actionId, updates) => {
-            // Handle action edit at the section level and sync with main Actions Log
             onSubsectionActionEdit?.(item.id, actionId, updates);
           }} />}
             </div>}
