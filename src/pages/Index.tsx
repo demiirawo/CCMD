@@ -347,7 +347,7 @@ const Index = () => {
         metadata: {}
       }, {
         id: "staff-documents",
-        title: "Staff Documents",
+        title: "Safer Recruitment",
         status: "green" as StatusType,
         lastReviewed: "",
         observation: "",

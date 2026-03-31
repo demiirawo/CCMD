@@ -295,7 +295,7 @@ export const DashboardMeetingAnalyticsPreview: React.FC<DashboardMeetingAnalytic
         {hasData.staffDocuments && (
           <Card>
             <CardHeader>
-              <CardTitle className="text-sm">Staff Documents</CardTitle>
+              <CardTitle className="text-sm">Safer Recruitment</CardTitle>
             </CardHeader>
             <CardContent className="text-sm text-muted-foreground">
               <div className="flex items-center justify-between"><span>Onboarding Compliant</span><span className="text-foreground font-medium">{staffDocuments.onboardingCompliant}</span></div>
