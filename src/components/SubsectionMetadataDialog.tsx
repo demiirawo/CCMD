@@ -21,6 +21,7 @@ export interface SubsectionMetadata {
   description?: string;
   updated?: string;
   linkedEvidenceRefs?: string[];
+  trendAnalysis?: string;
 }
 
 interface SubsectionMetadataDialogProps {
