@@ -98,7 +98,7 @@ export const LessonsLearnedField = ({ value, onChange, readOnly = false }: Lesso
       <label className="text-xs font-medium text-muted-foreground mb-0.5 block">LESSONS LEARNED</label>
       <button 
         onClick={handleEdit}
-        className="w-full text-left p-3 rounded-lg transition-colors text-sm min-h-[80px] flex items-start border border-border/30 break-words overflow-hidden bg-white text-black hover:border-border/40 focus:outline-none focus:ring-2 focus:ring-border/30"
+        className="w-full text-left p-3 rounded-lg transition-colors text-sm min-h-[160px] flex items-start border border-border/30 break-words overflow-hidden bg-white text-black hover:border-border/40 focus:outline-none focus:ring-2 focus:ring-border/30"
       >
         <span className="break-words w-full whitespace-pre-wrap">
           {value || ""}

@@ -107,7 +107,7 @@ export const ChallengesField = ({ value, onChange, readOnly = false, itemId }: C
       </label>
       <button 
         onClick={handleEdit}
-        className="w-full text-left p-3 rounded-lg transition-colors text-sm min-h-[40px] flex items-start border border-border/30 break-words overflow-hidden bg-white text-black hover:border-border/40 focus:outline-none focus:ring-2 focus:ring-border/30"
+        className="w-full text-left p-3 rounded-lg transition-colors text-sm min-h-[160px] flex items-start border border-border/30 break-words overflow-hidden bg-white text-black hover:border-border/40 focus:outline-none focus:ring-2 focus:ring-border/30"
       >
         <span className="break-words w-full whitespace-pre-wrap">
           {value || ""}
