@@ -81,7 +81,7 @@ export const TrendAnalysisField = ({ value, onChange, readOnly = false }: TrendA
           onChange={(e) => setLocalValue(e.target.value)}
           onBlur={handleBlur}
           onKeyDown={handleKeyDown}
-          className="w-full p-3 rounded-lg border border-border bg-background resize-none min-h-[80px] text-sm text-black"
+          className="w-full p-3 rounded-lg border border-border bg-background resize-none min-h-[160px] text-sm text-black"
           placeholder=""
           autoFocus
         />
