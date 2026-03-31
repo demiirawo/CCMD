@@ -103,7 +103,7 @@ export const ServiceTagsSettings = ({ companyId }: ServiceTagsSettingsProps) => 
     const items: SectionItem[] = [
       // Staffing
       { id: "recruitment", title: "Safe and Effective Staffing Levels", sectionId: "staff", sectionTitle: "Staffing" },
-      { id: "staff-documents", title: "Staff Documents", sectionId: "staff", sectionTitle: "Staffing" },
+      { id: "staff-documents", title: "Safer Recruitment", sectionId: "staff", sectionTitle: "Staffing" },
       { id: "training", title: "Training & Development", sectionId: "staff", sectionTitle: "Staffing" },
       { id: "spot-checks", title: "Spot Checks", sectionId: "staff", sectionTitle: "Staffing" },
       { id: "staff-supervisions", title: "Staff Supervisions", sectionId: "staff", sectionTitle: "Staffing" },
