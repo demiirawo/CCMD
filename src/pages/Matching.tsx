@@ -2448,7 +2448,7 @@ export const Matching = () => {
                     <Button variant="outline" onClick={() => setNeedsConfirmDialog(null)}>
                       Cancel
                     </Button>
-                    <Button onClick={confirmAssignStaff} disabled={needsConfirmDialog.selectedNeeds.length === 0}>
+                    <Button onClick={confirmAssignStaff}>
                       Assign as {needsConfirmDialog.type === 'primary' ? 'Primary' : 'Backup'}
                     </Button>
                   </div>
