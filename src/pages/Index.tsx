@@ -1422,10 +1422,53 @@ const Index = () => {
       }
       
       const currentCompany = companies.find(c => c.id === profile?.company_id);
+
+      // 🛡️ SAFETY: Re-fetch attendees from the database for THIS company immediately
+      // before sending, to guarantee we never email people from another company
+      // (protects against stale in-memory state after a company switch).
+      let safeAttendees = headerData.attendees;
+      let safeTitle = headerData.title;
+      try {
+        if (profile?.company_id) {
+          const { data: latestHeader, error: latestHeaderError } = await supabase
+            .from('meeting_headers')
+            .select('title, attendees, company_id')
+            .eq('company_id', profile.company_id)
+            .order('updated_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
+          if (latestHeaderError) {
+            console.error('❌ Could not verify attendees against DB before sending:', latestHeaderError);
+            throw new Error('Could not verify meeting attendees. Email send aborted for safety.');
+          }
+
+          if (!latestHeader || latestHeader.company_id !== profile.company_id) {
+            throw new Error('Meeting header company mismatch. Email send aborted for safety.');
+          }
+
+          safeAttendees = Array.isArray(latestHeader.attendees)
+            ? (latestHeader.attendees as unknown as Attendee[])
+            : [];
+          safeTitle = latestHeader.title || headerData.title;
+
+          console.log('🛡️ Verified attendees from DB for company', profile.company_id, safeAttendees);
+        }
+      } catch (verifyError) {
+        console.error('❌ Attendee verification failed:', verifyError);
+        toast({
+          title: "Send Aborted",
+          description: verifyError instanceof Error ? verifyError.message : "Could not verify attendees.",
+          variant: "destructive"
+        });
+        setIsSending(false);
+        return;
+      }
+
       await sendMeetingEmails({
-        title: headerData.title,
+        title: safeTitle,
         date: meetingDate.toISOString(),
-        attendees: headerData.attendees,
+        attendees: safeAttendees,
         actions: [], // Actions removed - using empty array
         meetingSummary: meetingSummary,
         companyName: currentCompany?.name,
